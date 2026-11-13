@@ -3,12 +3,12 @@ import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import { asking } from "../surface/bridge/asking.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import type { Field, Option } from "../surface/contract.ts";
-import { formats } from "../surface/masks.ts";
 import { begin, fieldOf, opened, type Walk } from "../surface/screen.ts";
 import { walkBody } from "../surface/walk.ts";
 import { walking } from "../surface/walking.ts";
 import { promiseTexts } from "../texts/promises.texts.ts";
-import { genericTexts } from "../texts/generic-surface.texts.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
+import { surfaceTexts } from "../texts/surface.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { seated, type Seat } from "./promised-keys.ts";
@@ -23,7 +23,7 @@ function blocked<X extends Program>(
   answers: readonly string[],
   target: string,
 ): readonly Expected[] {
-  const ask = asking(aim.act.input, { formats: formats(seat.shown.locale), optionalMark: genericTexts.optional });
+  const ask = asking(aim.act.input, seat.words);
   const field = ask.next(answers);
   const stops = (value: string) => aim.act.stops?.(ask.sofar([...answers, value]), seat.state(), target, seat.now());
   if (field?.kind === "one" || field?.kind === "many")
@@ -35,13 +35,14 @@ function blocked<X extends Program>(
   const source = program.registry.find(tool => tool.id === field.of);
   const among = aim.act.among?.(ask.sofar(answers), seat.state(), target, seat.now())[field.of];
   return (source?.targets(seat.state()) ?? []).flatMap(value => {
-    if (value === target || source?.closed?.(seat.state(), value)) return [];
+    if (value === target || source?.closed?.(seat.state(), value, seat.now())) return [];
     const why = among?.(value) ?? stops(value);
     return why === undefined ? [] : [{ value, why }];
   });
 }
 function assertChoice<X extends Program>(seat: Seat<X>, walk: Walk, field: Field, expected: Expected, hidden: boolean) {
   ok(expected.why.trim());
+  const detail = expected.why === toolTexts.unchanged ? surfaceTexts.current : expected.why;
   const choices = "options" in field ? field.options : [];
   const options = field.kind === "pick" ? field.found("") : choices;
   const matches = (option: Option) => (option.value ?? option.title) === expected.value;
@@ -52,11 +53,11 @@ function assertChoice<X extends Program>(seat: Seat<X>, walk: Walk, field: Field
   }
   ok(option);
   strictEqual(option.off, true);
-  strictEqual(option.detail, expected.why);
+  strictEqual(option.detail, detail);
   if (field.kind === "pick") {
     const found = field.found(field.shown(expected.value)).find(matches);
     ok(found?.off);
-    strictEqual(found.detail, expected.why);
+    strictEqual(found.detail, detail);
     const firstOff = options.findIndex(row => row.off);
     ok(options.slice(firstOff).every(row => row.off));
   }
@@ -81,7 +82,7 @@ function checkCase<X extends Program>(
   kase: Case<X>,
   hidden: boolean,
 ) {
-  const ask = asking(aim.act.input, { formats: formats(seat.shown.locale), optionalMark: genericTexts.optional });
+  const ask = asking(aim.act.input, seat.words);
   const answers = ask.answers(kase.input);
   const target = kase.on ?? aim.tool.id;
   const initial = begin(seat.tools, aim.tool.id, aim.name, aim.act.on === "thing" ? target : undefined);

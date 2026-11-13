@@ -1,4 +1,5 @@
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
+import { defectReporter } from "../tools/execution/defect-reporter.ts";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { SecretVault } from "../adapters/secrets/secret-vault.ts";
@@ -72,7 +73,7 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     if (!state().house.admin) createHouse(bus, creation);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
-    return { bus, journal, tools, registry, close };
+    return { bus, journal, tools, registry, close, now: () => time.now() };
   } catch (error) {
     close();
     throw error;
@@ -80,12 +81,12 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
 }
 export type RunningHouse<X extends Program> = ReturnType<typeof startHouse<X>>;
 /** A surface in the house's own process reads it and acts in it as one identity, with no door in between; it
- * tells the time by the system's clock unless the house runs on another one. */
+ * reads the same clock as the house. */
 export const localPorts = <X extends Program>(
-  house: Pick<RunningHouse<X>, "tools" | "registry" | "bus">,
+  house: Pick<RunningHouse<X>, "tools" | "registry" | "bus" | "now">,
   me: string,
   limits: ViewLimits,
-  now: () => number = () => Date.now(),
+  now: () => number = house.now,
 ): HousePorts<X> => ({
   me,
   limits,
@@ -93,6 +94,7 @@ export const localPorts = <X extends Program>(
   state: () => identityView(house.tools.state(), me),
   act: (value, through) => house.tools.act(value, through, me),
   now,
+  defect: defectReporter(house.registry, me, entry => house.bus.emit(entry), house.tools.prepare),
   connection: () => "connected",
   watch: changed => house.bus.on(changed),
 });

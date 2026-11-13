@@ -1,14 +1,20 @@
 // A day that already happened: one after today is turned down where it is written, as the country counts its days.
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import { object } from "../../catalogs/acts.ts";
 import { day, isDay, wrongIn } from "../../catalogs/fields.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
+import type { AskWords } from "./asking.ts";
 import { asking } from "./asking.ts";
 import { formats } from "../masks.ts";
 
 const locale = { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" };
-const words = { formats: formats(locale), optionalMark: " · opcional", today: () => "2026-11-11" };
+const words = {
+  now: () => Date.UTC(2026, 10, 11),
+  formats: formats(locale),
+  optionalMark: " · opcional",
+  today: () => "2026-11-11",
+};
 
 describe("a day that already happened", () => {
   const paid = object({ on: day("Día", "today", "today") });
@@ -21,12 +27,10 @@ describe("a day that already happened", () => {
     expect(question?.wrong?.("12112026")).toBe(generic.future);
   });
 
-  it("holds no day to today where nobody says what today is, nor a day that does not say it already happened", () => {
-    expect(
-      asking(paid, { ...words, today: () => undefined })
-        .next([])
-        ?.wrong?.("12112099"),
-    ).toBeUndefined();
+  it("requires a real clock and day, while a day without a last bound still accepts the future", () => {
+    expectTypeOf<Omit<AskWords, "now">>().not.toExtend<AskWords>();
+    expectTypeOf<Omit<AskWords, "today">>().not.toExtend<AskWords>();
+    expectTypeOf<() => undefined>().not.toExtend<AskWords["today"]>();
     const due = object({ on: day("Vence") });
     expect(asking(due, words).next([])?.wrong?.("12112099")).toBeUndefined();
   });

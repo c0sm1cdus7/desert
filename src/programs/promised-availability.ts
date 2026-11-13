@@ -1,8 +1,5 @@
 // A case's first unanswered reference must have somewhere to go, or its action stays disabled at the menu.
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
-import { asking } from "../surface/bridge/asking.ts";
-import { formats } from "../surface/masks.ts";
-import { genericTexts } from "../texts/generic-surface.texts.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import { withoutChoices } from "../surface/bridge/picked.ts";
 import type { Composition, Case } from "../tools/promises.ts";
@@ -57,12 +54,9 @@ const availabilityCheck = <X extends Program>(
       }
     }),
 });
-export const availabilityChecks = <X extends Program>(program: Composition<X>, shown: Shown<X>): readonly Check[] => {
-  const words = { formats: formats(shown.locale), optionalMark: genericTexts.optional };
-  return program.registry.flatMap(tool =>
-    Object.entries(tool.acts).flatMap(([name, act]) => {
-      if (asking(act.input, words).next([])?.kind !== "pick") return [];
-      return act.cases.map(kase => availabilityCheck(program, shown, { tool, name, act }, kase));
-    }),
+export const availabilityChecks = <X extends Program>(program: Composition<X>, shown: Shown<X>): readonly Check[] =>
+  program.registry.flatMap(tool =>
+    Object.entries(tool.acts).flatMap(([name, act]) =>
+      act.cases.map(kase => availabilityCheck(program, shown, { tool, name, act }, kase)),
+    ),
   );
-};

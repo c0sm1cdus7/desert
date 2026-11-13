@@ -1,4 +1,5 @@
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
+import { toolTexts } from "../../texts/tools.texts.ts";
 import { thingView } from "./presented.ts";
 import { allowed, hides } from "../../house/house.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
@@ -110,11 +111,15 @@ const thingsOf = <X extends Program>(ports: HousePorts<X>, { words }: Shown<X>, 
     /** The things of a tool this identity does not hold are out of reach: none is found, and it says why. */
     const why = tool.off?.();
     if (why !== undefined) return { found: () => [], shown: thing => thing, has: () => false, empty: why };
-    const open = (thing: string): boolean => contract.closed?.(ports.state(), thing) !== true;
+    const open = (thing: string): boolean => contract.closed?.(ports.state(), thing, ports.now()) !== true;
     return {
       empty: listsOf(words[id])?.empty ?? "",
       found: sought =>
-        (tool.find?.(sought) ?? []).flatMap(row => (row.opens && open(row.opens) ? [picked(row, row.opens)] : [])),
+        (tool.find?.(sought) ?? []).flatMap(row =>
+          row.opens
+            ? [{ ...picked(row, row.opens), ...(!open(row.opens) ? { off: true, detail: toolTexts.invalid } : {}) }]
+            : [],
+        ),
       shown: thing => tool.titleOf?.(thing) ?? thing,
       has: thing => contract.targets(ports.state()).includes(thing) && open(thing),
       make: act => make(contract, tool, act),

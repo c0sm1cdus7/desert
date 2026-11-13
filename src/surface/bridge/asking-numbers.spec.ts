@@ -7,7 +7,12 @@ import { asking } from "./asking.ts";
 import { formats, padded as paddedMask } from "../masks.ts";
 
 const locale = { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" };
-const words = { formats: formats(locale), optionalMark: " · opcional" };
+const words = {
+  now: () => Date.UTC(2026, 10, 11),
+  today: () => "2026-11-11",
+  formats: formats(locale),
+  optionalMark: " · opcional",
+};
 
 describe("a number being written", () => {
   it("keeps extendable numeric prefixes quiet and unavailable", () => {

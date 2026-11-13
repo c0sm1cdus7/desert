@@ -1,4 +1,5 @@
 // The one way a surface talks with a house: intents in, the screen out. Every renderer uses it, and decides nothing.
+import { routerDefects, type DefectReporter } from "./guards/router-defect.ts";
 import type { Intent, Screen } from "./contract.ts";
 import type { Result, Tool } from "./shown-tool.ts";
 import { resolve } from "./resolve.ts";
@@ -18,7 +19,7 @@ export interface Router {
 }
 export type RouterSource = Readonly<{ tools: readonly Tool[]; bar: () => Bar; first?: Session }> &
   /** The house saying that something in it changed, and how often a screen that shows time is drawn again. */
-  Readonly<{ changes?: (changed: () => void) => () => void; redrawMs?: number }>;
+  Readonly<{ changes?: (changed: () => void) => () => void; redrawMs?: number; defect?: DefectReporter }>;
 
 /** What the house answers later: each answer lands when it comes, and anyone can wait for all of them. */
 function landings(landed: () => void) {
@@ -37,19 +38,20 @@ function landings(landed: () => void) {
     },
   };
 }
-export function startRouter({ tools, bar, changes, redrawMs, first = start }: RouterSource): Router {
+export function startRouter({ tools, bar, changes, redrawMs, first = start, defect }: RouterSource): Router {
   let session = first;
+  const { failed, protect } = routerDefects(tools, () => session, bar, defect);
   const watchers = new Set<() => void>();
   const changed = (): void => watchers.forEach(watcher => watcher());
   const { later, idle } = landings(changed);
   const run = (walk: Running): void => {
-    const done = actOf(tools, walk)
-      .run(walk.answers)
-      .catch((failure: unknown): Result => ({ ok: false, reason: String(failure) }));
+    const done = Promise.resolve()
+      .then(() => actOf(tools, walk).run(walk.answers))
+      .catch((failure: unknown): Result => ({ ok: false, reason: failed(failure) }));
     later(done, result => (session = finished(session, walk, result, bar().clock)));
   };
   const stops = [changes?.(changed), redrawMs ? clearInterval.bind(null, setInterval(changed, redrawMs)) : undefined];
-  return {
+  return protect({
     idle,
     screen: viewport => resolve(session, tools, bar(), viewport),
     send: intent => {
@@ -69,5 +71,5 @@ export function startRouter({ tools, bar, changes, redrawMs, first = start }: Ro
       stops.forEach(stop => stop?.());
       watchers.clear();
     },
-  };
+  });
 }

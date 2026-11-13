@@ -32,7 +32,7 @@ function unchangedCheck<X extends Program>(program: Composition<X>, aim: Aim<X>,
   const run = (): Promise<void> =>
     staged(program, async ({ house }) => {
       await given(house(), aim.tool.id, kase.given, kase.at);
-      const input = today(house().tools.state(), kase.on ?? aim.tool.id);
+      const input = today(house().tools.state(), kase.on ?? aim.tool.id, house().now());
       if (input === undefined) return;
       const before = house().tools.state().through;
       const done = await perform(house(), aim.tool.id, { ...kase, act: aim.name, input });

@@ -40,7 +40,7 @@ const changingBy =
     const level = target === tool.id ? "tool" : "thing";
     const found = Object.entries(tool.acts).find(([, act]) => act.changes === key && act.on === level);
     if (!found) return undefined;
-    const today = found[1].today?.(ports.state(), target);
+    const today = found[1].today?.(ports.state(), target, ports.now());
     return start(found[0], target, { ...(today === undefined ? {} : { today }), detail: shown });
   };
 type Menued = Readonly<{ id: string; thing: string }>;
@@ -49,7 +49,7 @@ const rowsUnder = <X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<
   Object.entries(tool.acts)
     .filter(([, act]) => act.under === menu.id)
     .map(([name, act]) => {
-      const today = act.today?.(ports.state(), menu.thing);
+      const today = act.today?.(ports.state(), menu.thing, ports.now());
       return start(name, menu.thing, today === undefined ? {} : { today });
     });
 export function anyToolScreen<X extends Program>(

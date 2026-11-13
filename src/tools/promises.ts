@@ -1,5 +1,6 @@
 // What a program promises of each act: the causes it may refuse with, and cases that say what happens. Specs derive.
-import { toolTexts } from "../texts/tools.texts.ts";
+import { declaredCause, programRule } from "./execution/program-causes.ts";
+export { ofTheBase } from "./execution/program-causes.ts";
 import { aid, short, worded } from "./act-words.ts";
 import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -55,16 +56,10 @@ function body<X extends Program, S extends TSchema, O extends readonly string[]>
   };
   return Object.assign(run, { [declaredBody]: true as const });
 }
-/** What the base itself refuses with is not the act's to declare. */
-export const ofTheBase = (cause: string): boolean => cause === toolTexts.unchanged || cause === toolTexts.noSuchDay;
-function guarded<X extends Program>(refuses: readonly string[], offered: ToolAct<X>["offered"]) {
-  return (state: State<X>, target: string, at: number): string | undefined => {
-    const cause = offered?.(state, target, at);
-    if (cause !== undefined && !refuses.includes(cause))
-      throw new Error(`An act refused with a cause it does not declare: ${cause}`);
-    return cause;
-  };
-}
+const guarded =
+  <X extends Program>(refuses: readonly string[], offered: ToolAct<X>["offered"]) =>
+  (state: State<X>, target: string, at: number): string | undefined =>
+    programRule(() => declaredCause(refuses, offered?.(state, target, at)));
 /** An act of a program: what it takes, what it does, and what it promises. */
 export function programAct<X extends Program, S extends TSchema, const O extends readonly string[] = readonly []>(
   declared: Declared<X, S, O>,

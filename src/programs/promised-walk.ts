@@ -2,8 +2,6 @@
 import { deepStrictEqual, ok } from "node:assert/strict";
 import { asking } from "../surface/bridge/asking.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
-import { formats } from "../surface/masks.ts";
-import { genericTexts as generic } from "../texts/generic-surface.texts.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
@@ -28,10 +26,9 @@ function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
       const seat = seated(house(), kase.by ?? cast.admin, shown);
       const before = house().tools.state().through;
       try {
-        const words = { formats: formats(shown.locale), optionalMark: generic.optional };
         const holder = program.registry.find(tool => tool.targets(house().tools.state()).includes(kase.from ?? ""));
         const from = kase.from !== undefined && holder ? { from: { tool: holder.id, target: kase.from } } : {};
-        const told = { aim, kase, answers: asking(aim.act.input, words).answers(kase.input), ...from };
+        const told = { aim, kase, answers: asking(aim.act.input, seat.words).answers(kase.input), ...from };
         currentInState(seat, aim, kase);
         /** What is off said why, and what a field does not let be written cannot be sent: neither breaks a refusal. */
         const row = quietly(seat.router, router => taken({ ...seat, router }, told));
@@ -50,6 +47,7 @@ function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
         /** Closing what was done leaves the person on a screen that exists: never on a thing its act took away. */
         seat.router.send({ kind: "cancel" });
         ok(!JSON.stringify(seat.router.screen(view).body).includes(surface.gone), said.lost(aim.name));
+        ok(seat.defects.length === 0, seat.defects.join("\n"));
       } finally {
         seat.router.stop();
       }

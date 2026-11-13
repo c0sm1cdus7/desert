@@ -35,9 +35,9 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - `on: "tool"` (crea o actúa sobre la herramienta) o `on: "thing"` (sobre un objeto). `under: "<menú>"` la pone
   dentro de un menú del objeto (Editar). `changes: "<dato>"` la pone en la fila del dato que cambia (solo datos de la
   herramienta, no de un objeto).
-- `offered(estado, objeto)` devuelve el motivo por el que ahora no se puede (la fila queda apagada diciéndolo, y la
+- `offered(estado, objeto, instante)` devuelve el motivo por el que ahora no se puede (la fila queda apagada diciéndolo, y la
   base rechaza con el mismo motivo). `refuses` lista los motivos previos a correr; `outside`, los que solo produce el mundo. Cada causa necesita su caso.
-- `today(estado, objeto)` da lo que el objeto vale hoy: toda caminata nace con eso, incluso desde `Acciones`,
+- `today(estado, objeto, instante)` da lo que el objeto vale hoy: toda caminata nace con eso, incluso desde `Acciones`,
   una fila, un menú o una acción ofrecida por otra herramienta. El texto abre encendido entero y escribir lo
   reemplaza. Lo vigente se marca «actual»: se apaga si elegirlo terminaría sin cambios. En texto, `enter`
   se ofrece solo cuando cambiaría algo al terminar. Por otras puertas, la base sigue rechazando «sin cambios»
@@ -45,6 +45,9 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   pregunta abre con «sí · actual». Separar el valor editable de las condiciones que explican su disponibilidad.
 - `confirms` pone algo a confirmar. Lo irreversible (`undoable: false`) confirma con «volver» primero.
 - `also` la ofrece además entre las acciones de los objetos de otra herramienta (cobrar, desde una venta).
+  `also.with(estado, cosa, instante)` decide si aparece y fija respuestas; `also.off(estado, cosa, instante)` dice
+  por qué está apagada. `closed(estado, cosa, instante)` decide si una cosa se puede elegir. Usan el mismo reloj
+  de la casa que `offered`, `stops` y `among`, también cuando cambia el día sin hechos nuevos.
 - `run` puede ser `async`; solo devuelve `accepted` o `rejected` con una causa literal de `outside`, opcionalmente
   seguida de ` · dato`. Sin `outside`, no devuelve rechazos. Una causa ajena a esa lista no compila; si código
   sin tipos la introduce igual, la base termina con el defecto fijo del catálogo. Lo lanzado o una promesa rechazada
@@ -57,7 +60,7 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   texto 3, sin «Error» y sin `enter`. Enter no hace nada si no se ofrece; una tecla que no entra conserva el campo.
   Un prefijo numérico como «0», que todavía puede crecer, no agrega «mínimo» ni «mayor a».
   «Error» en coral queda para el resultado de una acción que corrió.
-- Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, respondido => …)`).
+- Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, (respondido, instante) => …)`).
 - `holding(campo, (valor, instante) => motivoOIndefinido)` recibe el mismo reloj que `run`, `stops` y `among`.
   No usar `Date.now()` en esas reglas: el instante lo da la casa y los casos lo pueden fijar.
 - `day(pregunta, "today", "today")` limita la Entrada; la regla del programa contra fechas futuras va también
@@ -84,7 +87,9 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   esa opción: lo que frenaría queda apagado con su motivo antes de elegirlo.
 - Donde se elige una cosa se puede hacer una nueva ahí mismo: `thing(pregunta, herramienta, ninguna?, acción)`. Esa
   acción es de la herramienta (`on: "tool"`) y lo que contesta dice qué cosa hizo (`target`): esa es la respuesta. Si
-  la acción no existe, el programa no compone.
+  la acción no existe, el programa no compone. Antes de tomar lo creado, la base vuelve a consultar la pregunta
+  contra el estado nuevo: `among`, `valid` y `stops`. Si no sirve, permanece en esa pregunta con su motivo y la
+  cosa aparece apagada con ese motivo; si sirve avanza; si no hubo destino vuelve sin responder.
 - Todo campo `thing` sin `makes` declara `empty`, el motivo de no tener ninguna cosa elegible:
   `thing("Venta", "sales", undefined, undefined, "sin ventas para cobrar")`. Sin ese motivo, vacío o con uno que
   no sirve como dato corto, el programa no compone. `none` sigue nombrando la opción de no elegir ninguna; no
@@ -95,6 +100,22 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   fijas. Un motivo explícito de `offered` o `also.off` tiene prioridad.
 - Una acción dice si se ofrece sabiendo qué momento es (`offered(estado, cosa, instante)`): lo que hoy no se puede
   hacer queda apagado con su motivo.
+- `stops` puede devolver `toolTexts.unchanged` cuando lo vigente depende de una respuesta anterior y `today` no
+  alcanza. La base interpreta el mismo hecho: en opciones y referencias dice «actual», apagado; en texto no hay
+  Enter ni motivo bajo la pregunta. No agregarlo a `outside` ni repetirlo en `run`; es una causa propia de la base.
+  Otra regla que apaga lo vigente conserva su motivo. Una opción distinta de lo vigente no se marca «actual».
+- Una causa de `offered`, `stops`, `wrong` o `among` que no pertenece a `refuses` ni a las causas de la base es un
+  defecto del programa: `E-PROG-1`, con diagnóstico en el registro. Lo mismo vale si una regla lanza, falla una
+  lectura de pantalla o el pliegue de lo escrito. El resultado no muestra el detalle técnico.
+- `today` recibe el instante porque también decide si se puede enviar. `when` lo recibe para elegir las preguntas;
+  `draft(estado, hasta, input, cosa, instante)` lo recibe para detectar conflictos. Las funciones que no lo usan
+  pueden conservar menos parámetros. `datum`, `words` y `also.opens` conservan sus firmas descriptivas.
+- Quien arma preguntas con `asking` trae `now: () => number` y `today: () => string` en `AskWords`: son obligatorios.
+  `questionWords(reloj, shown)` arma ese contexto con el reloj de la casa. `shown.day` sigue siendo obligatorio
+  al componer un programa que sugiere hoy o cierra fechas futuras: no se adivina un calendario ausente.
+  Los puertos propios implementan `HousePorts.defect` para registrar defectos de pantalla; `localPorts` ya lo hace
+  y hereda el reloj de la casa. El router muestra el texto fijo y no reintenta automáticamente.
+
 
 
 ## Migrar una acción a la separación de rechazos (12/11)
@@ -183,7 +204,7 @@ La persona solo puede terminar en `Listo` o en `Error` por una causa de afuera. 
    de éxito o tratar explícitamente el resultado y clasificar la causa externa. `inconclusive` e `interrupted` no
    son resultados de `run` de un programa; los estados de la infraestructura siguen en el contrato de la casa.
 
-6. **Revisar `today` y las superficies personalizadas.** Su firma no cambia: devuelve el input completo que
+6. **Revisar `today` y las superficies personalizadas.** Recibe el instante como tercer argumento y devuelve el input completo que
    representa lo vigente, o `undefined` si no lo hay. No usarlo para una sugerencia que todavía no es verdad.
    Al envolver una acción de superficie, conservar `...act`, incluidos `today`, `same`, `next` y `stops`.
    Una opción vigente intermedia sigue elegible; la última que dejaría todo igual se apaga, o deja el texto sin

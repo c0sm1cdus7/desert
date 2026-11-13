@@ -95,7 +95,10 @@ describe("a first choice needs somewhere to go", () => {
         : {
             ...tool,
             acts: Object.fromEntries(
-              Object.entries(tool.acts).map(([name, act]) => [name, { ...act, offered: () => "sin permiso" }]),
+              Object.entries(tool.acts).map(([name, act]) => [
+                name,
+                { ...act, refuses: [...act.refuses, "sin permiso"], offered: () => "sin permiso" },
+              ]),
             ),
           },
     );

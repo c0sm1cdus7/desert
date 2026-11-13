@@ -70,9 +70,9 @@ export type Also<X extends Program> = Readonly<{
   /** What its row says there, when it is not what it says on its own tool: `cobrar` on a sale. */
   name?: string;
   datum?: Datum<X>;
-  with: (state: State<X>, target: string) => Readonly<Record<string, unknown>> | undefined;
+  with: (state: State<X>, target: string, at: number) => Readonly<Record<string, unknown>> | undefined;
   /** Why it cannot be done on that thing, when that is so: it stays among the thing's actions, off, saying this. */
-  off?: (state: State<X>, target: string) => string | undefined;
+  off?: (state: State<X>, target: string, at: number) => string | undefined;
   /** What the questions after those open on, when that thing suggests an answer the person may change. */
   opens?: (state: State<X>, target: string) => Readonly<Record<string, unknown>>;
 }>;
@@ -85,13 +85,13 @@ export type ProgramAct<X extends Program, O extends readonly string[] = readonly
   /** What is put before the person to confirm, once everything was answered, when the act wants that. */
   Readonly<{ confirms?: (input: unknown, state: State<X>, target: string, at: number) => string | undefined }> &
   /** What the thing has today, in the shape the act takes: an act that changes it opens on it. */
-  Readonly<{ today?: (state: State<X>, target: string) => unknown; also?: Also<X>; datum?: Datum<X> }> &
+  Readonly<{ today?: (state: State<X>, target: string, at: number) => unknown; also?: Also<X>; datum?: Datum<X> }> &
   SoFar<X>;
 export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
   Readonly<{ acts: Readonly<Record<string, ProgramAct<X>>>; menus?: Readonly<Record<string, Menu>> }> &
   /** Whether one of its things takes nothing new any more (archived, canceled): a question that picks among its
    * things does not offer it. */
-  Readonly<{ closed?: (state: State<X>, target: string) => boolean }> &
+  Readonly<{ closed?: (state: State<X>, target: string, at: number) => boolean }> &
   /** The words one of its things is found by, beyond what its row on the list already says. */
   Readonly<{ words?: (state: State<X>, target: string) => string }> &
   /** The things of the tool that need someone to act, each saying why: read from what the tool keeps and from
@@ -113,7 +113,7 @@ export type Declared<X extends Program, S extends TSchema, O extends readonly st
   /** What is put before the person to confirm: said from what they answered, from what the house keeps, and from
    * the thing it is done to (the tool itself, for an act on the tool). */
   Readonly<{ confirms?: (input: Static<S>, state: State<X>, target: string, at: number) => string }> &
-  Readonly<{ today?: (state: State<X>, target: string) => Static<S> | undefined }> &
+  Readonly<{ today?: (state: State<X>, target: string, at: number) => Static<S> | undefined }> &
   Readonly<{ also?: Also<X>; datum?: Datum<X> }> &
   SoFar<X> &
   /** Every cause this act may refuse with; refusing with any other is a defect of the program. */

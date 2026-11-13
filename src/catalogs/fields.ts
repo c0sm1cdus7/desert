@@ -94,14 +94,14 @@ export const padded = (ask: string, width: number) =>
 export const handle = (ask: string, hint: string, allowed: string, max: number) =>
   Type.String({ pattern: `^[${allowed}]{1,${max}}$`, title: ask, placeholder: hint, mask: "chars", allowed, max });
 /** Whether a field is asked, given what was answered before it in the same datum. */
-export type Asked = (answered: Readonly<Record<string, unknown>>) => boolean;
+export type Asked = (answered: Readonly<Record<string, unknown>>, at: number) => boolean;
 /** A field that is asked only when what was answered before it calls for it: otherwise nobody is asked, and the
  * datum goes without it. Which kind of document, only once its number has eleven digits. */
 export const when = <T extends TSchema>(field: T, asked: Asked) => Type.Optional({ ...field, when: asked });
 /** Whether a field of a datum is asked, as its declaration says: always, unless it says when. */
-export function isAsked(schema: unknown, answered: Readonly<Record<string, unknown>>): boolean {
+export function isAsked(schema: unknown, answered: Readonly<Record<string, unknown>>, at: number): boolean {
   const asks: unknown = schema !== null && typeof schema === "object" ? Reflect.get(schema, "when") : undefined;
-  return !isAsker(asks) || asks(answered);
+  return !isAsker(asks) || asks(answered, at);
 }
 const isAsker = (asks: unknown): asks is Asked => typeof asks === "function";
 /** Why a datum that is complete still does not hold, when that is so: a check digit that does not match. */

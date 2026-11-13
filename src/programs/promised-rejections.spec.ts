@@ -62,7 +62,7 @@ describe("the gate closes every internal refusal before running", () => {
   });
   it("fails when an external case closes in the question instead of running", async () => {
     const early = changed(printingShop, "print", act => ({ ...act, stops: () => "printer offline · desk" }));
-    await expect(byKeys(early, "printer is offline")).rejects.toThrow("did not run exactly once");
+    await expect(byKeys(early, "printer is offline")).rejects.toThrow("E-PROG-1");
   });
   it("fails when the external case runs but reports success instead of Error", async () => {
     const silent = changed(printingShop, "print", act => {

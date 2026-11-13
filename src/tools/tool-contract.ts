@@ -70,7 +70,7 @@ export interface Tool<X extends Program> extends Readonly<{ id: string; purpose:
   viewData?(state: State<X>, target: string): unknown;
   summary(state: State<X>): string;
   effects?(state: State<X>, event: Event<X["fact"]>): readonly Emission<X["fact"]>[];
-  draft?(state: State<X>, through: number, input: unknown, target: string): string | undefined;
+  draft?(state: State<X>, through: number, input: unknown, target: string, at: number): string | undefined;
 }
 export type ToolRegistry<X extends Program> = readonly Tool<X>[];
 /** An act's result is news when it failed or brought output nobody has read. */

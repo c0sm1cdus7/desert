@@ -11,6 +11,7 @@ import { choices, stacksOf } from "../surface/lists.ts";
 import type { Choice } from "../surface/screen.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import type { Program } from "../tools/tool-contract.ts";
+import { questionWords } from "../surface/bridge/questions/asking-clock.ts";
 import { localPorts } from "./house-runtime.ts";
 import type { Aim, House } from "./promised-stage.ts";
 
@@ -49,24 +50,29 @@ export function seated<X extends Program>(house: House<X>, by: string, shown: Sh
   const ports = localPorts(house, by, { recentLines: 100 }, house.now);
   const requests: Act[] = [];
   const defects: string[] = [];
-  const tools = houseTools(
-    {
-      ...ports,
-      act: (value, through) => {
-        if (value.act !== "attend") requests.push(value);
-        return recordResult(ports.act(value, through), defects);
-      },
-    },
-    shown,
-  );
+  const act = (value: Act, through: number) => {
+    if (value.act !== "attend") requests.push(value);
+    return recordResult(ports.act(value, through), defects);
+  };
+  const tools = houseTools({ ...ports, act }, shown);
   return {
     tools,
     requests,
     defects,
     shown,
+    words: questionWords(ports.now, shown),
     state: ports.state,
     now: ports.now,
-    router: startRouter({ tools, bar: () => bar, changes: ports.watch }),
+    router: startRouter({
+      tools,
+      bar: () => ({ ...bar, now: ports.now() }),
+      changes: ports.watch,
+      defect: (...args) => {
+        const reason = ports.defect(...args);
+        defects.push(reason);
+        return reason;
+      },
+    }),
   };
 }
 export type Seat<X extends Program> = ReturnType<typeof seated<X>>;

@@ -15,7 +15,12 @@ const locale = { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" 
 const view = { rows: 26 };
 const bar = () => ({ state: "connected", clock: "00:00", now: 0 }) as const;
 function seat(schema: Parameters<typeof asking>[0], stops?: (answers: readonly string[]) => string | undefined) {
-  const ask = asking(schema, { formats: formats(locale), optionalMark: "opcional" });
+  const ask = asking(schema, {
+    now: () => Date.UTC(2026, 10, 11),
+    today: () => "2026-11-11",
+    formats: formats(locale),
+    optionalMark: "opcional",
+  });
   const run = vi.fn((): Promise<Result> => Promise.resolve({ ok: true, text: "Cambiado" }));
   const tool: Tool = {
     id: "data",

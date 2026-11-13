@@ -108,6 +108,7 @@ describe("a program with acts on its things", () => {
       "beto does not register",
       "beto does not register, by keys",
       "beto does not register, blocked choices",
+      "beto does not register, no empty first choice",
       "beto does not register, hidden for who prefers not to see what cannot be done",
     ]);
     expect(await failing(mine)).toEqual([]);

@@ -78,6 +78,19 @@ const empty: Shown<Shop> = {
   },
 };
 
+const wordless: Shown<Shop> = {
+  ...shopShown,
+  screens: {
+    sales: (ports, tool, words, acts, start) => {
+      const plain = anyToolScreen(ports, tool, words, acts, start);
+      return {
+        ...plain,
+        acts: Object.fromEntries(Object.entries(plain.acts).map(([name, act]) => [name, { ...act, off: () => "" }])),
+      };
+    },
+  },
+};
+
 describe("breadth-first exploration of saved journals", () => {
   it("counts depth and branch limits explicitly and visits breadth before depth", async () => {
     const order: number[] = [];
@@ -106,6 +119,9 @@ describe("breadth-first exploration of saved journals", () => {
     expect(readFileSync(file)).toEqual(before);
     await expect(walked(programWith(print), folder, empty)).rejects.toThrow("nothing eligible");
     const off = { ...print, offered: () => "" };
-    await expect(walked(programWith(off), folder)).rejects.toThrow("disabled row has no reason");
+    await expect(walked(programWith(off), folder)).rejects.toMatchObject({
+      detail: "An act refused with a cause it does not declare: ",
+    });
+    await expect(walked(programWith(print), folder, wordless)).rejects.toThrow("disabled row has no reason");
   });
 });

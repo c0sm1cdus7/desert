@@ -97,7 +97,7 @@ export const brokenShops: readonly Readonly<{ name: string; program: Composition
     {
       name: "a shop that refuses with a cause it never declared",
       program: registering(honest, []),
-      fails: [covered, again],
+      fails: [covered, again, keys(again)],
     },
     {
       name: "a shop that declares a refusal and promises no case for it",

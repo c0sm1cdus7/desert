@@ -46,14 +46,14 @@ export function write(schema: unknown, value: unknown, words: AskWords): string[
 const answeredIn = (value: unknown): Readonly<Record<string, unknown>> => (isRecord(value) ? value : {});
 const written_ = (schema: unknown, value: unknown, words: AskWords, skip: readonly string[] = []): string[] =>
   Object.entries(at(schema, "properties") ?? {})
-    .filter(([key, field]) => !skip.includes(key) && isAsked(field, answeredIn(value)))
+    .filter(([key, field]) => !skip.includes(key) && isAsked(field, answeredIn(value), words.now()))
     .flatMap(([key, field]) => write(field, at(value, key), words));
 /** The answers to the first things a declaration asks, for as long as the datum says them: where it stops saying,
  * the questions begin. */
 export function leading(schema: unknown, value: unknown, words: AskWords): string[] {
   const answers: string[] = [];
   for (const [key, field] of Object.entries(at(schema, "properties") ?? {})) {
-    if (!isAsked(field, answeredIn(value))) continue;
+    if (!isAsked(field, answeredIn(value), words.now())) continue;
     if (at(value, key) === undefined) break;
     answers.push(...write(field, at(value, key), words));
   }

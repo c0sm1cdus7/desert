@@ -20,7 +20,7 @@ export function quietScreen(screen: Screen): void {
     ok(!options.some(row => row.off && row.selected), said.disabledCursor);
   }
   for (const event of screen.body.events) {
-    ok(!event.text.some(span => span.tone === "cut"));
+    ok(!event.text.some(span => span.tone === "cut"), event.text.map(span => span.text).join(""));
     ok(
       !event.text
         .map(span => span.text)

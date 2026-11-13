@@ -55,7 +55,7 @@ function fields(schema: unknown, ctx: Ctx, from: number, skip: readonly string[]
   const value: Record<string, unknown> = {};
   for (const [key, field] of Object.entries(at(schema, "properties") ?? {})) {
     /** A field that says when it is asked is skipped while what was answered before does not call for it. */
-    if (skip.includes(key) || !isAsked(field, value)) continue;
+    if (skip.includes(key) || !isAsked(field, value, ctx.now())) continue;
     /** What is asked only sometimes is not left out when it is asked: then it is as needed as any other. */
     const got = read(field, { ...ctx, optional: !needed.includes(key) && at(field, "when") === undefined }, next);
     if ("ask" in got) return got;
@@ -117,7 +117,7 @@ function sofar(schema: TSchema, ctx: Ctx): Readonly<Record<string, unknown>> {
   const value: Record<string, unknown> = {};
   let next = 0;
   for (const [key, field] of Object.entries(at(schema, "properties") ?? {})) {
-    if (!isAsked(field, value)) continue;
+    if (!isAsked(field, value, ctx.now())) continue;
     const needed = (isList(required) && required.includes(key)) || at(field, "when") !== undefined;
     const got = read(field, { ...ctx, optional: !needed }, next);
     if ("ask" in got) return value;

@@ -1,9 +1,7 @@
 // A rejection is proved where it closes the choice, never merely by finding its words after an execution.
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import { asking } from "../surface/bridge/asking.ts";
-import { formats } from "../surface/masks.ts";
 import { begin } from "../surface/screen.ts";
-import { genericTexts } from "../texts/generic-surface.texts.ts";
 import { surfaceTexts } from "../texts/surface.texts.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
@@ -18,13 +16,12 @@ import type { Aim } from "./promised-stage.ts";
 
 export function currentInState<X extends Program>(seat: Seat<X>, aim: Aim<X>, kase: Case<X>): void {
   const on = kase.on ?? aim.tool.id;
-  const current = aim.act.today?.(seat.state(), on);
+  const current = aim.act.today?.(seat.state(), on, seat.now());
   const tool = seat.tools.find(tool => tool.id === aim.tool.id);
   const act = aim.act.on === "tool" ? tool?.acts[aim.name] : tool?.actsOn?.[aim.name];
   if (current === undefined || act?.off?.(on) !== undefined) return;
   const initial = begin(seat.tools, aim.tool.id, aim.name, aim.act.on === "thing" ? on : undefined);
-  const words = { formats: formats(seat.shown.locale), optionalMark: genericTexts.optional };
-  deepStrictEqual(initial.was, asking(aim.act.input, words).answers(current));
+  deepStrictEqual(initial.was, asking(aim.act.input, seat.words).answers(current));
   currentCloses(seat.tools, initial);
 }
 /** Read the actual screen: reasons belong to a disabled row or to the live question, never an unrelated datum. */

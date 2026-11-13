@@ -1,4 +1,6 @@
 // The acts of a program's tool as a surface offers them: each asked from its declaration, where it stands.
+import { programOffered } from "../../tools/program-run.ts";
+import { declaredCause, programRule } from "../../tools/execution/program-causes.ts";
 import { allowed, hides } from "../../house/house.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import { aid, worded } from "../../tools/act-words.ts";
@@ -7,9 +9,10 @@ import type { Program } from "../../tools/tool-contract.ts";
 import type { Field } from "../contract.ts";
 import { offeredOn, withoutChoices } from "./picked.ts";
 import type { ThingAct, ThingMenu, ToolAct, ViewRow } from "../shown-tool.ts";
-import { formats, type Locale } from "../masks.ts";
+import type { Locale } from "../masks.ts";
 import { maskOf } from "../screen.ts";
 import { currentAnswers } from "./current-answers.ts";
+import { questionWords } from "./questions/asking-clock.ts";
 import { asking, type Asking, type AskWords } from "./asking.ts";
 import { programResult } from "./program-result.ts";
 import type { ScreenActs, Start, SurfacePorts } from "./house-ports.ts";
@@ -26,12 +29,10 @@ type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["things"]> 
 type Own<X extends Program> = Readonly<{ tool: string; name: string; act: ProgramAct<X> }>;
 /** One act as a person walks it: its questions from what it takes, a confirmation when it asks for one, its result. */
 function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
-  const words = { formats: formats(asked.locale), optionalMark: generic.optional };
   const ask = asking(act.input, {
-    ...words,
+    ...questionWords(ports.now, asked),
     things: asked.things,
-    now: ports.now,
-    today: () => asked.day?.(ports.now()),
+    cause: reason => declaredCause(act.refuses, reason),
   });
   const title = act.title ?? capital(act.name);
   /** Who confirms is the act's own verb, taken by its initial; what can be undone comes with that verb chosen. */
@@ -55,7 +56,7 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
   };
   const asks = offeredOn(act, ask, ports.state, tool, ports.now, () => hides(ports.state().house, ports.me, "off"));
   const walk = {
-    ...currentAnswers(ask, (target = tool) => act.today?.(ports.state(), target)),
+    ...currentAnswers(ask, (target = tool) => act.today?.(ports.state(), target, ports.now())),
     label: act.name,
     verb: act.enter,
     key: act.key,
@@ -63,7 +64,9 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
     title: (target?: string): string => (target === undefined ? title : `${title} · ${asked.titled(tool, target)}`),
     next: (answers: readonly string[], target?: string): Field | null => asks(answers, target) ?? sure(answers, target),
     stops: (answers: readonly string[], target?: string): string | undefined =>
-      act.stops?.(ask.sofar(answers), ports.state(), target ?? tool, ports.now()),
+      programRule(() =>
+        declaredCause(act.refuses, act.stops?.(ask.sofar(answers), ports.state(), target ?? tool, ports.now())),
+      ),
     run: (answers: readonly string[], target: string) => programResult(ports, target, name, ask.input(answers)),
   };
   return { name, act, ask, walk };
@@ -123,11 +126,11 @@ const offersOf =
   (other: string, target: string): ViewRow[] =>
     entries.flatMap(({ name, act, ask, walk }): ViewRow[] => {
       const { also } = act;
-      const given = also?.tool === other ? also.with(ports.state(), target) : undefined;
+      const given = also?.tool === other ? also.with(ports.state(), target, ports.now()) : undefined;
       if (!also || given === undefined) return [];
       const row = { key: act.key, title: also.name ?? act.name, act: name, on: { tool } };
       const fixed = ask.leading(given);
-      const why = also.off?.(ports.state(), target) ?? withoutChoices(walk.next(fixed));
+      const why = also.off?.(ports.state(), target, ports.now()) ?? withoutChoices(walk.next(fixed));
       /** Off, it says why; and it is not there for who prefers not to see what cannot be done. */
       if (why !== undefined && hides(ports.state().house, ports.me, "off")) return [];
       if (why !== undefined) return [{ ...row, detail: why, off: true }];
@@ -155,7 +158,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       /** Off for who does not hold the tool, and while the tool itself says why it cannot be done. Hidden, then,
        * for who prefers not to see what is not theirs, or what cannot be done. */
       const off = (): string | undefined =>
-        foreign() ?? act.offered?.(ports.state(), tool.id, ports.now()) ?? withoutChoices(walk.next([]));
+        foreign() ?? programOffered(act, ports.state(), tool.id, ports.now()) ?? withoutChoices(walk.next([]));
       const listed = (): boolean =>
         off() === undefined || !hides(ports.state().house, ports.me, foreign() === undefined ? "off" : "foreign");
       const datum = (): string => act.datum?.(ports.state(), tool.id) ?? beside(act);
@@ -170,7 +173,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       /** Off while the tool's state says why. On the list of a thing of the tool, never of a view that only
        * groups them; and not while it is off, for who prefers not to see what cannot be done. */
       const off = (target: string): string | undefined =>
-        foreign() ?? act.offered?.(ports.state(), target, ports.now()) ?? withoutChoices(walk.next([], target));
+        foreign() ?? programOffered(act, ports.state(), target, ports.now()) ?? withoutChoices(walk.next([], target));
       const unseen = (target: string): boolean =>
         off(target) !== undefined && hides(ports.state().house, ports.me, "off");
       const listed = (target: string): boolean => tool.targets(ports.state()).includes(target) && !unseen(target);

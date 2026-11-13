@@ -8,6 +8,8 @@ import { formats } from "./masks.ts";
 import type { Asking } from "./screen.ts";
 
 const words = {
+  now: () => Date.UTC(2026, 10, 11),
+  today: () => "2026-11-11",
   formats: formats({ currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" }),
   optionalMark: "",
 };

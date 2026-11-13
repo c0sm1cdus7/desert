@@ -12,5 +12,6 @@ export function houseRouter<X extends Program>(ports: HousePorts<X>, shown: Show
     bar: () => ({ state: ports.connection(), clock: clock(), now: ports.now() }),
     changes: ports.watch,
     redrawMs,
+    defect: ports.defect,
   });
 }

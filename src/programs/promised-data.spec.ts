@@ -138,7 +138,20 @@ describe("a tool that reads data of its own, in the stacks its words say", () =>
     ));
 
   it("refuses a datum the tool reads that no stack of its own holds", () =>
-    expect(stacked([closedTill], looseStacksShown, now => now())).rejects.toThrow(
-      "till reads state and no stack of its presentation holds it",
-    ));
+    staged(tillProgram, async ({ house }) => {
+      await given(house(), "till", [closedTill]);
+      const seat = seated(house(), cast.admin, looseStacksShown);
+      try {
+        seat.router.send({ kind: "type", text: tillShown.words.till?.key ?? "" });
+        const screen = JSON.stringify(seat.router.screen(view));
+        expect(screen).toContain("E-PROG-1");
+        expect(screen).not.toContain("no stack");
+        expect(seat.defects).toHaveLength(1);
+        expect(JSON.stringify(house().tools.state().entries)).toContain(
+          "till reads state and no stack of its presentation holds it",
+        );
+      } finally {
+        seat.router.stop();
+      }
+    }));
 });

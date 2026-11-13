@@ -7,10 +7,9 @@ import type { Bus } from "../journal/bus.ts";
 import { effect, type Emission, type HouseEvent } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "./attendance.ts";
-import { runProgram } from "./program-run.ts";
-import { programDefect } from "./program-defect.ts";
-import { OutsideDefect } from "./outside.ts";
-import { making } from "./made.ts";
+import { programOffered, runProgram } from "./program-run.ts";
+import { executionFailure } from "./execution/execution-failure.ts";
+import { writtenEffects } from "./execution/written-effects.ts";
 import { actNews, type ActContext, type ActResult, type KeyStore, type OwnAct } from "./tool-contract.ts";
 import type { Program, State, Tool, ToolAct, ToolRegistry } from "./tool-contract.ts";
 type Origin = HouseEvent<"act">;
@@ -55,7 +54,7 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   const refused = ports.refuse?.(state, origin, offered ? undefined : tool);
   if (refused) return refused;
   if (!offered && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
-  return act.offered?.(state, target, ports.now());
+  return programOffered(act, state, target, ports.now());
 }
 const decide = <X extends Program>(ports: Execution<X>, value: Act, origin: Origin): Decision<X> | Perform<X> => {
   const { by, id } = origin;
@@ -66,7 +65,7 @@ const decide = <X extends Program>(ports: Execution<X>, value: Act, origin: Orig
   if (refused !== undefined || !act) return rejected(refused ?? toolTexts.unknown);
   const execute = (nested: Act) => executeNested(ports, origin, nested);
   const context: ActContext<X> = { state, by, target, at: ports.now(), through, keys: ports.keys, id, execute };
-  const draft = !offered && tool?.draft?.(state, through, value.input, target);
+  const draft = !offered && tool?.draft?.(state, through, value.input, target, context.at);
   if (draft) {
     const text = toolTexts.draft;
     const data = { tool: tool?.id ?? "", target: draft, author: by, text, draft: true, detail: value.input };
@@ -116,28 +115,17 @@ function decisionOf<X extends Program>(
   const entry = effect("tool-entry", { tool, target, author: by, text, ...data }, by);
   return { status: "accepted", effects: [...effects, done, entry], private: receipt };
 }
-/** Why what an act writes could not be written, when a fact of it does not fold: nothing of it stays. */
-const written = <X extends Program>(ports: Execution<X>, act: Origin, effects: Decision<X>["effects"]) => {
-  const made = making(ports);
-  try {
-    ports.bus.together(() =>
-      effects.forEach(each => ports.bus.emit({ ...made(each), process: act.process, cause: [act.id] })),
-    );
-    return undefined;
-  } catch (error) {
-    /** Who listened and failed says why: the first of them, never that something was kept, since nothing was. */
-    const failures: readonly unknown[] = error instanceof AggregateError ? error.errors : [error];
-    const [first] = failures;
-    return first instanceof Error && first.message ? first.message : toolTexts.unavailable;
-  }
-};
 const finish = <X extends Program>(ports: Execution<X>, act: Origin, decision: Decision<X>): Decision<X> => {
   const safe = ports.secrets.scrub(decision);
   if (!ports.live()) return safe;
   /** What an act writes is written whole or not at all: if one of its facts does not fold, the act is refused,
    * saying why, and the house stays as it was. */
-  const why = written(ports, act, safe.effects);
-  const done: Decision<X> = why === undefined ? safe : rejected(why);
+  const failure = writtenEffects(ports, act, safe.effects);
+  const done: Decision<X> =
+    failure === undefined
+      ? safe
+      : ports.secrets.scrub(executionFailure(ports.registry, ports.state(), act, failure.error));
+  if (failure !== undefined) writtenEffects(ports, act, done.effects);
   const output = done.status === "accepted" && done.output ? { output: true } : {};
   const defect = done.defect ? { defect: true as const } : {};
   const data = { ...defect, act: act.id, status: done.status, reason: done.reason ?? "", ...output };
@@ -156,7 +144,14 @@ export function execute<X extends Program>(
   const process = cause.find(id => ports.process(id));
   const data = { object: value.target ?? ids.self, option: value.act, input: value.input, through };
   const act = ports.bus.emit(effect("act", data, by, cause, process));
-  const decision = decide(ports, value, act);
+  let decision: Decision<X> | Perform<X>;
+  try {
+    decision = decide(ports, value, act);
+  } catch (error) {
+    return run(ports, act, () => {
+      throw error;
+    });
+  }
   return typeof decision === "function" ? run(ports, act, decision) : finish(ports, act, decision);
 }
 const run = <X extends Program>(ports: Execution<X>, act: Origin, perform: Perform<X>): ExecutionResult<X> => {
@@ -164,11 +159,7 @@ const run = <X extends Program>(ports: Execution<X>, act: Origin, perform: Perfo
   const tool = targetTool(ports.registry, identityView(ports.state(), act.by), object)?.id ?? object;
   ports.bus.emit(effect("act-started", { act: act.id, object, option }, act.by, [act.id], act.process));
   /** Program failures have one public message and a separate support record. */
-  const failed = (error: unknown): Decision<X> => {
-    if (error instanceof OutsideDefect)
-      return programDefect(error, act, tool, ports.registry.find(known => known.id === tool)?.acts[option]);
-    return rejected(error instanceof Error && error.message ? error.message : toolTexts.unavailable);
-  };
+  const failed = (error: unknown): Decision<X> => executionFailure(ports.registry, ports.state(), act, error);
   let result: Decision<X> | Promise<Decision<X>>;
   try {
     result = perform();

@@ -1,4 +1,5 @@
 // What each key does inside an act: writing an answer, choosing one, picking a thing, going back, leaving.
+import { toolTexts } from "../texts/tools.texts.ts";
 import type { Field, Intent, Mask, Option } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
 import { actOf, begin, fieldOf, maskOf, optionsOf, opened, opening, pickedFrom, validOf } from "./screen.ts";
@@ -16,8 +17,11 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
   if (current.unchanged?.(answer)) return { session };
   const answers = answersAfter(act, walk, answer);
   /** What the act says cannot go on stays at the question it was answered in, saying why. */
-  const why = act.stops?.(answers.slice(0, walk.pos + 1));
-  if (why !== undefined) return { session: replace(session, { ...walk, error: why }) };
+  const why =
+    current.wrong?.(answer) ??
+    (current.valid?.(answer) === false ? toolTexts.invalid : undefined) ??
+    act.stops?.(answers.slice(0, walk.pos + 1));
+  if (why !== undefined) return { session: replace(session, opening(tools, { ...walk, error: why })) };
   const asked = [...walk.asked.slice(0, walk.pos), { ask: current.ask, shown: maskOf(current, answer) }];
   /** A walk that asked only part asks on when the rest no longer says everything the act takes. */
   const open = walk.until === undefined ? null : act.next(answers);

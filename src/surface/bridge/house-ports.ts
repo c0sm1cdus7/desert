@@ -16,6 +16,7 @@ export interface HousePorts<X extends Program> {
   readonly limits: ViewLimits;
   readonly act: (value: Act, through: number) => ExecutionResult<X>;
   readonly now: () => number;
+  readonly defect: (error: unknown, tool: string, target: string, option: string) => string;
   /** How this device reaches the house right now. */
   readonly connection: () => Screen["state"];
   /** Calls back whenever something in the house changed. */

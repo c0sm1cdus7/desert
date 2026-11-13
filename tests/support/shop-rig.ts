@@ -1,4 +1,5 @@
 // A live shop house in memory, with virtualizable time and a real replay restart.
+import { defectReporter } from "../../src/tools/execution/defect-reporter.ts";
 import { SqliteJournal } from "../../src/adapters/storage/journal-store.ts";
 import { createHouse, identityView } from "../../src/house/house.ts";
 import { clockStep, startClock, type Deadlines, type TimeSource } from "../../src/journal/clock.ts";
@@ -74,6 +75,7 @@ export function shopRig({ registry = shopRegistry, grants, ...ports }: Options =
     ports: (me: string, now: () => number = Date.now): HousePorts<Shop> => ({
       me,
       now,
+      defect: defectReporter(registry, me, entry => bus.emit(entry), plain.scrub),
       registry,
       limits: { recentLines: 20 },
       state: () => identityView(live.tools.state(), me),

@@ -3,9 +3,7 @@ import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import { addresses } from "../catalogs/addressing.ts";
 import { asking } from "../surface/bridge/asking.ts";
 import type { Field } from "../surface/contract.ts";
-import { formats } from "../surface/masks.ts";
 import type { Choice } from "../surface/screen.ts";
-import { genericTexts as generic } from "../texts/generic-surface.texts.ts";
 import { promiseTexts as said, promiseTexts as words } from "../texts/promises.texts.ts";
 import type { Case } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
@@ -42,7 +40,9 @@ export function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers, fr
   ok(found, said.notOffered(aim.name));
   const { row } = found;
   /** Taken from the thing of another tool, it is that thing that may say why not. */
-  const told = from ? aim.act.also?.off?.(seat.state(), from.target) : aim.act.offered?.(seat.state(), on, seat.now());
+  const told = from
+    ? aim.act.also?.off?.(seat.state(), from.target, seat.now())
+    : aim.act.offered?.(seat.state(), on, seat.now());
   /** A row that already says everything the act takes knows what the act will answer: where that is a refusal,
    * the row is off saying it, as the tool itself would. Nobody is offered what is known to be refused. */
   const whole = row.with !== undefined && row.with.from >= answers.length;
@@ -59,10 +59,12 @@ export function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers, fr
     deepStrictEqual(seat.router.screen(view), before);
     return undefined;
   }
-  const current = aim.act.today?.(seat.state(), on);
-  const words = { formats: formats(seat.shown.locale), optionalMark: generic.optional };
+  const current = aim.act.today?.(seat.state(), on, seat.now());
   if (current !== undefined)
-    deepStrictEqual(row.open?.kind === "act" ? row.open.was : undefined, asking(aim.act.input, words).answers(current));
+    deepStrictEqual(
+      row.open?.kind === "act" ? row.open.was : undefined,
+      asking(aim.act.input, seat.words).answers(current),
+    );
   ok(row.key, said.keyless(aim.name));
   type(seat.router, row.key);
   return row;

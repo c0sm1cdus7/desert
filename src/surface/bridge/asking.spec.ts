@@ -19,6 +19,8 @@ import { formats, limited, padded, shaped } from "../masks.ts";
 import { asking } from "./asking.ts";
 
 const words = {
+  now: () => Date.UTC(2026, 10, 11),
+  today: () => "2026-11-11",
   formats: formats({ currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" }),
   optionalMark: " (opcional)",
 };
@@ -191,6 +193,6 @@ describe("a day that is usually today", () => {
     const told = asking(since, { ...words, today: () => "2026-11-11" });
     expect(told.next([])?.initial).toBe("11112026");
     expect(told.next(["2026-11-11"])?.initial).toBeUndefined();
-    expect(asking(since, words).next([])?.initial).toBeUndefined();
+    expect(asking(since, words).next([])?.initial).toBe("11112026");
   });
 });

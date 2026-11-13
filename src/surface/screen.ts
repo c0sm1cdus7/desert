@@ -1,6 +1,6 @@
 // Where you are on a surface and the act you are walking: what a session remembers, and how an act begins.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
-import { withStops } from "./answer-status.ts";
+import { withStops } from "./guards/answer-status.ts";
 import { currentField, markedCurrent } from "./current-field.ts";
 import type { Talk } from "./talk.ts";
 import { must } from "./window.ts";
