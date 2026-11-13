@@ -4,6 +4,7 @@ import { deepStrictEqual, ok } from "node:assert/strict";
 import { copyFileSync, existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { checkReopenedState } from "../adapters/storage/reopened-state.ts";
 import { journalKept } from "../adapters/storage/journal-store.ts";
 import { houseTools } from "../surface/bridge/house-tools.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
@@ -53,8 +54,9 @@ async function opened<X extends Program, R>(
   const home = mkdtempSync(join(tmpdir(), "desert-kept-"));
   try {
     copyFileSync(file, join(home, "journal.sqlite"));
-    const { runner, last } = journalKept(join(home, "journal.sqlite"));
+    const { runner, last } = journalKept(join(home, "journal.sqlite"), false);
     ok(runner, said.keptEmpty);
+    checkReopenedState<X>(join(home, "journal.sqlite"), { ...kept.program, by: runner });
     const now = last + 1;
     const creation = { admin: runner, assignments: [] };
     const time = { now: () => now, wait: () => () => {} };
@@ -85,7 +87,7 @@ function walk<X extends Program>(source: Kept<X>, file: string, name: string): C
 /** Two checks for each journal kept in a folder of the program; none, where the program keeps none. */
 export function keptChecks<X extends Program>(program: Composition<X>, shown: Shown<X>, folder: string): Check[] {
   if (!existsSync(folder)) return [];
-  const kept = readdirSync(folder).filter(name => name.endsWith(".sqlite"));
+  const kept = readdirSync(folder).filter(name => name.endsWith(".sqlite") && !name.endsWith(".writer.sqlite"));
   return kept.sort().flatMap(name => {
     const source = { program, shown };
     const file = join(folder, name);

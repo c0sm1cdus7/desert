@@ -153,11 +153,13 @@ describe("journal lock", () => {
     expect(open(file).append(boot, 100).seq).toBe(1);
   });
 
-  it("refuses a house that another live process holds and leaves its lock in place", () => {
+  it("does not treat a live PID in an abandoned bridge as proof of ownership", () => {
     const { file, lock } = house();
     writeFileSync(lock, String(process.ppid));
-    expect(() => open(file)).toThrow(journalTexts.locked);
-    expect(readFileSync(lock, "utf8")).toBe(String(process.ppid));
+    const journal = open(file);
+    expect(readFileSync(lock, "utf8")).toBe(String(process.pid));
+    journal.close();
+    expect(existsSync(lock)).toBe(false);
   });
 
   it.each([
@@ -173,11 +175,11 @@ describe("journal lock", () => {
     expect(existsSync(lock)).toBe(false);
   });
 
-  it("keeps a lock on close when it no longer names this process", () => {
+  it("releases its bridge by ownership even if its PID text changed", () => {
     const { file, lock } = house();
     const journal = open(file);
     writeFileSync(lock, String(process.ppid));
     journal.close();
-    expect(readFileSync(lock, "utf8")).toBe(String(process.ppid));
+    expect(existsSync(lock)).toBe(false);
   });
 });

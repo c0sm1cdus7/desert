@@ -144,3 +144,16 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 5. La puerta: viaja el estado, por herramienta entera y paginado.
 6. Emparejar dispositivos y herramienta de equipo (permisos y conexiones).
 7. Core de muchas casas.
+
+## Un escritor por almacenamiento (A03)
+
+`SqliteJournal` resuelve el archivo canónico y adquiere una transacción SQLite auxiliar antes de abrir el registro.
+`journalKept` usa la misma exclusión, incluso cuando solo consulta los datos del arranque; `journalReader` abre por
+la misma identidad sin tomar la exclusión de escritor. `startHouse` hereda este contrato sin cambiar su firma.
+La transición desde la versión anterior exige detener todos los procesos; el puente `journal.lock` nunca autoriza
+una apertura por su PID. El auxiliar no se elimina: la exclusión termina al cerrar su conexión o morir el proceso.
+
+Los hechos anteriores no cambian. Los plegados de formato anterior se descartan juntos y se reconstruyen; los de
+formato 2 tienen secuencia segura dentro del registro y cada paso exige el siguiente número. El guardado del grupo
+es atómico y una restauración fallida no publica plegados. La decisión de compatibilidad queda concentrada en
+`snapshot-format.ts`, preparada para sumar la identidad de los cálculos en A04 sin implementarla en este paso.

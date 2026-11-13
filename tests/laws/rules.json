@@ -1736,6 +1736,37 @@
         "src/doors/terminal/input.spec.ts",
         "src/doors/terminal/real-terminal.spec.ts"
       ]
+    },
+    {
+      "id": 197,
+      "rule": "Un almacenamiento tiene un solo escritor por ruta canónica, también por enlaces simbólicos, entre hilos y entre procesos. Un rechazo no toca al dueño; al morir el dueño, otro abre sin intervención. El PID del candado anterior no acredita propiedad. Los enlaces duros y los simbólicos colgantes se rechazan.",
+      "from": "13/11 · auditoría A03 y carrera entre procesos; tercer diseño decidido",
+      "guarantee": "spec",
+      "evidence": [
+        "src/adapters/storage/storage-identity.ts",
+        "src/adapters/storage/writer-lease.ts",
+        "src/adapters/storage/writer-audit.spec.ts",
+        "src/adapters/storage/writer-identity.spec.ts",
+        "src/adapters/storage/writer-workers.spec.ts",
+        "src/adapters/storage/writer-processes.spec.ts",
+        "src/adapters/storage/writer-failures.spec.ts"
+      ]
+    },
+    {
+      "id": 198,
+      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato tiene versión explícita, descarta el grupo incompatible y exige continuidad de secuencia. Un grupo se guarda entero y solo después de restaurarse correctamente.",
+      "from": "13/11 · auditoría A03; recuperación de los plegados incompletos anteriores",
+      "guarantee": "derived",
+      "evidence": [
+        "src/journal/snapshot-format.ts",
+        "src/journal/projections.ts",
+        "src/adapters/storage/reopened-state.ts",
+        "src/adapters/storage/reopened-state.spec.ts",
+        "src/adapters/storage/writer-recovery.spec.ts",
+        "src/adapters/storage/writer-failures.spec.ts",
+        "src/programs/promised-stage.ts",
+        "src/programs/kept-journals.ts"
+      ]
     }
   ]
 }

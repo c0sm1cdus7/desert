@@ -431,3 +431,28 @@ Se suman los tipos `ViewLimits`, `HouseState`, `TimeSource`, `Catalog`, `Event`,
 `SurfacePorts`, `ScreenActs`, `Start`, `Locale`, `ViewRow`, `RunResult`, `Also`, `Need`, `Offered`, `Told`,
 `ActContext`, `ActResult` y `Slices`. Para evitar dos nombres iguales, `House` es la casa de pruebas y `HouseState`
 es el estado de la organización; `padded` declara el campo y `paddedMask` arma su formato de escritura.
+
+## Un solo escritor y recuperación del estado
+
+Una organización abre una sola vez por almacenamiento, aunque se llegue por un enlace simbólico, una ruta
+relativa, otro hilo u otro proceso. Otro escritor recibe el rechazo habitual y no altera al que ya está abierto.
+El lector de hechos puede seguir leyendo. Se rechazan enlaces duros y enlaces simbólicos colgantes; las bases
+en memoria siguen siendo independientes. Dos archivos distintos también son independientes dentro de una carpeta.
+
+Para subir desde la versión anterior hay que detener **todos** los procesos que usan la organización y recién
+entonces actualizar y abrir. No se admite mezclar versiones en ejecución. No cambia ningún hecho ni hace falta
+cambiar el vocabulario o los pliegues por A03. La primera apertura reconstruye los plegados del formato anterior:
+recupera lo que el registro conservó aunque el estado guardado estuviera incompleto, sin repetir las acciones.
+
+El sistema libera la exclusión si el dueño muere, incluso con SIGKILL. No hay que borrar candados ni buscar un
+PID. El archivo auxiliar `journal.sqlite.writer.sqlite` debe permanecer junto al registro: no se borra para
+abrir. `journal.lock` queda como puente para la versión anterior; su contenido no prueba quién es dueño.
+
+Los plegados guardados tienen formato 2 y se aceptan en un solo punto (`journal/snapshot-format.ts`). Un formato
+incompatible o una secuencia inválida obliga a reconstruir el grupo entero. Un salto al plegar aborta toda la
+escritura; el grupo se guarda en una transacción después de restaurarse. La identidad de los cálculos (A04) queda
+pendiente: cambiar un cálculo sin cambiar la forma todavía requiere la solución del siguiente encargo.
+
+Las pruebas derivadas de cada caso y recorrido comparan estado completo y reloj tras cerrar y abrir con otra
+apertura después de borrar los plegados guardados. Los registros conservados hacen esa comparación antes de
+recorrerlos; el archivo auxiliar del escritor no se toma como un registro conservado.
