@@ -25,7 +25,15 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
   const open = walk.until === undefined ? null : act.next(answers);
   const { until: _part, ...whole } = walk;
   const moved: Walk = { ...(open && open.kind !== "confirm" ? whole : walk), answers, asked, pos: walk.pos + 1 };
-  const { error: _gone, failed: _result, finding: _sought, read: _back, reading: _reading, ...clean } = moved;
+  const {
+    error: _gone,
+    ignored: _key,
+    failed: _result,
+    finding: _sought,
+    read: _back,
+    reading: _reading,
+    ...clean
+  } = moved;
   const field = fieldOf(tools, clean);
   if (field) return { session: replace(session, opening(tools, clean, answers[clean.pos])) };
   const running: Walk = { ...clean, phase: "running", since: now };
@@ -33,14 +41,25 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
 }
 /** In a field with a format the keys go through its mask: what does not fit is not typed. */
 function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
-  const typed =
-    key.kind === "type" ? Array.from(key.text).reduce((now, text) => mask.put(now, text), walk.typed) : walk.typed;
-  if (key.kind === "type") return { ...walk, typed, caret: Array.from(typed).length };
-  if (key.kind === "erase") return { ...walk, typed: Array.from(walk.typed).slice(0, -1).join("") };
+  if (key.kind === "type") {
+    let typed = walk.typed;
+    let reason: string | undefined;
+    let accepted = false;
+    for (const text of Array.from(key.text)) {
+      const rejected = mask.rejected?.(typed, text);
+      reason ??= rejected;
+      accepted ||= rejected === undefined;
+      typed = mask.put(typed, text);
+    }
+    const changed = accepted ? rewritten(walk) : walk;
+    const why = reason === undefined ? {} : { error: reason, ignored: true as const };
+    return { ...changed, typed, caret: Array.from(typed).length, ...why };
+  }
+  if (key.kind === "erase") return { ...rewritten(walk), typed: Array.from(walk.typed).slice(0, -1).join("") };
   return key.kind === "left" || key.kind === "right" ? walk : undefined;
 }
-/** Editing clears a prior result; invalid or excess keys leave the entire question untouched. */
-function rewritten({ error: _was, failed: _result, ...written }: Asking): Asking {
+/** Editing clears a prior result; an ignored key keeps its own reason instead. */
+function rewritten({ error: _was, ignored: _key, failed: _result, ...written }: Asking): Asking {
   return { ...written, suggested: false };
 }
 /** A space that says nothing is not typed: before anything is written, or next to another space. Two names that
@@ -58,10 +77,16 @@ function typing(session: Session, walk: Asking, tools: Tools, field: Field, key:
   if (full) return { session };
   if (!("mask" in field) && idleSpace(fresh, key)) return { session };
   const changed = "mask" in field ? masked(fresh, field.mask, key) : edited(fresh, key);
-  if (key.kind === "type" && changed?.typed === fresh.typed) return { session };
-  if (changed) return { session: replace(session, rewritten(changed)) };
+  if (key.kind === "type" && changed?.typed === fresh.typed && !("mask" in field && field.mask.rejected))
+    return { session };
+  if (key.kind === "type" && walk.suggested && changed?.typed === "" && changed.error !== undefined)
+    return { session: replace(session, { ...walk, error: changed.error, ignored: true }) };
+  if (changed) return { session: replace(session, "mask" in field ? changed : rewritten(changed)) };
   if (key.kind !== "confirm") return { session };
-  return validOf(field, walk.typed) ? advance(session, walk, tools, walk.typed, now) : { session };
+  if (validOf(field, walk.typed)) return advance(session, walk, tools, walk.typed, now);
+  const reason = field.wrong?.(walk.typed, true);
+  const { ignored: _key, ...confirmed } = walk;
+  return reason === undefined ? { session } : { session: replace(session, { ...confirmed, error: reason }) };
 }
 function choosing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
   const options = optionsOf(field);
@@ -138,7 +163,7 @@ function picking(
   return taken(key.kind === "confirm" ? found[walk.at] : undefined);
 }
 function back(session: Session, walk: Asking, tools: readonly Tool[]): Session {
-  const { error: _gone, failed: _result, read: _back, reading: _reading, ...clean } = walk;
+  const { error: _gone, ignored: _key, failed: _result, read: _back, reading: _reading, ...clean } = walk;
   const earlier = { ...clean, pos: walk.pos - 1 };
   return replace(session, opening(tools, earlier, walk.answers[earlier.pos]));
 }

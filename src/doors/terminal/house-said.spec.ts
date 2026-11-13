@@ -35,12 +35,15 @@ const open = (me = "ana") => {
 const escape = "\x1b";
 
 describe("a key a field does not take", () => {
-  it("leaves the question untouched, and accepts the next key that fits", async () => {
+  it("explains the ignored key, keeps the question and accepts the next key that fits", async () => {
     const { press } = open();
     const before = await press("vrs1\r");
-    expect(await press("x")).toEqual(before);
+    const ignored = await press("x");
+    expect(ignored.filter(line => line === "solo números")).toHaveLength(1);
+    expect(ignored.filter(line => line !== "solo números")).toEqual(before);
     const fixed = await press("15");
     expect(fixed.some(line => line.startsWith("Error"))).toBe(false);
+    expect(fixed).not.toContain("solo números");
     expect(fixed).toEqual(expect.arrayContaining(["› $ 0,15"]));
   });
 });

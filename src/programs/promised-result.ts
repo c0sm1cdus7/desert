@@ -41,7 +41,13 @@ export function assertOutcome<X extends Program>(seat: Seat<X>, aim: Aim<X>, kas
     const currentText =
       cause === toolTexts.unchanged && !seat.router.screen(view).hints.some(h => h.intent === "confirm");
     if (stop?.kind === "data") {
-      ok(body.kind === "thread" && !body.events.some(event => event.nested), said.closedAt("datum", stop.ask));
+      ok(body.kind === "thread", said.closedAt("datum", stop.ask));
+      const reasons = body.events.filter(event => event.nested && !event.ignored);
+      deepStrictEqual(
+        reasons.map(event => event.text.map(span => span.text).join("")),
+        stop.reason === undefined ? [] : [stop.reason],
+      );
+      ok(!seat.router.screen(view).hints.some(hint => hint.intent === "confirm"));
       return false;
     }
     ok(

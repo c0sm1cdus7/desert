@@ -97,14 +97,15 @@ function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   return { ask: asked(word(schema, "title")), kind: "pick", of, found, shown, valid, nothing };
 }
 /** A numeric prefix below the minimum can still grow: only a complete value gets a reason. */
-function numericReason(schema: TSchema, ctx: Ctx, typed: string): string | undefined {
+function numericReason(schema: TSchema, ctx: Ctx, typed: string, submitted: boolean): string | undefined {
   const value = valueOf(schema, ctx, typed);
   if (typeof value !== "number") return undefined;
   const format = formatOf(schema, ctx);
   const said = (limit: number): string => format?.shown(format.typed(limit)) ?? String(limit);
   const most = at(schema, "maximum");
   if (typeof most === "number" && value > most) return generic.lacks.most(said(most));
-  if (!format || Array.from("0123456789").some(digit => format.put(typed, digit) !== typed)) return undefined;
+  if (!submitted && (!format || Array.from("0123456789").some(digit => format.put(typed, digit) !== typed)))
+    return undefined;
   const least = at(schema, "minimum");
   const above = at(schema, "exclusiveMinimum");
   if (typeof least === "number" && value < least) return generic.lacks.least(said(least));
@@ -123,9 +124,9 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   /** A day that already happened is not after today, as the program's country counts its days. */
   const late = (value: unknown): boolean =>
     at(schema, "last") === "today" && typeof value === "string" && value > ctx.today();
-  const wrong = (typed: string): string | undefined => {
+  const wrong = (typed: string, submitted = false): string | undefined => {
     const value = valueOf(schema, ctx, typed);
-    if (!valid(typed)) return numericReason(schema, ctx, typed);
+    if (!valid(typed)) return numericReason(schema, ctx, typed, submitted);
     if (late(value)) return generic.future;
     const reason = wrongIn(schema, value, ctx.now());
     return ctx.cause ? ctx.cause(reason) : reason;

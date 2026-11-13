@@ -42,6 +42,13 @@ function writing(place: Session[number], tools: Tools): boolean {
  * or tab inside it as a space and none at its ends; anywhere else it does nothing. It never confirms, never chooses,
  * and is never a shortcut. */
 function pasted(session: Session, text: string, tools: Tools, now: number): Stepped {
+  const place = must(session.at(-1));
+  const field = place.kind === "act" && place.phase === "asking" ? fieldOf(tools, place) : undefined;
+  /** A formatted paste is one edit: later accepted characters cannot hide an earlier rejection. */
+  if (place.kind === "act" && field && "mask" in field) {
+    const written = text.replace(/[\r\n\t]+/gu, " ").replace(/\p{Cc}/gu, "");
+    return written === "" ? { session } : walking(session, place, tools, { kind: "type", text: written }, now);
+  }
   const chars = Array.from(text.trim().replace(/[\r\n\t]+/gu, " ")).filter(char => !/\p{Cc}/u.test(char));
   return chars.reduce<Stepped>(
     (stepped, char) => {

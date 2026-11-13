@@ -12,6 +12,16 @@ export const genericTexts = {
     above: (than: string) => `mayor a ${than}`,
     most: (most: string) => `máximo ${most}`,
   },
+  ignored: {
+    spaces: "sin espacios",
+    sign: "sin signo",
+    numbers: "solo números",
+    character: "carácter no permitido",
+    digits: (max: number) => `máximo ${max} dígitos`,
+    characters: (max: number) => `máximo ${max} caracteres`,
+    decimals: (max: number) => `máximo ${max} decimales`,
+    decimal: "un separador decimal, después del número",
+  },
   /** A day that already happened, written after today. */
   future: "día futuro",
   /** What a row says of an act that cannot be undone, when the act has nothing more useful to say there. */

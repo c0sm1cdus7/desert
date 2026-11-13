@@ -67,6 +67,13 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   «Error» en coral queda para el resultado de una acción que corrió.
 - Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, (respondido, instante) => …)`).
 - `holding(campo, (valor, instante) => motivoOIndefinido)` recibe el mismo reloj que `run`, `stops` y `among`.
+  Conserva los motivos que el campo ya tenía: primero comprueba el campo y después la regla agregada, solo si
+  el campo acepta. Por ejemplo, agregar una regla a `day` no permite guardar un día inexistente. Se pueden
+  encadenar reglas; se muestra el primer motivo que aplique, en el orden en que se agregaron.
+  Al Enter, un número bajo el mínimo dice el motivo aunque todavía pudiera crecer; mientras se escribe, ese
+  prefijo no molesta. Un campo opcional vacío sigue aceptando «nada».
+  Una tecla que la máscara descarta dice por qué debajo de la pregunta, una sola vez. Un pegado conserva el
+  primer motivo hasta terminar ese pegado; la siguiente edición aceptada lo limpia. El valor aceptado no cambia.
   No usar `Date.now()` en esas reglas: el instante lo da la casa y los casos lo pueden fijar.
 - `day(pregunta, "today", "today")` limita la Entrada; la regla del programa contra fechas futuras va también
   en `stops` o `holding`, con su causa en `refuses`. Así se rechaza antes de `run` por cualquier puerta.

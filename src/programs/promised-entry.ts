@@ -24,7 +24,7 @@ export function quietScreen(screen: Screen): void {
     ok(!text.startsWith(`${surfaceTexts.error} `), said.questionError);
     if (!screen.body.entry || !event.nested) continue;
     ok(event.text.every(span => span.tone === "t3"));
-    ok(!screen.hints.some(hint => hint.intent === "confirm"));
+    if (!event.ignored) ok(!screen.hints.some(hint => hint.intent === "confirm"));
   }
 }
 export function quietly<T>(router: Router, use: (guarded: Router) => T): T {
@@ -38,31 +38,42 @@ export function quietly<T>(router: Router, use: (guarded: Router) => T): T {
     },
   });
 }
-/** Pressing an Enter that is not offered is harmless, down to the question and its written value. */
-export function confirmAnswer(router: Router): void {
+/** A reason may change; the entire question, written value and navigation must stay identical. */
+function withReason(screen: Screen, reason: string | undefined, ignored = false): Screen {
+  if (reason === undefined || screen.body.kind !== "thread") return screen;
+  const advice = ignored ? { ignored: true as const } : {};
+  const event = { nested: true, text: [{ text: reason, tone: "t3" as const }], ...advice };
+  return { ...screen, body: { ...screen.body, events: [...screen.body.events.filter(event => !event.nested), event] } };
+}
+/** Unavailable Enter keeps the question and its value, adding the declared submitted reason if it has one. */
+export function confirmAnswer(router: Router, field?: Field, typed = ""): void {
   const before = router.screen(view);
   router.send({ kind: "confirm" });
-  if (!before.hints.some(hint => hint.intent === "confirm")) deepStrictEqual(router.screen(view), before);
+  if (!before.hints.some(hint => hint.intent === "confirm"))
+    deepStrictEqual(router.screen(view), withReason(before, field?.wrong?.(typed, true)));
 }
 /** Each case also tries an unavailable Enter and a key its field cannot take, on the actual written value. */
 export function probeWritten(router: Router, field: Field, typed: string): void {
+  if (!router.screen(view).hints.some(hint => hint.intent === "confirm")) confirmAnswer(router, field, typed);
   const before = router.screen(view);
-  if (!before.hints.some(hint => hint.intent === "confirm")) confirmAnswer(router);
   if (!("mask" in field)) return;
-  const key = Array.from("a9 .-").find(key => field.mask.put(typed, key) === typed);
+  const key = Array.from("a9 .-").find(key =>
+    field.mask.rejected ? field.mask.rejected(typed, key) !== undefined : field.mask.put(typed, key) === typed,
+  );
   if (key === undefined) return;
   router.send({ kind: "type", text: key });
-  deepStrictEqual(router.screen(view), before);
+  deepStrictEqual(router.screen(view), withReason(before, field.mask.rejected?.(typed, key), true));
 }
 /** A prefix that can still become the case's valid value has no reason line, only its unfilled shape. */
 export function writeAnswer(router: Router, field: Field, given: string): void {
   const quietPrefix = (typed: string): void => {
     if (field.valid?.(given) !== true || field.valid(typed)) return;
     const { body } = router.screen(view);
-    ok(body.kind !== "thread" || !body.events.some(event => event.nested), said.partialReason);
+    ok(body.kind !== "thread" || !body.events.some(event => event.nested && !event.ignored), said.partialReason);
+    ok(!router.screen(view).hints.some(hint => hint.intent === "confirm"));
     if (body.kind === "thread" && typed && "mask" in field)
       deepStrictEqual(body.entry?.padding, field.mask.padding?.(typed) || undefined);
-    confirmAnswer(router);
+    confirmAnswer(router, field, typed);
   };
   /** Numeric cases also try a leading zero: canonical answers may omit the zeros a person starts with. */
   if ("mask" in field && field.mask.put("", "0") === "0" && field.valid?.("0") === false) {

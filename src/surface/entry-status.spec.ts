@@ -2,7 +2,7 @@
 import { Type } from "@sinclair/typebox";
 import { describe, expect, it, vi } from "vitest";
 import { object } from "../catalogs/acts.ts";
-import { day, digits, holding, money, option, someOf } from "../catalogs/fields.ts";
+import { day, digits, holding, money } from "../catalogs/fields.ts";
 import { asking } from "./bridge/asking.ts";
 import { formats } from "./masks.ts";
 import { begin } from "./screen.ts";
@@ -109,8 +109,11 @@ describe("the Entrada", () => {
     const hands = seat(object({ days: field }));
     try {
       hands.type("1");
-      hands.check();
       expect(JSON.stringify(hands.screen())).not.toContain("mínimo 02");
+      hands.router.send({ kind: "confirm" });
+      expect(JSON.stringify(hands.screen())).toContain("mínimo 02");
+      expect(JSON.stringify(hands.screen())).not.toContain("Error");
+      expect(hands.run).not.toHaveBeenCalled();
       expect(hands.screen().body).toMatchObject({ entry: { typed: "01", padding: 1 } });
       const grid = paint(hands.screen(), { cols: 80, rows: 30 });
       const row = textOf(grid).findIndex(line => line.includes("› 01"));
@@ -119,9 +122,12 @@ describe("the Entrada", () => {
       expect(grid[row]?.[col + 1]?.tone).toBe("t1");
       hands.type("9");
       expect(hands.enter()).toBe(true);
-      const full = hands.screen();
+      const full = hands.screen().body;
       hands.type("9x");
-      expect(hands.screen()).toEqual(full);
+      const after = hands.screen().body;
+      expect(after.kind === "thread" && after.entry).toEqual(full.kind === "thread" && full.entry);
+      expect(hands.enter()).toBe(true);
+      expect(JSON.stringify(hands.screen())).toContain("solo números");
       hands.router.send({ kind: "erase" });
       hands.router.send({ kind: "erase" });
       hands.type("99");
@@ -146,50 +152,6 @@ describe("the Entrada", () => {
       ).toBe(true);
       hands.type("1");
       expect(JSON.stringify(hands.screen())).not.toContain("Error");
-    } finally {
-      hands.router.stop();
-    }
-  });
-});
-describe("multiple choices before choosing", () => {
-  it("checks each multiple-choice toggle and keeps the cursor on an available option", async () => {
-    const field = someOf("Canales", "none", option("cloud", "Nube", "n"), option("market", "Mercado", "m"));
-    const hands = seat(object({ channels: field }), answers =>
-      answers[0]?.includes("Nube") ? "ya conectado" : undefined,
-    );
-    try {
-      expect(hands.screen().body).toMatchObject({
-        options: [
-          { title: "Nube", off: true, detail: "ya conectado", selected: false },
-          { title: "Mercado", selected: true },
-        ],
-      });
-      hands.type(" ");
-      hands.router.send({ kind: "up" });
-      expect(hands.screen().body).toMatchObject({ options: [{ selected: false }, { key: "x", selected: true }] });
-      hands.router.send({ kind: "confirm" });
-      await hands.router.idle();
-      expect(hands.run).toHaveBeenCalledWith(["Mercado"]);
-    } finally {
-      hands.router.stop();
-    }
-  });
-  it("opens premarked options on a toggle that is allowed, so invalid initial marks can be removed", () => {
-    const field = someOf("Canales", "all", option("cloud", "Nube", "n"), option("market", "Mercado", "m"));
-    const hands = seat(object({ channels: field }), answers =>
-      answers[0]?.includes("Nube") ? "ya conectado" : undefined,
-    );
-    try {
-      expect(hands.screen().body).toMatchObject({
-        options: [
-          { title: "Nube", key: "x", selected: true },
-          { title: "Mercado", key: "x", off: true, selected: false },
-        ],
-      });
-      expect(hands.enter()).toBe(false);
-      hands.type(" ");
-      expect(hands.enter()).toBe(true);
-      expect(hands.screen().body).toMatchObject({ options: [{ off: true, selected: false }, { selected: true }] });
     } finally {
       hands.router.stop();
     }

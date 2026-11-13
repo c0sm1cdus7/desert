@@ -108,7 +108,10 @@ const isAsker = (asks: unknown): asks is Asked => typeof asks === "function";
 export type Wrong = (value: string, at: number) => string | undefined;
 /** A field that knows when what it was given is complete and wrong, and why. Said once, with the datum: the
  * surface says it where the datum is written, and no act runs with it, through whatever door it comes. */
-export const holding = <T extends TSchema>(field: T, wrong: Wrong): T => ({ ...field, wrong });
+export const holding = <T extends TSchema>(field: T, wrong: Wrong): T => ({
+  ...field,
+  wrong: (value: string, at: number) => wrongIn(field, value, at) ?? programCall(wrong, value, at),
+});
 const isWrong = (check: unknown): check is Wrong => typeof check === "function";
 const part = (schema: unknown, key: string): unknown =>
   schema !== null && typeof schema === "object" ? Reflect.get(schema, key) : undefined;

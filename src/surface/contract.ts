@@ -55,6 +55,8 @@ export interface ThreadEvent {
   readonly attachments?: readonly Attachment[];
   readonly selected?: boolean;
   readonly nested?: boolean;
+  /** An ignored key says why it was ignored; the value already written may still be valid. */
+  readonly ignored?: true;
   readonly muted?: boolean;
 }
 export type Theme = "dark" | "light" | "contrast";
@@ -113,7 +115,7 @@ interface Question {
   readonly initial?: string;
   readonly valid?: (value: string) => boolean;
   /** Why an answer that is complete still does not hold, when that is so: it stays where it was written. */
-  readonly wrong?: (value: string) => string | undefined;
+  readonly wrong?: (value: string, submitted?: boolean) => string | undefined;
   /** What the datum is today, as an answer: a question that changes it says so beside its name. */
   readonly current?: string;
   /** This answer would finish the act leaving all its data unchanged. */
@@ -126,6 +128,8 @@ export interface Mask {
   readonly empty: string;
   /** What is typed after one more key; the same as before when the key does not fit. */
   put(typed: string, text: string): string;
+  /** Why a key is ignored, even when other characters in the same paste fit. */
+  rejected?(typed: string, text: string): string | undefined;
   shown(typed: string): string;
   remaining?(typed: string): string;
   padding?(typed: string): number;

@@ -1736,6 +1736,38 @@
         "src/doors/terminal/input.spec.ts",
         "src/doors/terminal/real-terminal.spec.ts"
       ]
+    },
+    {
+      "id": 214,
+      "rule": "Sumar un motivo con holding conserva los que el campo ya tenía: primero se comprueba el campo, después la regla agregada. Un día inexistente se rechaza en la pregunta y al validar el dato, aunque el programa le agregue otra regla.",
+      "from": "13/11 · campos · H01",
+      "guarantee": "spec",
+      "evidence": ["src/catalogs/fields.ts", "src/catalogs/fields.spec.ts", "src/surface/bridge/asking-days.spec.ts"]
+    },
+    {
+      "id": 213,
+      "rule": "Al Enter, un número bajo el mínimo dice por qué no avanza, aunque aún pudiera crecer. Mientras se escribe ese prefijo no molesta; un opcional vacío sigue valiendo nada.",
+      "from": "13/11 · campos · H05 y H18",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/bridge/asking-parts.ts",
+        "src/surface/walking.ts",
+        "src/surface/guards/answer-status.ts",
+        "src/surface/field-reasons.spec.ts"
+      ]
+    },
+    {
+      "id": 216,
+      "rule": "Una tecla que una máscara descarta dice una vez por qué, sin cambiar el valor aceptado. Un pegado conserva su primer motivo hasta terminar; una edición aceptada después lo limpia.",
+      "from": "13/11 · campos · teclas descartadas",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/masks.ts",
+        "src/surface/mask-keys.ts",
+        "src/surface/walking.ts",
+        "src/surface/step.ts",
+        "src/surface/field-reasons.spec.ts"
+      ]
     }
   ]
 }
