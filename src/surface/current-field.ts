@@ -37,9 +37,10 @@ export const markedCurrent = (field: Field, option: Option): Option => {
 /** Match by question when a changed answer changes which questions exist; never put a value under another name. */
 function currentAt(walk: Walk, field: Field, act: Act): string | undefined {
   const was = walk.was ?? [];
-  const questions = was.map((_, index) => act.next(was.slice(0, index))?.ask);
-  if (questions[walk.pos] === field.ask) return was[walk.pos];
-  const matches = questions.flatMap((ask, index) => (ask === field.ask ? [index] : []));
+  const questions = was.map((_, index) => act.next(was.slice(0, index)));
+  const same = (other: Field | null | undefined) => other?.ask === field.ask && other.currency === field.currency;
+  if (same(questions[walk.pos])) return was[walk.pos];
+  const matches = questions.flatMap((question, index) => (same(question) ? [index] : []));
   return matches.length === 1 ? was[matches[0] ?? -1] : undefined;
 }
 export function currentField(walk: Walk, field: Field, act: Act): Field {

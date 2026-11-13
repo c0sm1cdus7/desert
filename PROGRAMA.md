@@ -65,6 +65,19 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   texto 3, sin «Error» y sin `enter`. Enter no hace nada si no se ofrece; una tecla que no entra conserva el campo.
   Un prefijo numérico como «0», que todavía puede crecer, no agrega «mínimo» ni «mayor a».
   «Error» en coral queda para el resultado de una acción que corrió.
+- `money(pregunta, mínimo, moneda)` conserva el dato como centavos enteros. El tercer argumento es opcional:
+  un símbolo (`"US$"`) o `(respondido, estado, destino, instante) => símboloOIndefinido`. Sin símbolo usa
+  `locale.currency`; conserva los separadores del país. Para tipar el estado, usar `money<State<MiPrograma>>(…)`
+  o una función cuyo segundo parámetro ya tenga ese tipo. La función recibe el estado actual y el destino de la
+  acción, como `among` y `stops`; puede usar la moneda elegida antes o buscar la venta/factura sobre la que actúa.
+  En una entrada `also`, la cosa elegida está en las respuestas que fija `also.with`; el destino sigue siendo
+  el de la acción. Dentro de objetos, listas y alternativas, recibe lo respondido antes en los niveles exteriores
+  y en el objeto actual; el nombre del nivel más cercano prevalece. No recibe campos todavía sin contestar.
+  El símbolo aparece en el campo vacío, al escribir, en sus límites y en el eco. `confirms` sigue siendo texto
+  del programa: debe usar esa misma decisión de moneda. No hace falta envolver `next` para cambiar la máscara.
+  Si la moneda cambia, un importe escrito o propuesto se vuelve a preguntar vacío, sin convertir ni reutilizar
+  sus centavos. También se comprueba al escribir y al confirmar si cambió el estado. Volver atrás sin cambiar
+  la moneda conserva lo escrito. La memoria de una acción sigue siendo local: reiniciar el dispositivo la pierde.
 - Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, (respondido, instante) => …)`).
 - `holding(campo, (valor, instante) => motivoOIndefinido)` recibe el mismo reloj que `run`, `stops` y `among`.
   Conserva los motivos que el campo ya tenía: primero comprueba el campo y después la regla agregada, solo si
@@ -372,9 +385,8 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   La base todavía no lo comprueba.
 - Una devolución de plata sin cosas y un rechazo que deje escrito lo que contestó el fisco: pedidos de Capibara que
   hoy se resuelven del lado del programa.
-- Un importe que se escribe en otra moneda: la máscara de plata muestra siempre el signo del país («$»), aunque la
-  respuesta anterior, o la cosa elegida, diga dólares. Y, en general, un valor sugerido o una forma de campo que
-  dependan de una respuesta anterior o del estado (la cantidad que queda por devolver de ESE artículo).
+- Un valor sugerido o una forma de campo, fuera de la moneda de `money`, que dependan de una respuesta anterior
+  o del estado (la cantidad que queda por devolver de ESE artículo).
 
 ## Las casas temporales de las pruebas
 

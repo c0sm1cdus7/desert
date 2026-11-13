@@ -1,4 +1,5 @@
 // The one screen for where a session stands: every part of it comes from the tools or the words of the surface.
+import { renewedMoney } from "./fields/money-memory.ts";
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import type { Body, Hint, Row, Screen } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
@@ -34,7 +35,8 @@ function roomy(body: Body, rows: number, reading?: number): Body {
 }
 /** The one screen for where this session stands. */
 export function resolve(session: Session, tools: readonly Tool[], bar: Bar, viewport: Viewport): Screen {
-  const place = must(session.at(-1));
+  const previous = must(session.at(-1));
+  const place = previous.kind === "act" ? renewedMoney(previous, actOf(tools, previous).next) : previous;
   const common = {
     state: bar.state,
     clock: bar.clock,

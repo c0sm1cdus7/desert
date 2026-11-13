@@ -4,9 +4,11 @@ interface Walking {
   readonly tool: string;
   readonly act: string;
   readonly target?: string;
+  /** Currency of the open entry; captured before a later state change can reinterpret its digits. */
+  readonly currency?: string;
   readonly answers: readonly string[];
   /** What was asked, as it was asked: an act can change what its questions would say now. */
-  readonly asked: readonly { readonly ask: string; readonly shown: string }[];
+  readonly asked: readonly { readonly ask: string; readonly shown: string; readonly currency?: string }[];
   readonly pos: number;
   /** The first question it asks: what comes before was fixed by the row that started it. */
   readonly floor: number;

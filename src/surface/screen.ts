@@ -80,7 +80,7 @@ export function optionsOf(field: Field | null): readonly Option[] {
 }
 /** A field as it opens: an earlier answer wins over its initial value, so going back keeps what you wrote. A choice
  * opens on the option it already is. */
-type Opened = Pick<Walk, "typed" | "caret" | "at" | "marks" | "suggested">;
+type Opened = Pick<Walk, "typed" | "caret" | "at" | "marks" | "suggested" | "currency">;
 export const opened = (field: Field | null, answer?: string): Opened => {
   const value = answer ?? field?.initial ?? "";
   const typed = field?.kind === "text" || field?.kind === "secret" ? value : "";
@@ -89,6 +89,7 @@ export const opened = (field: Field | null, answer?: string): Opened => {
   const at = matched >= 0 ? matched : options.findIndex(option => !option.off);
   return {
     typed,
+    currency: field?.currency ?? "",
     caret: Array.from(typed).length,
     at,
     marks: field?.kind === "many" && value ? value.split(" · ") : [],
@@ -150,7 +151,7 @@ export function begin(tools: readonly Tool[], tool: string, act: string, target?
   const { next } = actOf(tools, bare);
   const asked = answers.slice(0, from).map((answer, index) => {
     const field = must(next(answers.slice(0, index)));
-    return { ask: field.ask, shown: maskOf(field, answer) };
+    return { ask: field.ask, shown: maskOf(field, answer), ...(field.currency ? { currency: field.currency } : {}) };
   });
   /** It asks one datum when it stops right after it, or when nothing but being sure comes after it. */
   const after = until === undefined ? next(answers.slice(0, from + 1)) : null;

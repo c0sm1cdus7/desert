@@ -1,3 +1,4 @@
+import { money } from "./fields/money-format.ts";
 // A field with a format takes only the keys that fit it and shows its shape: the same on every renderer.
 import { quantityDecimals } from "../catalogs/fields.ts";
 import type { Mask } from "./contract.ts";
@@ -8,28 +9,10 @@ import { maskKeys, numericKeyReason } from "./mask-keys.ts";
 export type Locale = Readonly<{ currency: string; thousands: string; decimal: string; day: string }>;
 /** A mask that also knows the value it stands for, both ways: what was typed as data, and data as typed. */
 export type Format = Mask &
+  Readonly<{ currency?: string; inCurrency?(symbol: string): Format }> &
   Readonly<{ value(typed: string): unknown; typed(value: unknown): string; keyboard: "digits" | "decimal" | "text" }>;
 export type FormatName = "money" | "quantity" | "count" | "day";
 const digits = /^\d+$/;
-const grouped = (whole: string, separator: string): string => whole.replace(/\B(?=(\d{3})+(?!\d))/g, separator);
-/** Money as a cash register takes it: digits come in from the right, and the last two are always the cents. */
-const money = (locale: Locale): Format => {
-  const shown = (typed: string): string => {
-    const cents = typed.padStart(3, "0");
-    return `${locale.currency} ${grouped(cents.slice(0, -2), locale.thousands)}${locale.decimal}${cents.slice(-2)}`;
-  };
-  return {
-    keyboard: "digits",
-    empty: shown(""),
-    shown,
-    ...maskKeys(
-      (typed, text) => (digits.test(text) && typed.length < 13 ? String(Number(typed + text)) : undefined),
-      (_, text) => numericKeyReason(text, generic.lacks.most(shown("9999999999999"))),
-    ),
-    value: typed => (typed === "" ? undefined : Number(typed)),
-    typed: value => (typeof value === "number" ? String(Math.round(value)) : ""),
-  };
-};
 /** How many: digits, and one decimal mark after at least one digit. */
 const quantity = (locale: Locale): Format => ({
   keyboard: "decimal",

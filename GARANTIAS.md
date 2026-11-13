@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 197. Deudas: 23.
+Leyes: 198. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -204,3 +204,4 @@ Leyes: 197. Deudas: 23.
 | 214 | Sumar un motivo con holding conserva los que el campo ya tenía: primero se comprueba el campo, después la regla agregada. Un día inexistente se rechaza en la pregunta y al validar el dato, aunque el programa le agregue otra regla. | 13/11 · campos · H01 | una spec a mano | `src/catalogs/fields.ts` `src/catalogs/fields.spec.ts` `src/surface/bridge/asking-days.spec.ts` |
 | 213 | Al Enter, un número bajo el mínimo dice por qué no avanza, aunque aún pudiera crecer. Mientras se escribe ese prefijo no molesta; un opcional vacío sigue valiendo nada. | 13/11 · campos · H05 y H18 | una spec a mano | `src/surface/bridge/asking-parts.ts` `src/surface/walking.ts` `src/surface/guards/answer-status.ts` `src/surface/field-reasons.spec.ts` |
 | 216 | Una tecla que una máscara descarta dice una vez por qué, sin cambiar el valor aceptado. Un pegado conserva su primer motivo hasta terminar; una edición aceptada después lo limpia. | 13/11 · campos · teclas descartadas | una spec a mano | `src/surface/masks.ts` `src/surface/mask-keys.ts` `src/surface/walking.ts` `src/surface/step.ts` `src/surface/field-reasons.spec.ts` |
+| 217 | Un campo de plata puede declarar su símbolo, fijo o decidido con las respuestas anteriores, el estado, el destino y el instante. Sin declararlo conserva la moneda del país. El campo vacío, la escritura y el eco usan esa moneda; el programa confirma con la misma decisión y los datos siguen en centavos. Un importe no se reutiliza con otra moneda: al volver atrás, editar o cambiar el estado, se vuelve a preguntar vacío, incluso si tenía un valor inicial. | 13/11 · campos · moneda pendiente de H03, H11, H17, H23 y H34; continuación después de 216 | una spec a mano | `src/catalogs/fields/money-field.ts` `src/surface/bridge/currency/money-question.ts` `src/surface/fields/money-memory.ts` `src/surface/bridge/questions/money.spec.ts` `src/surface/money-walk.spec.ts` `src/surface/money-state.spec.ts` `src/surface/money-terminal.spec.ts` |

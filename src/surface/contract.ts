@@ -111,6 +111,8 @@ export interface Option {
   readonly makes?: { readonly tool: string; readonly act: string };
 }
 interface Question {
+  /** An amount may be reused only while its currency stays the same. */
+  readonly currency?: string;
   readonly ask: string;
   readonly initial?: string;
   readonly valid?: (value: string) => boolean;

@@ -52,7 +52,7 @@ type Own<X extends Program> = Readonly<{ tool: string; name: string; act: Progra
 /** One act as a person walks it: its questions from what it takes, a confirmation when it asks for one, its result. */
 export function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
   const ask = asking(act.input, {
-    ...questionWords(ports.now, asked),
+    ...questionWords(ports.now, asked, { state: ports.state, target: tool }),
     things: asked.things,
     cause: reason => declaredCause(act.refuses, reason),
   });

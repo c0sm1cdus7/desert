@@ -1,4 +1,5 @@
 // What each key does inside an act: writing an answer, choosing one, picking a thing, going back, leaving.
+import { nextMoneyAnswer } from "./fields/money-memory.ts";
 import { answerValidity } from "../tools/answers/answer-change.ts";
 import type { Field, Intent, Mask, Option } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
@@ -20,7 +21,10 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
   const why =
     answerValidity(current.valid?.(answer), current.wrong?.(answer)) ?? act.stops?.(answers.slice(0, walk.pos + 1));
   if (why !== undefined) return { session: replace(session, opening(tools, { ...walk, error: why })) };
-  const asked = [...walk.asked.slice(0, walk.pos), { ask: current.ask, shown: maskOf(current, answer) }];
+  const asked = [
+    ...walk.asked.slice(0, walk.pos),
+    { ask: current.ask, shown: maskOf(current, answer), ...(current.currency ? { currency: current.currency } : {}) },
+  ];
   /** A walk that asked only part asks on when the rest no longer says everything the act takes. */
   const open = walk.until === undefined ? null : act.next(answers);
   const { until: _part, ...whole } = walk;
@@ -35,7 +39,7 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
     ...clean
   } = moved;
   const field = fieldOf(tools, clean);
-  if (field) return { session: replace(session, opening(tools, clean, answers[clean.pos])) };
+  if (field) return { session: replace(session, opening(tools, clean, nextMoneyAnswer(act.next, walk, answers))) };
   const running: Walk = { ...clean, phase: "running", since: now };
   return { session: replace(session, running), run: running };
 }

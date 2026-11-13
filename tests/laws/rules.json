@@ -1768,6 +1768,21 @@
         "src/surface/step.ts",
         "src/surface/field-reasons.spec.ts"
       ]
+    },
+    {
+      "id": 217,
+      "rule": "Un campo de plata puede declarar su símbolo, fijo o decidido con las respuestas anteriores, el estado, el destino y el instante. Sin declararlo conserva la moneda del país. El campo vacío, la escritura y el eco usan esa moneda; el programa confirma con la misma decisión y los datos siguen en centavos. Un importe no se reutiliza con otra moneda: al volver atrás, editar o cambiar el estado, se vuelve a preguntar vacío, incluso si tenía un valor inicial.",
+      "from": "13/11 · campos · moneda pendiente de H03, H11, H17, H23 y H34; continuación después de 216",
+      "guarantee": "spec",
+      "evidence": [
+        "src/catalogs/fields/money-field.ts",
+        "src/surface/bridge/currency/money-question.ts",
+        "src/surface/fields/money-memory.ts",
+        "src/surface/bridge/questions/money.spec.ts",
+        "src/surface/money-walk.spec.ts",
+        "src/surface/money-state.spec.ts",
+        "src/surface/money-terminal.spec.ts"
+      ]
     }
   ]
 }

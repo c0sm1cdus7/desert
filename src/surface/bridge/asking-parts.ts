@@ -1,4 +1,5 @@
 // What asking an act and reading its answers share: how a declared field says its question, its options and its value.
+import { moneyQuestion, type MoneyContext } from "./currency/money-question.ts";
 import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { addresses } from "../../catalogs/addressing.ts";
@@ -19,7 +20,8 @@ export type Things = Readonly<{
 }>;
 /** What asking needs beyond the declaration: the formats of the program's country, the marks of an optional field
  * and of picking nothing, and the things of each tool that an answer can pick. */
-export type AskWords = Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string }> &
+export type AskWords = MoneyContext &
+  Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string }> &
   Readonly<{
     things?: (tool: string) => Things | undefined;
     cause?: (reason: string | undefined) => string | undefined;
@@ -113,6 +115,7 @@ function numericReason(schema: TSchema, ctx: Ctx, typed: string, submitted: bool
   return undefined;
 }
 export function written(schema: TSchema, ctx: Ctx): Field {
+  ctx = moneyQuestion(schema, ctx);
   const of = at(schema, "of");
   if (typeof of === "string") return picked(schema, ctx, of);
   const format = formatOf(schema, ctx);
@@ -134,7 +137,16 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   /** What a person writes has a top: a number without one, or a text without a length, is a defect. */
   const numeric = at(schema, "type") === "integer" || at(schema, "type") === "number";
   if (format && numeric && typeof at(schema, "maximum") !== "number") throw new Error(`The field ${ask} has no top`);
-  if (format) return { ask, valid, wrong, kind: "text", mask: format, ...initial };
+  if (format)
+    return {
+      ask,
+      valid,
+      wrong,
+      kind: "text",
+      mask: format,
+      ...(format.currency === undefined ? {} : { currency: format.currency }),
+      ...initial,
+    };
   if (at(schema, "type") !== "string") throw new Error(`The field ${ask} has no format and is not text`);
   /** A datum with a shape takes only what fits it: declared as free text, any key would go in. */
   if (at(schema, "pattern") !== undefined && at(schema, "plain") !== true)

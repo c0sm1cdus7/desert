@@ -52,12 +52,22 @@ function fields(schema: unknown, ctx: Ctx, from: number, skip: readonly string[]
   const required = at(schema, "required");
   const needed = isList(required) ? required : [];
   let next = from;
-  const value: Record<string, unknown> = {};
+  const value: Record<string, unknown> = Object.fromEntries(
+    skip.map(key => [key, at(at(at(schema, "properties"), key), "const")]),
+  );
   for (const [key, field] of Object.entries(at(schema, "properties") ?? {})) {
     /** A field that says when it is asked is skipped while what was answered before does not call for it. */
     if (skip.includes(key) || !isAsked(field, value, ctx.now())) continue;
     /** What is asked only sometimes is not left out when it is asked: then it is as needed as any other. */
-    const got = read(field, { ...ctx, optional: !needed.includes(key) && at(field, "when") === undefined }, next);
+    const got = read(
+      field,
+      {
+        ...ctx,
+        answered: { ...ctx.answered, ...value },
+        optional: !needed.includes(key) && at(field, "when") === undefined,
+      },
+      next,
+    );
     if ("ask" in got) return got;
     if (got.value !== undefined) value[key] = got.value;
     next = got.at;
@@ -100,7 +110,7 @@ function read(schema: unknown, ctx: Ctx, from: number): Got {
 }
 export type Asking = Readonly<{
   /** The next question, or null once everything it takes was answered. */
-  next(answers: readonly string[]): Field | null;
+  next(answers: readonly string[], target?: string): Field | null;
   /** How many answers say the whole datum; what comes after them is not its own. */
   taken(answers: readonly string[]): number;
   input(answers: readonly string[]): unknown;
@@ -119,7 +129,7 @@ function sofar(schema: TSchema, ctx: Ctx): Readonly<Record<string, unknown>> {
   for (const [key, field] of Object.entries(at(schema, "properties") ?? {})) {
     if (!isAsked(field, value, ctx.now())) continue;
     const needed = (isList(required) && required.includes(key)) || at(field, "when") !== undefined;
-    const got = read(field, { ...ctx, optional: !needed }, next);
+    const got = read(field, { ...ctx, answered: { ...ctx.answered, ...value }, optional: !needed }, next);
     if ("ask" in got) return value;
     if (got.value !== undefined) value[key] = got.value;
     next = got.at;
@@ -127,7 +137,20 @@ function sofar(schema: TSchema, ctx: Ctx): Readonly<Record<string, unknown>> {
   return value;
 }
 export function asking(schema: TSchema, words: AskWords): Asking {
-  const got = (answers: readonly string[]): Got => read(schema, { ...words, answers, n: 1, optional: false }, 0);
+  const got = (answers: readonly string[], target = words.target, resolvingCurrency?: true): Got =>
+    read(
+      schema,
+      {
+        ...words,
+        ...(target === undefined ? {} : { target }),
+        ...(resolvingCurrency ? { resolvingCurrency } : {}),
+        answered: {},
+        answers,
+        n: 1,
+        optional: false,
+      },
+      0,
+    );
   const whole = (answers: readonly string[]) => {
     const done = got(answers);
     if ("ask" in done) throw new Error(`An act ran before it was asked: ${done.ask.ask}`);
@@ -136,8 +159,8 @@ export function asking(schema: TSchema, words: AskWords): Asking {
   // A field that cannot be asked is a defect of the program: it shows when the program is composed, not when used.
   audit(schema, { ...words, answers: [], n: 1, optional: false });
   return {
-    next: answers => {
-      const done = got(answers);
+    next: (answers, target) => {
+      const done = got(answers, target, true);
       return "ask" in done ? done.ask : null;
     },
     taken: answers => whole(answers).at,

@@ -9,8 +9,8 @@ type Asked = Readonly<{ next: (answers: readonly string[]) => Field | null }>;
  * asked does. */
 export function keptAfter(act: Asked, walk: Asking, answer: string): readonly string[] {
   const was = walk.answers.slice(walk.pos + 1).map((given, offset) => {
-    const ask = act.next(walk.answers.slice(0, walk.pos + 1 + offset))?.ask;
-    return { ask, given };
+    const field = act.next(walk.answers.slice(0, walk.pos + 1 + offset));
+    return { ask: field?.ask, currency: field?.currency, given };
   });
   const apart = new Set(was.map(each => each.ask)).size === was.length;
   const answers = [...walk.answers.slice(0, walk.pos), answer];
@@ -19,7 +19,7 @@ export function keptAfter(act: Asked, walk: Asking, answer: string): readonly st
     if (!field || field.kind === "confirm") break;
     const same = was[at]?.ask === field.ask ? was[at] : undefined;
     const kept = same ?? (apart ? was.find(each => each.ask === field.ask) : undefined);
-    if (!kept) break;
+    if (!kept || kept.currency !== field.currency) break;
     answers.push(kept.given);
   }
   return answers.slice(walk.pos + 1);
