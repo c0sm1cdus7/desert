@@ -307,9 +307,21 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   estados posibles: las garantías derivadas de los casos siguen siendo obligatorias.
 - El único remedio que la base tiene hoy es no romper la lectura: un hecho que cambia de forma es un hecho nuevo, con
   otro nombre, y el viejo se sigue leyendo y plegando. No hay lectura versionada de un hecho viejo.
-- Ojo: una organización en uso guarda su estado plegado y lo vuelve a usar mientras el programa no cambie sus hechos
-  ni su estado inicial. Si cambia solo cómo pliega un hecho, la organización sigue con lo plegado antes: cambiar un
-  pliegue pide cambiar también el hecho (o el estado inicial) para que se vuelva a plegar todo.
+- Cada composición y cada apertura declara `projectionVersion`, un string no vacío. Cambiar un cálculo exige
+  cambiar esa versión; no hace falta cambiar el vocabulario ni los hechos. La primera apertura reconstruye todo;
+  las siguientes reutilizan el nuevo plegado. La base declara por separado `baseProjectionVersion`.
+- Para no depender de acordarse, usá `projectionVersion([rutaDelCodigo, rutaDelCodigoDeLaBase])`, de
+  `src/programs/projection-version.ts`: calcula SHA-256 del contenido y nombres relativos de todos los archivos
+  de esos árboles, más la versión de Node. Calculala una sola vez al componer una entrega inmutable, antes de abrir
+  organizaciones. Incluí todos los árboles de dependencias o configuración que intervienen en los cálculos;
+  lo que queda fuera no tiene cobertura. No sigue enlaces ni omite archivos ocultos; rechaza árboles privados.
+- El tercer control abre una copia conservando sus plegados anteriores y compara estado completo y reloj con
+  reconstruir todos los hechos, antes de arrancar herramientas, temporizadores o escribir `boot`. Si difieren,
+  señala el archivo y `projectionVersion`. Exige un par legible de plegados anteriores; ausencia, daño o un par
+  incompleto no pasan. Conservá copias cerradas de la entrega inmediatamente anterior en tus registros guardados:
+  no las regeneres con la candidata. Los originales no cambian.
+- Si falla una reconstrucción, esa instancia ya no puede guardar plegados, ni al registrar el diagnóstico ni al
+  cerrar ni después de un reintento exitoso. Una instancia nueva vuelve a intentar reconstruir.
 
 ## Un objeto
 
@@ -450,8 +462,8 @@ abrir. `journal.lock` queda como puente para la versión anterior; su contenido 
 
 Los plegados guardados tienen formato 2 y se aceptan en un solo punto (`journal/snapshot-format.ts`). Un formato
 incompatible o una secuencia inválida obliga a reconstruir el grupo entero. Un salto al plegar aborta toda la
-escritura; el grupo se guarda en una transacción después de restaurarse. La identidad de los cálculos (A04) queda
-pendiente: cambiar un cálculo sin cambiar la forma todavía requiere la solución del siguiente encargo.
+escritura; el grupo se guarda en una transacción después de restaurarse. La identidad incluye la versión de cálculos del programa y la de la base, además del vocabulario y los iniciales.
+Un plegado sin esa identidad se reconstruye una vez.
 
 Las pruebas derivadas de cada caso y recorrido comparan estado completo y reloj tras cerrar y abrir con otra
 apertura después de borrar los plegados guardados. Los registros conservados hacen esa comparación antes de

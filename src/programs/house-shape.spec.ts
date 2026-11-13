@@ -18,6 +18,7 @@ afterEach(() => {
 });
 const options: HouseOptions<Shop> = {
   by: "shop",
+  projectionVersion: "shop/1",
   creation: { admin: "ana", assignments: [{ identity: "ana", tools: shopRegistry.map(tool => tool.id) }] },
   keys: new MemoryKeys(),
   words: shop,

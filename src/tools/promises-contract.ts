@@ -99,6 +99,7 @@ export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
   Readonly<{ needs?: (state: State<X>, now: number) => readonly Need[] }>;
 /** A program, whole: what DESERT needs to run it and to check everything it promises. */
 export type Composition<X extends Program> = Readonly<{
+  projectionVersion: string;
   words: Vocabulary<X["fact"]>;
   registry: readonly ProgramTool<X>[];
   slices: Slices<X>;

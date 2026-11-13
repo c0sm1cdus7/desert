@@ -1,4 +1,11 @@
 export const journalTexts = {
+  keptBootSql: "select by from events where kind = 'boot' order by seq limit 1",
+  lastInstantSql: "select max(at) as at from events",
+  lastSequenceSql: "select coalesce(max(seq), 0) as seq from events",
+  previousFoldsSql: "select name, state from snapshots",
+  discardFoldsSql: "delete from snapshots",
+  previousRequired: (name: string) => `${name}: readable previous folds are required`,
+  upgradeMismatch: (name: string) => `${name}: projectionVersion differs from the calculations`,
   invalidEvent: "Invalid event envelope or unknown kind",
   unreadable: (seq: number, kind: string) =>
     `This house's journal holds a fact this program does not read: #${seq} ${kind}`,

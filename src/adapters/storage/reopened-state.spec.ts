@@ -37,7 +37,7 @@ const corrupt = (file: string, version: boolean) => {
     const saved: unknown = deserialize(row.state);
     if (typeof saved !== "object" || saved === null || !("seq" in saved)) throw new Error("No fixture sequence");
     db.prepare("update snapshots set state = ? where name = ?").run(
-      serialize({ ...(version ? { version: 2 } : {}), seq: saved.seq, state: "incomplete" }),
+      serialize({ ...(version ? { ...saved, version: 2 } : {}), seq: saved.seq, state: "incomplete" }),
       row.name,
     );
   } finally {
@@ -60,8 +60,9 @@ it("kept checks compare the saved state before discarding it", async () => {
   track(startHouse(root, options, time)).close();
   corrupt(join(root, "journal.sqlite"), true);
   const checks = keptChecks(shopProgram, shopShown, root).filter(c => c.name.includes("journal.sqlite"));
-  expect(checks).toHaveLength(2);
-  for (const check of checks) await expect(check.run()).rejects.toThrow("Reopened state differs");
+  expect(checks).toHaveLength(3);
+  for (const check of checks.slice(0, 2)) await expect(check.run()).resolves.toBeUndefined();
+  await expect(checks[2]?.run()).rejects.toThrow("previous folds");
 });
 
 it("every staged journey checks its saved state after close", async () => {

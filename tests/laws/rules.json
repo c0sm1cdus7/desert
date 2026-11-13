@@ -1340,13 +1340,15 @@
     },
     {
       "id": 165,
-      "rule": "Los registros que una organización ya escribió y el programa guarda (`desert.journals`) siguen abriendo con el programa de hoy: cada hecho se lee y se pliega desde el primero, y cada cosa se lee donde la lee una persona; nada se saltea para que abran",
+      "rule": "Los registros que una organización ya escribió y el programa guarda (`desert.journals`) siguen abriendo con el programa de hoy: cada hecho se lee y se pliega desde el primero, y cada cosa se lee donde la lee una persona; nada se saltea para que abran; actualizar desde plegados anteriores legibles coincide con reconstruir estado completo y reloj, sin tocar el original",
       "from": "12/11 · obra de Capibara: en una noche cambiaron decenas de hechos; el día que haya datos reales, un cambio que no los lea tiene que frenar en la compuerta, no en la organización",
       "guarantee": "spec",
       "evidence": [
         "src/programs/kept-journals.ts",
         "src/programs/kept-journals.spec.ts",
-        "tests/program/program.checks.ts"
+        "tests/program/program.checks.ts",
+        "src/programs/kept-upgrade.ts",
+        "src/programs/upgrade-kept.spec.ts"
       ]
     },
     {
@@ -1766,6 +1768,24 @@
         "src/adapters/storage/writer-failures.spec.ts",
         "src/programs/promised-stage.ts",
         "src/programs/kept-journals.ts"
+      ]
+    },
+    {
+      "id": 199,
+      "rule": "Un cambio de versión de cálculos reconstruye lo guardado una vez; la versión es obligatoria y puede derivarse del código y Node; un recálculo fallido no guarda plegados en esa instancia",
+      "from": "A04, decisión de obra 13/11",
+      "guarantee": "spec",
+      "evidence": [
+        "src/journal/snapshot-format.ts",
+        "src/programs/house-projections.ts",
+        "src/programs/projection-version.ts",
+        "src/programs/upgrade-runtime.spec.ts",
+        "src/programs/upgrade-recovery.spec.ts",
+        "src/programs/upgrade-process.spec.ts",
+        "src/programs/projection-version.spec.ts",
+        "src/adapters/storage/failed-rebuild.spec.ts",
+        "src/journal/snapshot-identity.spec.ts",
+        "src/programs/house-projections.spec.ts"
       ]
     }
   ]

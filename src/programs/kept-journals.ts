@@ -13,6 +13,7 @@ import { promiseTexts as said } from "../texts/promises.texts.ts";
 import type { Composition } from "../tools/promises.ts";
 import type { KeyStore, Program } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../tools/tools.ts";
+import { keptUpgrade } from "./kept-upgrade.ts";
 import { localPorts, startHouse } from "./house-runtime.ts";
 import { breadthFirst, keptWalkLimits, type WalkCoverage } from "./kept-walk.ts";
 import { keptPath, type Path } from "./kept-path.ts";
@@ -54,7 +55,7 @@ async function opened<X extends Program, R>(
   const home = mkdtempSync(join(tmpdir(), "desert-kept-"));
   try {
     copyFileSync(file, join(home, "journal.sqlite"));
-    const { runner, last } = journalKept(join(home, "journal.sqlite"), false);
+    const { runner, last } = journalKept(join(home, "journal.sqlite"));
     ok(runner, said.keptEmpty);
     checkReopenedState<X>(join(home, "journal.sqlite"), { ...kept.program, by: runner });
     const now = last + 1;
@@ -84,7 +85,7 @@ function walk<X extends Program>(source: Kept<X>, file: string, name: string): C
     report: () => walked && said.keptWalked(name, walked),
   };
 }
-/** Two checks for each journal kept in a folder of the program; none, where the program keeps none. */
+/** Three checks for each journal kept in a folder of the program; none, where the program keeps none. */
 export function keptChecks<X extends Program>(program: Composition<X>, shown: Shown<X>, folder: string): Check[] {
   if (!existsSync(folder)) return [];
   const kept = readdirSync(folder).filter(name => name.endsWith(".sqlite") && !name.endsWith(".writer.sqlite"));
@@ -92,6 +93,6 @@ export function keptChecks<X extends Program>(program: Composition<X>, shown: Sh
     const source = { program, shown };
     const file = join(folder, name);
     const opens = () => opened(source, file, (house, now) => read(source, house, now));
-    return [{ name: said.keptOpens(name), run: opens }, walk(source, file, name)];
+    return [{ name: said.keptOpens(name), run: opens }, walk(source, file, name), keptUpgrade(program, file, name)];
   });
 }

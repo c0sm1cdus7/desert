@@ -125,8 +125,8 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
   deja de declarar un tipo que su registro tiene, la casa no abre y dice cuál es y dónde está (HECHO, 10/11); y lo
   guardado entre arranques lleva la forma del programa (los hechos que lee y dónde empieza su estado), así que con
   otra forma se vuelve a recorrer el registro entero (HECHO, 10/11). Falta decidir, antes de la primera casa en
-  producción, cómo sigue leyendo un programa un tipo de hecho que ya no escribe. Y un cambio en cómo se calcula el
-  estado que no cambie su forma todavía no se detecta.
+  producción, cómo sigue leyendo un programa un tipo de hecho que ya no escribe. El cambio de cálculos ya se detecta con `projectionVersion` y la versión de la base (A04);
+  la compuerta compara actualizar desde plegados anteriores legibles con reconstruir todo.
 - **Las preferencias son de la casa, no del programa.** Hoy son tres y fijas (lo apagado, lo ajeno, las listas
   vacías). Si un programa quiere las suyas, tiene que poder declararlas.
 
@@ -156,4 +156,6 @@ una apertura por su PID. El auxiliar no se elimina: la exclusión termina al cer
 Los hechos anteriores no cambian. Los plegados de formato anterior se descartan juntos y se reconstruyen; los de
 formato 2 tienen secuencia segura dentro del registro y cada paso exige el siguiente número. El guardado del grupo
 es atómico y una restauración fallida no publica plegados. La decisión de compatibilidad queda concentrada en
-`snapshot-format.ts`, preparada para sumar la identidad de los cálculos en A04 sin implementarla en este paso.
+`snapshot-format.ts`, que también exige la identidad de cálculos del programa y de la base (A04).
+La función `projectionVersion` obtiene una huella de árboles de código y Node al componer. Una restauración
+fallida impide guardar plegados durante toda la vida de esa instancia, aun si después logra reintentarlo.

@@ -44,26 +44,7 @@ export function journalReader<P extends Foreign>(file: string, words: Vocabulary
     throw error;
   }
 }
-/** A kept journal supplies its boot identity and last instant; discard its cache to fold every fact again. */
-export function journalKept(file: string, discard = true): Readonly<{ runner: string; last: number }> {
-  const canonical = storageIdentity(file);
-  const release = writerLease(canonical);
-  let db: DatabaseSync | undefined;
-  try {
-    db = privateDatabase(canonical);
-    if (discard) db.exec("delete from snapshots");
-    const boot = db.prepare("select by from events where kind = 'boot' order by seq limit 1").get();
-    const last = db.prepare("select max(at) as at from events").get();
-    if (typeof last?.at !== "number") throw new Error("A kept journal has no dated fact");
-    return { runner: String(boot?.by ?? ""), last: last.at };
-  } finally {
-    try {
-      db?.close();
-    } finally {
-      release();
-    }
-  }
-}
+export { journalKept } from "./kept-journal.ts";
 /** Derive identity from provenance, kind, writer and the ordinal among their effects. */
 export function derivedId(emission: Emission, ordinal: number): string {
   return createHash("sha256")
@@ -78,6 +59,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   private readonly projections = new ProjectionGroup<Event<P>>();
   private readonly release: () => void;
   private restored = false;
+  private restoreFailed = false;
   private batching = false;
   constructor(file: string, words: Vocabulary<P>) {
     this.words = words;
@@ -152,25 +134,30 @@ export class SqliteJournal<P extends Foreign = Foreign> {
       throw new Error(journalTexts.unreadable(Number(row.seq), String(row.kind)));
     }
   }
-  watch<S>(name: string, initial: S, reduce: (state: S, event: Event<P>) => S): () => S {
+  watch<S>(name: string, initial: S, reduce: (state: S, event: Event<P>) => S, identity = ""): () => S {
     const row = this.db.prepare("select state from snapshots where name = ?").get(name);
     this.restored = false;
     const last = this.db.prepare("select coalesce(max(seq), 0) as seq from events").get();
-    return this.projections.add(name, initial, reduce, row?.state, Number(last?.seq));
+    return this.projections.add(name, initial, reduce, row?.state, Number(last?.seq), identity);
   }
   /** Brings what is watched up to the last fact. What was kept under a name nobody watches now is dropped. */
   restore(): void {
     this.restored = false;
-    this.batch(() => {
-      const watched = [...this.projections.caches.keys()];
-      const names = watched.map(() => "?").join(", ");
-      this.db.prepare(`delete from snapshots where name not in (${names})`).run(...watched);
-      this.replay(null, (_, event) => this.projections.fold(event), this.projections.after());
-    });
+    try {
+      this.batch(() => {
+        const watched = [...this.projections.caches.keys()];
+        const names = watched.map(() => "?").join(", ");
+        this.db.prepare(`delete from snapshots where name not in (${names})`).run(...watched);
+        this.replay(null, (_, event) => this.projections.fold(event), this.projections.after());
+      });
+    } catch (error) {
+      this.restoreFailed = true;
+      throw error;
+    }
     this.restored = true;
   }
   private snapshot(): void {
-    if (!this.restored) return;
+    if (!this.restored || this.restoreFailed) return;
     this.batch(() => {
       for (const [name, projection] of this.projections.caches)
         this.db.prepare("insert or replace into snapshots values (?, ?)").run(name, projection.encode());

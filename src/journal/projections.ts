@@ -8,11 +8,19 @@ export class ProjectionCache<S, E extends Placed> {
   seq = 0;
   readonly compatible: boolean;
   private readonly initial: S;
+  private readonly identity: string;
   private readonly reduce: (state: S, event: E) => S;
-  constructor(initial: S, reduce: (state: S, event: E) => S, bytes: unknown, last = Number.MAX_SAFE_INTEGER) {
+  constructor(
+    initial: S,
+    reduce: (state: S, event: E) => S,
+    bytes: unknown,
+    last = Number.MAX_SAFE_INTEGER,
+    identity = "",
+  ) {
     this.initial = initial;
+    this.identity = identity;
     this.reduce = reduce;
-    const saved = savedFold<S>(bytes, last);
+    const saved = savedFold<S>(bytes, last, identity);
     this.compatible = saved !== undefined;
     this.state = saved ? saved.state : initial;
     this.seq = saved?.seq ?? 0;
@@ -28,7 +36,7 @@ export class ProjectionCache<S, E extends Placed> {
     return this.state;
   }
   encode(): Uint8Array {
-    return encodeFold(this.seq, this.state);
+    return encodeFold(this.seq, this.state, this.identity);
   }
   /** Where it stands now, as a way back to it: what was folded after is forgotten. */
   mark(): () => void {
@@ -45,8 +53,8 @@ export class ProjectionGroup<E extends Placed> {
     string,
     Pick<ProjectionCache<unknown, E>, "seq" | "compatible" | "reset" | "fold" | "encode" | "mark">
   >();
-  add<S>(name: string, initial: S, reduce: (state: S, event: E) => S, bytes: unknown, last: number) {
-    const cache = new ProjectionCache(initial, reduce, bytes, last);
+  add<S>(name: string, initial: S, reduce: (state: S, event: E) => S, bytes: unknown, last: number, identity = "") {
+    const cache = new ProjectionCache(initial, reduce, bytes, last, identity);
     this.caches.set(name, cache);
     return () => cache.state;
   }

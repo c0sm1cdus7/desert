@@ -43,7 +43,7 @@ it.each([0, 1, 2, 3, -1, 0.5, Number.MAX_SAFE_INTEGER + 1])(
 
 it("rejects a cache beyond the journal even when its format is current", () => {
   const file = seed();
-  replace(file, { version: 2, seq: 3, state: ["right"] });
+  replace(file, { version: 2, identity: "", seq: 3, state: ["right"] });
   expect(watch(open(file))()).toEqual(["left", "right"]);
 });
 
@@ -142,7 +142,7 @@ it.each([-1, 0.5, Number.MAX_SAFE_INTEGER + 1, NaN, Infinity, "2", undefined])(
   "discards a current cache with invalid sequence %s",
   seq => {
     const file = seed();
-    replace(file, { version: 2, seq, state: ["right"] });
+    replace(file, { version: 2, identity: "", seq, state: ["right"] });
     expect(watch(open(file))()).toEqual(["left", "right"]);
   },
 );
@@ -152,7 +152,10 @@ it("resets a valid zero-position sibling when another cache is incompatible", ()
   open(file).close();
   const db = new DatabaseSync(file);
   try {
-    db.prepare("insert into snapshots values (?, ?)").run("sales", serialize({ version: 2, seq: 0, state: ["wrong"] }));
+    db.prepare("insert into snapshots values (?, ?)").run(
+      "sales",
+      serialize({ version: 2, identity: "", seq: 0, state: ["wrong"] }),
+    );
     db.prepare("insert into snapshots values (?, ?)").run("counts", serialize({ seq: 0, state: 42 }));
   } finally {
     db.close();

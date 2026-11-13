@@ -7,16 +7,21 @@ import { SecretVault } from "../adapters/secrets/secret-vault.ts";
 import { SqliteJournal } from "../adapters/storage/journal-store.ts";
 import { privateDirectoryMode, type ViewLimits } from "../catalogs/levers.ts";
 import { createHouse, identityView, type Creation } from "../house/house.ts";
-import { clockStep, startClock, systemTime, type Deadlines, type TimeSource } from "../journal/clock.ts";
+import { startClock, systemTime, type TimeSource } from "../journal/clock.ts";
 import { Bus } from "../journal/bus.ts";
 import { effect, type Emission, type Vocabulary } from "../journal/events.ts";
-import { shapeOf } from "../journal/projections.ts";
+import { houseProjections, requireProjectionVersion } from "./house-projections.ts";
 import type { HousePorts } from "../surface/bridge/house-ports.ts";
 import type { Execution } from "../tools/execute.ts";
 import type { KeyStore, Program, Slices, ToolRegistry } from "../tools/tool-contract.ts";
-import { startState, startTools, toolsStep } from "../tools/tools.ts";
+import { startTools } from "../tools/tools.ts";
 /** What a program hands a house to live in it: its vocabulary, its tools, and what each of them keeps. */
-export type HouseOptions<X extends Program> = Readonly<{ by: string; creation: Creation; keys: KeyStore }> &
+export type HouseOptions<X extends Program> = Readonly<{
+  by: string;
+  projectionVersion: string;
+  creation: Creation;
+  keys: KeyStore;
+}> &
   Readonly<{ words: Vocabulary<X["fact"]>; registry: ToolRegistry<X>; slices: Slices<X> }> &
   Partial<Pick<Execution<X>, "own" | "process">>;
 /** A part is kept under its tool's id: that is how the house gives a whole tool, or none of it, to an identity. */
@@ -46,7 +51,8 @@ function busOf<X extends Program>(
   );
 }
 export function startHouse<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource = systemTime) {
-  const { by, words, registry, slices, creation, ...ports } = options;
+  requireProjectionVersion(options.projectionVersion);
+  const { by, words, registry, creation, ...ports } = options;
   if (!by) throw new Error("An explicit identity is required");
   if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
   mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
@@ -68,14 +74,7 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
       report(error, "program", "program", "stop");
     });
   try {
-    /** What a house keeps between runs came from one shape of its program: the facts it reads, and where its state
-     * starts. Kept under that shape, another shape of the program folds the journal again from its first fact. */
-    const shape = shapeOf(JSON.stringify(words.event), startState<X>(slices, by));
-    const clock = journal.watch<Deadlines>(`clock@${shape}`, new Map(), clockStep);
-    const state = journal.watch(`tools:${by}@${shape}`, startState<X>(slices, by), (state, event) =>
-      toolsStep<X>(state, event, slices),
-    );
-    journal.restore();
+    const { state, clock } = houseProjections(journal, options);
     const tools = startTools({ ...ports, bus, secrets, registry, state, now: () => time.now() });
     if (!state().house.admin) createHouse(bus, creation);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
