@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { object } from "../catalogs/acts.ts";
-import { money, oneOf, option } from "../catalogs/fields.ts";
+import { money, oneOf, option, text } from "../catalogs/fields.ts";
 import { asking } from "./bridge/asking.ts";
 import { formats } from "./masks.ts";
 import { begin, type Session } from "./screen.ts";
@@ -15,9 +15,12 @@ const words = {
   optionalMark: "",
   formats: formats({ currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" }),
 };
-function seat() {
+function seat(later = false) {
   let currency = "$";
-  const ask = asking(object({ amount: money("Importe", 1, () => currency) }), words);
+  const ask = asking(
+    object({ amount: money("Importe", 1, () => currency), ...(later ? { note: text("Nota", "Nota") } : {}) }),
+    words,
+  );
   const tools: readonly Tool[] = [
     {
       id: "data",
@@ -73,8 +76,24 @@ describe("currency changes while an action is open", () => {
     hands.send({ kind: "confirm" });
     hands.change();
     expect(hands.screen().body).toMatchObject({ entry: { typed: "", placeholder: "US$ 0,00" } });
+    expect(JSON.stringify(hands.screen().body)).toContain("cambió la moneda");
     hands.send({ kind: "confirm" });
     expect(hands.session().at(-1)).toMatchObject({ phase: "asking", pos: 0, answers: [] });
+  });
+  it("returns from a later question with an explanation and forgets later answers", () => {
+    const hands = seat(true);
+    hands.send({ kind: "type", text: "5000" });
+    hands.send({ kind: "confirm" });
+    hands.send({ kind: "type", text: "nota" });
+    hands.change();
+    expect(hands.screen().body).toMatchObject({ entry: { typed: "", placeholder: "US$ 0,00" } });
+    expect(JSON.stringify(hands.screen().body)).toContain("cambió la moneda");
+    hands.send({ kind: "type", text: "x" });
+    expect(JSON.stringify(hands.screen().body)).toContain("cambió la moneda");
+    hands.send({ kind: "type", text: "25" });
+    expect(JSON.stringify(hands.screen().body)).not.toContain("cambió la moneda");
+    hands.send({ kind: "confirm" });
+    expect(hands.screen().body).toMatchObject({ entry: { typed: "", placeholder: "Nota" } });
   });
   it("does not call a state resolver while auditing or reading back stored cents", () => {
     const ask = asking(
@@ -91,10 +110,18 @@ describe("currency changes while an action is open", () => {
     expect(ask.sofar([])).toEqual({});
     expect(ask.next([], "sales/one")).toMatchObject({ mask: { empty: "US$ 0,00" } });
   });
-  it.each([false, true])("does not reuse a default after changing currency, partial edit: %s", partial => {
+  it.each([
+    [false, false],
+    [true, false],
+    [false, true],
+    [true, true],
+  ])("does not reuse a carried amount: partial %s, default %s", (partial, initial) => {
     const input = object({
       currency: oneOf("Moneda", option("ARS", "Pesos", "p"), option("USD", "Dólares", "d")),
-      amount: { ...money("Importe", 1, ({ currency }) => (currency === "USD" ? "US$" : "$")), default: 5000 },
+      amount: {
+        ...money("Importe", 1, ({ currency }) => (currency === "USD" ? "US$" : "$")),
+        ...(initial ? { default: 5000 } : {}),
+      },
     });
     const ask = asking(input, words);
     const tools: readonly Tool[] = [
@@ -119,6 +146,9 @@ describe("currency changes while an action is open", () => {
     const given = partial ? { answers: ["Pesos", "5000"], from: 0, until: 1, today: true as const } : undefined;
     let session: Session = [begin(tools, "data", "enter", undefined, given)];
     session = step(session, { kind: "type", text: "d" }, tools, 17).session;
-    expect(session.at(-1)).toMatchObject({ typed: "" });
+    expect(session.at(-1)).toMatchObject({ phase: "asking", pos: 1, typed: "", answers: ["Dólares"] });
+    expect(
+      JSON.stringify(resolve(session, tools, { state: "connected", clock: "00:00", now: 17 }, { rows: 30 }).body),
+    ).not.toContain("50,00");
   });
 });

@@ -59,7 +59,7 @@ export function seated<X extends Program>(house: House<X>, by: string, shown: Sh
     requests,
     defects,
     shown,
-    words: questionWords(ports.now, shown),
+    words: questionWords(ports.now, shown, { state: ports.state }),
     state: ports.state,
     now: ports.now,
     router: startRouter({

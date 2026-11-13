@@ -1,4 +1,5 @@
 // Currency belongs to the question; the stored amount remains an integer number of cents.
+import { currencySymbol } from "../currency/currency-symbol.ts";
 import { programCall } from "../../tools/boundaries/program-call.ts";
 export type Currency<State = unknown> =
   | string
@@ -13,7 +14,5 @@ export function currencyIn(
 ): string | undefined {
   const symbol = decides(declared) ? programCall(declared, answered, state, target, at) : declared;
   if (symbol === undefined) return undefined;
-  if (typeof symbol !== "string" || symbol.trim() === "" || /[\r\n]/u.test(symbol))
-    throw new Error("A money field needs a currency symbol");
-  return symbol;
+  return currencySymbol(symbol);
 }

@@ -46,8 +46,8 @@ function pasted(session: Session, text: string, tools: Tools, now: number): Step
   const place = must(session.at(-1));
   const field = place.kind === "act" && place.phase === "asking" ? fieldOf(tools, place) : undefined;
   const chars = Array.from(text.trim().replace(/[\r\n\t]+/gu, " ")).filter(char => !/\p{Cc}/u.test(char));
-  /** A formatted paste is one edit: later accepted characters cannot hide an earlier rejection. */
-  if (place.kind === "act" && field && "mask" in field) {
+  /** A written paste is one edit: later accepted characters cannot hide an earlier rejection. */
+  if (place.kind === "act" && field && (field.kind === "text" || field.kind === "secret")) {
     const written = chars.join("");
     return written === "" ? { session } : walking(session, place, tools, { kind: "type", text: written }, now);
   }

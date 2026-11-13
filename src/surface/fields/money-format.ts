@@ -1,7 +1,7 @@
+import { currencySymbol } from "../../catalogs/currency/currency-symbol.ts";
 import type { Format, Locale } from "../masks.ts";
 import { maskKeys, numericKeyReason } from "../mask-keys.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
-const digits = /^\d+$/;
 const grouped = (whole: string, separator: string): string => whole.replace(/\B(?=(\d{3})+(?!\d))/g, separator);
 /** Money as a cash register takes it: digits come in from the right, and the last two are always the cents. */
 export const money = (locale: Locale): Format => {
@@ -11,12 +11,12 @@ export const money = (locale: Locale): Format => {
   };
   return {
     keyboard: "digits",
-    currency: locale.currency,
+    currency: currencySymbol(locale.currency),
     inCurrency: currency => money({ ...locale, currency }),
     empty: shown(""),
     shown,
     ...maskKeys(
-      (typed, text) => (digits.test(text) && typed.length < 13 ? String(Number(typed + text)) : undefined),
+      (typed, text) => (/^\d+$/.test(text) && typed.length < 13 ? String(Number(typed + text)) : undefined),
       (_, text) => numericKeyReason(text, generic.lacks.most(shown("9999999999999"))),
     ),
     value: typed => (typed === "" ? undefined : Number(typed)),

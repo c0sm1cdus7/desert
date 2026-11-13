@@ -1,0 +1,43 @@
+// One written edit keeps the first rejected character beside any reason that the value already had.
+import { entryAdvice } from "../../texts/entry/entry-advice.ts";
+import { fieldTexts } from "../../texts/fields/field-texts.ts";
+import type { Field, Intent } from "../contract.ts";
+import type { Asking } from "../walk-state.ts";
+import { edited } from "../talk.ts";
+/** Editing clears a prior result; merely moving the caret or discarding a key keeps it. */
+function rewritten({ error: _was, ignored: _key, failed: _result, ...written }: Asking): Asking {
+  return { ...written, suggested: false };
+}
+function plainReason(walk: Asking, field: Field, char: string): string | undefined {
+  if ("max" in field && Array.from(walk.typed).length >= (field.max ?? Infinity))
+    return fieldTexts.ignored.characters(field.max ?? 0);
+  if (char !== " ") return undefined;
+  const chars = Array.from(walk.typed);
+  return walk.caret === 0 || chars[walk.caret - 1] === " " || chars[walk.caret] === " "
+    ? entryAdvice.redundantSpace
+    : undefined;
+}
+export function writtenAnswer(walk: Asking, field: Field, key: Intent): Asking | undefined {
+  if (key.kind !== "type") {
+    /** An arrow chooses to edit the suggested answer, even when the caret is already at the edge. */
+    if (key.kind === "left" || key.kind === "right")
+      return { ...("mask" in field ? walk : (edited(walk, key) ?? walk)), suggested: false };
+    if ("mask" in field && key.kind !== "erase") return undefined;
+    const changed =
+      "mask" in field ? { ...walk, typed: Array.from(walk.typed).slice(0, -1).join("") } : edited(walk, key);
+    return changed && key.kind === "erase" ? rewritten(changed) : changed;
+  }
+  let changed = walk;
+  let reason: string | undefined;
+  for (const char of Array.from(key.text)) {
+    const rejected = "mask" in field ? field.mask.rejected?.(changed.typed, char) : plainReason(changed, field, char);
+    reason ??= rejected;
+    if (rejected !== undefined) continue;
+    if ("mask" in field) {
+      const typed = field.mask.put(changed.typed, char);
+      if (typed !== changed.typed || field.mask.rejected)
+        changed = { ...rewritten(changed), typed, caret: Array.from(typed).length };
+    } else changed = edited(rewritten(changed), { kind: "type", text: char }) ?? changed;
+  }
+  return reason === undefined ? changed : { ...changed, ignored: reason };
+}

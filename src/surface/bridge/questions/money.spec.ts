@@ -96,3 +96,42 @@ describe("money declares its currency without changing cents", () => {
     expect(conditional.next(["Pesos"])).toBeNull();
   });
 });
+
+// Literal declarations are checked at composition; computed symbols are checked with their real context.
+describe("a currency symbol has a bounded shape", () => {
+  for (const symbol of [
+    "",
+    " ",
+    " US$",
+    "US$ ",
+    "Dólares estadounidenses",
+    "123456789",
+    "U\nS",
+    "U\rS",
+    "U\tS",
+    "\u001b[31mX",
+    "U\u2028S",
+    "U\u2029S",
+    "U\u200bS",
+  ])
+    it(JSON.stringify(symbol), () => {
+      expect(() => asking(object({ amount: money("Importe", 1, symbol) }), words)).toThrow("currency symbol");
+      const ask = asking(object({ amount: money("Importe", 1, () => symbol) }), words);
+      expect(() => ask.next([])).toThrow("currency symbol");
+    });
+  it.each(["$", "US$", "€", "12345678"])("accepts %s", symbol => {
+    expect(asking(object({ amount: money("Importe", 1, symbol) }), words).next([])?.currency).toBe(symbol);
+  });
+});
+
+it("a currency resolver returning a non-string fails at the program boundary", () => {
+  const ask = asking(object({ amount: { ...money("Importe"), currency: () => 123 } }), words);
+  expect(() => ask.next([])).toThrow("currency symbol");
+});
+
+it.each(["", " US$", "US$ ", "123456789", "U\nS", "\u001b[31mX"])(
+  "rejects an invalid country currency at composition: %s",
+  currency => {
+    expect(() => formats({ currency, decimal: ",", thousands: ".", day: "dd/mm/aaaa" })).toThrow("currency symbol");
+  },
+);

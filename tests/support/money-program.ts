@@ -9,6 +9,7 @@ import { salesTool, paymentsTool, shop, shopShown, type Shop } from "./shop.ts";
 
 export const symbol = (answered: Readonly<Record<string, unknown>>) => (answered.currency === "USD" ? "US$" : "$");
 export const onSale = (answered: Readonly<Record<string, unknown>>, state: State<Shop>, target: string) => {
+  if (typeof answered.sale !== "string" && !target.startsWith("sales/")) throw new Error("A sale target is required");
   const sale = (typeof answered.sale === "string" ? answered.sale : target).replace("sales/", "");
   return state.tools.sales.has(sale) && sale === "dollars" ? "US$" : "$";
 };
@@ -18,6 +19,7 @@ export const input = object({
   currency: oneOf("Moneda", option("ARS", "Pesos", "p"), option("USD", "Dólares", "d")),
   amount: money("Precio", 1, symbol),
 });
+const given = [{ act: "seed", on: "sales", input: { sale: "dollars", total: 5000 } }];
 const register = programAct<Shop, typeof input>({
   name: "registrar",
   enter: "registrar",
@@ -30,7 +32,11 @@ const register = programAct<Shop, typeof input>({
     {
       promise: "keeps the entered cents",
       input: { currency: "USD", amount: 1005 },
-      then: { says: "Registrada · precio", facts: [{ kind: "sale-registered", data: { sale: "price", total: 1005 } }] },
+      then: {
+        sure: "Precio · US$ 10,05",
+        says: "Registrada · precio",
+        facts: [{ kind: "sale-registered", data: { sale: "price", total: 1005 } }],
+      },
     },
   ],
   confirms: value => `Precio · ${shown(symbol(value), value.amount)}`,
@@ -50,8 +56,10 @@ const edit = programAct<Shop, typeof input>({
   cases: [
     {
       promise: "changes the amount",
+      given,
+      on: "sales/dollars",
       input: { currency: "USD", amount: 1005 },
-      then: { says: "Cambiado · precio", facts: [] },
+      then: { sure: "Precio · US$ 10,05", says: "Cambiado · precio", facts: [] },
     },
   ],
   today: () => ({ currency: "ARS", amount: 5000 }),
@@ -67,7 +75,15 @@ const credit = programAct<Shop, typeof creditInput>({
   undoable: true,
   purpose: "el importe de la nota",
   input: creditInput,
-  cases: [{ promise: "credits the amount", input: { amount: 1005 }, then: { says: "Acreditada · nota", facts: [] } }],
+  cases: [
+    {
+      promise: "credits the amount",
+      given,
+      on: "sales/dollars",
+      input: { amount: 1005 },
+      then: { sure: "Nota · US$ 10,05", says: "Acreditada · nota", facts: [] },
+    },
+  ],
   confirms: (value, state, target) => `Nota · ${shown(onSale({}, state, target), value.amount)}`,
   run: () => ({ status: "accepted", text: "Acreditada · nota", effects: [] }),
 });
@@ -86,15 +102,32 @@ const receive = programAct<Shop, typeof paymentInput>({
   cases: [
     {
       promise: "receives the amount",
+      given,
       input: { sale: "sales/dollars", amount: 1005 },
-      then: { says: "Recibido · cobro", facts: [] },
+      then: { sure: "Cobro · US$ 10,05", says: "Recibido · cobro", facts: [] },
     },
   ],
   also: { tool: "sales", with: (_, target) => ({ sale: target }) },
   confirms: (value, state, target) => `Cobro · ${shown(onSale(value, state, target), value.amount)}`,
   run: () => ({ status: "accepted", text: "Recibido · cobro", effects: [] }),
 });
+const seed = must(salesTool.acts.register);
 export const moneyRegistry: readonly ProgramTool<Shop>[] = [
-  { ...salesTool, acts: { seed: { ...must(salesTool.acts.register), key: "s" }, register, edit, credit } },
+  {
+    ...salesTool,
+    acts: {
+      seed: {
+        ...seed,
+        key: "s",
+        cases: seed.cases.map(kase => ({
+          ...kase,
+          ...(kase.given ? { given: kase.given.map(step => ("act" in step ? { ...step, act: "seed" } : step)) } : {}),
+        })),
+      },
+      register,
+      edit,
+      credit,
+    },
+  },
   { ...paymentsTool, acts: { receive } },
 ];

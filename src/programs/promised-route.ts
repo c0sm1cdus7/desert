@@ -35,7 +35,10 @@ export function missingAt<X extends Program>(seat: Seat<X>, told: Told<X>): stri
             (index < fixed.from || (fixed.until !== undefined && index >= fixed.until)) &&
             fixed.answers[index] !== answer,
         );
-  return asking(aim.act.input, seat.words).next(answers.slice(0, Math.max(at, 0)))?.ask ?? aim.act.name;
+  return (
+    asking(aim.act.input, seat.words).next(answers.slice(0, Math.max(at, 0)), kase.on ?? aim.tool.id)?.ask ??
+    aim.act.name
+  );
 }
 /** Why a row says it is off: a row that reads a datum keeps saying it, and says why after it. */
 const whyOf = ({ detail }: Choice, cause?: string): string | undefined =>

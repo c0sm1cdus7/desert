@@ -1,12 +1,12 @@
 // What each key does inside an act: writing an answer, choosing one, picking a thing, going back, leaving.
 import { nextMoneyAnswer } from "./fields/money-memory.ts";
 import { answerValidity } from "../tools/answers/answer-change.ts";
-import type { Field, Intent, Mask, Option } from "./contract.ts";
+import type { Field, Intent, Option } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
 import { actOf, begin, fieldOf, maskOf, optionsOf, opened, opening, pickedFrom, validOf } from "./screen.ts";
 import type { Asking, Session, Stepped, Walk } from "./screen.ts";
 import { answersAfter } from "./kept-answers.ts";
-import { edited } from "./talk.ts";
+import { writtenAnswer } from "./entry/written-answer.ts";
 import { movedOptions } from "./reading.ts";
 import { must } from "./window.ts";
 type Tools = readonly Tool[];
@@ -43,49 +43,13 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
   const running: Walk = { ...clean, phase: "running", since: now };
   return { session: replace(session, running), run: running };
 }
-/** In a field with a format the keys go through its mask: what does not fit is not typed. */
-function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
-  if (key.kind === "type") {
-    let typed = walk.typed;
-    let reason: string | undefined;
-    let accepted = false;
-    for (const text of Array.from(key.text)) {
-      const rejected = mask.rejected?.(typed, text);
-      reason ??= rejected;
-      accepted ||= rejected === undefined;
-      typed = mask.put(typed, text);
-    }
-    const changed = accepted ? rewritten(walk) : walk;
-    const why = reason === undefined ? {} : { ignored: reason };
-    return { ...changed, typed, caret: Array.from(typed).length, ...why };
-  }
-  if (key.kind === "erase") return { ...rewritten(walk), typed: Array.from(walk.typed).slice(0, -1).join("") };
-  return key.kind === "left" || key.kind === "right" ? walk : undefined;
-}
-/** Editing clears a prior result; an ignored key keeps its own reason instead. */
-function rewritten({ error: _was, ignored: _key, failed: _result, ...written }: Asking): Asking {
-  return { ...written, suggested: false };
-}
-/** A space that says nothing is not typed: before anything is written, or next to another space. Two names that
- * read the same are written the same. */
-function idleSpace({ typed, caret }: Asking, key: Intent): boolean {
-  if (key.kind !== "type" || key.text !== " ") return false;
-  const chars = Array.from(typed);
-  return caret === 0 || chars[caret - 1] === " " || chars[caret] === " ";
-}
 function typing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
   /** What the question opened with gives way to the first key written. */
   const fresh = walk.suggested && key.kind === "type" ? { ...walk, typed: "", caret: 0 } : walk;
-  /** A text takes no more than it may hold: the key that would pass it is not typed. */
-  const full = key.kind === "type" && "max" in field && Array.from(fresh.typed).length >= (field.max ?? Infinity);
-  if (full) return { session };
-  if (!("mask" in field) && idleSpace(fresh, key)) return { session };
-  const changed = "mask" in field ? masked(fresh, field.mask, key) : edited(fresh, key);
-  if (key.kind === "type" && changed?.typed === fresh.typed && !("mask" in field && field.mask.rejected))
-    return { session };
+  const changed = writtenAnswer(fresh, field, key);
   if (key.kind === "type" && walk.suggested && changed?.typed === "" && changed.ignored !== undefined)
     return { session: replace(session, { ...walk, ignored: changed.ignored }) };
-  if (changed) return { session: replace(session, "mask" in field ? changed : rewritten(changed)) };
+  if (changed) return { session: replace(session, changed) };
   if (key.kind !== "confirm") return { session };
   if (validOf(field, walk.typed)) return advance(session, walk, tools, walk.typed, now);
   const reason = field.wrong?.(walk.typed, true);

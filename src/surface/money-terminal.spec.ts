@@ -52,3 +52,35 @@ it("explains empty and below-minimum amounts only on Enter in a real terminal", 
     await term.close();
   }
 }, 15000);
+
+it("shows the maximum in dollars at 40×16 and clears it when returning to pesos", async () => {
+  const term = realTerminal([process.execPath, join(import.meta.dirname, "../../tests/support/money-open.ts")], {
+    cols: 40,
+    rows: 16,
+  });
+  try {
+    await term.until("Menú");
+    term.press("v");
+    await term.until("[r] registrar");
+    term.press("r");
+    await term.until("Moneda");
+    term.press("d");
+    await term.until("US$ 0,00");
+    term.press("9999999999999");
+    await term.until("› US$ 99.999.999.999,99");
+    term.press("9");
+    await term.until("máximo US$ 99.999.999.999,99");
+    term.press("\r");
+    const confirmed = await term.until("Precio · US$ 99.999.999.999,99");
+    expect(confirmed.some(line => line.includes("Precio US$ 99.999.999.999,99"))).toBe(true);
+    term.press("\x1b");
+    await term.until("› US$ 99.999.999.999,99");
+    term.press("\x1b");
+    await term.until("Pesos");
+    term.press("p");
+    const empty = await term.until("$ 0,00");
+    expect(empty.some(line => line.includes("99.999.999.999,99"))).toBe(false);
+  } finally {
+    await term.close();
+  }
+}, 15000);

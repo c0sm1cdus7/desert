@@ -1761,7 +1761,7 @@
     },
     {
       "id": 216,
-      "rule": "Una tecla que una máscara descarta dice una vez el motivo verdadero, sin cambiar el valor aceptado ni borrar el Error de una acción fallida: el aviso se suma. Un carácter permitido que excede el largo dice el tope. Un pegado recorta espacios y saltos de los bordes y conserva el primer motivo interior hasta terminar; una edición aceptada después lo limpia.",
+      "rule": "Un carácter que un campo de escritura descarta dice una vez el motivo verdadero, sin cambiar el valor aceptado ni borrar un motivo anterior o el Error de una acción fallida: el aviso se suma. El texto libre explica los espacios iniciales o dobles. Un carácter permitido que excede el largo dice el tope. Un pegado recorta espacios y saltos de los bordes y conserva el primer motivo interior hasta terminar; una edición aceptada después lo limpia.",
       "from": "13/11 · campos · teclas descartadas",
       "guarantee": "spec",
       "evidence": [
@@ -1772,34 +1772,50 @@
         "src/surface/field-reasons.spec.ts",
         "src/surface/field-confirmation.spec.ts",
         "src/surface/field-rejections.spec.ts",
-        "src/surface/entry-status.spec.ts"
+        "src/surface/entry-status.spec.ts",
+        "src/surface/entry/written-answer.ts",
+        "src/surface/field-advice.spec.ts",
+        "src/surface/walk.ts",
+        "src/programs/entry/checked-reason.ts",
+        "src/texts/entry/entry-advice.ts"
       ]
     },
     {
       "id": 215,
-      "rule": "La moneda de un campo de plata se declara con el dato: fija o decidida con respuestas anteriores, estado, destino e instante; sin declararla usa la del país. Se ve en el campo vacío, al escribir y en el eco; la confirmación del programa usa la misma decisión y el dato conserva sus centavos. La regla 217 detalla cómo se evita reutilizar un importe si cambia la moneda.",
+      "rule": "La moneda de un campo de plata se declara con el dato: fija o decidida con respuestas anteriores, estado, destino e instante; sin declararla usa la del país. El símbolo, incluido el del país, tiene de uno a ocho caracteres, sin controles, saltos ni espacios al borde. Se ve en el campo vacío, al escribir, en el eco y en el valor actual; las comprobaciones derivadas usan el estado y destino del caso. El dato conserva sus centavos. Un importe escrito o propuesto no se reutiliza con otra moneda: vuelve a preguntarse vacío, también al editar una parte; un cambio de moneda por el estado durante el recorrido dice «cambió la moneda».",
       "from": "13/11 · campos · H03, H11, H17, H23 y H34; número reservado para moneda",
       "guarantee": "spec",
       "evidence": [
         "src/catalogs/fields/money-field.ts",
         "src/surface/bridge/questions/money.spec.ts",
         "src/surface/money-walk.spec.ts",
-        "src/surface/money-terminal.spec.ts"
-      ]
-    },
-    {
-      "id": 217,
-      "rule": "Un campo de plata puede declarar su símbolo, fijo o decidido con las respuestas anteriores, el estado, el destino y el instante. Sin declararlo conserva la moneda del país. El campo vacío, la escritura y el eco usan esa moneda; el programa confirma con la misma decisión y los datos siguen en centavos. Un importe no se reutiliza con otra moneda: al volver atrás, editar o cambiar el estado, se vuelve a preguntar vacío, incluso si tenía un valor inicial.",
-      "from": "13/11 · campos · moneda pendiente de H03, H11, H17, H23 y H34; continuación después de 216",
-      "guarantee": "spec",
-      "evidence": [
-        "src/catalogs/fields/money-field.ts",
+        "src/surface/money-terminal.spec.ts",
         "src/surface/bridge/currency/money-question.ts",
         "src/surface/fields/money-memory.ts",
-        "src/surface/bridge/questions/money.spec.ts",
-        "src/surface/money-walk.spec.ts",
         "src/surface/money-state.spec.ts",
-        "src/surface/money-terminal.spec.ts"
+        "src/catalogs/fields/money-currency.ts",
+        "src/surface/bridge/program-acts.ts",
+        "src/surface/kept-answers.ts",
+        "src/surface/current-field.ts",
+        "src/programs/promised-keys.ts",
+        "src/programs/promised-choices.ts",
+        "src/programs/promised-route.ts",
+        "src/programs/promised-money.spec.ts",
+        "src/surface/money-row.spec.ts",
+        "src/surface/bridge/asking.ts",
+        "src/surface/bridge/asking-parts.ts",
+        "src/surface/bridge/actions/asked-act.ts",
+        "src/surface/bridge/picked.ts",
+        "src/surface/fields/money-format.ts",
+        "src/surface/screen.ts",
+        "src/surface/resolve.ts",
+        "src/surface/step.ts",
+        "src/surface/walking.ts",
+        "src/surface/money-neighbors.spec.ts",
+        "src/texts/entry/entry-advice.ts",
+        "tests/support/money-program.ts",
+        "tests/laws/field-contract.spec.ts",
+        "src/catalogs/currency/currency-symbol.ts"
       ]
     }
   ]

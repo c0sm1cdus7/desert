@@ -8,7 +8,7 @@ import { resolve } from "../../src/surface/resolve.ts";
 import type { Intent } from "../../src/surface/contract.ts";
 import type { Tool } from "../../src/surface/shown-tool.ts";
 
-function fieldTool(field: TSchema, after?: TSchema): Tool {
+function fieldTool(field: TSchema, after?: TSchema, stops?: (answers: readonly string[]) => string | undefined): Tool {
   const ask = asking(object({ value: field, ...(after ? { after } : {}) }), {
     now: () => 0,
     today: () => "2026-11-13",
@@ -27,13 +27,14 @@ function fieldTool(field: TSchema, after?: TSchema): Tool {
         verb: "cambiar",
         scope: "all",
         next: ask.next,
+        ...(stops ? { stops } : {}),
         run: () => Promise.resolve({ ok: true, text: "Listo" }),
       },
     },
   };
 }
-export function fieldSeat(field: TSchema, after?: TSchema) {
-  const tool = fieldTool(field, after);
+export function fieldSeat(field: TSchema, after?: TSchema, stops?: (answers: readonly string[]) => string | undefined) {
+  const tool = fieldTool(field, after, stops);
   let session: Session = [...start, begin([tool], "data", "change")];
   const send = (key: Intent) => {
     const moved = step(session, key, [tool], 0);

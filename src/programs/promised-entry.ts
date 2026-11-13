@@ -5,6 +5,7 @@ import type { Router } from "../surface/router.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { unchangedIn } from "./read-screen.ts";
 import { surfaceTexts } from "../texts/surface.texts.ts";
+import { withReason } from "./entry/checked-reason.ts";
 import { view } from "./promised-keys.ts";
 export const quietEntry = (router: Router): void => quietScreen(router.screen(view));
 export function quietScreen(screen: Screen): void {
@@ -37,13 +38,6 @@ export function quietly<T>(router: Router, use: (guarded: Router) => T): T {
       return stays;
     },
   });
-}
-/** A reason may change; the entire question, written value and navigation must stay identical. */
-function withReason(screen: Screen, reason: string | undefined, ignored = false): Screen {
-  if (reason === undefined || screen.body.kind !== "thread") return screen;
-  const advice = ignored ? { ignored: true as const } : {};
-  const event = { nested: true, text: [{ text: reason, tone: "t3" as const }], ...advice };
-  return { ...screen, body: { ...screen.body, events: [...screen.body.events.filter(event => !event.nested), event] } };
 }
 /** Unavailable Enter keeps the question and its value, adding the declared submitted reason if it has one. */
 export function confirmAnswer(router: Router, field?: Field, typed = ""): void {

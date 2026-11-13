@@ -1,4 +1,5 @@
 // A number belongs to the currency in which it was written, including while the house changes underneath it.
+import { entryAdvice } from "../../texts/entry/entry-advice.ts";
 import type { Field } from "../contract.ts";
 import type { Walk } from "../walk-state.ts";
 type Next = (answers: readonly string[]) => Field | null;
@@ -20,6 +21,7 @@ export function renewedMoney(walk: Walk, next: Next): Walk {
     answers: walk.answers.slice(0, pos),
     asked: walk.asked.slice(0, pos),
     typed: "",
+    error: entryAdvice.currencyChanged,
     caret: 0,
     suggested: false,
     marks: [],
