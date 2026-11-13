@@ -76,7 +76,7 @@ export function programAct<X extends Program, S extends TSchema, const O extends
       `An act that cannot be undone asks to be confirmed, and this one does not say what with: ${declared.name}`,
     );
   const summary = (value: unknown, state: State<X>, target: string, at: number): string | undefined =>
-    Value.Check(input, value) ? confirms?.(value, state, target, at) : undefined;
+    Value.Check(input, value) ? confirms?.call(declared, value, state, target, at) : undefined;
   const said = soFar<X>(input, declared);
   const act = { input, reach: reach ?? "house", run: body(declared) };
   const promised = {
@@ -85,14 +85,14 @@ export function programAct<X extends Program, S extends TSchema, const O extends
     outside: Object.assign([...outside], { [declaredCauses]: true as const }),
     cases,
     ...(confirms ? { confirms: summary } : {}),
-    ...(today ? { today } : {}),
+    ...(today ? { today: today.bind(declared) } : {}),
     ...(also ? { also } : {}),
-    ...(datum ? { datum } : {}),
+    ...(datum ? { datum: datum.bind(declared) } : {}),
     ...said,
   };
   return {
     ...act,
-    ...(offered ? { offered: guarded(refuses, offered) } : {}),
+    ...(offered ? { offered: guarded(refuses, offered.bind(declared)) } : {}),
     ...(output ? { output: true } : {}),
     ...promised,
   };

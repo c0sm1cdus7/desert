@@ -1,3 +1,4 @@
+// The current value is shown throughout an edit; only an answer that finishes it unchanged is unavailable.
 import { OutsideDefect } from "../tools/outside.ts";
 import { answerChange } from "../tools/answers/answer-change.ts";
 import { surfaceTexts as said } from "../texts/surface.texts.ts";

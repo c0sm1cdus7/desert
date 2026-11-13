@@ -1041,10 +1041,15 @@
     },
     {
       "id": 135,
-      "rule": "Lo que solo se lee y no entra en la pantalla se alcanza con las mismas teclas que mueven el cursor: en el primer o el último renglón que se puede elegir, ↑ o ↓ traen a la vista la lista siguiente en ese sentido",
+      "rule": "Lo que solo se lee y no entra en la pantalla se alcanza con las mismas teclas que mueven el cursor: en el primer o el último renglón que se puede elegir, ↑ o ↓ permiten leer fila por fila los grupos largos; los grupos de una o dos filas conservan el salto entre grupos. Enter vuelve al cursor sin elegir una fila apagada.",
       "from": "11/11 · obra de Capibara: en una terminal chica los grupos de un objeto quedaban fuera de alcance",
       "guarantee": "spec",
-      "evidence": ["src/surface/step.ts", "src/surface/window.ts", "src/doors/terminal/house-screens.spec.ts"]
+      "evidence": [
+        "src/surface/step.ts",
+        "src/surface/window.ts",
+        "src/doors/terminal/house-screens.spec.ts",
+        "src/surface/reading.spec.ts"
+      ]
     },
     {
       "id": 136,

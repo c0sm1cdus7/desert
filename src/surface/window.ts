@@ -5,11 +5,13 @@ export function must<T>(value: T | null | undefined): T {
   if (value === null || value === undefined) throw new Error("a required value is missing");
   return value;
 }
+/** Where something is, or the top when nothing matches. */
 export const foundAt = <T>(all: readonly T[], test: (item: T) => boolean): number => Math.max(all.findIndex(test), 0);
 /** How much of some lists a person would read: every row, and for a list with none, the line that says so. */
 const rowsOf = (stacks: readonly Stack[]): number =>
   stacks.reduce((sum, stack) => sum + Math.max(stack.rows.length, 1), 0);
 const linesOf = (stack: Stack): number => 1 + Math.max(stack.rows.length, 1);
+/** The one list that holds the chosen row, cut around it: when it alone is taller than the room. */
 function cut(stacks: readonly Stack[], at: number, room: number, reading?: number): readonly Stack[] {
   const stack = must(stacks[at]);
   const fits = Math.max(room - 3, 1);
@@ -25,7 +27,9 @@ function cut(stacks: readonly Stack[], at: number, room: number, reading?: numbe
     },
   ];
 }
-/** Keep the read or selected stack and its neighbors, counting omitted rows above and below. */
+/** What does not fit keeps the list with the chosen row, and around it every list that still fits whole: first the
+ * ones above, then the ones below. What is left out is counted, above and below. Moved by the person, it stands
+ * that many lists away instead: what is only read comes into view too. */
 export function windowed(stacks: readonly Stack[], room: number, shift = 0, reading?: number): readonly Stack[] {
   const lines = stacks.reduce((sum, stack, i) => sum + linesOf(stack) + (i ? 1 : 0), 0);
   if (lines <= room) return stacks;
@@ -34,6 +38,7 @@ export function windowed(stacks: readonly Stack[], room: number, shift = 0, read
     reading === undefined
       ? foundAt(stacks, stack => stack.rows.some(row => row.selected))
       : foundAt(stacks, stack => reading < before(stacks.indexOf(stack)) + Math.max(stack.rows.length, 1));
+  /** What is shown stands on the list with the chosen row, or as many lists from it as the person moved it. */
   const at = Math.min(Math.max(chosen + shift, 0), stacks.length - 1);
   const cost = (index: number): number => linesOf(must(stacks[index])) + 1;
   /** Two lines go to saying how much is left out. */
@@ -53,6 +58,8 @@ export function windowed(stacks: readonly Stack[], room: number, shift = 0, read
 }
 /** Keep the focused option visible, pin the entry, and reserve two lines for omitted counts. */
 type WindowRow = { selected?: boolean; entry?: unknown };
+/** The options of a question when they do not all fit: the chosen one stays in view, what is left out is counted
+ * above and below, and a row that is written in stays first. Two lines go to saying how much is left out. */
 export function fitted<T extends WindowRow>(all: readonly T[], room: number, reading?: number) {
   const pinned = all[0]?.entry === undefined ? [] : all.slice(0, 1);
   const options = all.slice(pinned.length);

@@ -1,4 +1,5 @@
 // What each place lists: the tools on the Menu, a tool's own rows, and the acts and menus that can be taken there.
+import { goneView } from "./navigation/gone-view.ts";
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import type { Notice, Tool, ViewRow } from "./shown-tool.ts";
 import type { Tone } from "./tones.ts";
@@ -180,21 +181,7 @@ function listedAt(place: Picture, tools: readonly Tool[]): readonly Listed[] {
 }
 export const choices = (place: Picture, tools: readonly Tool[]): readonly Choice[] =>
   stacksOf(place, tools).flatMap(stack => stack.rows.filter(row => row.open ?? row.press));
-/** Someone else removed what you stand on: it is said as such, never drawn as another screen. What the place you
- * came from no longer lists is gone only if its tool no longer answers for it: a list may let go of what you
- * opened from it because you opened it. */
-export function goneOf(session: Session, tools: readonly Tool[]): boolean {
-  const place = session.at(-1);
-  const parent = session.at(-2);
-  if (place?.kind !== "view" || place.target === undefined) return false;
-  if (parent?.kind !== "view" && parent?.kind !== "menu") throw new Error(`nothing lists ${place.target}`);
-  if (stacksOf(parent, tools).some(stack => stack.rows.some(row => row.opens === place.target))) return false;
-  try {
-    toolOf(tools, place.tool).view(place.target);
-    return false;
-  } catch {
-    return true;
-  }
-}
+/** The explicit disappearance check shares the same lists the person sees. */
+export const goneOf = (session: Session, tools: readonly Tool[]): boolean => goneView(session, tools, stacksOf);
 export const cursorOf = (place: Picture, tools: readonly Tool[]): number =>
   Math.min(place.at, Math.max(choices(place, tools).length - 1, 0));

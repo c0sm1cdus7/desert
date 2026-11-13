@@ -1,3 +1,4 @@
+import { MissingView } from "../navigation/missing-view.ts";
 import { OutsideDefect } from "../../tools/outside.ts";
 import { programCall } from "../../tools/boundaries/program-call.ts";
 // A program's tool on a surface when it brings no screen of its own: its rows come from what its view reads.
@@ -31,12 +32,12 @@ function menuAt<X extends Program>(tool: ProgramTool<X>, things: readonly string
 function foundIn<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, label: Labels, sought: string) {
   const state = ports.state();
   const all = rowsIn(
-    programCall(tool.view, state, tool.id, { recentLines: Number.MAX_SAFE_INTEGER, now: ports.now() }),
+    programCall(tool.view.bind(tool), state, tool.id, { recentLines: Number.MAX_SAFE_INTEGER, now: ports.now() }),
     label,
   );
   const said = (row: ViewRow): string =>
-    [row.title, row.detail, programCall(tool.words, state, row.opens ?? "")].join(" ");
-  return listedIn(programCall(tool.targets, state), all).filter(row => matches(said(row), sought));
+    [row.title, row.detail, programCall(tool.words?.bind(tool), state, row.opens ?? "")].join(" ");
+  return listedIn(programCall(tool.targets.bind(tool), state), all).filter(row => matches(said(row), sought));
 }
 /** A datum that an act changes is the row that starts that act: it shows what it is today, and opens on it. */
 const changingBy =
@@ -46,7 +47,7 @@ const changingBy =
     const level = target === tool.id ? "tool" : "thing";
     const found = Object.entries(tool.acts).find(([, act]) => act.changes === key && act.on === level);
     if (!found) return undefined;
-    const today = programCall(found[1].today, ports.state(), target, ports.now());
+    const today = programCall(found[1].today?.bind(found[1]), ports.state(), target, ports.now());
     return start(found[0], target, { ...(today === undefined ? {} : { today }), detail: shown });
   };
 type Menued = Readonly<{ id: string; thing: string }>;
@@ -55,7 +56,7 @@ const rowsUnder = <X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<
   Object.entries(tool.acts)
     .filter(([, act]) => act.under === menu.id)
     .map(([name, act]) => {
-      const today = programCall(act.today, ports.state(), menu.thing, ports.now());
+      const today = programCall(act.today?.bind(act), ports.state(), menu.thing, ports.now());
       return start(name, menu.thing, today === undefined ? {} : { today });
     });
 export function anyToolScreen<X extends Program>(
@@ -70,21 +71,22 @@ export function anyToolScreen<X extends Program>(
   const [lists, stacks] = [listsOf(words), itselfOf(words)];
   const changing = changingBy(ports, tool, start)(tool.id);
   /** Whatever is read is read at the instant of whoever looks: a tool has no clock of its own. */
-  const read = (): string => programCall(tool.view, ports.state(), tool.id, { ...ports.limits, now: ports.now() });
+  const read = (): string =>
+    programCall(tool.view.bind(tool), ports.state(), tool.id, { ...ports.limits, now: ports.now() });
   /** What the tool reads of its own goes first, in its stacks: the first line of its view. Its things follow. */
   const itself = () => (stacks.length ? ownView(stacks, read(), tool.id, changing) : []);
   const listed = (): string => (stacks.length ? read().split("\n").slice(1).join("\n") : read());
   /** What the tool itself reads on its list: a datum an act changes is the row that starts that act. */
   const own = (): ViewRow[] => rowsIn(listed(), label, changing);
   const thing = thingView(ports, tool, lists?.presents ?? []);
-  const menuOf = (target?: string) => menuAt(tool, programCall(tool.targets, ports.state()), target);
+  const menuOf = (target?: string) => menuAt(tool, programCall(tool.targets.bind(tool), ports.state()), target);
   const menuRows = (menu: Menued): ViewRow[] => rowsUnder(ports, tool, start, menu);
   return {
     ...acts,
     id: tool.id,
     name: words.name,
     place: placed(words),
-    summary: () => briefOf(programCall(tool.summary, ports.state())),
+    summary: () => briefOf(programCall(tool.summary.bind(tool), ports.state())),
     find: sought => foundIn(ports, tool, label, sought),
     /** A thing is called what its row on the list calls it; a menu, what the tool calls it. */
     titleOf: target => {
@@ -92,11 +94,10 @@ export function anyToolScreen<X extends Program>(
       return menu ? capital(menu) : must(own().find(row => row.opens === target)).title;
     },
     view: target => {
-      const targets = programCall(tool.targets, ports.state());
+      const targets = programCall(tool.targets.bind(tool), ports.state());
       const menu = menuOf(target);
       if (menu) return [section(capital(menu.menu.name), menuRows(menu))];
-      if (target !== undefined && !targets.includes(target))
-        throw new OutsideDefect(new Error(`${tool.id} has no ${target}`));
+      if (target !== undefined && !targets.includes(target)) throw new MissingView(tool.id, target);
       if (target) return thing(target);
       return [...itself(), ...(lists ? [section(lists.listed, listedIn(targets, own()), lists.empty)] : [])];
     },

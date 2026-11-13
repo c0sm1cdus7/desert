@@ -1,4 +1,5 @@
 // What a tool gives a surface: its acts and menus, its rows, its conversations, and what it tells from any menu.
+export { MissingView } from "./navigation/missing-view.ts";
 import type { Attachment, Field, Intent, Option, Panel, Row, Span, Stack } from "./contract.ts";
 
 export type Result =

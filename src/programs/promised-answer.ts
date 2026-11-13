@@ -1,3 +1,4 @@
+// How each kind of question receives the answer promised by a case.
 import { ok } from "node:assert/strict";
 import type { Field } from "../surface/contract.ts";
 import type { Router } from "../surface/router.ts";
@@ -47,7 +48,7 @@ function pickAnswer(router: Router, field: Field & { kind: "pick" }, given: stri
       const why = row.off ? row.detail : undefined;
       if (why !== undefined)
         ok(
-          readThrough(router, screen => reasonIn(screen.body, why)),
+          readThrough(router, screen => reasonIn(screen.body, why, row)),
           said.closedCause(field.ask, why),
         );
       return { kind: "cause", ask: field.ask };

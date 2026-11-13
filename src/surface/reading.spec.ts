@@ -53,3 +53,56 @@ for (const rows of [8, 9, 16, 40, 80]) {
     });
   }
 }
+
+it("clears a reading position when searching, narrowing, erasing and leaving a pick search", () => {
+  const pick: Tool = {
+    ...tool,
+    acts: {
+      choose: {
+        ...tool.acts.choose,
+        label: "elegir",
+        verb: "elegir",
+        scope: "all",
+        run: () => Promise.resolve({ ok: true, text: "Elegida · Venta" }),
+        next: () => ({
+          kind: "pick",
+          of: "shop",
+          ask: "Venta",
+          nothing: () => "Sin ventas",
+          shown: value => value,
+          found: sought => options.filter(option => option.title.includes(sought)),
+        }),
+      },
+    },
+  };
+  const initial = begin([pick], "shop", "choose");
+  let session: Session = [...start, { ...initial, reading: 89 }];
+  for (const intent of [
+    { kind: "type", text: " " },
+    { kind: "type", text: "0" },
+    { kind: "erase" },
+    { kind: "cancel" },
+  ] as const) {
+    session = step(session, intent, [pick], 0).session;
+    expect(session.at(-1)).not.toHaveProperty("reading");
+    expect(rowsIn(resolve(session, [pick], bar, { rows: 8 }).body).some(row => row.title === "Opción 0")).toBe(true);
+    const last = session.at(-1);
+    if (last?.kind === "act") session = [...session.slice(0, -1), { ...last, reading: 89 }];
+  }
+});
+
+it("clears list reading when starting, narrowing and leaving a search", () => {
+  const searchable: Tool = { ...tool, find: sought => options.filter(row => row.title.includes(sought)) };
+  let session: Session = [...start, { kind: "view", tool: "shop", at: 0, reading: 89 }];
+  for (const intent of [
+    { kind: "type", text: " " },
+    { kind: "type", text: "0" },
+    { kind: "erase" },
+    { kind: "cancel" },
+  ] as const) {
+    session = step(session, intent, [searchable], 0).session;
+    expect(session.at(-1)).not.toHaveProperty("reading");
+    const place = session.at(-1);
+    if (place?.kind === "view") session = [...session.slice(0, -1), { ...place, reading: 89 }];
+  }
+});

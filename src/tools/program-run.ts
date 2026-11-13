@@ -12,7 +12,7 @@ import type { ActContext, ActResult, Program, State, ToolAct } from "./tool-cont
 
 export function programOffered<X extends Program>(act: ToolAct<X>, state: State<X>, target: string, at: number) {
   return isProgram(act)
-    ? declaredCause(act.refuses, programCall(act.offered, state, target, at))
+    ? declaredCause(act.refuses, programCall(act.offered?.bind(act), state, target, at))
     : act.offered?.(state, target, at);
 }
 function before<X extends Program>(act: ProgramAct<X>, value: unknown, context: ActContext<X>) {
@@ -20,7 +20,7 @@ function before<X extends Program>(act: ProgramAct<X>, value: unknown, context: 
   const whole = refusedWhole(act.input, act, value);
   const wrong = wrongIn(act.input, value, context.at) ?? whole(context.state, context.target, act.refuses, context.at);
   declaredCause(act.refuses, wrong);
-  const current = programCall(act.today, context.state, context.target, context.at);
+  const current = programCall(act.today?.bind(act), context.state, context.target, context.at);
   const same = current === undefined ? undefined : Value.Equal(current, value);
   return answerChange(wrong, same, same).refusal;
 }
@@ -37,4 +37,4 @@ export function runProgram<X extends Program>(
 
 /** An origin-specific disabled cause is declared just like a tool's own availability rule. */
 export const programAlso = <X extends Program>(act: ProgramAct<X>, state: State<X>, from: string, at: number) =>
-  declaredCause(act.refuses, programCall(act.also?.off, state, from, at));
+  declaredCause(act.refuses, programCall(act.also?.off?.bind(act.also), state, from, at));

@@ -1,5 +1,5 @@
 // Rules as a surface tool, for the specs that walk a renderer.
-import { type Result, type ThingAct, type Tool, type ToolAct } from "../../src/surface/shown-tool.ts";
+import { MissingView, type Result, type ThingAct, type Tool, type ToolAct } from "../../src/surface/shown-tool.ts";
 
 export interface Rule {
   readonly id: string;
@@ -60,7 +60,7 @@ export function rulesTool(rules: Rule[], fail?: string): Tool {
     view: target => {
       if (target !== undefined) {
         const rule = rules.find(known => known.id === target);
-        if (!rule) throw new Error(`rules has no ${target}`);
+        if (!rule) throw new MissingView("rules", target);
         return [{ title: "Regla", rows: [{ title: rule.text }] }];
       }
       const rowOf = (known: Rule) => ({ title: known.text, detail: `desde el ${known.since}`, opens: known.id });

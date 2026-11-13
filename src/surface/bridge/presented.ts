@@ -78,6 +78,6 @@ export const thingView =
   <X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, stacks: readonly Presented[]) =>
   (target: string): Shown => {
     if (!stacks.length) throw new OutsideDefect(new Error(`${tool.id} does not say how its things are presented`));
-    const view = programCall(tool.view, ports.state(), target, { ...ports.limits, now: ports.now() });
+    const view = programCall(tool.view.bind(tool), ports.state(), target, { ...ports.limits, now: ports.now() });
     return presented(stacks, readingOf(view, target), target);
   };

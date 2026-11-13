@@ -12,7 +12,7 @@ export const firstLine = (text: string): string => text.split("\n")[0] ?? "";
 function unseen<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>) {
   const state = ports.state();
   const looked = state.looked.get(ports.me);
-  const things = new Set([tool.id, ...programCall(tool.targets, state)]);
+  const things = new Set([tool.id, ...programCall(tool.targets.bind(tool), state)]);
   const latest = new Map<string, (typeof state.entries)[number]>();
   for (const entry of state.entries) {
     const { tool: on, target, author, draft } = entry.data;
@@ -31,7 +31,7 @@ export function noticesOf<X extends Program>(
   const titled = (target: string): string => shown.titleOf?.(target) ?? target;
   /** What needs someone to act is a thing of the tool, or the tool itself: then the row leads to its own menu. */
   const needs = (): Notice[] =>
-    (programCall(tool.needs, ports.state(), ports.now()) ?? []).map(({ target, why }) =>
+    (programCall(tool.needs?.bind(tool), ports.state(), ports.now()) ?? []).map(({ target, why }) =>
       target === tool.id ? { title: shown.name, detail: why } : { title: titled(target), detail: why, opens: target },
     );
   const news = (): Notice[] =>

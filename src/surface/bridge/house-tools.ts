@@ -111,13 +111,14 @@ const thingsOf = <X extends Program>(ports: HousePorts<X>, { words }: Shown<X>, 
     /** The things of a tool this identity does not hold are out of reach: none is found, and it says why. */
     const why = tool.off?.();
     if (why !== undefined) return { found: () => [], shown: thing => thing, has: () => false, empty: why };
-    const open = (thing: string): boolean => programCall(contract.closed, ports.state(), thing, ports.now()) !== true;
+    const open = (thing: string): boolean =>
+      programCall(contract.closed?.bind(contract), ports.state(), thing, ports.now()) !== true;
     return {
       empty: listsOf(words[id])?.empty ?? "",
       found: sought =>
         (tool.find?.(sought) ?? []).flatMap(row => (row.opens && open(row.opens) ? [picked(row, row.opens)] : [])),
       shown: thing => tool.titleOf?.(thing) ?? thing,
-      has: thing => programCall(contract.targets, ports.state()).includes(thing) && open(thing),
+      has: thing => programCall(contract.targets.bind(contract), ports.state()).includes(thing) && open(thing),
       make: act => make(contract, tool, act),
     };
   };
@@ -130,13 +131,25 @@ function withThings<X extends Program>(
   screen: Tool,
 ): Tool {
   const declared = thingView(ports, contract, listsOf(words)?.presents ?? []);
-  const record = recordOf(ports, shown.moment);
+  const record = recordOf(ports, shown.moment?.bind(shown));
   const thing = (target: string) => [...declared(target), ...record(target)];
   const isThing = (target?: string): target is string =>
-    target !== undefined && programCall(contract.targets, ports.state()).includes(target);
+    target !== undefined && programCall(contract.targets.bind(contract), ports.state()).includes(target);
   /** Its things are its own, whatever screen shows it: a row of any tool that names one of them leads here. */
   const has = (target: string): boolean | undefined => screen.has?.(target) ?? (isThing(target) || undefined);
   return { ...screen, has, view: target => (isThing(target) ? thing(target) : screen.view(target)) };
+}
+/** The program's calendar keeps its receiver; reference readers resolve the assembled tools lazily. */
+function questionsFor<X extends Program>(ports: HousePorts<X>, shown: Shown<X>, tools: () => readonly Tool[]) {
+  return {
+    locale: shown.locale,
+    day: shown.day?.bind(shown),
+    things: thingsOf(ports, shown, tools),
+    titled: (tool: string, target: string) =>
+      tools()
+        .find(known => known.id === tool)
+        ?.titleOf?.(target) ?? target,
+  };
 }
 export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown<X>): readonly Tool[] {
   const seen = new Map<string, number>();
@@ -145,8 +158,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
   if (undeclared.length) throw new Error(`Acts without their declaration in ${undeclared.join(", ")}`);
   const tools = ports.registry.filter(isProgramTool);
   audit(tools, shown);
-  const titled = (tool: string, target: string) => own.find(known => known.id === tool)?.titleOf?.(target) ?? target;
-  const asked = { locale: shown.locale, day: shown.day, things: thingsOf(ports, shown, () => own), titled };
+  const asked = questionsFor(ports, shown, () => own);
   const built = tools.flatMap(contract => {
     const words = shown.words[contract.id];
     return words ? [{ contract, words, ...programActs(observed, contract, asked) }] : [];
@@ -160,7 +172,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
     /** What the other tools offer on a thing of this one: only on a thing, never on a view that groups them. */
     const others = built.filter(other => other.contract.id !== contract.id);
     const alsoOn = (target: string): ViewRow[] =>
-      programCall(contract.targets, ports.state()).includes(target)
+      programCall(contract.targets.bind(contract), ports.state()).includes(target)
         ? others.flatMap(other => other.offers(contract.id, target))
         : [];
     return {

@@ -1,3 +1,4 @@
+// Where you are on a surface and the act you are walking: what a session remembers, and how an act begins.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import { withStops } from "./guards/answer-status.ts";
 import { currentField, markedCurrent, uniqueCurrent } from "./current-field.ts";
@@ -7,7 +8,8 @@ import type { Field, Option, Screen, Stack } from "./contract.ts";
 import type { Tool, ViewRow } from "./shown-tool.ts";
 /** What a person wrote to look for something, while a menu is in that mode: nothing else is on it then. */
 type Finding = { readonly find?: string } & {
-  /** Legacy stack displacement from the selected row; reading addresses individual rows. */
+  /** How many lists what is shown is moved from the one with the chosen row: at either end of what can be chosen,
+   * the same key brings into view what is only read beyond it. */
   readonly shift?: number;
   readonly reading?: number;
 };
@@ -30,6 +32,7 @@ interface Walking {
   readonly carried?: true;
   /** Those answers, as they were when it began: what each datum is today, whatever is answered since. */
   readonly was?: readonly string[];
+  /** It asks one datum and nothing else. */
   readonly lone?: true;
   readonly typed: string;
   readonly caret: number;
@@ -51,6 +54,7 @@ interface Walking {
 export type Asking = Walking & { readonly phase: "asking" };
 export type Running = Walking & { readonly phase: "running"; readonly since: number };
 export type Done = Walking & { readonly phase: "done"; readonly done: string; readonly doneAt?: string } & {
+  /** The thing it made, when it made one. */
   readonly made?: string;
 };
 export type Walk = Asking | Running | Done;
@@ -106,6 +110,7 @@ export function fieldOf(tools: readonly Tool[], walk: Walk): Field | null {
   const field = actOf(tools, walk).next(walk.answers.slice(0, walk.pos));
   return field ? withStops(walk, currentField(walk, field, actOf(tools, walk)), actOf(tools, walk)) : null;
 }
+/** The key that goes back where an act asks to be confirmed. */
 export const backKey = said.back.charAt(0);
 export function optionsOf(field: Field | null): readonly Option[] {
   if (!field || !("options" in field)) return [];
@@ -113,7 +118,8 @@ export function optionsOf(field: Field | null): readonly Option[] {
   const back = { key: backKey, title: said.back, detail: said.unchanged };
   return field.reversible ? [...field.options, back] : [back, ...field.options];
 }
-/** An earlier answer wins over the initial value; choices open on their eligible current option. */
+/** A field as it opens: an earlier answer wins over its initial value, so going back keeps what you wrote. A choice
+ * opens on the option it already is. */
 type Opened = Pick<Walk, "typed" | "caret" | "at" | "marks" | "suggested">;
 export const opened = (field: Field | null, answer?: string): Opened => {
   const value = answer ?? field?.initial ?? "";
@@ -142,18 +148,21 @@ export const maskOf = (field: Field | null, answer: string): string => {
   if (answer === "") return "";
   return field && "mask" in field ? field.mask.shown(answer) : answer;
 };
+/** Recheck the cursor after opening has loaded the initial marks. */
 export const opening = <W extends Walk>(tools: readonly Tool[], walk: W, answer?: string): W => {
   const result = { ...walk, ...opened(fieldOf(tools, walk), answer) };
   const field = fieldOf(tools, result);
   const options = field?.kind === "pick" ? field.found("") : optionsOf(field);
   return options[result.at]?.off ? { ...result, at: options.findIndex(option => !option.off) } : result;
 };
-/** Send only valid data that would change something when the action finishes. */
+/** Whether what is written can be sent: it is valid, and where it is all the act asks, it is not what the datum
+ * already is. Writing the same again would change nothing. */
 export const validOf = (field: Field | null, typed: string): boolean =>
   (field?.valid ?? (value => value.trim() !== ""))(typed) &&
   field?.wrong?.(typed) === undefined &&
   !(field?.unchanged?.(typed) ?? (field?.only === true && field.current === typed));
-/** Fixed answers before the row’s first question stay answered; each remaining field opens on its value. */
+/** A walk as it begins. A row may start it with answers it already has: what comes before the first one it asks is
+ * fixed by where the row stands and shows as answered, and each question opens on the answer it has. */
 export function begin(tools: readonly Tool[], tool: string, act: string, target?: string, given?: ViewRow["with"]) {
   const shown = toolOf(tools, tool);
   const current = target === undefined ? shown.acts[act]?.today?.() : shown.actsOn?.[act]?.today?.(target);

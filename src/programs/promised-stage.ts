@@ -9,7 +9,7 @@ import type { Composition, Did, ProgramAct, ProgramTool, Step } from "../tools/p
 import type { KeyStore, Program } from "../tools/tool-contract.ts";
 import { startHouse } from "./house-runtime.ts";
 
-export type Check = Readonly<{ name: string; run: () => Promise<void> }>;
+export type Check = Readonly<{ name: string; run: () => Promise<void>; report?: () => string | undefined }>;
 /** Who lives in the house a case runs in: ana administers it, beto holds every tool, carla holds none. */
 export const cast = { admin: "ana", member: "beto", outsider: "carla" } as const;
 const dayMs = 24 * 3_600_000;

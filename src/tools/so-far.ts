@@ -18,12 +18,13 @@ export type SoFar<X extends Program> = Readonly<{
 }>;
 /** What an act says of what was answered so far: asked only about the fields it takes, answered whole. Anything
  * else a surface may give is not asked about. */
-export function soFar<X extends Program>(input: TSchema, { stops, among }: SoFar<X>): SoFar<X> {
+export function soFar<X extends Program>(input: TSchema, said: SoFar<X>): SoFar<X> {
+  const { stops, among } = said;
   const partial = Type.Partial(input);
   const asked: NonNullable<SoFar<X>["stops"]> = (answered, state, target, at) =>
-    Value.Check(partial, answered) ? stops?.(answered, state, target, at) : undefined;
+    Value.Check(partial, answered) ? stops?.call(said, answered, state, target, at) : undefined;
   const narrowed: NonNullable<SoFar<X>["among"]> = (answered, state, target, at) =>
-    Value.Check(partial, answered) ? (among?.(answered, state, target, at) ?? {}) : {};
+    Value.Check(partial, answered) ? (among?.call(said, answered, state, target, at) ?? {}) : {};
   return { ...(stops ? { stops: asked } : {}), ...(among ? { among: narrowed } : {}) };
 }
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
@@ -48,13 +49,13 @@ function picksIn(schema: unknown, value: unknown): readonly Picked[] {
 export function refusedWhole<X extends Program>(input: TSchema, said: SoFar<X>, value: unknown) {
   return (state: State<X>, target: string, refuses: readonly string[], at: number): string | undefined => {
     if (!isRecord(value)) return undefined;
-    const stopped = programCall(said.stops, value, state, target, at);
+    const stopped = programCall(said.stops?.bind(said), value, state, target, at);
     /** At its question a cause may say a datum after it («supera lo que falta · $ 9.525,75»): where nothing is
      * asked, what is refused is the cause the act declares. */
     if (stopped !== undefined) return refuses.find(cause => stopped.startsWith(`${cause} · `)) ?? stopped;
-    const among = programCall(said.among, value, state, target, at) ?? {};
+    const among = programCall(said.among?.bind(said), value, state, target, at) ?? {};
     return picksIn(input, value)
-      .map(([tool, thing]) => programCall(among[tool], thing))
+      .map(([tool, thing]) => programCall(among[tool]?.bind(among), thing))
       .find(reason => reason !== undefined);
   };
 }

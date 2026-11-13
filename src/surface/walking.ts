@@ -31,6 +31,7 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
   const running: Walk = { ...clean, phase: "running", since: now };
   return { session: replace(session, running), run: running };
 }
+/** In a field with a format the keys go through its mask: what does not fit is not typed. */
 function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
   const typed =
     key.kind === "type" ? Array.from(key.text).reduce((now, text) => mask.put(now, text), walk.typed) : walk.typed;
@@ -42,14 +43,17 @@ function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
 function rewritten({ error: _was, failed: _result, ...written }: Asking): Asking {
   return { ...written, suggested: false };
 }
-/** Ignore leading and repeated spaces so identical names have identical spelling. */
+/** A space that says nothing is not typed: before anything is written, or next to another space. Two names that
+ * read the same are written the same. */
 function idleSpace({ typed, caret }: Asking, key: Intent): boolean {
   if (key.kind !== "type" || key.text !== " ") return false;
   const chars = Array.from(typed);
   return caret === 0 || chars[caret - 1] === " " || chars[caret] === " ";
 }
 function typing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
+  /** What the question opened with gives way to the first key written. */
   const fresh = walk.suggested && key.kind === "type" ? { ...walk, typed: "", caret: 0 } : walk;
+  /** A text takes no more than it may hold: the key that would pass it is not typed. */
   const full = key.kind === "type" && "max" in field && Array.from(fresh.typed).length >= (field.max ?? Infinity);
   if (full) return { session };
   if (!("mask" in field) && idleSpace(fresh, key)) return { session };
@@ -91,7 +95,8 @@ function choosing(session: Session, walk: Asking, tools: Tools, field: Field, ke
   }
   return advance(session, walk, tools, chosen.title, now);
 }
-/** Pick by number or Enter; space opens a search where typed keys are no shortcuts. */
+/** A question that picks a thing is a list: a number takes its row, enter the one the cursor is on, and space
+ * starts looking, as on any menu. While looking, what is typed is what is looked for and no key is a shortcut. */
 function picking(
   session: Session,
   walk: Asking,
@@ -100,7 +105,8 @@ function picking(
   key: Intent,
   now: number,
 ) {
-  const set = (next: Partial<Asking>): Stepped => ({ session: replace(session, { ...walk, ...next }) });
+  const { reading: _reading, ...searched } = walk;
+  const set = (next: Partial<Asking>): Stepped => ({ session: replace(session, { ...searched, ...next }) });
   const sought = (typed: string): Stepped =>
     set({
       typed,
@@ -108,6 +114,7 @@ function picking(
       at: field.found(typed).findIndex(option => !option.off && !option.makes),
     });
   const found = pickedFrom(field, walk);
+  /** With nothing to pick among there is nothing to look for either: only leaving is left. */
   if (!walk.finding && !found.length) return { session };
   if (walk.finding && key.kind === "type") return sought(walk.typed + key.text);
   if (walk.finding && key.kind === "erase") return sought(Array.from(walk.typed).slice(0, -1).join(""));
@@ -138,8 +145,9 @@ function back(session: Session, walk: Asking, tools: readonly Tool[]): Session {
 export function walking(session: Session, walk: Walk, tools: readonly Tool[], key: Intent, now: number): Stepped {
   if (key.kind === "cancel") {
     if (walk.phase === "asking" && walk.failed) return { session: up(session) };
+    /** Escape closes the search first: the whole list is back, and the question is still the same. */
     if (walk.phase === "asking" && walk.finding) {
-      const { finding: _sought, ...whole } = walk;
+      const { finding: _sought, reading: _reading, ...whole } = walk;
       return { session: replace(session, { ...whole, typed: "", caret: 0, at: opened(fieldOf(tools, whole)).at }) };
     }
     if (walk.phase === "asking" && walk.pos > walk.floor) return { session: back(session, walk, tools) };

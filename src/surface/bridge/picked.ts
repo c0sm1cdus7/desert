@@ -27,11 +27,15 @@ export const offeredOn =
     const field = besides(ask.next(answers), target);
     const check = (read: () => string | undefined) => programRule(() => declaredCause(act.refuses, read()));
     const stops = (answer: string) =>
-      declaredCause(act.refuses, programCall(act.stops, ask.sofar([...answers, answer]), state(), target, now()));
+      declaredCause(
+        act.refuses,
+        programCall(act.stops?.bind(act), ask.sofar([...answers, answer]), state(), target, now()),
+      );
     if (field?.kind === "one")
       return { ...field, options: field.options.map(option => disabled(option, stops(option.title))) };
     if (field?.kind !== "pick") return field;
-    const among = programCall(act.among, ask.sofar(answers), state(), target, now())?.[field.of];
+    const choices = programCall(act.among?.bind(act), ask.sofar(answers), state(), target, now());
+    const among = choices?.[field.of]?.bind(choices);
     return narrowed(field, value => check(() => (value ? among?.(value) : undefined)) ?? stops(value), hidden);
   };
 

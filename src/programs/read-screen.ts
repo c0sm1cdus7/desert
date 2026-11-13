@@ -12,15 +12,22 @@ const eventsIn = (body: Body): readonly ThreadEvent[] => (body.kind === "thread"
 export const linesIn = (body: Body): readonly string[] => eventsIn(body).map(textOf);
 const notesIn = (body: Body): readonly string[] =>
   eventsIn(body).flatMap(event => (event.nested ? [textOf(event)] : []));
+/** List rows compose a datum followed by its reason; thread options carry the reason itself. */
+const rowReason = (body: Body, detail: string | undefined, cause: string): boolean =>
+  detail === cause || (body.kind === "list" && detail?.endsWith(` · ${cause}`) === true);
 export const unchangedIn = (body: Body): boolean =>
-  rowsIn(body).some(row => row.off && row.detail === toolTexts.unchanged) ||
+  rowsIn(body).some(row => row.off && rowReason(body, row.detail, toolTexts.unchanged)) ||
   notesIn(body).includes(toolTexts.unchanged);
-export const reasonIn = (body: Body, cause: string): boolean => {
+/** Read the actual screen: reasons belong to a disabled row or to the live question, never an unrelated datum. */
+export const reasonIn = (body: Body, cause: string, thing?: Row & { readonly value?: string }): boolean => {
   const matches = (text = "") => text === cause || text.startsWith(`${cause} · `);
-  const off = rowsIn(body).filter(row => row.off);
+  const same = (row: Row): boolean =>
+    thing === undefined ||
+    (row.title === thing.title && (thing.value === undefined || ("value" in row && row.value === thing.value)));
+  const off = rowsIn(body).filter(row => row.off && same(row));
   return (
-    off.some(row => matches(row.detail) || (body.kind === "list" && row.detail?.endsWith(` · ${cause}`))) ||
-    notesIn(body).some(matches)
+    off.some(row => matches(row.detail) || rowReason(body, row.detail, cause)) ||
+    (thing === undefined && notesIn(body).some(matches))
   );
 };
 export const errorIn = (body: Body, cause: string): boolean =>

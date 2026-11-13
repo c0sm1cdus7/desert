@@ -29,7 +29,7 @@
     "programs/promised-off.ts": "shownChecks: what each person sees of what they cannot do, and may prefer not to see",
     "programs/promised-shapes.ts": "bareIn: the data of a case written in a shape of digits, which no reading may show without it",
     "programs/promised-stage.ts": "staged, perform, given: the real house at a fixed instant every derived check runs on",
-    "programs/promised-walk.ts": "walkedChecks: every case of a program kept by keys through the router, from the Menu down to its thing",
+    "programs/promised-walk.ts": "Enumera todos los casos y las garantías derivadas de la superficie de un programa.",
     "programs/promised.ts": "promisedChecks: every check a program's promises derive, each case on a real house",
     "surface/bridge/any-tool.ts": "anyToolScreen: a tool without a screen of its own; its rows from its view, its menus from its acts",
     "surface/bridge/asking-back.ts": "write, audit: the answers that say a datum; and that every field of a declaration can be asked",
@@ -126,7 +126,16 @@
     "programs/answers/current.ts": "Derived check that repeating current answers stops before an act runs",
     "tools/boundaries/failure-origin.ts": "Conserva el origen de los defectos cuando el bus agrupa fallas de sus escuchas.",
     "programs/read-screen.ts": "Lee motivos y resultados enteros recorriendo las ventanas visibles con las mismas teclas que una persona.",
-    "surface/reading.ts": "Desplaza lo que se lee sin elegir filas apagadas ni ejecutar al volver al cursor."
+    "surface/reading.ts": "Entrada conservada de lectura por filas; delega la navegación sin cambiar sus firmas.",
+    "testing.ts": "Entrada estable para pruebas de programas: garantías, casas, recorridos y tipos públicos.",
+    "programs/construction/fixed-entries.ts": "Prueba positiva de todas las entradas y del rechazo directo para casos cerrados por construcción.",
+    "programs/walks/case-walk.ts": "Camina un caso, conserva su diagnóstico y comprueba su resultado antes de cerrar la casa.",
+    "programs/walks/repeated-answer.ts": "Repite una respuesta vigente por teclas sin ejecutar una acción ni mostrar sin cambios.",
+    "surface/navigation/reading-rows.ts": "Lee filas sin seleccionar las apagadas, conservando la navegación breve de los grupos chicos.",
+    "surface/navigation/gone-view.ts": "Reconoce solo una ausencia explícita y deja salir los defectos de lectura.",
+    "surface/navigation/missing-view.ts": "Identifica una vista ausente sin confundirla con una lectura que falló.",
+    "surface/bridge/actions/asked-act.ts": "Compone preguntas y confirmación de una acción conservando el dueño de sus métodos.",
+    "texts/closures/closures.texts.ts": "Mensajes de cierres por causa, dato o construcción y de entradas sin camino."
   },
   "folders": {
     "adapters/secrets": 103,
@@ -152,6 +161,12 @@
     "tools/boundaries": 136,
     "surface/bridge/execution": 112,
     "texts/checks": 22,
-    "programs/answers": 63
+    "programs/answers": 63,
+    ".": 87,
+    "surface/bridge/actions": 78,
+    "surface/navigation": 79,
+    "programs/walks": 166,
+    "programs/construction": 76,
+    "texts/closures": 13
   }
 }

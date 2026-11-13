@@ -1,11 +1,9 @@
+import { closureTexts } from "./closures/closures.texts.ts";
 import { checkDiagnostics } from "./checks/diagnostics.texts.ts";
 // How the checks that a program's promises derive are named, and what they say when a case cannot even start.
 export const promiseTexts = {
   ...checkDiagnostics,
-  closedAt: (kind: string, ask: string) => `Closed by ${kind} at ${ask}: the expected closure was not proved`,
-  closedCause: (ask: string, cause: string) =>
-    `The refusal is not visible where it is chosen: ${cause}. Closed by a declared cause at ${ask}`,
-  partialReason: "an incomplete answer shows a reason",
+  ...closureTexts,
   keptWalks: (name: string) =>
     `the journal kept as ${name} walks offered answers within 128 paths, 24 levels, 16 choices`,
   disabledReason: "A disabled row has no reason",

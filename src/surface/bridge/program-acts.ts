@@ -1,79 +1,21 @@
+import { walked, type Asked } from "./actions/asked-act.ts";
 import { OutsideDefect } from "../../tools/outside.ts";
 import { programCall } from "../../tools/boundaries/program-call.ts";
 // The acts of a program's tool as a surface offers them: each asked from its declaration, where it stands.
-import { declaredCause } from "../../tools/execution/program-causes.ts";
 import { allowed, hides } from "../../house/house.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import { aid, worded } from "../../tools/act-words.ts";
-import type { ProgramAct, ProgramTool } from "../../tools/promises.ts";
+import type { ProgramTool } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
-import type { Field } from "../contract.ts";
-import { offeredOn } from "./picked.ts";
 import { actionOff } from "../availability/action-off.ts";
 import type { ThingAct, ThingMenu, ToolAct, ViewRow } from "../shown-tool.ts";
-import type { Locale } from "../masks.ts";
 import { maskOf } from "../screen.ts";
-import { currentAnswers } from "./current-answers.ts";
-import { questionWords } from "./questions/asking-clock.ts";
-import { asking, type Asking, type AskWords } from "./asking.ts";
-import { programResult } from "./execution/program-result.ts";
+import { type Asking } from "./asking.ts";
 import type { ScreenActs, Start, SurfacePorts } from "./house-ports.ts";
 
 /** Where a menu of a thing is read: a destination of its tool that is not a thing of it. */
 export const menuTarget = (target: string, menu: string): string => `${target}#${menu}`;
-/** A name as the bar says it: with a capital. */
-export const capital = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
-type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["things"]> }> &
-  /** The day an instant falls on, as the program's country counts them, when the program says how. */
-  Readonly<{ day: ((at: number) => string) | undefined }> &
-  /** What a thing of a tool is called, for the act that asks to be confirmed on it. */
-  Readonly<{ titled: (tool: string, target: string) => string }>;
-type Own<X extends Program> = Readonly<{ tool: string; name: string; act: ProgramAct<X> }>;
-/** One act as a person walks it: its questions from what it takes, a confirmation when it asks for one, its result. */
-function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
-  const ask = asking(act.input, {
-    ...questionWords(ports.now, asked),
-    things: asked.things,
-    cause: reason => declaredCause(act.refuses, reason),
-  });
-  const title = act.title ?? capital(act.name);
-  /** Who confirms is the act's own verb, taken by its initial; what can be undone comes with that verb chosen. */
-  const confirm = {
-    options: [{ title: act.enter, key: act.enter.charAt(0) }],
-    ...(act.undoable ? { reversible: true } : {}),
-  };
-  /** Under what is confirmed, what the act is for; and that it cannot be undone, when it cannot. */
-  const note = act.undoable ? act.purpose : `${act.purpose} · ${generic.irreversible}`;
-  const sure = (answers: readonly string[], target?: string): Field | null => {
-    const taken = ask.taken(answers);
-    if (answers.length > taken) return null;
-    const summary = programCall(act.confirms, ask.input(answers), ports.state(), target ?? tool, ports.now());
-    /** What the act itself puts to be confirmed already says what it will do: only that it cannot be undone is
-     * added. With nothing asked, the person is told what the act is for. */
-    const warned = act.undoable ? {} : { note };
-    if (summary !== undefined) return { ask: summary, kind: "confirm", ...confirm, ...warned };
-    /** With nothing asked, the bar already says what is done and to what: what is confirmed is what it is for. */
-    const unsafe = act.undoable ? {} : { note: generic.irreversible };
-    return taken === 0 ? { ask: capital(act.purpose), kind: "confirm", ...confirm, ...unsafe } : null;
-  };
-  const asks = offeredOn(act, ask, ports.state, tool, ports.now, () => hides(ports.state().house, ports.me, "off"));
-  const walk = {
-    ...currentAnswers(ask, (target = tool) => programCall(act.today, ports.state(), target, ports.now())),
-    label: act.name,
-    verb: act.enter,
-    key: act.key,
-    /** The bar says what is done and, on a thing, to which. */
-    title: (target?: string): string => (target === undefined ? title : `${title} · ${asked.titled(tool, target)}`),
-    next: (answers: readonly string[], target?: string): Field | null => asks(answers, target) ?? sure(answers, target),
-    stops: (answers: readonly string[], target?: string): string | undefined =>
-      declaredCause(
-        act.refuses,
-        programCall(act.stops, ask.sofar(answers), ports.state(), target ?? tool, ports.now()),
-      ),
-    run: (answers: readonly string[], target: string) => programResult(ports, target, name, ask.input(answers)),
-  };
-  return { name, act, ask, walk };
-}
+export { capital } from "./actions/asked-act.ts";
 type Walked<X extends Program> = ReturnType<typeof walked<X>>;
 /** What a thing has today as its row shows it: each answer in the shape of its field. */
 const shownOf = (ask: Asking, answers: readonly string[], from: number, until: number): string =>
@@ -131,7 +73,8 @@ const offersOf =
   (other: string, target: string): ViewRow[] =>
     entries.flatMap(({ name, act, ask, walk }): ViewRow[] => {
       const { also } = act;
-      const given = also?.tool === other ? programCall(also.with, ports.state(), target, ports.now()) : undefined;
+      const given =
+        also?.tool === other ? programCall(also.with.bind(also), ports.state(), target, ports.now()) : undefined;
       if (!also || given === undefined) return [];
       const row = { key: act.key, title: also.name ?? act.name, act: name, on: { tool } };
       const fixed = ask.leading(given);
@@ -141,13 +84,13 @@ const offersOf =
       if (why !== undefined && hides(ports.state().house, ports.me, held ? "off" : "foreign")) return [];
       if (why !== undefined) return [{ ...row, detail: why, off: true }];
       /** What the thing suggests comes after what it fixes: those questions open on it, and are still asked. */
-      const answers = ask.leading({ ...given, ...programCall(also.opens, ports.state(), target) });
+      const answers = ask.leading({ ...given, ...programCall(also.opens?.bind(also), ports.state(), target) });
       if (ask.next(fixed) === null && !act.confirms)
         throw new OutsideDefect(
           new Error(`${tool} offers ${name} on ${other} asking nothing, and the act does not ask to be confirmed`),
         );
       /** With no datum of its own here, its row says what the act is for: the list fills that in. */
-      const datum = programCall(also.datum, ports.state(), target);
+      const datum = programCall(also.datum?.bind(also), ports.state(), target);
       return [{ ...row, ...(datum ? { detail: datum } : {}), with: { answers, from: fixed.length } }];
     });
 /** What an act says to its right when it has no datum of its own: that it cannot be undone, or what it is for.
@@ -168,7 +111,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
         actionOff(act, ports.state(), tool.id, tool.id, ports.now(), () => walk.next([]));
       const listed = (): boolean =>
         off() === undefined || !hides(ports.state().house, ports.me, foreign() ? "foreign" : "off");
-      const datum = (): string => programCall(act.datum, ports.state(), tool.id) ?? beside(act);
+      const datum = (): string => programCall(act.datum?.bind(act), ports.state(), tool.id) ?? beside(act);
       const next: ToolAct["next"] = answers => walk.next(answers);
       /** What changes a datum is taken from the row of that datum, not from among the actions. */
       const scope = act.changes === undefined ? "all" : "row";
@@ -184,8 +127,8 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       const unseen = (target: string): boolean =>
         off(target) !== undefined && hides(ports.state().house, ports.me, "off");
       const listed = (target: string): boolean =>
-        programCall(tool.targets, ports.state()).includes(target) && !unseen(target);
-      const datum = (target: string): string => programCall(act.datum, ports.state(), target) ?? beside(act);
+        programCall(tool.targets.bind(tool), ports.state()).includes(target) && !unseen(target);
+      const datum = (target: string): string => programCall(act.datum?.bind(act), ports.state(), target) ?? beside(act);
       const scope = act.under === undefined && act.changes === undefined ? "each" : "row";
       return [name, { ...walk, scope, leaves: act.leaves ?? false, listed, off, datum }];
     });

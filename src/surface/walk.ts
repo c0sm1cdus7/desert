@@ -1,3 +1,4 @@
+// An action as a thread: what was answered, what it asks now, and how it ended. Every action looks like this.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import type { Body, Field, Hint, Row, Span, ThreadEvent } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
@@ -15,7 +16,8 @@ function endOf(walk: Running | Done, now: number): readonly Span[] {
     { text: ` · ${seconds} s`, tone: "t3" },
   ];
 }
-/** Keep answers beside their questions, or below a multiline question. */
+/** What was answered, beside what was asked. Under it, when what was asked is a block of several lines: the answer
+ * is never read as the end of the block's last line. */
 const answersOf = (walk: Walk): readonly ThreadEvent[] =>
   walk.asked.slice(0, walk.pos).map(({ ask, shown }) => ({
     text: [
@@ -24,11 +26,13 @@ const answersOf = (walk: Walk): readonly ThreadEvent[] =>
     ],
   }));
 const isTyped = (field: Field | null): boolean => field?.kind === "text" || field?.kind === "secret";
+/** What an empty written field shows: its mask's shape, its own placeholder, or that a secret goes there. */
 const shapeOf = (field: Field): string => {
   if ("mask" in field) return field.mask.empty;
   return "placeholder" in field ? field.placeholder : said.pasteHere;
 };
-/** Number the first nine things; while searching, pin the entry and hide shortcuts. */
+/** The things a question picks among, as a list: each of the first nine with its number. While the person looks
+ * for one, where they write comes first and the rows carry no key. */
 function pickRows(walk: Walk, question: Field & { kind: "pick" }): readonly Row[] {
   const found = pickedFrom(question, walk);
   const rows = found.map((option, i): Row => {
@@ -43,6 +47,7 @@ function pickRows(walk: Walk, question: Field & { kind: "pick" }): readonly Row[
   const typing: Row = { title: "", entry: { typed: walk.typed, caret: Array.from(walk.typed).length } };
   return [typing, ...(rows.length ? rows : [{ title: said.nothingFound, still: true, tone: "t3" as const }])];
 }
+/** A question, and beside its name what its datum is today, when it changes one: said as a datum, turned down. */
 function askSpans(question: Field): readonly Span[] {
   const current = question.current === undefined ? "" : maskOf(question, question.current);
   const name = { text: question.ask, tone: "t1" } as const;
@@ -57,6 +62,7 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   const spans =
     walk.failed && reason !== undefined ? errorSpans(reason) : [{ text: reason ?? "", tone: "t3" as const }];
   const wrong = reason === undefined ? [] : [{ text: spans, nested: true }];
+  /** A confirmation says under it what the act is for: nobody confirms what they were not told. */
   const told = question.kind === "confirm" && question.note !== undefined ? question.note : undefined;
   const note = told === undefined ? [] : [{ text: [{ text: told, tone: "t3" as const }], nested: true }];
   const events = [...answered, { text: askSpans(question) }, ...note, ...wrong];
@@ -102,6 +108,7 @@ export function walkHints(walk: Walk, field: Field | null, tools: readonly Tool[
     (field.unchanged?.(walk.marks.join(" · ")) || field.wrong?.(walk.marks.join(" · ")) !== undefined)
   )
     return [{ intent: "move", does: k.choose }, { intent: "mark", does: k.mark }, leave];
+  /** With nothing left to choose, only leaving is left. */
   const free = field?.kind === "pick" ? field.found(walk.finding ? walk.typed : "") : optionsOf(field);
   if (field?.kind === "pick" && free.every(option => option.off)) {
     if (walk.finding) return [{ intent: "cancel", does: k.close }];

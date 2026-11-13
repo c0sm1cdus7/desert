@@ -14,7 +14,7 @@ export const questionWords = (
   now: () => number,
   shown: Readonly<{ locale: Locale; day?: ((at: number) => string) | undefined }>,
 ) => ({
-  ...askingClock(now, shown.day),
+  ...askingClock(now, shown.day?.bind(shown)),
   formats: formats(shown.locale),
   optionalMark: genericTexts.optional,
 });

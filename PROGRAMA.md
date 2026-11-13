@@ -30,7 +30,8 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   cada acción, que rechace lo que su forma no admite, que su fila apagada diga su motivo, que lo que deja se
   encuentre buscando. Las garantías bajan por listas y menús hasta leer la fila, también en la ventana mínima;
   comparan motivos enteros en filas apagadas o bajo la pregunta. Un dato que no se puede escribir queda sin
-  Enter, error ni motivo de la acción. Una ruta ausente sin esa prueba falla indicando la pregunta.
+  Enter, error ni motivo de la acción. También se prueba que todas las filas fijen una respuesta incompatible;
+  sin esa evidencia positiva, una ruta ausente falla indicando la pregunta y la fila que queda abierta.
   El programa no escribe ninguna de esas (`tests/program/program.checks.ts`).
 
 ## Una acción
@@ -243,14 +244,15 @@ La persona solo puede terminar en `Listo` o en `Error` por una causa de afuera. 
    Enter. `wrong` y `stops` devuelven motivos sin anteponer «Error». No hay que agregar un rechazo a `run` para
    lo vigente. La prueba de «sin cambios» por otras puertas sigue; en pantalla se prueba que no se envíe.
 
-7. **Completar los casos y correr la compuerta.** Cada rechazo interno necesita un estado y una respuesta que una
-   persona pueda intentar elegir; el motivo tiene que verse en la fila apagada, en la opción/cosa apagada o bajo
-   la pregunta. Si la primera referencia no tiene candidatos, se ve el `empty` del campo. Un id inexistente por
+7. **Completar los casos y correr la compuerta.** Cada rechazo interno necesita un caso y su causa declarada.
+   Cuando la persona puede intentar elegir esa respuesta, el motivo tiene que verse en la fila apagada,
+   en la opción/cosa apagada o bajo la pregunta. Si la primera referencia no tiene candidatos, se ve el `empty` del campo. Un id inexistente por
    otra puerta no reemplaza un caso de una cosa visible no elegible. Conservar ambos en `cases`: la referencia
    inexistente se rechaza antes de correr con su motivo; por teclas se comprueba que no tenga fila ni aparezca
    al buscar, sin pedir su nombre ni exigir un motivo en una fila que no existe. No reemplazar el caso por una
-   cosa inventada ni por una prueba manual de una sola puerta. Una fila que edita un dato no puede prometer
-   un recorrido que cambie además otro dato fijo: declarar el recorrido completo o casos que se puedan caminar.
+   cosa inventada ni por una prueba manual de una sola puerta. Un caso aceptado que cambia dos datos necesita un
+   recorrido que permita cambiarlos. Un rechazo puede quedar cerrado por construcción aunque cada fila pregunte
+   un dato distinto: basta con que cada una fije al menos una respuesta incompatible con ese caso.
    Ninguna pregunta alcanzable puede quedarse sin opciones, incluidas las posteriores. Cerrar esa rama antes de
    ofrecerla, o la acción con `offered`, según lo que ya se sabe. Cada causa externa debe correr y terminar en
    `Error` con su causa; cada caso aceptado tiene que llegar sin líneas de `Error`. La base cuenta los envíos,
@@ -344,3 +346,57 @@ casas abandonadas del mismo workspace: el nombre incluye su huella y el proceso 
 de más de 24 horas si ese proceso ya terminó. No se siguen enlaces ni se borran casas activas, prefijos de otros
 workspaces o carpetas históricas cuyo nombre no permite reconocer al dueño. La misma limpieza se aplica al primer
 caso cuando las garantías se usan fuera del runner de este repositorio.
+
+
+## Los cuatro resultados de recorrer un rechazo
+
+- **Cerrado por causa declarada:** la persona lee el motivo en la fila de esa cosa o bajo su pregunta;
+  la acción no se envía. El motivo de una fila vecina no sirve de prueba.
+- **Cerrado por el dato:** la respuesta no se puede terminar de escribir, o la referencia no existe entre
+  lo elegible. No aparece Enter, error ni motivo de la acción bajo esa pregunta.
+- **Sin camino:** falla. La garantía indica la pregunta y la fila que deja abiertas las respuestas del caso,
+  o que ninguna fila ofrece la acción. No encontrar un recorrido no demuestra que el programa esté bien.
+- **Cerrado por construcción:** la pantalla nunca hace esa pregunta. Se recorren todas las entradas alcanzables
+  desde el Menú, también las búsquedas, los menús anidados y las entradas desde otra herramienta. Tiene que haber
+  al menos una fila para esa acción sobre esa cosa, y cada una debe fijar un valor distinto al del caso en alguna
+  respuesta que no pregunta. La respuesta incompatible puede ser distinta en cada fila. Se comprueba además,
+  por llamada directa, el rechazo con su causa declarada y que no cambien los hechos ni el estado del programa.
+
+Esto último vale solo para rechazos: una promesa aceptada sin camino siempre falla. No hace falta inventar una
+fila para el artículo inexistente ni permitir cambiar dos datos a la vez para mostrar un rechazo imposible de
+formular. Sí hace falta ofrecer la acción en alguna fila real. Cada comprobación por teclas expone `report()`:
+tras `run()` dice qué cierre encontró, o conserva el diagnóstico si falló. Las causas externas siguen siendo
+resultados de una ejecución: se prueban como tales, con su error visible.
+
+## Una entrada estable para las pruebas del programa
+
+Importar desde **`#desert/testing.ts`**. No hace falta conocer dónde guarda la base cada implementación.
+`tests/laws/testing-api.spec.ts` fija los nombres exportados, incluidos los tipos: quitar o renombrar uno falla
+primero en la base. Los caminos internos existentes conservan sus exportaciones y firmas; no son la entrada
+recomendada para pruebas nuevas. El antiguo `promised-current.ts`, ya ausente antes de esta corrida, se reemplaza
+al migrar el import de `currentCloses` a esta entrada.
+
+| Para qué | Exportaciones |
+|---|---|
+| Garantías | `programChecks`, `promisedChecks`, `walkedChecks`, `currentCloses`, `quietEntry`, `quietScreen` |
+| Casa y casos | `staged`, `given`, `perform`, `cast`, `wroteSince`, `localPorts`, `startHouse` |
+| Recorrer | `seated`, `goTo`, `actRow`, `openRows`, `type`, `view`, `fitsSmallest`, `keysTo` |
+| Superficie | `asking`, `questionWords`, `offeredOn`, `houseRouter`, `houseTools`, `startRouter`, `begin`, `fieldOf`, `walkBody`, `walking` |
+| Estado y hechos | `createHouse`, `identityView`, `houseStep`, `Bus`, `effect`, `vocabulary`, `houseCatalog`, `startState`, `startTools`, `toolsStep` |
+| Declarar datos y comprobar causas | `object`, `text`, `ids`, `caseInstant`, `programAct`, `OutsideDefect`, `outsideCause`, `MissingView`, `toolTexts`, `genericTexts` |
+| Tipos | `Aim`, `Check`, `Decided`, `Doing`, `House`, `Seat`, `Body`, `Screen`, `Choice`, `Session`, `Walk`, `Router`, `Shown`, `Tool`, `Emission`, `Case`, `Composition`, `ProgramAct`, `ProgramTool`, `Step`, `KeyStore`, `Program`, `State` |
+
+Los callbacks declarados como métodos conservan su objeto como `this`, tanto al leer una herramienta como al
+preguntar o ejecutar una acción. Si una lectura falla, la base conserva su diagnóstico como defecto del programa;
+solo una ausencia explícita (`MissingView`, también exportada por `surface/shown-tool.ts`) se presenta como
+una cosa que ya no está. Una pantalla propia que detecta esa ausencia lanza `new MissingView(tool, target)`;
+un `Error` común conserva su condición de defecto.
+
+También están los campos y sus reglas (`count`, `day`, `digits`, `handle`, `holding`, `many`, `money`, `oneOf`,
+`option`, `padded`, `quantity`, `quantityDecimals`, `someOf`, `textLimit`, `thing`, `usually`, `when`, `wrongIn`),
+los formatos (`formats`, `shaped`, `paddedMask`) y los ayudantes de pantalla (`anyToolScreen`, `section`,
+`menuTarget`, `matches`, `startTerminal`). Así las pruebas pueden componer las mismas piezas que el programa.
+Se suman los tipos `ViewLimits`, `HouseState`, `TimeSource`, `Catalog`, `Event`, `ProgramFacts`, `ProgramScreen`,
+`SurfacePorts`, `ScreenActs`, `Start`, `Locale`, `ViewRow`, `RunResult`, `Also`, `Need`, `Offered`, `Told`,
+`ActContext`, `ActResult` y `Slices`. Para evitar dos nombres iguales, `House` es la casa de pruebas y `HouseState`
+es el estado de la organización; `padded` declara el campo y `paddedMask` arma su formato de escritura.
