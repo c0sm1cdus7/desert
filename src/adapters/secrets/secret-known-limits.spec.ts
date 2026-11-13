@@ -3,7 +3,7 @@ import { effect } from "../../journal/events.ts";
 import { expect, it } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { fixture, secret, field, type P, has } from "../../../tests/support/secret-rig.ts";
+import { fixture, secret, field, type P, has, ref } from "../../../tests/support/secret-rig.ts";
 import { ownAct } from "../../tools/act-definition.ts";
 import { localPorts } from "../../programs/house-runtime.ts";
 
@@ -15,13 +15,13 @@ const disk = (path: string, s: string) =>
     .some(f => readFileSync(join(path, f)).includes(Buffer.from(s)));
 const report = (label: string, observed: Record<string, unknown>) => {
   const expected: Record<string, unknown> = {
-    P1: { status: "accepted", facts: true, disk: true },
-    P2: { status: "accepted", result: true, facts: true, disk: true },
-    P3: { facts: true, disk: true },
+    P1: { status: "accepted", facts: false, disk: false },
+    P2: { status: "accepted", result: false, facts: false, disk: false },
+    P3: { facts: false, disk: false },
     P4a: { status: "accepted" },
     P4b: { status: "rejected", defect: true },
-    P5made: { status: "accepted", facts: true, disk: true },
-    P5target: { status: "accepted", facts: true, disk: true },
+    P5made: { status: "accepted", facts: false, disk: false },
+    P5target: { status: "accepted", facts: false, disk: false },
     P7: { status: "accepted" },
     P10: { text: "MARCADOR-DIRECTO-0010" },
   };
@@ -29,9 +29,9 @@ const report = (label: string, observed: Record<string, unknown>) => {
   if (label === "P4a") expect(observed.copy).not.toBe("banana");
   if (label === "P4b") expect(String(observed.reason)).toContain("secret:");
   if (label === "P4c") expect(has(observed.input, "ana")).toBe(false);
-  if (label === "P7") expect(String(observed.text)).toContain("MARCADORMIXTO13");
+  if (label === "P7") expect(String(observed.text)).not.toContain("MARCADORMIXTO13");
 };
-it("límite conocido P1: secreto pasado por una acción anidada a una acción pública", async () => {
+it("P1 cerrado: secreto pasado por una acción anidada a una acción pública", async () => {
   for (const value of ["MARCADOR-LARGO-0001", "ab"]) {
     const rig = fixture(
       secret,
@@ -40,6 +40,7 @@ it("límite conocido P1: secreto pasado por una acción anidada a una acción p�
       {
         own: () => [
           ownAct<P, typeof secret>("own", "forward", { input: secret, purpose: "Anida" }, async (input, context) => {
+            expect(ref(input.value)).toBe(true);
             const r = await context.execute?.({ act: "set", target: "other", input: { value: input.value } });
             return { status: "accepted", text: `ok ${r?.status}` };
           }),
@@ -50,11 +51,24 @@ it("límite conocido P1: secreto pasado por una acción anidada a una acción p�
     const started = rig.ports().act({ act: "forward", target: "own", input: { value } }, 0);
     const done = started.status === "processing" ? await started.completion : started;
     rig.restart();
-    report("P1", { value, status: done.status, facts: utf(rig.facts(), value), disk: disk(rig.path, value) });
+    const serialized = `:${JSON.stringify(value)}`;
+    const inputs = rig
+      .facts()
+      .flatMap(e =>
+        e.kind === "act" && ["forward", "set"].includes(e.data.option) ? [field(e.data.input, "value")] : [],
+      );
+    expect(inputs.length).toBe(2);
+    expect(inputs.every(ref)).toBe(true);
+    report("P1", {
+      value,
+      status: done.status,
+      facts: JSON.stringify(rig.facts()).includes(serialized),
+      disk: disk(rig.path, serialized),
+    });
   }
 });
 
-it("límite conocido P2: secreto como nombre de propiedad en lo que la acción escribe", () => {
+it("P2 cerrado: secreto como nombre de propiedad en lo que la acción escribe", () => {
   const value = "MARCADOR-CLAVE-0002";
   const rig = fixture(secret, input => ({
     status: "accepted",
@@ -71,13 +85,15 @@ it("límite conocido P2: secreto como nombre de propiedad en lo que la acción e
   });
 });
 
-it("límite conocido P3: defecto de la superficie con el secreto (camino localPorts.defect)", () => {
+it("P3 cerrado: defecto de la superficie con el secreto (camino localPorts.defect)", () => {
   const value = "MARCADOR-SUPERFICIE-0003";
   const rig = fixture();
   rig.set({ value });
+  const safe = field(rig.facts().find(e => e.kind === "act" && e.data.option === "set")?.data, "input");
+  const reference = field(safe, "value");
   const ports = localPorts(rig.house, "ana", { recentLines: 20 });
   const reason = ports.defect(
-    new Error(`fallo con ${value}`, { cause: { act: "set", target: "vault", input: { value } } }),
+    new Error(`fallo con ${String(reference)}`, { cause: { act: "set", target: "vault", input: safe } }),
     "vault",
     "vault",
     "set",
@@ -86,7 +102,7 @@ it("límite conocido P3: defecto de la superficie con el secreto (camino localPo
   report("P3", { reason: utf(reason, value), facts: utf(rig.facts(), value), disk: disk(rig.path, value) });
 });
 
-it("límite conocido P7: transformaciones y partidos (límite conocido)", () => {
+it("P7 cerrado: transformaciones y partidos de referencias", () => {
   const value = "MarcadorMixto13";
   const rig = fixture(secret, input => {
     const v = String(field(input, "value"));
@@ -106,7 +122,7 @@ it("límite conocido P7: transformaciones y partidos (límite conocido)", () => 
   });
 });
 
-it("límite conocido P10: hecho directo por el bus fuera de una acción con secreto en campo no marcado", () => {
+it("P10: un texto público enviado directamente al bus se conserva sin limpieza literal", () => {
   const rig = fixture();
   rig.set({ value: "MARCADOR-DIRECTO-0010" });
   const ev = rig.house.bus.emit(

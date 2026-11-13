@@ -1,3 +1,4 @@
+import { executionSchema } from "../../../tools/inputs/secret-input.ts";
 // Declared positions are replaced structurally, independently of their spelling or length.
 import { secretTexts } from "../../../texts/secrets/secrets.texts.ts";
 import { Type, type TSchema } from "@sinclair/typebox";
@@ -40,7 +41,9 @@ export function secretPositions(schema: unknown, value: unknown, replace: Replac
   if (schema.secret === true) return replace(value, path || "/");
   if (Array.isArray(schema.anyOf)) {
     const arms: unknown[] = schema.anyOf;
-    const matches = arms.filter(arm => Value.Check(schemaOf(arm), value));
+    const matches = arms.filter(
+      arm => Value.Check(schemaOf(arm), value) || Value.Check(executionSchema(schemaOf(arm)), value),
+    );
     if (!matches.length) return marked(schema) ? replace(value, path || "/") : value;
     return matches.reduce((kept, arm) => secretPositions(arm, kept, replace, path), value);
   }

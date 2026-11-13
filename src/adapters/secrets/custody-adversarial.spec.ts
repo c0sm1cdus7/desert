@@ -11,7 +11,7 @@ import { Redactor } from "./redact.ts";
 import type { Shop } from "../../../tests/support/shop.ts";
 class InspectableRedactor extends Redactor<Shop> {
   dictionary() {
-    return this.active.getStore()?.values;
+    return this.active.getStore()?.refs;
   }
 }
 const material = "MARCADOR_ADVERSARIO_SINTETICO";

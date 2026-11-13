@@ -1,3 +1,5 @@
+import { hasSecretInput } from "./inputs/secret-input.ts";
+import { decisionOf } from "./execution/action-decision.ts";
 import { programCall } from "./boundaries/program-call.ts";
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
 import { Value } from "@sinclair/typebox/value";
@@ -63,7 +65,7 @@ const decide = <X extends Program>(
   const { state, offered, tool, act } = found;
   const refused = refusal(ports, origin, found);
   if (refused !== undefined || !act) return rejected(refused ?? toolTexts.unknown);
-  const execute = (nested: Act) => executeNested(ports, origin, nested, value.input);
+  const execute = (nested: Act) => executeNested(ports, origin, nested);
   const { ports: publicPorts, credentials } = capabilities;
   const context: ActContext<X> = {
     state,
@@ -91,40 +93,19 @@ const decide = <X extends Program>(
     return result instanceof Promise ? result.then(finish) : finish(result);
   };
 };
-async function executeNested<X extends Program>(ports: Execution<X>, origin: Origin, nested: Act, input: unknown) {
+async function executeNested<X extends Program>(ports: Execution<X>, origin: Origin, nested: Act) {
   const { by, id, process } = origin;
   const tool = targetTool(ports.registry, identityView(ports.state(), by), nested.target ?? "");
-  const chain = [...(ports.chain ?? []), JSON.stringify([origin.data.object, origin.data.option, input])];
   const unknown: ActResult<X> = { status: "rejected", reason: toolTexts.unknown };
-  if (!tool || chain.includes(JSON.stringify([nested.target, nested.act, nested.input]))) return unknown;
+  if (!tool) return unknown;
   const cause = [id, ...(process ? [process] : [])];
-  const started = execute({ ...ports, chain }, nested, origin.data.through ?? 0, by, cause);
+  const started = execute(ports, nested, origin.data.through ?? 0, by, cause);
   const result = started.status === "processing" ? await started.completion : started;
   const done: ActResult<X> =
     result.status === "accepted"
       ? { status: "accepted" }
       : { status: "rejected", reason: result.reason ?? toolTexts.invalid };
   return done;
-}
-/** A private result's act-done goes to its recipient alone, like its entry. */
-const privateTo = (recipient?: string) => (recipient ? { recipient } : {});
-function decisionOf<X extends Program>(
-  result: ActResult<X>,
-  act: ToolAct<X>,
-  context: ActContext<X>,
-  tool: string | undefined,
-  option: string,
-): Decision<X> {
-  if ("reason" in result) return { status: result.status, reason: result.reason, effects: result.effects ?? [] };
-  if (result.status === "inconclusive") return { status: "inconclusive", effects: result.effects ?? [] };
-  const reason = programCall(act.reject?.bind(act), context, result);
-  if (reason) return rejected(reason);
-  if (tool === undefined) return { status: "accepted", effects: result.effects ?? [] };
-  const { by, target: original } = context;
-  const { text = "", target = original, status: _status, effects = [], private: receipt, ...data } = result;
-  const done = effect("act-done", { object: target, act: option, text, ...privateTo(data.recipient) }, by);
-  const entry = effect("tool-entry", { tool, target, author: by, text, ...data }, by);
-  return { status: "accepted", effects: [...effects, done, entry], private: receipt };
 }
 export function execute<X extends Program>(
   ports: Execution<X>,
@@ -134,9 +115,24 @@ export function execute<X extends Program>(
   cause: readonly string[] = [],
 ): ExecutionResult<X> {
   if (!Value.Check(actEnvelope, value)) return rejected(toolTexts.invalid);
-  const work = () => executeScoped(ports, value, through, by, cause);
+  const key = JSON.stringify([value.target, value.act, value.input]);
+  if (ports.chain?.includes(key)) return rejected(toolTexts.unknown);
+  const chain = [...(ports.chain ?? []), key];
+  const work = (ports: Execution<X>, input: unknown, valid: boolean, capabilities: ToolCapabilities) =>
+    executeScoped({ ...ports, chain }, { ...value, input }, through, by, cause, capabilities, valid);
   const schema = resolve(ports, by, value.target ?? ids.self, value.act).act?.input;
-  return ports.secrets.scope ? ports.secrets.scope(schema, value.input, work) : work();
+  const plain = !hasSecretInput(schema);
+  return usingCapabilities(ports, { by, data: { object: value.target ?? ids.self } }, (scoped, capabilities) =>
+    ports.secrets.scope
+      ? ports.secrets.scope(
+          schema,
+          value.input,
+          (input, valid) => work(scoped, input, valid, capabilities),
+          scoped.credentialEffects?.capture,
+          (ports.chain?.length ?? 0) > 0,
+        )
+      : work(scoped, plain ? value.input : "[secret]", plain, capabilities),
+  );
 }
 function executeScoped<X extends Program>(
   ports: Execution<X>,
@@ -144,13 +140,16 @@ function executeScoped<X extends Program>(
   through: number,
   by: string,
   cause: readonly string[],
+  capabilities: ToolCapabilities,
+  valid: boolean,
 ): ExecutionResult<X> {
   const process = cause.find(id => ports.process(id));
   const data = { object: value.target ?? ids.self, option: value.act, input: value.input, through };
   const started = startAct(ports, effect("act", data, by, cause, process));
   if (started.failed) return started.failed;
   const act = started.act;
-  return usingCapabilities(ports, act, (ports, capabilities) => {
+  if (!valid) return finish(ports, act, rejected(toolTexts.invalid));
+  {
     let decision: Decision<X> | Perform<X>;
     try {
       decision = decide(ports, value, act, capabilities);
@@ -160,7 +159,7 @@ function executeScoped<X extends Program>(
       });
     }
     return typeof decision === "function" ? run(ports, act, decision) : finish(ports, act, decision);
-  });
+  }
 }
 const run = <X extends Program>(ports: Execution<X>, act: Origin, perform: Perform<X>): ExecutionResult<X> => {
   const { object, option } = act.data;

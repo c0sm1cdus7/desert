@@ -1,3 +1,4 @@
+import { executionSchema } from "./inputs/secret-input.ts";
 // What a program promises of each act: the causes it may refuse with, and cases that say what happens. Specs derive.
 import { declaredCause, programRule } from "./execution/program-causes.ts";
 export { ofTheBase } from "./execution/program-causes.ts";
@@ -51,7 +52,7 @@ export type ProgramRun<X extends Program, O extends readonly string[]> = ((
   Readonly<{ [declaredBody]: true }>;
 function body<X extends Program, S extends TSchema, O extends readonly string[]>(declared: Declared<X, S, O>) {
   const run = (value: unknown, context: ActContext<X>) => {
-    if (!Value.Check(declared.input, value)) throw new OutsideDefect(value);
+    if (!Value.Check(executionSchema(declared.input), value)) throw new OutsideDefect(value);
     return declared.run(value, context);
   };
   return Object.assign(run, { [declaredBody]: true as const });
@@ -76,7 +77,7 @@ export function programAct<X extends Program, S extends TSchema, const O extends
       `An act that cannot be undone asks to be confirmed, and this one does not say what with: ${declared.name}`,
     );
   const summary = (value: unknown, state: State<X>, target: string, at: number): string | undefined =>
-    Value.Check(input, value) ? confirms?.call(declared, value, state, target, at) : undefined;
+    Value.Check(executionSchema(input), value) ? confirms?.call(declared, value, state, target, at) : undefined;
   const said = soFar<X>(input, declared);
   const act = { input, reach: reach ?? "house", run: body(declared) };
   const promised = {

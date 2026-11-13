@@ -35,10 +35,10 @@ for (const [name, value] of [
     expect(field(inputOf(rig), "value")).toBe(kept);
     if (value) expect(has(rig.house.tools.state(), value)).toBe(false);
   });
-it("limpia repeticiones en hechos no marcados, resultado, actividad y causas antes de serializar", () => {
+it("los errores y sus causas solo pueden copiar referencias recibidas", () => {
   const value = "uno\ndos";
   const rig = fixture(secret, input => {
-    throw new Error(String(field(input, "value")), { cause: { nested: new Error(value) } });
+    throw new Error(String(field(input, "value")), { cause: { nested: new Error(String(field(input, "value"))) } });
   });
   const done = rig.set({ value });
   expect(done.status).toBe("rejected");
@@ -48,7 +48,7 @@ it("aplica estructura a hechos directos y admite referencias aunque excedan el m
   const rig = fixture();
   const event = rig.house.bus.emit(words.fact("sale-registered", { value: "x", copy: "x" }, "ana"));
   expect(event.kind).toBe("sale-registered");
-  expect(ref(event.data.value) && !has(event.data.copy, "x")).toBe(true);
+  expect(ref(event.data.value) && event.data.copy === "x").toBe(true);
   expect(() =>
     rig.house.bus.emit(words.fact("sale-registered", { value: "demasiado-largo-para-campo", copy: "" }, "ana")),
   ).toThrow();
@@ -81,7 +81,7 @@ it("secretInput false no desactiva una marca y el rechazo tampoco expone la entr
   expect(rig.set({ value: "demo-pass" }).status).toBe("rejected");
   expect(ref(field(inputOf(rig), "value")) && !has(rig.facts(), "demo-pass")).toBe(true);
 });
-it("límite conocido: el programa puede transformar los saltos de un secreto multilínea", () => {
+it("centinela del auditor: transformar los saltos de la referencia no reconstruye el secreto", () => {
   const value = "MARCADOR_INVENTADO_LINEA_UNO\nMARCADOR_INVENTADO_LINEA_DOS";
   const rig = fixture(secret, input => ({
     status: "accepted",
@@ -89,7 +89,7 @@ it("límite conocido: el programa puede transformar los saltos de un secreto mul
   }));
   const done = rig.set({ value });
   expect(ref(field(inputOf(rig), "value"))).toBe(true);
-  expect(has(done, value.split("\n").join("|"))).toBe(true);
+  expect(has(done, value.split("\n").join("|"))).toBe(false);
 });
 it("rechaza declaraciones secretas no soportadas antes de escribir", () => {
   expect(() => fixture(Type.Object({ value: Type.Number({ secret: true }) }))).toThrow(

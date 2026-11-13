@@ -7,7 +7,7 @@ import { noCapabilities } from "./capabilities.ts";
 /** Revocable capabilities last through completion, including drafts, synchronous throws and interruption. */
 export function usingCapabilities<X extends Program>(
   ports: Execution<X>,
-  origin: HouseEvent<"act">,
+  origin: Pick<HouseEvent<"act">, "by"> & { data: { object: string } },
   work: (ports: Execution<X>, capabilities: ToolCapabilities) => ExecutionResult<X>,
 ): ExecutionResult<X> {
   const target = origin.data.object;

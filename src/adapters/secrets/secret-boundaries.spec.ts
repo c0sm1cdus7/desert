@@ -3,7 +3,6 @@ import { expect, it } from "vitest";
 import { fixture, secret, words, field, ref, has, type P } from "../../../tests/support/secret-rig.ts";
 import { effect } from "../../journal/events.ts";
 import { ownAct } from "../../tools/act-definition.ts";
-import { actionText } from "./text/action-text.ts";
 
 it("la puerta directa del bus resuelve la acción de una cosa y la acción propia", () => {
   const rig = fixture(
@@ -32,7 +31,12 @@ it("las posiciones de los hechos se protegen también en el resultado devuelto",
   }));
   const result = rig.set({ value: "dato-entrada" });
   expect(result.status).toBe("accepted");
-  expect(has([result, rig.facts(), rig.house.tools.state()], "dato-hecho")).toBe(false);
+  const writes = [...result.effects, ...rig.facts(), ...rig.house.tools.state().tools.vault].filter(
+    event => event.kind === "sale-registered",
+  );
+  expect(writes.length).toBeGreaterThanOrEqual(3);
+  expect(writes.every(event => ref(event.data.value))).toBe(true);
+  expect(writes.every(event => event.data.copy === "dato-hecho")).toBe(true);
 });
 it("una letra se limpia en texto libre sin alterar el protocolo ni los nombres de propiedades", () => {
   const rig = fixture(secret, input => ({
@@ -55,7 +59,9 @@ it("una coincidencia con el estado accepted no modifica el discriminante del res
   const result = rig.set({ value: "accepted" });
   expect(result.status).toBe("accepted");
   expect(
-    result.effects.filter(e => e.kind === "tool-entry").every(e => e.kind === "tool-entry" && ref(e.data.text)),
+    result.effects
+      .filter(e => e.kind === "tool-entry")
+      .every(e => e.kind === "tool-entry" && e.data.text === "accepted"),
   ).toBe(true);
 });
 it("el borrador también omite una unión malformada", () => {
@@ -78,20 +84,18 @@ for (const schema of [
     expect(() => fixture(schema)).toThrow(expect.objectContaining({ code: "E-SECRET-SCHEMA" }));
   });
 }
-it("limpia causas, AggregateError y colecciones sin mutar el error original", () => {
-  const error = new AggregateError([new Error("uno\ndos")], "uno\ndos", {
-    cause: new Map([["item", new Set(["uno\ndos"])]]),
+it("las causas, AggregateError y colecciones no pueden obtener el material", () => {
+  const raw = "uno\ndos";
+  const rig = fixture(secret, input => {
+    const reference = String(field(input, "value"));
+    expect(ref(reference)).toBe(true);
+    throw new AggregateError([new Error(reference)], reference, { cause: new Map([["item", new Set([reference])]]) });
   });
-  const cleaned = actionText(error, new Map([["uno\ndos", "secret:00000000-0000-0000-0000-000000000000"]]));
-  expect(cleaned instanceof AggregateError).toBe(true);
-  expect(cleaned.message.includes("uno")).toBe(false);
-  const nested: unknown = cleaned.errors;
-  expect(Array.isArray(nested) && nested.every(item => item instanceof Error && !item.message.includes("uno"))).toBe(
-    true,
-  );
-  expect(cleaned.cause instanceof Map && !has([...cleaned.cause], "uno\ndos")).toBe(true);
-  expect(error.message).toBe("uno\ndos");
+  const result = rig.set({ value: raw });
+  expect(result.status).toBe("rejected");
+  expect(has([result, rig.facts()], raw)).toBe(false);
 });
+
 it("una entrada secreta malformada tampoco se copia como número en el borrador", () => {
   const rig = fixture();
   const tool = rig.options.registry[0];
@@ -116,5 +120,7 @@ it("la palabra del vocabulario no cambia el tipo de los hechos de la misma acci�
   const done = rig.set({ value: "sale-registered" });
   expect(done.status).toBe("accepted");
   const event = rig.facts().find(e => e.kind === "sale-registered");
-  expect(event?.kind === "sale-registered" && ref(event.data.copy) && ref(event.data.value)).toBe(true);
+  expect(event?.kind === "sale-registered" && event.data.copy === "sale-registered" && ref(event.data.value)).toBe(
+    true,
+  );
 });

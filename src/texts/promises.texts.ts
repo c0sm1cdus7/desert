@@ -4,6 +4,9 @@ import { checkDiagnostics } from "./checks/diagnostics.texts.ts";
 export const promiseTexts = {
   ...checkDiagnostics,
   ...closureTexts,
+  nonOpaqueInput: (slot: string) => `Entrada no opaca: ${slot}`,
+  opaqueSecretPositions: "posiciones secretas opacas",
+  uncoveredSecretPositions: "Posiciones secretas sin caso ejecutado",
   keptWalks: (name: string, to: Readonly<{ whole: number; paths: number; depth: number; choices: number }>) =>
     `the journal kept as ${name} walks every answer offered in its first ${to.whole} levels, and past them ` +
     `${to.paths} paths within ${to.depth} levels, ${to.choices} choices`,

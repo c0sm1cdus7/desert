@@ -49,12 +49,12 @@ Qué cambió respecto de Kenon en este paso:
   Si falta una palabra, es un defecto del programa y se dice cuál falta; nunca se muestra un código en su lugar.
 - `src/programs/house-runtime.ts`: `startHouse` arranca la casa de un programa (registro, secretos aparte,
   herramientas, reloj) y `localPorts` le da la casa a una superficie en el mismo proceso, como un integrante.
-- `src/adapters/secrets/`: reemplaza por estructura las posiciones secretas de acciones y hechos; limpia
-  repeticiones literales dentro de cada acción antes de serializar errores. Los valores quedan aparte y los
-  plegados reciben referencias. `positions/` adapta la lectura; `text/` limpia texto y causas; `history/` revisa
-  acciones y hechos anteriores antes de abrir la bóveda; SQLite puede crear auxiliares WAL de lectura.
-  Las referencias nuevas no se deduplican por valor. Los límites de limpieza, transformaciones y pantalla final, el
-  contrato y la apertura con `E-SECRET-HISTORY` están en `PROGRAMA.md`, «Lo declarado secreto».
+- `src/adapters/secrets/`: protege posiciones por estructura antes de que una acción reciba su entrada,
+  y al escribir hechos directos. No limpia repeticiones de texto. `positions/` mantiene el alcance de referencias;
+  `history/` revisa acciones y hechos anteriores. Los valores quedan en custodia y los plegados reciben referencias.
+- `src/tools/inputs/`: separa restricciones de material y esquema de referencias; guarda el traspaso privado,
+  de un uso, del editor de preguntas. `asking-parts.ts` pregunta como secreto y preserva su material multilínea.
+  `src/programs/opacity/` exige casos ejecutados para cada posición secreta y observa qué recibe cada acción.
 - `src/adapters/secrets/custody/`: una custodia cifrada por casa, con proveedor de llaves externo, ingreso
   provisional, vínculos autenticados con revisión, reservas de uso y recuperación. La identidad aleatoria persiste
   al mover la casa; el proveedor recibe esa identidad y transporta la llave por entrada estándar. La composición
@@ -66,7 +66,7 @@ Qué cambió respecto de Kenon en este paso:
 - `src/adapters/declared/`: compone métodos con entrada, salida y permisos explícitos. Solo la fábrica recibe
   resolución; la acción recibe proxies revocables y efectos de vínculos. Los errores cruzan como códigos cerrados.
   `src/tools/startup-contract.ts` separa el arranque público de `Execution`. Ver «Adaptadores declarados»
-  en `PROGRAMA.md`; ingreso y leyes transitivas quedan para los pasos siguientes.
+  en `PROGRAMA.md`; las leyes transitivas quedan para el paso 4.
 - Probado en una terminal real con el programa de prueba: `node tests/support/shop-open.ts`.
 
 ## 4. El router: una sola lógica para todas las superficies (HECHO)

@@ -6,11 +6,11 @@ for (const [label, value] of [
   ["vocabulario", "sale-registered"],
   ["uno", "Ω"],
 ] as const) {
-  it(`limpia el rechazo asíncrono y su causa: ${label}`, async () => {
+  it(`el rechazo asíncrono y su causa reciben solo referencias: ${label}`, async () => {
     const rig = fixture(secret, input =>
       Promise.reject(
         new Error(String(field(input, "value")), {
-          cause: new Error(value),
+          cause: new Error(String(field(input, "value"))),
         }),
       ),
     );
@@ -25,7 +25,7 @@ for (const [label, value] of [
 for (const kind of ["act", "act-done", "act-result", "lost"] as const) {
   it(`limpia la falla de escritura y el canal de emergencia: ${kind}`, () => {
     const value = "uno\ndos";
-    const rig = fixture(secret, () => ({ status: "accepted", text: value }));
+    const rig = fixture(secret, input => ({ status: "accepted", text: String(field(input, "value")) }));
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     const append = rig.house.journal.append.bind(rig.house.journal);
     const write = vi.spyOn(rig.house.journal, "append").mockImplementation((emission, at) => {

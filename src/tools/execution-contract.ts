@@ -8,10 +8,16 @@ export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: 
   Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
   Readonly<{
     capabilities?: CapabilityFactory;
-    credentialEffects?: Pick<CapabilityLease, "apply" | "together">;
+    credentialEffects?: Pick<CapabilityLease, "apply" | "together" | "capture">;
     secrets: {
       capture(value: unknown, registry: ToolRegistry<X>, state?: State<X>): void;
       scrub<T>(value: T): T;
-      scope?<T>(schema: TSchema | undefined, input: unknown, work: () => T): T;
+      scope?<T>(
+        schema: TSchema | undefined,
+        input: unknown,
+        work: (input: unknown, valid: boolean) => T,
+        save?: (value: string) => string,
+        nested?: boolean,
+      ): T;
     };
   }>;

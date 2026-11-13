@@ -1,3 +1,4 @@
+import { executionSchema } from "./inputs/secret-input.ts";
 import type { Static, TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { fine } from "../catalogs/fields.ts";
@@ -21,7 +22,7 @@ export function toolAct<X extends Program, S extends TSchema>(
     run: (value, context) => {
       const prepared = normalize(value);
       /** What its schema admits, and nothing finer than its fields carry: no door sends what a person cannot write. */
-      const held = Value.Check(input, prepared) && fine(input, prepared);
+      const held = Value.Check(executionSchema(input), prepared) && fine(executionSchema(input), prepared);
       return held ? perform(prepared, context) : rejected(toolTexts.invalid);
     },
   };

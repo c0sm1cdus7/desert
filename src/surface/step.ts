@@ -42,6 +42,9 @@ function writing(place: Session[number], tools: Tools): boolean {
  * or tab inside it as a space and none at its ends; anywhere else it does nothing. It never confirms, never chooses,
  * and is never a shortcut. */
 function pasted(session: Session, text: string, tools: Tools, now: number): Stepped {
+  const place = must(session.at(-1));
+  const secret = place.kind === "act" && place.phase === "asking" && fieldOf(tools, place)?.kind === "secret";
+  if (secret) return step(session, { kind: "type", text }, tools, now);
   const chars = Array.from(text.trim().replace(/[\r\n\t]+/gu, " ")).filter(char => !/\p{Cc}/u.test(char));
   return chars.reduce<Stepped>(
     (stepped, char) => {

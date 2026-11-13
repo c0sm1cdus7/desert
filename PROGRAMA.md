@@ -293,21 +293,27 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   vocabulario y multilínea. La entrada original se valida antes de escribir hechos; al leer se admiten referencias
   aunque excedan el largo o patrón original. Dos escrituras del mismo valor reciben referencias distintas, también
   dentro de una acción y después de reiniciar. Las referencias ya escritas se conservan al releer.
-- La acción actual limpia repeticiones literales en valores de texto de hechos, resultado, borrador, errores,
-  causas y actividad. No busca toda la bóveda contra todo texto; el vacío no se busca en texto libre.
-  Esta limpieza tiene límites conocidos: no limpia nombres de propiedades, destinos, `made`, destinatarios ni
-  otros identificadores del protocolo. Una acción anidada tiene su propio alcance, y un defecto de superficie o
-  un hecho público fuera de una acción no hereda los valores de acciones anteriores. Copiar el valor por esos
-  caminos puede dejarlo escrito. Un secreto corto también puede alterar texto público que lo contenga o provocar
-  un rechazo si ese texto deja de cumplir su patrón. Estas deudas se cierran cuando la acción deje de recibir valores.
+- No hay búsqueda ni reemplazo de repeticiones literales. Un secreto «a» no altera «banana», «ana», los nombres
+  del vocabulario ni los mensajes de la base. Una acción solo puede copiar o transformar la referencia recibida,
+  incluso como nombre de propiedad, destino, resultado, error o entrada de otra acción. Lo enviado expresamente
+  por un programa a un campo público sigue siendo público: la base no busca coincidencias con material privado.
 - Se recorren objetos, listas, tuplas, opcionales y las ramas válidas de uniones. Si un contenedor marcado no
   coincide con el esquema, una posición secreta no es string o la unión marcada no resuelve, se omite **toda la
   entrada** como `[secret]`. Sus fragmentos se omiten en los diagnósticos sin ingresarlos a custodia. Los esquemas
   secretos no soportados fallan con `E-SECRET-SCHEMA`. `secretInput: false` no desactiva una marca.
   `ToolAct.secretInputs` y `secretLimits.minLength` salieron del contrato: no tenían efecto. Usá el esquema.
-- La acción sigue recibiendo el valor original: sus validaciones, normalización, borrador, cuerpo y puertos pueden
-  leerlo. **La marca no garantiza una transformación del secreto hecha por el programa**, ni el tapado de la pregunta,
-  ni una limpieza final de pantallas o callbacks. Un programa no debe copiar ni transformar el valor para mostrarlo.
+- La base comprueba las restricciones del material y lo sustituye **antes** de normalización, borrador,
+  condiciones, validadores, confirmación, motivos de freno y ejecución. Esos callbacks reciben referencias.
+  Los esquemas de ejecución validan referencias en esas posiciones; largo y patrón originales se aplican al
+  material en el ingreso. Un texto escrito que parece `secret:<UUID>` es material nuevo, nunca autorización.
+- La pregunta secreta pertenece a la base: oculta teclas y pegados con marcas, conserva espacios y varios
+  renglones y muestra puntos al volver o confirmar. `holding` recibe la referencia; si necesitás comprobar
+  contenido, hacelo en un adaptador declarado. Antes de ejecutar, las referencias de preguntas son provisionales
+  en memoria y no resuelven custodia. Cancelar o cerrar no deja material en disco. Solo `submit` arma un
+  traspaso privado de un uso al motor; `input`, condiciones y confirmaciones nunca llevan ese traspaso.
+- `programChecks` deriva una comprobación por acción secreta, ejecuta todos sus casos y observa la frontera
+  real. Cada posición, opcional, elemento de lista y rama necesita al menos un caso ejecutado con referencia;
+  una posición sin cobertura falla. Retirar la sustitución hace fallar el centinela de la compuerta.
 - Los plegados en memoria y guardados conservan las referencias de los hechos. La invalidación de plegados de
   versiones anteriores depende de la versión de su formato, fuera de esta protección.
 - Al abrir sin marca, o con una marca válida de versión 1, la base revisa acciones **y hechos del programa** con
@@ -325,10 +331,9 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
 - Al actualizar, quitá las declaraciones sin efecto, mantené las marcas de esquema y aceptá referencias en los
   plegados. Tratá el rechazo histórico sin escribir sobre el registro. Las marcas v1 se revisan otra vez porque
   no incluían los hechos del programa. No se recuperan esquemas desaparecidos ni se certifican datos no declarados.
-- La custodia retiene cada referencia nueva de este puente hasta su adopción o `discardLegacy`, sin deduplicar
-  por valor. Adoptar y liberar una referencia no libera otra igual: la recolección sigue los vínculos por ID.
-  Esto ocupa un material cifrado por escritura. El ingreso provisional y su cancelación conservan su contrato;
-  las acciones todavía no usan ese ingreso hasta el próximo paso de A01.
+- El ingreso de acciones usa la sesión de custodia de la acción: vincular conserva su material; rechazo,
+  borrador o final sin vínculo libera el provisional al cerrar el préstamo. Las escrituras directas antiguas
+  por el bus conservan la retención para adopción explícita. No se deduplican posiciones por su valor.
 
 ## Custodia de credenciales · A01, paso 1
 
@@ -355,7 +360,7 @@ de la máquina; NO la protege de otro programa que corra con el mismo usuario. E
 
 El material se guarda con AES-256-GCM: número de un solo uso aleatorio de 12 bytes, etiqueta de 16 bytes y
 autenticación de versión, identidad de casa y referencia. Otro largo es `E-CUSTODY-INTEGRITY` antes de descifrar.
-La custodia, la bóveda y el diccionario de limpieza no exponen llave ni material mediante JSON o inspección.
+La custodia y la bóveda no exponen llave ni material mediante JSON o inspección. No hay diccionario de limpieza.
 Los archivos son privados y la llave no se guarda ahí. SQLite mantiene un bloqueo exclusivo hasta cerrar: otro
 escritor no puede recoger provisionales ajenos. El borrado alcanza los archivos actuales de la carpeta, incluidos
 los auxiliares de SQLite; no promete borrar respaldos, copias del proveedor, strings en memoria ni versiones de
@@ -456,16 +461,15 @@ sin servicios, agregá `...noCapabilities`; está en `testing.ts`, junto con los
 `staged` usa un proveedor de casa en memoria propio de cada caso, conservado durante sus reaperturas. El lector
 histórico sustituye las fábricas por operaciones indisponibles; no llama servicios reales.
 
-Este paso cierra capacidades y composición. La sustitución de entradas antes de `run`, normalización, `draft` y
-callbacks de pantalla, y las leyes transitivas de imports, pertenecen a los pasos 3 y 4; esta entrega no garantiza
-todavía que un campo `secret: true` llegue como referencia a todos esos callbacks.
+Los pasos 2 y 3 cierran capacidades, composición e ingreso antes de los callbacks. Las leyes transitivas de
+imports corresponden al paso 4. Las referencias no convierten JavaScript en una caja de aislamiento: los
+adaptadores declarados son de confianza y la base no comprueba que su salida pública no codifique material.
 
 ## Los registros que se guardan
 - Un programa puede guardar registros que organizaciones reales escribieron con él en una carpeta que nombra en
   `package.json`: `"desert": { "program": …, "journals": "tests/journals" }`. Cada uno es una copia de su
-  `journal.sqlite` (nunca `secrets.sqlite`). La protección alcanza las posiciones declaradas y las repeticiones
-  literales dentro de la misma acción, con los límites explicados arriba. Un histórico no revisado, una
-  transformación o un dato no declarado puede conservar material sensible; además están los datos de la
+  `journal.sqlite` (nunca `secrets.sqlite`). La protección actual sustituye las posiciones declaradas antes de que el programa las reciba.
+  Un histórico no revisado o un dato no declarado puede conservar material sensible; además están los datos de la
   organización: no guardes el de una organización real en un repositorio público.
 - La compuerta abre cada copia con el programa de hoy, sin lo que traía plegado: cada hecho se lee y se pliega desde
   el primero, y cada cosa se lee como la lee quien administra. Un cambio que no los lea frena ahí.

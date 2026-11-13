@@ -1,3 +1,4 @@
+import { executionSchema } from "./inputs/secret-input.ts";
 import { programCall } from "./boundaries/program-call.ts";
 // What an act says of what was answered so far, before it runs: why it cannot go on, and which things it takes.
 import { Type, type TSchema } from "@sinclair/typebox";
@@ -20,7 +21,7 @@ export type SoFar<X extends Program> = Readonly<{
  * else a surface may give is not asked about. */
 export function soFar<X extends Program>(input: TSchema, said: SoFar<X>): SoFar<X> {
   const { stops, among } = said;
-  const partial = Type.Partial(input);
+  const partial = Type.Partial(executionSchema(input));
   const asked: NonNullable<SoFar<X>["stops"]> = (answered, state, target, at) =>
     Value.Check(partial, answered) ? stops?.call(said, answered, state, target, at) : undefined;
   const narrowed: NonNullable<SoFar<X>["among"]> = (answered, state, target, at) =>

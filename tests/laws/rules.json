@@ -1,5 +1,5 @@
 {
-  "debts": 23,
+  "debts": 22,
   "rules": [
     {
       "id": 1,
@@ -418,8 +418,11 @@
       "id": 56,
       "rule": "Un secreto queda tapado",
       "from": "REGLAS §9",
-      "guarantee": "debt",
-      "debt": "Tipo: secret(ask) en fields.ts y que asking lo traduzca a kind: \"secret\"."
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/bridge/questions/opacity-surface.spec.ts",
+        "src/doors/terminal/opacity-terminal.spec.ts"
+      ]
     },
     {
       "id": 57,
@@ -1754,11 +1757,10 @@
     },
     {
       "id": 203,
-      "rule": "Solo los secretos de la acción actual limpian repeticiones literales en valores de texto de hechos, resultado, borrador, actividad y errores con causa; nunca se usa toda la bóveda como diccionario. P1–P5 documentan límites pendientes del contrato opaco: copias a otra acción, nombres de propiedad, defectos de superficie, destinos y made, y corrupción de texto público por secretos cortos. Tampoco se garantizan transformaciones ni pregunta tapada.",
+      "rule": "La base retira la limpieza de repeticiones literales: las acciones solo reciben referencias, por lo que P1 a P5 y la transformación del auditor no pueden copiar material del ingreso. Los textos públicos banana y ana, el vocabulario y los mensajes conservan su contenido aunque coincidan con un secreto corto. La protección restante es estructural, nunca un diccionario de búsqueda.",
       "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
       "guarantee": "spec",
       "evidence": [
-        "src/adapters/secrets/text/action-text.ts",
         "src/adapters/secrets/secret-neighbors.spec.ts",
         "src/adapters/secrets/action-secrets.spec.ts",
         "PROGRAMA.md",
@@ -1831,7 +1833,7 @@
     },
     {
       "id": 210,
-      "rule": "Las acciones y los arranques reciben solo métodos públicos de adaptadores declarados y operaciones de vínculos; no reciben KeyStore, custodia ni resolvedor. Cada operación fija entrada, salida, herramientas, slots e ingreso permitido. La fábrica recibe un resolvedor por llamada, revocable y limitado al alcance. Los resultados se validan como datos públicos cerrados y las fallas cruzan como códigos, sin mensaje, causa ni traza originales. current y revision fijan la vista inicial; replace y release producen efectos no copiables que se confirman con el lote aceptado y dejan hechos autenticados. Rechazo, conflicto o rollback conservan el vínculo anterior; la recolección espera al lote. La sustitución del ingreso y las leyes transitivas corresponden a los pasos siguientes.",
+      "rule": "Las acciones y los arranques reciben solo métodos públicos de adaptadores declarados y operaciones de vínculos; no reciben KeyStore, custodia ni resolvedor. Cada operación fija entrada, salida, herramientas, slots e ingreso permitido. La fábrica recibe un resolvedor por llamada, revocable y limitado al alcance. Los resultados se validan como datos públicos cerrados y las fallas cruzan como códigos, sin mensaje, causa ni traza originales. current y revision fijan la vista inicial; replace y release producen efectos no copiables que se confirman con el lote aceptado y dejan hechos autenticados. Rechazo, conflicto o rollback conservan el vínculo anterior; la recolección espera al lote. La sustitución del ingreso se comprueba en la regla 211; las leyes transitivas corresponden al paso 4.",
       "from": "13/11 · A01, segunda parte, paso 2: contratos y composición",
       "guarantee": "spec",
       "evidence": [
@@ -1844,6 +1846,20 @@
         "src/tools/startup-contract.ts",
         "src/adapters/declared/credential-journal.ts",
         "PROGRAMA.md"
+      ]
+    },
+    {
+      "id": 211,
+      "rule": "El material secreto se valida en la base y se sustituye antes de normalización, borrador, condiciones, validadores, confirmaciones, frenos y ejecución. El editor de preguntas oculta teclas y pegados con marcas, conserva material multilínea y no deja un ingreso resoluble al cancelar. Texto con aspecto de referencia siempre es material nuevo. La compuerta ejecuta todos los casos de cada acción y exige referencias en cada posición secreta, incluidas ramas, listas y opcionales; sin un caso ejecutado falla. Un centinela detecta retirar la sustitución. La terminal real comprueba también ventana chica y cierre en medio de las preguntas.",
+      "from": "13/11 · A01, segunda parte, paso 3: ingreso y pantalla",
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/program-checks.ts",
+        "src/programs/opacity/opacity-derived.spec.ts",
+        "src/programs/opacity/opacity-ingress.spec.ts",
+        "src/adapters/secrets/opacity-now.spec.ts",
+        "src/surface/bridge/questions/opacity-surface.spec.ts",
+        "src/doors/terminal/opacity-terminal.spec.ts"
       ]
     }
   ]

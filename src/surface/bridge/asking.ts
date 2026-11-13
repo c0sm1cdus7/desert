@@ -1,3 +1,5 @@
+import { questionMaterial } from "../../tools/inputs/question-material.ts";
+import { answeredInput } from "../../tools/inputs/secret-input.ts";
 // The questions of an act come from the declaration of what it takes; so do its answers, read back as data.
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import { isAsked } from "../../catalogs/fields.ts";
@@ -10,8 +12,8 @@ export type { AskWords, Things } from "./asking-parts.ts";
 const one = (ask: string, options: readonly Option[]): Field => ({ ask, kind: "one", options });
 function leaf(schema: TSchema, ctx: Ctx, from: number): Got {
   const answer = ctx.answers[from];
-  if (answer === undefined) return { ask: written(schema, ctx) };
-  return { value: valueOf(schema, ctx, answer), at: from + 1 };
+  if (answer === undefined) return { ask: written(schema, { ...ctx, position: from }) };
+  return { value: valueOf(schema, { ...ctx, position: from }, answer), at: from + 1 };
 }
 function choice(schema: TSchema, ctx: Ctx, from: number): Got {
   const arms = armsOf(schema);
@@ -104,6 +106,8 @@ export type Asking = Readonly<{
   /** How many answers say the whole datum; what comes after them is not its own. */
   taken(answers: readonly string[]): number;
   input(answers: readonly string[]): unknown;
+  /** Only execution receives the private, one-use handoff from the base editor. */
+  submit(answers: readonly string[]): unknown;
   answers(input: unknown): string[];
   /** The answers a datum that says only the first things gives: the rest is still to be asked. */
   leading(part: unknown): string[];
@@ -126,7 +130,8 @@ function sofar(schema: TSchema, ctx: Ctx): Readonly<Record<string, unknown>> {
   }
   return value;
 }
-export function asking(schema: TSchema, words: AskWords): Asking {
+export function asking(schema: TSchema, supplied: AskWords): Asking {
+  const words = { ...supplied, secret: questionMaterial() };
   const got = (answers: readonly string[]): Got => read(schema, { ...words, answers, n: 1, optional: false }, 0);
   const whole = (answers: readonly string[]) => {
     const done = got(answers);
@@ -142,6 +147,17 @@ export function asking(schema: TSchema, words: AskWords): Asking {
     },
     taken: answers => whole(answers).at,
     input: answers => whole(answers).value,
+    submit: answers => {
+      const material = new Map<string, string>();
+      const secret = (value: string, position: number) => {
+        const ref = words.secret(value, position);
+        material.set(ref, value);
+        return ref;
+      };
+      const done = read(schema, { ...words, secret, answers, n: 1, optional: false }, 0);
+      if ("ask" in done) throw new Error("An act ran before it was asked");
+      return answeredInput(done.value, material);
+    },
     answers: input => write(schema, input, words),
     leading: part => leading(schema, part, words),
     sofar: answers => sofar(schema, { ...words, answers, n: 1, optional: false }),

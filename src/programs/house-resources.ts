@@ -37,12 +37,11 @@ function busOf<X extends Program>(
   );
 }
 function publicCapabilities<X extends Program>(
-  options: HouseOptions<X>,
   secrets: SecretVault<X>,
   compose: ReturnType<typeof declaredAdapters>,
   state: () => State<X>,
 ) {
-  return options.adapters || options.credentialSlots
+  return typeof secrets.capabilities === "function"
     ? {
         capabilities: secrets.capabilities(custody =>
           compose(custody, scope => allowed(state().house, scope.actor, scope.tool)),
@@ -90,7 +89,7 @@ export function houseResources<X extends Program>(home: string, options: HouseOp
   );
   const close = closing(stops, [bus, journal, secrets], report);
   return {
-    capabilities: (state: () => State<X>) => publicCapabilities(options, secrets, compose, state),
+    capabilities: (state: () => State<X>) => publicCapabilities(secrets, compose, state),
     protection,
     journal,
     secrets,

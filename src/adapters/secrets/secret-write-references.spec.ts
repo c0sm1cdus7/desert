@@ -10,12 +10,14 @@ import { effect, vocabulary } from "../../journal/events.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 const field = Type.String({ secret: true });
 const schema = Type.Object({ first: field, second: field });
-it("cada posición de cada escritura obtiene su referencia y se libera por separado", async () => {
+it("cada posición del ingreso y cada escritura obtiene su referencia y se libera por separado", async () => {
   const rig = custodyRig();
   const vault = new SecretVault<Program>(rig.file, vocabulary({}).event, rig.keys);
   const refs: string[] = [];
   try {
-    vault.scope(schema, { first: "igual", second: "igual" }, () => {
+    vault.scope(schema, { first: "igual", second: "igual" }, prepared => {
+      if (!prepared || typeof prepared !== "object") throw new Error("Falta ingreso");
+      refs.push(String(Reflect.get(prepared, "first")), String(Reflect.get(prepared, "second")));
       for (let i = 0; i < 2; i++) {
         const written = vault.write(
           effect(
@@ -33,7 +35,7 @@ it("cada posición de cada escritura obtiene su referencia y se libera por separ
         refs.push(String(Reflect.get(input, "first")), String(Reflect.get(input, "second")));
       }
     });
-    expect(new Set(refs).size).toBe(4);
+    expect(new Set(refs).size).toBe(6);
     expect(refs.every(secretRef)).toBe(true);
   } finally {
     vault.close();
@@ -52,7 +54,7 @@ it("cada posición de cada escritura obtiene su referencia y se libera por separ
     session.release("slot-0", 1);
     expect(store.ids()).not.toContain(first.refs.key);
     expect(await store.adapter(session, ["slot-1"]).use(second.refs, material => material.key)).toBe("igual");
-    for (let i = 1; i < 4; i++) session.release(`slot-${i}`, 1);
+    for (let i = 1; i < 6; i++) session.release(`slot-${i}`, 1);
     expect(store.ids()).toEqual([]);
   } finally {
     store.close();

@@ -56,10 +56,20 @@ function typing(session: Session, walk: Asking, tools: Tools, field: Field, key:
   /** A text takes no more than it may hold: the key that would pass it is not typed. */
   const full = key.kind === "type" && "max" in field && Array.from(fresh.typed).length >= (field.max ?? Infinity);
   if (full) return { session };
-  if (!("mask" in field) && idleSpace(fresh, key)) return { session };
+  if (field.kind !== "secret" && !("mask" in field) && idleSpace(fresh, key)) return { session };
   const changed = "mask" in field ? masked(fresh, field.mask, key) : edited(fresh, key);
   if (key.kind === "type" && changed?.typed === fresh.typed) return { session };
-  if (changed) return { session: replace(session, rewritten(changed)) };
+  if (changed)
+    return {
+      session: replace(
+        session,
+        rewritten(
+          field.kind === "secret" && key.kind === "type"
+            ? { ...changed, caret: fresh.caret + Array.from(key.text).length }
+            : changed,
+        ),
+      ),
+    };
   if (key.kind !== "confirm") return { session };
   return validOf(field, walk.typed) ? advance(session, walk, tools, walk.typed, now) : { session };
 }

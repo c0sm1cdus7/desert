@@ -1,3 +1,4 @@
+import { executionSchema } from "./inputs/secret-input.ts";
 import { programCall } from "./boundaries/program-call.ts";
 // Every execution of a program act checks its current declaration before entering its body.
 import { answerChange } from "./answers/answer-change.ts";
@@ -16,9 +17,12 @@ export function programOffered<X extends Program>(act: ToolAct<X>, state: State<
     : act.offered?.(state, target, at);
 }
 function before<X extends Program>(act: ProgramAct<X>, value: unknown, context: ActContext<X>) {
-  if (!Value.Check(act.input, value) || !fine(act.input, value)) return toolTexts.invalid;
-  const whole = refusedWhole(act.input, act, value);
-  const wrong = wrongIn(act.input, value, context.at) ?? whole(context.state, context.target, act.refuses, context.at);
+  if (!Value.Check(executionSchema(act.input), value) || !fine(executionSchema(act.input), value))
+    return toolTexts.invalid;
+  const whole = refusedWhole(executionSchema(act.input), act, value);
+  const wrong =
+    wrongIn(executionSchema(act.input), value, context.at) ??
+    whole(context.state, context.target, act.refuses, context.at);
   declaredCause(act.refuses, wrong);
   const current = programCall(act.today?.bind(act), context.state, context.target, context.at);
   const same = current === undefined ? undefined : Value.Equal(current, value);

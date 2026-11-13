@@ -1,3 +1,4 @@
+import { opacityChecks } from "./opacity/opacity-derived.ts";
 // Every check a program's promises derive, in one list: the gate of a program runs them all and chooses none.
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import type { Composition } from "../tools/promises.ts";
@@ -10,5 +11,6 @@ import { promisedChecks } from "./promised.ts";
  * reaches every program the day it moves onto that DESERT: no program lists the checks it wants. */
 export const programChecks = <X extends Program>(program: Composition<X>, shown: Shown<X>): readonly Check[] => [
   ...promisedChecks(program),
+  ...opacityChecks(program),
   ...walkedChecks(program, shown),
 ];

@@ -14,23 +14,23 @@ const disk = (path: string, s: string) =>
     .some(f => readFileSync(join(path, f)).includes(Buffer.from(s)));
 const report = (label: string, observed: Record<string, unknown>) => {
   const expected: Record<string, unknown> = {
-    P1: { status: "accepted", facts: true, disk: true },
-    P2: { status: "accepted", result: true, facts: true, disk: true },
-    P3: { facts: true, disk: true },
+    P1: { status: "accepted", facts: false, disk: false },
+    P2: { status: "accepted", result: true, facts: false, disk: false },
+    P3: { facts: false, disk: false },
     P4a: { status: "accepted" },
-    P4b: { status: "rejected", defect: true },
-    P5made: { status: "accepted", facts: true, disk: true },
-    P5target: { status: "accepted", facts: true, disk: true },
+    P4b: { status: "accepted" },
+    P5made: { status: "accepted", facts: false, disk: false },
+    P5target: { status: "accepted", facts: false, disk: false },
     P7: { status: "accepted" },
     P10: { text: "MARCADOR-DIRECTO-0010" },
   };
   expect(observed).toMatchObject(expected[label] ?? {});
-  if (label === "P4a") expect(observed.copy).not.toBe("banana");
-  if (label === "P4b") expect(String(observed.reason)).toContain("secret:");
-  if (label === "P4c") expect(has(observed.input, "ana")).toBe(false);
+  if (label === "P4a") expect(observed.copy).toBe("banana");
+  if (label === "P4b") expect(observed.reason).toBeNull();
+  if (label === "P4c") expect(has(observed.input, "ana")).toBe(true);
   if (label === "P7") expect(String(observed.text)).toContain("MARCADORMIXTO13");
 };
-it("límite conocido P4: una letra secreta corrompe hechos del programa y rechaza los que tienen forma", () => {
+it("P4 cerrado: una letra secreta conserva banana, ana y hechos válidos", () => {
   const rig = fixture(secret, () => ({
     status: "accepted",
     text: "listo",
@@ -72,7 +72,7 @@ it("límite conocido P4: una letra secreta corrompe hechos del programa y rechaz
   report("P4c", { input: inputOf(withUser) });
 });
 
-it("límite conocido P5: secreto en target / made / recipient de la entrada", () => {
+it("P5 cerrado: secreto en target / made / recipient de la entrada", () => {
   const value = "MARCADOR-DESTINO-0005";
   const rig = fixture(secret, input => ({
     status: "accepted",

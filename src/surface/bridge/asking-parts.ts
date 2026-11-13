@@ -1,5 +1,5 @@
 // What asking an act and reading its answers share: how a declared field says its question, its options and its value.
-import type { TSchema } from "@sinclair/typebox";
+import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { addresses } from "../../catalogs/addressing.ts";
 import { wrongIn } from "../../catalogs/fields.ts";
@@ -22,12 +22,13 @@ export type Things = Readonly<{
 export type AskWords = Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string }> &
   Readonly<{
     things?: (tool: string) => Things | undefined;
+    secret?: (material: string, position: number) => string;
     cause?: (reason: string | undefined) => string | undefined;
   }> &
   /** Today, as the program's country counts its days: what a day that is usually today opens on. */
   Readonly<{ today: () => string; now: () => number }>;
 export type Got = Readonly<{ value: unknown; at: number }> | Readonly<{ ask: Field }>;
-export type Ctx = AskWords & Readonly<{ answers: readonly string[]; n: number; optional: boolean }>;
+export type Ctx = AskWords & Readonly<{ answers: readonly string[]; n: number; optional: boolean; position?: number }>;
 export const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 export const isList = (value: unknown): value is readonly unknown[] => Array.isArray(value);
@@ -70,6 +71,10 @@ export const formatOf = (schema: unknown, ctx: AskWords): Format | undefined => 
 /** What was typed as the datum it stands for; nothing when an optional field was left empty. */
 export const valueOf = (schema: unknown, ctx: Ctx, answer: string): unknown => {
   if (ctx.optional && answer === "") return undefined;
+  if (at(schema, "secret") === true)
+    return TypeGuard.IsSchema(schema) && Value.Check(schema, answer)
+      ? ctx.secret?.(answer, ctx.position ?? ctx.answers.length)
+      : undefined;
   return formatOf(schema, ctx)?.value(answer) ?? (formatOf(schema, ctx) ? undefined : answer.trim());
 };
 /** One of the things of a tool, picked from their list. The answer is the thing; it shows by its name. A field
@@ -112,6 +117,17 @@ function numericReason(schema: TSchema, ctx: Ctx, typed: string): string | undef
   return undefined;
 }
 export function written(schema: TSchema, ctx: Ctx): Field {
+  if (schema.secret === true)
+    return {
+      ask: titleOf(schema, ctx),
+      kind: "secret",
+      valid: typed => (ctx.optional && typed === "") || Value.Check(schema, typed),
+      wrong: typed => {
+        if (!Value.Check(schema, typed)) return undefined;
+        const reason = wrongIn(schema, valueOf(schema, ctx, typed), ctx.now());
+        return ctx.cause ? ctx.cause(reason) : reason;
+      },
+    };
   const of = at(schema, "of");
   if (typeof of === "string") return picked(schema, ctx, of);
   const format = formatOf(schema, ctx);

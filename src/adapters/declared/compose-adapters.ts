@@ -84,6 +84,7 @@ function leaseFor(
   };
   const changes = credentialEffects(custody, session, slotCheck);
   return {
+    capture: session.capture,
     apply: changes.apply,
     together: <T>(work: () => T) => custody.deferCleanup(work),
     ports: adapterPorts(declared, { custody, session, check }),

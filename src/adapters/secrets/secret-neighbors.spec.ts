@@ -36,18 +36,21 @@ it("una unión malformada no deja su contenido en el diagnóstico", () => {
   expect(rig.set({ kind: "unknown", value: "dato-inventado" }).status).toBe("rejected");
   expect(has(rig.facts(), "dato-inventado")).toBe(false);
 });
-it("dos acciones intercaladas no limpian con secretos de la otra ni de la bóveda", async () => {
+it("dos acciones intercaladas reciben referencias distintas y conservan sus datos públicos", async () => {
   const release: (() => void)[] = [];
+  let index = 0;
   const rig = fixture(
     secret,
     input =>
       new Promise<ActResult<P>>(resolve => {
         const value = String(field(input, "value"));
+        expect(ref(value)).toBe(true);
+        const other = index++ === 0 ? "segundo-dato" : "primer-dato";
         release.push(() =>
           resolve({
             status: "accepted",
             text: value,
-            detail: value === "primer-dato" ? "segundo-dato" : "primer-dato",
+            detail: other,
           }),
         );
       }),

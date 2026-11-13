@@ -72,7 +72,7 @@ export function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, 
         act.refuses,
         programCall(act.stops?.bind(act), ask.sofar(answers), ports.state(), target ?? tool, ports.now()),
       ),
-    run: (answers: readonly string[], target: string) => programResult(ports, target, name, ask.input(answers)),
+    run: (answers: readonly string[], target: string) => programResult(ports, target, name, ask.submit(answers)),
   };
   return { name, act, ask, walk };
 }

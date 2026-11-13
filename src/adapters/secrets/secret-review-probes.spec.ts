@@ -2,7 +2,7 @@
 import { expect, it } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { fixture, secret, field, inputOf, has, ref } from "../../../tests/support/secret-rig.ts";
+import { fixture, secret, field, inputOf, ref } from "../../../tests/support/secret-rig.ts";
 import { localPorts } from "../../programs/house-runtime.ts";
 
 const utf = (v: unknown, s: string) =>
@@ -14,16 +14,19 @@ const disk = (path: string, s: string) =>
 const report = (label: string, observed: Record<string, unknown>) => {
   if (label === "P6") {
     expect(observed).toMatchObject({ bob: "rejected", anaOther: "accepted", unattended: "rejected" });
-    expect(has([observed.a, observed.u], "QZ")).toBe(false);
-    expect(has([observed.a, observed.u], "QR")).toBe(false);
-    expect(has([observed.a, observed.u], "QS")).toBe(false);
+    const first: readonly unknown[] = Array.isArray(observed.a) ? observed.a : [];
+    const second: readonly unknown[] = Array.isArray(observed.u) ? observed.u : [];
+    const inputs = [...first, ...second];
+    expect(inputs.length).toBe(3);
+    expect(inputs.every(input => ref(field(input, "value")))).toBe(true);
+    expect(inputs.some(input => field(input, "extra") === "QR")).toBe(true);
   }
   if (label === "P8") {
     expect(observed.status).toBe("accepted");
     expect(ref(observed.kept)).toBe(true);
     if (observed.value) expect(observed.disk).toBe(observed.value === "value" || observed.value === "text");
     if (observed.value) expect(String(observed.text)).toMatch(/^eco secret:[0-9a-f-]{36} fin$/u);
-    else expect(observed.text).toBe("eco  fin");
+    else expect(String(observed.text)).toMatch(/^eco secret:[0-9a-f-]{36} fin$/u);
   }
   if (label === "P9") expect(observed).toMatchObject({ b: "accepted", facts: true });
 };
