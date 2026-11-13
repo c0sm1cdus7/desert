@@ -74,7 +74,8 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
     const caret = "mask" in question ? Array.from(typed).length : walk.caret;
     const whole = walk.suggested && typed !== "" ? { suggested: true as const } : {};
     const remaining = "mask" in question ? question.mask.remaining?.(walk.typed) : undefined;
-    const shape = typed && remaining ? { remaining } : {};
+    const padding = "mask" in question && !validOf(question, walk.typed) ? question.mask.padding?.(walk.typed) : 0;
+    const shape = { ...(typed && remaining ? { remaining } : {}), ...(typed && padding ? { padding } : {}) };
     return { kind: "thread", events, entry: { typed, caret, placeholder: shapeOf(question), ...whole, ...shape } };
   }
   const options: readonly Row[] = optionsOf(field).map((option, i) => ({

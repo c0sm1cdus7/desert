@@ -4,7 +4,6 @@ import { anyToolScreen } from "../surface/bridge/any-tool.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import type { ToolAct } from "../tools/tool-contract.ts";
 import type { Composition, ProgramAct } from "../tools/promises.ts";
-import { chargingShop } from "../../tests/support/charging-shop.ts";
 import { correctingShop, registered } from "../../tests/support/correcting-shop.ts";
 import { printingShop } from "../../tests/support/printing-shop.ts";
 import { shopProgram, shopShown, type Shop } from "../../tests/support/shop.ts";
@@ -76,12 +75,6 @@ describe("the gate closes every internal refusal before running", () => {
   it("fails a compiling surface with an empty later question in an accepted case", async () => {
     await expect(byKeys(shopProgram, "as it was told", emptyLater)).rejects.toThrow("nothing eligible");
   });
-  it("keeps rejecting a nonexistent reference through another door before running", () =>
-    staged(chargingShop, async ({ house }) => {
-      await given(house(), "sales", [registered]);
-      const result = await perform(house(), "payments", { act: "charge", input: { sale: "sales/zz", amount: 1 } });
-      expect(result).toMatchObject({ status: "rejected", reason: "unknown" });
-    }));
   it("keeps rejecting overpayment when both supplied values differ from today through another door", () =>
     staged(correctingShop, async ({ house }) => {
       await given(house(), "sales", [registered]);

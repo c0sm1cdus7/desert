@@ -60,3 +60,28 @@ export function probeWritten(router: Router, field: Field, typed: string): void 
   router.send({ kind: "type", text: key });
   deepStrictEqual(router.screen(view), before);
 }
+
+/** A prefix that can still become the case's valid value has no reason line, only its unfilled shape. */
+export function writeAnswer(router: Router, field: Field, given: string): void {
+  const quietPrefix = (typed: string): void => {
+    if (field.valid?.(given) !== true || field.valid(typed)) return;
+    const { body } = router.screen(view);
+    ok(body.kind !== "thread" || !body.events.some(event => event.nested), said.partialReason);
+    if (body.kind === "thread" && typed && "mask" in field)
+      deepStrictEqual(body.entry?.padding, field.mask.padding?.(typed) || undefined);
+    confirmAnswer(router);
+  };
+  /** Numeric cases also try a leading zero: canonical answers may omit the zeros a person starts with. */
+  if ("mask" in field && field.mask.put("", "0") === "0" && field.valid?.("0") === false) {
+    router.send({ kind: "type", text: "0" });
+    quietPrefix("0");
+    router.send({ kind: "erase" });
+  }
+  let typed = "";
+  quietPrefix(typed);
+  for (const char of Array.from(given)) {
+    router.send({ kind: "type", text: char });
+    typed = "mask" in field ? field.mask.put(typed, char) : typed + char;
+    quietPrefix(typed);
+  }
+}

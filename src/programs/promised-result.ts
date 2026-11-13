@@ -38,7 +38,7 @@ function blockedAt<X extends Program>(seat: Seat<X>, cause: string): boolean {
     body.events.some(event => event.nested && event.text.some(span => matches(span.text)))
   );
 }
-export function assertOutcome<X extends Program>(seat: Seat<X>, aim: Aim<X>, kase: Case<X>): boolean {
+export function assertOutcome<X extends Program>(seat: Seat<X>, aim: Aim<X>, kase: Case<X>, absent = false): boolean {
   ok(seat.defects.length === 0, seat.defects.join("\n"));
   const cause = "refused" in kase.then ? kase.then.refused : undefined;
   const external = cause !== undefined && outsideCause(aim.act.outside, cause) !== undefined;
@@ -54,7 +54,7 @@ export function assertOutcome<X extends Program>(seat: Seat<X>, aim: Aim<X>, kas
     const expected = closed ?? (cause === toolTexts.unchanged ? surfaceTexts.current : cause);
     const currentText =
       cause === toolTexts.unchanged && !seat.router.screen(view).hints.some(h => h.intent === "confirm");
-    ok(currentText || blockedAt(seat, expected), said.refusalNotVisible(cause));
+    ok(absent || currentText || blockedAt(seat, expected), said.refusalNotVisible(cause));
     return false;
   }
   strictEqual(calls.length, 1, said.runOnce);

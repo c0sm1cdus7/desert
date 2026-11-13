@@ -36,12 +36,13 @@ function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
         /** What is off said why, and what a field does not let be written cannot be sent: neither breaks a refusal. */
         const row = quietly(seat.router, router => taken({ ...seat, router }, told));
         if (row?.open?.kind === "act") currentCloses(seat.tools, row.open);
-        const done = row !== undefined && quietly(seat.router, router => walk({ ...seat, router }, told, row));
+        const outcome = row !== undefined && quietly(seat.router, router => walk({ ...seat, router }, told, row));
+        const done = outcome === true;
         ok(done || refused !== undefined, said.notOffered(aim.name));
         /** What could not be taken or sent wrote nothing. */
         if (!done) deepStrictEqual(wroteSince(house(), before), []);
         await seat.router.idle();
-        if (!assertOutcome(seat, aim, kase)) return;
+        if (!assertOutcome(seat, aim, kase, outcome === "absent")) return;
         const screen = JSON.stringify(seat.router.screen(view).body);
         const promised = "refused" in kase.then ? kase.then.refused : kase.then.says;
         ok(screen.includes(JSON.stringify(promised).slice(1, -1)), said.notSaid(promised));

@@ -70,6 +70,8 @@ export type Body =
         readonly suggested?: true;
         /** The unfilled part of a mask, shown after the written part in text 3. */
         readonly remaining?: string;
+        /** Leading mask characters not yet written in an incomplete number, shown in text 3. */
+        readonly padding?: number;
       };
       readonly reference?: string;
       /** How many windows back of what is said the person is reading: the options stay where they are. */
@@ -110,8 +112,6 @@ interface Question {
   readonly valid?: (value: string) => boolean;
   /** Why an answer that is complete still does not hold, when that is so: it stays where it was written. */
   readonly wrong?: (value: string) => string | undefined;
-  /** Why what is written cannot be sent yet: nothing written, not all of it, or less than the datum admits. */
-  readonly lacks?: (value: string) => string;
   /** What the datum is today, as an answer: a question that changes it says so beside its name. */
   readonly current?: string;
   /** This answer would finish the act leaving all its data unchanged. */
@@ -126,6 +126,7 @@ export interface Mask {
   put(typed: string, text: string): string;
   shown(typed: string): string;
   remaining?(typed: string): string;
+  padding?(typed: string): number;
 }
 /** What it can be answered with is part of its kind: choosing among nothing does not type. */
 export type Field = Question &

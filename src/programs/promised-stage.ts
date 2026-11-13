@@ -1,8 +1,7 @@
 // Where a derived check runs: a real house on disk at a fixed instant, its three people, an act done as anyone does.
 import { ok } from "node:assert/strict";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { rmSync } from "node:fs";
+import { promiseHome } from "./promise-temporaries.ts";
 import { caseInstant } from "../catalogs/time.ts";
 import type { TimeSource } from "../journal/clock.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
@@ -50,7 +49,7 @@ export type House<X extends Program> = ReturnType<typeof open<X>>;
 type Stage<X extends Program> = Readonly<{ house: () => House<X>; reopen: () => void }>;
 /** A fresh house on disk for one check, closed and removed when the check ends, however it ends. */
 export async function staged<X extends Program>(program: Composition<X>, use: (stage: Stage<X>) => Promise<void>) {
-  const home = mkdtempSync(join(tmpdir(), "desert-promise-"));
+  const home = promiseHome();
   const clock = stillClock();
   let active: House<X> | undefined;
   try {

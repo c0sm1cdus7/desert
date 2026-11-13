@@ -8,18 +8,12 @@ export const genericTexts = {
   record: { title: "Registro" },
   /** Why what is written cannot be sent yet: said where it is written, as a datum. */
   lacks: {
-    empty: "vacío",
-    partial: "incompleto",
-    shaped: (shape: string) => `incompleto · ${shape}`,
     least: (least: string) => `mínimo ${least}`,
     above: (than: string) => `mayor a ${than}`,
     most: (most: string) => `máximo ${most}`,
   },
   /** A day that already happened, written after today. */
   future: "día futuro",
-  /** A key the field does not take, and one more than it holds. */
-  notTaken: (key: string) => `«${key}» no va acá`,
-  full: "no entra más",
   /** What a row says of an act that cannot be undone, when the act has nothing more useful to say there. */
   irreversible: "irreversible",
   /** Why a tool, or what it does, is off for who does not hold it: said as a datum, like any cause. */

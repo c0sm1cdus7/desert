@@ -9,25 +9,38 @@ import { formats, padded as paddedMask } from "../masks.ts";
 const locale = { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" };
 const words = { formats: formats(locale), optionalMark: " · opcional" };
 
-describe("a number that is too little", () => {
-  it("says what it has to be more than, or the least it takes: never that it is incomplete", () => {
+describe("a number being written", () => {
+  it("keeps extendable numeric prefixes quiet and unavailable", () => {
     const many = asking(object({ many: quantity("Cantidad") }), words).next([]);
-    expect([many?.lacks?.("0"), many?.lacks?.("")]).toEqual(["mayor a 0", "vacío"]);
+    expect([many?.wrong?.("0"), many?.wrong?.("")]).toEqual([undefined, undefined]);
     const point = asking(object({ point: padded("Punto de venta", 4) }), words).next([]);
-    expect(point?.lacks?.("0")).toBe("mínimo 0001");
+    expect(["0", "00", "000"].map(value => point?.wrong?.(value))).toEqual([undefined, undefined, undefined]);
+    expect([many?.valid?.("0"), point?.valid?.("0")]).toEqual([false, false]);
   });
 
-  it("says the most it takes when it is too much, and the floor of an amount nothing was written in", () => {
+  it("says the maximum for a complete out-of-range number, while an empty amount stays quiet", () => {
     const capped = Type.Integer({ title: "Días", minimum: 1, maximum: 60, mask: "padded", width: 2 });
     const days = asking(object({ days: capped }), words).next([]);
-    expect([days?.lacks?.("99"), days?.lacks?.("60")]).toEqual(["máximo 60", "incompleto · 00"]);
+    expect([days?.wrong?.("99"), days?.wrong?.("60")]).toEqual(["máximo 60", undefined]);
     const amount = asking(object({ amount: money("Importe", 1) }), words).next([]);
-    expect(amount?.lacks?.("")).toBe("mínimo $ 0,01");
+    expect(amount?.wrong?.("")).toBeUndefined();
   });
 
-  it("says the shape it has to fill when it is not all there", () => {
+  it("keeps an incomplete day quiet", () => {
     const due = asking(object({ on: day("Vence") }), words).next([]);
-    expect(due?.lacks?.("1")).toBe("incompleto · dd/mm/aaaa");
+    expect(due?.wrong?.("1")).toBeUndefined();
+  });
+
+  it("says the lower bound once no further digit fits the numeric shape", () => {
+    const many = asking(object({ many: quantity("Cantidad") }), words).next([]);
+    expect(many?.wrong?.("0,000")).toBe("mayor a 0");
+    const capped = Type.Integer({ title: "Días", minimum: 200, maximum: 999, mask: "padded", width: 3 });
+    const days = asking(object({ days: capped }), words).next([]);
+    expect([days?.wrong?.("1"), days?.wrong?.("10"), days?.wrong?.("100")]).toEqual([
+      undefined,
+      undefined,
+      "mínimo 200",
+    ]);
   });
 
   it("is written without a zero before it: a zero written first gives way to the digit after it", () => {

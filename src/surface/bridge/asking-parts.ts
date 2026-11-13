@@ -93,25 +93,21 @@ function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   const nothing = (): string => (typeof empty === "string" ? empty : (things()?.empty ?? ""));
   return { ask: asked(word(schema, "title")), kind: "pick", of, found, shown, valid, nothing };
 }
-/** Why what is written cannot be sent yet: nothing, less than the least the datum admits, more than the most, or
- * not all of it; said with the number it has to reach, or with the shape it has to fill. Where nothing written
- * already reads as a number («$ 0,00»), it is that number that falls short. */
-function lacking(schema: TSchema, ctx: Ctx, typed: string): string {
+/** A numeric prefix below the minimum can still grow: only a complete value gets a reason. */
+function numericReason(schema: TSchema, ctx: Ctx, typed: string): string | undefined {
+  const value = valueOf(schema, ctx, typed);
+  if (typeof value !== "number") return undefined;
   const format = formatOf(schema, ctx);
   const said = (limit: number): string => format?.shown(format.typed(limit)) ?? String(limit);
-  const [least, above, most] = ["minimum", "exclusiveMinimum", "maximum"].map(key => at(schema, key));
-  const bare = typed.trim() === "";
-  if (bare && (format?.shown("") ?? "") === "") return generic.lacks.empty;
-  const value = bare ? 0 : valueOf(schema, ctx, typed);
-  if (typeof value !== "number") return shapeOf(format?.empty);
+  const most = at(schema, "maximum");
+  if (typeof most === "number" && value > most) return generic.lacks.most(said(most));
+  if (!format || Array.from("0123456789").some(digit => format.put(typed, digit) !== typed)) return undefined;
+  const least = at(schema, "minimum");
+  const above = at(schema, "exclusiveMinimum");
   if (typeof least === "number" && value < least) return generic.lacks.least(said(least));
   if (typeof above === "number" && value <= above) return generic.lacks.above(said(above));
-  if (typeof most === "number" && value > most) return generic.lacks.most(said(most));
-  return bare ? generic.lacks.empty : shapeOf(format?.empty);
+  return undefined;
 }
-/** What is not all there says the shape it has to fill, when its field shows one: «incompleto · dd/mm/aaaa». */
-const shapeOf = (shape?: string): string =>
-  shape !== undefined && shape.length > 1 ? generic.lacks.shaped(shape) : generic.lacks.partial;
 export function written(schema: TSchema, ctx: Ctx): Field {
   const of = at(schema, "of");
   if (typeof of === "string") return picked(schema, ctx, of);
@@ -126,15 +122,13 @@ export function written(schema: TSchema, ctx: Ctx): Field {
     at(schema, "last") === "today" && typeof value === "string" && value > (ctx.today?.() ?? value);
   const wrong = (typed: string): string | undefined => {
     const value = valueOf(schema, ctx, typed);
-    if (!valid(typed))
-      return typed.trim() !== "" && typeof value === "number" ? lacking(schema, ctx, typed) : undefined;
+    if (!valid(typed)) return numericReason(schema, ctx, typed);
     return late(value) ? generic.future : wrongIn(schema, value, ctx.now?.() ?? 0);
   };
-  const lacks = (typed: string): string => lacking(schema, ctx, typed);
   /** What a person writes has a top: a number without one, or a text without a length, is a defect. */
   const numeric = at(schema, "type") === "integer" || at(schema, "type") === "number";
   if (format && numeric && typeof at(schema, "maximum") !== "number") throw new Error(`The field ${ask} has no top`);
-  if (format) return { ask, valid, wrong, lacks, kind: "text", mask: format, ...initial };
+  if (format) return { ask, valid, wrong, kind: "text", mask: format, ...initial };
   if (at(schema, "type") !== "string") throw new Error(`The field ${ask} has no format and is not text`);
   /** A datum with a shape takes only what fits it: declared as free text, any key would go in. */
   if (at(schema, "pattern") !== undefined && at(schema, "plain") !== true)
@@ -142,5 +136,5 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   const placeholder = word(schema, "placeholder");
   const max = at(schema, "maxLength");
   if (typeof max !== "number") throw new Error(`The field ${ask} does not say how long it may be`);
-  return { ask, valid, wrong, lacks, kind: "text", placeholder, max, ...initial };
+  return { ask, valid, wrong, kind: "text", placeholder, max, ...initial };
 }

@@ -98,17 +98,18 @@
     "programs/kept-walk.ts": "breadthFirst: bounded saved-journal exploration with state deduplication and explicit coverage",
     "tools/program-defect.ts": "programDefect: one public failure and its technical Activity record",
     "tools/program-run.ts": "runProgram: every door checks the current declaration before the body and its outside causes afterwards",
-    "surface/bridge/program-result.ts": "programResult: public action words and destination, separate from support diagnostics"
+    "surface/bridge/program-result.ts": "programResult: public action words and destination, separate from support diagnostics",
+    "programs/promise-temporaries.ts": "Workspace-scoped temporary houses, reclaimed after a day only when their owner process is gone"
   },
   "folders": {
     "adapters/secrets": 103,
     "adapters/storage": 181,
     "catalogs": 198,
-    "doors/terminal": 578,
+    "doors/terminal": 579,
     "house": 91,
     "journal": 333,
-    "programs": 1723,
-    "surface": 1803,
+    "programs": 1805,
+    "surface": 1806,
     "surface/bridge": 1387,
     "texts": 213,
     "tools": 1021

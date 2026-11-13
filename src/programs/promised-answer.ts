@@ -4,15 +4,15 @@ import type { Field } from "../surface/contract.ts";
 import type { Router } from "../surface/router.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { type, view } from "./promised-keys.ts";
-import { confirmAnswer, probeWritten } from "./promised-entry.ts";
+import { confirmAnswer, probeWritten, writeAnswer } from "./promised-entry.ts";
 
 /** One answer as a person gives it: written over what the field opened on and confirmed, or chosen by the key of
  * its option. False when the field itself does not take it: what cannot be written cannot be sent. */
-export function answer(router: Router, field: Field, given: string, opened = field.initial ?? ""): boolean {
+export function answer(router: Router, field: Field, given: string, opened = field.initial ?? ""): boolean | "absent" {
   if (field.kind === "text" || field.kind === "secret") {
     Array.from(opened).forEach(() => router.send({ kind: "erase" }));
     probeWritten(router, field, "");
-    type(router, given);
+    writeAnswer(router, field, given);
     probeWritten(router, field, given);
     const canSend = router.screen(view).hints.some(hint => hint.intent === "confirm");
     confirmAnswer(router);
@@ -31,23 +31,35 @@ export function answer(router: Router, field: Field, given: string, opened = fie
     confirmAnswer(router);
     return true;
   }
-  if (field.kind === "pick") {
-    /** The thing is looked for as on any menu: space, then its name; and taken where it shows among what is found. */
-    const name = given === "" ? "" : field.shown(given);
-    if (name !== "") type(router, ` ${name}`);
-    const at = field.found(name).findIndex(option => (option.value ?? option.title) === given);
-    if (at < 0 || field.found(name)[at]?.off) return false;
-    /** What is not looked for is taken by its number: the cursor stands on what the datum already is, not first. */
-    if (name === "" && at < 9) {
-      type(router, String(at + 1));
-      return true;
-    }
-    for (let step = 0; step < at; step++) router.send({ kind: "down" });
-    confirmAnswer(router);
-    return true;
-  }
+  if (field.kind === "pick") return pickAnswer(router, field, given);
   const key = field.options.find(option => option.title === given)?.key;
   ok(key, said.noKey(field.ask, given));
   type(router, key);
   return !field.options.find(option => option.title === given)?.off;
+}
+
+/** Pick only existing references; a missing one has no name to render and no row to take. */
+function pickAnswer(router: Router, field: Field & { kind: "pick" }, given: string): boolean | "absent" {
+  /** The thing is looked for as on any menu: space, then its name; and taken where it shows among what is found. */
+  if (field.valid?.(given) === false) {
+    const listed = field.found("").some(option => (option.value ?? option.title) === given);
+    if (listed) return false;
+    /** A missing reference has no display name. Searching its raw value must not invent a selectable row. */
+    type(router, ` ${given}`);
+    ok(!field.found(given).some(option => (option.value ?? option.title) === given));
+    if (field.found(given).length === 0) confirmAnswer(router);
+    return "absent";
+  }
+  const name = given === "" ? "" : field.shown(given);
+  if (name !== "") type(router, ` ${name}`);
+  const at = field.found(name).findIndex(option => (option.value ?? option.title) === given);
+  if (at < 0 || field.found(name)[at]?.off) return false;
+  /** What is not looked for is taken by its number: the cursor stands on what the datum already is, not first. */
+  if (name === "" && at < 9) {
+    type(router, String(at + 1));
+    return true;
+  }
+  for (let step = 0; step < at; step++) router.send({ kind: "down" });
+  confirmAnswer(router);
+  return true;
 }

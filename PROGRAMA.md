@@ -41,7 +41,8 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   una fila, un menú o una acción ofrecida por otra herramienta. El texto abre encendido entero y escribir lo
   reemplaza. Lo vigente se marca «actual»: se apaga si elegirlo terminaría sin cambios. En texto, `enter`
   se ofrece solo cuando cambiaría algo al terminar. Por otras puertas, la base sigue rechazando «sin cambios»
-  antes de correr.
+  antes de correr. `datum` y `today` deben leer la misma fuente: la fila no puede decir «no» mientras la
+  pregunta abre con «sí · actual». Separar el valor editable de las condiciones que explican su disponibilidad.
 - `confirms` pone algo a confirmar. Lo irreversible (`undoable: false`) confirma con «volver» primero.
 - `also` la ofrece además entre las acciones de los objetos de otra herramienta (cobrar, desde una venta).
 - `run` puede ser `async`; solo devuelve `accepted` o `rejected` con una causa literal de `outside`, opcionalmente
@@ -54,6 +55,7 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - Un campo lleva siempre máscara o placeholder y tope. Lo incompleto muestra la parte de la forma que falta en
   texto 3, dentro de la Entrada. Lo completo que `wrong` o `stops` no permite dice su motivo bajo la pregunta, en
   texto 3, sin «Error» y sin `enter`. Enter no hace nada si no se ofrece; una tecla que no entra conserva el campo.
+  Un prefijo numérico como «0», que todavía puede crecer, no agrega «mínimo» ni «mayor a».
   «Error» en coral queda para el resultado de una acción que corrió.
 - Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, respondido => …)`).
 - `holding(campo, (valor, instante) => motivoOIndefinido)` recibe el mismo reloj que `run`, `stops` y `among`.
@@ -87,7 +89,8 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   `thing("Venta", "sales", undefined, undefined, "sin ventas para cobrar")`. Sin ese motivo, vacío o con uno que
   no sirve como dato corto, el programa no compone. `none` sigue nombrando la opción de no elegir ninguna; no
   reemplaza a `empty`. Si la primera pregunta no tiene ninguna respuesta elegible ni una fila disponible para
-  crear, la acción sale apagada en el menú con `empty`. Se vuelve a habilitar cuando aparece algo elegible.
+  crear, la acción sale apagada en el menú con `empty`, incluso si hay cosas pero ninguna se toma.
+  Se vuelve a habilitar cuando aparece algo elegible.
   En una acción ofrecida por otra herramienta se comprueba la primera pregunta que queda después de sus respuestas
   fijas. Un motivo explícito de `offered` o `also.off` tiene prioridad.
 - Una acción dice si se ofrece sabiendo qué momento es (`offered(estado, cosa, instante)`): lo que hoy no se puede
@@ -170,7 +173,11 @@ La persona solo puede terminar en `Listo` o en `Error` por una causa de afuera. 
    Un helper que devuelve `reason: string` pierde la unión literal: devolver el objeto contextualizado por ese tipo,
    o conservar el literal en el helper. `ProgramAct<X, typeof outside>` conserva ese resultado literal; el registro
    conserva una marca opaca para que un spread no pueda sustituir `run` o `outside` por partes sin comprobar.
-   Para cambiar el cuerpo o las causas, declarar la acción con `programAct` otra vez. La casa valida las reglas
+   Para cambiar el cuerpo o las causas, declarar la acción con `programAct` otra vez.
+   Una rama imposible del cuerpo lanza `new OutsideDefect(detalle)`, importado de `tools/outside.ts`: el
+   defecto queda a la vista y la compuerta falla. No devolver un rechazo interno ni un éxito vacío.
+   Si el helper es compartido con un canal, conservar su resultado de dominio y convertir el motivo residual
+   en defecto en el cuerpo de la acción, después de compartir su predicado puro con las reglas previas. La casa valida las reglas
    actuales antes de entrar al cuerpo, incluso si código sin tipos armó el acto a mano.
    No reenviar directamente `context.execute`: sus rechazos previos no son automáticamente fallas de afuera. Compartir la implementación
    de éxito o tratar explícitamente el resultado y clasificar la causa externa. `inconclusive` e `interrupted` no
@@ -186,7 +193,10 @@ La persona solo puede terminar en `Listo` o en `Error` por una causa de afuera. 
 7. **Completar los casos y correr la compuerta.** Cada rechazo interno necesita un estado y una respuesta que una
    persona pueda intentar elegir; el motivo tiene que verse en la fila apagada, en la opción/cosa apagada o bajo
    la pregunta. Si la primera referencia no tiene candidatos, se ve el `empty` del campo. Un id inexistente por
-   otra puerta no reemplaza un caso de una cosa visible no elegible. Una fila que edita un dato no puede prometer
+   otra puerta no reemplaza un caso de una cosa visible no elegible. Conservar ambos en `cases`: la referencia
+   inexistente se rechaza antes de correr con su motivo; por teclas se comprueba que no tenga fila ni aparezca
+   al buscar, sin pedir su nombre ni exigir un motivo en una fila que no existe. No reemplazar el caso por una
+   cosa inventada ni por una prueba manual de una sola puerta. Una fila que edita un dato no puede prometer
    un recorrido que cambie además otro dato fijo: declarar el recorrido completo o casos que se puedan caminar.
    Ninguna pregunta alcanzable puede quedarse sin opciones, incluidas las posteriores. Cerrar esa rama antes de
    ofrecerla, o la acción con `offered`, según lo que ya se sabe. Cada causa externa debe correr y terminar en
@@ -273,3 +283,11 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
 - Un importe que se escribe en otra moneda: la máscara de plata muestra siempre el signo del país («$»), aunque la
   respuesta anterior, o la cosa elegida, diga dólares. Y, en general, un valor sugerido o una forma de campo que
   dependan de una respuesta anterior o del estado (la cantidad que queda por devolver de ESE artículo).
+
+## Las casas temporales de las pruebas
+
+Cada caso elimina su casa al terminar, también si falla al abrir o cerrar. Al empezar la corrida se recuperan las
+casas abandonadas del mismo workspace: el nombre incluye su huella y el proceso dueño; solo se elimina un directorio
+de más de 24 horas si ese proceso ya terminó. No se siguen enlaces ni se borran casas activas, prefijos de otros
+workspaces o carpetas históricas cuyo nombre no permite reconocer al dueño. La misma limpieza se aplica al primer
+caso cuando las garantías se usan fuera del runner de este repositorio.

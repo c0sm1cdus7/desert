@@ -103,7 +103,13 @@ describe("the Entrada", () => {
     try {
       hands.type("1");
       hands.check();
-      expect(JSON.stringify(hands.screen())).toContain("mínimo 02");
+      expect(JSON.stringify(hands.screen())).not.toContain("mínimo 02");
+      expect(hands.screen().body).toMatchObject({ entry: { typed: "01", padding: 1 } });
+      const grid = paint(hands.screen(), { cols: 80, rows: 30 });
+      const row = textOf(grid).findIndex(line => line.includes("› 01"));
+      const col = textOf(grid)[row]?.indexOf("01") ?? -1;
+      expect(grid[row]?.[col]?.tone).toBe("t3");
+      expect(grid[row]?.[col + 1]?.tone).toBe("t1");
       hands.type("9");
       expect(hands.enter()).toBe(true);
       const full = hands.screen();

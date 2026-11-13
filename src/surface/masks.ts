@@ -110,6 +110,7 @@ export const padded = (width: number): Format => ({
   keyboard: "digits",
   empty: "0".repeat(width),
   shown: typed => typed.padStart(width, "0"),
+  padding: typed => Math.max(0, width - typed.length),
   put: (typed, text) => {
     const next = String(Number(typed + text));
     return digits.test(text) && next.length <= width ? next : typed;

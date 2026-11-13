@@ -73,7 +73,8 @@ export function walk<X extends Program>(
   { router, tools }: Seat<X>,
   { aim, kase, answers }: Told<X>,
   row: Choice,
-): boolean {
+): boolean | "absent" {
+  const absent: string[] = [];
   const tool = tools.find(known => known.id === aim.tool.id);
   const act = aim.act.on === "tool" ? tool?.acts[aim.name] : tool?.actsOn?.[aim.name];
   const next = (given: readonly string[]): Field | null => act?.next(given, kase.on ?? aim.tool.id) ?? null;
@@ -87,9 +88,10 @@ export function walk<X extends Program>(
     const taken = field
       ? answer(router, field, given, row.open?.kind === "act" ? row.open.answers[from + offset] : undefined)
       : true;
-    const why = taken ? act?.stops?.(answers.slice(0, from + offset + 1), kase.on ?? aim.tool.id) : undefined;
+    if (taken === "absent") absent.push(given);
+    const why = taken === true ? act?.stops?.(answers.slice(0, from + offset + 1), kase.on ?? aim.tool.id) : undefined;
     if (why !== undefined) stopped.push(why);
-    return taken;
+    return taken === true;
   });
   fitsSmallest(router);
   /** What asks to be confirmed is confirmed as a person does: by the initial of the act's own verb. */
@@ -98,5 +100,5 @@ export function walk<X extends Program>(
   const promised = "refused" in kase.then ? undefined : kase.then.sure;
   if (sure && promised !== undefined) strictEqual(sure.ask, promised, words.notSure(sure.ask));
   if (sure) type(router, aim.act.enter.charAt(0));
-  return said;
+  return absent.length ? "absent" : said;
 }

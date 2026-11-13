@@ -14,12 +14,13 @@ export function drawEntry(grid: Grid, body: Extract<Body, { kind: "thread" }>, l
   const r = grid.length - 4;
   if (body.reference) put(grid, left, r - 1, { text: body.reference, tone: "t3" });
   if (!body.entry) return;
-  const { typed, caret, placeholder, remaining = "", suggested = false } = body.entry;
+  const { typed, caret, placeholder, remaining = "", padding = 0, suggested = false } = body.entry;
   put(grid, left, r, { text: "›", tone: "t2" });
   /** What a key would replace is lit whole; what is being written has the caret where it stands. */
   if (typed) put(grid, left + 2, r, { text: typed, tone: "t1" }, suggested);
   else put(grid, left + 3, r, { text: placeholder, tone: "t3" });
   if (typed && remaining) put(grid, left + 2 + width(typed), r, { text: remaining, tone: "t3" });
+  if (typed && padding && !suggested) put(grid, left + 2, r, { text: typed.slice(0, padding), tone: "t3" });
   const under = Array.from(typed)[caret] ?? Array.from(remaining)[0] ?? " ";
   if (!suggested) put(grid, left + 2 + caret, r, { text: under, tone: caret < typed.length ? "t1" : "t3" }, true);
 }

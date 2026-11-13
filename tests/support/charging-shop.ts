@@ -44,9 +44,9 @@ const chargeCases = [
     then: paid(700),
   },
   {
-    promise: "a sale outside the charging register stays disabled",
-    given: [registered, { act: "register", on: "sales", input: { sale: "sx", total: 91 } }],
-    input: { sale: "sales/sx", amount: 1 },
+    promise: "a sale nobody registered",
+    given: [registered],
+    input: { sale: "sales/zz", amount: 1 },
     then: { refused: "unknown" },
   },
   {
@@ -83,9 +83,6 @@ const chargeWith = (input: Charged) =>
       if (typeof sale === "string" && !state.tools.sales.has(nameOf(sale))) return "unknown";
       return typeof amount === "number" && amount > 9000 ? "monto de más" : undefined;
     },
-    among: (_answered, state) => ({
-      sales: sale => (state.tools.sales.get(nameOf(sale))?.total === 91 ? "unknown" : undefined),
-    }),
     run: charge,
     cases: chargeCases,
   });

@@ -946,15 +946,19 @@
     },
     {
       "id": 125,
-      "rule": "Una pregunta que cambia un dato dice al lado de su nombre lo que el dato vale hoy; y donde es lo único que la acción pregunta, la opción que ya está elegida queda apagada, con «actual»",
-      "from": "11/11 · Franco: «si estoy cambiando algo, tengo que ver el valor actual… lo seleccionado se deshabilita. Es un comportamiento del componente»",
-      "guarantee": "surface",
+      "rule": "Cada pregunta de una edición dice el valor vigente; la respuesta que termina la acción dejando todo igual se apaga con actual o no ofrece enter, también en acciones de varias preguntas. El cursor nunca descansa en una opción apagada.",
+      "from": "11/11 · Franco: «si estoy cambiando algo, tengo que ver el valor actual… lo seleccionado se deshabilita. Es un comportamiento del componente»; 12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
       "evidence": [
         "src/surface/screen.ts",
         "src/surface/step.ts",
         "src/surface/walk.ts",
         "src/programs/promised-menus.spec.ts",
-        "src/doors/terminal/house-screens.spec.ts"
+        "src/doors/terminal/house-screens.spec.ts",
+        "src/surface/current-field.ts",
+        "src/programs/promised-current.ts",
+        "src/programs/promised-current.spec.ts",
+        "src/programs/promised-current-shapes.spec.ts"
       ]
     },
     {
@@ -1376,7 +1380,7 @@
     },
     {
       "id": 170,
-      "rule": "Lo que está a medias muestra la parte de su forma que falta en la Entrada, en texto 3; no agrega una línea de error ni ofrece enter.",
+      "rule": "Lo que está a medias muestra la parte de su forma que falta en la Entrada, en texto 3; no agrega una línea de error ni ofrece enter. Un prefijo numérico que todavía puede crecer, incluido 0, no muestra mínimo ni mayor a; los casos prueban los prefijos antes de completar su respuesta.",
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
@@ -1385,7 +1389,12 @@
         "src/surface/walk.ts",
         "src/programs/promised-entry.ts",
         "src/programs/promised-entry.spec.ts",
-        "src/surface/entry-status.spec.ts"
+        "src/surface/entry-status.spec.ts",
+        "src/surface/bridge/asking-parts.ts",
+        "src/surface/bridge/asking-numbers.spec.ts",
+        "tests/support/counting-shop.ts",
+        "src/surface/masks.ts",
+        "src/doors/terminal/entry.ts"
       ]
     },
     {
@@ -1496,10 +1505,17 @@
     },
     {
       "id": 180,
-      "rule": "Cada prueba derivada elimina la casa temporal que creó, termine bien o falle al abrir, reabrir, probar o cerrar. Las carpetas históricas no se borran como parte de la prueba.",
+      "rule": "Cada prueba derivada elimina su casa temporal termine bien o falle. Al empezar la corrida se recuperan las de procesos cortados: solo directorios propios del workspace, de más de 24 horas y cuyo proceso terminó; nunca enlaces, casas activas ni carpetas históricas sin dueño identificable.",
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "spec",
-      "evidence": ["src/programs/promised-stage.ts", "src/programs/promised-stage.spec.ts"]
+      "evidence": [
+        "src/programs/promised-stage.ts",
+        "src/programs/promised-stage.spec.ts",
+        "src/programs/promise-temporaries.ts",
+        "src/programs/promise-temporaries.spec.ts",
+        "tests/support/promise-cleanup.ts",
+        "vitest.config.ts"
+      ]
     },
     {
       "id": 181,
@@ -1555,6 +1571,19 @@
         "src/programs/promised-stage.ts",
         "src/programs/promised-time.spec.ts",
         "tests/support/dated-shop.ts"
+      ]
+    },
+    {
+      "id": 185,
+      "rule": "Un caso con referencia inexistente conserva su entrada original: por otras puertas se rechaza con su motivo antes de correr; por teclas no se elige ni se pide su nombre. La ausencia comprobada en la lista y en la búsqueda reemplaza el motivo visible solo en ese recorrido, sin omitir el rechazo derivado.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/promised-answer.ts",
+        "src/programs/promised-route.ts",
+        "src/programs/promised-result.ts",
+        "src/programs/promised-missing.spec.ts",
+        "tests/support/charging-shop.ts"
       ]
     }
   ]
