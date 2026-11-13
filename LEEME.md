@@ -5,7 +5,7 @@ Base compartida entre Kenon y Capibara, extraída de Kenon (la parte que no sabe
 Reglas:
 - No entra nada hasta que dos programas lo usan.
 - Las rutas son las mismas que en Kenon, así traer un cambio es comparar archivo contra archivo.
-- Kenon se sube a DESERT cuando se porte a Rust.
+- Kenon se sube a DESERT cuando se retome, en TypeScript (13/11/2026: el pase a Rust salió del plan; un solo lenguaje para la base y sus programas).
 
 ## Qué hay hoy (primer paso)
 - `src/surface/`: el contrato de superficie (Screen que se dibuja, Intent que vuelve) y su lógica de sesión.
@@ -40,6 +40,14 @@ Reglas:
 - Una herramienta puede vivir dentro de otra (`inside`).
 - Un valor sugerido se reemplaza con la primera tecla; lo que no entra en pantalla se alcanza con las flechas.
 - Cómo se arma un programa sobre esta base: `PROGRAMA.md`.
+
+## Séptimo paso (13/11/2026)
+- Las teclas se leen como llegan: una flecha o un carácter que vienen partidos en dos trozos siguen siendo esa flecha
+  y ese carácter, y un escape solo es la tecla escape recién cuando no llegó nada más (`src/doors/terminal/input.ts`).
+- Pegar es escribir un texto entero (`paste`), no apretar teclas: se escribe donde se está escribiendo, con sus saltos
+  de línea como espacios, y en cualquier otro lado no hace nada. Nunca confirma ni es un atajo (`src/surface/step.ts`).
+- Un programa se comprueba por una terminal de verdad, con su propia entrada y las teclas como bytes
+  (`realTerminal`, en `#desert/testing.ts`). Necesita `python3`, que abre la pseudo-terminal.
 
 ## Qué falta
 - La puerta para dispositivos que no corren junto a la casa: viaja el estado, paginado (ver `COSTURAS.md`).

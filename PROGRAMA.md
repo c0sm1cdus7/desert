@@ -261,6 +261,18 @@ La persona solo puede terminar en `Listo` o en `Error` por una causa de afuera. 
 El programa de pruebas debe usar puertos deterministas de prueba. La base ejecuta sus acciones tal como se compusieron:
 no cambia un proveedor real por uno simulado ni promete que `reach: "world"` impida salir a la red.
 
+## Pegar y las teclas que llegan partidas (13/11)
+
+- Una superficie manda `paste` con el texto entero cuando la persona pega: la base lo escribe donde se está
+  escribiendo (la respuesta de una pregunta de texto, lo que se busca, un mensaje), con cada salto de línea o
+  tabulación como un espacio y sin los de las puntas. En un menú, en una pregunta que se contesta eligiendo o en una
+  confirmación no hace nada: nunca confirma, nunca elige y nunca es un atajo. Un dibujante nuevo traduce su pegado a
+  `paste`, nunca a una ráfaga de `type`.
+- La terminal lee las teclas como llegan: una flecha o un carácter partidos entre dos trozos son una sola tecla; un
+  escape solo es la tecla escape cuando pasaron 50 ms sin que llegue nada más.
+- Las comprobaciones derivadas mandan intenciones al router: no ven lo que pasa antes, en la lectura del teclado. Lo
+  que depende de la entrada de verdad se comprueba con `realTerminal`, que corre el programa por su propia entrada.
+
 ## Los registros que se guardan
 - Un programa puede guardar registros que organizaciones reales escribieron con él en una carpeta que nombra en
   `package.json`: `"desert": { "program": …, "journals": "tests/journals" }`. Cada uno es una copia de su
@@ -381,6 +393,7 @@ al migrar el import de `currentCloses` a esta entrada.
 | Garantías | `programChecks`, `promisedChecks`, `walkedChecks`, `currentCloses`, `quietEntry`, `quietScreen` |
 | Casa y casos | `staged`, `given`, `perform`, `cast`, `wroteSince`, `localPorts`, `startHouse` |
 | Recorrer | `seated`, `goTo`, `actRow`, `openRows`, `type`, `view`, `fitsSmallest`, `keysTo` |
+| Por una terminal de verdad | `realTerminal` (el programa corriendo con su propia entrada en una pseudo-terminal: `press` manda bytes, `until` espera un texto en pantalla, `screen` la lee), `screenOf`, `RealTerminal` |
 | Superficie | `asking`, `questionWords`, `offeredOn`, `houseRouter`, `houseTools`, `startRouter`, `begin`, `fieldOf`, `walkBody`, `walking` |
 | Estado y hechos | `createHouse`, `identityView`, `houseStep`, `Bus`, `effect`, `vocabulary`, `houseCatalog`, `startState`, `startTools`, `toolsStep` |
 | Declarar datos y comprobar causas | `object`, `text`, `ids`, `caseInstant`, `programAct`, `OutsideDefect`, `outsideCause`, `MissingView`, `toolTexts`, `genericTexts` |

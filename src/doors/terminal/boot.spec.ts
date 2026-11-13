@@ -1,0 +1,85 @@
+// The terminal on a tty, fed the way a tty feeds it: bytes in chunks that cut keys and characters anywhere.
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Intent, Screen } from "../../surface/contract.ts";
+import type { Router } from "../../surface/router.ts";
+import { keyWaits, startTerminal } from "./boot.ts";
+
+const screen: Screen = {
+  title: "Prueba",
+  state: "connected",
+  clock: "10:00",
+  body: { kind: "list", stacks: [] },
+  hints: [],
+  menu: false,
+};
+/** A tty, a keyboard and a router that only remember what they were given. */
+function seated() {
+  const sent: Intent[] = [];
+  const written: string[] = [];
+  let feed: (chunk: Buffer) => void = () => undefined;
+  const router: Router = {
+    screen: () => screen,
+    send: intent => {
+      sent.push(intent);
+      return intent.kind !== "quit";
+    },
+    watch: () => () => undefined,
+    idle: () => Promise.resolve(),
+    stop: () => undefined,
+  };
+  const tty = { columns: 80, rows: 24, write: (bytes: string) => written.push(bytes), on: () => undefined };
+  const keyboard = {
+    setRawMode: () => undefined,
+    on: (_event: "data", listener: (chunk: Buffer) => void) => void (feed = listener),
+    resume: () => undefined,
+    pause: () => undefined,
+  };
+  const over = startTerminal(tty, keyboard, router);
+  return { sent, written, over, press: (bytes: string | Buffer) => feed(Buffer.from(bytes)) };
+}
+
+describe("the terminal on a tty", () => {
+  beforeEach(() => void vi.useFakeTimers());
+  afterEach(() => void vi.useRealTimers());
+  it("asks the terminal to say what is pasted, and stops asking when it leaves", async () => {
+    const { written, over, press } = seated();
+    expect(written[0]).toContain("\x1b[?2004h");
+    press("\x03");
+    await over;
+    expect(written.at(-1)).toContain("\x1b[?2004l");
+  });
+  it("moves once with an arrow that comes in two chunks, and cancels nothing", () => {
+    const { sent, press } = seated();
+    press("\x1b");
+    press("[B");
+    vi.advanceTimersByTime(keyWaits.key);
+    expect(sent).toEqual([{ kind: "down" }]);
+  });
+  it("cancels with an escape only once it stayed alone", () => {
+    const { sent, press } = seated();
+    press("\x1b");
+    vi.advanceTimersByTime(keyWaits.key - 1);
+    expect(sent).toEqual([]);
+    vi.advanceTimersByTime(1);
+    expect(sent).toEqual([{ kind: "cancel" }]);
+  });
+  it("types one character for one whose bytes come in two chunks", () => {
+    const { sent, press } = seated();
+    const bytes = Buffer.from("ñ");
+    press(bytes.subarray(0, 1));
+    press(bytes.subarray(1));
+    expect(sent).toEqual([{ kind: "type", text: "ñ" }]);
+  });
+  it("takes what is pasted as one text: its line break confirms nothing", () => {
+    const { sent, press } = seated();
+    press("\x1b[200~uno\r\ndos\x1b[201~");
+    expect(sent).toEqual([{ kind: "paste", text: "uno\r\ndos" }]);
+  });
+  it("ends a paste whose end never came, with what came, and reads keys again", () => {
+    const { sent, press } = seated();
+    press("\x1b[200~uno");
+    vi.advanceTimersByTime(keyWaits.paste);
+    press("\r");
+    expect(sent).toEqual([{ kind: "paste", text: "uno" }, { kind: "confirm" }]);
+  });
+});

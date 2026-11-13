@@ -14,7 +14,6 @@ En Kenon el núcleo está cosido a sus herramientas y a su mente en dos lugares.
 - Un programa no puede usar un nombre que ya usa la casa: no compila, y si llega sin tipos, falla al arrancar.
 - La capa no se guarda en la fila: la dice el nombre del hecho. Así, cuando un hecho pase de un programa a
   DESERT (porque ya lo usan dos), los registros viejos se siguen leyendo.
-- En Rust es `enum Evento<P> { Casa(EventoCasa), Programa(P) }`.
 
 Qué quedó fuera de `houseCatalog` respecto de Kenon (es de su mente o de sus herramientas): curl, journeys,
 plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, marcas, escena, memoria, percepción.
@@ -32,7 +31,6 @@ plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, mar
 - Ejecutar un acto (`execute`) no conoce journeys ni mente. El programa puede vetar un acto por el puerto `refuse`
   y ofrecer actos propios fuera de las herramientas por `own`; atender y dejar de atender los ofrece toda casa.
 - Las llaves (`KeyStore`) y el borrado de secretos (`secrets`) son puertos del motor.
-- En Rust: `trait Programa { type Hecho; type Estado; }`.
 
 Qué cambió respecto de Kenon en este paso:
 - `acts` ya no es la lista de todos los actos desde el principio: son los actos abiertos (sin resultado todavía).
@@ -66,7 +64,6 @@ interacción con la casa sea la misma en todas las superficies.
   programa: las herramientas con sus palabras, la barra (conexión y hora) y los cambios de la casa.
 - Un renderer hace dos cosas: dibuja `router.screen()` y traduce lo suyo a `router.send(intención)`.
   La terminal (`doors/terminal/boot.ts`) ya es eso. Web, iPhone y Android usan el mismo router.
-- En Rust el router es parte de lo que se comparte entre plataformas.
 
 ## 5. Las reglas de la terminal, garantizadas (HECHO, 11/11)
 

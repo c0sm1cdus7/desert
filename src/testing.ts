@@ -23,6 +23,7 @@ export {
 } from "./catalogs/fields.ts";
 export type { ViewLimits } from "./catalogs/levers.ts";
 export { startTerminal } from "./doors/terminal/boot.ts";
+export { realTerminal, screenOf, type RealTerminal } from "./programs/real-terminal.ts";
 export { ids } from "./catalogs/ids.ts";
 export { caseInstant } from "./catalogs/time.ts";
 export { createHouse, identityView, houseStep, type House as HouseState } from "./house/house.ts";

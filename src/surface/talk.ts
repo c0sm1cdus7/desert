@@ -69,6 +69,11 @@ const asking = (place: Talk, talk: Conversation) => {
   const question = talk.pending?.();
   return question && question.id !== place.later && !place.inPanel ? question : null;
 };
+/** Whether what is typed is being written: not while reading the panel; with a question, only on its own words. */
+export function writesMessage(place: Talk, talk: Conversation): boolean {
+  const question = asking(place, talk);
+  return question ? question.options[place.option] === undefined : !place.inPanel;
+}
 export function talkBody(place: Talk, talk: Conversation): Body {
   const stop = stopsOf(talk.said())[place.at];
   const question = asking(place, talk);

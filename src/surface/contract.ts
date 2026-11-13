@@ -17,7 +17,9 @@ export type Intent =
   | {
       readonly kind: "up" | "down" | "left" | "right" | "confirm" | "cancel" | "erase" | "menu" | "quit" | "switch";
     }
-  | { readonly kind: "type"; readonly text: string };
+  | { readonly kind: "type"; readonly text: string }
+  /** A whole text brought at once: written where something is being written, and never a key. */
+  | { readonly kind: "paste"; readonly text: string };
 export interface Row {
   readonly key?: string;
   readonly title: string;

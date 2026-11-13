@@ -3,9 +3,9 @@ import type { Intent } from "./contract.ts";
 import type { Result, Tool } from "./shown-tool.ts";
 import { findable } from "./finding.ts";
 import { choices, cursorOf, goneOf } from "./lists.ts";
-import { begin, toolOf, start } from "./screen.ts";
+import { begin, fieldOf, toolOf, start } from "./screen.ts";
 import type { Picture, Running, Session, Stepped } from "./screen.ts";
-import { actedOn, conversationOf, sent, talkStep } from "./talk.ts";
+import { actedOn, conversationOf, sent, talkStep, writesMessage } from "./talk.ts";
 import { replace, up, walking } from "./walking.ts";
 import { movedList } from "./reading.ts";
 import { must } from "./window.ts";
@@ -31,8 +31,29 @@ function seeking(session: Session, place: Picture & { find: string }, tools: Too
   const chosen = key.kind === "confirm" ? list[cursor]?.open : undefined;
   return chosen ? [...replace(session, { ...menu, at: 0 }), chosen] : session;
 }
+/** Where something is being written: the answer of a question that takes a text, what is looked for, or a message. */
+function writing(place: Session[number], tools: Tools): boolean {
+  if (place.kind === "talk") return writesMessage(place, conversationOf(toolOf(tools, place.tool), place.target));
+  if (place.kind !== "act") return place.find !== undefined;
+  const field = place.phase === "asking" ? fieldOf(tools, place) : undefined;
+  return field?.kind === "text" || field?.kind === "secret" || (field?.kind === "pick" && place.finding === true);
+}
+/** What is pasted is written where something is being written, one character after another, with each line break
+ * or tab inside it as a space and none at its ends; anywhere else it does nothing. It never confirms, never chooses,
+ * and is never a shortcut. */
+function pasted(session: Session, text: string, tools: Tools, now: number): Stepped {
+  const chars = Array.from(text.trim().replace(/[\r\n\t]+/gu, " ")).filter(char => !/\p{Cc}/u.test(char));
+  return chars.reduce<Stepped>(
+    (stepped, char) => {
+      const there = must(stepped.session.at(-1));
+      return writing(there, tools) ? step(stepped.session, { kind: "type", text: char }, tools, now) : stepped;
+    },
+    { session },
+  );
+}
 export function step(session: Session, key: Intent, tools: readonly Tool[], now: number): Stepped {
   if (key.kind === "quit") return { session, quit: true };
+  if (key.kind === "paste") return pasted(session, key.text, tools, now);
   const place = must(session.at(-1));
   if (place.kind === "act") return walking(session, place, tools, key, now);
   if (key.kind === "menu") return { session: start };

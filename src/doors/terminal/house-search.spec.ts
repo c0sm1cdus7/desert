@@ -61,6 +61,20 @@ describe("the terminal, looking for things", () => {
     expect((await press(` té${escape}`)).some(line => line === "Buscar")).toBe(false);
   });
 
+  it("takes what is pasted for what is looked for: it narrows, and its line break opens nothing", async () => {
+    const { rig, press } = open();
+    rig.attend("ana", "sales");
+    for (const [sale, total] of [
+      ["café molido", 10],
+      ["té", 30],
+    ] as const)
+      rig.act("ana", "register", { sale, total }, "sales", rig.state().through);
+    await press("v ");
+    const narrowed = await press("\x1b[200~café\r\n\x1b[201~");
+    expect(narrowed).toEqual(expect.arrayContaining(["Buscar", "› café", "café molido | $ 10"]));
+    expect(narrowed.some(line => line.includes("té |"))).toBe(false);
+  });
+
   it("looks into every tool a person holds from the Menu, each under its name", async () => {
     const { rig, press } = open();
     rig.attend("ana", "sales");
