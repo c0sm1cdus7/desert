@@ -1098,10 +1098,14 @@
     },
     {
       "id": 140,
-      "rule": "Una confirmación dice, debajo de lo que se confirma, para qué es la acción; y que no se puede deshacer, cuando no se puede",
-      "from": "11/11 · ronda 1 de escépticos, pantallas B14",
-      "guarantee": "surface",
-      "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/walk.ts"]
+      "rule": "La confirmación de lo que no se puede deshacer dice, debajo de lo que se confirma, para qué es la acción y que no se puede deshacer. El propósito es texto fijo: vale en cualquier estado, y lo que depende del estado lo dice lo que la acción pone a confirmar. La de lo que sí se puede deshacer no agrega nada debajo de lo que la acción pone a confirmar",
+      "from": "11/11 · ronda 1 de escépticos, pantallas B14; 13/11 · auditoría A12: la venta de mostrador decía «sin emitir» y debajo «facturada en el acto»",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/bridge/actions/asked-act.ts",
+        "src/surface/walk.ts",
+        "src/programs/promised-sure.spec.ts"
+      ]
     },
     {
       "id": 141,
@@ -1224,7 +1228,7 @@
       "rule": "Una acción que no pregunta nada se confirma diciendo para qué es (y que no se deshace, si no se deshace): lo que se hace y a qué cosa ya lo dice la barra, y no se repite",
       "from": "12/11 · obra de Capibara: «Deshacer entrega · Envío 1» se leía dos veces, en la barra y en la confirmación",
       "guarantee": "spec",
-      "evidence": ["src/surface/bridge/program-acts.ts", "src/programs/promised-sure.spec.ts"]
+      "evidence": ["src/surface/bridge/actions/asked-act.ts", "src/programs/promised-sure.spec.ts"]
     },
     {
       "id": 154,

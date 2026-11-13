@@ -22,8 +22,8 @@ function confirmation<X extends Program>(ports: SurfacePorts<X>, act: ProgramAct
     options: [{ title: act.enter, key: act.enter.charAt(0) }],
     ...(act.undoable ? { reversible: true } : {}),
   };
-  /** Under what is confirmed, what the act is for; and that it cannot be undone, when it cannot. */
-  const note = act.undoable ? act.purpose : `${act.purpose} · ${generic.irreversible}`;
+  /** Under what an act that cannot be undone puts to be confirmed: what it is for, and that it cannot be undone. */
+  const note = `${act.purpose} · ${generic.irreversible}`;
   return (answers: readonly string[], target?: string): Field | null => {
     const taken = ask.taken(answers);
     if (answers.length > taken) return null;
@@ -34,8 +34,8 @@ function confirmation<X extends Program>(ports: SurfacePorts<X>, act: ProgramAct
       target ?? tool,
       ports.now(),
     );
-    /** What the act itself puts to be confirmed already says what it will do: only that it cannot be undone is
-     * added. With nothing asked, the person is told what the act is for. */
+    /** The purpose is fixed text: it holds whatever the state is, and what depends on the state is said by what
+     * the act puts to be confirmed. An act that can be undone adds nothing under it. */
     const warned = act.undoable ? {} : { note };
     if (summary !== undefined) return { ask: summary, kind: "confirm", ...confirm, ...warned };
     /** With nothing asked, the bar already says what is done and to what: what is confirmed is what it is for. */
