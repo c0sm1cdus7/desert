@@ -1,7 +1,7 @@
 // The keys of a terminal as they really come: cut between chunks, pasted, and with keys this surface has no word for.
 import { describe, expect, it } from "vitest";
 import type { Intent } from "../../surface/contract.ts";
-import { keyReader, keysOf } from "./input.ts";
+import { keyReader, keysOf, pasteLimit } from "./input.ts";
 
 const arrows = { "\x1b[A": "up", "\x1b[B": "down", "\x1b[C": "right", "\x1b[D": "left" } as const;
 const application = { "\x1bOA": "up", "\x1bOB": "down", "\x1bOC": "right", "\x1bOD": "left" } as const;
@@ -29,6 +29,16 @@ describe("the keys of a terminal", () => {
     expect(keys.waiting()).toBe("key");
     expect(keys.settle()).toEqual([{ kind: "cancel" }]);
     expect(keys.waiting()).toBeUndefined();
+  });
+  it("reads what comes after an escape taken for the escape key as keys of its own: the criterion is time", () => {
+    const keys = keyReader();
+    expect([...keys.read("\x1b"), ...keys.settle(), ...keys.read("[A")]).toEqual([{ kind: "cancel" }, ...typed("[A")]);
+  });
+  it("takes for the start of a paste only what the wait cut from one: the same bytes, later, are typed", () => {
+    const keys = keyReader();
+    expect([...keys.read("\x1b"), ...keys.settle()]).toEqual([{ kind: "cancel" }]);
+    expect(keys.read("[200~c\r\x1b[201~")).toEqual([{ kind: "paste", text: "c\r" }]);
+    expect(keys.read("[200~")).toEqual(typed("[200~"));
   });
   it("reads two escapes as two", () => {
     expect(read(["\x1b\x1b"])).toEqual([{ kind: "cancel" }, { kind: "cancel" }]);
@@ -65,13 +75,39 @@ describe("what is pasted in a terminal", () => {
   it("lets the keys before and after it be keys", () => {
     expect(keysOf(`a${pasted}\r`)).toEqual([...typed("a"), { kind: "paste", text }, { kind: "confirm" }]);
   });
-  it("waits for its end, and is over, with what came, when the end never comes", () => {
+  it("goes on until its end comes, however late: what comes meanwhile is its text, never a key", () => {
     const keys = keyReader();
-    expect(keys.read("\x1b[200~uno\r")).toEqual([]);
+    expect(keys.read("\x1b[200~IGNORADO")).toEqual([]);
     expect(keys.waiting()).toBe("paste");
-    expect(keys.settle()).toEqual([{ kind: "paste", text: "uno\r" }]);
+    expect(keys.settle()).toEqual([]);
     expect(keys.waiting()).toBeUndefined();
+    expect(keys.read("c\r")).toEqual([]);
+    expect(keys.settle()).toEqual([]);
+    expect(keys.read("\x1b[201~")).toEqual([{ kind: "paste", text: "IGNORADOc\r" }]);
     expect(keys.read("\r")).toEqual([{ kind: "confirm" }]);
+  });
+  it("is that text wherever the wait cuts it; cut after its first byte, that escape was the escape key", () => {
+    for (const [first = "", rest = ""] of cuts(pasted)) {
+      const keys = keyReader();
+      const read = [...keys.read(first), ...keys.settle(), ...keys.read(rest)];
+      expect(read).toEqual(
+        first === "\x1b" ? [{ kind: "cancel" }, { kind: "paste", text }] : [{ kind: "paste", text }],
+      );
+    }
+  });
+  it("lets the person leave one that never ends, once it was given its time: before that, ctrl c in it is text", () => {
+    const keys = keyReader();
+    expect(keys.read("\x1b[200~uno\x03")).toEqual([]);
+    expect(keys.settle()).toEqual([]);
+    expect(keys.read("x\r\x1b")).toEqual([]);
+    expect(keys.read("\x03")).toEqual([{ kind: "quit" }]);
+  });
+  it("is not there, in a text that is whole, when its end is not in it", () => {
+    expect(keysOf("a\x1b[200~uno\r")).toEqual(typed("a"));
+  });
+  it("keeps no more of it than its limit", () => {
+    const [kept] = keysOf(`\x1b[200~${"x".repeat(pasteLimit + 5)}\x1b[201~`);
+    expect(kept?.kind === "paste" && kept.text.length).toBe(pasteLimit);
   });
   it("keeps what looks like a key inside it as text", () => {
     expect(keysOf("\x1b[200~a\x1b[Ab\x03\x1b[201~")).toEqual([{ kind: "paste", text: "a\x1b[Ab\x03" }]);

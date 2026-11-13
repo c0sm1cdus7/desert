@@ -268,8 +268,18 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   tabulación como un espacio y sin los de las puntas. En un menú, en una pregunta que se contesta eligiendo o en una
   confirmación no hace nada: nunca confirma, nunca elige y nunca es un atajo. Un dibujante nuevo traduce su pegado a
   `paste`, nunca a una ráfaga de `type`.
-- La terminal lee las teclas como llegan: una flecha o un carácter partidos entre dos trozos son una sola tecla; un
-  escape solo es la tecla escape cuando pasaron 50 ms sin que llegue nada más.
+- La terminal lee las teclas como llegan: una flecha o un carácter partidos entre dos trozos son una sola tecla.
+- **El criterio de la tecla escape es de tiempo.** Un escape que queda solo 50 ms es la tecla escape, y lo que llega
+  después se lee como teclas propias: una flecha cuyo resto tarda más que eso es un escape y dos letras. En una
+  terminal que no dice qué tecla fue no hay otra forma de distinguirlos. Una espera que se cumplió mientras el
+  programa estaba ocupado no cuenta como silencio: antes de dar el escape por solo se lee lo que ya había llegado.
+- **Lo que la terminal marca como pegado es texto, tarde lo que tarde.** Nada de lo que llega entre la marca de
+  comienzo y la de cierre es una tecla, aunque el pegado se frene en el medio. Si el cierre no llegó en un segundo se
+  lo sigue esperando, y desde entonces la única tecla que se atiende es ctrl c (salir): un pegado que no termina
+  nunca no escribe nada. Un comienzo de pegado que la espera cortó en dos (también justo después de su escape, que
+  ya contó como tecla escape) sigue siendo un comienzo de pegado. De un pegado se guardan hasta 100.000 caracteres.
+- Sin demostrar: una terminal que no marca lo pegado (ahí un pegado llega como teclas y no hay cómo saberlo), y un
+  comienzo de pegado cortado dos veces por esperas largas.
 - Las comprobaciones derivadas mandan intenciones al router: no ven lo que pasa antes, en la lectura del teclado. Lo
   que depende de la entrada de verdad se comprueba con `realTerminal`, que corre el programa por su propia entrada.
 

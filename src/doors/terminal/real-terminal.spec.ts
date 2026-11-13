@@ -14,14 +14,24 @@ afterEach(async () => {
     rmSync(home, { recursive: true, force: true });
   }
 });
-/** The shop, opened as a person opens it, once its Menu is on the screen. */
-async function seated(): Promise<RealTerminal> {
-  const home = mkdtempSync(join(tmpdir(), "desert-real-"));
+/** The shop, opened as a person opens it, once its Menu is on the screen: a new one, or the one of this home. */
+async function seated(home = mkdtempSync(join(tmpdir(), "desert-real-"))): Promise<RealTerminal> {
   const term = realTerminal([process.execPath, shop, home]);
   open.push({ term, home });
   await term.until("Menú");
   return term;
 }
+/** The last question of registering a sale: there, enter registers. */
+async function atTheTotal(term: RealTerminal): Promise<void> {
+  term.press("v");
+  await term.until("Registradas");
+  term.press("r");
+  await term.until("Nombre de la venta");
+  term.press("café\r");
+  await term.until("Total");
+}
+/** Longer than a paste is given to end. */
+const stall = 1300;
 const paste = (text: string): string => `\x1b[200~${text}\x1b[201~`;
 /** Sends one key in two pieces, as a slow line cuts it. */
 async function inTwo(term: RealTerminal, first: string, rest: string): Promise<void> {
@@ -76,6 +86,67 @@ describe("the test shop on a real terminal", () => {
     await term.rest(200);
     expect(term.screen()[0]).toContain("Registrar");
     expect(term.screen().some(line => line.includes("Nombre de la venta"))).toBe(true);
+  });
+  it("registers nothing with a paste that stops for longer than its wait: its rest is still its text", async () => {
+    const home = mkdtempSync(join(tmpdir(), "desert-real-"));
+    const term = await seated(home);
+    await atTheTotal(term);
+    term.press("\x1b[200~15");
+    await term.rest(stall);
+    term.press("00\r\x1b[201~");
+    const written = await term.until("› $ 15,00");
+    expect(written.at(-1)).toContain("enter registrar");
+    await term.close();
+    const again = await seated(home);
+    again.press("v");
+    await again.until("Sin ventas.");
+  });
+  it("hears no key in a paste that never ends, and leaves with ctrl c", async () => {
+    const term = await seated();
+    await atTheTotal(term);
+    term.press("\x1b[200~15");
+    await term.rest(stall);
+    term.press("00\r");
+    await term.rest(200);
+    /** Nothing of it was written or registered: the question is as it was. */
+    expect(term.screen().some(line => line.includes("$ 0,00"))).toBe(true);
+    expect(term.screen().some(line => line.includes("Registrada"))).toBe(false);
+    term.press("\x03");
+    await term.rest(300);
+    expect(term.written().endsWith("\x1b[?1049l")).toBe(true);
+  });
+  it("ends a paste where its end comes, though a stall cut that end in two, and reads keys again", async () => {
+    const term = await seated();
+    await atTheTotal(term);
+    term.press("\x1b[200~1500\x1b[20");
+    await term.rest(stall);
+    term.press("1~");
+    await term.rest(200);
+    /** The rest of its end was not typed after it: the total is what was pasted. */
+    const written = await term.until("› $ 15,00");
+    expect(written.at(-1)).toContain("enter registrar");
+    term.press("\r");
+    await term.until("Registrada");
+  });
+  it("pastes what follows the start of a paste that a stall cut after its escape: nothing opens", async () => {
+    const term = await seated();
+    term.press("v");
+    await term.until("Registradas");
+    term.press("\x1b");
+    await term.rest(120);
+    term.press("[200~r\r\x1b[201~");
+    await term.until("Herramientas");
+    await term.rest(200);
+    expect(term.screen()[0]).toContain("Menú");
+  });
+  it("takes an escape left alone past its wait for the escape key: what follows is keys of its own", async () => {
+    const term = await seated();
+    term.press("\x1b");
+    await term.rest(120);
+    term.press("[B");
+    term.press("\r");
+    await term.until("Registradas");
+    expect(term.screen()[0]).toContain("Ventas");
   });
   it("goes back with an escape alone", async () => {
     const term = await seated();

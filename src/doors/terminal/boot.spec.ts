@@ -61,6 +61,7 @@ describe("the terminal on a tty", () => {
     vi.advanceTimersByTime(keyWaits.key - 1);
     expect(sent).toEqual([]);
     vi.advanceTimersByTime(1);
+    vi.runAllTimers();
     expect(sent).toEqual([{ kind: "cancel" }]);
   });
   it("types one character for one whose bytes come in two chunks", () => {
@@ -75,11 +76,34 @@ describe("the terminal on a tty", () => {
     press("\x1b[200~uno\r\ndos\x1b[201~");
     expect(sent).toEqual([{ kind: "paste", text: "uno\r\ndos" }]);
   });
-  it("ends a paste whose end never came, with what came, and reads keys again", () => {
+  it("reads the rest of a slow paste as its text, however late it comes: nothing in it is a key", () => {
     const { sent, press } = seated();
     press("\x1b[200~uno");
-    vi.advanceTimersByTime(keyWaits.paste);
+    vi.advanceTimersByTime(keyWaits.paste * 3);
+    vi.runAllTimers();
+    press("c\r\x1b[201~");
+    expect(sent).toEqual([{ kind: "paste", text: "unoc\r" }]);
     press("\r");
-    expect(sent).toEqual([{ kind: "paste", text: "uno" }, { kind: "confirm" }]);
+    expect(sent.at(-1)).toEqual({ kind: "confirm" });
+  });
+  it("leaves with ctrl c from a paste whose end never comes, and hears no other key in it", async () => {
+    const { sent, over, press } = seated();
+    press("\x1b[200~uno");
+    vi.advanceTimersByTime(keyWaits.paste);
+    vi.runAllTimers();
+    press("c\r");
+    expect(sent).toEqual([]);
+    press("\x03");
+    await over;
+    expect(sent).toEqual([{ kind: "quit" }]);
+  });
+  it("takes no escape for the escape key when its rest had arrived while the program was busy", () => {
+    const { sent, press } = seated();
+    press("\x1b");
+    /** The wait is over, and the rest of the arrow is read before anything else runs. */
+    vi.advanceTimersByTime(keyWaits.key);
+    press("[B");
+    vi.runAllTimers();
+    expect(sent).toEqual([{ kind: "down" }]);
   });
 });

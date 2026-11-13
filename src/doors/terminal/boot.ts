@@ -21,7 +21,8 @@ export interface Keyboard {
 const enter = `\x1b[?1049h\x1b[?25l\x1b[2J${pasteBrackets.on}`;
 export const leaveScreen = `${pasteBrackets.off}\x1b[0m\x1b[?25h\x1b[?1049l`;
 /** How long what waits is given, in ms. The pieces of one key come together: an escape that is still alone after
- * this is the escape key. What is pasted comes together too, and a paste that never ends is over after a second. */
+ * this is the escape key. What is pasted comes together too: a paste whose end has not come after a second goes on
+ * waiting for it, never read as keys, and from then on ctrl c leaves. */
 export const keyWaits = { key: 50, paste: 1000 } as const;
 
 /** Frames out: only what changed since the last one, unless the screen was lost. */
@@ -51,6 +52,7 @@ export function startTerminal(tty: Tty, keyboard: Keyboard, router: Router): Pro
   return new Promise(done => {
     const unwatch = router.watch(frames.draw);
     let waiting: ReturnType<typeof setTimeout> | undefined;
+    let due: ReturnType<typeof setImmediate> | undefined;
     /** False once the person asked to leave. */
     const take = (intents: readonly Intent[]): boolean => {
       const stays = intents.every(key => router.send(key));
@@ -64,11 +66,15 @@ export function startTerminal(tty: Tty, keyboard: Keyboard, router: Router): Pro
       }
       return stays;
     };
+    /** Once its time is up, what waits is settled only after what had already arrived was read: a moment in which
+     * the program was busy is not a silence of the keyboard. */
+    const settle = (): void => void (due = setImmediate(() => void take(keys.settle())));
     keyboard.on("data", chunk => {
       clearTimeout(waiting);
+      clearImmediate(due);
       if (!take(keys.read(text.write(chunk)))) return;
       const pending = keys.waiting();
-      if (pending) waiting = setTimeout(() => void take(keys.settle()), keyWaits[pending]);
+      if (pending) waiting = setTimeout(settle, keyWaits[pending]);
     });
     tty.on("resize", frames.redraw);
     keyboard.setRawMode(true);

@@ -1711,6 +1711,31 @@
         "src/programs/choices/closed-choices.ts",
         "src/programs/review/contracts.spec.ts"
       ]
+    },
+    {
+      "id": 195,
+      "rule": "Lo que una terminal marca como pegado es un texto, tarde lo que tarde en llegar: nada de lo que llega entre la marca de comienzo y la de cierre es una tecla, aunque el pegado se frene en el medio. Si el cierre no llegó en un segundo se lo sigue esperando, y desde entonces la única tecla que se atiende es ctrl c (salir): un pegado que no termina nunca no escribe nada. Un comienzo de pegado que la espera cortó en dos sigue siendo un comienzo de pegado. De un pegado se guardan hasta 100.000 caracteres",
+      "from": "13/11 · auditoría A11 y su revisión de entrega: un pegado que se frenaba más de un segundo terminaba confirmando una venta",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/terminal/input.ts",
+        "src/doors/terminal/input.spec.ts",
+        "src/doors/terminal/boot.spec.ts",
+        "src/doors/terminal/real-terminal.spec.ts",
+        "src/surface/pasted.spec.ts"
+      ]
+    },
+    {
+      "id": 196,
+      "rule": "El criterio de la tecla escape es de tiempo: un escape que queda solo 50 ms es la tecla escape, y lo que llega después se lee como teclas propias (una flecha cuyo resto tarda más que eso es un escape y dos letras). Una espera que se cumplió mientras el programa estaba ocupado no cuenta como silencio: antes de dar el escape por solo se lee lo que ya había llegado",
+      "from": "13/11 · revisión de entrega de la auditoría: documentar y ensayar aparte el criterio temporal de escape",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/terminal/boot.ts",
+        "src/doors/terminal/boot.spec.ts",
+        "src/doors/terminal/input.spec.ts",
+        "src/doors/terminal/real-terminal.spec.ts"
+      ]
     }
   ]
 }

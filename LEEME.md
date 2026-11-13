@@ -46,6 +46,7 @@ Reglas:
   y ese carácter, y un escape solo es la tecla escape recién cuando no llegó nada más (`src/doors/terminal/input.ts`).
 - Pegar es escribir un texto entero (`paste`), no apretar teclas: se escribe donde se está escribiendo, con sus saltos
   de línea como espacios, y en cualquier otro lado no hace nada. Nunca confirma ni es un atajo (`src/surface/step.ts`).
+  Lo que llega entre las marcas de pegado es texto tarde lo que tarde: un pegado que se frena no termina en teclas.
 - Un programa se comprueba por una terminal de verdad, con su propia entrada y las teclas como bytes
   (`realTerminal`, en `#desert/testing.ts`). Necesita `python3`, que abre la pseudo-terminal.
 
