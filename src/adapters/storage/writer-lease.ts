@@ -1,9 +1,18 @@
 // SQLite alone owns the sidecar's descriptors; filesystem identity checks never open it.
-import { accessSync, constants, lstatSync, rmSync } from "node:fs";
+import { accessSync, constants, lstatSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 import { journalTexts } from "../../texts/journal.texts.ts";
 import { sqliteFiles } from "./sqlite-files.ts";
 import { DatabaseSync } from "node:sqlite";
+export class WriterAlreadyOpen extends Error {
+  readonly code = "WRITER_ALREADY_OPEN";
+  constructor() {
+    super(journalTexts.locked);
+    this.name = "WriterAlreadyOpen";
+  }
+}
 export class WriterLeaseLost extends Error {
   readonly code = "WRITER_LEASE_LOST";
   constructor() {
@@ -18,14 +27,25 @@ export class WriterLeaseUnavailable extends Error {
     this.name = "WriterLeaseUnavailable";
   }
 }
+function createSidecar(sidecar: string): DatabaseSync {
+  const folder = mkdtempSync(join(tmpdir(), "desert-writer-mode-"));
+  try {
+    const mode = join(folder, "mode");
+    writeFileSync(mode, "", { mode: 0o600, flag: "wx" });
+    const uri = pathToFileURL(sidecar);
+    uri.searchParams.set("modeof", mode);
+    return new DatabaseSync(uri);
+  } finally {
+    rmSync(folder, { recursive: true, force: true });
+  }
+}
 function openSidecar(sidecar: string) {
   let db: DatabaseSync;
   let before;
   try {
     accessSync(dirname(sidecar), constants.W_OK);
     before = sqliteFiles(sidecar);
-    if (before) accessSync(sidecar, constants.W_OK);
-    db = new DatabaseSync(sidecar);
+    db = before ? new DatabaseSync(sidecar) : createSidecar(sidecar);
     return { db, before };
   } catch (error) {
     throw new WriterLeaseUnavailable(error);
@@ -34,12 +54,8 @@ function openSidecar(sidecar: string) {
 const release = (db: DatabaseSync): void => {
   if (db.isOpen) db.close();
 };
-export function writerLease(file: string) {
-  if (file === ":memory:") return { check: () => {}, release: () => {} };
-  const sidecar = `${file}.writer.sqlite`;
-  const { db, before } = openSidecar(sidecar);
+function leaseGuard(db: DatabaseSync, sidecar: string, owned: ReturnType<typeof sqliteFiles>) {
   let lost = false;
-  let owned = before;
   const check = () => {
     try {
       const current = lstatSync(sidecar, { throwIfNoEntry: false, bigint: true });
@@ -56,21 +72,38 @@ export function writerLease(file: string) {
     }
     if (lost) throw new WriterLeaseLost();
   };
+  return {
+    check,
+    lose: () => {
+      lost = true;
+      throw new WriterLeaseLost();
+    },
+  };
+}
+export function writerLease(file: string) {
+  if (file === ":memory:")
+    return {
+      check: () => {},
+      release: () => {},
+      lose: () => {
+        throw new WriterLeaseLost();
+      },
+    };
+  const sidecar = `${file}.writer.sqlite`;
+  const { db, before } = openSidecar(sidecar);
+  let guard: ReturnType<typeof leaseGuard>;
   try {
-    owned ??= lstatSync(sidecar, { throwIfNoEntry: false, bigint: true });
+    guard = leaseGuard(db, sidecar, before ?? lstatSync(sidecar, { throwIfNoEntry: false, bigint: true }));
     db.exec(journalTexts.writerLeaseSql);
-    check();
+    guard.check();
     // An obsolete bridge is ignored; only an acquired owner cleans it, never on close.
     rmSync(join(dirname(file), "journal.lock"), { force: true });
   } catch (error) {
     db.close();
     if (error instanceof Error && "errcode" in error && [5, 6].includes(Number(error.errcode)))
-      throw new Error(journalTexts.locked);
+      throw new WriterAlreadyOpen();
     if (error instanceof WriterLeaseLost) throw error;
     throw new WriterLeaseUnavailable(error);
   }
-  return {
-    check,
-    release: () => release(db),
-  };
+  return { ...guard, release: () => release(db) };
 }

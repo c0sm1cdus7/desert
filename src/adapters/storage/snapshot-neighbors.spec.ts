@@ -1,7 +1,7 @@
 import { copyFileSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { deserialize, serialize } from "node:v8";
+import { unpackFixture, packFixture } from "../../../tests/support/snapshot-fixture.ts";
 import { expect, it, vi } from "vitest";
 import { journalKept } from "./journal-store.ts";
 import { home, open, sale, watch, fold } from "../../../tests/support/storage-rig.ts";
@@ -40,9 +40,9 @@ it.each(["missing", "different sequence"])("also explains discarded compatible s
     else {
       const row = db.prepare("select state from snapshots where name = 'b'").get();
       if (!(row?.state instanceof Uint8Array)) throw new Error("Missing fixture");
-      const value: unknown = deserialize(row.state);
+      const value: unknown = unpackFixture(row.state);
       if (typeof value !== "object" || value === null) throw new Error("Invalid fixture");
-      db.prepare("update snapshots set state = ? where name = 'b'").run(serialize({ ...value, seq: 0, state: [] }));
+      db.prepare("update snapshots set state = ? where name = 'b'").run(packFixture({ ...value, seq: 0, state: [] }));
     }
   } finally {
     db.close();

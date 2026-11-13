@@ -14,7 +14,7 @@ export function codeFiles(roots: readonly string[], extensions: readonly string[
   if (!roots.length || !extensions.length || extensions.some(ext => !/^\.[a-z0-9]+$/i.test(ext)))
     throw new Error("Declare code paths and explicit filename extensions");
   const files: CodeFile[] = [];
-  const visit = (file: string, name: string, underHidden = false) => {
+  const visit = (file: string, name: string, underHidden = false, explicit = false) => {
     const hidden = underHidden || basename(file).startsWith(".");
     if (/^(?:auth\.json|secrets\.sqlite.*)$/i.test(basename(file)) || /\.(?:pem|key|p12|pfx|crt)$/i.test(file))
       throw new Error("A private file is not code");
@@ -26,14 +26,14 @@ export function codeFiles(roots: readonly string[], extensions: readonly string[
       if (names.some(storage)) throw new Error("Code tree contains an organization journal");
       for (const child of names) visit(join(file, child), `${name}/${child}`, hidden);
     } else if (!stat.isFile() || stat.nlink !== 1) throw new Error(journalTexts.invalidCodeFile);
-    else if (!hidden && extensions.includes(extname(file))) files.push({ file, name });
+    else if (!hidden && (explicit || extensions.includes(extname(file)))) files.push({ file, name });
   };
   for (const [index, root] of roots.entries()) {
     const file = resolve(root);
     if (file.split(sep).some(part => part.startsWith("."))) throw new Error("Hidden code roots are excluded");
     outsideOrganization(dirname(realpathSync(file)));
     if (storage(basename(file))) throw new Error("A journal is not code");
-    visit(file, `${index}/${lstatSync(file).isDirectory() ? "" : basename(file)}`);
+    visit(file, `${index}/${lstatSync(file).isDirectory() ? "" : basename(file)}`, false, true);
   }
   return files;
 }

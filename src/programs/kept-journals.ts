@@ -2,7 +2,7 @@ import { copyJournal } from "../adapters/storage/copy-journal.ts";
 // The journals a program keeps of what organizations wrote with it: each still opens with the program of today.
 // Every fact is read and folds from the first, and every thing is read as whoever administers it reads it.
 import { deepStrictEqual, ok } from "node:assert/strict";
-import { existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { checkReopenedState } from "../adapters/storage/reopened-state.ts";
@@ -16,6 +16,7 @@ import type { KeyStore, Program } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../tools/tools.ts";
 import { codeUpgradeCheck } from "./code-upgrade-check.ts";
 import { CodeProjectionVersion } from "./calculation-version.ts";
+import { keptNames } from "./kept-names.ts";
 import { keptUpgrade, upgradeEvidence } from "./kept-upgrade.ts";
 import { localPorts, startHouse } from "./house-runtime.ts";
 import { breadthFirst, keptWalkLimits, type WalkCoverage } from "./kept-walk.ts";
@@ -90,12 +91,7 @@ function walk<X extends Program>(source: Kept<X>, file: string, name: string): C
 }
 /** Three checks per kept journal, plus mandatory evidence for the explicitly composed version mode. */
 export function keptChecks<X extends Program>(program: Composition<X>, shown: Shown<X>, folder?: string): Check[] {
-  const kept =
-    folder && existsSync(folder)
-      ? readdirSync(folder)
-          .filter(name => name.endsWith(".sqlite") && !name.endsWith(".writer.sqlite"))
-          .sort()
-      : [];
+  const kept = keptNames(folder);
   const upgrades = kept.map(name => keptUpgrade(program, join(folder ?? "", name), name));
   const checks = kept.flatMap((name, index) => {
     const source = { program, shown };

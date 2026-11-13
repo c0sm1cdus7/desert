@@ -329,14 +329,27 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   conservá la evidencia anterior durante su control, y renovala como parte de publicar esa entrega. Un cambio
   deliberado de identidad necesita también evidencia reutilizable de esa identidad; no alcanza comparar dos
   reconstrucciones. No regeneres a ciegas todos los registros con la candidata para hacer pasar el control.
+  Para renovar la entrega ya verificada usá `renewKeptJournals(program, carpeta)`, exportada por `src/testing.ts`.
+  Reconstruye y comprueba los plegados de todos sus registros, sin arranque, servicios ni hechos nuevos; devuelve
+  sus nombres. Una carpeta vacía falla. Conservá los registros anteriores hasta terminar el control de actualización.
+  Los auxiliares `*.writer.sqlite*`, `*.sqlite-wal`, `*.sqlite-shm` y `*.sqlite-journal` no son registros guardados:
+  excluilos del control de versiones de la carpeta de pruebas.
 - En modo de código no se exigen plegados reutilizables: los cambios dentro del código declarado cambian su
   identidad y reconstruyen. El control modifica una copia del código, comprueba que cambia la huella y que esa
   identidad reconstruye plegados reales; también funciona sin carpeta de registros guardados. Cada registro que sí
   se guarda se compara con reconstruir y dice qué probó. Si el código cambió después de componer, el control falla:
   componé una entrega inmutable. La base mantiene además su propia `baseProjectionVersion`.
+  `codeProjectionVersion` fija la primera huella de cada declaración de rutas y extensiones en el proceso:
+  componer de nuevo o abrir otra organización no vuelve a leer el código. Calculala al cargar la composición.
+  Desplegá reemplazando la entrega y reiniciando los procesos, nunca editando archivos debajo de uno que corre.
+  Si igual cambian, ese proceso conserva su primera huella; la compuerta compara contra los bytes actuales y falla.
+  El proceso siguiente toma la nueva huella y reconstruye. Cambiar archivos entre importar el cálculo y tomar
+  su primera huella queda fuera de este contrato: la entrega debe permanecer inmutable desde su carga.
+  La función de bajo nivel `projectionVersion` calcula los bytes actuales para verificaciones de la compuerta.
 - La huella cubre nombres relativos y bytes de **archivos regulares**, en orden fijo, más la versión de Node.
   Por defecto admite `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`, `.mts` y `.cts`. Podés declarar otra lista de
-  extensiones y archivos sueltos: por ejemplo, `codeProjectionVersion([src, baseSrc, lockfile], [".ts", ".yaml"])`.
+  extensiones para carpetas y archivos sueltos: `codeProjectionVersion([src, baseSrc, lockfile])`.
+  Un archivo suelto declarado entra cualquiera sea su extensión; un archivo privado o de almacenamiento se rechaza.
   No lee el contenido de archivos ocultos; inspecciona metadatos de carpetas ocultas para detectar registros; las extensiones que no declaraste quedan afuera. Los archivos de pruebas
   con extensiones declaradas sí participan. No sigue enlaces simbólicos ni acepta enlaces duros. Primero revisa
   los metadatos de **toda** la declaración; si contiene un registro SQLite o está debajo de una organización,
@@ -346,8 +359,14 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   dependencias cubre sus bytes, no prueba que lo instalado coincida. Declarar archivos regulares adicionales sirve
   para esos insumos; la zona horaria y las dependencias efectivamente cargadas deben quedar fijas en la entrega.
   Incluí sus árboles reales si intervienen en los cálculos; no uses el repositorio entero como atajo.
-- Medición del 13/11/2026, Node 24.16.0: 894 archivos admitidos de `capibara-obra/src` y `capibara-obra/desert/src`,
-  **90,85 ms** en la primera llamada de un proceso nuevo; cinco llamadas siguientes, **40,67–45,57 ms**.
+  La compuerta revisa imports locales, reexportaciones, `require`, imports dinámicos literales y alias `#` del código
+  declarado: si apuntan fuera de la huella (también a una carpeta oculta), falla nombrando el archivo. Un import
+  calculado que no puede enumerar también falla. Los archivos de pruebas entran en la huella pero no se examinan
+  como raíces de cálculos; si el cálculo los importa, sí se recorren sus dependencias. La composición declarada
+  en `desert.program` también debe estar incluida. Los paquetes externos siguen sujetos al contrato de la entrega.
+- Medición del 13/11/2026, Node 24.16.0, sobre `capibara-obra/src` y `capibara-obra/desert/src`:
+  tres procesos nuevos tardaron **109,60 / 46,13 / 46,12 ms** en la primera `codeProjectionVersion`;
+  repetirla con la misma declaración tardó **0,016–0,020 ms**, conservando la primera huella.
   Es frío de proceso; frío de caché de disco del sistema: **no comprobado**. Como supera 50 ms, una mejora propuesta,
   todavía no implementada, es calcular un manifiesto de hashes durante la construcción de la entrega inmutable,
   empaquetarlo con ella y verificar la correspondencia de código y manifiesto antes de publicarla. No alcanza
@@ -480,10 +499,17 @@ Se suman los tipos `ViewLimits`, `HouseState`, `TimeSource`, `Catalog`, `Event`,
 `ActContext`, `ActResult` y `Slices`. Para evitar dos nombres iguales, `House` es la casa de pruebas y `HouseState`
 es el estado de la organización; `padded` declara el campo y `paddedMask` arma su formato de escritura.
 
+La configuración de Vitest de quien usa la base debe incluir `desert/tests/program/setup.ts` en `globalSetup`
+del proyecto que ejecuta las ocho partes. El coordinador resume una vez sus grupos y nombres en orden, incluyendo
+repeticiones; cada parte compara su lista con ese resumen antes de registrar pruebas. Si cambió, falla esa parte.
+Una carpeta `desert.journals` nombrada vacía o inexistente falla en ambos modos, contando registros regulares,
+no controles ni auxiliares. Cada registro aporta apertura, recorrido y actualización; el paso de tres posiciones
+reparte los nueve recorridos 1/1/2/1/1/1/1/1 entre las ocho partes, sin cambiar sus nombres.
+
 ## Un solo escritor y recuperación del estado
 
 Una organización abre una sola vez por almacenamiento, aunque se llegue por un enlace simbólico, una ruta
-relativa, otro hilo u otro proceso. Otro escritor recibe el rechazo habitual y no altera al que ya está abierto.
+relativa, otro hilo u otro proceso. Otro escritor recibe `WriterAlreadyOpen` (`WRITER_ALREADY_OPEN`), con el rechazo habitual y no altera al que ya está abierto.
 El lector de hechos puede seguir leyendo. Se rechazan enlaces duros y enlaces simbólicos colgantes; las bases
 en memoria siguen siendo independientes. Dos archivos distintos también son independientes dentro de una carpeta.
 
@@ -495,9 +521,11 @@ recupera lo que el registro conservó aunque el estado guardado estuviera incomp
 La toma exige una escritura SQLite real en el auxiliar, dentro de la transacción que se mantiene hasta cerrar.
 Si el auxiliar o su carpeta no permiten escribir, SQLite se queda sin espacio, está dañado o es un enlace, abrir
 falla con `WriterLeaseUnavailable` (`WRITER_LEASE_UNAVAILABLE`, con la causa original). No se cambian sus permisos
-para arreglarlo. También se rechazan enlaces y archivos no regulares en sus vecinos `-journal`, `-wal` y `-shm`,
+para arreglarlo. Un auxiliar nuevo se crea con modo `600` mediante SQLite (`modeof`), sin abrirlo con funciones de archivos.
+También se rechazan enlaces y archivos no regulares en sus vecinos `-journal`, `-wal` y `-shm`,
 antes de que SQLite los abra; la misma revisión protege las entradas del registro y de la apertura privada. Se exige un archivo regular sin enlaces duros y se fija el modo de journal del auxiliar a DELETE;
 no se acepta que `BEGIN IMMEDIATE` sobre una conexión de solo lectura aparente haber tomado la exclusión.
+Un vecino con cero enlaces está siendo borrado y se considera ausente, no un enlace inválido.
 El sistema libera la exclusión si el dueño muere, incluso con SIGKILL. No hay que borrar candados ni buscar un
 PID. El archivo auxiliar `journal.sqlite.writer.sqlite` debe permanecer junto al registro: no se borra para
 abrir. Borrar ese archivo con la organización abierta rompe la exclusión; reemplazarlo también. Otro proceso
@@ -508,18 +536,30 @@ recursos, sin guardar plegados, y también informa esa pérdida. Renombrar la ca
 hace que el dueño deje de escribir con ese error; cerrá antes de moverla. Hay que cerrar y volver a abrir. Esta comprobación
 no autoriza a modificar archivos mientras la organización está abierta ni sincroniza cambios externos a SQLite.
 
+Un proceso que abre por su cuenta el archivo de la exclusión con funciones de archivos (leerlo o copiar la
+carpeta de una organización abierta) suelta su propia exclusión POSIX. La base nunca lo hace. Para copiar el
+registro de una organización abierta usá `copyJournal(origen, destino)` de `src/adapters/storage/copy-journal.ts`:
+la copia de SQLite incluye lo confirmado en WAL. No uses `readFile`, `copyFile` ni `cp` sobre el auxiliar.
+Si igual ocurre y otro escribe, el dueño detecta el avance del registro dentro de su próxima transacción:
+lanza `WriterLeaseLost`, esa escritura no deja nada y la instancia no vuelve a escribir ni guarda plegados.
+También lo informa si encuentra otra transacción de escritura ocupando el registro. La pérdida por lectura ajena
+no es observable por la identidad del archivo antes de que otro tome la escritura; no se promete detectarla al leer.
+
 `journal.lock` ya no es un puente: no se crea ni se lee. Uno anterior se ignora y se borra después de tomar la
 exclusión del auxiliar; el cierre no lo toca. Este cambio de contrato modifica a propósito las pruebas y los
 papeles que antes exigían el puente. Actualizar sigue exigiendo detener todos los procesos.
 
-Los plegados guardados tienen formato 3 y se aceptan en un solo punto (`journal/snapshot-format.ts`). Cada
+Los plegados guardados tienen formato 4 y se aceptan en un solo punto (`journal/snapshot-format.ts`). Cada
 registro recibe una identidad propia persistente al nacer; uno anterior la recibe en su primera apertura de escritura
 o mantenimiento con esta versión. Cada plegado lleva esa identidad: copiar solo un plegado de otra organización obliga a reconstruir.
 Una copia completa del registro conserva su identidad, y se puede mover o restaurar sin perderla.
 Un formato incompatible o una secuencia inválida obliga a reconstruir el grupo entero. Un salto al plegar aborta
 toda la escritura; el grupo se guarda en una transacción después de restaurarse. La identidad de cálculos incluye
 la versión del programa y de la base, además del vocabulario y los iniciales. Un plegado sin esas identidades se
-reconstruye una vez. Un plegado alterado a mano por alguien con acceso a los archivos sigue fuera de lo que se garantiza.
+reconstruye una vez. El sobre lleva SHA-256 de los bytes serializados del plegado completo: si falta o no coincide,
+se descarta, se reconstruye y se avisa. Los plegados de formato 3 sin suma se reconstruyen una vez.
+Una suma de control detecta daño, no autentica archivos: alterar el estado y recalcular también su suma a propósito
+sigue fuera de lo garantizado en ejecución; la comparación de la compuerta contra el registro sí lo detecta.
 
 Cada descarte dice el nombre del plegado y el motivo: formato anterior o desconocido, bytes ilegibles, secuencia
 inválida o adelantada, otro registro, cálculos distintos, nombre retirado o un grupo dependiente incompleto.
@@ -528,6 +568,9 @@ Son avisos `SAVED_FOLD_REBUILT`, no fallas. Durante el arranque salen por la sal
 no escriben `tool-entry` ni agregan historia por reconstruir. Diez aperturas del almacenamiento, alternando
 identidades, dejan exactamente los mismos hechos. El arranque de `startHouse` conserva su hecho de ciclo de vida
 `boot`, independiente de los avisos; también siguen siendo hechos los resultados reales de las herramientas.
+Los pares de estado y reloj se conservan por identidad dentro de la misma versión de cálculos: cada identidad
+reconstruye la primera vez y después retoma desde su último hecho, aunque otras hayan abierto en el medio.
+No se comparten estados calculados para personas distintas. Un cambio de versión retira los pares anteriores.
 Una apertura sin descartes no repite el aviso. Quien usa `SqliteJournal` directamente recibe stderr o pasa un
 receptor de diagnósticos como tercer argumento.
 

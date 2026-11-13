@@ -22,15 +22,16 @@ export function houseProjections<X extends Program>(journal: SqliteJournal<X["fa
     baseProjectionVersion,
     calculationIdentity(projectionVersion),
     JSON.stringify(words.event),
-    initial,
+    startState<X>(slices, ""),
   );
-  const clock = journal.watch<Deadlines>(`clock@${identity}`, new Map(), clockStep, identity);
+  const prefix = `house@${identity}:`;
+  const clock = journal.watch<Deadlines>(`${prefix}clock:${by}`, new Map(), clockStep, identity);
   const state = journal.watch(
-    `tools:${by}@${identity}`,
+    `${prefix}tools:${by}`,
     initial,
     (state, event) => toolsStep<X>(state, event, slices),
     identity,
   );
-  journal.restore();
+  journal.restore(prefix);
   return { state, clock };
 }

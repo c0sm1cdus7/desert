@@ -109,6 +109,7 @@ describe("journal", () => {
     opened.push(db);
     db.prepare(insert).run(2, "foreign", 100, kind, "main", "[]", "{}");
     expect(() => all(journal)).toThrow(`does not read: #2 ${kind}`);
+    expect(() => journal.close()).toThrow(expect.objectContaining({ code: "WRITER_LEASE_LOST" }));
   });
 
   it("rejects persisted invalid data of either layer and enforces append-only SQL", () => {
@@ -122,6 +123,7 @@ describe("journal", () => {
     expect(all(journal)).toEqual([original]);
     db.prepare(insert).run(2, "bad", 100, "sale-registered", "ana", "[]", "{}");
     expect(() => all(journal)).toThrow("This house's journal holds a fact this program does not read");
+    expect(() => journal.close()).toThrow(expect.objectContaining({ code: "WRITER_LEASE_LOST" }));
   });
 
   it("leaves neither a row nor a sequence gap when validation fails", () => {

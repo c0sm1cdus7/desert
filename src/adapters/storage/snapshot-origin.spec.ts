@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { deserialize, serialize } from "node:v8";
+import { unpackFixture, packFixture } from "../../../tests/support/snapshot-fixture.ts";
 import { expect, it, vi } from "vitest";
 import { home, open, sale, watch, fold } from "../../../tests/support/storage-rig.ts";
 
@@ -48,9 +48,9 @@ it.each([
 ])("warns when discarding %s, rebuilds once and then reuses the saved fold", (reason, change) => {
   const file = seed("a");
   const bytes = saved(file);
-  const value: unknown = deserialize(bytes);
+  const value: unknown = unpackFixture(bytes);
   if (typeof value !== "object" || value === null) throw new Error("Invalid fixture");
-  put(file, change ? serialize({ ...value, ...change }) : bytes.subarray(0, 4));
+  put(file, change ? packFixture({ ...value, ...change }) : bytes.subarray(0, 4));
   const warning = vi.spyOn(process, "emitWarning").mockImplementation(() => {});
   try {
     const current = open(file);

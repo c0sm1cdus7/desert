@@ -2,7 +2,7 @@ import "../../tests/support/upgrade-vault.ts";
 import { copyFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { deserialize, serialize } from "node:v8";
+import { unpackFixture, packFixture } from "../../tests/support/snapshot-fixture.ts";
 import { expect, it } from "vitest";
 import { keptChecks } from "./kept-journals.ts";
 import { shopShown } from "../../tests/support/shop.ts";
@@ -79,15 +79,15 @@ it.each(["tools", "clock"])("checks the complete cached %s, not only tool values
   const folder = kept(path);
   const db = new DatabaseSync(join(folder, "shop.sqlite"));
   try {
-    const row = db.prepare("select name, state from snapshots where name like ?").get(`${part}%`);
+    const row = db.prepare("select name, state from snapshots where name like ?").get(`%:${part}:%`);
     if (!(row?.state instanceof Uint8Array) || typeof row.name !== "string") throw new Error("Missing fixture");
-    const cached: unknown = deserialize(row.state);
+    const cached: unknown = unpackFixture(row.state);
     if (!record(cached)) throw new Error("Missing snapshot envelope");
     if (part === "tools") {
       if (!record(cached.state) || !record(cached.state.house)) throw new Error("Missing house");
       cached.state.house.admin = "wrong-admin";
     } else cached.state = new Map([["unwritten", { at: 9, cause: "unwritten", seq: 1 }]]);
-    db.prepare("update snapshots set state = ? where name = ?").run(serialize(cached), row.name);
+    db.prepare("update snapshots set state = ? where name = ?").run(packFixture(cached), row.name);
   } finally {
     db.close();
   }
@@ -101,7 +101,7 @@ it.each(["damaged", "partial"])("refuses %s previous folds even when an update w
   const folder = kept(path);
   const db = new DatabaseSync(join(folder, "shop.sqlite"));
   try {
-    if (mode === "partial") db.exec("delete from snapshots where name like 'clock%'");
+    if (mode === "partial") db.exec("delete from snapshots where name like '%:clock:%'");
     else db.prepare("update snapshots set state = ?").run(new Uint8Array([0, 1, 2]));
   } finally {
     db.close();

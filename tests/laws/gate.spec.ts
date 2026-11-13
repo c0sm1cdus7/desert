@@ -108,7 +108,9 @@ describe("law 12: a gate that cannot be cheated", () => {
   });
 
   it("keeps every program part on disk exactly once, with its own index", () => {
-    const files = filesUnder(join(root, "tests/program"), path => path.endsWith(".checks.ts")).sort();
+    const files = filesUnder(join(root, "tests/program"), path => path.endsWith(".checks.ts")).sort(
+      (a, b) => Number(a.match(/part-(\d+)/)?.[1]) - Number(b.match(/part-(\d+)/)?.[1]),
+    );
     const expected = Array.from({ length: programPartCount }, (_, part) => `tests/program/part-${part}.checks.ts`);
     expect(files.map(fromRoot)).toEqual(expected);
     files.forEach((file, part) => {

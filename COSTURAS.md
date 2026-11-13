@@ -161,14 +161,24 @@ sustitución externa hace que el dueño rechace nuevas escrituras con `WriterLea
 Todos los descriptores de las bases, incluidas las copias de registros conservados, quedan a cargo de SQLite.
 
 Los hechos anteriores no cambian. Los plegados de formato anterior se descartan juntos y se reconstruyen; los de
-formato 3 llevan la identidad persistente de su registro y una secuencia segura dentro de él y cada paso exige el siguiente número. El guardado del grupo
+formato 4 llevan una suma SHA-256 del contenido serializado, además de la identidad persistente de su registro y una secuencia segura dentro de él y cada paso exige el siguiente número. El guardado del grupo
 es atómico y una restauración fallida no publica plegados. La decisión de compatibilidad queda concentrada en
 `snapshot-format.ts`, que también exige la identidad de cálculos del programa y de la base (A04).
 Cada descarte deja un aviso con motivo en stderr; al restaurar la casa, también en su registro de diagnósticos.
 La identidad se asigna al abrir registros anteriores. Una alteración manual de archivos queda fuera de la garantía.
-La función `projectionVersion` obtiene una huella de árboles de código y Node al componer. Una restauración
+La primera `codeProjectionVersion` de una declaración fija la huella de código y Node durante el proceso;
+`projectionVersion` lee los bytes actuales para las comprobaciones. Una restauración
 fallida impide guardar plegados durante toda la vida de esa instancia, aun si después logra reintentarlo.
 
 La versión de cálculos distingue un string manual de `CodeProjectionVersion`: no se deduce el modo del texto.
 Los avisos de reconstrucción son de la instancia (`storageNotices()`), no hechos. La toma del escritor exige una
 escritura SQLite real, sin cambiar permisos del auxiliar; una carpeta renombrada hace perder la exclusión al dueño.
+
+Si el proceso lee o copia por su cuenta el auxiliar con funciones de archivos, suelta su exclusión POSIX.
+La base nunca lo hace; `copyJournal` es la copia permitida del registro abierto. Un avance ajeno del registro
+o una transacción de escritura ajena hacen fallar con `WriterLeaseLost`, sin escritura parcial ni reintento
+en esa instancia. `WriterAlreadyOpen` distingue la contención al abrir. SQLite crea auxiliares nuevos en modo 600.
+Los plegados se conservan por identidad y versión: alternar personas retoma sus colas, sin recomenzar siempre.
+`renewKeptJournals`, disponible desde testing, renueva la evidencia manual de una entrega sin nuevos hechos.
+La compuerta resume la lista de comprobaciones en `tests/program/setup.ts` antes de lanzar las partes; cada
+parte coteja su lista. Quien usa la base incorpora ese archivo en `globalSetup` de Vitest.

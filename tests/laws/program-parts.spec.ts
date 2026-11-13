@@ -4,7 +4,8 @@ import { program, shown } from "../support/shop-program.ts";
 import { keptChecks } from "../../src/programs/kept-journals.ts";
 import { programChecks } from "../../src/programs/program-checks.ts";
 import { checksInPart, programPartCount } from "../program/parts.ts";
-import { registerPart, type Group } from "../program/registration.ts";
+import { summarize } from "../program/manifest.ts";
+import { programGroups, registerPart, type Group } from "../program/registration.ts";
 import type { Check } from "../../src/programs/promised-stage.ts";
 
 const parts = () => Array.from({ length: programPartCount }, (_, part) => part);
@@ -46,10 +47,18 @@ describe("every derived check belongs to one part", () => {
         group = name;
         body();
       },
+      inject: () => summarize(programGroups({ program, shown, where })),
       it: (name: string) => registered.push(`${group} > ${name}`),
     }));
     try {
-      for (const part of parts()) await import(`../program/part-${part}.checks.ts`);
+      await import("../program/part-0.checks.ts");
+      await import("../program/part-1.checks.ts");
+      await import("../program/part-2.checks.ts");
+      await import("../program/part-3.checks.ts");
+      await import("../program/part-4.checks.ts");
+      await import("../program/part-5.checks.ts");
+      await import("../program/part-6.checks.ts");
+      await import("../program/part-7.checks.ts");
     } finally {
       vi.doUnmock("vitest");
     }

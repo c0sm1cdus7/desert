@@ -44,7 +44,8 @@ it("ten storage openings, alternating identities, preserve exactly the same fact
       before ??= facts;
       houseProjections<Shop>(journal, { ...current, by: attempt % 2 ? "shop" : "ana" });
       expect(journal.replay<unknown[]>([], (all, e) => [...all, e])).toEqual(before);
-      expect(notices.read()).toHaveLength(2);
+      expect(notices.read()).toEqual([]);
+      if (attempt >= 2) expect(journal.restoration().reused).toBe(true);
     } finally {
       journal.close();
     }

@@ -1,6 +1,7 @@
 // A code-derived version carries its declaration; it cannot silently turn into a manually maintained string.
 import { resolve } from "node:path";
 import { codeExtensions, projectionVersion } from "./projection-version.ts";
+const versions = new Map<string, string>();
 export class CodeProjectionVersion {
   readonly kind = "code";
   readonly trees: readonly string[];
@@ -9,7 +10,9 @@ export class CodeProjectionVersion {
   constructor(trees: readonly string[], extensions: readonly string[] = codeExtensions) {
     this.trees = Object.freeze(trees.map(tree => resolve(tree)));
     this.extensions = Object.freeze([...extensions]);
-    this.value = projectionVersion(this.trees, this.extensions);
+    const key = JSON.stringify([this.trees, this.extensions]);
+    this.value = versions.get(key) ?? projectionVersion(this.trees, this.extensions);
+    versions.set(key, this.value);
     Object.freeze(this);
   }
 }

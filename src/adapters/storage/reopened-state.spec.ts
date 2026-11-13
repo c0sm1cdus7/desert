@@ -1,7 +1,8 @@
 // The same derived assertion covers live cases, keyed walks and kept journals, including old incomplete folds.
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { deserialize, serialize } from "node:v8";
+import { unpackFixture, packFixture } from "../../../tests/support/snapshot-fixture.ts";
+import { serialize } from "node:v8";
 import { expect, it, vi } from "vitest";
 import { checkReopenedState } from "./reopened-state.ts";
 import { SqliteJournal } from "./journal-store.ts";
@@ -32,12 +33,12 @@ const time = { now: () => 1_000, wait: () => () => {} };
 const corrupt = (file: string, version: boolean) => {
   const db = new DatabaseSync(file);
   try {
-    const row = db.prepare("select name, state from snapshots where name like 'tools:%'").get();
+    const row = db.prepare("select name, state from snapshots where name like '%:tools:%'").get();
     if (typeof row?.name !== "string" || !(row.state instanceof Uint8Array)) throw new Error("No fixture cache");
-    const saved: unknown = deserialize(row.state);
+    const saved: unknown = unpackFixture(row.state);
     if (typeof saved !== "object" || saved === null || !("seq" in saved)) throw new Error("No fixture sequence");
     db.prepare("update snapshots set state = ? where name = ?").run(
-      serialize({ ...(version ? saved : {}), seq: saved.seq, state: "incomplete" }),
+      version ? packFixture({ ...saved, state: "incomplete" }) : serialize({ seq: saved.seq, state: "incomplete" }),
       row.name,
     );
   } finally {

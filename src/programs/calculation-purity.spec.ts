@@ -32,3 +32,16 @@ it("protects nested objects, arrays, map values, sets and dates, including cycle
   expect(() => value.set.add(2)).toThrow(/cannot mutate/);
   expect(() => value.date.setTime(1)).toThrow(/cannot mutate/);
 });
+it("detects a prototype call that bypasses the frozen Map's own mutators", async () => {
+  const current = program();
+  const sales: typeof shopSlices.step.sales = (state, event, before) => {
+    if (event.kind === "sale-registered") Map.prototype.set.call(state, "injected", { total: 1, paid: 0, by: "ana" });
+    return shopSlices.step.sales(state, event, before);
+  };
+  const mutable = { ...current, slices: { ...current.slices, step: { ...current.slices.step, sales } } };
+  await expect(
+    staged(mutable, async ({ house }) => {
+      await perform(house(), "sales", { act: "register", input: { sale: "s1", total: 10 } });
+    }),
+  ).rejects.toThrow(/mutated its input state/);
+});

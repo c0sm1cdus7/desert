@@ -5,11 +5,14 @@ import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { journalTexts } from "../texts/journal.texts.ts";
 import { CodeProjectionVersion, codeProjectionVersion } from "./calculation-version.ts";
+import { checkCodeImports } from "./code-imports.ts";
+import { projectionVersion } from "./projection-version.ts";
 import { codeFiles } from "./code-files.ts";
 export function changedCode(version: CodeProjectionVersion): CodeProjectionVersion {
   const home = mkdtempSync(join(tmpdir(), "desert-code-probe-"));
   try {
     const files = codeFiles(version.trees, version.extensions);
+    checkCodeImports(files);
     const roots = version.trees.map((_, index) => join(home, String(index)));
     for (const root of roots) mkdirSync(root);
     for (const { file, name } of files) {
@@ -23,7 +26,7 @@ export function changedCode(version: CodeProjectionVersion): CodeProjectionVersi
       const file = files.find(file => file.name.startsWith(prefix));
       return file && !file.name.startsWith(`${prefix}/`) ? join(home, file.name) : root;
     });
-    deepStrictEqual(codeProjectionVersion(declared, version.extensions).value, version.value, journalTexts.staleCode);
+    deepStrictEqual(projectionVersion(declared, version.extensions), version.value, journalTexts.staleCode);
     const first = files[0];
     ok(first, journalTexts.noCodeEvidence);
     writeFileSync(join(home, first.name), journalTexts.codeChangeProbe, { flag: "a" });

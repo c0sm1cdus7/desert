@@ -1,5 +1,6 @@
 import { join } from "node:path";
-import { deserialize, serialize } from "node:v8";
+import { unpackFixture, packFixture } from "../../../tests/support/snapshot-fixture.ts";
+import { serialize } from "node:v8";
 import { DatabaseSync } from "node:sqlite";
 import { expect, it, vi } from "vitest";
 import { ProjectionCache } from "../../journal/projections.ts";
@@ -19,9 +20,9 @@ const replace = (file: string, value: object, current = false) => {
   const db = new DatabaseSync(file);
   try {
     const bytes = db.prepare("select state from snapshots").get()?.state;
-    const saved: unknown = bytes instanceof Uint8Array ? deserialize(bytes) : undefined;
+    const saved: unknown = bytes instanceof Uint8Array ? unpackFixture(bytes) : undefined;
     const prior = current && typeof saved === "object" && saved !== null ? saved : {};
-    db.prepare("update snapshots set state = ?").run(serialize({ ...prior, ...value }));
+    db.prepare("update snapshots set state = ?").run(current ? packFixture({ ...prior, ...value }) : serialize(value));
   } finally {
     db.close();
   }
@@ -133,7 +134,7 @@ it("an unseen row refuses the next append whole; reopening folds the missing row
   expect(() => journal.append(sale("right"), 0)).toThrow();
   expect(names()).toEqual(["left"]);
   expect(journal.replay([], fold)).toEqual(["left", "middle"]);
-  journal.close();
+  expect(() => journal.close()).toThrow(expect.objectContaining({ code: "WRITER_LEASE_LOST" }));
   const next = open(file);
   const nextNames = watch(next);
   expect(nextNames()).toEqual(["left", "middle"]);
@@ -157,8 +158,8 @@ it("resets a valid zero-position sibling when another cache is incompatible", ()
   try {
     db.prepare("insert into snapshots values (?, ?)").run(
       "sales",
-      serialize({
-        version: 3,
+      packFixture({
+        version: 4,
         identity: "",
         journal: db.prepare("select id from journal_identity").get()?.id,
         seq: 0,

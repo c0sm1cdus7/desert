@@ -1,5 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
-import { deserialize, serialize } from "node:v8";
+import { unpackFixture, packFixture } from "../../tests/support/snapshot-fixture.ts";
 import { startState } from "../tools/tools.ts";
 import type { Shop } from "../../tests/support/shop.ts";
 import { join } from "node:path";
@@ -53,10 +53,13 @@ it("a saved initial state at sequence zero is not evidence of previous calculati
   try {
     for (const row of db.prepare("select name, state from snapshots").all()) {
       if (!(row.state instanceof Uint8Array) || typeof row.name !== "string") throw new Error("Missing fixture");
-      const saved: unknown = deserialize(row.state);
+      const saved: unknown = unpackFixture(row.state);
       if (typeof saved !== "object" || saved === null) throw new Error("Missing envelope");
-      const state = row.name.startsWith("clock@") ? new Map() : startState<Shop>(current.slices, "shop");
-      db.prepare("update snapshots set state = ? where name = ?").run(serialize({ ...saved, seq: 0, state }), row.name);
+      const state = row.name.includes(":clock:") ? new Map() : startState<Shop>(current.slices, "shop");
+      db.prepare("update snapshots set state = ? where name = ?").run(
+        packFixture({ ...saved, seq: 0, state }),
+        row.name,
+      );
     }
   } finally {
     db.close();

@@ -1,4 +1,5 @@
 // Keep the old group and check names while registering independent, interleaved parts of both lists.
+import { keptNames } from "../../src/programs/kept-names.ts";
 import { keptChecks } from "../../src/programs/kept-journals.ts";
 import { programChecks } from "../../src/programs/program-checks.ts";
 import type { Check } from "../../src/programs/promised-stage.ts";
@@ -27,7 +28,8 @@ export function programGroups<X extends Program>({ program, shown, where, journa
   const folder: Check = {
     name: "checks upgrade evidence even when the program names no journal folder",
     run: () => {
-      if (journals !== undefined && !kept.length) return Promise.reject(new Error(`${journals} keeps no journal`));
+      if (journals !== undefined && !keptNames(journals).length)
+        return Promise.reject(new Error(`${journals} keeps no journal`));
       return Promise.resolve();
     },
   };

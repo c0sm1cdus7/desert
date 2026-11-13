@@ -1,7 +1,9 @@
 // One compatibility decision for saved folds: format, sequence, source journal and calculations.
 import { journalTexts } from "../texts/journal.texts.ts";
+import { createHash } from "node:crypto";
 import { deserialize, serialize } from "node:v8";
-const version = 3;
+const version = 4;
+const checksum = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 type Fold<S> = Readonly<{ seq: number; state: S }>;
 type Snapshot<S> = Fold<S> & Readonly<{ version: number; identity: string; journal: string }>;
 export type FoldWarning = Readonly<{ name: string; reason: string }>;
@@ -30,9 +32,18 @@ export function savedFold<S>(
   discarded: (reason: string) => void = () => {},
 ): Snapshot<S> | undefined {
   if (bytes === undefined) return undefined;
-  const value = decode(bytes);
+  const envelope = decode(bytes);
+  const checked =
+    typeof envelope === "object" &&
+    envelope !== null &&
+    "payload" in envelope &&
+    envelope.payload instanceof Uint8Array &&
+    "checksum" in envelope &&
+    envelope.checksum === checksum(envelope.payload);
+  const value = checked ? decode(envelope.payload) : envelope;
   let reason: string;
   if (typeof value !== "object" || value === null) reason = journalTexts.unreadableFold;
+  else if (!checked) reason = journalTexts.checksumFold;
   else if (!("version" in value) || value.version !== version) reason = journalTexts.oldFold;
   else if (!placed<S>(value, last)) reason = journalTexts.aheadFold;
   else if (!("journal" in value) || value.journal !== journal) reason = journalTexts.foreignFold;
@@ -41,5 +52,7 @@ export function savedFold<S>(
   discarded(reason);
   return undefined;
 }
-export const encodeFold = (seq: number, state: unknown, identity = "", journal = ""): Uint8Array =>
-  serialize({ version, identity, journal, seq, state });
+export const encodeFold = (seq: number, state: unknown, identity = "", journal = ""): Uint8Array => {
+  const payload = serialize({ version, identity, journal, seq, state });
+  return serialize({ payload, checksum: checksum(payload) });
+};

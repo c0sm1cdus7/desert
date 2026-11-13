@@ -7,6 +7,7 @@ import { storageIdentity } from "./storage-identity.ts";
 import { journalIdentity } from "./journal-identity.ts";
 import type { FoldWarning } from "../../journal/snapshot-format.ts";
 import { snapshotWarning } from "./storage-notices.ts";
+import { journalPosition } from "./journal-position.ts";
 import { writerLease } from "./writer-lease.ts";
 import { privateDatabase } from "./home.ts";
 import { DatabaseSync } from "node:sqlite";
@@ -42,6 +43,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   private readonly words: Vocabulary<P>;
   private readonly projections = new ProjectionGroup<Event<P>>();
   private readonly lease: ReturnType<typeof writerLease>;
+  private readonly position: ReturnType<typeof journalPosition>;
   private readonly identity: string;
   private readonly warn: (warning: FoldWarning) => void;
   private readonly warnings: FoldWarning[] = [];
@@ -64,6 +66,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
       db.exec(`pragma journal_mode = wal; pragma synchronous = full; ${schema}`);
       this.identity = journalIdentity(db, this.lease.check);
       this.db = db;
+      this.position = journalPosition(db, this.lease);
     } catch (error) {
       try {
         db?.close();
@@ -84,17 +87,20 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   batch<T>(write: () => T): T {
     this.lease.check();
     if (this.batching) return write();
-    this.db.exec("begin immediate");
+    this.position.begin();
+    const position = this.position.mark();
     this.batching = true;
     const back = this.projections.mark();
     const restored = this.restored;
     try {
+      this.position.check();
       const done = write();
       this.lease.check();
       this.db.exec("commit");
       return done;
     } catch (error) {
       this.db.exec("rollback");
+      position();
       back();
       this.restored = restored;
       throw error;
@@ -118,6 +124,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
       this.db
         .prepare("insert into events values (?, ?, ?, ?, ?, ?, ?, ?)")
         .run(seq, id, at, kind, by, JSON.stringify(cause), JSON.stringify(data), process ?? null);
+      this.position.wrote(seq);
       this.projections.fold(event);
       if (event.seq % snapshotEvery === 0) this.snapshot();
       return event;
@@ -145,15 +152,17 @@ export class SqliteJournal<P extends Foreign = Foreign> {
       this.warn({ name, reason }),
     );
   }
-  /** Brings what is watched up to the last fact. What was kept under a name nobody watches now is dropped. */
-  restore(): void {
+  /** Restores watched folds; drops names outside them and the explicitly retained calculation family. */
+  restore(retainPrefix = ""): void {
     this.restored = false;
     try {
       this.batch(() => {
         const watched = [...this.projections.caches.keys()];
         for (const row of this.db.prepare("select name from snapshots").all())
-          if (typeof row.name === "string" && !watched.includes(row.name))
-            this.warn({ name: row.name, reason: journalTexts.unwatchedFold });
+          if (typeof row.name === "string" && !watched.includes(row.name)) {
+            if (retainPrefix && row.name.startsWith(retainPrefix)) watched.push(row.name);
+            else this.warn({ name: row.name, reason: journalTexts.unwatchedFold });
+          }
         const names = watched.map(() => "?").join(", ");
         this.lease.check();
         this.db.prepare(`delete from snapshots where name not in (${names})`).run(...watched);

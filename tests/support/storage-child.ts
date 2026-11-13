@@ -24,6 +24,7 @@ if (mode === "lease") {
   };
 }
 const { SqliteJournal } = await import("../../src/adapters/storage/journal-store.ts");
+let transaction: DatabaseSync | undefined;
 let journal: InstanceType<typeof SqliteJournal> | undefined;
 process.on("message", message => {
   if (message === "open") {
@@ -35,11 +36,16 @@ process.on("message", message => {
     } catch (error) {
       process.send?.(error instanceof Error ? error.message : String(error));
     }
+  } else if (message === "begin") {
+    transaction = new DatabaseSync(file);
+    transaction.exec("begin immediate");
+    process.send?.("writing");
   } else if (message === "write") {
     for (let n = 0; n < 101; n++)
       journal?.append(shop.fact("sale-registered", { sale: `${role}${n}`, total: 10 }, "ana"), n);
     process.send?.("wrote");
   } else if (message === "close") {
+    transaction?.close();
     journal?.close();
     process.disconnect();
   }

@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { root } from "../support/sources.ts";
 
 const names = [
+  "renewKeptJournals",
   "count",
   "day",
   "digits",

@@ -5,6 +5,7 @@ export function sqliteFiles(file: string) {
   if (file === ":memory:") return undefined;
   const entries = ["", "-journal", "-wal", "-shm"].map(suffix => {
     const entry = lstatSync(`${file}${suffix}`, { throwIfNoEntry: false, bigint: true });
+    if (entry?.nlink === 0n) return undefined;
     if (entry && (!entry.isFile() || entry.nlink !== 1n)) throw new Error(journalTexts.invalidSqliteFiles);
     return entry;
   });
