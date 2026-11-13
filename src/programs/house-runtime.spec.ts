@@ -8,6 +8,7 @@ import { toolAct } from "../tools/act-definition.ts";
 import type { Tool } from "../tools/tool-contract.ts";
 import { localPorts, startHouse, type HouseOptions } from "./house-runtime.ts";
 import { MemoryKeys } from "../../tests/support/shop-rig.ts";
+import { MemoryHouseKeys } from "../adapters/secrets/custody/house-keys.ts";
 import { shop, shopRegistry, shopSlices, type Shop, type ShopEvent } from "../../tests/support/shop.ts";
 
 const homes: string[] = [];
@@ -36,6 +37,7 @@ const options: HouseOptions<Shop> = {
   by: "shop",
   creation: { admin: "ana", assignments: [{ identity: "ana", tools: registry.map(tool => tool.id) }] },
   keys: new MemoryKeys(),
+  secretKeys: new MemoryHouseKeys(),
   words: shop,
   registry,
   slices: shopSlices,

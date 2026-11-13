@@ -4,7 +4,8 @@ import { defectReporter } from "../tools/failures/defect-reporter.ts";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { protectedHouse } from "../adapters/secrets/positions/protected-house.ts";
-import { SecretVault } from "../adapters/secrets/secret-vault.ts";
+import { openSecretVault } from "../adapters/secrets/custody/open-secret-vault.ts";
+import type { HouseKeyProvider } from "../adapters/secrets/custody/house-keys.ts";
 import { SqliteJournal } from "../adapters/storage/journal-store.ts";
 import { privateDirectoryMode, type ViewLimits } from "../catalogs/levers.ts";
 import { createHouse, identityView, type Creation } from "../house/house.ts";
@@ -19,7 +20,8 @@ import { startState, startTools, toolsStep } from "../tools/tools.ts";
 /** What a program hands a house to live in it: its vocabulary, its tools, and what each of them keeps. */
 export type HouseOptions<X extends Program> = Readonly<{ by: string; creation: Creation; keys: KeyStore }> &
   Readonly<{ words: Vocabulary<X["fact"]>; registry: ToolRegistry<X>; slices: Slices<X> }> &
-  Partial<Pick<Execution<X>, "own" | "process">>;
+  Partial<Pick<Execution<X>, "own" | "process">> &
+  Readonly<{ secretKeys?: HouseKeyProvider }>;
 /** A part is kept under its tool's id: that is how the house gives a whole tool, or none of it, to an identity. */
 function ownerless<X extends Program>({ slices, registry }: HouseOptions<X>): string[] {
   return Object.keys(slices.step).filter(part => !registry.some(tool => tool.id === part));
@@ -47,13 +49,13 @@ function busOf<X extends Program>(
   );
 }
 export function startHouse<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource = systemTime) {
-  const { by, words, registry, slices, creation, ...ports } = options;
+  const { by, words, registry, slices, creation, secretKeys, ...ports } = options;
   if (!by) throw new Error("An explicit identity is required");
   if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
   const protection = protectedHouse(home, options);
   mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
   const journal = new SqliteJournal(join(home, "journal.sqlite"), protection.words);
-  const secrets = new SecretVault<X>(join(home, "secrets.sqlite"), words.event);
+  const secrets = openSecretVault<X>(join(home, "secrets.sqlite"), words.event, secretKeys, () => journal.close());
   const bus = busOf<X>(journal, time, emission => secrets.write(emission));
   const stops: (() => void)[] = [];
   const report = defectReporter(

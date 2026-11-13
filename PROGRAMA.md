@@ -316,8 +316,69 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   la marca; no equivale a declarar limpio ese contenido. Una casa nueva empieza con ambas cuentas en cero.
 - Al actualizar, mantené las marcas en los campos, aceptá referencias en los plegados y tratá el rechazo histórico
   sin reintentar escribiendo sobre el registro. La revisión no recupera esquemas desaparecidos ni certifica salidas
-  transformadas o datos no declarados. La bóveda separada no ofrece cifrado ni convierte al programa en un lector
-  de referencias opacas; ese cambio de contrato se diseña aparte.
+  transformadas o datos no declarados. La custodia cifra el material; el cambio de contrato que entrega referencias
+  a las acciones corresponde a los pasos siguientes de A01.
+
+## Custodia de credenciales · A01, paso 1
+
+Al componer una casa que guarda secretos, entregá `HouseOptions.secretKeys: HouseKeyProvider`.
+`key(casa, crear)` entrega 32 bytes propios de esa casa; conserva la llave fuera de su carpeta y devuelve una copia.
+La identidad que usa `startHouse` es la ruta real de la casa. Moverla requiere una migración explícita del proveedor;
+copiarla a otra ubicación no habilita la copia. Sin proveedor, una casa sin material puede abrir, pero no capturarlo.
+Una casa con material cifrado y una llave ausente o incorrecta no abre. La base nunca reemplaza una llave perdida.
+
+`MemoryHouseKeys` mantiene llaves independientes en memoria para pruebas. `MacOSHouseKeys` usa
+`/usr/bin/security` mediante un `KeychainCommand` obligatorio, inyectado por la composición: recibe ejecutable y
+lista de argumentos y devuelve estado y salida. No tiene ejecutor implícito, no usa shell ni sobrescribe una entrada
+existente. El ejecutor no debe registrar argumentos ni salida; ese límite transporta la llave. Las pruebas usan
+comandos falsos y material inventado. El llavero real no forma parte de la compuerta.
+
+El material se guarda con AES-256-GCM, nonce aleatorio y autenticación de versión, casa y referencia. Los archivos
+son privados; la llave no se guarda ahí. La custodia mantiene un bloqueo exclusivo de SQLite hasta cerrar. Un segundo
+escritor no puede recuperar ni borrar provisionales ajenos. Esto no promete borrar respaldos, copias del proveedor,
+memoria del proceso ni versiones de páginas que conserve el sistema de archivos.
+
+La composición confiable abre `SecretCustody` y crea `begin({ actor, tool, target })` después de autorizar a la persona.
+La base no deduce permisos de esos textos: la composición es quien los acredita. El alcance incluye identidad,
+herramienta y objeto; el objeto y el slot deben identificar también organización, ambiente y propósito del programa.
+`capture` ingresa un string, incluso vacío o con apariencia de referencia, y devuelve un nuevo `secret:UUID`.
+El adaptador recibe `adapter(session, slots)`: puede capturar material leído de un archivo y usar referencias con
+`use(refs, material => resultadoPublico)`. La lista de slots se copia al entregar esa capacidad.
+El resolvedor solo admite provisionales de esa sesión o vínculos vigentes de su alcance y sus slots autorizados.
+El adaptador es de confianza: la base cierra sus excepciones con `E-CUSTODY-ADAPTER`, pero no demuestra que su
+resultado público no codifique el material. La captura de archivos y la composición de puertos de acciones se
+conectan en los pasos siguientes; esta API no debe entregarse entera a una herramienta.
+
+`current(slot)` devuelve referencias y revisión. `replace(slot, refs, revision)` verifica material y autorización
+antes de confirmar el par como una sola versión. `release(slot, revision)` revoca esa vinculación. Una revisión
+vieja falla con `E-CUSTODY-CONFLICT`, incluso después de liberar el slot; una liberación conserva su revisión como
+tumba. Para reconectar un slot vacío, `revision(slot)` devuelve esa revisión aunque `current` no tenga credencial;
+no se debe sustituir una ausencia por revisión cero. `cancel()` invalida la sesión y recoge lo provisional.
+Un uso iniciado reserva su versión hasta terminar;
+reemplazar o revocar impide nuevos usos por ese vínculo. Otra vinculación vigente puede seguir usándola.
+`retain(ref, propósito)` conserva material para un histórico sin autorizar usos; `releaseRetention` retira esa raíz.
+La mera aparición de una referencia en el historial no conserva el material.
+
+El registro de custodia contiene `credential-bound`, `credential-released`, `credential-cleanup-pending` y
+`credential-purged`, con referencias, actor, herramienta, objeto, slot, revisión y causa pública. Primero se guarda
+la intención y el material cifrado; después, el hecho que autoriza el vínculo. Antes del borrado físico se confirma
+la marca pendiente; el recibo de borrado se escribe solo después de eliminar. Al abrir se retoman pendientes y se
+recogen provisionales de sesiones interrumpidas; un borrado físico fallido permanece pendiente y sin uso autorizado.
+
+En este paso los hechos de custodia tienen su tabla aditiva en la misma bóveda. `CredentialLedger` permite que la
+composición conecte el registro del motor: `append` debe confirmar atómicamente y `facts` leer solamente batches
+confirmados, en orden. No se debe poblar desde hechos arbitrarios del bus público. La recuperación toma ese registro
+como autoridad: un batch rechazado conserva la versión anterior; un batch confirmado conserva la nueva aunque
+el proceso haya caído antes de actualizar sus metadatos auxiliares. La unión al batch de una acción queda para el
+paso de contratos; las acciones actuales siguen usando su contrato anterior.
+
+Al abrir una bóveda anterior, primero corre la revisión B del registro. Luego se cifran los valores conservando
+sus IDs, se relee y compara cada copia y recién entonces se retira la tabla anterior. La tabla vacía marca una
+compactación pendiente: un corte durante copia, retiro o compactación se retoma al abrir. Hasta declarar dueño y
+propósito con `adopt`, esas referencias quedan retenidas y no se resuelven. `discardLegacy` permite descartarlas.
+Las capturas del contrato anterior también quedan retenidas, sin atribuir un dueño a partir de textos históricos.
+Un `KeyStore` anterior se incorpora mediante `importLegacyKeys` y un manifiesto explícito de proveedor y referencia:
+se verifican todos los destinos cifrados antes de retirar el primer origen. No hay enumeración ni adopción inferida.
 
 ## Los registros que se guardan
 - Un programa puede guardar registros que organizaciones reales escribieron con él en una carpeta que nombra en

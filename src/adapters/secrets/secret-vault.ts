@@ -1,26 +1,24 @@
 // Schema-marked values live in a separate local store; persisted facts carry opaque references.
 import type { TSchema } from "@sinclair/typebox";
-import { randomUUID } from "node:crypto";
-import type { DatabaseSync } from "node:sqlite";
-import { ids } from "../../catalogs/ids.ts";
+import { realpathSync } from "node:fs";
+import { dirname } from "node:path";
 import type { Program } from "../../tools/tool-contract.ts";
-import { privateDatabase } from "../storage/home.ts";
-import { capturable, Redactor } from "./redact.ts";
+import { Redactor } from "./redact.ts";
+import { RedactionCustody } from "./custody/redaction-custody.ts";
+import type { HouseKeyProvider } from "./custody/house-keys.ts";
 export class SecretVault<X extends Program> extends Redactor<X> {
-  private readonly db: DatabaseSync;
-  constructor(file: string, journal: TSchema) {
-    const values = new Map<string, string>();
-    super(journal, values, value => {
-      const id = `${ids.secret}${randomUUID()}`;
-      this.db.prepare("insert into secrets values (?, ?)").run(id, value);
-      return id;
-    });
-    this.db = privateDatabase(file);
-    this.db.exec("create table if not exists secrets (id text primary key, value text not null unique)");
-    for (const row of this.db.prepare("select id, value from secrets").all())
-      if (capturable(row.value) && typeof row.id === "string") values.set(row.value, row.id);
+  private readonly custody: RedactionCustody;
+  constructor(file: string, journal: TSchema, keys?: HouseKeyProvider) {
+    const custody = new RedactionCustody(file, realpathSync(dirname(file)), keys);
+    try {
+      super(journal, custody.dictionary(), value => custody.keep(value));
+    } catch (error) {
+      custody.close();
+      throw error;
+    }
+    this.custody = custody;
   }
   close(): void {
-    if (this.db.isOpen) this.db.close();
+    this.custody.close();
   }
 }

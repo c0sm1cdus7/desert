@@ -53,6 +53,11 @@ Qué cambió respecto de Kenon en este paso:
   plegados reciben referencias. `positions/` adapta la lectura; `text/` limpia texto y causas; `history/` revisa
   registros anteriores antes de cualquier escritura. Transformaciones y pantalla final quedan fuera: el
   contrato y la apertura con `E-SECRET-HISTORY` están en `PROGRAMA.md`, «Lo declarado secreto».
+- `src/adapters/secrets/custody/`: una custodia cifrada por casa, con proveedor de llaves externo, ingreso
+  provisional, vínculos con revisión, reservas de uso y recuperación. La bóveda anterior se adopta conservando IDs,
+  después de la revisión histórica y antes del arranque. `secretKeys` se queda en la composición, fuera de los
+  puertos de herramientas. El contrato de acciones no cambia en este paso: ver «Custodia de credenciales» en
+  `PROGRAMA.md`, incluida la conexión futura de `CredentialLedger` al batch del motor.
 - Probado en una terminal real con el programa de prueba: `node tests/support/shop-open.ts`.
 
 ## 4. El router: una sola lógica para todas las superficies (HECHO)

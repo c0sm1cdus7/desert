@@ -1781,6 +1781,32 @@
         "src/adapters/secrets/secret-history.spec.ts",
         "tests/support/a01-history.json"
       ]
+    },
+    {
+      "id": 208,
+      "rule": "El material de la custodia queda cifrado con una llave externa propia de cada casa y autenticado por casa y referencia. Al abrir se cifra y verifica la bóveda anterior antes de retirarla; los IDs se conservan y el dueño se adopta explícitamente. El proveedor macOS requiere un comando inyectado y sus pruebas no usan el llavero real.",
+      "from": "13/11 · A01, segunda parte, paso 1: custodia",
+      "guarantee": "spec",
+      "evidence": [
+        "src/adapters/secrets/custody-encryption.spec.ts",
+        "src/adapters/secrets/custody-migration.spec.ts",
+        "src/adapters/secrets/custody-previous-house.spec.ts",
+        "src/adapters/secrets/custody/custody-cipher.ts",
+        "PROGRAMA.md"
+      ]
+    },
+    {
+      "id": 209,
+      "rule": "La custodia restringe usos por sesión, identidad, herramienta, objeto y vínculo. Cancelar o reiniciar libera provisionales; reemplazar compara revisión; un uso iniciado conserva su versión. La recuperación conserva batches confirmados y reintenta borrados pendientes sin anunciar eliminación antes de hacerla; el historial solo no retiene material. Las acciones conservan su contrato anterior en este paso.",
+      "from": "13/11 · A01, segunda parte, paso 1: custodia",
+      "guarantee": "spec",
+      "evidence": [
+        "src/adapters/secrets/custody.spec.ts",
+        "src/adapters/secrets/custody-recovery.spec.ts",
+        "src/adapters/secrets/custody-neighbors.spec.ts",
+        "src/adapters/secrets/custody-process.spec.ts",
+        "PROGRAMA.md"
+      ]
     }
   ]
 }

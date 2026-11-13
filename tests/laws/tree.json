@@ -1,7 +1,7 @@
 {
   "files": {
     "adapters/secrets/redact.ts": "Redactor: reemplaza posiciones al escribir y limpia resultados con el alcance de la acción actual",
-    "adapters/secrets/secret-vault.ts": "SecretVault: captured secrets in their own private store, apart from the journal",
+    "adapters/secrets/secret-vault.ts": "SecretVault: limpieza anterior respaldada por la custodia cifrada; adopción al abrir",
     "adapters/storage/home.ts": "privateDatabase: a house's files on disk, readable only by whoever runs it",
     "adapters/storage/journal-store.ts": "SqliteJournal: append-only facts of a house and its program, replay, snapshots, one open lock",
     "catalogs/acts.ts": "object schemas, the act envelope every door sends, and the acts of every house",
@@ -145,16 +145,30 @@
     "adapters/secrets/text/secret-output.ts": "Separa texto de los campos del protocolo y conserva discriminantes y nombres declarados",
     "adapters/secrets/history/secret-history.ts": "Revisa acciones históricas en solo lectura; bloquea valores expuestos o deja la marca con sus cuentas",
     "adapters/secrets/positions/declared-input.ts": "Resuelve el esquema exacto de acciones propias, de cosas y de la casa para escritura y revisión histórica",
-    "texts/secrets/secrets.texts.ts": "Mensajes de apertura y declaraciones secretas que nombran posiciones sin mostrar valores"
+    "texts/secrets/secrets.texts.ts": "Mensajes de apertura y declaraciones secretas que nombran posiciones sin mostrar valores",
+    "adapters/secrets/custody/custody-access.ts": "Autoriza referencias por alcance y reserva una versión durante el uso del adaptador.",
+    "adapters/secrets/custody/custody-cipher.ts": "Cifra con AES-256-GCM ligado a casa y referencia, sin guardar la llave en la casa.",
+    "adapters/secrets/custody/custody-cleanup.ts": "Recoge materiales sin raíces y reanuda borrados con hechos pendientes y completados.",
+    "adapters/secrets/custody/custody-contract.ts": "Referencias, alcances, vínculos y contrato del registro durable de custodia.",
+    "adapters/secrets/custody/custody-database.ts": "Persistencia privada y exclusiva de cifrados, intenciones, retenciones y hechos aditivos.",
+    "adapters/secrets/custody/custody-migration.ts": "Adopta la bóveda anterior: cifra, relee, compara y retira lo viejo con recuperación.",
+    "adapters/secrets/custody/custody-state.ts": "Reconstruye vínculos desde hechos confirmados y conserva sesiones y reservas vivas.",
+    "adapters/secrets/custody/house-keys.ts": "Contrato del proveedor externo por casa, errores cerrados y proveedor en memoria para pruebas.",
+    "adapters/secrets/custody/legacy-key-provider.ts": "Adopta proveedores KeyStore mediante un manifiesto explícito y verifica antes de retirar orígenes.",
+    "adapters/secrets/custody/macos-house-keys.ts": "Proveedor de llaves por casa sobre security de macOS con comando obligatorio inyectado.",
+    "adapters/secrets/custody/open-secret-vault.ts": "Abre la bóveda y libera el registro si falla la llave o la recuperación.",
+    "adapters/secrets/custody/retained-material.ts": "Retiene y adopta material anterior con IDs estables y dueño explícito.",
+    "adapters/secrets/custody/secret-custody.ts": "Custodia común: ingreso provisional, vínculos, reservas, retenciones y recolección.",
+    "adapters/secrets/custody/redaction-custody.ts": "Puente interno de la limpieza anterior: hidrata su diccionario desde la custodia cifrada."
   },
   "folders": {
-    "adapters/secrets": 103,
+    "adapters/secrets": 96,
     "adapters/storage": 181,
     "catalogs": 198,
     "doors/terminal": 696,
     "house": 91,
     "journal": 333,
-    "programs": 1877,
+    "programs": 1879,
     "surface": 1823,
     "surface/bridge": 1387,
     "texts": 216,
@@ -181,6 +195,7 @@
     "adapters/secrets/positions": 200,
     "adapters/secrets/text": 150,
     "adapters/secrets/history": 160,
-    "texts/secrets": 5
+    "texts/secrets": 5,
+    "adapters/secrets/custody": 741
   }
 }

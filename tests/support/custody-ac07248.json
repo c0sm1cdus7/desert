@@ -1,0 +1,141 @@
+{
+  "commit": "ac072488b9c81ea9beefb24107f64d0a6e997a21",
+  "events": [
+    {
+      "seq": 1,
+      "id": "f6c1e4b4ed50c0dbc16c6021c0425c7a4a07d31edafa126863c5ccbc51dd248a",
+      "at": 1000,
+      "kind": "house-created",
+      "by": "ana",
+      "cause": "[]",
+      "data": "{}",
+      "process": null
+    },
+    {
+      "seq": 2,
+      "id": "44ab29ba000a0e9f14ee4fb9e7da2b1023be2f46240a754e2eefc24d0df9e73b",
+      "at": 1000,
+      "kind": "granted",
+      "by": "ana",
+      "cause": "[]",
+      "data": "{\"identity\":\"ana\",\"tools\":[\"vault\",\"sales\",\"payments\"]}",
+      "process": null
+    },
+    {
+      "seq": 3,
+      "id": "57285db0b59df79dd5045dcaae7845826079c236518b6e37e110114124bb16af",
+      "at": 1000,
+      "kind": "boot",
+      "by": "shop",
+      "cause": "[]",
+      "data": "{}",
+      "process": null
+    },
+    {
+      "seq": 4,
+      "id": "00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f",
+      "at": 1000,
+      "kind": "act",
+      "by": "ana",
+      "cause": "[]",
+      "data": "{\"object\":\"me\",\"option\":\"attend\",\"input\":{\"target\":\"vault\"},\"through\":0}",
+      "process": null
+    },
+    {
+      "seq": 5,
+      "id": "115d4f7de1eeb8d3aed0e7fe1e36f47de5c7945321db6884e8089af834ea36a7",
+      "at": 1000,
+      "kind": "act-started",
+      "by": "ana",
+      "cause": "[\"00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f\"]",
+      "data": "{\"act\":\"00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f\",\"object\":\"me\",\"option\":\"attend\"}",
+      "process": null
+    },
+    {
+      "seq": 6,
+      "id": "9cb929ede7b538f5f84b3a1607b8acad960430712dfe4d0e394b3c798cf5bbf1",
+      "at": 1000,
+      "kind": "attended",
+      "by": "ana",
+      "cause": "[\"00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f\"]",
+      "data": "{\"target\":\"vault\"}",
+      "process": null
+    },
+    {
+      "seq": 7,
+      "id": "5d06658395fb5debc74ff8e0f1f3110f5ea6987b002149917da647b3b644f33e",
+      "at": 1000,
+      "kind": "act-result",
+      "by": "ana",
+      "cause": "[\"00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f\"]",
+      "data": "{\"act\":\"00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f\",\"status\":\"accepted\",\"reason\":\"\",\"output\":true}",
+      "process": null
+    },
+    {
+      "seq": 8,
+      "id": "160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c",
+      "at": 1000,
+      "kind": "act",
+      "by": "ana",
+      "cause": "[]",
+      "data": "{\"object\":\"vault\",\"option\":\"set\",\"input\":{\"value\":\"secret:f9349a1a-e2af-440a-b5b2-14aaa60c5476\"},\"through\":0}",
+      "process": null
+    },
+    {
+      "seq": 9,
+      "id": "18e1c4d646534ebf415fc73db61a4300fd7f040f348fb308243a6f3a930de9bc",
+      "at": 1000,
+      "kind": "act-started",
+      "by": "ana",
+      "cause": "[\"160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c\"]",
+      "data": "{\"act\":\"160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c\",\"object\":\"vault\",\"option\":\"set\"}",
+      "process": null
+    },
+    {
+      "seq": 10,
+      "id": "3548bc634215d9b8de6c00d7612eb2a11d64e4d9c965a7bf105314d78e64484c",
+      "at": 1000,
+      "kind": "act-done",
+      "by": "ana",
+      "cause": "[\"160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c\"]",
+      "data": "{\"object\":\"vault\",\"act\":\"set\",\"text\":\"Guardado\"}",
+      "process": null
+    },
+    {
+      "seq": 11,
+      "id": "c09a8cb22b7b87735e010423a07edd4ba3935a205ab6a4f7e2ac9be0e36fb92b",
+      "at": 1000,
+      "kind": "tool-entry",
+      "by": "ana",
+      "cause": "[\"160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c\"]",
+      "data": "{\"tool\":\"vault\",\"target\":\"vault\",\"author\":\"ana\",\"text\":\"Guardado\"}",
+      "process": null
+    },
+    {
+      "seq": 12,
+      "id": "74eb42a19e5917a7c2e4402fd6efbe5642d5745c0989c06266109b8ab6743759",
+      "at": 1000,
+      "kind": "act-result",
+      "by": "ana",
+      "cause": "[\"160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c\"]",
+      "data": "{\"act\":\"160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c\",\"status\":\"accepted\",\"reason\":\"\"}",
+      "process": null
+    }
+  ],
+  "snapshots": [
+    {
+      "name": "clock@ae4d54eacfd92601",
+      "state": "/w9vIgNzZXFJGCIFc3RhdGU7OgB7Ag=="
+    },
+    {
+      "name": "tools:shop@ae4d54eacfd92601",
+      "state": "/w9vIgNzZXFJGCIFc3RhdGVvIgJieSIEc2hvcCIFaG91c2VvIgVhZG1pbiIDYW5hIgZncmFudHM7IgNhbmFhA0kAIgV2YXVsdEkCIgVzYWxlc0kEIghwYXltZW50c0ADAzoCIghjaGFubmVsczsiEmNvbW11bmljYXRvci9ob3VzZUEBIgNhbmEkAAE6AiIFaGlkZXM7OgB7BCIKYXR0ZW5kYW5jZTsiA2FuYUEBIgV2YXVsdCQAAToCIgpwcm9jZXNzaW5nOzoAIgRhY3RzOzoAIgthdHRlbnRpb25CeTs6ACIGbG9va2VkOyIDYW5hOyIFdmF1bHRJDDoCOgIiB2VudHJpZXNBAW8iBWxheWVyIgVob3VzZSIEa2luZCIKdG9vbC1lbnRyeSIEZGF0YW8iBHRvb2wiBXZhdWx0IgZ0YXJnZXQiBXZhdWx0IgZhdXRob3IiA2FuYSIEdGV4dCIIR3VhcmRhZG97BCICYnkiA2FuYSIFY2F1c2VhAUkAIkAxNjBmZWVhZGYxNDgxNmI0NDRkNDg5NTAyNzVjY2MxM2Q1ZGY1NWFkYjE0MTFlYWEyMmFhMDBjOWNlNWI2MDBjQAEBIgNzZXFJFiICaWQiQGMwOWE4Y2IyMmI3Yjg3NzM1ZTAxMDQyM2EwN2VkZDRiYTM5MzVhMjA1YWI2YTRmN2UyYWM5YmUwZTM2ZmI5MmIiAmF0SdAPewgkAAEiB2F0dGVuZHNBACQAACIJYXR0ZW50aW9uOzoAIgd0aHJvdWdoSRgiBXRvb2xzbyIFc2FsZXM7OgAiCHBheW1lbnRzbyIIcmVjZWl2ZWRJACIJdW5tYXRjaGVkQQAkAAB7AnsCewx7Ag=="
+    }
+  ],
+  "material": [
+    {
+      "id": "secret:f9349a1a-e2af-440a-b5b2-14aaa60c5476",
+      "value": "ANTERIOR_SINTETICO\nSIN_VALOR"
+    }
+  ]
+}

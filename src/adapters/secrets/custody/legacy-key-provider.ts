@@ -1,0 +1,22 @@
+import type { KeyStore } from "../../../tools/tool-contract.ts";
+import type { SecretCustody } from "./secret-custody.ts";
+import type { SecretRef } from "./custody-contract.ts";
+import { CustodyError } from "./house-keys.ts";
+/** The owner supplies every source/destination explicitly; KeyStore has no reliable enumeration contract. */
+export async function importLegacyKeys(
+  custody: SecretCustody,
+  source: KeyStore,
+  manifest: readonly Readonly<{ provider: string; ref: SecretRef }>[],
+): Promise<void> {
+  try {
+    for (const entry of manifest) {
+      const value = await source.get(entry.provider);
+      if (value !== undefined) custody.importLegacy(entry.ref, value);
+      else custody.verifyLegacy(entry.ref);
+    }
+    // Every encrypted destination is durable and verified before the first old value is removed.
+    for (const entry of manifest) await source.remove(entry.provider);
+  } catch {
+    throw new CustodyError("E-CUSTODY-LEGACY");
+  }
+}
