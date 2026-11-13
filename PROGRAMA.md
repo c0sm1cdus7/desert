@@ -320,6 +320,17 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
 
 ## Un objeto
 
+- La ventana `recentLines` limita las filas recientes que la herramienta entrega para listar; no define qué
+  objetos existen. `targets` sigue declarando todos los objetos, y un objeto anterior se puede nombrar, buscar,
+  elegir y abrir desde Atención, Actividad, una referencia o una acción aunque ya no esté entre esas filas.
+- Para resolver nombres, la base pide la lectura completa con `recentLines: Number.MAX_SAFE_INTEGER` y arma
+  un índice compartido por herramienta, versión del estado e instante de lectura. `houseRouter` fija ese instante
+  durante cada pintado o intención; un nuevo estado o instante renueva el índice. La búsqueda usa la misma lectura.
+  Los datos propios de `itself` siguen separados de las filas de objetos. No cambia lo guardado ni hace falta
+  adaptar las herramientas: la lectura completa ya era la que usaba la búsqueda.
+- Que el objeto no exista, o que falte su nombre en la lectura completa, sigue siendo un defecto o una ausencia
+  explícita según la entrada; no se inventa un nombre para ocultarlo. El listado reciente no agrega filas antiguas
+  con identificadores usados como nombres. El recorte visual por altura sigue dejando recorrer las filas listadas.
 - La herramienta declara en `presents` los grupos de sus objetos, en orden, cada uno con su título, lo que dice
   vacío y las claves de la lectura que lleva. `view(estado, objeto)` devuelve en su primera línea un JSON con esas
   claves. La base dibuja el objeto: los grupos siempre en el mismo lugar, el vacío dicho, las acciones al final.

@@ -136,7 +136,8 @@
     "surface/navigation/gone-view.ts": "Reconoce solo una ausencia explícita y deja salir los defectos de lectura.",
     "surface/navigation/missing-view.ts": "Identifica una vista ausente sin confundirla con una lectura que falló.",
     "surface/bridge/actions/asked-act.ts": "Compone preguntas y confirmación de una acción conservando el dueño de sus métodos.",
-    "texts/closures/closures.texts.ts": "Mensajes de cierres por causa, dato o construcción y de entradas sin camino."
+    "texts/closures/closures.texts.ts": "Mensajes de cierres por causa, dato o construcción y de entradas sin camino.",
+    "surface/bridge/tool-index.ts": "toolIndex: lectura completa compartida por estado e instante para nombres, pertenencia y búsquedas."
   },
   "folders": {
     "adapters/secrets": 103,

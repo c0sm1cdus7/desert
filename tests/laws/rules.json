@@ -1748,6 +1748,22 @@
         "src/doors/terminal/input.spec.ts",
         "src/doors/terminal/real-terminal.spec.ts"
       ]
+    },
+    {
+      "id": 218,
+      "rule": "Un objeto existente se puede nombrar, elegir y abrir aunque quede fuera de las filas recientes. La ventana recorta el listado, nunca la existencia. Los nombres se resuelven con una lectura completa indexada, compartida por herramienta, versión del estado e instante del pintado; 5.000 objetos y 200 avisos requieren una sola enumeración completa por herramienta. Un objeto ausente o una lectura defectuosa conserva su defecto visible, sin nombres inventados.",
+      "from": "13/11 · tanda 13b · la ventana de filas recientes no define qué objetos existen",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/bridge/tool-index.ts",
+        "src/surface/bridge/any-tool.ts",
+        "src/surface/bridge/house-router.ts",
+        "src/surface/bridge/outside-window.spec.ts",
+        "src/surface/bridge/window-neighbors.spec.ts",
+        "src/surface/bridge/window-cost.spec.ts",
+        "src/surface/bridge/window-derived.spec.ts",
+        "tests/support/window-program.ts"
+      ]
     }
   ]
 }

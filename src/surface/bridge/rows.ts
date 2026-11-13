@@ -46,10 +46,12 @@ export function rowsIn(view: string, label: Labels, changing?: Changing): ViewRo
     .flatMap(line => rowsOf(parse(line) ?? line, label, changing));
 }
 /** Every thing the tool lists is reachable: what the view did not show still gets its row. */
-export function listedIn(targets: readonly string[], shown: readonly ViewRow[]): readonly ViewRow[] {
+export function listedIn(targets: readonly string[], shown: readonly ViewRow[], complete = true): readonly ViewRow[] {
+  const known = new Set(targets);
+  const listed = new Set(shown.map(row => row.opens));
   const openable: readonly ViewRow[] = shown.map(({ opens, ...row }) =>
-    opens && targets.includes(opens) ? { ...row, opens } : row,
+    opens && known.has(opens) ? { ...row, opens } : row,
   );
-  const rest = targets.filter(id => !shown.some(row => row.opens === id));
+  const rest = complete ? targets.filter(id => !listed.has(id)) : [];
   return [...openable, ...rest.map(id => ({ title: decodeURIComponent(id), opens: id }))];
 }
