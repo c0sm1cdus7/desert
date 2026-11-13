@@ -44,6 +44,8 @@ export function secretPositions(schema: unknown, value: unknown, replace: Replac
     if (!matches.length) return marked(schema) ? replace(value, path || "/") : value;
     return matches.reduce((kept, arm) => secretPositions(arm, kept, replace, path), value);
   }
+  if (marked(schema) && ((schema.properties && !record(value)) || (schema.items && !Array.isArray(value))))
+    return replace(value, path || "/");
   if (record(schema.properties) && record(value)) {
     const kept = { ...value };
     for (const [key, child] of Object.entries(schema.properties))

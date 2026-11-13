@@ -1,7 +1,8 @@
-// Old journals are inspected read-only before a lock, vault, snapshot or boot can be written.
+// A read-only WAL connection can create SQLite sidecars; journal and vault bytes stay intact on refusal.
+import { protectedAlready } from "./protection-mark.ts";
 import { secretTexts } from "../../../texts/secrets/secrets.texts.ts";
 import { journalReader } from "../../storage/journal-store.ts";
-import { existsSync, readFileSync, writeFileSync, renameSync } from "node:fs";
+import { existsSync, writeFileSync, renameSync } from "node:fs";
 import { join } from "node:path";
 import { privateFileMode } from "../../../catalogs/levers.ts";
 import { declaredInput } from "../positions/declared-input.ts";
@@ -10,9 +11,9 @@ import type { HouseOptions } from "../../../programs/house-runtime.ts";
 import { startState, toolsStep } from "../../../tools/tools.ts";
 import type { Program, State } from "../../../tools/tool-contract.ts";
 import { isReference, record, secretPositions, storedSchema } from "../positions/secret-positions.ts";
-import { protectedVocabulary } from "../positions/protected-vocabulary.ts";
+import { inspectionVocabulary } from "./inspection-vocabulary.ts";
 type Finding = Readonly<{ action: string; position: string; seq: number }>;
-type Review = { version: number; reviewed: number; unreviewable: number };
+type Review = { version: number; reviewed: number; reviewedFacts: number; unreviewable: number };
 export class SecretHistoryError extends Error {
   readonly code = "E-SECRET-HISTORY";
   readonly positions: readonly Finding[];
@@ -21,14 +22,6 @@ export class SecretHistoryError extends Error {
     this.positions = positions;
   }
 }
-const parse = (value: unknown): unknown => (typeof value === "string" ? JSON.parse(value) : undefined);
-const protectedAlready = (file: string): boolean => {
-  if (!existsSync(file)) return false;
-  const mark = parse(readFileSync(file, "utf8"));
-  return (
-    record(mark) && mark.version === 1 && typeof mark.reviewed === "number" && typeof mark.unreviewable === "number"
-  );
-};
 function inspectAct<X extends Program>(
   row: Record<string, unknown>,
   state: State<X>,
@@ -48,14 +41,23 @@ function inspectAct<X extends Program>(
   });
 }
 function review<X extends Program>(file: string, options: HouseOptions<X>): Review {
-  const result = { version: 1, reviewed: 0, unreviewable: 0 };
+  const result = { version: 2, reviewed: 0, reviewedFacts: 0, unreviewable: 0 };
   if (!existsSync(file)) return result;
-  const reader = journalReader(file, protectedVocabulary(options.words));
+  const words = inspectionVocabulary(options.words);
+  const reader = journalReader(file, words);
   const positions: Finding[] = [];
   let state = startState(options.slices, options.by);
+  const schema = words.event;
   try {
     for (const row of reader.since(0)) {
       inspectAct(row, state, options, result, positions);
+      if (row.layer === "program") {
+        result.reviewedFacts++;
+        secretPositions(schema, row, (value, position) => {
+          if (!isReference(value)) positions.push({ action: row.kind, position, seq: row.seq });
+          return value;
+        });
+      }
       if (!positions.length) state = toolsStep(state, row, options.slices);
     }
     if (positions.length) throw new SecretHistoryError(positions);

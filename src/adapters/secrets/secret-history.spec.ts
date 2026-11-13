@@ -10,7 +10,8 @@ import { startHouse } from "../../programs/house-runtime.ts";
 function previous(kind: "exposed" | "reference") {
   const path = home();
   const db = new DatabaseSync(join(path, "journal.sqlite"));
-  db.exec(`create table events (seq integer primary key, id text not null unique, at integer not null,
+  db.exec(`pragma journal_mode = wal;
+    create table events (seq integer primary key, id text not null unique, at integer not null,
     kind text not null, by text not null, cause text not null, data text not null, process text);
     create table snapshots (name text primary key, state blob not null);`);
   for (const row of fixtures[kind].events)
@@ -29,7 +30,7 @@ function previous(kind: "exposed" | "reference") {
   db.close();
   return path;
 }
-it("rechaza el registro anterior expuesto sin escribir nada y nombra solo acción y posición", () => {
+it("rechaza el registro anterior expuesto sin alterar sus bytes y nombra solo acción y posición", () => {
   const rig = fixture();
   const path = previous("exposed");
   const before = readFileSync(join(path, "journal.sqlite"));
@@ -45,7 +46,8 @@ it("rechaza el registro anterior expuesto sin escribir nada y nombra solo acció
   expect(String(failure)).toContain("vault/set");
   expect(String(failure)).toContain("/value");
   expect(readFileSync(join(path, "journal.sqlite")).equals(before)).toBe(true);
-  expect(readdirSync(path)).toEqual(["journal.sqlite"]);
+  expect(readdirSync(path).sort()).toEqual(["journal.sqlite", "journal.sqlite-shm", "journal.sqlite-wal"]);
+  expect(readFileSync(join(path, "journal.sqlite-wal")).length).toBe(0);
 });
 it("abre el registro anterior con referencias y deja las cuentas revisadas y no revisables", () => {
   const rig = fixture();
@@ -53,7 +55,7 @@ it("abre el registro anterior con referencias y deja las cuentas revisadas y no 
   const opened = startHouse(path, rig.options, time);
   opened.close();
   const mark: unknown = JSON.parse(readFileSync(join(path, "secret-protection.json"), "utf8"));
-  expect(mark).toMatchObject({ version: 1, reviewed: 1, unreviewable: 1 });
+  expect(mark).toMatchObject({ version: 2, reviewedFacts: 0, reviewed: 1, unreviewable: 1 });
   const db = new DatabaseSync(join(path, "journal.sqlite"), { readOnly: true });
   expect(db.prepare("select * from events where seq <= 4").all()).toEqual(fixtures.reference.events);
   db.close();

@@ -1739,25 +1739,31 @@
     },
     {
       "id": 202,
-      "rule": "Cada posición string declarada secret se reemplaza por una referencia al escribir acciones y hechos, incluso vacía, corta o igual al vocabulario. Las declaraciones no soportadas se rechazan y secretInput false no desactiva la marca.",
+      "rule": "Cada posición string declarada secret se reemplaza por una referencia al escribir acciones y hechos, incluso vacía, corta o igual al vocabulario. Las declaraciones no soportadas se rechazan y secretInput false no desactiva la marca. Un contenedor marcado incompatible omite toda la entrada sin ingresar sus fragmentos a custodia. Cada escritura nueva recibe su referencia, incluso para valores iguales; secretInputs y secretLimits.minLength salen del contrato.",
       "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
       "guarantee": "spec",
       "evidence": [
         "src/adapters/secrets/positions/secret-positions.ts",
         "src/adapters/secrets/action-secrets.spec.ts",
-        "src/adapters/secrets/secret-boundaries.spec.ts"
+        "src/adapters/secrets/secret-boundaries.spec.ts",
+        "src/adapters/secrets/secret-review-probes.spec.ts",
+        "src/adapters/secrets/secret-write-references.spec.ts",
+        "src/adapters/secrets/secret-contract.spec.ts",
+        "src/adapters/secrets/secret-malformed.spec.ts"
       ]
     },
     {
       "id": 203,
-      "rule": "Solo los secretos de la acción actual limpian sus repeticiones literales en hechos, resultado, borrador, actividad y errores con causa antes de serializarlos; nunca se usa toda la bóveda como diccionario. Las transformaciones del programa son un límite conocido y la pregunta tapada sigue pendiente.",
+      "rule": "Solo los secretos de la acción actual limpian repeticiones literales en valores de texto de hechos, resultado, borrador, actividad y errores con causa; nunca se usa toda la bóveda como diccionario. P1–P5 documentan límites pendientes del contrato opaco: copias a otra acción, nombres de propiedad, defectos de superficie, destinos y made, y corrupción de texto público por secretos cortos. Tampoco se garantizan transformaciones ni pregunta tapada.",
       "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
       "guarantee": "spec",
       "evidence": [
         "src/adapters/secrets/text/action-text.ts",
         "src/adapters/secrets/secret-neighbors.spec.ts",
         "src/adapters/secrets/action-secrets.spec.ts",
-        "PROGRAMA.md"
+        "PROGRAMA.md",
+        "src/adapters/secrets/secret-known-limits.spec.ts",
+        "src/adapters/secrets/secret-output-limits.spec.ts"
       ]
     },
     {
@@ -1768,18 +1774,25 @@
       "evidence": [
         "src/adapters/secrets/action-secrets.spec.ts",
         "tests/support/secret-snapshots.ts",
-        "src/adapters/secrets/secret-vault.spec.ts"
+        "src/adapters/secrets/secret-vault.spec.ts",
+        "src/adapters/secrets/secret-rig.spec.ts",
+        "src/adapters/secrets/secret-crash.spec.ts"
       ]
     },
     {
       "id": 205,
-      "rule": "Un registro sin marca se revisa en solo lectura con los esquemas actuales antes de abrir: los valores en posiciones secretas provocan E-SECRET-HISTORY sin escrituras ni valores en el error; las referencias permiten abrir y se dejan cuentas revisadas y no revisables, sin reescribir hechos.",
+      "rule": "Sin marca o con marca v1, se revisan acciones y hechos del programa con los esquemas actuales antes de abrir. Un valor en posición secreta provoca E-SECRET-HISTORY sin valores en el error ni cambios en los bytes del registro o la bóveda; SQLite puede crear auxiliares shm y wal vacío. Las referencias permiten abrir con marca v2 y cuentas de acciones, hechos y acciones no revisables, sin reescribir hechos. La marca ilegible falla con E-SECRET-PROTECTION y su archivo. Resolver declaraciones no vuelve a filtrar la actividad si el programa no la consulta.",
       "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
       "guarantee": "spec",
       "evidence": [
         "src/adapters/secrets/history/secret-history.ts",
         "src/adapters/secrets/secret-history.spec.ts",
-        "tests/support/a01-history.json"
+        "tests/support/a01-history.json",
+        "src/adapters/secrets/secret-previous-house.spec.ts",
+        "tests/support/a01-previous-house.json",
+        "src/adapters/secrets/secret-fact-history.spec.ts",
+        "src/adapters/secrets/secret-review-cost.spec.ts",
+        "src/adapters/secrets/secret-mark.spec.ts"
       ]
     },
     {

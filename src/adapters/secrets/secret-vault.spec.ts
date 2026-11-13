@@ -18,7 +18,7 @@ for (const [name, value] of [
   ["vocabulario", "act-result"],
   ["multilínea", "uno\ndos"],
 ]) {
-  it(`recarga y reutiliza la referencia sin usar la bóveda como diccionario de texto: ${name}`, () => {
+  it(`recarga y asigna otra referencia sin usar la bóveda como diccionario de texto: ${name}`, () => {
     const home = mkdtempSync(join(tmpdir(), "a01-vault-fixture-"));
     const file = join(home, "vault-fixture.sqlite");
     const words = vocabulary({});
@@ -34,7 +34,7 @@ for (const [name, value] of [
       expect(second.scrub({ text: value }).text === value).toBe(true);
       const reopened = second;
       const after = reopened.scope(schema, { value }, () => reopened.write(event));
-      expect(after.data.input).toEqual(before.data.input);
+      expect(after.data.input).not.toEqual(before.data.input);
     } finally {
       first.close();
       second?.close();

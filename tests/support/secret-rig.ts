@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { serialize } from "node:v8";
+export { has } from "./secret-search.ts";
 import { afterEach, vi } from "vitest";
 import { Redactor } from "../../src/adapters/secrets/redact.ts";
 import { startHouse, localPorts, type HouseOptions } from "../../src/programs/house-runtime.ts";
@@ -14,13 +14,10 @@ import type { ToolAct, Slices } from "../../src/tools/tool-contract.ts";
 import { MemoryKeys } from "./shop-rig.ts";
 vi.mock("../../src/adapters/secrets/secret-vault.ts", async () => {
   const { Redactor } = await import("../../src/adapters/secrets/redact.ts");
-  const stores = new Map<string, Map<string, string>>();
   return {
     SecretVault: class extends Redactor<P> {
-      constructor(file: string, schema: TSchema) {
-        const values = stores.get(file) ?? new Map<string, string>();
-        stores.set(file, values);
-        super(schema, values, () => `secret:${randomUUID()}`);
+      constructor(_file: string, schema: TSchema) {
+        super(schema, () => `secret:${randomUUID()}`);
       }
       close() {}
     },
@@ -110,7 +107,6 @@ export function fixture(
   };
 }
 export const ref = (value: unknown) => typeof value === "string" && /^secret:[0-9a-f-]{36}$/u.test(value);
-export const has = (value: unknown, secret: string) => serialize(value).includes(Buffer.from(secret));
 export const inputOf = (rig: ReturnType<typeof fixture>) =>
   rig
     .facts()

@@ -288,36 +288,47 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   que depende de la entrada de verdad se comprueba con `realTerminal`, que corre el programa por su propia entrada.
 
 ## Lo declarado secreto
-- `secret: true` en un campo string garantiza la posición declarada, siempre y por estructura: al escribir
-  una acción o un hecho, esa posición lleva una referencia `secret:<UUID>`. Vale para el vacío, una sola letra,
-  cualquier largo, palabras del vocabulario y texto multilínea. La entrada original se valida antes de escribir
-  hechos; la lectura admite referencias en esas posiciones aunque no cumplan el largo o patrón del valor original.
-- La misma acción limpia la repetición literal de los valores que entraron por sus posiciones secretas en sus
-  hechos (también campos no marcados), resultado, borrador, errores y causas, y actividad. No busca todos los
-  secretos de la bóveda contra todo texto. El vacío se reemplaza en su posición pero no se busca en texto libre.
-  Nombres de campos, discriminantes del esquema, procedencia e identificadores del protocolo conservan su función.
-- Se recorren objetos, listas, tuplas, opcionales y las ramas válidas de uniones. Una entrada cuya rama secreta
-  no se pueda resolver se omite al escribirla; sus fragmentos de texto tampoco van al diagnóstico. Declaraciones
-  secretas de otros tipos o bajo combinaciones no soportadas se rechazan con `E-SECRET-SCHEMA`.
-  `secretInput: false` no desactiva una marca declarada.
-- La acción sigue recibiendo el valor original. Sus validaciones, normalización, borrador, cuerpo y los puertos
-  que ella llame pueden leerlo. **La marca no garantiza una transformación del secreto hecha por el programa**:
-  por ejemplo, cambiar saltos de línea por separadores puede dejar el texto transformado a la vista.
-  Tampoco se garantiza acá el tapado de la pregunta ni una limpieza final de pantallas o callbacks del programa:
-  esa deuda sigue abierta. Un programa no debe copiar ni transformar el valor para mostrarlo.
-- Los plegados en memoria y guardados se conservan: se construyen con los hechos que ya llevan referencias.
-  La invalidación de plegados de versiones anteriores depende de la versión de su formato, fuera de esta protección.
-- Al abrir un registro sin `secret-protection.json`, la base revisa sus acciones en solo lectura con el catálogo
-  actual, antes de abrir la bóveda, restaurar plegados o agregar un arranque. Si encuentra un valor en una posición
-  hoy declarada secreta, devuelve `E-SECRET-HISTORY` con la acción, posición y número de hecho, nunca el valor,
-  y no escribe nada. No reescribe hechos: el registro sigue siendo aditivo.
-- Si no encuentra valores, deja la marca de protección versión 1 con `reviewed` (acciones revisadas) y
-  `unreviewable` (acciones sin declaración disponible). Lo no revisable no frena la apertura y queda contado en
-  la marca; no equivale a declarar limpio ese contenido. Una casa nueva empieza con ambas cuentas en cero.
-- Al actualizar, mantené las marcas en los campos, aceptá referencias en los plegados y tratá el rechazo histórico
-  sin reintentar escribiendo sobre el registro. La revisión no recupera esquemas desaparecidos ni certifica salidas
-  transformadas o datos no declarados. La custodia cifra el material; el cambio de contrato que entrega referencias
-  a las acciones corresponde a los pasos siguientes de A01.
+- `secret: true` en un campo string garantiza la posición declarada por estructura: al escribir una acción o
+  un hecho, esa posición lleva una referencia `secret:<UUID>`. Vale para vacío, una letra, cualquier largo,
+  vocabulario y multilínea. La entrada original se valida antes de escribir hechos; al leer se admiten referencias
+  aunque excedan el largo o patrón original. Dos escrituras del mismo valor reciben referencias distintas, también
+  dentro de una acción y después de reiniciar. Las referencias ya escritas se conservan al releer.
+- La acción actual limpia repeticiones literales en valores de texto de hechos, resultado, borrador, errores,
+  causas y actividad. No busca toda la bóveda contra todo texto; el vacío no se busca en texto libre.
+  Esta limpieza tiene límites conocidos: no limpia nombres de propiedades, destinos, `made`, destinatarios ni
+  otros identificadores del protocolo. Una acción anidada tiene su propio alcance, y un defecto de superficie o
+  un hecho público fuera de una acción no hereda los valores de acciones anteriores. Copiar el valor por esos
+  caminos puede dejarlo escrito. Un secreto corto también puede alterar texto público que lo contenga o provocar
+  un rechazo si ese texto deja de cumplir su patrón. Estas deudas se cierran cuando la acción deje de recibir valores.
+- Se recorren objetos, listas, tuplas, opcionales y las ramas válidas de uniones. Si un contenedor marcado no
+  coincide con el esquema, una posición secreta no es string o la unión marcada no resuelve, se omite **toda la
+  entrada** como `[secret]`. Sus fragmentos se omiten en los diagnósticos sin ingresarlos a custodia. Los esquemas
+  secretos no soportados fallan con `E-SECRET-SCHEMA`. `secretInput: false` no desactiva una marca.
+  `ToolAct.secretInputs` y `secretLimits.minLength` salieron del contrato: no tenían efecto. Usá el esquema.
+- La acción sigue recibiendo el valor original: sus validaciones, normalización, borrador, cuerpo y puertos pueden
+  leerlo. **La marca no garantiza una transformación del secreto hecha por el programa**, ni el tapado de la pregunta,
+  ni una limpieza final de pantallas o callbacks. Un programa no debe copiar ni transformar el valor para mostrarlo.
+- Los plegados en memoria y guardados conservan las referencias de los hechos. La invalidación de plegados de
+  versiones anteriores depende de la versión de su formato, fuera de esta protección.
+- Al abrir sin marca, o con una marca válida de versión 1, la base revisa acciones **y hechos del programa** con
+  los esquemas actuales, antes de abrir la bóveda, restaurar plegados o agregar un arranque. Un valor en una posición
+  secreta impide abrir: `E-SECRET-HISTORY` nombra acción o tipo de hecho, posición y número de hecho, nunca el valor.
+  No modifica los bytes del registro ni de la bóveda. La conexión de lectura SQLite puede crear los auxiliares
+  `journal.sqlite-shm` (índice compartido) y `journal.sqlite-wal` vacío; eso no agrega hechos ni cambia la bóveda.
+- Si no encuentra valores deja una marca versión 2: `reviewed` cuenta acciones revisadas, `reviewedFacts` hechos
+  del programa revisados y `unreviewable` acciones sin declaración disponible. Lo no revisable no frena la apertura
+  ni se certifica limpio. Una casa nueva empieza con las tres cuentas en cero. Una marca ilegible o de formato
+  desconocido falla con `E-SECRET-PROTECTION`, que nombra el archivo sin mostrar su contenido.
+- Resolver una declaración no filtra toda la actividad salvo que el callback del programa consulte `entries`;
+  esa vista se calcula una vez por resolución. La revisión pasa una vez por los hechos; el costo de los plegados
+  y callbacks que aporta un programa depende de ese programa.
+- Al actualizar, quitá las declaraciones sin efecto, mantené las marcas de esquema y aceptá referencias en los
+  plegados. Tratá el rechazo histórico sin escribir sobre el registro. Las marcas v1 se revisan otra vez porque
+  no incluían los hechos del programa. No se recuperan esquemas desaparecidos ni se certifican datos no declarados.
+- La custodia retiene cada referencia nueva de este puente hasta su adopción o `discardLegacy`, sin deduplicar
+  por valor. Adoptar y liberar una referencia no libera otra igual: la recolección sigue los vínculos por ID.
+  Esto ocupa un material cifrado por escritura. El ingreso provisional y su cancelación conservan su contrato;
+  las acciones todavía no usan ese ingreso hasta el próximo paso de A01.
 
 ## Custodia de credenciales · A01, paso 1
 

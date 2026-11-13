@@ -29,15 +29,6 @@ export function retainMaterial(
   if (readMaterial(state, ref) !== value) throw new CustodyError("E-CUSTODY-INTEGRITY");
   return ref;
 }
-export function heldMaterial(state: CustodyState): Map<string, SecretRef> {
-  state.check();
-  return new Map(
-    state.store
-      .rows()
-      .filter(row => row.retained && row.payload !== null)
-      .map(row => [readMaterial(state, row.ref), row.ref]),
-  );
-}
 export function adoptMaterial(
   state: CustodyState,
   scope: CredentialScope,

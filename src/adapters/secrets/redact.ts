@@ -1,4 +1,5 @@
 // Action-local text cleaning and schema-position references share storage, never a global text dictionary.
+import { secretShape } from "./validation/secret-shape.ts";
 import { ActionSecrets, type Scope } from "./positions/action-scope.ts";
 export { capturable } from "./positions/action-scope.ts";
 import type { TSchema } from "@sinclair/typebox";
@@ -11,8 +12,8 @@ import { checkSecrets, secretPositions, record, storedSchema } from "./positions
 export class Redactor<X extends Program> extends ActionSecrets {
   private readonly journal: TSchema;
   private schemaFor: ((value: Record<string, unknown>) => TSchema | undefined) | undefined;
-  constructor(journal: TSchema, values: Map<string, string>, save: (value: string) => string) {
-    super(values, save);
+  constructor(journal: TSchema, save: (value: string) => string) {
+    super(save);
     checkSecrets(journal);
     this.journal = journal;
   }
@@ -24,11 +25,8 @@ export class Redactor<X extends Program> extends ActionSecrets {
     const scope = this.active.getStore();
     if (!scope || !record(value)) return;
     const schema = registry.find(tool => tool.id === value.target)?.acts[String(value.act)]?.input ?? scope.schema;
-    secretPositions(schema, value.input, value => this.reference(value, scope));
-  }
-  private input(schema: TSchema | undefined, value: unknown, scope: Scope): unknown {
-    const kept = secretPositions(schema, value, value => this.reference(value, scope));
-    return payloadText(schema && storedSchema(schema), kept, scope.values);
+    if (!secretShape(schema, value.input)) this.omit(value.input, scope);
+    else secretPositions(schema, value.input, value => this.reference(value, scope));
   }
   private emission(value: Record<string, unknown>, scope: Scope): unknown {
     if (value.layer === "house" && value.kind === "act" && record(value.data)) {

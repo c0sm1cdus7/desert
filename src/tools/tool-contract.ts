@@ -57,7 +57,6 @@ export interface ToolAct<X extends Program> extends Readonly<{ input: TSchema; r
   readonly offered?: (state: State<X>, target: string, at: number) => string | undefined;
   /** The act returns something to read; only then does its late result call for attention. */
   readonly output?: boolean;
-  secretInputs?(input: unknown, state: State<X>): unknown;
   secretInput?(input: unknown): boolean;
   run(input: unknown, context: ActContext<X>): ActResult<X> | Promise<ActResult<X>>;
   reject?(context: ActContext<X>, result: Accepted<X>): string | undefined;

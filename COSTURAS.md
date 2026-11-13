@@ -51,7 +51,8 @@ Qué cambió respecto de Kenon en este paso:
 - `src/adapters/secrets/`: reemplaza por estructura las posiciones secretas de acciones y hechos; limpia
   repeticiones literales dentro de cada acción antes de serializar errores. Los valores quedan aparte y los
   plegados reciben referencias. `positions/` adapta la lectura; `text/` limpia texto y causas; `history/` revisa
-  registros anteriores antes de cualquier escritura. Transformaciones y pantalla final quedan fuera: el
+  acciones y hechos anteriores antes de abrir la bóveda; SQLite puede crear auxiliares WAL de lectura.
+  Las referencias nuevas no se deduplican por valor. Los límites de limpieza, transformaciones y pantalla final, el
   contrato y la apertura con `E-SECRET-HISTORY` están en `PROGRAMA.md`, «Lo declarado secreto».
 - `src/adapters/secrets/custody/`: una custodia cifrada por casa, con proveedor de llaves externo, ingreso
   provisional, vínculos con revisión, reservas de uso y recuperación. La bóveda anterior se adopta conservando IDs,

@@ -71,7 +71,7 @@ it("dos acciones intercaladas no limpian con secretos de la otra ni de la bóved
   );
   expect(entry.data.text).toBe("primer-dato");
 });
-it("conserva referencias al reiniciar y aísla las casas", () => {
+it("conserva lo escrito al reiniciar y da referencias nuevas en cada casa", () => {
   const a = fixture();
   const b = fixture();
   a.set({ value: "dato-inventado" });
@@ -79,8 +79,9 @@ it("conserva referencias al reiniciar y aísla las casas", () => {
   const first = field(inputOf(a), "value");
   expect(ref(first) && first !== field(inputOf(b), "value")).toBe(true);
   a.restart();
-  a.set({ value: "dato-inventado" });
   expect(field(inputOf(a), "value")).toBe(first);
+  a.set({ value: "dato-inventado" });
+  expect(field(inputOf(a), "value")).not.toBe(first);
 });
 it("resuelve acciones propias, destinos de cosas y llamadas anidadas", async () => {
   const rig = fixture(
