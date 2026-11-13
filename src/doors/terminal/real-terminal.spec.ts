@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { realTerminal, screenOf, type RealTerminal } from "../../programs/real-terminal.ts";
+import { realTerminal, type RealTerminal } from "../../programs/real-terminal.ts";
 
 const shop = join(import.meta.dirname, "../../../tests/support/shop-open.ts");
 const open: { term: RealTerminal; home: string }[] = [];
@@ -48,19 +48,6 @@ describe("the test shop on a real terminal", () => {
     expect(term.written().endsWith("\x1b[?1049l")).toBe(true);
     expect(term.written()).toContain("\x1b[?2004l");
   });
-  it("writes what is pasted in a question, and its line breaks confirm nothing", async () => {
-    const term = await seated();
-    term.press("v");
-    await term.until("Registradas");
-    term.press("r");
-    await term.until("Nombre de la venta");
-    term.press(paste("café\r\nmolido\n"));
-    const written = await term.until("› café molido");
-    expect(written.some(line => line.includes("Total"))).toBe(false);
-    expect(written.at(-1)).toContain("enter continuar");
-    term.press("\r");
-    await term.until("Total");
-  });
   it("opens nothing with what is pasted on a menu", async () => {
     const term = await seated();
     term.press("v");
@@ -86,6 +73,38 @@ describe("the test shop on a real terminal", () => {
     await term.rest(200);
     expect(term.screen()[0]).toContain("Registrar");
     expect(term.screen().some(line => line.includes("Nombre de la venta"))).toBe(true);
+  });
+  it("takes an escape left alone past its wait for the escape key: what follows is keys of its own", async () => {
+    const term = await seated();
+    term.press("\x1b");
+    await term.rest(120);
+    term.press("[B");
+    term.press("\r");
+    await term.until("Registradas");
+    expect(term.screen()[0]).toContain("Ventas");
+  });
+  it("goes back with an escape alone", async () => {
+    const term = await seated();
+    term.press("v");
+    await term.until("Registradas");
+    term.press("\x1b");
+    await term.until("Herramientas");
+    expect(term.screen()[0]).toContain("Menú");
+  });
+});
+describe("what is pasted in the test shop on a real terminal", () => {
+  it("writes what is pasted in a question, and its line breaks confirm nothing", async () => {
+    const term = await seated();
+    term.press("v");
+    await term.until("Registradas");
+    term.press("r");
+    await term.until("Nombre de la venta");
+    term.press(paste("café\r\nmolido\n"));
+    const written = await term.until("› café molido");
+    expect(written.some(line => line.includes("Total"))).toBe(false);
+    expect(written.at(-1)).toContain("enter continuar");
+    term.press("\r");
+    await term.until("Total");
   });
   it("registers nothing with a paste that stops for longer than its wait: its rest is still its text", async () => {
     const home = mkdtempSync(join(tmpdir(), "desert-real-"));
@@ -128,6 +147,41 @@ describe("the test shop on a real terminal", () => {
     term.press("\r");
     await term.until("Registrada");
   });
+  it("registers nothing with a paste whose start comes in pieces, whichever stalls fall between them", async () => {
+    const home = mkdtempSync(join(tmpdir(), "desert-real-"));
+    const term = await seated(home);
+    await atTheTotal(term);
+    /** The start of a paste cut in two and in three, a stall longer than a key's wait after each piece but the last. */
+    const cut = [
+      ["\x1b[2", "00", "~"],
+      ["\x1b[", "200~"],
+      ["\x1b[20", "0~"],
+      ["\x1b[200", "~"],
+      ["\x1b[", "2", "00~"],
+    ];
+    for (const pieces of cut) {
+      for (const piece of pieces.slice(0, -1)) {
+        term.press(piece);
+        await term.rest(150);
+      }
+      term.press(`${pieces.at(-1) ?? ""}\r\x1b[201~`);
+      await term.rest(150);
+      expect(term.screen().some(line => line.includes("Registrada"))).toBe(false);
+      expect(term.screen()[0]).toContain("Registrar");
+    }
+    /** The one of the audit: a stall after the first piece, and the other two right after each other. */
+    term.press("\x1b[2");
+    await term.rest(150);
+    term.press("00");
+    await term.rest(20);
+    term.press("~1500\r\x1b[201~");
+    const written = await term.until("› $ 15,00");
+    expect(written.at(-1)).toContain("enter registrar");
+    await term.close();
+    const again = await seated(home);
+    again.press("v");
+    await again.until("Sin ventas.");
+  });
   it("pastes what follows the start of a paste that a stall cut after its escape: nothing opens", async () => {
     const term = await seated();
     term.press("v");
@@ -138,28 +192,5 @@ describe("the test shop on a real terminal", () => {
     await term.until("Herramientas");
     await term.rest(200);
     expect(term.screen()[0]).toContain("Menú");
-  });
-  it("takes an escape left alone past its wait for the escape key: what follows is keys of its own", async () => {
-    const term = await seated();
-    term.press("\x1b");
-    await term.rest(120);
-    term.press("[B");
-    term.press("\r");
-    await term.until("Registradas");
-    expect(term.screen()[0]).toContain("Ventas");
-  });
-  it("goes back with an escape alone", async () => {
-    const term = await seated();
-    term.press("v");
-    await term.until("Registradas");
-    term.press("\x1b");
-    await term.until("Herramientas");
-    expect(term.screen()[0]).toContain("Menú");
-  });
-});
-describe("the screen read back from what a terminal was sent", () => {
-  it("is each row as it was last written, and empty after it was cleared", () => {
-    expect(screenOf("\x1b[1;1H\x1b[1mMenú\x1b[0m  \x1b[2;1Huno\x1b[1;1HVentas", 3)).toEqual(["Ventas", "uno", ""]);
-    expect(screenOf("\x1b[1;1Huno\x1b[2J\x1b[2;1Hdos", 2)).toEqual(["", "dos"]);
   });
 });

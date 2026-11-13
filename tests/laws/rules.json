@@ -1714,8 +1714,8 @@
     },
     {
       "id": 195,
-      "rule": "Lo que una terminal marca como pegado es un texto, tarde lo que tarde en llegar: nada de lo que llega entre la marca de comienzo y la de cierre es una tecla, aunque el pegado se frene en el medio. Si el cierre no llegó en un segundo se lo sigue esperando, y desde entonces la única tecla que se atiende es ctrl c (salir): un pegado que no termina nunca no escribe nada. Un comienzo de pegado que la espera cortó en dos sigue siendo un comienzo de pegado. De un pegado se guardan hasta 100.000 caracteres",
-      "from": "13/11 · auditoría A11 y su revisión de entrega: un pegado que se frenaba más de un segundo terminaba confirmando una venta",
+      "rule": "Lo que una terminal marca como pegado es un texto, tarde lo que tarde y llegue como llegue: nada de lo que llega entre la marca de comienzo y la de cierre es una tecla. Las dos marcas se reconocen en cualquier cantidad de trozos y con cualquier espera entre ellos. Si el cierre no llegó en un segundo se lo sigue esperando, y desde entonces la única tecla que se atiende es ctrl c (salir): un pegado que no termina nunca no escribe nada. De un pegado se guardan, como mucho, 100.000 caracteres",
+      "from": "13/11 · auditoría A11 y sus dos revisiones de entrega: un pegado que se frenaba, o cuyo comienzo llegaba en tres trozos, terminaba confirmando una venta",
       "guarantee": "spec",
       "evidence": [
         "src/doors/terminal/input.ts",
@@ -1727,7 +1727,7 @@
     },
     {
       "id": 196,
-      "rule": "El criterio de la tecla escape es de tiempo: un escape que queda solo 50 ms es la tecla escape, y lo que llega después se lee como teclas propias (una flecha cuyo resto tarda más que eso es un escape y dos letras). Una espera que se cumplió mientras el programa estaba ocupado no cuenta como silencio: antes de dar el escape por solo se lee lo que ya había llegado",
+      "rule": "El criterio de la tecla escape es de tiempo y solo vale para un escape que está solo: si queda solo 50 ms es la tecla escape. Una secuencia que ya empezó (un escape y algo más) no tiene tiempo: espera su final, tarde lo que tarde, y ningún trozo suyo se lee como una tecla suelta. Una espera que se cumplió mientras el programa estaba ocupado no cuenta como silencio: antes de dar el escape por solo se lee lo que ya había llegado. Después de la tecla escape, lo que sigue son teclas propias, salvo el resto del comienzo de un pegado, que igual empieza un pegado",
       "from": "13/11 · revisión de entrega de la auditoría: documentar y ensayar aparte el criterio temporal de escape",
       "guarantee": "spec",
       "evidence": [

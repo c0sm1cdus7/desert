@@ -28,6 +28,8 @@ const brackets = { start: "\x1b[200~", end: "\x1b[201~" } as const;
 export const pasteBrackets = { on: "\x1b[?2004h", off: "\x1b[?2004l" } as const;
 /** How much of one paste is kept: what comes past it is left out. */
 export const pasteLimit = 100_000;
+/** The start of a paste after its escape: what may still come once that escape was taken for the escape key. */
+const startRest = brackets.start.slice(1);
 /** The keys that leave: ctrl c and ctrl d. */
 const leaves = /[\x03\x04]/u;
 /** One key: a whole escape sequence, an escape with the key it modifies, or one character. */
@@ -38,7 +40,7 @@ const unfinished = /\x1b(?:\[[0-9;]*|O)?$/u;
 export interface KeyReader {
   /** The keys a chunk brings; what may be the start of a longer key waits for the next chunk. */
   read(chunk: string): readonly Intent[];
-  /** What is still given time: a key that may go on, or a paste whose end has not come. */
+  /** What is still given time: an escape that is alone so far, or a paste whose end has not come. */
   waiting(): "key" | "paste" | undefined;
   /** The time of what waits is up. An escape alone is the escape key. A paste goes on until its end comes, however
    * late: what comes meanwhile is its text, and from then on leaving is the one key that is heard. */
@@ -68,48 +70,52 @@ function pasteOf() {
         late = false;
         return [{ kind: "paste", text: held }];
       }
-      if (held.length < pasteLimit) text = held + piece;
+      text = (held + piece).slice(0, pasteLimit);
       return [];
     },
   };
 }
-/** Reads keys across chunks: a key that comes in two pieces is one key, and what is pasted is a text, never keys. */
+/** Reads keys across chunks: a key that comes in pieces is one key, and what is pasted is a text, never keys.
+ * Only an escape that is alone is given a time: a sequence that started waits for its end, however long it takes
+ * and in however many pieces it comes, so no piece of it is ever read as a key of its own. */
 export function keyReader(): KeyReader {
   let pending = "";
   const paste = pasteOf();
-  /** What the wait just took or dropped: when it was the start of a paste's start, its rest may still come. */
-  let cut = "";
+  /** After an escape that was taken for the escape key, the rest of a paste's start may still come: how much of it
+   * came so far. It is kept, in however many pieces, until it is whole (a paste starts) or it is not that. */
+  let after: string | undefined;
   const take = (piece: string): readonly Intent[] => {
     if (paste.open()) return paste.take(piece);
     if (piece === brackets.start) paste.start();
     const key = piece === brackets.start ? undefined : pressed(piece);
     return key ? [key] : [];
   };
+  const keys = (text: string): readonly Intent[] => {
+    pending = text.match(unfinished)?.[0] ?? "";
+    const whole = text.slice(0, text.length - pending.length);
+    return Array.from(whole.matchAll(pieces)).flatMap(([piece]) => take(piece));
+  };
   return {
     read: chunk => {
       /** Leaving is heard wherever it comes in a paste that is late, whatever was left waiting before it. */
       if (paste.late() && leaves.test(chunk)) return [{ kind: "quit" }];
-      /** The start of a paste that the wait cut in two is still its start: what comes after it is pasted. */
-      const head = cut && (cut + chunk).startsWith(brackets.start) ? cut : "";
-      cut = "";
-      const text = pending + head + chunk;
-      pending = text.match(unfinished)?.[0] ?? "";
-      const whole = text.slice(0, text.length - pending.length);
-      return Array.from(whole.matchAll(pieces)).flatMap(([piece]) => take(piece));
+      if (after === undefined) return keys(pending + chunk);
+      const came = after + chunk;
+      after = startRest.startsWith(came) && came !== startRest ? came : undefined;
+      if (after !== undefined) return [];
+      return keys(came.startsWith(startRest) ? `\x1b${came}` : came);
     },
     waiting: () => {
       if (paste.open()) return paste.waits() ? "paste" : undefined;
-      return pending ? "key" : undefined;
+      return pending === "\x1b" ? "key" : undefined;
     },
     settle: () => {
       /** What waits inside a paste may be the start of its end: it stays. */
-      if (paste.open()) {
-        paste.overdue();
-        return [];
-      }
-      cut = pending;
+      if (paste.open()) paste.overdue();
+      if (paste.open() || pending !== "\x1b") return [];
       pending = "";
-      return cut === "\x1b" ? [{ kind: "cancel" }] : [];
+      after = "";
+      return [{ kind: "cancel" }];
     },
   };
 }
