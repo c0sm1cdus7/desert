@@ -1014,9 +1014,9 @@ Los programas existentes pueden seguir usando sus puertos locales:
 terminal. Las llaves reales y su revocación individual llegan en el paso 3; sacar la identidad ya corta su conexión.
 
 El marco lleva largo uint32 big-endian (cuenta el byte de tipo y el cuerpo), un byte de tipo y el cuerpo.
-Tipo 0: JSON UTF-8 válido, hasta 1 MiB, validado con TypeBox de ambos lados. Tipo 1: `node:v8`, hasta 16 MiB,
-solo de la casa al cliente terminal. Un cliente nunca puede enviar tipo 1. `hola` exige igualdad de protocolo y
-versión completa de Node; los límites y la versión están en `src/catalogs/levers.ts`. Los esquemas exactos están en
+Tipo 0: JSON UTF-8 válido, hasta 1 MiB, validado con TypeBox de ambos lados. Tipo 1: tramos de 64 KiB de un
+mensaje `node:v8`, solo de la casa al cliente terminal; cada marco sigue limitado a 16 MiB, el estado completo no. Un cliente nunca puede enviar tipo 1. `hola` autentica primero y recién después exige igualdad de protocolo y
+versión completa de Node; quien no entró no recibe esas versiones. El protocolo actual es 2; los límites y la versión están en `src/catalogs/levers.ts`. Los esquemas exactos están en
 `src/doors/socket/protocol.ts`. Todos los objetos JSON llevan `tipo` y rechazan propiedades adicionales:
 
 | Dirección | `tipo` | Campos además de `tipo` |
@@ -1025,10 +1025,11 @@ versión completa de Node; los límites y la versión están en `src/catalogs/le
 | Cliente | `acto` | `id`, `act`, `target?`, `input`, `through: secuencia` |
 | Cliente | `leer` | `id`, `qué`, `desde?`; `catalogo` devuelve nombres y acciones, `pedido` recupera el acto con ese `id` |
 | Cliente | `esperar` | `id`, `hasta: instante`; espera un hecho o el plazo, hasta 240 s, sin sondeo |
-| Cliente | `defecto` | `entrada`: datos de `tool-entry`; la casa fija autor y procedencia y pasa la entrada por `prepare` |
+| Cliente | `defecto` | `tool`, `target`, `option`; la casa exige la acción en el kit y arma la entrada con su catálogo |
+| Cliente | `sincronizar` | ninguno; pide estado completo y deja un aviso en la salida de la casa |
 | Cliente | `apagar`, `chau` | ninguno |
-| Casa | `bienvenida` | `protocolo`, `identidad`, `admin: booleano`, `ahora`, `seq`; luego tipo 1 solo a terminal |
-| Casa | `estado` | `seq`, `ahora`; inmediatamente después su tipo 1 |
+| Casa | `bienvenida` | `protocolo`, `identidad`, `admin: booleano`, `ahora`, `seq`; luego `estado` solo a terminal |
+| Casa | `estado` | `seq`, `ahora`, `base` (secuencia o `null` para completo), `huella` SHA-256, `bytes`; luego sus tramos tipo 1 |
 | Casa | `resultado` | `id`, `status`, `reason?`, `private?`, `efectos` |
 | Casa | `respuesta` | `id`, `seq`, `datos`; la espera dice `{ cambio: booleano }` |
 | Casa | `rechazo` | `id?`, `motivo` |
@@ -1041,13 +1042,25 @@ rechaza. `status` es `accepted`, `rejected`, `draft`, `inconclusive`, `interrupt
 `efectos` lleva solamente el texto de `tool-entry` con herramienta, destino y autor, y el objeto, acción y texto de
 `act-done`; no lleva todos los hechos ni diagnósticos. `defecto` responde con `id: "defecto"`.
 
-Cada terminal recibe `identityView` con secuencia, agrupando los cambios del turno. El resultado sale después del
-estado que contiene sus efectos. Entre miembros esa vista conserva los datos que la casa ya muestra; no sirve como
+Cada terminal recibe `identityView` con secuencia, agrupando los cambios del turno. Al entrar se manda completa;
+luego viajan solo los campos y claves que cambiaron, y de las listas que crecen, el agregado. Los campos y mapas
+siguen la estructura real del estado: eso conserva las herramientas opacas y evita volver a mandar el historial.
+Una huella semántica SHA-256 del estado entero acompaña cada envío; no depende de los alias internos de v8.
+La terminal arma aparte y publica solo después de verificar huella, secuencia e identidad. Si difiere, conserva la
+última vista válida, muestra el texto del catálogo, suspende los actos y pide `sincronizar`; la casa lo informa.
+La vista y su codificación se comparten entre las conexiones de la misma identidad y secuencia. El resultado sale
+después del estado que contiene sus efectos. Cada conexión respeta backpressure: tras un segundo sin poder vaciar
+su escritura, o más de 1 MiB de envíos posteriores pendientes, se corta con aviso. Un estado inicial grande se
+transmite por tramos, sin contar su tamaño total como cola pendiente. Ninguna conexión espera a otra.
+Hay hasta 32 conexiones sin presentarse. Cada cuerpo incompleto vence en cinco segundos, también después del hola. Entre miembros esa vista conserva los datos que la casa ya muestra; no sirve como
 frontera de permisos. Antes de entrar no hay estado, catálogo ni resultados. Una identidad retirada deja de recibir.
 
 El cliente elige un `id` estable por intento lógico de actuar. La causa del acto conserva
 `socket-request:` seguido de la representación JSON de `[identidad, id]`. Repetir el pedido devuelve su resultado,
-o `processing` mientras siga en curso; cambiar el contenido conservando el identificador tampoco vuelve a actuar.
+o `processing` solo mientras siga en curso; cambiar el contenido conservando el identificador recibe un rechazo
+explícito. Una huella canónica del contenido viaja como segunda causa `socket-content:`. Si no se pudo escribir
+el acto, la respuesta termina con el rechazo de la base o interrumpida; ese resultado queda en memoria para
+repetir y consultar en ese proceso. Si el almacenamiento no guardó ningún hecho, ese pedido no sobrevive al reinicio.
 Otra identidad o identificador constituye otro acto. Al reabrir se reconstruye el índice desde el diario, incluidos
 los resultados `interrupted` que escribe el arranque. Los registros anteriores, sin esa causa, siguen siendo válidos.
 El recibo `private` se conserva solo en memoria: tras un reinicio se recuperan estado, motivo y efectos públicos,
@@ -1058,7 +1071,8 @@ nunca se persiste ni se vuelve a emitir una credencial para reconstruir un recib
 El programa puede abrir `openProgramTerminal(raízDelPrograma, carpetaDeCasa, llave, program, shown)` desde
 `src/programs/open-terminal.ts`. `program` y `shown` son imports estáticos de su composición. La llave se entrega
 en memoria; nunca se pasa en argumentos del proceso servidor. Su provisión definitiva corresponde al paso 3.
-No cambia `HousePorts`: los programas locales existentes y `shop-open.ts` siguen compilando y funcionando.
+Los programas locales existentes y `shop-open.ts` siguen compilando y funcionando. `HousePorts` suma
+`observe?`, opcional, para los actos del dibujo; sin ese puerto se usa el mismo `act` local de siempre.
 
 La función prueba `<carpetaDeCasa>/casa.sock`. Si falta, ejecuta con Node el archivo declarado en
 `package.json → desert.program`, pasándole únicamente la carpeta de la casa. Ese archivo sigue exportando
@@ -1068,21 +1082,26 @@ La función prueba `<carpetaDeCasa>/casa.sock`. Si falta, ejecuta con Node el ar
 El programa usa sus proveedores de custodia reales en su composición; la terminal no abre el almacenamiento.
 
 El arranque tiene cinco segundos para confirmar por IPC que escucha. Después, el proceso queda independiente.
-Cerrar la terminal no apaga la casa; esto implementa la decisión de la obra y queda como duda para el dueño.
+Su stdout y stderr quedan en `<home>/casa.log`, en modo 0600 dentro de la carpeta 0700; se conservan al relanzar.
+El archivo no sigue enlaces ni admite enlaces duros. Toda falla al abrir se traduce a una línea del catálogo y
+salida distinta de cero; ninguna traza cruda llega a la terminal. Un arranque fallido no dice «Casa cerrada».
+Cerrar la terminal no apaga la casa, según la decisión de la obra.
 Un escritor sin socket devuelve literalmente `This house is already open in a running process`: este paso
 conserva ese texto en inglés. Una ruta de socket demasiado larga falla nombrándola, sin acortarla.
 Al perder una casa ya conectada, la terminal intenta reconectarse cada 500 ms y no vuelve a lanzarla.
 
 `socketConnection` conserva la última vista y `socketPorts` implementa el contrato existente. La Barra usa los
 cuatro iconos y colores de siempre, sin palabras nuevas. `now` suma a la hora recibida el tiempo monotónico
-transcurrido. Actos iguales pendientes comparten promesa; un corte resuelve con `interrupted` y
+transcurrido. Solo las observaciones automáticas del dibujo comparten promesa; cada acto de la persona, incluido
+`attend` antes de actuar, tiene un pedido nuevo. Un corte resuelve con `interrupted` y
 «Se cortó antes de la respuesta: fijate en Actividad si se hizo.». Los identificadores inciertos se consultan
 al reconectar y cuando llega otro estado; nunca se reenvían automáticamente sus actos. El resultado recibido
 para esa consulta no reemplaza el mensaje de corte que ya vio la persona: Actividad y la vista de la casa
 siguen siendo la forma de comprobarlo. Los identificadores se conservan durante la vida de esa terminal.
 
-El defecto se arma con `failureEntry`; su texto público usa una excepción genérica, sin confiar en mensajes o
-motivos aportados por el acto. El diagnóstico completo viaja a la casa, que lo pasa por `prepare` antes de escribir.
+`defecto` lleva solo `tool`, `target` y `option`: la casa verifica el destino, la acción y su kit, y arma texto y
+autor. No acepta entrada, atención, texto elegido, made, draft ni silent. La excepción del cliente no viaja.
+El diagnóstico ya presente en `identityView` sigue viajando como en local; este carril no cambia quién lee qué.
 Los marcos locales y remotos se comparan después de aquietar el router y recibir el estado de sus actos,
 incluidos los que dispara un dibujo. También se comparan los hechos `act` del registro.
 

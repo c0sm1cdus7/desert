@@ -23,7 +23,7 @@ export async function serveHouse<X extends Program>(
   try {
     socket = await openHouseSocket(home, house.home, door.accept);
   } catch (error) {
-    await door.close();
+    door.cancel();
     serving.delete(house);
     throw error;
   }

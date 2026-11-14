@@ -1,7 +1,8 @@
 // Wire-only test peer: TypeBox checks server JSON; only this client deserializes received v8 state.
 import type { Duplex } from "node:stream";
 import { connect } from "node:net";
-import { deserialize } from "node:v8";
+import { connectionState } from "../../src/doors/socket/connection-state.ts";
+import { houseProtocolVersion } from "../../src/catalogs/levers.ts";
 import { setTimeout as delay } from "node:timers/promises";
 import { frameReader, clientFrame } from "../../src/doors/socket/frame.ts";
 import { readClient, readServer, type ServerMessage } from "../../src/doors/socket/protocol.ts";
@@ -18,14 +19,17 @@ function incoming(socket: Duplex) {
   const order: string[] = [];
   const timeline: (ServerMessage | { tipo: "v8"; state: unknown })[] = [];
   let closed = false;
+  const view = connectionState();
   const reader = frameReader("server", value => {
     if (Buffer.isBuffer(value)) {
-      const state: unknown = deserialize(value);
+      if (!view.accept(value)) return;
+      const state: unknown = view.state();
       states.push(state);
       timeline.push({ tipo: "v8", state });
       order.push("v8");
     } else {
       const message = readServer(value);
+      view.metadata(message);
       messages.push(message);
       timeline.push(message);
       order.push(message.tipo);
@@ -63,7 +67,9 @@ export async function probe(path: string | Duplex) {
       socket.write(clientFrame(readClient(value)));
     },
     hello: (token = "ana-terminal", extra = {}) => {
-      socket.write(wire({ tipo: "hola", protocolo: 1, node: process.versions.node, token, ...extra }));
+      socket.write(
+        wire({ tipo: "hola", protocolo: houseProtocolVersion, node: process.versions.node, token, ...extra }),
+      );
     },
     result: async (id: string) => {
       await received.until(() => received.messages.some(m => m.tipo === "resultado" && m.id === id));

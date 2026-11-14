@@ -1,7 +1,7 @@
 // Session controls are available only after hello; every later response checks current membership again.
 import { houseProtocolVersion } from "../../catalogs/levers.ts";
 import type { RunningHouse } from "../../programs/house-runtime.ts";
-import { mindTool } from "../../house/house.ts";
+import { mindTool, present } from "../../house/house.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import { socketTexts as said } from "../../texts/socket.texts.ts";
 import type { ClientMessage } from "./protocol.ts";
@@ -17,15 +17,15 @@ export type Session<X extends Program> = Readonly<{
   pending: Set<Promise<void>>;
   signal: AbortSignal;
   shutdown: () => void;
+  report: (text: string) => void;
 }>;
 export function receivePeer<X extends Program>(session: Session<X>, peer: Peer, message: ClientMessage): void {
-  const { house, keys, delivery, signal, shutdown, pending } = session;
+  const { house, keys, delivery, signal, shutdown } = session;
   if (!peer.live()) return;
   if (!peer.key()) {
     welcome(house, keys, peer, message, () => delivery.sendState(peer, true));
     return;
   }
-  if (!delivery.member(peer)) return;
   if (signal.aborted) {
     peer.send({ tipo: "rechazo", motivo: said.closing });
     return;
@@ -34,11 +34,20 @@ export function receivePeer<X extends Program>(session: Session<X>, peer: Peer, 
     peer.end();
     return;
   }
+  if (message.tipo === "sincronizar") {
+    session.report(said.stateMismatch);
+    delivery.sendState(peer, true);
+    return;
+  }
   if (message.tipo === "apagar") {
     if (peer.key()?.identity !== house.tools.state().house.admin) peer.send({ tipo: "rechazo", motivo: said.admin });
     else shutdown();
     return;
   }
+  routeAndReply(session, peer, message);
+}
+function routeAndReply<X extends Program>(session: Session<X>, peer: Peer, message: ClientMessage) {
+  const { delivery, pending } = session;
   const work = routeRequest(session, peer, message)
     .then(answer =>
       delivery.schedule(() => {
@@ -68,15 +77,19 @@ function welcome<X extends Program>(
     peer.end();
     return;
   }
+  const key = keys.get(message.token);
+  /** Identities are always outside the house; a tool's mind never enters through the door. */
+  if (
+    !key ||
+    mindTool(key.identity) !== undefined ||
+    !present(house.registry, house.tools.state().house, key.identity)
+  ) {
+    peer.end({ tipo: "rechazo", motivo: said.denied });
+    return;
+  }
   const mismatch = helloFailure(message);
   if (mismatch) {
     peer.end({ tipo: "rechazo", motivo: mismatch });
-    return;
-  }
-  const key = keys.get(message.token);
-  /** Identities are always outside the house; a tool's mind never enters through the door. */
-  if (!key || mindTool(key.identity) !== undefined || !house.tools.state().house.grants.has(key.identity)) {
-    peer.end({ tipo: "rechazo", motivo: said.denied });
     return;
   }
   peer.enter(key);

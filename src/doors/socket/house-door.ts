@@ -1,4 +1,6 @@
 // One live house owns all sessions; the same byte protocol can be checked on in-memory duplex streams.
+import { socketLimits } from "../../catalogs/levers.ts";
+import { socketTexts } from "../../texts/socket.texts.ts";
 import type { Duplex } from "node:stream";
 import type { RunningHouse } from "../../programs/house-runtime.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -17,9 +19,14 @@ export function houseDoor<X extends Program>(
   const pending = new Set<Promise<void>>();
   const book = requestBook(house);
   const delivery = stateDelivery(house, peers);
-  const { signal, close } = houseShutdown(house, peers, pending, [book.stop, delivery.stop], options.report);
+  const { signal, close, cancel } = houseShutdown(house, peers, pending, [book.stop, delivery.stop], options.report);
   const session = {
     house,
+    report:
+      options.report ??
+      ((text: string) => {
+        process.stderr.write(`${text}\n`);
+      }),
     keys,
     book,
     delivery,
@@ -32,7 +39,7 @@ export function houseDoor<X extends Program>(
       }),
   };
   const accept = acceptPeer(session, peers);
-  return { accept, close };
+  return { accept, close, cancel };
 }
 
 function acceptPeer<X extends Program>(session: Session<X>, peers: Set<Peer>) {
@@ -41,10 +48,16 @@ function acceptPeer<X extends Program>(session: Session<X>, peers: Set<Peer>) {
       stream.destroy();
       return;
     }
+    if ([...peers].filter(peer => !peer.key()).length >= socketLimits.unintroduced) {
+      session.report(socketTexts.busy);
+      stream.destroy();
+      return;
+    }
     const peer = socketPeer(
       stream,
       message => receivePeer(session, peer, message),
       () => peers.delete(peer),
+      session.report,
     );
     peers.add(peer);
   };

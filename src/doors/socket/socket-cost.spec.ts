@@ -1,54 +1,120 @@
 import { expect, it } from "vitest";
-import { performance } from "node:perf_hooks";
-import { identityView } from "../../house/house.ts";
-import { stateFrame, serverFrame } from "./frame.ts";
+import { duplexPair } from "node:stream";
+import { serialize } from "node:v8";
 import { socketHouse } from "../../../tests/support/socket-house.ts";
-function measure(state: unknown, seq: number, ahora: number) {
-  const elapsed: number[] = [];
-  let bytes = 0;
-  let stateBytes = 0;
-  for (let n = 0; n < 30; n++) {
-    const start = performance.now();
-    stateBytes = stateFrame(state).length;
-    bytes = stateBytes + serverFrame({ tipo: "estado", seq, ahora }).length;
-    elapsed.push(performance.now() - start);
-  }
-  return {
-    bytes,
-    stateBytes,
-    meanMs: elapsed.reduce((sum, ms) => sum + ms, 0) / elapsed.length,
-    maxMs: Math.max(...elapsed),
-  };
-}
-it("measures the test shop's initial and populated identityView, and delivery over a stream", async () => {
-  const f = await socketHouse("stream");
-  try {
-    const c = await f.client("ana-terminal");
-    const initial = measure(
-      identityView(f.house().tools.state(), "ana"),
-      f.house().tools.state().through,
-      f.house().now(),
-    );
-    f.house().tools.act({ act: "attend", input: { target: "sales" } }, 0, "ana");
-    for (let n = 0; n < 100; n++)
-      f.house().tools.act(
-        { act: "register", target: "sales", input: { sale: `s${n}`, total: 1500 } },
-        f.house().tools.state().through,
-        "ana",
+import { shopRegistry, type Shop } from "../../../tests/support/shop.ts";
+import { identityView } from "../../house/house.ts";
+import { localPorts } from "../../programs/house-runtime.ts";
+import { effect } from "../../journal/events.ts";
+import { settle } from "../../surface/bridge/house-ports.ts";
+import { socketConnection } from "./socket-connection.ts";
+import { socketPorts } from "./socket-ports.ts";
+import { stateTransfer } from "./state-transfer.ts";
+// Per-terminal changed-state budget is independent of historical entries. Latency includes SQLite and verification.
+const limits = { bytesPerTerminal: 4096, overheadMs: 100, localMultiple: 1.5, repetitions: 6 };
+it("measures acts with 100, 2000 and 20000 entries, local and with one or five terminals", async () => {
+  for (const entries of [100, 2000, 20000]) {
+    const f = await socketHouse("stream");
+    try {
+      f.house().journal.batch(() => {
+        for (let n = 0; n < entries; n++)
+          f.house().bus.emit(
+            effect(
+              "tool-entry",
+              {
+                tool: "payments",
+                target: "payments",
+                author: "ana",
+                text: `Entrada ${n}`,
+                silent: true,
+              },
+              "ana",
+            ),
+          );
+      });
+      const local = localPorts(f.house(), "ana", { recentLines: 40 });
+      await settle(local.act({ act: "attend", input: { target: "payments" } }, 0));
+      const times: number[] = [];
+      for (let n = 0; n < limits.repetitions; n++) {
+        const start = performance.now();
+        expect((await settle(local.act(payment(`local-${n}`), 0))).status).toBe("accepted");
+        times.push(performance.now() - start);
+      }
+      const localMs = median(times);
+      const view = identityView(f.house().tools.state(), "ana");
+      const started = performance.now();
+      const initialFrames = stateTransfer(view, undefined, f.house().now());
+      const encodingMs = performance.now() - started;
+      const initialBytes = initialFrames.reduce((sum, frame) => sum + frame.length, 0);
+      for (const terminals of [1, 5]) await measureRemote(f, entries, terminals, localMs);
+      process.stdout.write(
+        `${JSON.stringify({
+          measurement: "initial-state",
+          entries,
+          initialBytes,
+          encodingMs,
+          rawBytes: serialize(view).length,
+        })}\n`,
       );
-    const populated = measure(
-      identityView(f.house().tools.state(), "ana"),
-      f.house().tools.state().through,
-      f.house().now(),
-    );
-    const before = c.states.length;
-    const start = performance.now();
-    expect(await c.until(() => c.states.length > before)).toBe(true);
-    const deliveryMs = performance.now() - start;
-    expect(populated.bytes).toBeLessThan(16 * 1024 * 1024);
-    expect(c.states.at(-1)).toEqual(identityView(f.house().tools.state(), "ana"));
-    console.info(JSON.stringify({ measurement: "shop-state", initial, populated, sales: 100, deliveryMs }));
-  } finally {
-    await f.close();
+    } finally {
+      await f.close();
+    }
   }
-});
+}, 120000);
+const payment = (payment: string) => ({ act: "receive", target: "payments", input: { payment, amount: 1 } });
+const median = (values: number[]) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)] ?? 0;
+async function measureRemote(
+  f: Awaited<ReturnType<typeof socketHouse>>,
+  entries: number,
+  terminals: number,
+  localMs: number,
+) {
+  const clients = [];
+  let bytes = 0;
+  for (let n = 0; n < terminals; n++) {
+    const connection = socketConnection<Shop>("ana-terminal");
+    const pair = duplexPair();
+    f.attach(pair[1]);
+    await connection.attach(pair[0]);
+    pair[0].on("data", (chunk: Buffer) => {
+      bytes += chunk.length;
+    });
+    clients.push({ connection, pair });
+  }
+  try {
+    const first = clients[0];
+    if (!first) throw new Error("Missing fixture client");
+    const ports = socketPorts(first.connection, { registry: shopRegistry, limits: { recentLines: 40 } });
+    const times: number[] = [];
+    for (let n = 0; n < limits.repetitions; n++) {
+      const start = performance.now();
+      const done = await settle(ports.act(payment(`remote-${terminals}-${n}`), 0));
+      await new Promise<void>(resolve => setImmediate(resolve));
+      times.push(performance.now() - start);
+      expect(done.status).toBe("accepted");
+      for (const c of clients) expect(c.connection.state()).toEqual(identityView(f.house().tools.state(), "ana"));
+    }
+    const perAct = bytes / limits.repetitions;
+    const remoteMs = median(times);
+    expect(perAct / terminals).toBeLessThan(limits.bytesPerTerminal);
+    expect(remoteMs).toBeLessThan(localMs * limits.localMultiple + limits.overheadMs);
+    process.stdout.write(
+      `${JSON.stringify({
+        measurement: "act-cost",
+        entries,
+        terminals,
+        localMs,
+        remoteMs,
+        overheadMs: remoteMs - localMs,
+        bytesPerAct: perAct,
+        bytesPerTerminal: perAct / terminals,
+        limits,
+      })}\n`,
+    );
+  } finally {
+    for (const c of clients) {
+      c.connection.close();
+      c.pair[1].destroy();
+    }
+  }
+}

@@ -1,4 +1,7 @@
 // Only the terminal session is implemented here. The agent door must supply its scene-aware session later.
+import { allowedAct } from "../../house/house.ts";
+import { targetTool } from "../../tools/attendance.ts";
+import { toolTexts } from "../../texts/tools.texts.ts";
 import { effect } from "../../journal/events.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import { socketTexts as said } from "../../texts/socket.texts.ts";
@@ -31,7 +34,14 @@ export async function routeRequest<X extends Program>(
   }
   if (message.tipo === "esperar") return waitForChange(session, peer, message.id, message.hasta);
   if (message.tipo === "defecto") {
-    const entry = house.tools.prepare({ ...message.entrada, author: by });
+    const { tool, target, option } = message;
+    const state = house.tools.state();
+    const declared = targetTool(house.registry, state, target);
+    const action = declared?.acts[option];
+    const wrongPlace = action?.on !== undefined && (action.on === "tool") !== (target === tool);
+    if (declared?.id !== tool || !action || wrongPlace) return { ...refusal, motivo: toolTexts.unknown };
+    if (!allowedAct(state.house, by, tool, option)) return { ...refusal, motivo: toolTexts.outsideKit };
+    const entry = house.tools.prepare({ tool, target, author: by, text: toolTexts.baseFailure });
     house.bus.emit(effect("tool-entry", entry, by));
     return { tipo: "respuesta", id: "defecto", seq: house.tools.state().through, datos: null };
   }

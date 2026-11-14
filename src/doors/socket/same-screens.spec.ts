@@ -10,7 +10,7 @@ import { paint } from "../terminal/paint.ts";
 import { keysOf } from "../terminal/input.ts";
 import { socketConnection } from "./socket-connection.ts";
 import { socketPorts } from "./socket-ports.ts";
-it("the same keys produce byte-identical settled frames and identical act facts on both doors", async () => {
+it.each([false, true])("same frames and act facts, including g06 E fast repeated sale: %s", async fast => {
   const local = await socketHouse("stream");
   const remote = await socketHouse("stream");
   const connection = socketConnection<Shop>("ana-terminal");
@@ -22,10 +22,18 @@ it("the same keys produce byte-identical settled frames and identical act facts 
   const b = houseRouter(ports, shopShown);
   try {
     expect(ports.connection()).toBe("connected");
-    for (const key of ["", "v", "r", "1", "\r", "1500", "\r", "\x1b", "\x0f", "a", "\x0f", "l"]) {
+    const keys = fast
+      ? ["v", "r", "1", "\r", "1500", "\r", "\x1b", "r", "1", "\r", "1500", "\r", "\x1b", "\x0f"]
+      : ["", "v", "r", "1", "\r", "1500", "\r", "\x1b", "\x0f", "a", "\x0f", "l"];
+    for (const [index, key] of keys.entries()) {
       for (const intent of keysOf(key)) {
         a.send(intent);
         b.send(intent);
+      }
+      if (fast && index < keys.length - 1) {
+        a.screen({ rows: 12 });
+        b.screen({ rows: 12 });
+        continue;
       }
       await a.idle();
       await b.idle();

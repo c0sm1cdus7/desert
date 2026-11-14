@@ -1,3 +1,4 @@
+import { observedPorts } from "./observed-ports.ts";
 import { programCall } from "../../tools/boundaries/program-call.ts";
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
 import { builtScreen } from "./execution/program-screen.ts";
@@ -149,7 +150,7 @@ function questionsFor<X extends Program>(ports: HousePorts<X>, shown: Shown<X>, 
 }
 export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown<X>): readonly Tool[] {
   const seen = new Map<string, number>();
-  const observed: SurfacePorts<X> = { ...ports, act: value => ports.act(value, seen.get(value.target ?? "") ?? 0) };
+  const observed = observedPorts(ports, seen);
   const undeclared = ports.registry.filter(tool => !isProgramTool(tool)).map(tool => tool.id);
   if (undeclared.length) throw new Error(`Acts without their declaration in ${undeclared.join(", ")}`);
   const tools = ports.registry.filter(isProgramTool);
@@ -181,7 +182,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
       rendered: (target = contract.id) => {
         seen.set(target, ports.state().through);
         // Looking at what called you is attending it, the same act anyone does.
-        if (calls()) ports.act({ act: "attend", input: { target: contract.id } }, 0);
+        if (calls()) observed.observe?.({ act: "attend", input: { target: contract.id } });
         looked(target);
       },
     };

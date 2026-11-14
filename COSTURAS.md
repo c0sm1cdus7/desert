@@ -124,12 +124,12 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 - Los textos propios de DESERT pasan por las mismas guardias (`programs/own-words.spec.ts`).
 
 ## Abierto
-- **La puerta.** Decidido: viaja el estado (la de Kenon), con el router de este lado. Falta portarla: cada
-  herramienta dice cómo viaja su parte y de quién son sus hechos, y la casa manda a cada integrante solo lo de
-  las herramientas que tiene.
-- **Tamaño.** La puerta de Kenon manda al conectar todo lo de las herramientas del integrante, y `entries` crece
-  para siempre. Para una cuenta de Capibara hay que paginar: en memoria y en viaje lo reciente, lo viejo por
-  páginas. Se resuelve al portar la puerta.
+- **La puerta.** El servidor local y la terminal externa ya llevan `identityView`, con el router del lado de la
+  terminal. Todos los integrantes leen la misma casa; el kit limita acciones, no lectura. Quedan la sesión de
+  agentes y las llaves reales del paso 3.
+- **Tamaño.** El estado inicial viaja completo por tramos; después viajan los cambios y solo el agregado de las
+  listas que crecen. El historial completo sigue en memoria: la paginación de lectura no forma parte de este
+  servidor. El límite de un marco ya no limita el tamaño total del estado.
 - **Lecturas de cada herramienta.** Hoy el puente lee la vista de texto de la herramienta y la vuelve filas.
   Para Capibara conviene que cada herramienta declare sus filas con tipos. Se define con las herramientas de Capibara.
 - **Motivos de rechazo.** Son textos. Desde el 11/11 una causa es un dato corto, sin punto y sin segunda persona
@@ -177,7 +177,7 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 2. Casa y motor de herramientas con estado por herramienta. HECHO.
 3. Puente de la superficie y casa corriendo en un proceso, con secretos fuera del registro. HECHO.
 4. Router compartido por todos los renderers. HECHO.
-5. La puerta: viaja el estado, por herramienta entera y paginado.
+5. La puerta local: estado inicial por tramos y cambios por campos, mapas y sufijos de listas. HECHO.
 6. Emparejar dispositivos y herramienta de equipo (permisos y conexiones).
 7. Core de muchas casas.
 
@@ -264,3 +264,27 @@ reglas de terminal 1–106 que ya tienen garantía; no cancela las deudas existe
 Las pruebas de muerte de proceso llevan los mismos marcos por IPC para comprobar SQLite y el protocolo aun
 cuando la caja impide escuchar un socket Unix. No sustituyen las pruebas Unix: el arranque real, el socket viejo,
 los dos clientes en pseudo-terminal y sus colores al reconectar se comprueban además por ese camino.
+
+
+## Arreglo adversario del servidor (14/11)
+
+El protocolo 2 manda un encabezado `estado` con base, secuencia, longitud y huella, seguido de tramos de 64 KiB.
+`state-patch.ts` divide recursivamente por campos y claves de mapas; las listas que crecen envían su sufijo.
+`state-hash.ts` calcula una huella semántica del estado completo y reutiliza nodos inmutables. `state-delivery.ts`
+prepara una vez por identidad y secuencia; `state-receiver.ts` arma aparte y verifica antes de publicar.
+Una discrepancia conserva la última vista válida, se dice en la terminal y pide el estado completo; la casa deja
+su aviso. `peer-writer.ts` respeta backpressure sin esperar a otros; limita la cola posterior y el tiempo sin drenaje.
+El estado completo supera el tamaño de un marco sin subir ese límite. `socket-cost.spec.ts` mide el acto completo,
+con SQLite, contra local, con 100, 2.000 y 20.000 entradas y una o cinco terminales.
+
+`HousePorts.observe?` distingue las dos observaciones automáticas en `notices.ts` y `house-tools.ts` de los actos
+pedidos por la persona. El router y el dibujante siguen intactos; sin `observe` se llama al `act` local como antes.
+`defecto` deja de aceptar la entrada del cliente: solo herramienta, destino y acción, comprobados contra el kit.
+El rechazo de mentes se combina con `present`, la misma pertenencia que consulta la casa. La comprobación redundante
+al inicio de cada pedido se retiró: el aviso del bus cierra inmediatamente la conexión y `receivePeer` exige que
+siga viva; antes de las respuestas se vuelve a consultar pertenencia.
+
+`house-output.ts` abre el archivo privado de salida del proceso lanzado; `terminal-error.ts` limita los errores
+visibles al catálogo. La cancelación de un arranque libera recursos sin anunciar un cierre exitoso. La huella de
+contenido acompaña al identificador del pedido en la causa; el libro recupera también los pedidos anteriores sin
+huella a partir del contenido registrado. Si falló toda escritura, el resultado final vive solo en ese proceso.

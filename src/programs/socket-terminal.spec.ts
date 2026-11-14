@@ -68,3 +68,33 @@ it("unix: two real terminals keep their screens through server death, reconnect 
     rmSync(home, { recursive: true, force: true });
   }
 }, 15000);
+
+it("unix: an unknown key shows only its catalog rejection on a real terminal and exits nonzero", async () => {
+  const home = mkdtempSync("/tmp/casa-pty-denied-");
+  const running = server(home);
+  let terminal: ReturnType<typeof realTerminal> | undefined;
+  try {
+    await running.ready;
+    terminal = realTerminal([process.execPath, "tests/support/shop-terminal.ts", home, "unknown"]);
+    await terminal.until("La llave no da entrada a esta casa.");
+    expect(terminal.written()).not.toContain(" at ");
+    expect(terminal.written()).not.toContain("Error:");
+    const child = spawn(process.execPath, ["tests/support/shop-terminal.ts", home, "unknown"], {
+      stdio: ["ignore", "ignore", "pipe"],
+    });
+    let output = "";
+    child.stderr.on("data", (bytes: Buffer) => {
+      output += bytes.toString();
+    });
+    const ended: unknown[] = await once(child, "exit");
+    const code = ended[0];
+    expect(code).toBe(1);
+    expect(output).toContain("La llave no da entrada a esta casa.");
+    expect(output).not.toContain(" at ");
+  } finally {
+    await terminal?.close();
+    running.child.kill("SIGTERM");
+    await running.exited;
+    rmSync(home, { recursive: true, force: true });
+  }
+}, 10000);

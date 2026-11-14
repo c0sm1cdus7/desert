@@ -1,3 +1,4 @@
+import { SocketOpeningError } from "../doors/socket/socket-error.ts";
 // Reconnect to an existing house; only the first opening may launch it. No action is ever replayed here.
 import { connect } from "node:net";
 import { resolve } from "node:path";
@@ -33,7 +34,7 @@ export async function connectTerminal<X extends Program>(
   token: string,
 ): Promise<SocketConnection<X>> {
   const path = resolve(home, "casa.sock");
-  if (Buffer.byteLength(path) >= 104) throw new Error(socketTexts.path(path));
+  if (Buffer.byteLength(path) >= 104) throw new SocketOpeningError(socketTexts.path(path));
   const connection = socketConnection<X>(token);
   try {
     const stream = await dial(path).catch(async (error: unknown) => {

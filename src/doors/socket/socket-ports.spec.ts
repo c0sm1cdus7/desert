@@ -47,14 +47,14 @@ it("receives the identity view, house clock, changes and all four connection sta
   connection.close();
   expect(ports.connection()).toBe("disconnected");
 });
-it("acts asynchronously, folds the state before the result, and deduplicates equal in-flight acts", async () => {
+it("folds before results and shares only automatic in-flight observations", async () => {
   const { f, ports } = await setup();
   const value = { act: "attend", input: { target: "payments" } };
-  const one = ports.act(value, 0);
-  const two = ports.act({ input: { target: "payments" }, act: "attend" }, 0);
-  expect(one.status).toBe("processing");
+  const one = ports.observe?.(value);
+  const two = ports.observe?.({ input: { target: "payments" }, act: "attend" });
+  expect(one?.status).toBe("processing");
   expect(two).toBe(one);
-  expect((await settle(one)).status).toBe("accepted");
+  expect((await settle(one ?? ports.act(value, 0))).status).toBe("accepted");
   expect(
     f
       .house()

@@ -1,25 +1,20 @@
-// A turn's changes become one final identityView; queued results follow the state containing their effects.
-import { identityView } from "../../house/house.ts";
+// One view/encoding per identity and sequence; all results queue behind the transfer containing their effects.
+import { identityView, present, mindTool } from "../../house/house.ts";
 import type { RunningHouse } from "../../programs/house-runtime.ts";
-import type { Program } from "../../tools/tool-contract.ts";
+import type { Program, State } from "../../tools/tool-contract.ts";
 import { socketTexts } from "../../texts/socket.texts.ts";
-import { stateFrame } from "./frame.ts";
+import { stateTransfer } from "./state-transfer.ts";
 import type { Peer } from "./socket-peer.ts";
 export function stateDelivery<X extends Program>(house: RunningHouse<X>, peers: Set<Peer>) {
   let stopped = false;
   let scheduled: NodeJS.Immediate | undefined;
   let answers: (() => void)[] = [];
   const member = (peer: Peer) => isMember(house, peer);
-  const sendState = (peer: Peer, welcome = false) => deliverState(house, peer, welcome);
+  const { frames, clear } = transferCache(house);
+  const sendState = (peer: Peer, full = false) => sendView(house, peer, frames, full);
   const flush = () => {
     scheduled = undefined;
-    for (const peer of peers) {
-      try {
-        sendState(peer);
-      } catch {
-        peer.stream.destroy();
-      }
-    }
+    peers.forEach(peer => sendState(peer));
     const waiting = answers;
     answers = [];
     waiting.forEach(answer => answer());
@@ -42,23 +37,50 @@ export function stateDelivery<X extends Program>(house: RunningHouse<X>, peers: 
       stop();
       if (scheduled) clearImmediate(scheduled);
       answers = [];
+      clear();
     },
   };
 }
-
 function isMember<X extends Program>(house: RunningHouse<X>, peer: Peer): boolean {
   const key = peer.key();
   if (!key || !peer.live()) return false;
-  if (house.tools.state().house.grants.has(key.identity)) return true;
+  if (mindTool(key.identity) === undefined && present(house.registry, house.tools.state().house, key.identity))
+    return true;
   peer.end({ tipo: "cortado", motivo: socketTexts.removed });
   return false;
 }
-function deliverState<X extends Program>(house: RunningHouse<X>, peer: Peer, welcome: boolean) {
+
+function transferCache<X extends Program>(house: RunningHouse<X>) {
+  const cache = new Map<
+    string,
+    { view: State<X>; before?: State<X>; full?: readonly Buffer[]; delta?: readonly Buffer[] }
+  >();
+  const frames = (identity: string, seq: number) => {
+    const state = house.tools.state();
+    let saved = cache.get(identity);
+    if (!saved || saved.view.through !== state.through) {
+      saved = { view: identityView(state, identity), ...(saved ? { before: saved.view } : {}) };
+      cache.set(identity, saved);
+    }
+    if (saved.before?.through === seq) return (saved.delta ??= stateTransfer(saved.view, saved.before, house.now()));
+    return (saved.full ??= stateTransfer(saved.view, undefined, house.now()));
+  };
+  return { frames, clear: () => cache.clear() };
+}
+
+function sendView<X extends Program>(
+  house: RunningHouse<X>,
+  peer: Peer,
+  frames: (identity: string, seq: number) => readonly Buffer[],
+  full: boolean,
+) {
   if (!isMember(house, peer) || peer.key()?.door !== "terminal") return;
-  const state = house.tools.state();
-  if (peer.seq() === state.through) return;
-  const bytes = stateFrame(identityView(state, peer.key()?.identity ?? ""));
-  if (!welcome) peer.send({ tipo: "estado", seq: state.through, ahora: house.now() });
-  peer.sendBytes(bytes);
-  peer.sent(state.through);
+  const seq = house.tools.state().through;
+  if (!full && peer.seq() === seq) return;
+  try {
+    peer.sendFrames(frames(peer.key()?.identity ?? "", full ? -1 : peer.seq()));
+    peer.sent(seq);
+  } catch {
+    peer.fail(socketTexts.stateFailed);
+  }
 }

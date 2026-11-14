@@ -1,7 +1,6 @@
 import { Type, type Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { object } from "../../catalogs/acts.ts";
-import { houseCatalog } from "../../journal/events.ts";
 const name = Type.String({ minLength: 1, maxLength: 256 });
 const text = Type.String();
 const number = Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER });
@@ -12,7 +11,8 @@ export const clientProtocol = Type.Union([
   object({ ...tag("acto"), ...id, act: name, target: Type.Optional(name), input: Type.Unknown(), through: number }),
   object({ ...tag("leer"), ...id, qué: name, desde: Type.Optional(number) }),
   object({ ...tag("esperar"), ...id, hasta: number }),
-  object({ ...tag("defecto"), entrada: houseCatalog["tool-entry"] }),
+  object({ ...tag("defecto"), tool: name, target: name, option: name }),
+  object(tag("sincronizar")),
   object(tag("apagar")),
   object(tag("chau")),
 ]);
@@ -44,7 +44,14 @@ export const serverProtocol = Type.Union([
     ahora: number,
     seq: number,
   }),
-  object({ ...tag("estado"), seq: number, ahora: number }),
+  object({
+    ...tag("estado"),
+    seq: number,
+    ahora: number,
+    base: Type.Union([number, Type.Null()]),
+    huella: Type.String({ pattern: "^[a-f0-9]{64}$" }),
+    bytes: number,
+  }),
   object({
     ...tag("resultado"),
     ...id,

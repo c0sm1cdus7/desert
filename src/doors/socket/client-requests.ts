@@ -51,14 +51,16 @@ function recovery<X extends Program>(connection: SocketConnection<X>) {
   });
   return { pending, uncertain };
 }
-export function clientRequests<X extends Program>(connection: SocketConnection<X>) {
+export function clientRequests<X extends Program>(connection: SocketConnection<X>, automatic = false) {
   const { pending, uncertain } = recovery(connection);
   return (value: Act, through: number): ExecutionResult<X> => {
     if (connection.status() !== "connected") return interrupted();
-    const key = createHash("sha256")
-      .update(JSON.stringify(canonical(value)))
-      .digest("hex");
-    const previous = [...pending.values()].find(p => p.key === key);
+    const key = automatic
+      ? createHash("sha256")
+          .update(JSON.stringify(canonical(value)))
+          .digest("hex")
+      : "";
+    const previous = automatic && [...pending.values()].find(p => p.key === key);
     if (previous) return previous.result;
     const id = randomUUID();
     let done: (value: Decision<X>) => void = () => {};

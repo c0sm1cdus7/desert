@@ -1,11 +1,13 @@
 // The request key travels in the act's existing cause. Replaying the journal restores deduplication after a crash.
+import { requestContent } from "./request-content.ts";
+import { ids } from "../../catalogs/ids.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import { socketTexts } from "../../texts/socket.texts.ts";
 import type { Event } from "../../journal/events.ts";
 import type { RunningHouse } from "../../programs/house-runtime.ts";
 import type { Program } from "../../tools/tool-contract.ts";
-import type { RequestAct, ResultMessage } from "./protocol.ts";
-type Saved = { id: string; effects: ResultMessage["efectos"]; result?: ResultMessage };
+import type { RequestAct, ResultMessage, ServerMessage } from "./protocol.ts";
+type Saved = { content: string; id: string; effects: ResultMessage["efectos"]; result?: ResultMessage };
 const prefix = "socket-request:";
 const requestKey = (by: string, id: string) => `${prefix}${JSON.stringify([by, id])}`;
 function receipt(event: Event): ResultMessage["efectos"] {
@@ -25,7 +27,9 @@ function history() {
     if (event.layer === "house" && event.kind === "act") {
       const key = event.cause.find(cause => cause.startsWith(prefix));
       if (key) {
-        const saved = { id: key, effects: [] };
+        const content =
+          event.cause.find(cause => cause.startsWith("socket-content:"))?.slice(15) ?? requestContent(event.data);
+        const saved = { id: key, content, effects: [] };
         requests.set(key, saved);
         origins.set(event.id, saved);
       }
@@ -64,19 +68,44 @@ export function requestBook<X extends Program>(house: RunningHouse<X>) {
       saved && (saved.result ? { ...saved.result, id } : { tipo: "resultado", id, status: "processing", efectos: [] })
     );
   };
-  const act = async (by: string, request: RequestAct): Promise<ResultMessage> => {
-    const previous = lookup(by, request.id);
-    if (previous) return previous;
-    const key = requestKey(by, request.id);
-    requests.set(key, { id: key, effects: [] });
+  return { act: actRequest(house, requests, lookup), lookup, stop };
+}
+
+function actRequest<X extends Program>(
+  house: RunningHouse<X>,
+  requests: Map<string, Saved>,
+  lookup: (by: string, id: string) => ResultMessage | undefined,
+) {
+  const act = async (by: string, request: RequestAct): Promise<ServerMessage> => {
     const { act, input, target, through, id } = request;
-    const started = house.tools.act({ act, input, ...(target ? { target } : {}) }, through, by, [key]);
-    const result = started.status === "processing" ? await started.completion : started;
-    const answer = lookup(by, id) ?? { tipo: "resultado", id, status: result.status, efectos: [] };
-    const done: ResultMessage = { ...answer, ...(result.private ? { private: result.private } : {}) };
+    const content = requestContent({ object: target ?? ids.self, option: act, input, through });
+    const key = requestKey(by, id);
     const saved = requests.get(key);
-    if (saved) saved.result = done;
+    if (saved && saved.content !== content) return { tipo: "rechazo", id, motivo: socketTexts.reused };
+    const previous = lookup(by, id);
+    if (previous) return previous;
+    requests.set(key, { id: key, content, effects: [] });
+    let done: ResultMessage;
+    try {
+      const started = house.tools.act({ act, input, ...(target ? { target } : {}) }, through, by, [
+        key,
+        `socket-content:${content}`,
+      ]);
+      const result = started.status === "processing" ? await started.completion : started;
+      done = {
+        tipo: "resultado",
+        id,
+        status: result.status,
+        efectos: requests.get(key)?.effects ?? [],
+        ...(result.reason ? { reason: result.reason } : {}),
+        ...(result.private ? { private: result.private } : {}),
+      };
+    } catch {
+      done = { tipo: "resultado", id, status: "interrupted", reason: socketTexts.interrupted, efectos: [] };
+    }
+    const final = requests.get(key);
+    if (final) final.result = done;
     return done;
   };
-  return { act, lookup, stop };
+  return act;
 }

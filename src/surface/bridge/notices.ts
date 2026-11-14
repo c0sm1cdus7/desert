@@ -60,7 +60,7 @@ export function noticesOf<X extends Program>(
     /** Having in front what someone else wrote on is attending it: the same act anyone does. */
     seen: (target: string): void => {
       if (unseen(ports, tool).some(entry => entry.data.target === target))
-        ports.act({ act: "attend", input: { target } });
+        (ports.observe ?? ports.act)({ act: "attend", input: { target } });
     },
   };
 }

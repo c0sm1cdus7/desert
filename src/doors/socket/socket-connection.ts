@@ -2,6 +2,7 @@
 import type { Duplex } from "node:stream";
 import type { State, Program } from "../../tools/tool-contract.ts";
 import type { Screen } from "../../surface/contract.ts";
+import { socketTexts } from "../../texts/socket.texts.ts";
 import { clientFrame } from "./frame.ts";
 import { connectionState } from "./connection-state.ts";
 import { clientStream } from "./client-stream.ts";
@@ -35,18 +36,27 @@ class Connection<X extends Program> implements SocketConnection<X> {
     this.listeners.add(listener);
     return () => void this.listeners.delete(listener);
   };
-  private incoming(value: Buffer | ServerMessage): void {
+  private incoming(value: Buffer | ServerMessage): boolean {
     if (Buffer.isBuffer(value)) {
-      this.view.accept(value);
-      return;
+      try {
+        return this.view.accept(value);
+      } catch {
+        this.view.reset();
+        this.view.setStatus("connecting");
+        process.stderr.write(`${socketTexts.stateMismatch}\n`);
+        this.stream?.write(clientFrame({ tipo: "sincronizar" }));
+        return false;
+      }
     }
     this.view.metadata(value);
     this.listeners.forEach(listener => listener(value));
+    if (value.tipo === "cortado") process.stderr.write(`${value.motivo}\n`);
     if (value.tipo === "cortado" || (value.tipo === "rechazo" && !value.id)) this.close();
     else if (value.tipo === "cerrando") {
       this.view.setStatus("signal-lost");
       this.stream?.destroy();
     }
+    return false;
   }
   readonly send = (message: ClientMessage): boolean => {
     if (this.closed || this.status() !== "connected" || !this.stream || this.stream.destroyed) return false;
@@ -65,12 +75,13 @@ class Connection<X extends Program> implements SocketConnection<X> {
     }
     this.stream?.destroy();
     this.stream = next;
+    this.view.reset();
     this.view.setStatus("connecting");
     await clientStream(
       next,
       this.token,
       value => {
-        if (this.stream === next && !next.destroyed && !this.closed) this.incoming(value);
+        return this.stream === next && !next.destroyed && !this.closed ? this.incoming(value) : false;
       },
       () => {
         if (this.stream === next && !this.closed) this.view.setStatus("signal-lost");

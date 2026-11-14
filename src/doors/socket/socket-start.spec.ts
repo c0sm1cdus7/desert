@@ -1,5 +1,5 @@
-import { afterEach, expect, it } from "vitest";
-import { writeFileSync, readFileSync, renameSync, existsSync, mkdtempSync, rmSync } from "node:fs";
+import { afterEach, expect, it, vi } from "vitest";
+import { mkdirSync, writeFileSync, readFileSync, renameSync, existsSync, mkdtempSync, rmSync } from "node:fs";
 import { socketHouse, doorKeys } from "../../../tests/support/socket-house.ts";
 import { serveHouse } from "./serve.ts";
 let fixture: Awaited<ReturnType<typeof socketHouse>> | undefined;
@@ -50,5 +50,17 @@ it("a writer for another home cannot remove this home's socket", async () => {
   } finally {
     await f.close();
     rmSync(other, { recursive: true, force: true });
+  }
+});
+
+it("g02: startup failure does not claim a successfully closed house", async () => {
+  fixture = await socketHouse("stream");
+  mkdirSync(`${fixture.home}/casa.sock`);
+  const output = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+  try {
+    await expect(serveHouse(fixture.house(), fixture.home, doorKeys)).rejects.toThrow();
+    expect(output.mock.calls.flat().join("")).not.toContain("Casa cerrada");
+  } finally {
+    output.mockRestore();
   }
 });

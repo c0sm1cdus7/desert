@@ -50,7 +50,13 @@ export function houseShutdown<X extends Program>(
     closed ??= drainHouse(house, peers, pending, () => stops.forEach(stop => stop()), report);
     return closed;
   };
-  return { signal: abort.signal, close };
+  const cancel = () => {
+    abort.abort();
+    stops.forEach(stop => stop());
+    peers.forEach(peer => peer.end());
+    house.close();
+  };
+  return { signal: abort.signal, close, cancel };
 }
 
 function idleHouse<X extends Program>(house: RunningHouse<X>, pending: Set<Promise<void>>) {

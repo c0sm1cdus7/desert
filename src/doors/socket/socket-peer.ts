@@ -2,6 +2,7 @@
 import type { Duplex } from "node:stream";
 import { houseProtocolVersion, socketLimits } from "../../catalogs/levers.ts";
 import { socketTexts as said } from "../../texts/socket.texts.ts";
+import { peerWriter } from "./peer-writer.ts";
 import { frameReader, serverFrame } from "./frame.ts";
 import { readClient, type ClientMessage, type ServerMessage } from "./protocol.ts";
 export type DoorKey = Readonly<{ identity: string; door: "terminal" | "agente" }>;
@@ -12,51 +13,93 @@ export const helloFailure = (hello: Welcome): string | undefined => {
   if (hello.node !== process.versions.node) return said.node(process.versions.node, hello.node);
   return undefined;
 };
-export function socketPeer(stream: Duplex, receive: (message: ClientMessage) => void, gone: () => void) {
-  let key: DoorKey | undefined;
-  let ended = false;
-  let seq = -1;
-  const timer = setTimeout(() => stream.destroy(), socketLimits.helloMs);
-  const sendBytes = (bytes: Buffer) => {
-    if (ended || stream.destroyed) return;
-    writeBytes(stream, bytes);
+class SocketPeer {
+  readonly stream: Duplex;
+  private readonly writer: ReturnType<typeof peerWriter>;
+  private readonly timer: NodeJS.Timeout;
+  private readonly report: (text: string) => void;
+  private entered: DoorKey | undefined;
+  private ended = false;
+  private sequence = -1;
+  constructor(
+    stream: Duplex,
+    receive: (message: ClientMessage) => void,
+    gone: () => void,
+    report: (text: string) => void,
+  ) {
+    this.stream = stream;
+    this.report = report;
+    this.timer = setTimeout(() => stream.destroy(), socketLimits.helloMs);
+    this.writer = peerWriter(stream, this.fail);
+    connectPeer(
+      stream,
+      receive,
+      () => this.fail(said.bodyTimeout),
+      () => {
+        this.ended = true;
+        clearTimeout(this.timer);
+        gone();
+      },
+    );
+  }
+  readonly key = () => this.entered;
+  readonly live = () => !this.ended && !this.stream.destroyed;
+  readonly seq = () => this.sequence;
+  readonly sent = (value: number) => {
+    this.sequence = value;
   };
-  const send = (message: ServerMessage) => sendBytes(serverFrame(message));
-  const end = (message?: ServerMessage) => {
-    if (ended) return;
-    if (message) send(message);
-    ended = true;
-    clearTimeout(timer);
-    stream.end();
-    endSoon(stream);
+  readonly enter = (value: DoorKey) => {
+    this.entered = value;
+    clearTimeout(this.timer);
   };
-  connectPeer(stream, receive, () => {
-    ended = true;
-    clearTimeout(timer);
-    gone();
-  });
-  return {
-    stream,
-    send,
-    sendBytes,
-    end,
-    key: () => key,
-    live: () => !ended && !stream.destroyed,
-    enter: (value: DoorKey) => {
-      key = value;
-      clearTimeout(timer);
-    },
-    seq: () => seq,
-    sent: (value: number) => {
-      seq = value;
-    },
+  readonly sendFrames = (frames: readonly Buffer[]) => {
+    if (this.live()) this.writer.send(frames);
+  };
+  readonly sendBytes = (bytes: Buffer) => this.sendFrames([bytes]);
+  readonly send = (message: ServerMessage) => this.sendBytes(serverFrame(message));
+  readonly end = (message?: ServerMessage) => {
+    if (this.ended) return;
+    if (message) this.send(message);
+    this.ended = true;
+    clearTimeout(this.timer);
+    this.stream.end();
+    endSoon(this.stream);
+  };
+  readonly fail = (reason: string) => {
+    if (this.ended) return;
+    this.report(reason);
+    this.writer.stop();
+    try {
+      if (this.entered && !this.stream.destroyed) this.stream.write(serverFrame({ tipo: "cortado", motivo: reason }));
+    } catch {
+      this.stream.destroy();
+    }
+    this.end();
   };
 }
-function connectPeer(stream: Duplex, receive: (message: ClientMessage) => void, gone: () => void) {
-  const reader = frameReader("client", value => receive(readClient(value)));
+export const socketPeer = (
+  stream: Duplex,
+  receive: (message: ClientMessage) => void,
+  gone: () => void,
+  report: (text: string) => void = text => {
+    process.stderr.write(`${text}\n`);
+  },
+) => new SocketPeer(stream, receive, gone, report);
+function connectPeer(stream: Duplex, receive: (message: ClientMessage) => void, timeout: () => void, gone: () => void) {
+  let deadline: NodeJS.Timeout | undefined;
+  const reader = frameReader("client", value => {
+    clearTimeout(deadline);
+    deadline = undefined;
+    receive(readClient(value));
+  });
   stream.on("data", (bytes: Buffer) => {
     try {
+      deadline ??= setTimeout(timeout, socketLimits.frameMs);
       reader.push(bytes);
+      if (!reader.pending()) {
+        clearTimeout(deadline);
+        deadline = undefined;
+      } else deadline ??= setTimeout(timeout, socketLimits.frameMs);
     } catch {
       stream.destroy();
     }
@@ -70,16 +113,13 @@ function connectPeer(stream: Duplex, receive: (message: ClientMessage) => void, 
     stream.destroy();
   });
   stream.on("error", () => stream.destroy());
-  stream.once("close", gone);
+  stream.once("close", () => {
+    clearTimeout(deadline);
+    gone();
+  });
 }
-
 function endSoon(stream: Duplex) {
   const cutoff = setTimeout(() => stream.destroy(), 250);
   cutoff.unref();
   stream.once("close", () => clearTimeout(cutoff));
-}
-
-function writeBytes(stream: Duplex, bytes: Buffer) {
-  if (stream.writableLength + bytes.length > socketLimits.state + socketLimits.json + 10) stream.destroy();
-  else stream.write(bytes);
 }

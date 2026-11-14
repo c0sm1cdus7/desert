@@ -13,5 +13,15 @@ export const baseProjectionVersion = "desert/4";
 /** Bounded descriptions: one shared scene and a part for each identity. */
 export const sceneLimits = { general: 4000, each: 1000, identities: 64, name: 160 } as const;
 /** Local house wire: equality includes the complete Node version because state uses v8 serialization. */
-export const houseProtocolVersion = 1;
-export const socketLimits = { json: 1024 * 1024, state: 16 * 1024 * 1024, helloMs: 5000, drainMs: 10_000 } as const;
+export const houseProtocolVersion = 2;
+export const socketLimits = {
+  json: 1024 * 1024,
+  state: 16 * 1024 * 1024,
+  chunk: 64 * 1024,
+  helloMs: 5000,
+  frameMs: 5000,
+  drainMs: 10_000,
+  blockedMs: 1000,
+  pendingBytes: 1024 * 1024,
+  unintroduced: 32,
+} as const;

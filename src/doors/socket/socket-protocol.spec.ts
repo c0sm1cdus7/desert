@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { socketHouse } from "../../../tests/support/socket-house.ts";
+import { houseProtocolVersion } from "../../catalogs/levers.ts";
 import { wire } from "../../../tests/support/socket-probe.ts";
 describe.each(["stream", "unix"] as const)("%s", transport => {
   let fixture: Awaited<ReturnType<typeof socketHouse>> | undefined;
@@ -20,7 +21,7 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
     const first = c.messages[0];
     const reason = first?.tipo === "rechazo" ? first.motivo : "";
     expect(reason).toContain("protocolo" in extra ? "999" : "0.0.0");
-    expect(reason).toContain("protocolo" in extra ? "1" : process.versions.node);
+    expect(reason).toContain("protocolo" in extra ? String(houseProtocolVersion) : process.versions.node);
     expect(c.states).toHaveLength(0);
   });
   it.each(["oversize", "json", "schema", "v8", "unknown", "zero"])("invalid %s closes only that peer", async kind => {
