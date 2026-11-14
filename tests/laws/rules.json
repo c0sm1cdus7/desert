@@ -1,5 +1,5 @@
 {
-  "debts": 22,
+  "debts": 23,
   "rules": [
     {
       "id": 1,
@@ -1902,7 +1902,8 @@
         "src/tools/startup-contract.ts",
         "src/adapters/declared/credential-journal.ts",
         "PROGRAMA.md",
-        "src/adapters/declared/credential-journal.spec.ts"
+        "src/adapters/declared/credential-journal.spec.ts",
+        "src/programs/house-union-contract.spec.ts"
       ]
     },
     {
@@ -2119,6 +2120,71 @@
         "src/surface/bridge/window-derived.spec.ts",
         "tests/support/window-program.ts"
       ]
+    },
+    {
+      "id": 219,
+      "rule": "El kit rige las acciones de herramientas: una identidad puede todas las de su herramienta salvo recorte; una mente, solo las dadas de la suya. Solo quien administra da el kit y no recibe recorte. null da todas; [] ninguna sin quitar la herramienta. Al salir o perder una herramienta se pierde su kit. Al recibir la administración se borran todos los kits de quien la recibe; al devolverla conserva sus herramientas enteras hasta un nuevo kit. Cada inicio de ejecución de herramienta, también anidado, comprueba el kit vigente; un acto ya iniciado puede terminar.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "spec",
+      "evidence": [
+        "src/house/house.ts",
+        "src/tools/execute.ts",
+        "src/house/kit.spec.ts",
+        "src/house/minds.spec.ts",
+        "src/house/contract-neighbors.spec.ts",
+        "src/house/adversaria.spec.ts"
+      ]
+    },
+    {
+      "id": 220,
+      "rule": "La mente de una herramienta existente actúa sobre ella o sus cosas a su propio nombre, con el mismo kit dentro de sus actos. No es una identidad: no recibe herramientas, canales, administración, preferencias ni tener a la vista. De los actos propios de la casa solo recibe scene; los actos que el programa ofrece por own son para identidades. Usa los adaptadores declarados de su herramienta como una identidad que la tiene; sus vínculos de credenciales son suyos.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "spec",
+      "evidence": [
+        "src/house/house.ts",
+        "src/tools/execute.ts",
+        "src/tools/scenes.ts",
+        "src/house/minds.spec.ts",
+        "src/house/contract-neighbors.spec.ts",
+        "src/house/adversaria.spec.ts",
+        "src/tools/tools.ts",
+        "src/programs/house-union-contract.spec.ts"
+      ]
+    },
+    {
+      "id": 221,
+      "rule": "Cada identidad presente y cada mente de una herramienta existente puede ejecutar su propia escena: general y, si quiere, partes para identidades presentes en la casa. La ejecución rechaza antes de escribir un destinatario ausente o mente. Nadie escribe la de otro. El esquema limita el general a 4.000 caracteres, cada parte a 1.000, los nombres a 160 y la cantidad de partes a 64; no admite nombres ni textos vacíos o compuestos solo por espacios o U+200B–U+200D, U+2060 y U+FEFF. La casa guarda la última escena de cada autor y todos la leen entera, aun si luego sale su autor o un destinatario.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "spec",
+      "evidence": [
+        "src/catalogs/acts.ts",
+        "src/catalogs/levers.ts",
+        "src/journal/events.ts",
+        "src/tools/scenes.ts",
+        "src/house/scenes.spec.ts",
+        "src/house/contract-neighbors.spec.ts",
+        "src/house/adversaria.spec.ts"
+      ]
+    },
+    {
+      "id": 223,
+      "rule": "Una necesidad calculada por código puede nombrar a quién le pide atención. Si el destinatario es una identidad de la casa que tiene esa herramienta, solo la ve él; si no lo es o no tiene la herramienta, la ven quienes la tienen, como una necesidad sin destinatario. La escena la explica, no la calcula. Los casos prometen también el destinatario: la comprobación derivada mira desde quien hace el caso y desde cada destinatario prometido, y falla nombrándolo si no puede ver su necesidad.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "derived",
+      "evidence": [
+        "src/tools/promises-contract.ts",
+        "src/surface/bridge/notices.ts",
+        "src/programs/promised-notices.ts",
+        "src/programs/directed-notices.spec.ts",
+        "src/surface/bridge/notices.spec.ts"
+      ]
+    },
+    {
+      "id": 224,
+      "rule": "Una acción fuera del kit de quien mira sale apagada diciendo por qué.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "debt",
+      "debt": "El carril lectura y kit agrega el motivo de kit a las acciones apagadas, por las leyes 4 y 6."
     }
   ]
 }

@@ -34,7 +34,7 @@ type Done<X extends Program> = Readonly<{ says: string; facts: readonly Told<X>[
    * each by its name, when doing this is what makes something of theirs need someone. */
   Readonly<{ needs?: readonly Need[]; needsIn?: Readonly<Record<string, readonly Need[]>> }>;
 /** A thing that needs someone to act, and why: it stays so until what it says is no longer true. */
-export type Need = Readonly<{ target: string; why: string }>;
+export type Need = Readonly<{ target: string; why: string; to?: string }>;
 /** Given this, when someone does this, this happens. Nobody writes its spec: every door's check derives from it. */
 export type Case<X extends Program, S extends TSchema = TSchema> = Readonly<{
   promise: string;

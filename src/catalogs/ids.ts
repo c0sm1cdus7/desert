@@ -1,4 +1,5 @@
 export const ids = {
+  mind: "mind:",
   self: "me",
   houseChannel: "communicator/house",
   attention: "attention:",

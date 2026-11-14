@@ -4,14 +4,14 @@ import { programRule } from "./execution/program-causes.ts";
 import { actCatalog } from "../catalogs/acts.ts";
 import { ids } from "../catalogs/ids.ts";
 import { toolReminderLadder } from "../catalogs/time.ts";
-import { allowed, emptyHouse, houseStep, identityView, visible, type Attention } from "../house/house.ts";
+import { allowed, emptyHouse, houseStep, identityView, mindTool, visible, type Attention } from "../house/house.ts";
 import { effect, processOf, type Event, type HouseEmission } from "../journal/events.ts";
 import { emptyMap, initial, listOf } from "../journal/projections.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { accepted, ownAct, reading, rejected } from "./act-definition.ts";
 import { attendsStep, lookedStep, targetTool } from "./attendance.ts";
 import { actReach, execute, type Execution } from "./execute.ts";
-import { preferenceAct } from "./preferences.ts";
+import { houseActs } from "./scenes.ts";
 import type { HouseState, OwnAct, Program, Slices, State, ToolRegistry } from "./tool-contract.ts";
 export const emptyHouseState: HouseState = initial({
   by: "",
@@ -106,12 +106,15 @@ export function startTools<X extends Program>(ports: Starting<X>) {
   const { bus, state: read, registry, secrets } = ports;
   let state = read();
   let live = true;
-  const offered = [...attendanceActs(registry), preferenceAct<X>()];
+  const offered = houseActs(attendanceActs(registry));
   const running: Execution<X> = {
     ...ports,
     live: () => live,
     process: ports.process ?? (() => false),
-    own: state => [...offered, ...programRule(() => ports.own?.(state) ?? [])],
+    own: state => [
+      ...offered(state.by),
+      ...(mindTool(state.by) === undefined ? programRule(() => ports.own?.(state) ?? []) : []),
+    ],
   };
   const shutdown = startPrograms(registry, running);
   const stop = bus.on(event => {
