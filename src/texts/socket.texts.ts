@@ -17,6 +17,8 @@ export const socketTexts = {
   pending: (count: number) => `Casa cerrada. Actos que quedaron en curso: ${count}.`,
   beforeState: "Se cortó la conexión antes de recibir el estado de la casa.",
   stateMismatch: "El estado recibido no coincide con la casa. Se está pidiendo de nuevo.",
+  stateUnverified: "No se pudo comprobar el estado de la casa. Se cerró la terminal. Volvé a abrirla.",
+  invalidData: "El pedido tiene datos inválidos. No se escribió nada.",
   stateFailed: "No se pudo enviar el estado de la casa. Volvé a abrir la terminal.",
   slow: "La terminal dejó de recibir el estado. Se cerró su conexión.",
   bodyTimeout: "No llegó el marco completo dentro del plazo.",

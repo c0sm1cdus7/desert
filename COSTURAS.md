@@ -268,7 +268,7 @@ los dos clientes en pseudo-terminal y sus colores al reconectar se comprueban ad
 
 ## Arreglo adversario del servidor (14/11)
 
-El protocolo 2 manda un encabezado `estado` con base, secuencia, longitud y huella, seguido de tramos de 64 KiB.
+El protocolo 3 manda un encabezado `estado` con base, secuencia, longitud y huella, seguido de tramos de 64 KiB.
 `state-patch.ts` divide recursivamente por campos y claves de mapas; las listas que crecen envían su sufijo.
 `state-hash.ts` calcula una huella semántica del estado completo y reutiliza nodos inmutables. `state-delivery.ts`
 prepara una vez por identidad y secuencia; `state-receiver.ts` arma aparte y verifica antes de publicar.
@@ -288,3 +288,9 @@ siga viva; antes de las respuestas se vuelve a consultar pertenencia.
 visibles al catálogo. La cancelación de un arranque libera recursos sin anunciar un cierre exitoso. La huella de
 contenido acompaña al identificador del pedido en la causa; el libro recupera también los pedidos anteriores sin
 huella a partir del contenido registrado. Si falló toda escritura, el resultado final vive solo en ese proceso.
+
+La huella del protocolo 3 compone partes inmutables con escalares canónicos por valor, sin bytes internos de V8.
+El detalle de tipos está en `PROGRAMA.md`. El pedido remoto rechaza datos que JSON perdería o cambiaría,
+incluidos -0 y no finitos, antes de escribir. La entrada tiene cinco segundos totales; tres estados inválidos
+consecutivos en la misma secuencia cierran la terminal con texto del catálogo y salida 1. Cada conexión deja
+un solo aviso de resincronización en la salida de la casa.

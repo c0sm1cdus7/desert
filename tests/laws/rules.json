@@ -2466,10 +2466,17 @@
     },
     {
       "id": 246,
-      "rule": "La terminal usa HousePorts por socket con el router y dibujante existentes: los mismos recorridos, incluida la misma venta pedida dos veces con teclas rápidas, dan marcos idénticos y los mismos hechos act. La vista verificada llega antes del resultado; el reloj avanza desde la hora de la casa. El camino local conserva su comportamiento.",
+      "rule": "La terminal usa HousePorts por socket con el router y dibujante existentes: los mismos recorridos, incluida la misma venta pedida dos veces con teclas rápidas, dan marcos idénticos y los mismos hechos act. La vista verificada llega antes del resultado; el reloj avanza desde la hora de la casa. El camino local conserva su comportamiento. La huella compone partes inmutables con números canónicos por valor y claves de objeto en orden fijo, independiente de alias y representaciones internas de V8; el parche usa la misma igualdad. La puerta remota solo admite datos JSON sin pérdidas, rechaza -0 y no finitos antes de escribir.",
       "from": "14/11 · casa-servidor · paso 2",
       "guarantee": "spec",
-      "evidence": ["src/doors/socket/same-screens.spec.ts", "src/doors/socket/socket-ports.spec.ts"]
+      "evidence": [
+        "src/doors/socket/same-screens.spec.ts",
+        "src/doors/socket/socket-ports.spec.ts",
+        "src/doors/socket/state-value.spec.ts",
+        "src/doors/socket/socket-json.spec.ts",
+        "src/doors/socket/socket-numbers-process.spec.ts",
+        "src/doors/socket/state-delivery.spec.ts"
+      ]
     },
     {
       "id": 247,
@@ -2485,14 +2492,16 @@
     },
     {
       "id": 248,
-      "rule": "La terminal prueba el socket y, si falta, lanza el programa declarado en un proceso independiente con un plazo de cinco segundos. El candado sin socket conserva su texto y no abre otro escritor. Cerrar la terminal no apaga la casa; reconectar conserva la pantalla. Toda falla al abrir sale con una línea del catálogo y código distinto de cero, sin traza cruda.",
+      "rule": "La terminal prueba el socket y, si falta, lanza el programa declarado en un proceso independiente con un plazo de cinco segundos. El candado sin socket conserva su texto y no abre otro escritor. Cerrar la terminal no apaga la casa; reconectar conserva la pantalla. Toda falla al abrir sale con una línea del catálogo y código distinto de cero, sin traza cruda. Desde hola hasta el primer estado comprobado hay cinco segundos totales que los envíos no reinician. Tres estados inválidos consecutivos en la misma secuencia agotan dos pedidos de recuperación y cierran la terminal con una línea del catálogo y código 1, al entrar o ya adentro. La casa deja un único aviso de resincronización por conexión, no uno por vuelta.",
       "from": "14/11 · casa-servidor · paso 2",
       "guarantee": "spec",
       "evidence": [
         "src/programs/terminal-client.spec.ts",
         "src/programs/launch-house.spec.ts",
         "src/programs/socket-terminal.spec.ts",
-        "src/programs/terminal-failures.spec.ts"
+        "src/programs/terminal-failures.spec.ts",
+        "src/doors/socket/socket-resync.spec.ts",
+        "src/programs/terminal-state-failure.spec.ts"
       ]
     },
     {

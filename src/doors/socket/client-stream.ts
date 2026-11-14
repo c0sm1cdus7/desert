@@ -4,6 +4,7 @@ import { houseProtocolVersion, socketLimits } from "../../catalogs/levers.ts";
 import { socketTexts } from "../../texts/socket.texts.ts";
 import { clientFrame, frameReader } from "./frame.ts";
 import { readServer, type ServerMessage } from "./protocol.ts";
+import { SocketOpeningError } from "./socket-error.ts";
 function attachmentWait(stream: Duplex) {
   let resolve = () => {};
   let reject: (error: Error) => void = () => {};
@@ -16,7 +17,8 @@ function attachmentWait(stream: Duplex) {
     reject(new Error(socketTexts.startTimeout));
     stream.destroy();
   };
-  let timer = setTimeout(expired, socketLimits.helloMs);
+  const total = setTimeout(expired, socketLimits.helloMs);
+  let timer: NodeJS.Timeout | undefined;
   return {
     promise,
     reject,
@@ -25,6 +27,7 @@ function attachmentWait(stream: Duplex) {
     },
     complete: () => {
       waiting = false;
+      clearTimeout(total);
       clearTimeout(timer);
       resolve();
     },
@@ -33,6 +36,7 @@ function attachmentWait(stream: Duplex) {
       if (waiting || partial) timer = setTimeout(expired, socketLimits.frameMs);
     },
     closed: () => {
+      clearTimeout(total);
       clearTimeout(timer);
       reject(new Error(socketTexts.beforeState));
     },
@@ -56,8 +60,8 @@ export function clientStream(
     try {
       reader.push(bytes);
       ready.progress(reader.pending());
-    } catch {
-      ready.reject(new Error(socketTexts.frame));
+    } catch (error) {
+      ready.reject(error instanceof SocketOpeningError ? error : new Error(socketTexts.frame));
       stream.destroy();
     }
   });

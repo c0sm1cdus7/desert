@@ -33,9 +33,15 @@ async function runTerminal<X extends Program>(
     socketPorts(connection, { registry: program.registry, limits: { recentLines: 40 } }),
     shown,
   );
+  const stop = new AbortController();
+  const unwatch = connection.watch(() => {
+    if (connection.failure()) stop.abort();
+  });
   try {
-    await startTerminal(process.stdout, process.stdin, router);
+    await startTerminal(process.stdout, process.stdin, router, stop.signal);
+    if (connection.failure()) throw new Error(connection.failure());
   } finally {
+    unwatch();
     router.stop();
     connection.close();
   }

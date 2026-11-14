@@ -8,6 +8,7 @@ import { socketTexts as said } from "../../texts/socket.texts.ts";
 import type { ClientMessage, ServerMessage } from "./protocol.ts";
 import type { Session } from "./door-session.ts";
 import type { Peer } from "./socket-peer.ts";
+import { jsonData } from "./json-data.ts";
 export async function routeRequest<X extends Program>(
   session: Session<X>,
   peer: Peer,
@@ -22,6 +23,7 @@ export async function routeRequest<X extends Program>(
   } as const;
   if (peer.key()?.door !== "terminal") return refusal;
   if (message.tipo === "acto") return book.act(by, message);
+  if (!jsonData(message)) return { ...refusal, motivo: said.invalidData };
   if (message.tipo === "leer") {
     if (message.qué === "pedido") return book.lookup(by, message.id) ?? { ...refusal, motivo: said.unknown };
     if (message.qué === "catalogo")

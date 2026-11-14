@@ -1,5 +1,6 @@
 // The request key travels in the act's existing cause. Replaying the journal restores deduplication after a crash.
 import { requestContent } from "./request-content.ts";
+import { jsonData } from "./json-data.ts";
 import { ids } from "../../catalogs/ids.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import { socketTexts } from "../../texts/socket.texts.ts";
@@ -78,6 +79,7 @@ function actRequest<X extends Program>(
 ) {
   const act = async (by: string, request: RequestAct): Promise<ServerMessage> => {
     const { act, input, target, through, id } = request;
+    if (!jsonData(request)) return { tipo: "rechazo", id, motivo: socketTexts.invalidData };
     const content = requestContent({ object: target ?? ids.self, option: act, input, through });
     const key = requestKey(by, id);
     const saved = requests.get(key);

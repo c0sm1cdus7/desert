@@ -7,11 +7,14 @@ import { clientFrame } from "./frame.ts";
 import { connectionState } from "./connection-state.ts";
 import { clientStream } from "./client-stream.ts";
 import type { ClientMessage, ServerMessage } from "./protocol.ts";
+import { socketLimits } from "../../catalogs/levers.ts";
+import { SocketOpeningError } from "./socket-error.ts";
 export interface SocketConnection<X extends Program> {
   readonly state: () => State<X>;
   readonly identity: () => string;
   readonly now: () => number;
   readonly status: () => Screen["state"];
+  readonly failure: () => string | undefined;
   send: (message: ClientMessage) => boolean;
   readonly watch: (changed: () => void) => () => void;
   readonly receive: (listener: (message: ServerMessage) => void) => () => void;
@@ -23,6 +26,11 @@ class Connection<X extends Program> implements SocketConnection<X> {
   private readonly listeners = new Set<(message: ServerMessage) => void>();
   private stream: Duplex | undefined;
   private closed = false;
+  private failureReason: string | undefined;
+  private sequence = -1;
+  private failedSequence = -1;
+  private failures = 0;
+  private reported = false;
   private readonly token: string;
   constructor(token: string) {
     this.token = token;
@@ -31,6 +39,7 @@ class Connection<X extends Program> implements SocketConnection<X> {
   readonly identity = () => this.view.identity();
   readonly now = () => this.view.now();
   readonly status = () => this.view.status();
+  readonly failure = () => this.failureReason;
   readonly watch = (changed: () => void) => this.view.watch(changed);
   readonly receive = (listener: (message: ServerMessage) => void) => {
     this.listeners.add(listener);
@@ -39,15 +48,26 @@ class Connection<X extends Program> implements SocketConnection<X> {
   private incoming(value: Buffer | ServerMessage): boolean {
     if (Buffer.isBuffer(value)) {
       try {
-        return this.view.accept(value);
+        const accepted = this.view.accept(value);
+        if (accepted) this.failures = 0;
+        return accepted;
       } catch {
         this.view.reset();
+        this.failures = this.failedSequence === this.sequence ? this.failures + 1 : 1;
+        this.failedSequence = this.sequence;
+        if (this.failures >= socketLimits.stateAttempts) {
+          this.failureReason = socketTexts.stateUnverified;
+          this.close();
+          throw new SocketOpeningError(this.failureReason);
+        }
         this.view.setStatus("connecting");
-        process.stderr.write(`${socketTexts.stateMismatch}\n`);
+        if (!this.reported) process.stderr.write(`${socketTexts.stateMismatch}\n`);
+        this.reported = true;
         this.stream?.write(clientFrame({ tipo: "sincronizar" }));
         return false;
       }
     }
+    if (value.tipo === "estado") this.sequence = value.seq;
     this.view.metadata(value);
     this.listeners.forEach(listener => listener(value));
     if (value.tipo === "cortado") process.stderr.write(`${value.motivo}\n`);
@@ -75,6 +95,7 @@ class Connection<X extends Program> implements SocketConnection<X> {
     }
     this.stream?.destroy();
     this.stream = next;
+    this.failures = 0;
     this.view.reset();
     this.view.setStatus("connecting");
     await clientStream(

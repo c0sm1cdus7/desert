@@ -10,7 +10,9 @@ export function statePatch(before: unknown, after: unknown): StatePatch {
     Array.isArray(before) &&
     Array.isArray(after) &&
     before.length <= after.length &&
-    before.every((item, index) => equal(item, after[index]))
+    [...before.keys()].every(
+      index => Object.hasOwn(before, index) === Object.hasOwn(after, index) && equal(before[index], after[index]),
+    )
   )
     return { kind: "append", from: before.length, values: after.slice(before.length) };
   if (plainRecord(before) && plainRecord(after))

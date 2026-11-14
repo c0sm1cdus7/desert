@@ -35,7 +35,7 @@ export function receivePeer<X extends Program>(session: Session<X>, peer: Peer, 
     return;
   }
   if (message.tipo === "sincronizar") {
-    session.report(said.stateMismatch);
+    peer.reportMismatch();
     delivery.sendState(peer, true);
     return;
   }

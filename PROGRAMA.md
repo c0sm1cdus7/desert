@@ -1016,7 +1016,7 @@ terminal. Las llaves reales y su revocación individual llegan en el paso 3; sac
 El marco lleva largo uint32 big-endian (cuenta el byte de tipo y el cuerpo), un byte de tipo y el cuerpo.
 Tipo 0: JSON UTF-8 válido, hasta 1 MiB, validado con TypeBox de ambos lados. Tipo 1: tramos de 64 KiB de un
 mensaje `node:v8`, solo de la casa al cliente terminal; cada marco sigue limitado a 16 MiB, el estado completo no. Un cliente nunca puede enviar tipo 1. `hola` autentica primero y recién después exige igualdad de protocolo y
-versión completa de Node; quien no entró no recibe esas versiones. El protocolo actual es 2; los límites y la versión están en `src/catalogs/levers.ts`. Los esquemas exactos están en
+versión completa de Node; quien no entró no recibe esas versiones. El protocolo actual es 3; los límites y la versión están en `src/catalogs/levers.ts`. Los esquemas exactos están en
 `src/doors/socket/protocol.ts`. Todos los objetos JSON llevan `tipo` y rechazan propiedades adicionales:
 
 | Dirección | `tipo` | Campos además de `tipo` |
@@ -1026,7 +1026,7 @@ versión completa de Node; quien no entró no recibe esas versiones. El protocol
 | Cliente | `leer` | `id`, `qué`, `desde?`; `catalogo` devuelve nombres y acciones, `pedido` recupera el acto con ese `id` |
 | Cliente | `esperar` | `id`, `hasta: instante`; espera un hecho o el plazo, hasta 240 s, sin sondeo |
 | Cliente | `defecto` | `tool`, `target`, `option`; la casa exige la acción en el kit y arma la entrada con su catálogo |
-| Cliente | `sincronizar` | ninguno; pide estado completo y deja un aviso en la salida de la casa |
+| Cliente | `sincronizar` | ninguno; pide estado completo; el primer pedido deja un único aviso por terminal |
 | Cliente | `apagar`, `chau` | ninguno |
 | Casa | `bienvenida` | `protocolo`, `identidad`, `admin: booleano`, `ahora`, `seq`; luego `estado` solo a terminal |
 | Casa | `estado` | `seq`, `ahora`, `base` (secuencia o `null` para completo), `huella` SHA-256, `bytes`; luego sus tramos tipo 1 |
@@ -1045,9 +1045,37 @@ rechaza. `status` es `accepted`, `rejected`, `draft`, `inconclusive`, `interrupt
 Cada terminal recibe `identityView` con secuencia, agrupando los cambios del turno. Al entrar se manda completa;
 luego viajan solo los campos y claves que cambiaron, y de las listas que crecen, el agregado. Los campos y mapas
 siguen la estructura real del estado: eso conserva las herramientas opacas y evita volver a mandar el historial.
-Una huella semántica SHA-256 del estado entero acompaña cada envío; no depende de los alias internos de v8.
+Una huella semántica SHA-256 del estado entero acompaña cada envío; no depende de los alias internos de v8
+ni de que un número esté guardado como entero o double. Se compone de huellas de partes inmutables: se reutilizan
+las partes sin cambios y se recalculan las que cambiaron y sus contenedores. Los escalares se escriben directamente
+en la parte que los contiene, sin serialización V8 ni un SHA por cada escalar. El parche compara con ese mismo
+criterio de valor. La primera lectura completa sigue siendo proporcional al tamaño del estado.
+
+La codificación usa etiquetas de tipo y separadores: `null;`, `undefined:undefined;`, booleanos `true`/`false`,
+números con `String(n)` (incluidos `NaN`, `Infinity`, `-Infinity`; `-0` tiene el valor de `0`), bigint decimal y
+cadenas con escape JSON, incluidos los sustitutos Unicode aislados. Los objetos recorren claves propias en orden
+lexicográfico UTF-16 fijo, sin depender del locale; las listas conservan longitud, posiciones y huecos. Map y Set
+conservan el orden observable de iteración. Cada objeto hijo aporta su SHA-256, independientemente de sus alias.
+Date aporta milisegundos, RegExp fuente y banderas; los binarios aportan tipo y bytes, y Float32/Float64 sus valores
+numéricos canónicos. Buffer y Uint8Array son tipos distintos. Son partes acíclicas e inmutables; un tipo no admitido
+falla con el aviso de envío, nunca genera una huella a partir de bytes internos de V8.
+
+Por esta puerta los pedidos aceptan solo árboles de datos JSON: `null`, booleanos, texto, números finitos,
+listas densas y objetos de claves de texto. Se rechazan `-0` (también por subdesborde), números no finitos, undefined,
+bigint, funciones, símbolos, fechas, mapas, conjuntos, huecos, accesores, ciclos y propiedades que JSON omitiría.
+El rechazo dice «El pedido tiene datos inválidos. No se escribió nada.» y ocurre antes de registrar el pedido o
+escribir hechos. El mismo identificador puede corregirse: no se reservó. No cambia la puerta de un solo proceso.
+
 La terminal arma aparte y publica solo después de verificar huella, secuencia e identidad. Si difiere, conserva la
-última vista válida, muestra el texto del catálogo, suspende los actos y pide `sincronizar`; la casa lo informa.
+última vista válida, muestra una vez el texto del catálogo, suspende los actos y pide `sincronizar`. Tres estados
+inválidos consecutivos en la misma secuencia agotan la recuperación: son dos pedidos como máximo; un estado válido
+reinicia la cuenta. La terminal termina con código 1 y «No se pudo comprobar el estado de la casa. Se cerró la
+terminal. Volvé a abrirla.», también si ya había entrado. La casa escribe un solo aviso de resincronización por
+conexión, aunque cambie la secuencia: el archivo no crece con cada vuelta.
+Desde el envío de `hola` hasta el primer estado comprobado hay cinco segundos totales. Ningún encabezado, tramo
+ni resincronización reinicia ese plazo; al vencer, la terminal sale con su texto del catálogo y código 1.
+El protocolo 3 identifica esta nueva codificación: casa y terminal deben actualizarse juntas; un cliente de
+protocolo 2 autenticado recibe el rechazo de versión, antes de intercambiar estado.
 La vista y su codificación se comparten entre las conexiones de la misma identidad y secuencia. El resultado sale
 después del estado que contiene sus efectos. Cada conexión respeta backpressure: tras un segundo sin poder vaciar
 su escritura, o más de 1 MiB de envíos posteriores pendientes, se corta con aviso. Un estado inicial grande se

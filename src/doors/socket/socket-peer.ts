@@ -21,6 +21,7 @@ class SocketPeer {
   private entered: DoorKey | undefined;
   private ended = false;
   private sequence = -1;
+  private mismatchReported = false;
   constructor(
     stream: Duplex,
     receive: (message: ClientMessage) => void,
@@ -45,6 +46,11 @@ class SocketPeer {
   readonly key = () => this.entered;
   readonly live = () => !this.ended && !this.stream.destroyed;
   readonly seq = () => this.sequence;
+  readonly reportMismatch = () => {
+    if (this.mismatchReported) return;
+    this.mismatchReported = true;
+    this.report(said.stateMismatch);
+  };
   readonly sent = (value: number) => {
     this.sequence = value;
   };
