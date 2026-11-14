@@ -38,6 +38,8 @@ export const promiseTexts = {
   offFor: (act: string) => `the act ${act} is not off exactly when its tool says why it cannot be done`,
   notOnMenu: (tool: string) => `the tool ${tool} is not on the Menu, off, of who does not hold it`,
   foreign: "is read by who does not hold it, with actions off; hidden from the Menu by preference",
+  outsideKit: "is refused when its action is outside the kit",
+  partialKit: "shows an action outside a partial kit",
   stillShown: (tool: string) => `the tool ${tool} is still on the Menu of who prefers not to see what is not theirs`,
   hiding: (promise: string) => `${promise}, hidden for who prefers not to see what cannot be done`,
   saysNothing: (act: string) => `the row of ${act} says nothing to its right: its datum, or what it is for`,

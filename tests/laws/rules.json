@@ -1,5 +1,5 @@
 {
-  "debts": 23,
+  "debts": 22,
   "rules": [
     {
       "id": 1,
@@ -780,7 +780,7 @@
     },
     {
       "id": 104,
-      "rule": "LEYES 4: todas las acciones conservan su tecla; las que están fuera del kit quedan apagadas con motivo",
+      "rule": "LEYES 4: todas las acciones conservan su tecla; cada acción fuera del kit queda apagada con su motivo",
       "from": "LEYES 4",
       "guarantee": "derived",
       "evidence": ["src/programs/promised-off.ts", "src/surface/availability/action-off.ts", "src/tools/execute.ts"]
@@ -2191,8 +2191,12 @@
       "id": 224,
       "rule": "Una acción fuera del kit de quien mira sale apagada diciendo por qué.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
-      "guarantee": "debt",
-      "debt": "El paso 3 hace que la superficie compruebe el kit por acción; este paso comprueba la herramienta entera."
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/surface/availability/action-off.ts",
+        "src/house/kit-core.spec.ts"
+      ]
     },
     {
       "id": 225,

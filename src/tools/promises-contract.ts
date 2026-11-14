@@ -101,6 +101,7 @@ export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
 /** A program, whole: what DESERT needs to run it and to check everything it promises. */
 export type Composition<X extends Program> = AdapterComposition &
   Readonly<{
+    identities?: boolean;
     projectionVersion: CalculationVersion;
     words: Vocabulary<X["fact"]>;
     registry: readonly ProgramTool<X>[];

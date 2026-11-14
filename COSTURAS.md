@@ -42,7 +42,7 @@ Qué cambió respecto de Kenon en este paso:
 - `identityView` adapta actividad y atención a quien mira; las entradas de actividad son comunes a todas las identidades.
 - `granted` sigue dando la herramienta entera. `kit-set` permite a quien administra recortar sus acciones:
   una identidad sin kit conserva todas; una mente sin kit no tiene ninguna y solo actúa en su propia herramienta.
-  Quien administra no tiene recorte. Al recibir la administración pierde todos sus kits; no vuelven al devolverla.
+  Quien administra no tiene recorte; con `identities: true` tiene todas las herramientas sin asignarlas y recibe sus recordatorios. Al recibir la administración pierde todos sus kits; no vuelven al devolverla.
   `null` da todas, `[]` ninguna; al perder la herramienta se pierde el kit.
 - La escena está en la casa: última por autor, general y partes por identidad, todas leídas por todos.
   `Need.to` elige una identidad que tenga la herramienta; si no la tiene o no es una identidad presente,

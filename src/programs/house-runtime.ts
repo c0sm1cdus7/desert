@@ -18,7 +18,7 @@ export type HouseOptions<X extends Program> = AdapterComposition &
   Readonly<{ by: string; projectionVersion: CalculationVersion; creation: Creation }> &
   Readonly<{ words: Vocabulary<X["fact"]>; registry: ToolRegistry<X>; slices: Slices<X> }> &
   Partial<Pick<Execution<X>, "own" | "process">> &
-  Readonly<{ secretKeys?: HouseKeyProvider }>;
+  Readonly<{ secretKeys?: HouseKeyProvider; identities?: boolean }>;
 /** A part is kept under its tool's id: that is how the house gives a whole tool, or none of it, to an identity. */
 function ownerless<X extends Program>({ slices, registry }: HouseOptions<X>): string[] {
   return Object.keys(slices.step).filter(part => !registry.some(tool => tool.id === part));

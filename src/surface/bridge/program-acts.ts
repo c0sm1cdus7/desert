@@ -79,7 +79,7 @@ const offersOf =
       if (!also || given === undefined) return [];
       const row = { key: act.key, title: also.name ?? act.name, act: name, on: { tool } };
       const fixed = ask.leading(given);
-      const why = actionOff(act, ports.state(), tool, tool, ports.now(), () => walk.next(fixed), target);
+      const why = actionOff(act, ports.state(), tool, tool, ports.now(), () => walk.next(fixed), target, name);
       /** Off, it says why; and it is not there for who prefers not to see what cannot be done. */
       if (why !== undefined && hides(ports.state().house, ports.me, "off")) return [];
       if (why !== undefined) return [{ ...row, detail: why, off: true }];
@@ -107,7 +107,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       /** Off for who does not hold the tool, and while the tool itself says why it cannot be done. Hidden, then,
        * for who prefers not to see what is not theirs, or what cannot be done. */
       const off = (): string | undefined =>
-        actionOff(act, ports.state(), tool.id, tool.id, ports.now(), () => walk.next([]));
+        actionOff(act, ports.state(), tool.id, tool.id, ports.now(), () => walk.next([]), undefined, name);
       const listed = (): boolean => off() === undefined || !hides(ports.state().house, ports.me, "off");
       const datum = (): string => programCall(act.datum?.bind(act), ports.state(), tool.id) ?? beside(act);
       const next: ToolAct["next"] = answers => walk.next(answers);
@@ -121,7 +121,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       /** Off while the tool's state says why. On the list of a thing of the tool, never of a view that only
        * groups them; and not while it is off, for who prefers not to see what cannot be done. */
       const off = (target: string): string | undefined =>
-        actionOff(act, ports.state(), tool.id, target, ports.now(), () => walk.next([], target));
+        actionOff(act, ports.state(), tool.id, target, ports.now(), () => walk.next([], target), undefined, name);
       const unseen = (target: string): boolean =>
         off(target) !== undefined && hides(ports.state().house, ports.me, "off");
       const listed = (target: string): boolean =>

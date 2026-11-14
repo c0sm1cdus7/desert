@@ -27,7 +27,7 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - **El registro**: solo se agrega; cada hecho con autor e instante; el estado es el registro plegado.
 - **La superficie**: Menú, lista de cada herramienta, objeto abierto y pregunta; un router único para cualquier
   dibujante (hoy la terminal). Cada identidad puede leer y buscar todas las herramientas y sus objetos; las acciones
-  fuera del kit quedan apagadas. Atención se limita a las herramientas que tiene, y Actividad muestra lo de las demás
+  fuera del kit quedan apagadas. Atención se limita a las herramientas de las que tiene al menos una acción, y Actividad muestra lo de las demás
   personas; buscar con espacio; Preferencias. Por ahora la superficie comprueba la herramienta entera.
 - **Las pruebas**: de cada caso sale la prueba sobre la organización y el recorrido con teclas desde el Menú; de
   cada acción, que rechace lo que su forma no admite, que su fila apagada diga su motivo, que lo que deja se
@@ -1052,3 +1052,5 @@ No se agrega `message`. Quien construye `House` a mano agrega `kits` y `scenes` 
 La versión de cálculos de la base pasa a `desert/3`: al actualizar se reconstruyen los plegados, también los de
 la primera vuelta (`desert/2`), para borrar los kits al recibir la administración. En versión manual,
 la evidencia guardada debe renovarse con la entrega comprobada, conservando la anterior durante su control.
+
+La composición puede pedir `identities: true`: quien administra tiene todas las acciones de cada herramienta, sin asignación; también recibe sus recordatorios. Sin esa opción, la asignación de herramientas conserva su comportamiento anterior. Un recorte sin acciones apaga los recordatorios y excluye la herramienta de Atención, aunque siga en el kit para la preferencia de lo ajeno. La superficie y la ejecución consultan el mismo permiso por acción.

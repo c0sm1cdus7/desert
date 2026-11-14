@@ -5,7 +5,7 @@ import { effect, type Event, type HouseBus, type HouseEvent } from "../journal/e
 type Assignment = Readonly<{ identity: string; tools: readonly string[] }>;
 export type Creation = Readonly<{ admin: string; assignments: readonly Assignment[] }>;
 export type House = Readonly<{ admin: string }> &
-  Readonly<{ grants: ReadonlyMap<string, readonly string[]> }> &
+  Readonly<{ identities?: boolean; grants: ReadonlyMap<string, readonly string[]> }> &
   /** What each identity prefers not to see: its own to say, and nobody else's. */
   Readonly<{ hides: ReadonlyMap<string, readonly Hideable[]> }> &
   Readonly<{ kits: ReadonlyMap<string, ReadonlyMap<string, readonly string[] | null>> }> &
@@ -58,6 +58,7 @@ export function houseStep(state: House, event: Event): House {
 }
 /** A grant assigns a whole tool; its action kit is checked separately. */
 export const allowed = (house: House, by: string, tool: string): boolean =>
+  (house.identities === true && by === house.admin && house.grants.has(by)) ||
   house.grants.get(by)?.includes(tool) === true;
 export const identityView = <S extends HouseView>(state: S, by: string): S => ({
   ...state,
@@ -90,10 +91,18 @@ export const holds = (registry: readonly { id: string }[], house: House, by: str
   mindTool(by) === undefined ? allowed(house, by, tool) : mindTool(by) === tool && present(registry, house, by);
 /** Identities inherit every act of a granted tool; minds receive only explicit acts of their own tool. */
 export function allowedAct(house: House, by: string, tool: string, act: string): boolean {
+  if (house.identities && by === house.admin && house.grants.has(by)) return true;
   const kit = by === house.admin ? undefined : house.kits.get(by)?.get(tool);
   const own = mindTool(by);
   if (own !== undefined) return own === tool && kit !== undefined && (kit === null || kit.includes(act));
   return allowed(house, by, tool) && (kit === undefined || kit === null || kit.includes(act));
+}
+/** Whether a holder can act at least once on a tool. */
+export function holdsAny(house: House, by: string, tool: string): boolean {
+  if (house.identities && by === house.admin && house.grants.has(by)) return true;
+  const kit = house.kits.get(by)?.get(tool);
+  if (mindTool(by) !== undefined) return mindTool(by) === tool && kit !== undefined && (kit === null || kit.length > 0);
+  return allowed(house, by, tool) && (kit === undefined || kit === null || kit.length > 0);
 }
 /** Identity-only facts cannot turn a mind into a member or administrator. */
 function namesMind(event: HouseEvent): boolean {

@@ -1,4 +1,5 @@
 // The two lists every menu opens with, checked for every program: what needs someone to act, and what the others did.
+import { effect } from "../journal/events.ts";
 import { errorIn } from "./read-screen.ts";
 import { firstLine } from "../surface/bridge/notices.ts";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
@@ -59,6 +60,19 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
     });
   return { name: label(aim, said.activity(kase.promise)), run };
 }
+function checkPartialAttention<X extends Program>(
+  by: string,
+  house: import("./promised-stage.ts").House<X>,
+  tool: string,
+  told: (at?: string) => unknown,
+  mine: unknown,
+): void {
+  if (by !== cast.member) return;
+  house.bus.emit(effect("kit-set", { holder: cast.member, tool, acts: [] }, cast.admin));
+  deepStrictEqual(told(tool), [], said.needRecipient(tool, cast.member));
+  house.bus.emit(effect("kit-set", { holder: cast.member, tool, acts: null }, cast.admin));
+  deepStrictEqual(told(tool), mine, said.needRecipient(tool, cast.member));
+}
 /** What a case promises needs someone to act is in Attention for who holds the tool, on the Menu and on the tool's
  * own menu: the thing, saying why, on a row that leads to it. */
 function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
@@ -68,7 +82,11 @@ function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>,
       await perform(house(), aim.tool.id, { ...kase, act: aim.name });
       const actor = kase.by ?? cast.admin;
       for (const [tool, promised] of promisedNeeds(aim, kase.then)) {
-        const readers = new Set([...promised.flatMap(need => (need.to === undefined ? [] : [need.to])), actor]);
+        const readers = new Set([
+          ...promised.flatMap(need => (need.to === undefined ? [] : [need.to])),
+          actor,
+          cast.member,
+        ]);
         for (const by of readers) {
           const { tools, router } = seated(house(), by, shown);
           const told = (at?: string) =>
@@ -81,6 +99,7 @@ function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>,
               .map(({ target, why }) => ({ target, why }));
             deepStrictEqual(told(tool), mine, said.needRecipient(tool, by));
             deepStrictEqual(told(), mine, said.needRecipient(tool, by));
+            checkPartialAttention(by, house(), tool, told, mine);
           } finally {
             router.stop();
           }

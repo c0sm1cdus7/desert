@@ -1,3 +1,4 @@
+import { effect } from "../journal/events.ts";
 import { alsoCauses } from "./coverage/also-causes.ts";
 // The laws every act of every program keeps: nobody promises them case by case, and every act is checked on them.
 import { deepStrictEqual, ok } from "node:assert/strict";
@@ -55,7 +56,20 @@ export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X
         deepStrictEqual(wroteSince(house(), before), []);
       }),
   });
+  const withoutAction: Check = {
+    name: label(aim, said.outsideKit),
+    run: () =>
+      staged(program, async ({ house }) => {
+        await given(house(), aim.tool.id, kase.given, kase.at);
+        house().bus.emit(effect("kit-set", { holder: cast.member, tool: aim.tool.id, acts: [] }, cast.admin));
+        const before = house().tools.state().through;
+        const done = await perform(house(), aim.tool.id, { ...kase, act: aim.name, by: cast.member });
+        deepStrictEqual([done.status, done.reason], ["rejected", toolTexts.outsideKit]);
+        deepStrictEqual(wroteSince(house(), before), []);
+      }),
+  };
   return [
+    withoutAction,
     ...outsideOf(aim.act.input, kase.input).map((input, index) =>
       refusal(said.outside(index + 1), {}, toolTexts.invalid, input),
     ),

@@ -1,4 +1,5 @@
 // What a person sees of what they cannot do, and what they may prefer not to see: checked for every tool and act.
+import { effect } from "../journal/events.ts";
 import { ok, strictEqual } from "node:assert/strict";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
@@ -66,6 +67,40 @@ function foreignCheck<X extends Program>(program: Composition<X>, shown: Shown<X
     });
   return { name: `${tool.id} · ${said.foreign}`, run };
 }
+/** A tool stays usable while a single action is removed from its holder's kit. */
+function partialCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
+  return {
+    name: label(aim, said.partialKit),
+    run: () =>
+      staged(program, async ({ house }) => {
+        await given(house(), aim.tool.id, kase.given, kase.at);
+        const acts = Object.keys(aim.tool.acts).filter(name => name !== aim.name);
+        const seat = seated(house(), cast.member, shown);
+        try {
+          const others = Object.entries(aim.tool.acts).flatMap(([name, act]) => {
+            if (name === aim.name) return [];
+            const target = act.on === "tool" ? aim.tool.id : aim.tool.targets(seat.state())[0];
+            if (target === undefined) return [];
+            const other = { tool: aim.tool, name, act };
+            const before = actRow(seat, other, target)?.row;
+            return before ? [{ other, target, off: before.off, detail: before.detail }] : [];
+          });
+          house().bus.emit(effect("kit-set", { holder: cast.member, tool: aim.tool.id, acts }, cast.admin));
+          for (const { other, target, off, detail } of others) {
+            const row = actRow(seat, other, target)?.row;
+            strictEqual(row?.off, off);
+            strictEqual(row?.detail, detail);
+          }
+          const row = actRow(seat, aim, kase.on ?? aim.tool.id, undefined, caseOrigin(aim, kase));
+          ok(row, said.notOffered(aim.name));
+          ok(row.row.off);
+          ok(row.row.detail?.endsWith(toolTexts.outsideKit));
+        } finally {
+          seat.router.stop();
+        }
+      }),
+  };
+}
 /** What an off row reads of its thing, before it says why it is off: nothing when it only says why. */
 const readBy = ({ detail }: Choice, cause?: string): string | undefined =>
   cause !== undefined && detail?.endsWith(` · ${cause}`) ? detail.slice(0, -cause.length - 3) : undefined;
@@ -114,5 +149,13 @@ export function shownChecks<X extends Program>(program: Composition<X>, shown: S
         .map(kase => hiddenCheck(program, shown, { tool, name, act }, kase)),
     ),
   );
-  return [...refusals, ...program.registry.map(tool => foreignCheck(program, shown, tool))];
+  const partial = program.registry.flatMap(tool =>
+    Object.entries(tool.acts).flatMap(([name, act]) =>
+      act.cases
+        .filter(kase => !("refused" in kase.then))
+        .slice(0, 1)
+        .map(kase => partialCheck(program, shown, { tool, name, act }, kase)),
+    ),
+  );
+  return [...partial, ...refusals, ...program.registry.map(tool => foreignCheck(program, shown, tool))];
 }
