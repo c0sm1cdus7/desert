@@ -8,6 +8,7 @@ import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { keysTo, seated, type, view, type Seat } from "./promised-keys.ts";
+import { prefer } from "./promised-off.ts";
 import { cast, given, label, perform, staged, type Aim, type Check } from "./promised-stage.ts";
 
 type Sought = Readonly<{ tool: string; target: string; name: string }>;
@@ -45,6 +46,13 @@ function findCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
         seek(seat, { kind: "menu", at: 0 }, sought);
         type(seat.router, keysTo(shown, aim.tool.id));
         seek(seat, { kind: "view", tool: aim.tool.id, at: 0 }, sought);
+        const outsider = seated(house(), cast.outsider, shown);
+        try {
+          await prefer(outsider, "foreign", true);
+          seek(outsider, { kind: "menu", at: 0 }, sought);
+        } finally {
+          outsider.router.stop();
+        }
       } finally {
         seat.router.stop();
       }

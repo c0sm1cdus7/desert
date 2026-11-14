@@ -22,7 +22,7 @@ const registryOf = (rig: Rig, calls: Calls, count: number, notices: number) => {
   return (["sales", "payments"] as const).map(id => ({
     ...rig.sales,
     id,
-    acts: {},
+    acts: { select: rig.sales.acts.select },
     menus: {},
     targets: () => Array.from({ length: count }, (_, i) => `${id}/s${i + 1}`),
     needs: () => Array.from({ length: notices / 2 }, (_, i) => ({ target: `${id}/s${i + 1}`, why: "Pendiente" })),

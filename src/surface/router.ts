@@ -17,7 +17,12 @@ export interface Router {
   idle(): Promise<void>;
   stop(): void;
 }
-export type RouterSource = Readonly<{ tools: readonly Tool[]; bar: () => Bar; first?: Session }> &
+export type RouterSource = Readonly<{
+  tools: readonly Tool[];
+  bar: () => Bar;
+  first?: Session;
+  before?: () => boolean;
+}> &
   /** The house saying that something in it changed, and how often a screen that shows time is drawn again. */
   Readonly<{ changes?: (changed: () => void) => () => void; redrawMs?: number; defect: DefectReporter }>;
 
@@ -38,10 +43,11 @@ function landings(landed: () => void) {
     },
   };
 }
-export function startRouter({ tools, bar, changes, redrawMs, first = start, defect }: RouterSource): Router {
+export function startRouter({ tools, bar, changes, redrawMs, first = start, defect, before }: RouterSource): Router {
   let session = first;
   const back = (): void => void (session = session.length > 1 ? session.slice(0, -1) : first);
-  const { protect } = routerDefects(() => session, bar, defect, back);
+  const reset = () => (before?.() ? (session = start) : undefined);
+  const { protect } = routerDefects(() => session, bar, defect, back, reset);
   const watchers = new Set<() => void>();
   const changed = (): void => watchers.forEach(watcher => watcher());
   const { later, idle } = landings(changed);

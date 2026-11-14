@@ -812,7 +812,7 @@
     },
     {
       "id": 108,
-      "rule": "LEYES 8: Atención para quienes tienen la herramienta y Actividad de toda la casa salvo la propia, en los dos menús",
+      "rule": "LEYES 8: Atención para quienes tienen al menos una acción de la herramienta y Actividad de toda la casa salvo la propia, en los dos menús",
       "from": "LEYES 8",
       "guarantee": "derived",
       "evidence": ["src/programs/promised-notices.ts", "src/surface/bridge/notices.ts", "src/surface/lists.ts"]

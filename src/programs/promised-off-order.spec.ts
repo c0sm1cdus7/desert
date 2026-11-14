@@ -36,10 +36,10 @@ for (const mode of ["offered", "also"] satisfies readonly OffMode[]) {
             throw new Error("Lower priority question must not be read");
           };
           const state = seat.state();
-          expect(actionOff(act, state, tool.id, tool.id, seat.now(), first, "sales/s2")).toBe(offWords[mode]);
-          expect(actionOff(act, { ...state, by: cast.outsider }, tool.id, tool.id, seat.now(), first)).toBe(
-            toolTexts.outsideKit,
-          );
+          expect(actionOff(act, state, tool.id, tool.id, seat.now(), first, "sales/s2", "charge")).toBe(offWords[mode]);
+          expect(
+            actionOff(act, { ...state, by: cast.outsider }, tool.id, tool.id, seat.now(), first, undefined, "charge"),
+          ).toBe(toolTexts.outsideKit);
         } finally {
           seat.router.stop();
         }

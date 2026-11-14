@@ -27,7 +27,7 @@ export function noticesOf<X extends Program>(
   tool: ProgramTool<X>,
   shown: Pick<Tool, "titleOf" | "name">,
 ) {
-  const mine = (): boolean => holdsAny(ports.state().house, ports.me, tool.id);
+  const mine = (): boolean => holdsAny(ports.state().house, ports.me, tool.id, Object.keys(tool.acts));
   const titled = (target: string): string => shown.titleOf?.(target) ?? target;
   /** What needs someone to act is a thing of the tool, or the tool itself: then the row leads to its own menu. */
   const needs = (): Notice[] =>
@@ -36,7 +36,7 @@ export function noticesOf<X extends Program>(
         need =>
           need.to === undefined ||
           mindTool(need.to) !== undefined ||
-          !holdsAny(ports.state().house, need.to, tool.id) ||
+          !holdsAny(ports.state().house, need.to, tool.id, Object.keys(tool.acts)) ||
           need.to === ports.me,
       )
       .map(({ target, why }) =>
@@ -54,12 +54,12 @@ export function noticesOf<X extends Program>(
   return {
     notices: () => ({
       needs: mine() ? needs() : [],
-      news: news(),
+      news: ports.state().house.grants.has(ports.me) ? news() : [],
       quiet: hides(ports.state().house, ports.me, "empty"),
     }),
     /** Having in front what someone else wrote on is attending it: the same act anyone does. */
     seen: (target: string): void => {
-      if (unseen(ports, tool).some(entry => entry.data.target === target))
+      if (ports.state().house.grants.has(ports.me) && unseen(ports, tool).some(entry => entry.data.target === target))
         ports.act({ act: "attend", input: { target } });
     },
   };

@@ -40,6 +40,8 @@ export const promiseTexts = {
   foreign: "is read by who does not hold it, with actions off; hidden from the Menu by preference",
   outsideKit: "is refused when its action is outside the kit",
   partialKit: "shows an action outside a partial kit",
+  readableReferences: "referencias legibles",
+  absentReader: "quien no está no lee",
   stillShown: (tool: string) => `the tool ${tool} is still on the Menu of who prefers not to see what is not theirs`,
   hiding: (promise: string) => `${promise}, hidden for who prefers not to see what cannot be done`,
   saysNothing: (act: string) => `the row of ${act} says nothing to its right: its datum, or what it is for`,

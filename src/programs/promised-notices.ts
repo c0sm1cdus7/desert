@@ -45,6 +45,9 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
         ok(news(theirs.tools) && news(theirs.tools, aim.tool.id), said.noActivity(entry.data.text));
         strictEqual(news(own.tools), undefined, said.ownActivity(entry.data.text));
         ok(news(outside.tools) && news(outside.tools, aim.tool.id), said.noActivity(entry.data.text));
+        await prefer(outside, "foreign", true);
+        ok(news(outside.tools), said.noActivity(entry.data.text));
+        await prefer(outside, "foreign", false);
         strictEqual((listAt(outside.tools, surface.attentionList, aim.tool.id) ?? []).length, 0);
         const at = choices({ kind: "menu", at: 0 }, theirs.tools).findIndex(
           row => row.title === firstLine(entry.data.text),
@@ -69,6 +72,10 @@ function checkPartialAttention<X extends Program>(
 ): void {
   if (by !== cast.member) return;
   house.bus.emit(effect("kit-set", { holder: cast.member, tool, acts: [] }, cast.admin));
+  deepStrictEqual(told(tool), [], said.needRecipient(tool, cast.member));
+  house.bus.emit(
+    effect("kit-set", { holder: cast.member, tool, acts: ["__obsolete_action__".repeat(100)] }, cast.admin),
+  );
   deepStrictEqual(told(tool), [], said.needRecipient(tool, cast.member));
   house.bus.emit(effect("kit-set", { holder: cast.member, tool, acts: null }, cast.admin));
   deepStrictEqual(told(tool), mine, said.needRecipient(tool, cast.member));

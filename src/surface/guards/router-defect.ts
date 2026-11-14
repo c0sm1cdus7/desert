@@ -5,7 +5,13 @@ import type { Router } from "../router.ts";
 import type { Bar, Session } from "../screen.ts";
 
 export type DefectReporter = (error: unknown, tool: string, target: string, option: string) => string;
-export function routerDefects(session: () => Session, bar: () => Bar, report: DefectReporter, back: () => void) {
+export function routerDefects(
+  session: () => Session,
+  bar: () => Bar,
+  report: DefectReporter,
+  back: () => void,
+  before: () => void = () => {},
+) {
   let reason: string | undefined;
   const failed = (error: unknown): string => {
     const place = session().at(-1);
@@ -33,6 +39,7 @@ export function routerDefects(session: () => Session, bar: () => Bar, report: De
         reason = undefined;
         back();
       },
+      before,
     );
   return { failed, protect };
 }
@@ -42,12 +49,14 @@ function protectRouter(
   failed: (error: unknown) => string,
   reason: () => string | undefined,
   clear: () => void,
+  before: () => void,
 ): Router {
   return {
     ...router,
     screen: viewport => {
       if (reason() !== undefined) return screen();
       try {
+        before();
         return router.screen(viewport);
       } catch (error) {
         failed(error);
@@ -56,6 +65,7 @@ function protectRouter(
     },
     send: intent => {
       try {
+        before();
         if (reason() === undefined) return router.send(intent);
         if (intent.kind !== "cancel" && intent.kind !== "menu") return true;
         clear();

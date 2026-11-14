@@ -28,7 +28,7 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - **La superficie**: Menú, lista de cada herramienta, objeto abierto y pregunta; un router único para cualquier
   dibujante (hoy la terminal). Cada identidad puede leer y buscar todas las herramientas y sus objetos; las acciones
   fuera del kit quedan apagadas. Atención se limita a las herramientas de las que tiene al menos una acción, y Actividad muestra lo de las demás
-  personas; buscar con espacio; Preferencias. Por ahora la superficie comprueba la herramienta entera.
+  personas; buscar con espacio; Preferencias. La superficie comprueba cada acción del kit.
 - **Las pruebas**: de cada caso sale la prueba sobre la organización y el recorrido con teclas desde el Menú; de
   cada acción, que rechace lo que su forma no admite, que su fila apagada diga su motivo, que lo que deja se
   encuentre buscando. Las garantías bajan por listas y menús hasta leer la fila, también en la ventana mínima;
@@ -1044,9 +1044,9 @@ con instante y secuencia; `identityView` lo comparte entero, incluidas las parte
 en el registro. La última escena de quien sale queda guardada. El pliegue no conoce el registro de herramientas:
 un escritor directo puede guardar la escena de `mind:ausente`; la ejecución la rechaza.
 
-`Need` gana `to?: string`. Sin él Atención sigue llegando a quienes tienen la herramienta; con él solo a esa
-identidad, si está en la casa y tiene la herramienta. Si no cumple esas condiciones, la necesidad se muestra a
-quienes tienen la herramienta, igual que una sin destinatario. Cada caso que promete necesidades debe incluir ese
+`Need` gana `to?: string`. Sin él Atención sigue llegando a quienes tienen al menos una acción de la herramienta; con él solo a esa
+identidad, si está en la casa y tiene al menos una acción de la herramienta. Si no cumple esas condiciones, la necesidad se muestra a
+quienes tienen al menos una acción de la herramienta, igual que una sin destinatario. Cada caso que promete necesidades debe incluir ese
 mismo destinatario; la garantía de la casa compara el dato completo y la de Atención mira desde quien hace el caso
 y desde cada destinatario prometido. Si este no puede verla, falla diciendo a quién iba. La escena explica: no crea
 necesidades ni cambia quién puede actuar. Las identidades leen todas las entradas de actividad, incluso las que una
@@ -1056,7 +1056,7 @@ en `tool-entry` o `act-done`. Ninguna acción ni efecto nuevo produce esos datos
 `channel-created` o campos `recipient` debe dejar de producirlos y asumir que todas las identidades leen cada entrada,
 incluidas las que un registro viejo dirigía a otra. `private` conserva el recibo efímero que solo recibe quien actuó;
 los secretos siguen fuera de la actividad mediante la custodia estructural. No hay pantallas nuevas; apagar las acciones
-fuera del kit con su motivo queda como deuda 224 para lectura y kit.
+fuera del kit con su motivo cumple la garantía 224 para lectura y kit.
 
 Un programa que no usa estas adiciones no tiene que cambiar sus herramientas ni casos. Quedan reservados los
 nombres de hechos `scene` y `kit-set`, y el prefijo de actor `mind:`; si los usaba, necesita resolver la colisión
@@ -1066,7 +1066,7 @@ si `mind:jefe` creó la casa, ese `house-created` se ignora y un siguiente `hous
 administradora. Los `granted` para `mind:…` quedan en el registro pero no incorporan esa identidad a la casa.
 No se agrega `message`. Quien construye `House` a mano agrega `kits` y `scenes` vacíos o parte de
 `emptyHouse`. `Need.to` es opcional y la entrada `testing.ts` no suma exportaciones.
-La versión de cálculos de la base pasa a `desert/3`: al actualizar se reconstruyen los plegados, también los de
+La versión de cálculos de la base pasa a `desert/4`: al actualizar se reconstruyen los plegados, también los de
 la primera vuelta (`desert/2`), para borrar los kits al recibir la administración. En versión manual,
 la evidencia guardada debe renovarse con la entrega comprobada, conservando la anterior durante su control.
 

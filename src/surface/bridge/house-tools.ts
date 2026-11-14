@@ -15,6 +15,7 @@ import { makerOptions } from "./makers.ts";
 import { noticesOf } from "./notices.ts";
 import { preferencesPlace, preferencesTool } from "./preferences-tool.ts";
 import { programActs } from "./program-acts.ts";
+import { toolTexts } from "../../texts/tools.texts.ts";
 import { recordOf } from "./record.ts";
 
 /** Only a tool whose acts say how they are offered can be shown: an act without its declaration is a defect. */
@@ -106,7 +107,7 @@ const thingsOf = <X extends Program>(ports: HousePorts<X>, { words }: Shown<X>, 
   return (id: string): Things | undefined => {
     const tool = shown().find(known => known.id === id);
     const contract = ports.registry.filter(isProgramTool).find(known => known.id === id);
-    if (!tool?.find || !contract) return undefined;
+    if (!ports.state().house.grants.has(ports.me) || !tool?.find || !contract) return undefined;
     const open = (thing: string): boolean =>
       programCall(contract.closed?.bind(contract), ports.state(), thing, ports.now()) !== true;
     return {
@@ -174,11 +175,13 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
     return {
       ...tool,
       notices,
+      off: () => (ports.state().house.grants.has(ports.me) ? undefined : toolTexts.unassigned),
       alsoOn,
       /** A tool nobody gave you is on your Menu unless you prefer not to see what is not yours. */
       listed: () => mine() || !hides(ports.state().house, ports.me, "foreign"),
       calls,
       rendered: (target = contract.id) => {
+        if (!ports.state().house.grants.has(ports.me)) return;
         seen.set(target, ports.state().through);
         // Looking at what called you is attending it, the same act anyone does.
         if (calls()) ports.act({ act: "attend", input: { target: contract.id } }, 0);

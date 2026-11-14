@@ -15,11 +15,11 @@ export function actionOff<X extends Program>(
   target: string,
   at: number,
   first: () => Field | null,
-  from?: string,
-  name?: string,
+  from: string | undefined,
+  name: string,
 ): string | undefined {
   if (!state.house.grants.has(state.by)) return toolTexts.unassigned;
-  if (!allowedAct(state.house, state.by, tool, name ?? "")) return toolTexts.outsideKit;
+  if (!allowedAct(state.house, state.by, tool, name)) return toolTexts.outsideKit;
   return (
     programOffered(act, state, target, at) ??
     (from === undefined ? undefined : programAlso(act, state, from, at)) ??

@@ -1,9 +1,9 @@
+import { absentCheck, foreignReferences } from "./promised-read.ts";
 // What a person sees of what they cannot do, and what they may prefer not to see: checked for every tool and act.
 import { effect } from "../journal/events.ts";
 import { ok, strictEqual } from "node:assert/strict";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
-import { stacksOf } from "../surface/lists.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition, ProgramTool } from "../tools/promises.ts";
@@ -15,7 +15,7 @@ import { actRow, goTo, keysTo, menuRows, seated, type, view, type Seat } from ".
 import { prefer } from "./promised-preferences.ts";
 export { prefer } from "./promised-preferences.ts";
 import { actionUnavailable, caseOrigin } from "./availability/case-availability.ts";
-import { cast, given, label, staged, type Aim, type Check } from "./promised-stage.ts";
+import { cast, given, label, perform, staged, type Aim, type Check } from "./promised-stage.ts";
 /** The unheld tool remains readable and its actions remain in place with the kit reason. */
 function foreignActions<X extends Program>(seat: Seat<X>, tool: ProgramTool<X>): void {
   for (const [name, act] of Object.entries(tool.acts)) {
@@ -26,17 +26,6 @@ function foreignActions<X extends Program>(seat: Seat<X>, tool: ProgramTool<X>):
       ok(found.row.off);
       ok(found.row.detail?.endsWith(toolTexts.outsideKit));
       strictEqual(found.row.open, undefined);
-    }
-  }
-}
-/** References on the things the case prepared must lead somewhere even without their tools. */
-function foreignReferences<X extends Program>(seat: Seat<X>, program: Composition<X>): void {
-  for (const source of program.registry) {
-    for (const target of source.targets(seat.state())) {
-      const references = stacksOf({ kind: "view", tool: source.id, target, at: 0 }, seat.tools)
-        .flatMap(stack => stack.rows)
-        .filter(item => item.opens !== undefined && !item.starts);
-      for (const reference of references) ok(reference.open);
     }
   }
 }
@@ -101,6 +90,28 @@ function partialCheck<X extends Program>(program: Composition<X>, shown: Shown<X
       }),
   };
 }
+/** Every prepared case may populate a source that names things of another tool. */
+function referenceCheck<X extends Program>(
+  program: Composition<X>,
+  shown: Shown<X>,
+  aim: Aim<X>,
+  kase: Case<X>,
+): Check {
+  return {
+    name: label(aim, said.readableReferences),
+    run: () =>
+      staged(program, async ({ house }) => {
+        await given(house(), aim.tool.id, kase.given, kase.at);
+        await perform(house(), aim.tool.id, { ...kase, act: aim.name });
+        const seat = seated(house(), cast.outsider, shown);
+        try {
+          foreignReferences(seat, program);
+        } finally {
+          seat.router.stop();
+        }
+      }),
+  };
+}
 /** What an off row reads of its thing, before it says why it is off: nothing when it only says why. */
 const readBy = ({ detail }: Choice, cause?: string): string | undefined =>
   cause !== undefined && detail?.endsWith(` · ${cause}`) ? detail.slice(0, -cause.length - 3) : undefined;
@@ -157,5 +168,18 @@ export function shownChecks<X extends Program>(program: Composition<X>, shown: S
         .map(kase => partialCheck(program, shown, { tool, name, act }, kase)),
     ),
   );
-  return [...partial, ...refusals, ...program.registry.map(tool => foreignCheck(program, shown, tool))];
+  const references = program.registry.flatMap(tool =>
+    Object.entries(tool.acts).flatMap(([name, act]) =>
+      act.cases
+        .filter(kase => !("refused" in kase.then))
+        .map(kase => referenceCheck(program, shown, { tool, name, act }, kase)),
+    ),
+  );
+  return [
+    absentCheck(program, shown),
+    ...partial,
+    ...refusals,
+    ...references,
+    ...program.registry.map(tool => foreignCheck(program, shown, tool)),
+  ];
 }

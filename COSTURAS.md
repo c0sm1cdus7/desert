@@ -49,8 +49,8 @@ Qué cambió respecto de Kenon en este paso:
   lo cortado termina `interrupted · sacada`. Un lote ya iniciado o un éxito que salió al mundo se conserva con
   `sacada` al lado. Un anidado ya escrito permanece; un padre cortado no inicia más anidados.
 - La escena está en la casa: última por autor, general y partes por identidad, todas leídas por todos.
-  `Need.to` elige una identidad que tenga la herramienta; si no la tiene o no es una identidad presente,
-  la necesidad llega a quienes la tienen. Sigue calculada por código.
+  `Need.to` elige una identidad presente que tenga al menos una acción de la herramienta; si no cumple esa condición,
+  la necesidad llega a quienes tienen al menos una acción. Sigue calculada por código.
 - Los textos con que la casa rechaza un acto están en español, como los de la superficie.
 
 ## 3. La superficie sobre la casa (HECHO)
@@ -93,7 +93,7 @@ interacción con la casa sea la misma en todas las superficies.
 - `src/surface/bridge/house-router.ts`: `houseRouter(ports, palabras)`. Es lo único que un renderer recibe de un
   programa: las herramientas con sus palabras, la barra (conexión y hora) y los cambios de la casa.
 - La superficie abre y busca también herramientas fuera del kit; sus acciones quedan apagadas con su motivo.
-  Actividad muestra lo escrito por otras personas en toda la casa; Atención solo llega a quien tiene la herramienta.
+  Actividad muestra lo escrito por otras personas en toda la casa; Atención solo llega a quien tiene al menos una acción de la herramienta.
 - Un renderer hace dos cosas: dibuja `router.screen()` y traduce lo suyo a `router.send(intención)`.
   La terminal (`doors/terminal/boot.ts`) ya es eso. Web, iPhone y Android usan el mismo router.
 

@@ -151,6 +151,8 @@ export const brokenShops: readonly Readonly<{
       ...[again, paid].map(check => `${check}, no empty first choice`),
       "payments · receive · shows an action outside a partial kit",
       `${again}, hidden for who prefers not to see what cannot be done`,
+      "sales · register · referencias legibles",
+      "payments · receive · referencias legibles",
       "payments · is read by who does not hold it, with actions off; hidden from the Menu by preference",
       ...[told, paid].map(check => `${check}, in Activity for the others until they open it`),
       ...[told, paid].map(check => `${check}, and what it leaves is found by its name from any menu`),

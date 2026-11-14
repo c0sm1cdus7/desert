@@ -112,7 +112,7 @@ Leyes: 219. Deudas: 22.
 | 105 | LEYES 5: cada identidad puede ocultar acciones apagadas, herramientas fuera del kit en el Menú o listas vacías | LEYES 5 | prueba derivada de los casos | `src/programs/promised-off.ts` `src/programs/promised-notices.ts` `src/surface/bridge/program-acts.ts` |
 | 106 | LEYES 6: navegando se llega a todas las acciones | LEYES 6 | prueba derivada de los casos | `src/programs/promised-keys.ts` `src/programs/promised-walk.ts` |
 | 107 | LEYES 7: ninguna spec a mano, se derivan de los casos | LEYES 7 | prueba derivada de los casos | `src/programs/promised-walk.ts` `src/programs/promised.ts` `src/tools/promises.ts` |
-| 108 | LEYES 8: Atención para quienes tienen la herramienta y Actividad de toda la casa salvo la propia, en los dos menús | LEYES 8 | prueba derivada de los casos | `src/programs/promised-notices.ts` `src/surface/bridge/notices.ts` `src/surface/lists.ts` |
+| 108 | LEYES 8: Atención para quienes tienen al menos una acción de la herramienta y Actividad de toda la casa salvo la propia, en los dos menús | LEYES 8 | prueba derivada de los casos | `src/programs/promised-notices.ts` `src/surface/bridge/notices.ts` `src/surface/lists.ts` |
 | 109 | LEYES 9: viaja el estado; un router único para todos los renderers | LEYES 9 | una spec a mano | `src/surface/router.spec.ts` `src/surface/router.ts` |
 | 110 | LEYES 10: un registro escrito solo para constancia no pide atención | LEYES 10 | prueba derivada de los casos | `src/programs/promised.ts` `src/tools/tools.ts` |
 | 111 | LEYES 11: un campo es de texto con máscara o placeholder, nunca «texto» | LEYES 11 | el programa no arranca | `src/surface/bridge/asking-back.ts` `src/surface/bridge/asking-parts.ts` `src/surface/bridge/asking.spec.ts` `src/surface/contract.ts` |
