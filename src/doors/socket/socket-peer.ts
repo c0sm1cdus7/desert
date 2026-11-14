@@ -2,9 +2,11 @@
 import type { Duplex } from "node:stream";
 import { houseProtocolVersion, socketLimits } from "../../catalogs/levers.ts";
 import { socketTexts as said } from "../../texts/socket.texts.ts";
+import { requestBudget } from "./request-budget.ts";
 import { peerWriter } from "./peer-writer.ts";
-import { frameReader, serverFrame } from "./frame.ts";
-import { readClient, type ClientMessage, type ServerMessage } from "./protocol.ts";
+import { connectPeer } from "./peer-input.ts";
+import { serverFrame } from "./frame.ts";
+import type { ClientMessage, ServerMessage } from "./protocol.ts";
 export type DoorKey = Readonly<{ identity: string; door: "terminal" | "agente" }>;
 export type Peer = ReturnType<typeof socketPeer>;
 type Welcome = Extract<ClientMessage, { tipo: "hola" }>;
@@ -15,6 +17,7 @@ export const helloFailure = (hello: Welcome): string | undefined => {
 };
 class SocketPeer {
   readonly stream: Duplex;
+  readonly budget = requestBudget();
   private readonly writer: ReturnType<typeof peerWriter>;
   private readonly timer: NodeJS.Timeout;
   private readonly report: (text: string) => void;
@@ -91,39 +94,6 @@ export const socketPeer = (
     process.stderr.write(`${text}\n`);
   },
 ) => new SocketPeer(stream, receive, gone, report);
-function connectPeer(stream: Duplex, receive: (message: ClientMessage) => void, timeout: () => void, gone: () => void) {
-  let deadline: NodeJS.Timeout | undefined;
-  const reader = frameReader("client", value => {
-    clearTimeout(deadline);
-    deadline = undefined;
-    receive(readClient(value));
-  });
-  stream.on("data", (bytes: Buffer) => {
-    try {
-      deadline ??= setTimeout(timeout, socketLimits.frameMs);
-      reader.push(bytes);
-      if (!reader.pending()) {
-        clearTimeout(deadline);
-        deadline = undefined;
-      } else deadline ??= setTimeout(timeout, socketLimits.frameMs);
-    } catch {
-      stream.destroy();
-    }
-  });
-  stream.on("end", () => {
-    try {
-      reader.end();
-    } catch {
-      /* A partial frame closes only this peer. */
-    }
-    stream.destroy();
-  });
-  stream.on("error", () => stream.destroy());
-  stream.once("close", () => {
-    clearTimeout(deadline);
-    gone();
-  });
-}
 function endSoon(stream: Duplex) {
   const cutoff = setTimeout(() => stream.destroy(), 250);
   cutoff.unref();

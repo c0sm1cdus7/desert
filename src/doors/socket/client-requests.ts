@@ -1,4 +1,5 @@
 // Pending equality uses canonical JSON, never persisted; recovery keeps only opaque request identifiers.
+import { socketLimits } from "../../catalogs/levers.ts";
 import { randomUUID, createHash } from "node:crypto";
 import type { Act } from "../../catalogs/acts.ts";
 import type { Decision, ExecutionResult } from "../../tools/execute.ts";
@@ -23,9 +24,14 @@ function canonical(value: unknown): unknown {
 function recovery<X extends Program>(connection: SocketConnection<X>) {
   const pending = new Map<string, { key: string; result: ExecutionResult<X>; done: (value: Decision<X>) => void }>();
   const uncertain = new Set<string>();
+  const lookup = recovering(connection, uncertain);
   connection.receive(message => {
     if (message.tipo !== "resultado" && message.tipo !== "rechazo") return;
     if (!message.id) return;
+    if (message.tipo === "rechazo" && message.motivo === socketTexts.quota && uncertain.has(message.id)) {
+      lookup.later();
+      return;
+    }
     if (message.tipo === "resultado" && message.status === "processing") return;
     const waiting = pending.get(message.id);
     pending.delete(message.id);
@@ -42,12 +48,13 @@ function recovery<X extends Program>(connection: SocketConnection<X>) {
   connection.watch(() => {
     const next = connection.status() === "connected";
     if (!next) {
+      lookup.cancel();
       for (const [id, waiting] of pending) {
         uncertain.add(id);
         waiting.done(interrupted());
       }
       pending.clear();
-    } else for (const id of uncertain) connection.send({ tipo: "leer", id, qué: "pedido" });
+    } else lookup.now();
   });
   return { pending, uncertain };
 }
@@ -75,5 +82,28 @@ export function clientRequests<X extends Program>(connection: SocketConnection<X
       done(interrupted());
     }
     return result;
+  };
+}
+
+// A throttled lookup is still uncertain. Retry only the query, never the act; one timer covers the whole set.
+function recovering<X extends Program>(connection: SocketConnection<X>, uncertain: Set<string>) {
+  let timer: NodeJS.Timeout | undefined;
+  const now = () => {
+    if (connection.status() === "connected")
+      for (const id of uncertain) connection.send({ tipo: "leer", id, qué: "pedido" });
+  };
+  return {
+    now,
+    later: () => {
+      timer ??= setTimeout(() => {
+        timer = undefined;
+        now();
+      }, socketLimits.requestMs);
+      timer.unref();
+    },
+    cancel: () => {
+      clearTimeout(timer);
+      timer = undefined;
+    },
   };
 }

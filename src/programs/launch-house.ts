@@ -1,4 +1,5 @@
 // A five-second startup handshake, then no parent/child lifecycle link remains.
+import { fileURLToPath } from "node:url";
 import { closeSync } from "node:fs";
 import { houseOutput } from "./house-output.ts";
 import { spawn } from "node:child_process";
@@ -9,10 +10,11 @@ export async function launchHouse(root: string, home: string): Promise<void> {
   const output = houseOutput(home);
   const child = (() => {
     try {
-      return spawn(process.execPath, [program, home], {
+      const relay = fileURLToPath(new URL("./house-output-process.ts", import.meta.url));
+      return spawn(process.execPath, [relay, program, home], {
         detached: true,
         cwd: root,
-        stdio: ["ignore", output, output, "ipc"],
+        stdio: ["ignore", "ignore", "ignore", "ipc", output],
       });
     } finally {
       closeSync(output);

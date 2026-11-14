@@ -282,7 +282,8 @@ pedidos por la persona. El router y el dibujante siguen intactos; sin `observe` 
 `defecto` deja de aceptar la entrada del cliente: solo herramienta, destino y acción, comprobados contra el kit.
 El rechazo de mentes se combina con `present`, la misma pertenencia que consulta la casa. La comprobación redundante
 al inicio de cada pedido se retiró: el aviso del bus cierra inmediatamente la conexión y `receivePeer` exige que
-siga viva; antes de las respuestas se vuelve a consultar pertenencia.
+siga viva. La condición redundante M06 de las respuestas también se retiró: `peer.send` no escribe en una
+conexión terminada. La retirada se prueba antes de atender otro pedido y antes de enviar resultados pendientes.
 
 `house-output.ts` abre el archivo privado de salida del proceso lanzado; `terminal-error.ts` limita los errores
 visibles al catálogo. La cancelación de un arranque libera recursos sin anunciar un cierre exitoso. La huella de
@@ -294,3 +295,17 @@ El detalle de tipos está en `PROGRAMA.md`. El pedido remoto rechaza datos que J
 incluidos -0 y no finitos, antes de escribir. La entrada tiene cinco segundos totales; tres estados inválidos
 consecutivos en la misma secuencia cierran la terminal con texto del catálogo y salida 1. Cada conexión deja
 un solo aviso de resincronización en la salida de la casa.
+
+En la segunda vuelta, `peer-input.ts` pausa la entrada y procesa hasta 16 marcos por vuelta, conservando el
+trozo pendiente sin copiarlo. `peer-writer.ts` cuenta un segundo ocioso del bucle para el drenaje; conserva el
+tope de 1 MiB posterior. `request-budget.ts` limita a 32 pedidos no actuantes por segundo móvil y ocho esperas
+vivas por conexión, con rechazo visible. Una introducción nueva desplaza la más antigua sin presentar, dentro
+de los mismos 32 lugares. El reloj de la terminal se toma únicamente de cada bienvenida fresca.
+`house-output-process.ts` recoge ambas salidas del hijo hasta su cierre; `bounded-output.ts` las limita a 1 MiB
+sobre el descriptor privado validado, reemplazando el tramo anterior al llenarse. No reabre una ruta ni sigue
+enlaces. El error de arranque devuelve el rechazo después de recoger su causa segura.
+`socket-cost.spec.ts` exige bytes y cantidad de envíos estables con el historial; los tiempos local y remoto se
+miden alternados y solo se informan. Los plazos de presión se verifican con relojes controlados.
+
+`client-requests.ts` conserva las consultas inciertas rechazadas por cupo y las reintenta al segundo, con un
+solo temporizador cancelable por conjunto pendiente. La recuperación sigue consultando; nunca repite actos.

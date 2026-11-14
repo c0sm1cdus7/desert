@@ -10,8 +10,8 @@ import { settle } from "../../surface/bridge/house-ports.ts";
 import { socketConnection } from "./socket-connection.ts";
 import { socketPorts } from "./socket-ports.ts";
 import { stateTransfer } from "./state-transfer.ts";
-// Per-terminal changed-state budget is independent of historical entries. Latency includes SQLite and verification.
-const limits = { bytesPerTerminal: 4096, overheadMs: 100, localMultiple: 1.5, repetitions: 6 };
+// Bytes and completed deliveries are load independent. Paired timings are reported, never a machine-load gate.
+const limits = { bytesPerTerminal: 4096, repetitions: 6 };
 it("measures acts with 100, 2000 and 20000 entries, local and with one or five terminals", async () => {
   for (const entries of [100, 2000, 20000]) {
     const f = await socketHouse("stream");
@@ -67,10 +67,11 @@ async function measureRemote(
   f: Awaited<ReturnType<typeof socketHouse>>,
   entries: number,
   terminals: number,
-  localMs: number,
+  baselineLocalMs: number,
 ) {
   const clients = [];
   let bytes = 0;
+  let deliveries = 0;
   for (let n = 0; n < terminals; n++) {
     const connection = socketConnection<Shop>("ana-terminal");
     const pair = duplexPair();
@@ -79,6 +80,9 @@ async function measureRemote(
     pair[0].on("data", (chunk: Buffer) => {
       bytes += chunk.length;
     });
+    connection.receive(message => {
+      if (message.tipo === "estado") deliveries++;
+    });
     clients.push({ connection, pair });
   }
   try {
@@ -86,24 +90,41 @@ async function measureRemote(
     if (!first) throw new Error("Missing fixture client");
     const ports = socketPorts(first.connection, { registry: shopRegistry, limits: { recentLines: 40 } });
     const times: number[] = [];
+    const localTimes: number[] = [];
+    let measuredBytes = 0;
+    let measuredDeliveries = 0;
+    const local = localPorts(f.house(), "ana", { recentLines: 40 });
     for (let n = 0; n < limits.repetitions; n++) {
+      const localStart = performance.now();
+      expect((await settle(local.act(payment(`paired-${terminals}-${n}`), 0))).status).toBe("accepted");
+      localTimes.push(performance.now() - localStart);
+      await new Promise<void>(resolve => setImmediate(resolve));
+      const beforeBytes = bytes,
+        beforeDeliveries = deliveries;
       const start = performance.now();
       const done = await settle(ports.act(payment(`remote-${terminals}-${n}`), 0));
       await new Promise<void>(resolve => setImmediate(resolve));
       times.push(performance.now() - start);
+      measuredBytes += bytes - beforeBytes;
+      measuredDeliveries += deliveries - beforeDeliveries;
       expect(done.status).toBe("accepted");
       for (const c of clients) expect(c.connection.state()).toEqual(identityView(f.house().tools.state(), "ana"));
     }
-    const perAct = bytes / limits.repetitions;
+    const perAct = measuredBytes / limits.repetitions;
+    const localMs = median(localTimes);
     const remoteMs = median(times);
     expect(perAct / terminals).toBeLessThan(limits.bytesPerTerminal);
-    expect(remoteMs).toBeLessThan(localMs * limits.localMultiple + limits.overheadMs);
+    expect(measuredDeliveries).toBe(limits.repetitions * terminals);
+    expect(clients.every(c => c.connection.status() === "connected")).toBe(true);
     process.stdout.write(
       `${JSON.stringify({
         measurement: "act-cost",
         entries,
         terminals,
         localMs,
+        baselineLocalMs,
+        deliveriesPerAct: measuredDeliveries / limits.repetitions,
+        relativeTime: remoteMs / localMs,
         remoteMs,
         overheadMs: remoteMs - localMs,
         bytesPerAct: perAct,

@@ -11,8 +11,9 @@ export async function runProgramServer<X extends Program>(...args: Parameters<ty
   } catch (error) {
     const reason = error instanceof WriterAlreadyOpen ? error.message : socketTexts.startFailed;
     const code = error instanceof Error && "code" in error && typeof error.code === "string" ? error.code : "";
+    const cause = /^E[A-Z0-9_]{1,40}$/.test(code) ? socketTexts.startCause(code) : reason;
+    process.stderr.write(`${cause}\n`);
     process.send?.({ error: reason, code });
-    if (!process.connected) process.stderr.write(`${reason}\n`);
     process.exitCode = 1;
     return undefined;
   } finally {

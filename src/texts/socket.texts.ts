@@ -23,5 +23,8 @@ export const socketTexts = {
   slow: "La terminal dejó de recibir el estado. Se cerró su conexión.",
   bodyTimeout: "No llegó el marco completo dentro del plazo.",
   busy: "Hay demasiadas conexiones esperando entrar a la casa.",
+  quota: "Llegaste al tope de pedidos de esta conexión. Esperá un segundo y volvé a intentar.",
+  outputLimit: "Se alcanzó el tope de la salida. Se conserva el tramo más reciente.",
+  startCause: (code: string) => `No se pudo abrir la casa. Causa: ${code}.`,
   frame: "Marco inválido o demasiado grande.",
 };

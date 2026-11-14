@@ -1,4 +1,4 @@
-// Session controls are available only after hello; every later response checks current membership again.
+// Session controls require hello. Removal ends peers synchronously on the bus before any later reply.
 import { houseProtocolVersion } from "../../catalogs/levers.ts";
 import type { RunningHouse } from "../../programs/house-runtime.ts";
 import { mindTool, present } from "../../house/house.ts";
@@ -34,6 +34,10 @@ export function receivePeer<X extends Program>(session: Session<X>, peer: Peer, 
     peer.end();
     return;
   }
+  if (message.tipo !== "acto" && !peer.budget.take(message.tipo === "esperar")) {
+    peer.send({ tipo: "rechazo", id: "id" in message ? message.id : message.tipo, motivo: said.quota });
+    return;
+  }
   if (message.tipo === "sincronizar") {
     peer.reportMismatch();
     delivery.sendState(peer, true);
@@ -51,20 +55,21 @@ function routeAndReply<X extends Program>(session: Session<X>, peer: Peer, messa
   const work = routeRequest(session, peer, message)
     .then(answer =>
       delivery.schedule(() => {
-        if (delivery.member(peer)) {
-          try {
-            peer.send(answer);
-          } catch {
-            peer.stream.destroy();
-          }
+        try {
+          peer.send(answer);
+        } catch {
+          peer.stream.destroy();
         }
       }),
     )
     .catch(() => {
-      if (delivery.member(peer)) peer.send({ tipo: "rechazo", motivo: said.failed });
+      peer.send({ tipo: "rechazo", motivo: said.failed });
     });
   pending.add(work);
-  void work.finally(() => pending.delete(work));
+  void work.finally(() => {
+    pending.delete(work);
+    if (message.tipo === "esperar") peer.budget.finish();
+  });
 }
 function welcome<X extends Program>(
   house: RunningHouse<X>,

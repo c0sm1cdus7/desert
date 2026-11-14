@@ -39,7 +39,7 @@ export async function routeRequest<X extends Program>(
     const { tool, target, option } = message;
     const state = house.tools.state();
     const declared = targetTool(house.registry, state, target);
-    const action = declared?.acts[option];
+    const action = declared && Object.hasOwn(declared.acts, option) ? declared.acts[option] : undefined;
     const wrongPlace = action?.on !== undefined && (action.on === "tool") !== (target === tool);
     if (declared?.id !== tool || !action || wrongPlace) return { ...refusal, motivo: toolTexts.unknown };
     if (!allowedAct(state.house, by, tool, option)) return { ...refusal, motivo: toolTexts.outsideKit };

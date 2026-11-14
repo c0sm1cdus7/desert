@@ -35,6 +35,7 @@ class FrameReader {
   private body: Buffer | undefined;
   private bodyBytes = 0;
   private failed = false;
+  private delivered = 0;
   private readonly side: "client" | "server";
   private readonly receive: (value: Received) => void;
   constructor(side: "client" | "server", receive: (value: Received) => void) {
@@ -59,6 +60,7 @@ class FrameReader {
     return count;
   }
   private deliver(body: Buffer) {
+    this.delivered++;
     const binary = this.header[4] === 1;
     this.headerBytes = 0;
     this.bodyBytes = 0;
@@ -66,19 +68,25 @@ class FrameReader {
     const read = this.side === "client" ? readClient : readServer;
     this.receive(binary ? body : read(JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(body))));
   }
-  readonly push = (chunk: Buffer) => {
+  readonly push = (chunk: Buffer, limit = Infinity): number => {
+    this.delivered = 0;
     if (this.failed) invalid();
     try {
       let offset = 0;
-      while (offset < chunk.length) {
+      while (offset < chunk.length && this.delivered < limit) {
         if (this.headerBytes < 5) offset += this.readHeader(chunk, offset);
         if (this.headerBytes === 5) offset += this.readBody(chunk, offset);
       }
+      return offset;
     } catch (error) {
       this.failed = true;
       this.body = undefined;
       throw error;
     }
+  };
+  readonly discard = () => {
+    this.body = undefined;
+    this.failed = true;
   };
   readonly pending = () => this.headerBytes > 0;
   readonly end = () => {

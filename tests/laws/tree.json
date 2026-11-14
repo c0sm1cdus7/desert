@@ -263,19 +263,23 @@
     "programs/house-output.ts": "Abre casa.log privado sin seguir enlaces, para conservar stdout y stderr del proceso lanzado.",
     "programs/terminal-error.ts": "Traduce errores de apertura al catálogo público sin exponer trazas ni excepciones ajenas.",
     "surface/bridge/observed-ports.ts": "Distingue las observaciones del dibujo de los actos personales, conservando el camino local.",
-    "doors/socket/json-data.ts": "Árbol JSON sin pérdidas: rechaza -0, no finitos, ciclos y datos que la persistencia omitiría o cambiaría."
+    "doors/socket/json-data.ts": "Árbol JSON sin pérdidas: rechaza -0, no finitos, ciclos y datos que la persistencia omitiría o cambiaría.",
+    "doors/socket/request-budget.ts": "Cupo por conexión de pedidos no actuantes, con ventana móvil y esperas vivas acotadas.",
+    "doors/socket/peer-input.ts": "Lectura por turnos de marcos con pausa de entrada, plazo por cuerpo y liberación al cortar.",
+    "programs/bounded-output.ts": "Salida acotada sobre un descriptor validado; reemplaza el tramo previo al alcanzar el tope.",
+    "programs/house-output-process.ts": "Relevo independiente de ambas salidas del hijo, con tope y entrega del error después de recogerlas."
   },
   "folders": {
     "adapters/secrets": 71,
     "adapters/storage": 510,
-    "catalogs": 232,
+    "catalogs": 238,
     "doors/terminal": 719,
     "house": 136,
     "journal": 461,
-    "programs": 2969,
+    "programs": 3015,
     "surface": 1919,
     "surface/bridge": 1488,
-    "texts": 294,
+    "texts": 297,
     "tools": 1146,
     "tools/execution": 274,
     "surface/guards": 106,
@@ -315,6 +319,6 @@
     "texts/entry": 7,
     "catalogs/currency": 18,
     "catalogs/display": 4,
-    "doors/socket": 1579
+    "doors/socket": 1702
   }
 }

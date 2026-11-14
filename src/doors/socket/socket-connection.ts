@@ -31,6 +31,7 @@ class Connection<X extends Program> implements SocketConnection<X> {
   private failedSequence = -1;
   private failures = 0;
   private reported = false;
+  private quotaNotice = -Infinity;
   private readonly token: string;
   constructor(token: string) {
     this.token = token;
@@ -70,13 +71,21 @@ class Connection<X extends Program> implements SocketConnection<X> {
     if (value.tipo === "estado") this.sequence = value.seq;
     this.view.metadata(value);
     this.listeners.forEach(listener => listener(value));
-    if (value.tipo === "cortado") process.stderr.write(`${value.motivo}\n`);
+    this.notice(value);
     if (value.tipo === "cortado" || (value.tipo === "rechazo" && !value.id)) this.close();
     else if (value.tipo === "cerrando") {
       this.view.setStatus("signal-lost");
       this.stream?.destroy();
     }
     return false;
+  }
+  private notice(message: ServerMessage) {
+    if (message.tipo === "cortado") process.stderr.write(`${message.motivo}\n`);
+    if (message.tipo !== "rechazo" || message.motivo !== socketTexts.quota) return;
+    const now = performance.now();
+    if (now - this.quotaNotice < socketLimits.requestMs) return;
+    this.quotaNotice = now;
+    process.stderr.write(`${socketTexts.quota}\n`);
   }
   readonly send = (message: ClientMessage): boolean => {
     if (this.closed || this.status() !== "connected" || !this.stream || this.stream.destroyed) return false;

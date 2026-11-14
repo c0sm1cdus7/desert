@@ -1077,10 +1077,13 @@ ni resincronización reinicia ese plazo; al vencer, la terminal sale con su text
 El protocolo 3 identifica esta nueva codificación: casa y terminal deben actualizarse juntas; un cliente de
 protocolo 2 autenticado recibe el rechazo de versión, antes de intercambiar estado.
 La vista y su codificación se comparten entre las conexiones de la misma identidad y secuencia. El resultado sale
-después del estado que contiene sus efectos. Cada conexión respeta backpressure: tras un segundo sin poder vaciar
-su escritura, o más de 1 MiB de envíos posteriores pendientes, se corta con aviso. Un estado inicial grande se
+después del estado que contiene sus efectos. Cada conexión respeta backpressure: el plazo de un segundo sin
+drenaje cuenta solo el tiempo ocioso del bucle de la casa (`eventLoopUtilization().idle`), no el tiempo que la
+casa pasa trabajando. Al vencer, o con más de 1 MiB de envíos posteriores pendientes, se corta con aviso. Un estado inicial grande se
 transmite por tramos, sin contar su tamaño total como cola pendiente. Ninguna conexión espera a otra.
-Hay hasta 32 conexiones sin presentarse. Cada cuerpo incompleto vence en cinco segundos, también después del hola. Entre miembros esa vista conserva los datos que la casa ya muestra; no sirve como
+Hay hasta 32 conexiones sin presentarse: una nueva desplaza la más antigua que todavía no entró, sin cortar
+miembros. Cada conexión atiende hasta 16 marcos por vuelta del bucle y pausa su entrada entre vueltas para
+dejar pasar el drenaje y las demás conexiones. Cada cuerpo incompleto vence en cinco segundos, también después del hola. Entre miembros esa vista conserva los datos que la casa ya muestra; no sirve como
 frontera de permisos. Antes de entrar no hay estado, catálogo ni resultados. Una identidad retirada deja de recibir.
 
 El cliente elige un `id` estable por intento lógico de actuar. La causa del acto conserva
@@ -1110,25 +1113,35 @@ La función prueba `<carpetaDeCasa>/casa.sock`. Si falta, ejecuta con Node el ar
 El programa usa sus proveedores de custodia reales en su composición; la terminal no abre el almacenamiento.
 
 El arranque tiene cinco segundos para confirmar por IPC que escucha. Después, el proceso queda independiente.
-Su stdout y stderr quedan en `<home>/casa.log`, en modo 0600 dentro de la carpeta 0700; se conservan al relanzar.
+Un relevo independiente recoge stdout y stderr del hijo, incluidos mensajes nativos, en `<home>/casa.log`,
+en modo 0600 dentro de la carpeta 0700. Se conservan al relanzar mientras entren en 1 MiB. Al exceder ese tope
+se trunca el mismo descriptor, se escribe «Se alcanzó el tope de la salida. Se conserva el tramo más reciente.»
+y se guarda el tramo reciente que entre; no se acumulan archivos rotados. Un archivo de la versión anterior
+que ya exceda el tope se reemplaza por ese aviso al abrir el relevo.
 El archivo no sigue enlaces ni admite enlaces duros. Toda falla al abrir se traduce a una línea del catálogo y
-salida distinta de cero; ninguna traza cruda llega a la terminal. Un arranque fallido no dice «Casa cerrada».
+salida distinta de cero; ninguna traza cruda llega a la terminal. Un arranque fallido no dice «Casa cerrada»:
+el hijo escribe primero la causa segura (el código del sistema, cuando existe), y el relevo recoge su salida
+antes de devolver el rechazo. Si el propio archivo no se puede abrir, la terminal conserva su rechazo visible.
 Cerrar la terminal no apaga la casa, según la decisión de la obra.
 Un escritor sin socket devuelve literalmente `This house is already open in a running process`: este paso
 conserva ese texto en inglés. Una ruta de socket demasiado larga falla nombrándola, sin acortarla.
 Al perder una casa ya conectada, la terminal intenta reconectarse cada 500 ms y no vuelve a lanzarla.
 
 `socketConnection` conserva la última vista y `socketPorts` implementa el contrato existente. La Barra usa los
-cuatro iconos y colores de siempre, sin palabras nuevas. `now` suma a la hora recibida el tiempo monotónico
-transcurrido. Solo las observaciones automáticas del dibujo comparten promesa; cada acto de la persona, incluido
+cuatro iconos y colores de siempre, sin palabras nuevas. `now` suma a la hora fresca de la bienvenida de esta
+conexión el tiempo monotónico transcurrido. La hora del encabezado `estado` se conserva por compatibilidad
+del protocolo, pero nunca ajusta el reloj: puede pertenecer a un envío guardado. Reconectar toma otra bienvenida. Solo las observaciones automáticas del dibujo comparten promesa; cada acto de la persona, incluido
 `attend` antes de actuar, tiene un pedido nuevo. Un corte resuelve con `interrupted` y
 «Se cortó antes de la respuesta: fijate en Actividad si se hizo.». Los identificadores inciertos se consultan
 al reconectar y cuando llega otro estado; nunca se reenvían automáticamente sus actos. El resultado recibido
 para esa consulta no reemplaza el mensaje de corte que ya vio la persona: Actividad y la vista de la casa
-siguen siendo la forma de comprobarlo. Los identificadores se conservan durante la vida de esa terminal.
+siguen siendo la forma de comprobarlo. Los identificadores se conservan durante la vida de esa terminal. Una consulta rechazada por cupo conserva
+su identificador incierto y se vuelve a consultar al segundo, con un único temporizador para el conjunto;
+perder la conexión cancela ese temporizador. Nunca se reenvía el acto.
 
-`defecto` lleva solo `tool`, `target` y `option`: la casa verifica el destino, la acción y su kit, y arma texto y
-autor. No acepta entrada, atención, texto elegido, made, draft ni silent. La excepción del cliente no viaja.
+`defecto` lleva solo `tool`, `target` y `option`: la casa verifica el destino, que la acción sea una propiedad
+propia de la herramienta y su kit, y arma texto y autor. `constructor`, `toString`, `__proto__` y
+`hasOwnProperty` heredados no son acciones. No acepta entrada, atención, texto elegido, made, draft ni silent. La excepción del cliente no viaja.
 El diagnóstico ya presente en `identityView` sigue viajando como en local; este carril no cambia quién lee qué.
 Los marcos locales y remotos se comparan después de aquietar el router y recibir el estado de sus actos,
 incluidos los que dispara un dibujo. También se comparan los hechos `act` del registro.
@@ -1210,3 +1223,12 @@ la primera vuelta (`desert/2`), para borrar los kits al recibir la administraci�
 la evidencia guardada debe renovarse con la entrega comprobada, conservando la anterior durante su control.
 
 La composición puede pedir `identities: true`: quien administra tiene todas las acciones de cada herramienta, sin asignación; también recibe sus recordatorios. Sin esa opción, la asignación de herramientas conserva su comportamiento anterior. Un recorte sin acciones apaga los recordatorios y excluye la herramienta de Atención, aunque siga en el kit para la preferencia de lo ajeno. La superficie y la ejecución consultan el mismo permiso por acción.
+
+Los pedidos autenticados que no son actos (`defecto`, `esperar`, lecturas, `sincronizar`, `apagar`) comparten
+32 admisiones por conexión en una ventana móvil de un segundo; hay como máximo ocho esperas simultáneas.
+Un rechazo lleva el identificador del pedido, o su tipo cuando no tiene identificador, y dice «Llegaste al tope
+de pedidos de esta conexión. Esperá un segundo y volvé a intentar.». No escribe ni reserva otra espera.
+La terminal muestra ese aviso como máximo una vez por segundo y sigue conectada.
+Terminar una espera o cortar su conexión libera el lugar. Los actos y `chau` quedan fuera de ese cupo.
+La prueba del costo compara bytes y cantidad de envíos, con un envío de estado por terminal y pago; alterna
+el camino local y remoto para informar sus tiempos y relación, sin un umbral de milisegundos dependiente de la máquina.

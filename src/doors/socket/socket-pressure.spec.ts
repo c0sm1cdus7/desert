@@ -1,3 +1,4 @@
+import { performance } from "node:perf_hooks";
 import { effect } from "../../journal/events.ts";
 import { socketConnection } from "./socket-connection.ts";
 import { duplexPair } from "node:stream";
@@ -8,7 +9,10 @@ import { socketPeer } from "./socket-peer.ts";
 import { socketLimits } from "../../catalogs/levers.ts";
 import { socketTexts } from "../../texts/socket.texts.ts";
 import { clientFrame, frameReader } from "./frame.ts";
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
 it("M05: a reader that stalls is cut with a report while a healthy terminal continues", async () => {
   const f = await socketHouse("stream");
   const pair = duplexPair();
@@ -33,6 +37,9 @@ it("M05: a reader that stalls is cut with a report while a healthy terminal cont
   }
 });
 it("a stalled snapshot is cut on its drain deadline even without subsequent changes", async () => {
+  vi.useFakeTimers();
+  let idle = 0;
+  vi.spyOn(performance, "eventLoopUtilization").mockImplementation(() => ({ idle, active: 0, utilization: 0 }));
   const pair = duplexPair();
   const report = vi.fn();
   const peer = socketPeer(
@@ -44,7 +51,8 @@ it("a stalled snapshot is cut on its drain deadline even without subsequent chan
   peer.enter({ identity: "ana", door: "terminal" });
   try {
     peer.sendFrames([Buffer.alloc(socketLimits.chunk), Buffer.alloc(socketLimits.chunk)]);
-    await delay(socketLimits.blockedMs + 80);
+    idle = socketLimits.blockedMs;
+    await vi.advanceTimersByTimeAsync(socketLimits.blockedMs);
     expect(report).toHaveBeenCalledWith(socketTexts.slow);
     expect(peer.live()).toBe(false);
   } finally {
@@ -58,8 +66,11 @@ it("g01 c2: a promised body expires after hello, including a later partial frame
     const header = Buffer.alloc(6);
     header.writeUInt32BE(1024 * 1024);
     const output = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     c.socket.write(Buffer.concat([clientFrame({ tipo: "leer", id: "cat", qué: "catalogo" }), header]));
-    expect(await c.until(c.closed, socketLimits.frameMs + 500)).toBe(true);
+    await vi.advanceTimersByTimeAsync(socketLimits.frameMs);
+    expect(c.closed()).toBe(true);
+    vi.useRealTimers();
     expect(output).toHaveBeenCalledWith(`${socketTexts.bodyTimeout}\n`);
   } finally {
     await f.close();
@@ -116,6 +127,9 @@ it("a paused terminal in the same house cannot hold back another terminal's larg
     pair[0].pause();
     const good = await f.client("ana-terminal");
     const output = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+    let idle = 0;
+    vi.spyOn(performance, "eventLoopUtilization").mockImplementation(() => ({ idle, active: 0, utilization: 0 }));
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     f.house().bus.emit(
       effect(
         "tool-entry",
@@ -130,7 +144,10 @@ it("a paused terminal in the same house cannot hold back another terminal's larg
     );
     expect(await good.until(() => good.states.length === 2)).toBe(true);
     expect(good.closed()).toBe(false);
-    await vi.waitFor(() => expect(pair[1].writableEnded).toBe(true), { timeout: 2000 });
+    idle = socketLimits.blockedMs;
+    await vi.advanceTimersByTimeAsync(socketLimits.blockedMs);
+    expect(pair[1].writableEnded).toBe(true);
+    vi.useRealTimers();
     expect(output).toHaveBeenCalledWith(`${socketTexts.slow}\n`);
     expect(good.closed()).toBe(false);
   } finally {

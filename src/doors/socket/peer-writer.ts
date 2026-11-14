@@ -1,4 +1,5 @@
 // Backpressure pauses only this peer. Full snapshots stream lazily; later deliveries have a bounded queue.
+import { performance } from "node:perf_hooks";
 import type { Duplex } from "node:stream";
 import { socketLimits } from "../../catalogs/levers.ts";
 import { socketTexts } from "../../texts/socket.texts.ts";
@@ -60,7 +61,14 @@ class PeerWriter {
   };
   private pause() {
     this.blocked = true;
-    this.timer = setTimeout(() => this.failed(socketTexts.slow), socketLimits.blockedMs);
+    const idle = performance.eventLoopUtilization().idle;
+    const check = () => {
+      if (this.stopped || !this.blocked) return;
+      const remaining = socketLimits.blockedMs - (performance.eventLoopUtilization().idle - idle);
+      if (remaining <= 0) this.failed(socketTexts.slow);
+      else this.timer = setTimeout(check, Math.max(1, remaining));
+    };
+    this.timer = setTimeout(check, socketLimits.blockedMs);
   }
   readonly send = (frames: readonly Buffer[]) => {
     if (this.stopped || this.stream.destroyed) return;

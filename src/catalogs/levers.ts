@@ -25,4 +25,10 @@ export const socketLimits = {
   blockedMs: 1000,
   pendingBytes: 1024 * 1024,
   unintroduced: 32,
+  requests: 32,
+  requestsPerTurn: 16,
+  requestMs: 1000,
+  waits: 8,
 } as const;
+
+export const houseOutputBytes = 1024 * 1024;
