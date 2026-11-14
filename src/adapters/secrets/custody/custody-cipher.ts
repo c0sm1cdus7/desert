@@ -51,8 +51,11 @@ export class CustodyCipher {
   forget(ref: string): void {
     this.#providerOf().forget(this.account(ref));
   }
-  forgetHouse(): void {
-    this.#providerOf().forgetHouse(this.#house);
+  forgetHouse(refs: readonly string[] = []): void {
+    this.#providerOf().forgetHouse(
+      this.#house,
+      refs.map(ref => this.account(ref)),
+    );
   }
   seal(ref: string, value: Uint8Array, create: boolean): string {
     try {

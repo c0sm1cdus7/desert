@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { DatabaseSync } from "node:sqlite";
-import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
+import { custodyHead, custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
 import { SecretCustody } from "./custody/secret-custody.ts";
 import { CustodyDatabase } from "./custody/custody-database.ts";
 for (const after of [false, true])
@@ -62,13 +62,14 @@ it("aceptar una restauración verifica todo antes de mover el ancla", () => {
     session = store.begin(custodyScope);
   const refs = { key: session.capture(Buffer.from("inventado")) };
   session.replace("signing", refs, 0);
+  const head = custodyHead(store.facts());
   store.close();
   const db = new CustodyDatabase(rig.file),
     house = db.identity();
   db.remove(refs.key);
   db.close();
   const before = rig.keys.head(house);
-  expect(() => SecretCustody.acceptRestoredCopy(rig.file, rig.home, rig.keys)).toThrow("E-CUSTODY-MISSING");
+  expect(() => SecretCustody.acceptRestoredCopy(rig.file, rig.home, rig.keys, head)).toThrow("E-CUSTODY-MISSING");
   expect(rig.keys.head(house)).toEqual(before);
 });
 it("un lote de varios vínculos es un solo agregado recuperable y no admite un prefijo cortado", () => {

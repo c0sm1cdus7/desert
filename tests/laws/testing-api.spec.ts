@@ -10,6 +10,8 @@ const names = [
   "HouseKeyProvider",
   "CredentialScope",
   "HouseOptions",
+  "maintainHouseCustody",
+  "CustodyMaintenance",
   "AdapterComposition",
   "AdapterDeclaration",
   "AdapterMethod",

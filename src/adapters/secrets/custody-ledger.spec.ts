@@ -2,7 +2,7 @@ import { SecretCustody } from "./custody/secret-custody.ts";
 import { expect, it } from "vitest";
 import { copyFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
-import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
+import { custodyHead, custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
 for (const mutation of ["append", "edit", "duplicate", "reorder", "malformed"])
   it(`rechaza el registro adulterado: ${mutation} (a1/a2)`, () => {
     const rig = custodyRig(),
@@ -47,6 +47,7 @@ it("una copia vieja exige aceptación explícita; solo vuelve material cuya llav
     session = store.begin(custodyScope);
   const refs = { key: session.capture(Buffer.from("ANTERIOR")) };
   session.replace("signing", refs, 0);
+  const head = custodyHead(store.facts());
   store.close();
   copyFileSync(rig.file, backup.file);
   const next = rig.open();
@@ -56,7 +57,7 @@ it("una copia vieja exige aceptación explícita; solo vuelve material cuya llav
   next.close();
   copyFileSync(backup.file, rig.file);
   expect(() => rig.open()).toThrow("E-CUSTODY-ROLLBACK");
-  SecretCustody.acceptRestoredCopy(rig.file, rig.home, rig.keys);
+  SecretCustody.acceptRestoredCopy(rig.file, rig.home, rig.keys, head);
   const restored = rig.open();
   expect(
     await restored

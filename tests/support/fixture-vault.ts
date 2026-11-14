@@ -8,6 +8,10 @@ import type { CredentialLedger } from "../../src/adapters/secrets/custody/custod
 vi.mock("../../src/adapters/secrets/custody/open-secret-vault.ts", async importOriginal => {
   const actual = await importOriginal<typeof import("../../src/adapters/secrets/custody/open-secret-vault.ts")>();
   return {
+    maintainCustody: (
+      file: string,
+      ...args: Parameters<typeof actual.maintainCustody> extends [string, ...infer R] ? R : never
+    ) => actual.maintainCustody(join(dirname(file), "fixture.sqlite"), ...args),
     openSecretVault: <X extends Program>(
       file: string,
       schema: TSchema,

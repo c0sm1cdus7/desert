@@ -30,6 +30,8 @@ export function adapterHouse(
     return result.status === "processing" ? result.completion : result;
   };
   return {
+    path,
+    options,
     act,
     facts: () => house.journal.replay<unknown[]>([], (events, event) => [...events, event]),
     restart: () => {

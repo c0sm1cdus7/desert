@@ -74,7 +74,7 @@ it("el proveedor macOS usa solo el comando inyectado, no sobrescribe y cierra er
   expect(provider.key("a", false)).toEqual(first);
   expect(provider.key("b", true)).not.toEqual(first);
   expect(
-    calls.filter(call => call.args.includes("desert.house-custody.v2")).every(call => !call.args.includes("-U")),
+    calls.filter(call => call.args.includes("desert.house-custody.v3")).every(call => !call.args.includes("-U")),
   ).toBe(true);
   expect(() =>
     new MacOSHouseKeys(() => {

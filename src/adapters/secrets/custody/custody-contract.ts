@@ -5,7 +5,12 @@ export type CredentialFact = Readonly<{
   batchSize?: number;
   batchIndex?: number;
   id: string;
-  kind: "credential-bound" | "credential-released" | "credential-cleanup-pending" | "credential-purged";
+  kind:
+    | "credential-unusable"
+    | "credential-bound"
+    | "credential-released"
+    | "credential-cleanup-pending"
+    | "credential-purged";
   actor: string;
   tool: string;
   target: string;

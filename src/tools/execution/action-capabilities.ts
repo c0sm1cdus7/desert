@@ -1,5 +1,5 @@
 import type { HouseEvent } from "../../journal/events.ts";
-import type { Execution, ExecutionResult } from "../execute.ts";
+import type { Decision, Execution, ExecutionResult } from "../execute.ts";
 import type { Program } from "../tool-contract.ts";
 import type { ToolCapabilities } from "../capabilities-contract.ts";
 import { targetTool } from "../attendance.ts";
@@ -16,10 +16,19 @@ export function usingCapabilities<X extends Program>(
   try {
     const scoped = lease ? { ...ports, credentialEffects: lease } : ports;
     const result = work(scoped, lease ?? noCapabilities);
+    const finish = (decision: Decision<X>): Decision<X> => {
+      lease?.close();
+      return lease?.cleanupPending?.() ? { ...decision, cleanupPending: true } : decision;
+    };
     if (result.status === "processing")
-      return { ...result, completion: result.completion.finally(() => lease?.close()) };
-    lease?.close();
-    return result;
+      return {
+        ...result,
+        completion: result.completion.then(finish, (error: unknown) => {
+          lease?.close();
+          throw error;
+        }),
+      };
+    return finish(result);
   } catch (error) {
     lease?.close();
     throw error;

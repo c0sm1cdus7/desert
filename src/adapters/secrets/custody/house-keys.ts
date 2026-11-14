@@ -8,7 +8,7 @@ export interface HouseKeyProvider {
   head(house: string): LedgerHead | undefined;
   anchor(house: string, head: LedgerHead): void;
   forget(account: string): void;
-  forgetHouse(house: string): void;
+  forgetHouse(house: string, known?: readonly string[]): void;
 }
 export type CustodyCode =
   | "E-CUSTODY-KEY"

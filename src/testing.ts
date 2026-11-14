@@ -41,6 +41,8 @@ export {
 export {
   localPorts,
   startHouse,
+  maintainHouseCustody,
+  type CustodyMaintenance,
   type HouseOptions,
   type AdapterComposition,
   type AdapterDeclaration,

@@ -5,6 +5,7 @@ export type CapabilityLease = ToolCapabilities &
   Readonly<{
     capture(value: string): string;
     close(): void;
+    cleanupPending?(): boolean;
     together<T>(work: () => T): T;
     apply(emission: Emission, accepted: boolean): boolean;
   }>;

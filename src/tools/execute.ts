@@ -22,7 +22,7 @@ import { usingCapabilities } from "./execution/action-capabilities.ts";
 type Origin = HouseEvent<"act">;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
   Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &
-  Readonly<{ private?: string | undefined; output?: boolean }>;
+  Readonly<{ private?: string | undefined; output?: boolean; cleanupPending?: true }>;
 type Processing<X extends Program> = Readonly<{ status: "processing"; effects: readonly []; reason?: string }> &
   Readonly<{ completion: Promise<Decision<X>> }>;
 export type ExecutionResult<X extends Program> = Decision<X> | Processing<X>;
@@ -93,7 +93,11 @@ const decide = <X extends Program>(
     return result instanceof Promise ? result.then(finish) : finish(result);
   };
 };
-async function executeNested<X extends Program>(ports: Execution<X>, origin: Origin, nested: Act) {
+async function executeNested<X extends Program>(
+  ports: Execution<X>,
+  origin: Origin,
+  nested: Act,
+): Promise<ActResult<X>> {
   const { by, id, process } = origin;
   const tool = targetTool(ports.registry, identityView(ports.state(), by), nested.target ?? "");
   const unknown: ActResult<X> = { status: "rejected", reason: toolTexts.unknown };
@@ -105,7 +109,7 @@ async function executeNested<X extends Program>(ports: Execution<X>, origin: Ori
     result.status === "accepted"
       ? { status: "accepted" }
       : { status: "rejected", reason: result.reason ?? toolTexts.invalid };
-  return done;
+  return result.cleanupPending ? { ...done, cleanupPending: true } : done;
 }
 export function execute<X extends Program>(
   ports: Execution<X>,

@@ -34,7 +34,7 @@ it("p4: stdin y stdout se borran, las cuentas inválidas no llegan al comando, c
     outputs.push(result.stdout);
     return result;
   });
-  for (const account of ["", "A", "a b", "a\nadd-generic-password"]) {
+  for (const account of ["", "A", "a b", "a\nadd-generic-password", "a".repeat(129)]) {
     expect(() => provider.key(account, true)).toThrow("E-CUSTODY-KEY");
     expect(calls).toHaveLength(0);
   }

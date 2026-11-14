@@ -393,9 +393,10 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
 
 ## Custodia de credenciales · contrato de memoria, disco y cortes
 
-Contrato de esta vuelta, escrito antes de implementar. `Kregistro` solo autentica el registro y los sobres cifrados;
+Contrato de la custodia, incluida la aceptación y el mantenimiento con la casa cerrada. `Kregistro` solo autentica el registro y los sobres cifrados;
 `Ksecreto(ref)` cifra exclusivamente ese secreto. Cada llave es un elemento independiente del proveedor externo.
-El proveedor guarda además el ancla `(cantidad de renglones, último autenticador)` fuera de la carpeta.
+El proveedor guarda además el ancla `(cantidad de renglones, último autenticador)` fuera de la carpeta,
+en un elemento propio de 81 bytes; la lista pública de cuentas vive en otro elemento.
 Un agregado es una escritura atómica: una fila o un lote completo con tamaño e índice autenticados.
 
 | Operación | En claro en el proceso y duración | Disco de la casa | Llavero | Si el proceso muere |
@@ -404,14 +405,14 @@ Un agregado es una escritura atómica: una fila o un lote completo con tamaño e
 | Vincular | Ningún secreto; Kregistro mientras se verifica y firma. | Un agregado autenticado da autoridad a referencias presentes. | Ancla avanza después del commit. | Antes del commit no hay vínculo; después del commit y antes del ancla se admite exactamente un agregado íntegro y se reancla. |
 | Usar | Solo los secretos pedidos en búferes durante el callback; cada llave se borra apenas termina de descifrar. Los materiales se ponen en cero al resolver, rechazar o fallar la preparación parcial. Kregistro solo durante verificación. | Reserva en memoria; sin copia en claro. | Se piden únicamente las llaves de las referencias usadas, sin caché. | El uso externo puede haber ocurrido; no se reintenta automáticamente. No quedan reservas tras reiniciar. |
 | Reemplazar | Ningún secreto; Kregistro transitoria. Un uso ya empezado conserva sus búferes hasta terminar. | Nueva revisión atómica; la anterior pierde autoridad. | Ancla después del commit; llaves anteriores hasta su purga. | Rollback conserva la revisión anterior; commit conserva la nueva. Un agregado por delante se recupera; el material anterior sin raíces se purga. |
-| Liberar | Ningún secreto; Kregistro transitoria. | Revocación durable, luego pendiente de purga. | Ancla de revocación; llave del secreto hasta purga. | La revocación no se deshace por falla de borrado. Quien pidió borrar recibe la falla. |
-| Purgar | Ningún secreto ni llave de secreto; Kregistro durante marcas. | Pendiente antes de borrar; eliminación segura con diario truncado; recibo al completar. | Se elimina la llave de esa referencia antes del recibo. | Antes/después de cada eliminación se reintenta idempotentemente; nunca se declara terminado antes de borrar disco y llave. |
+| Liberar | Ningún secreto; Kregistro transitoria. | Revocación durable, luego pendiente de purga. | Ancla de revocación; llave del secreto hasta purga. | La revocación no se deshace por falla de borrado. La acción devuelve su resultado con `cleanupPending: true`; la API directa de borrado comunica `E-CUSTODY-CLEANUP`. |
+| Purgar | Ningún secreto ni llave de secreto; Kregistro durante marcas. | Pendiente antes de borrar; eliminación segura con diario truncado; recibo al completar. | Se elimina la llave de esa referencia y después se poda su cuenta del índice, antes del recibo. | Antes/después de cada eliminación se reintenta idempotentemente; nunca se declara terminado antes de borrar disco y llave. |
 | Adoptar bóveda anterior en claro | Una fila por vez leída como BLOB; búfer y llave propia durante cifrado y comparación, borrados en finally. | Conserva IDs; original hasta verificar todas las copias; retiro seguro y compactación recuperables. | Una llave por fila adoptada. | Intención sin sobre se retoma; sobre existente se compara sin regenerar llave. Tabla vieja vacía significa compactación pendiente. Sin proveedor y con filas falla antes de escribir. |
 | Adoptar retención | Ningún secreto; Kregistro transitoria. | Vínculo con dueño y propósito explícitos; se retira la retención anterior. | Ancla del vínculo. | Antes del commit sigue retenido sin autoridad; después el vínculo manda aunque falte retirar la marca de retención. |
-| Abrir | Ningún secreto ni llave de secreto. Kregistro solo al verificar registro y sobres; no queda entre operaciones. | Verifica integridad y presencia en una pasada; recoge provisionales y reintenta pendientes. | Lee Kregistro/ancla; consulta presencia sin extraer Ksecreto. | Fallar integridad impide usar; fallar un borrado deja pendiente visible y permite abrir. Un registro recortado/restaurado falla con indicación de aceptación explícita. |
-| Aceptar copia restaurada | Ningún secreto; Kregistro mientras verifica la cadena completa y sobres. | No recrea material ni llaves ausentes; no concede permisos extra. | Operación explícita reemplaza el ancla por la cabeza verificada. | Antes de reanclar sigue rechazada; después abre con los vínculos de esa copia y el material que todavía tenga llave. |
+| Abrir | Ningún secreto ni llave de secreto. Kregistro solo al verificar registro y sobres; no queda entre operaciones. | Verifica primero la cadena y el ancla, después sobres y presencia; recoge provisionales y reintenta pendientes. | Lee Kregistro/ancla; consulta presencia sin extraer Ksecreto. | Fallar integridad impide usar; fallar un borrado deja pendiente visible y permite abrir. Un registro recortado/restaurado falla con indicación de aceptación explícita. |
+| Aceptar copia restaurada | Ningún secreto; Kregistro mientras verifica cadena y sobres y autentica las marcas. | Exige la cabeza revisada; marca `credential-unusable` y aumenta la revisión de cada vínculo sin llave; escribe pendientes y recibos de purga del material sin llave. | Reancla al terminar, incluso si faltaba el ancla. Nunca recrea llaves de secretos. | Un corte se retoma revisando y aceptando la nueva cabeza durable; no repite inutilizaciones ni recibos. Después abre, conserva los vínculos con llave y muestra cualquier borrado pendiente. |
 | Cerrar | No hay llaves retenidas; los búferes de usos en curso se borran inmediatamente al cerrar y nuevamente al terminar. | Cierra bloqueo; provisionales se recogen al próximo inicio. | Sin cambios. | Equivale a un cierre interrumpido: se reconstruye de lo durable. |
-| Olvidar casa | Ningún secreto; solo identificación pública. | No se borra ni cambia la carpeta. | Borra cada llave de secreto, después Kregistro y ancla; reintento idempotente. | Un olvido parcial ya puede dejar material ilegible; se continúa con la misma identidad. Antes de ejecutarlo se advierte que también quedan ilegibles otras copias de esa casa en esta máquina. |
+| Olvidar casa | Ningún secreto; solo identificación pública. | No se borra ni cambia la carpeta. | Enumera cuentas propias del índice, filas e historia de la carpeta; borra esas llaves, después Kregistro, ancla e índice; reintento idempotente. | Un olvido parcial ya puede dejar material ilegible; se continúa con la misma identidad. Antes de ejecutarlo se advierte que también quedan ilegibles otras copias de esa casa en esta máquina. |
 
 La apertura sin descifrado es la del formato v2. Si encuentra la bóveda anterior en claro, el primer ingreso
 ejecuta la adopción de la tabla: cifra y compara una fila por vez antes de retirar el original. Esa comparación
@@ -437,8 +438,12 @@ una operación explícita de composición sin pantalla. No recupera llaves purga
 cuyo material ya fue eliminado del llavero. Los cortes admitidos son: antes/después de intención; alta de cuenta
 en el índice externo; creación de llave;
 guardado de sobre; commit del agregado; actualización del ancla; marca pendiente; eliminación física; eliminación
-de llave; recibo; retiro y compactación del legado; cada eliminación del olvido (secretos, registro e índice).
-Cada uno conserva el paso durable anterior para reintentar. Las escrituras del índice se releen antes de darlas por confirmadas.
+de llave; recibo; retiro y compactación del legado; cada eliminación del olvido (secretos, registro, ancla e índice).
+Cada uno conserva el paso durable anterior para reintentar. Las escrituras del índice y del ancla se releen antes de darlas por confirmadas. El corte entre borrar la llave
+y podar el índice conserva una cuenta sobrante que el reintento elimina. Una restauración registra primero
+los vínculos inutilizables y el pendiente; elimina material y llave, escribe recibos y recién entonces reancla.
+Si falla el borrado físico, el pendiente queda visible y la casa puede abrir con ese vínculo inutilizable.
+En una apertura normal sin vuelta atrás, una llave ausente sigue siendo una falla: no se acepta sola.
 
 Lo retenido tiene tres raíces: vínculo vigente hasta liberar/reemplazar; retención explícita por propósito hasta
 `releaseRetention`; ingreso anterior sin dueño hasta `adopt` o `discardLegacy`. Un provisional dura la sesión;
@@ -446,7 +451,8 @@ al cancelar o reiniciar se recoge. Un uso iniciado demora la purga hasta termina
 retiene material. Las escrituras directas antiguas del bus usan retención sin dueño: el programa debe decidir
 adopción o descarte; no hay vencimiento inferido. Los pendientes se ven en `facts()`; `cleanupPending()` informa fallas de mantenimiento aun si no se pudo escribir su recibo. Se reintentan con `collect()`
 y al abrir. Un borrado ajeno fallido nunca tapa el resultado de un adaptador ni impide abrir; quien pidió borrar
-recibe `E-CUSTODY-CLEANUP`. No se anuncian borradas las copias fuera de la carpeta o del proveedor actual.
+recibe `E-CUSTODY-CLEANUP` por la API directa. Una acción conserva su resultado y añade `cleanupPending: true`,
+también cuando otra acción la ejecuta; el aviso no agrega material ni llaves al resultado. No se anuncian borradas las copias fuera de la carpeta o del proveedor actual.
 
 El proveedor se exige al componer posiciones secretas y al ingresar por una acción ofrecida más tarde. La interfaz
 entrega copias de llaves, consulta presencia sin extraerlas y lee/escribe anclas. El comando macOS es inyectado,
@@ -467,18 +473,36 @@ no cambia vínculos; la recolección espera al commit. Ni la custodia ni la bóv
   final del callback. Leé archivos como bytes; si una biblioteca obliga a crear texto, esa copia pertenece al adaptador.
 - `HouseKeyProvider.key(cuenta, crear)` usa la identidad de casa para Kregistro y `casa-secret-UUID` para Ksecreto.
   Sumá `has(cuenta)` sin extraer la llave, `head(casa)`, `anchor(casa, cabeza)` durable e idempotente y
-  `forgetHouse(casa)`. `forget(cuenta)` elimina una llave; no reemplaza olvidar toda la casa.
-- `MacOSHouseKeys` usa los servicios v2 y un índice externo de cuentas y cabeza. Ese índice y el registro conservan
-  identificadores públicos hasta olvidar la casa; purgar borra la llave, no el nombre histórico. El ejecutor recibe
-  un cuarto argumento `{ timeout: 5000 }`, con entrada y salida en búferes. `systemKeychainCommand` es optativo;
-  nunca se elige solo. `-U` se usa únicamente para metadata pública del índice, nunca para sobrescribir llaves.
+  `forgetHouse(casa, cuentasConocidas?)`, que combina las cuentas propias del índice con las de la carpeta.
+  `forget(cuenta)` elimina una llave y después poda su cuenta; no reemplaza olvidar toda la casa.
+- `MacOSHouseKeys` usa servicios v3: llaves, índice y ancla separados. La versión v2 del llavero nunca se usó
+  con datos de nadie: no se convierte. El sobre cifrado sigue siendo v2. El índice contiene cuentas pendientes
+  o vivas y se poda después de borrar cada llave; los nombres históricos permanecen solo en el registro.
+  El índice es público: se escribe por argumentos, codificado en hexadecimal, nunca por la entrada interactiva.
+  Tiene un máximo de 120.000 bytes codificados; excederlo falla antes de escribir índice o llave nueva.
+  Las cuentas admiten hasta 128 caracteres; toda línea interactiva se limita a 4.095 bytes antes del salto.
+  El ancla tiene 81 bytes constantes (contador hexadecimal de 16 dígitos, separador y autenticador de 64).
+  El ejecutor recibe `{ timeout: 5000 }`, entrada y salida en búferes. `systemKeychainCommand` es optativo;
+  nunca se elige solo. `-U` se usa únicamente para metadata pública, nunca para sobrescribir llaves.
 - Los `CredentialLedger` propios deben implementar `appendBatch` atómico. Si participan de una transacción externa,
   `pending()` dice que todavía no confirmó y `afterCommit` se ejecuta solo tras el commit, nunca tras rollback.
   `startHouse` ya lo conecta. Una acción con varios vínculos escribe un solo `custodyBatch` reservado; no lo fabriques.
-- `SecretCustody.acceptRestoredCopy(file, casa, keys, ledger?)` verifica la copia y vuelve a anclar explícitamente.
-  En casas de `startHouse`, entregá también el mismo registro del motor. La operación no tiene pantalla ni recupera
-  llaves borradas. Antes de `forgetHouse`, mostrá `forgetWarning()` y pasá ese texto como aceptación; una interrupción
-  se retoma con `HouseKeyProvider.forgetHouse(identidad)` después de la misma advertencia.
+- Con una casa de `startHouse`, usá `maintainHouseCustody(home, options, request)` desde la composición, con
+  la casa cerrada. Toma la exclusión del registro del motor, conecta sus hechos de custodia y cierra ambos recursos
+  al terminar. No ejecuta herramientas, adaptadores, arranques, proyecciones ni reloj. No es un puerto de herramientas.
+  `request.operation` permite `review`, `accept`, `status`, `retry`, `adopt`, `discard` y `forget`.
+  `review` verifica sin cambiar el ancla y devuelve `head`, vínculos, referencias sin llave y vínculos inutilizables;
+  `accept` exige esa `head` con cantidad y autenticador. Una cabeza distinta da `E-CUSTODY-CONFLICT` sin escribir.
+  El resultado nombra los vínculos inutilizables por persona, herramienta, objeto, slot, revisión y referencias.
+  `status` enumera retenciones, marcas pendientes y `pendingRefs`, incluso si falló escribir la marca, sin reintentar; `retry` reintenta y devuelve lo que sigue pendiente.
+  `adopt` recibe `scope`, `slot`, `refs` y `expected`; `discard`, la `ref` retenida que se descarta.
+  `forget` exige `acknowledgement` igual a `forgetWarning` de la revisión y devuelve `{ forgotten: true }`.
+  Puede reintentarse aun después de perder llaves o el ancla, sin abrir la casa primero.
+- Para custodia independiente, `SecretCustody.acceptRestoredCopy(file, casa, keys, head, ledger?)` también exige
+  nombrar la cabeza. `maintainCustody` ofrece la misma revisión y mantenimiento para quien integra su propio registro.
+  Aceptar no recupera llaves borradas. Con índice perdido o dañado, olvidar usa además filas e historia de la carpeta;
+  descarta cuentas ajenas o malformadas del índice. Sin índice íntegro ni carpeta que enumere una cuenta, esa llave no es localizable:
+  no se promete eliminar llaves que no aparecen en ninguna de las dos fuentes. No se toca otra casa.
 - `finish(session)` es el cierre de mantenimiento del préstamo y conserva el resultado; `cancel`, `collect`,
   `release`, `replace`, `discardLegacy` y `releaseRetention` comunican las fallas de borrado a quien los pidió.
 
@@ -488,6 +512,20 @@ escrituras. Con R referencias distintas y F renglones, son `(2R+2)F + 4R + 2` co
 una referencia en varios campos repite autorización, aunque descifrarla se hace una sola vez. Los usos no guardan
 una caché de llaves para ahorrar esas consultas. No se midieron latencia, permisos interactivos ni comportamiento
 del llavero real. Abrir cuenta lecturas, no tiempo: sus pasadas son proporcionales a filas e historia.
+
+Con una referencia vigente, sin pendientes y usando `SecretCustody` directamente, la prueba contada da:
+
+| Historia | Abrir | Usar | Aceptar la cabeza revisada | Olvidar |
+|---|---:|---:|---:|---:|
+| 1 vínculo, 1 cuenta creada | 9 | 10 | 17 | 5 |
+| 10 rotaciones, 28 renglones, 10 cuentas creadas | 90 | 118 | 206 | 14 |
+
+Son invocaciones del comando falso, no milisegundos. Abrir cuesta `3F + 2M + 4`; aceptar sin material ausente,
+`7F + 4M + 6`; olvidar cuesta `C + 4`, donde C es la unión de cuentas propias del índice, filas e historia,
+incluso las que ya no existen. Cada borrado ausente es idempotente. La entrada de mantenimiento de la casa agrega
+su revisión de salida; aceptar con material ausente suma marcas, purgas y sus verificaciones. Cada escritura
+individual del llavero tiene tamaño limitado y ninguna reescribe historia; la cantidad de verificaciones todavía
+crece con F. El costo de las acciones sin secretos y la optimización de esas pasadas quedan para otro paso.
 
 ## Adaptadores declarados y referencias en las acciones (A01, paso 2)
 

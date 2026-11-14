@@ -58,14 +58,21 @@ export class CustodyState {
         fact =>
           sameScope(scope, fact) &&
           fact.slot === slot &&
-          (fact.kind === "credential-bound" || fact.kind === "credential-released"),
+          (fact.kind === "credential-bound" ||
+            fact.kind === "credential-released" ||
+            fact.kind === "credential-unusable"),
       )
       .at(-1);
   }
   bindings(): CredentialFact[] {
     const latest = new Map<string, CredentialFact>();
     for (const fact of this.ledger.facts()) {
-      if (fact.kind !== "credential-bound" && fact.kind !== "credential-released") continue;
+      if (
+        fact.kind !== "credential-bound" &&
+        fact.kind !== "credential-released" &&
+        fact.kind !== "credential-unusable"
+      )
+        continue;
       latest.set(JSON.stringify([fact.actor, fact.tool, fact.target, fact.slot]), fact);
     }
     return [...latest.values()].filter(fact => fact.kind === "credential-bound");

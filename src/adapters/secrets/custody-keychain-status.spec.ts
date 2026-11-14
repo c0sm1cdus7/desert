@@ -28,6 +28,7 @@ it("borra también las respuestas no vacías de escribir, consultar presencia y 
     return result;
   });
   provider.key("house", true).fill(0);
+  provider.anchor("house", { count: 0, authentication: "" });
   expect(provider.has("house")).toBe(true);
   provider.forget("house");
   expect(outputs.length).toBeGreaterThanOrEqual(4);

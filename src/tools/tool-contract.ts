@@ -28,7 +28,7 @@ export interface KeyStore {
   set(provider: string, value: string, hosts?: readonly string[]): Promise<void>;
   remove(provider: string): Promise<void>;
 }
-type Effects<X extends Program> = Readonly<{ effects?: readonly Emission<X["fact"]>[] }>;
+type Effects<X extends Program> = Readonly<{ effects?: readonly Emission<X["fact"]>[]; cleanupPending?: true }>;
 type Accepted<X extends Program> = Partial<
   Pick<Entry["data"], "text" | "detail" | "target" | "recipient" | "attention" | "silent">
 > &

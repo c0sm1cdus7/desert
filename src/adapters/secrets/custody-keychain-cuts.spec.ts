@@ -8,7 +8,7 @@ function scenario(point = 0, after = false) {
     fake = fakeKeychain();
   const state = { writes: 0, interrupted: false };
   const provider = new MacOSHouseKeys((file, args, input, options) => {
-    const writing = args[0] === "-i" || args[0] === "delete-generic-password";
+    const writing = args[0] === "-i" || args[0] === "add-generic-password" || args[0] === "delete-generic-password";
     const selected = writing && ++state.writes === point;
     if (selected && !after) {
       state.interrupted = true;
@@ -57,7 +57,7 @@ it("cada escritura del comando falso se recupera antes y después de crear índi
   }
 }, 30000);
 it("un olvido parcial se retoma por identidad sin necesitar descifrar o reabrir la casa", () => {
-  for (const point of [1, 2, 3, 4])
+  for (const point of [1, 2, 3, 4, 5])
     for (const after of [false, true]) {
       const fake = fakeKeychain(),
         working = new MacOSHouseKeys(fake.command);

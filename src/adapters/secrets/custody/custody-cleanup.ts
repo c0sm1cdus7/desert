@@ -16,20 +16,25 @@ function cleanupPlan(state: CustodyState) {
     if (ref && fact.kind === "credential-purged") completed.add(ref);
   }
   const candidates = new Set<SecretRef>();
+  const restored = new Set(
+    [...pending].filter(([, fact]) => fact.cause === "restored-without-key").map(([ref]) => ref),
+  );
   for (const row of rows) {
     const provisional = row.owner !== null && state.sessions.has(row.owner) && !origins.has(row.ref);
     if (
       !bound.has(row.ref) &&
       !provisional &&
       !state.uses.has(row.ref) &&
-      !state.store.held(row.ref) &&
-      !(row.retained && !origins.has(row.ref))
+      (restored.has(row.ref) || (!state.store.held(row.ref) && !(row.retained && !origins.has(row.ref))))
     )
       candidates.add(row.ref);
   }
   const present = new Set(rows.map(row => row.ref));
   for (const ref of pending.keys()) if (!completed.has(ref) && !present.has(ref)) candidates.add(ref);
   return { candidates, origins, pending, completed };
+}
+export function pendingCleanup(state: CustodyState): readonly SecretRef[] {
+  return [...cleanupPlan(state).candidates];
 }
 /** Two durable additions regardless of candidate count: intents first, completed receipts after physical deletion. */
 export function collectCustody(state: CustodyState): void {

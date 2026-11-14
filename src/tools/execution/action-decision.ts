@@ -11,14 +11,29 @@ export function decisionOf<X extends Program>(
   tool: string | undefined,
   option: string,
 ): Decision<X> {
-  if ("reason" in result) return { status: result.status, reason: result.reason, effects: result.effects ?? [] };
-  if (result.status === "inconclusive") return { status: "inconclusive", effects: result.effects ?? [] };
+  const notice = result.cleanupPending ? { cleanupPending: true as const } : {};
+  if ("reason" in result)
+    return { status: result.status, reason: result.reason, effects: result.effects ?? [], ...notice };
+  if (result.status === "inconclusive") return { status: "inconclusive", effects: result.effects ?? [], ...notice };
   const reason = programCall(act.reject?.bind(act), context, result);
-  if (reason) return { status: "rejected", reason, effects: [] };
-  if (tool === undefined) return { status: "accepted", effects: result.effects ?? [] };
+  if (reason) return { status: "rejected", reason, effects: [], ...notice };
+  if (tool === undefined) return { status: "accepted", effects: result.effects ?? [], ...notice };
   const { by, target: original } = context;
-  const { text = "", target = original, status: _status, effects = [], private: receipt, ...data } = result;
+  const {
+    text = "",
+    target = original,
+    status: _status,
+    effects = [],
+    private: receipt,
+    cleanupPending,
+    ...data
+  } = result;
   const done = effect("act-done", { object: target, act: option, text, ...privateTo(data.recipient) }, by);
   const entry = effect("tool-entry", { tool, target, author: by, text, ...data }, by);
-  return { status: "accepted", effects: [...effects, done, entry], private: receipt };
+  return {
+    status: "accepted",
+    effects: [...effects, done, entry],
+    private: receipt,
+    ...(cleanupPending ? { cleanupPending } : {}),
+  };
 }

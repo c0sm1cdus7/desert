@@ -12,10 +12,10 @@ it("crear usa entrada estándar separada: ningún argumento contiene la llave (a
     expect(calls.flatMap(call => call.args).some(arg => arg.includes(Buffer.from(key).toString("base64")))).toBe(false);
   expect(provider.key("house-a", false)).toEqual(first);
   expect(first).not.toEqual(second);
-  expect(calls.filter(call => call.args.includes("desert.house-custody.v2")).flatMap(call => call.args)).not.toContain(
+  expect(calls.filter(call => call.args.includes("desert.house-custody.v3")).flatMap(call => call.args)).not.toContain(
     "-U",
   );
-  expect(saved.has("desert.house-custody.v2/house-a")).toBe(true);
+  expect(saved.has("desert.house-custody.v3/house-a")).toBe(true);
   provider.forget("house-a");
   expect(() => provider.key("house-a", false)).toThrow("E-CUSTODY-KEY");
   expect(provider.key("house-b", false)).toEqual(second);

@@ -1,7 +1,8 @@
+import { forgetCustody } from "./custody-maintenance.ts";
 import { secretTexts } from "../../../texts/secrets/secrets.texts.ts";
 import { openCustody } from "./custody-opening.ts";
 import { randomUUID } from "node:crypto";
-import { CustodyError, type HouseKeyProvider } from "./house-keys.ts";
+import { CustodyError, type HouseKeyProvider, type LedgerHead } from "./house-keys.ts";
 import type {
   CredentialIngress,
   CredentialLedger,
@@ -156,10 +157,16 @@ export class SecretCustody {
     this.#state.store.unretain(ref);
     collectCustody(this.#state);
   }
-  static acceptRestoredCopy(file: string, house: string, keys: HouseKeyProvider, ledger?: CredentialLedger): void {
+  static acceptRestoredCopy(
+    file: string,
+    house: string,
+    keys: HouseKeyProvider,
+    head: LedgerHead,
+    ledger?: CredentialLedger,
+  ): void {
     const state = new CustodyState(file, house, keys, ledger);
     try {
-      openCustody(state, true);
+      openCustody(state, true, head);
     } finally {
       state.close();
     }
@@ -169,7 +176,7 @@ export class SecretCustody {
   }
   forgetHouse(acknowledgement: string): void {
     if (acknowledgement !== this.forgetWarning()) throw new CustodyError("E-CUSTODY-DENIED");
-    this.#state.cipher.forgetHouse();
+    forgetCustody(this.#state);
     this.close();
   }
   close(): void {

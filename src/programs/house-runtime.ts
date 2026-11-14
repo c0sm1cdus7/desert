@@ -85,3 +85,5 @@ export type {
   AdapterMethod,
   SecretResolver,
 } from "../adapters/declared/adapter-contract.ts";
+
+export { maintainHouseCustody, type CustodyMaintenance } from "./house-custody-maintenance.ts";

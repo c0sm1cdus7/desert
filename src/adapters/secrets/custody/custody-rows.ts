@@ -9,6 +9,7 @@ export const factSchema = Type.Object({
   id: Type.String(),
   kind: Type.Union([
     Type.Literal("credential-bound"),
+    Type.Literal("credential-unusable"),
     Type.Literal("credential-released"),
     Type.Literal("credential-cleanup-pending"),
     Type.Literal("credential-purged"),

@@ -89,6 +89,7 @@ function leaseFor(
     together: <T>(work: () => T) => custody.deferCleanup(work),
     ports: adapterPorts(declared, { custody, session, check }),
     credentials: bindingPort(snapshot, revisions, slotCheck, changes),
+    cleanupPending: () => changes.changed() && custody.cleanupPending(),
     close: () => {
       if (live) {
         live = false;

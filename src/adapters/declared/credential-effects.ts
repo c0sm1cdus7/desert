@@ -3,6 +3,7 @@ import type { CredentialOperations, SecretRefs } from "../../tools/capabilities-
 import type { CredentialSession, SecretCustody } from "../secrets/custody/secret-custody.ts";
 /** A command is usable only by the lease that issued it; copies and bus writes carry no authority. */
 export function credentialEffects(custody: SecretCustody, session: CredentialSession, check: (slot: string) => void) {
+  let changed = false;
   const commands = new WeakMap<object, () => void>();
   function command(slot: string, expected: number, refs?: SecretRefs) {
     check(slot);
@@ -13,6 +14,7 @@ export function credentialEffects(custody: SecretCustody, session: CredentialSes
     commands.set(request, () => {
       check(slot);
       custody.confirm(session, slot, expected, held);
+      changed = true;
     });
     return request;
   }
@@ -21,6 +23,7 @@ export function credentialEffects(custody: SecretCustody, session: CredentialSes
   return {
     replace,
     release,
+    changed: () => changed,
     apply: (emission: Emission, accepted: boolean) => {
       const commit = commands.get(emission);
       if (!commit) return false;

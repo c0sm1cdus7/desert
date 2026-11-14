@@ -18,3 +18,5 @@ export function openSecretVault<X extends Program>(
     throw error;
   }
 }
+
+export { maintainCustody } from "./custody-maintenance.ts";

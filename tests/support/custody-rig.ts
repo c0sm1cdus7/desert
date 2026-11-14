@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { afterEach, vi } from "vitest";
 import { SecretCustody } from "../../src/adapters/secrets/custody/secret-custody.ts";
 import { MemoryHouseKeys } from "../../src/adapters/secrets/custody/house-keys.ts";
-import type { CredentialLedger } from "../../src/adapters/secrets/custody/custody-contract.ts";
+import type { CredentialFact, CredentialLedger } from "../../src/adapters/secrets/custody/custody-contract.ts";
 const homes: string[] = [];
 const opened: SecretCustody[] = [];
 afterEach(() => {
@@ -25,3 +25,8 @@ export function custodyRig() {
   };
   return { file, home, keys, open };
 }
+
+export const custodyHead = (facts: readonly CredentialFact[]) => ({
+  count: facts.length,
+  authentication: facts.at(-1)?.authentication ?? "",
+});

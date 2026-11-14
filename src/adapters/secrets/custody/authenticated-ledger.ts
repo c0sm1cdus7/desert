@@ -1,11 +1,12 @@
 import type { CredentialFact, CredentialLedger } from "./custody-contract.ts";
 import type { CustodyCipher } from "./custody-cipher.ts";
-import { CustodyError } from "./house-keys.ts";
+import { type LedgerHead, CustodyError } from "./house-keys.ts";
 /** The external head counts facts; batch size/index authenticate exactly one atomic addition after it. */
 export class AuthenticatedLedger implements CredentialLedger {
   readonly #ledger: CredentialLedger;
   readonly #cipher: CustodyCipher;
   readonly #initialized: () => boolean;
+  #restoring = false;
   #staged: CredentialFact[] | undefined;
   constructor(ledger: CredentialLedger, cipher: CustodyCipher, initialized: () => boolean = () => true) {
     this.#ledger = ledger;
@@ -49,13 +50,13 @@ export class AuthenticatedLedger implements CredentialLedger {
     return facts;
   }
   private checkHead(facts: readonly CredentialFact[], restore = false): void {
-    const head = this.#cipher.head();
-    if (!head) throw new CustodyError("E-CUSTODY-KEY");
     const last = facts.at(-1)?.authentication ?? "";
     if (restore) {
       this.#cipher.anchor({ count: facts.length, authentication: last });
       return;
     }
+    const head = this.#cipher.head();
+    if (!head) throw new CustodyError("E-CUSTODY-KEY");
     const prefix = head.count === 0 ? "" : facts[head.count - 1]?.authentication;
     const extra = facts.length - head.count;
     if (
@@ -69,13 +70,32 @@ export class AuthenticatedLedger implements CredentialLedger {
   facts(): readonly CredentialFact[] {
     const facts = this.verified();
     if (!facts.length && !this.#initialized()) return [...(this.#staged ?? [])];
-    if (!this.#ledger.pending?.()) this.checkHead(facts);
+    if (!this.#restoring && !this.#ledger.pending?.()) this.checkHead(facts);
     return [...facts, ...(this.#staged ?? [])];
   }
-  acceptRestored(check: (facts: readonly CredentialFact[]) => void): void {
+  references(): string[] {
+    return this.#ledger.facts().flatMap(fact => Object.values(fact.refs));
+  }
+  review(): readonly CredentialFact[] {
+    return this.verified();
+  }
+  acceptRestored(
+    check: (facts: readonly CredentialFact[]) => readonly CredentialFact[],
+    expected: LedgerHead,
+    complete: () => void,
+  ): void {
     const facts = this.verified();
-    check(facts);
-    this.checkHead(facts, true);
+    if (expected.count !== facts.length || expected.authentication !== (facts.at(-1)?.authentication ?? ""))
+      throw new CustodyError("E-CUSTODY-CONFLICT");
+    const additions = check(facts);
+    this.#restoring = true;
+    try {
+      if (additions.length) this.write(additions, facts);
+      complete();
+      this.checkHead(this.verified(), true);
+    } finally {
+      this.#restoring = false;
+    }
   }
   append(fact: CredentialFact): void {
     if (this.#staged) {
@@ -84,9 +104,9 @@ export class AuthenticatedLedger implements CredentialLedger {
     }
     this.write([fact]);
   }
-  private write(batch: readonly CredentialFact[]): void {
+  private write(batch: readonly CredentialFact[], restored?: readonly CredentialFact[]): void {
     if (!batch.length) return;
-    const facts = this.facts();
+    const facts = restored ?? this.facts();
     let previous = facts.at(-1)?.authentication ?? "";
     const signed = batch.map((fact, index) => {
       const row = { ...fact, batchSize: batch.length, batchIndex: index };
@@ -100,6 +120,7 @@ export class AuthenticatedLedger implements CredentialLedger {
       const row = signed[0];
       if (row) this.#ledger.append(row);
     }
+    if (this.#restoring) return;
     const anchor = () => this.checkHead(this.verified());
     if (this.#ledger.afterCommit) this.#ledger.afterCommit(anchor);
     else anchor();
