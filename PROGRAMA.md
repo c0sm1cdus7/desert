@@ -376,7 +376,7 @@ El adaptador recibe `adapter(session, slots)`: puede capturar material leído de
 El resolvedor solo admite provisionales de esa sesión o vínculos vigentes de su alcance y sus slots autorizados.
 El adaptador es de confianza: la base cierra sus excepciones con `E-CUSTODY-ADAPTER`, pero no demuestra que su
 resultado público no codifique el material. Esta API interna no se entrega entera a una herramienta.
-La composición pública de adaptadores está descripta más abajo; el editor de ingreso queda para el paso siguiente.
+La composición pública de adaptadores y el editor protegido están descriptos en esta misma guía.
 
 `current(slot)` devuelve referencias y revisión. `replace(slot, refs, revision)` verifica material y autorización
 antes de confirmar el par como una sola versión. `release(slot, revision)` revoca esa vinculación. Una revisión
@@ -461,9 +461,83 @@ sin servicios, agregá `...noCapabilities`; está en `testing.ts`, junto con los
 `staged` usa un proveedor de casa en memoria propio de cada caso, conservado durante sus reaperturas. El lector
 histórico sustituye las fábricas por operaciones indisponibles; no llama servicios reales.
 
-Los pasos 2 y 3 cierran capacidades, composición e ingreso antes de los callbacks. Las leyes transitivas de
-imports corresponden al paso 4. Las referencias no convierten JavaScript en una caja de aislamiento: los
-adaptadores declarados son de confianza y la base no comprueba que su salida pública no codifique material.
+La marca `secret: true` garantiza que los callbacks del programa reciben referencias y que solo un adaptador
+que la composición declara puede cambiarlas por material. El ingreso, el editor y la custodia de la base sí
+procesan el material. La marca de revisión histórica v2 tiene otro alcance: registra lo revisado con los esquemas
+actuales y cuenta lo no revisable; no certifica toda la historia ni los datos públicos.
+
+La ley 212 recorre dependencias transitivas, alias, reexportaciones, importaciones dinámicas y tipos. Una herramienta
+no puede importar custodia, fábrica, resolvedor ni la composición para recuperarlos. Tampoco puede leer archivos,
+entorno, base de datos, red o procesos por su cuenta, ni recurrir a evaluación de código. Una dependencia desconocida
+o un import no literal se rechaza: no se supone seguro por no poder inspeccionarlo. Los imports públicos de la base
+son nombrados, según `tests/laws/secret-public-api.ts`; `testing.ts` no habilita sus fábricas para una herramienta.
+
+La compuerta de cada programa incluye `tests/program/secret-boundaries.checks.ts`: revisa las fuentes `.ts` de `src`,
+excepto specs; `desert.program` nombra la composición y `src/adapters/` contiene los adaptadores confiables. Las
+herramientas y sus funciones viven separadas de ambos. Los alias vienen de `paths` de `tsconfig.json`. La base prueba
+además que un alias no agrega un resolvedor a los contratos públicos y que una fábrica no lo devuelve anidado.
+Un paquete externo nuevo requiere revisar su API y agregar una frontera explícita; no alcanza instalarlo.
+
+Esto es una regla de fuentes y contratos, no un aislamiento de JavaScript frente a código hostil o dependencias
+alteradas. No demuestra que el adaptador firme bien, autorice bien al destinatario ni que un string público no
+codifique material privado. No borra copias externas, respaldos, memoria del proveedor ni páginas históricas del
+disco. Restaurar una copia completa anterior puede revivir material revocado. Estas limitaciones siguen vigentes.
+
+### Una llave de firma, de ingreso a desconexión
+
+1. Componé un `HouseKeyProvider` con una llave distinta por casa, conservada fuera de su carpeta. Entregalo como
+   `secretKeys`. Para pruebas usá `MemoryHouseKeys`; para el llavero, inyectá el ejecutor en la composición confiable.
+2. Definí el objeto de la credencial con organización, ambiente y propósito. Declaralo en `credentialSlots` para
+   la herramienta fiscal. La base no interpreta «homologación», «producción» ni CUIT: esos límites los fija el programa.
+3. Declarar certificado y privada como strings `secret: true` hace que el editor de la base los oculte y conserve
+   multilínea. Si la persona elige archivos, el adaptador los lee con un transporte explícito y devuelve referencias
+   de `resolver.capture`; el método declara `capture: true`. Ninguna acción lee el archivo ni recibe sus bytes.
+4. Declarar métodos de inspección y firma exige `input`, `output` JSON cerrado y permisos de herramienta, slots e
+   ingreso. Solo `open(resolver)` usa `resolver.use(refs, material => ...)`. Parseo, correspondencia y firma viven ahí.
+   El resultado devuelve validez y metadatos públicos; nunca privada, certificados completos, tickets o errores crudos.
+5. En la misma acción, inspeccioná el candidato por `context.ports`, usando referencias. Si falla, rechazá: la
+   sesión libera sus provisionales y conserva el vínculo anterior. Si aceptás, incluí el efecto
+   `credentials.replace(slot, refs, credentials.revision(slot))`; el par queda como una versión en el lote durable.
+   No guardes una referencia provisional para usarla en otra acción sin vincularla. Una confirmación en otra acción
+   necesita un slot de candidato y su posterior liberación explícita.
+6. Para firmar, tomá `credentials.current(slot)` y llamá al puerto con sus referencias. Verificá permisos fiscales,
+   representado, ambiente y servicio en el adaptador. Una inspección local válida no acredita autorización del fisco.
+   La base no implementa ARCA ni hace durable por sí sola un envío externo: prepará y reconciliá esos pedidos aparte.
+7. Para renovar, repetí ingreso e inspección y reemplazá contra la revisión observada. Dos reemplazos no se pisan;
+   el que perdió debe volver a leer. Una firma iniciada termina con su versión; la siguiente usa la nueva. El programa
+   invalida sus tickets y cachés asociados y conserva el contexto de los pedidos pendientes.
+8. Para desconectar, aceptá el efecto `credentials.release(slot, credentials.revision(slot))`, incluidos slots de
+   candidatos. Pausá emisiones e invalidá tickets del programa. Nuevos usos quedan denegados; la limpieza fallida queda
+   pendiente y se retoma al abrir. No anuncies que se borraron copias que estén fuera de la casa.
+9. Probá con marcadores inventados, nunca credenciales reales: permisos, referencias ajenas, errores de parser,
+   reemplazos en paralelo, reinicio, rechazo, cancelación y desconexión durante firma. Los casos declarados deben
+   cubrir cada posición secreta, opcional, lista y rama; la compuerta observa qué recibe cada acción.
+
+### Probar el adaptador y subir desde la base anterior
+
+`testing.ts` exporta `adapterTest`, `MemoryHouseKeys`, `HouseKeyProvider`, `CredentialScope`, los tipos de adaptador,
+`SecretRef`, las operaciones públicas y `noCapabilities`. `adapterTest(composition, scope, materialSintetico)` devuelve
+`refs`, `ports` y `close()`: abre una custodia temporal cifrada con proveedor en memoria y atraviesa la declaración,
+los permisos, los esquemas y la revocación reales. Siempre cerralo en `finally`. Inyectá transportes falsos al adaptador:
+el ayudante no bloquea la red de código que vos le entregues. Para lotes, vínculos y reapertura usá `startHouse` con
+`MemoryHouseKeys`, o los casos de `programChecks`; el ayudante no simula esos lotes.
+
+Al actualizar un programa:
+- Quitá `keys` de opciones, contextos y arranques; `KeyStore` solo queda para adopción explícita. Cambiá `Tool.start`
+  a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios.
+- Mové lectura, validación del material, firma, I/O y resolución a adaptadores declarados. Las acciones y callbacks
+  trabajan con referencias; conservá `secret: true` y quitá `secretInputs` y `secretLimits.minLength` sin efecto.
+- Agregá `secretKeys`, métodos con esquemas cerrados y permisos, y `credentialSlots`. Usá `revision(slot)`, incluso
+  después de liberar; incorporá los efectos de vínculo al resultado aceptado. No publiques copias de esos efectos.
+- Separá composición, adaptadores y herramientas en archivos. Sustituí imports internos, namespaces y barrels que
+  arrastren capacidades por imports públicos nombrados. Conservá todas las pruebas de programa, incluida la ley 212.
+- Cubrí todas las posiciones y ramas secretas con casos ejecutados. Actualizá pruebas que esperaban material o
+  limpieza literal de texto: los campos públicos siguen públicos y sus repeticiones no se borran.
+- Conservá IDs y adoptá lo anterior con manifiesto de dueño y propósito. Ante `E-SECRET-HISTORY`, tratá la historia
+  expuesta sin sobrescribirla ni declarar limpio lo no revisable. La bóveda en claro se cifra antes de retirarla;
+  para proveedores `KeyStore`, `importLegacyKeys` verifica destinos antes de borrar orígenes.
+- Prevé recuperación de la llave externa, revisión de pendientes, borrado pendiente y restauraciones de respaldos.
+  Las referencias no invalidan snapshots de otra versión ni acreditan autorización de servicios externos.
 
 ## Los registros que se guardan
 - Un programa puede guardar registros que organizaciones reales escribieron con él en una carpeta que nombra en

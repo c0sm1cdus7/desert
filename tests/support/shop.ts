@@ -3,7 +3,7 @@ import { Type } from "@sinclair/typebox";
 import { object } from "../../src/catalogs/acts.ts";
 import { money, text } from "../../src/catalogs/fields.ts";
 import { effect, vocabulary, type Emission, type Event, type ProgramFacts } from "../../src/journal/events.ts";
-import { programAct, type Composition, type ProgramTool } from "../../src/tools/promises.ts";
+import { programAct, type ProgramTool } from "../../src/tools/promises.ts";
 import type { Shown, SurfaceWords } from "../../src/surface/bridge/house-ports.ts";
 import type { Slices, State, ToolRegistry } from "../../src/tools/tool-contract.ts";
 /** What the shop takes is declared with how it is asked: the question, and a mask or a placeholder. */
@@ -164,7 +164,7 @@ export const paymentsTool: ProgramTool<Shop> = {
 };
 export const shopRegistry: ToolRegistry<Shop> = [salesTool, paymentsTool];
 /** The shop, whole: what its promises are checked on. */
-export const shopProgram: Composition<Shop> = { words: shop, registry: [salesTool, paymentsTool], slices: shopSlices };
+export const shopProgram = { words: shop, registry: [salesTool, paymentsTool], slices: shopSlices };
 /** What the shop calls its tools where a person reads them, and how its country writes money and days. */
 export const shopWords: SurfaceWords = {
   sales: {

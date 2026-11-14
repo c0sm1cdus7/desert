@@ -103,3 +103,5 @@ export type {
   CredentialOperations,
   PublicPorts,
 } from "./tools/capabilities-contract.ts";
+export { adapterTest, MemoryHouseKeys, type HouseKeyProvider } from "./programs/testing/adapter-test.ts";
+export type { CredentialScope } from "./tools/capabilities-contract.ts";

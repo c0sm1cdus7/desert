@@ -5,6 +5,10 @@ import { join } from "node:path";
 import { root } from "../support/sources.ts";
 
 const names = [
+  "adapterTest",
+  "MemoryHouseKeys",
+  "HouseKeyProvider",
+  "CredentialScope",
   "HouseOptions",
   "AdapterComposition",
   "AdapterDeclaration",

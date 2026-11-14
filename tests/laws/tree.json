@@ -178,7 +178,8 @@
     "tools/inputs/question-material.ts": "Referencias aleatorias de preguntas recordadas por digest salado, sin conservar un diccionario de material.",
     "tools/execution/action-decision.ts": "Convierte el resultado público de una acción en hechos, conservando su destinatario.",
     "programs/opacity/secret-cases.ts": "Enumera obligaciones por posición y rama secreta, y sus caminos en cada caso.",
-    "programs/opacity/opacity-derived.ts": "Ejecuta todos los casos de cada acción y exige cobertura real con referencias en cada posición secreta."
+    "programs/opacity/opacity-derived.ts": "Ejecuta todos los casos de cada acción y exige cobertura real con referencias en cada posición secreta.",
+    "programs/testing/adapter-test.ts": "Prueba adaptadores con material sintético, custodia cifrada temporal y permisos, esquemas y revocación reales."
   },
   "folders": {
     "adapters/secrets": 71,
@@ -205,7 +206,7 @@
     "surface/bridge/execution": 112,
     "texts/checks": 22,
     "programs/answers": 63,
-    ".": 105,
+    ".": 107,
     "surface/bridge/actions": 78,
     "surface/navigation": 79,
     "programs/walks": 166,
@@ -218,6 +219,7 @@
     "adapters/secrets/validation": 25,
     "adapters/declared": 387,
     "tools/inputs": 90,
-    "programs/opacity": 104
+    "programs/opacity": 104,
+    "programs/testing": 46
   }
 }

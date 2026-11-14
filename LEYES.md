@@ -35,3 +35,20 @@ país lo declara el programa una vez.
 - El recorrido por MCP, el storyboard y lo que cada pantalla lee, derivados de los mismos casos; las specs del núcleo de DESERT siguen escritas a mano (ley 7).
 - La puerta para otros dispositivos (ley 9).
 - Lo que pidió la obra de Capibara del 11/11 y la base todavía no hace está listado al final de `PROGRAMA.md`.
+
+## Una acción recibe referencias, nunca material secreto (A01)
+
+La marca `secret: true` hace que la base valide el ingreso y entregue referencias antes de todo callback del
+programa. Solo un adaptador declarado por la composición obtiene la capacidad de resolverlas. Acciones y arranques
+reciben puertos públicos y operaciones de vínculos. Las reglas 208 a 212 registran custodia, ciclo de vida, contratos,
+ingreso y ley de dependencias; sus pruebas incluyen programas rotos a propósito y un centinela sin sustitución.
+
+La ley 212, incluida en la compuerta de cada programa, sigue imports transitivos, alias, reexportaciones, imports
+dinámicos y tipos. Prohíbe custodias y fábricas en herramientas, además de I/O, entorno y evaluación que esquiven
+el puerto. Imports desconocidos se rechazan; los nombres públicos permitidos están en `secret-public-api.ts`.
+Composición y adaptadores no pueden mezclar declaraciones de herramientas. `PROGRAMA.md` explica la separación,
+la migración completa y el recorrido de una llave de firma, desde su ingreso hasta revocación y limpieza pendiente.
+
+La garantía no prueba que un adaptador sea correcto ni que sus datos públicos no codifiquen material privado.
+Tampoco aísla JavaScript hostil ni borra copias fuera de la casa. La revisión histórica solo acredita las posiciones
+que pudo revisar con los esquemas actuales. Ni esa marca ni el cifrado acreditan autorización del fisco.

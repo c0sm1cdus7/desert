@@ -161,3 +161,23 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 5. La puerta: viaja el estado, por herramienta entera y paginado.
 6. Emparejar dispositivos y herramienta de equipo (permisos y conexiones).
 7. Core de muchas casas.
+
+## La frontera de secretos, completa
+
+`tests/laws/secret-boundaries.ts` recorre el grafo de módulos; `secret-syntax.ts` reconoce imports, tipos y escapes;
+`secret-types.ts` sigue tipos inferidos y alias para impedir que una fábrica devuelva su resolvedor.
+`secret-context.spec.ts` comprueba el contrato público real y una variante rota con una capacidad bajo otro nombre.
+`program-secret-boundaries.ts` aplica la política al programa declarado en `desert.program`; su prueba en
+`tests/program/secret-boundaries.checks.ts` entra en la compuerta del consumidor. La frontera de imports públicos
+es explícita en `secret-public-api.ts`; no se confía en un módulo desconocido ni se omite una dependencia transitiva.
+
+La marca de esquema garantiza referencias antes de callbacks y resolución solo por adaptadores declarados.
+La composición, custodia y editor son partes confiables de la base. El adaptador sigue siendo responsable del uso
+correcto y de no codificar material en una respuesta pública. Las leyes no constituyen aislamiento de JavaScript,
+no certifican lo no revisable en la historia y no borran copias externas ni evitan restaurar un respaldo anterior.
+
+`src/programs/testing/adapter-test.ts`, exportado por `testing.ts`, prueba métodos con referencias provisionales,
+custodia temporal cifrada, proveedor en memoria y controles reales. No llama al llavero ni elige un transporte:
+el test inyecta uno falso. Para lotes y reinicios se usa la casa real con `MemoryHouseKeys`.
+El recorrido de firma y todos los cambios de migración están en `PROGRAMA.md`, «Una llave de firma» y «Probar el
+adaptador y subir desde la base anterior»; declarar una marca no implementa la conexión fiscal.

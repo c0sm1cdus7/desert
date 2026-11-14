@@ -1833,7 +1833,7 @@
     },
     {
       "id": 210,
-      "rule": "Las acciones y los arranques reciben solo métodos públicos de adaptadores declarados y operaciones de vínculos; no reciben KeyStore, custodia ni resolvedor. Cada operación fija entrada, salida, herramientas, slots e ingreso permitido. La fábrica recibe un resolvedor por llamada, revocable y limitado al alcance. Los resultados se validan como datos públicos cerrados y las fallas cruzan como códigos, sin mensaje, causa ni traza originales. current y revision fijan la vista inicial; replace y release producen efectos no copiables que se confirman con el lote aceptado y dejan hechos autenticados. Rechazo, conflicto o rollback conservan el vínculo anterior; la recolección espera al lote. La sustitución del ingreso se comprueba en la regla 211; las leyes transitivas corresponden al paso 4.",
+      "rule": "Las acciones y los arranques reciben solo métodos públicos de adaptadores declarados y operaciones de vínculos; no reciben KeyStore, custodia ni resolvedor. Cada operación fija entrada, salida, herramientas, slots e ingreso permitido. La fábrica recibe un resolvedor por llamada, revocable y limitado al alcance. Los resultados se validan como datos públicos cerrados y las fallas cruzan como códigos, sin mensaje, causa ni traza originales. current y revision fijan la vista inicial; replace y release producen efectos no copiables que se confirman con el lote aceptado y dejan hechos autenticados. Rechazo, conflicto o rollback conservan el vínculo anterior; la recolección espera al lote. La sustitución del ingreso se comprueba en la regla 211; las leyes transitivas se comprueban en la regla 212.",
       "from": "13/11 · A01, segunda parte, paso 2: contratos y composición",
       "guarantee": "spec",
       "evidence": [
@@ -1860,6 +1860,23 @@
         "src/adapters/secrets/opacity-now.spec.ts",
         "src/surface/bridge/questions/opacity-surface.spec.ts",
         "src/doors/terminal/opacity-terminal.spec.ts"
+      ]
+    },
+    {
+      "id": 212,
+      "rule": "La compuerta recorre las fuentes del programa y las dependencias transitivas de herramientas, alias, reexportaciones, imports dinámicos y tipos. Rechaza importar custodia, fábrica, resolvedor, composición, I/O directo, entorno y evaluación; una dependencia desconocida falla cerrada. La API pública se importa por nombres aprobados. Los contratos públicos y las fábricas se prueban también rotos con capacidades renombradas o anidadas. La marca entrega referencias antes de callbacks y solo el adaptador declarado resuelve; no demuestra corrección del adaptador, aislamiento de JavaScript ni borrado de copias externas. testing.ts ofrece custodia sintética y controles reales para probar métodos sin credenciales reales.",
+      "from": "13/11 · A01, segunda parte, paso 4: leyes",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/secret-boundaries.spec.ts",
+        "tests/laws/secret-context.spec.ts",
+        "tests/laws/program-secret-boundaries.spec.ts",
+        "tests/program/secret-boundaries.checks.ts",
+        "src/programs/testing/adapter-test.spec.ts",
+        "tests/laws/testing-api.spec.ts",
+        "PROGRAMA.md",
+        "LEYES.md",
+        "COSTURAS.md"
       ]
     }
   ]
