@@ -59,6 +59,9 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - `also` la ofrece además entre las acciones de los objetos de otra herramienta (cobrar, desde una venta).
   `also.with(estado, cosa, instante)` decide si aparece y fija respuestas; `also.off(estado, cosa, instante)` dice
   por qué está apagada; su causa también se declara en `refuses`, con un caso que la alcance desde `from`.
+  `also.opens` propone valores iniciales válidos para sus campos: las comprobaciones derivadas los revisan
+  sobre los estados de cada caso y las cosas de origen disponibles, incluso sin un caso `from`.
+  Los valores iniciales escritos también deben pasar la validación del campo, incluida su precisión y `wrong`.
   `closed(estado, cosa, instante)` oculta la cosa en las preguntas que la eligen, incluso si era el valor vigente. Usan el mismo reloj
   de la casa que `offered`, `stops` y `among`, también cuando cambia el día sin hechos nuevos.
 - `run` puede ser `async`; solo devuelve `accepted` o `rejected` con una causa literal de `outside`, opcionalmente

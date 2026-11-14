@@ -18,6 +18,8 @@ export const surfaceTexts = {
   current: "actual",
   ok: "Listo",
   error: "Error",
+  invalidMoney: (field: string) => `El programa entregó un importe inválido en ${field}`,
+  invalidMoneyDetail: (field: string) => `Invalid money at ${field}`,
   gone: "E-NAV-1 · Destino inexistente",
   working: "Procesando",
   more: "más",

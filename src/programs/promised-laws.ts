@@ -1,6 +1,8 @@
 import { inspect } from "node:util";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { fine, wrongIn } from "../catalogs/fields.ts";
+import { openingChecks } from "./coverage/opening-checks.ts";
 import { alsoCauses } from "./coverage/also-causes.ts";
 // The laws every act of every program keeps: nobody promises them case by case, and every act is checked on them.
 import { deepStrictEqual, ok } from "node:assert/strict";
@@ -71,12 +73,16 @@ export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 /** Check defaults wherever a declaration nests fields, variants, or items. */
-function defaultsIn(schema: unknown, path = "$"): void {
+export function defaultsIn(schema: unknown, path = "$"): void {
   if (!isRecord(schema)) return;
   const node = schema;
   if (Object.hasOwn(node, "default")) {
     const value = node.default;
-    if (!Value.Check(Type.Unsafe(node), value)) throw new Error(`Invalid default at ${path}: ${inspect(value)}`);
+    if (
+      value !== undefined &&
+      (!Value.Check(Type.Unsafe(node), value) || !fine(node, value) || wrongIn(node, value, 0) !== undefined)
+    )
+      throw new Error(`Invalid default at ${path}: ${inspect(value)}`);
   }
   if (node.properties && typeof node.properties === "object")
     for (const [key, child] of Object.entries(node.properties)) defaultsIn(child, `${path}.${key}`);
@@ -96,6 +102,7 @@ export function coverage<X extends Program>(program: Composition<X>, aim: Aim<X>
   const run = (): Promise<void> =>
     Promise.resolve().then(async () => {
       defaultsIn(aim.act.input);
+      await openingChecks(program, aim);
       const does = aim.act.cases.some(kase => !("refused" in kase.then));
       ok(does, said.nothingDone);
       /** What an act puts to be confirmed is promised word for word by one of its cases. */

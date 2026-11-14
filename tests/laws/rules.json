@@ -974,7 +974,7 @@
     },
     {
       "id": 126,
-      "rule": "Todo dato que una persona escribe tiene tope: la plata, las cantidades y los números con su máximo; un texto con su largo y sin ser solo espacios. Un campo sin tope hace que el programa no arranque, y cada acción se prueba sola con un dato pasado de su tope",
+      "rule": "Todo dato que una persona escribe tiene tope: la plata, las cantidades y los números con su máximo; un texto con su largo y al menos un carácter que no sea espacio, control, formato, ignorable por defecto ni uno de los blancos U+2800, U+3164, U+115F, U+1160 y U+FFA0. Un campo sin tope hace que el programa no arranque, y cada acción se prueba sola con un dato pasado de su tope",
       "from": "11/11 · revisión de lógica: importes de 10^17, cantidad 1e300, nombres de 100.000 letras",
       "guarantee": "derived",
       "evidence": [
@@ -2204,7 +2204,9 @@
         "tests/support/window-volume.ts",
         "src/surface/bridge/window-cost.spec.ts",
         "src/catalogs/fields/money-cleanup.spec.ts",
-        "src/surface/money-limit-cleanup.spec.ts"
+        "src/surface/money-limit-cleanup.spec.ts",
+        "src/programs/promised-data.spec.ts",
+        "src/programs/promised-money.spec.ts"
       ]
     }
   ]

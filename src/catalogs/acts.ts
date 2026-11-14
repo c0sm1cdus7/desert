@@ -14,7 +14,7 @@ export const preference = object({
   on: Type.Boolean(),
 });
 // Unicode White_Space, Cc, Cf and Default_Ignorable_Code_Point, plus blank glyphs; ranges work without the u flag.
-const visibleText = [
+export const visibleText = [
   "(?:[^\\u0000-\\u0020\\u007f-\\u00a0\\u00ad\\u034f\\u0600-\\u0605\\u061c\\u06dd\\u",
   "070f\\u0890-\\u0891\\u08e2\\u115f-\\u1160\\u1680\\u17b4-\\u17b5\\u180b-\\u180f\\u",
   "2000-\\u200f\\u2028-\\u202f\\u205f-\\u206f\\u2800\\u3000\\u3164\\ufe00-\\ufe0f\\u",
