@@ -13,3 +13,14 @@ it.each([false, true])("enumerates each tool once for 5,000 objects and 200 noti
     volume.close();
   }
 });
+
+it("shows the stored cents when reading an old object", () => {
+  const volume = windowVolume(50, 0);
+  try {
+    const reading = JSON.stringify(volume.old());
+    expect(reading).toContain("$ 15,00");
+    expect(reading).toContain("$ 0,00");
+  } finally {
+    volume.close();
+  }
+});

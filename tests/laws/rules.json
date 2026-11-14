@@ -2018,11 +2018,7 @@
         "src/surface/money-menu.spec.ts",
         "src/catalogs/display/column-width.ts",
         "src/doors/terminal/entry.ts",
-        "src/surface/bridge/currency/currency-defect.ts",
-        "tests/support/shop.ts",
-        "src/surface/shop-money-terminal.spec.ts",
-        "src/surface/shop-money-neighbors.spec.ts",
-        "tests/laws/program-secret-boundaries.spec.ts"
+        "src/surface/bridge/currency/currency-defect.ts"
       ]
     },
     {
@@ -2114,6 +2110,23 @@
         "src/surface/bridge/window-cost.spec.ts",
         "src/surface/bridge/window-derived.spec.ts",
         "tests/support/window-program.ts"
+      ]
+    },
+    {
+      "id": 255,
+      "rule": "Un programa lee el mismo importe que confirmó, antes y después de reabrir, y la función que lo muestra rechaza lo que no es un importe.",
+      "from": "14/11 · importe · revisión adversaria",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/support/shop.ts",
+        "src/surface/shop-money-terminal.spec.ts",
+        "src/surface/shop-money-neighbors.spec.ts",
+        "tests/laws/program-secret-boundaries.spec.ts",
+        "src/catalogs/fields/money-field.ts",
+        "src/catalogs/fields/money-field.spec.ts",
+        "src/tools/promises.spec.ts",
+        "tests/support/window-volume.ts",
+        "src/surface/bridge/window-cost.spec.ts"
       ]
     }
   ]

@@ -5,7 +5,7 @@ import { maskKeys, numericKeyReason } from "../mask-keys.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 /** Money as a cash register takes it: digits come in from the right, and the last two are always the cents. */
 export const money = (locale: Locale): Format => {
-  const shown = (typed: string): string => shownMoney(typed, locale);
+  const shown = (typed: string): string => shownMoney(typed || "0", locale);
   return {
     keyboard: "digits",
     currency: currencySymbol(locale.currency, generic.countryCurrency),
