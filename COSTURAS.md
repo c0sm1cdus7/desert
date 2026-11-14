@@ -232,3 +232,20 @@ registro existente, sin tabla adicional ni nueva versión de cálculo: el identi
 Los módulos de sesión y entrega admiten streams para probar el protocolo sin abrir sockets. Las pruebas Unix y de
 procesos separados siguen siendo necesarias para comprobar permisos, señales y limpieza del enlace real. La sesión
 de agentes aún se debe: autenticar esa puerta no habilita el camino de terminal ni elimina su futura escena.
+
+## Terminal externa (paso 2)
+
+La conexión y `socketPorts` están en `src/doors/socket/`; el sistema operativo, el arranque independiente y la
+reconexión están en `src/programs/`. El router y todos los archivos del dibujante conservan su código.
+La composición del programa es estática: el manifiesto elige un ejecutable, no un import dinámico. El ejecutable
+coopera con el handshake de `runProgramServer`; `openProgramTerminal` recibe la composición ya importada.
+No se cambia la huella de cálculos ni se exceptúan imports de sus leyes.
+
+Los presupuestos de socket, programs y texts crecen exactamente por los archivos agregados y el cierre de
+pedidos incompletos al reconstruir el índice; cada propósito está en `tests/laws/tree.json`. Las garantías
+246–250 y la evidencia adicional de la 11 describen esta puerta. La prueba de marcos también acompaña las
+reglas de terminal 1–106 que ya tienen garantía; no cancela las deudas existentes.
+
+Las pruebas de muerte de proceso llevan los mismos marcos por IPC para comprobar SQLite y el protocolo aun
+cuando la caja impide escuchar un socket Unix. No sustituyen las pruebas Unix: el arranque real, el socket viejo,
+los dos clientes en pseudo-terminal y sus colores al reconectar se comprueban además por ese camino.

@@ -1,4 +1,7 @@
 export const socketTexts = {
+  interrupted: "Se cortó antes de la respuesta: fijate en Actividad si se hizo.",
+  startFailed: "No se pudo abrir la casa.",
+  startTimeout: "La casa no respondió en cinco segundos.",
   home: "El escritor abierto pertenece a otra carpeta de casa.",
   denied: "La llave no da entrada a esta casa.",
   removed: "Ya no estás en esta casa.",

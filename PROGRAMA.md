@@ -962,9 +962,9 @@ se escribe `casa.pid` (0600). La ruta completa debe entrar en los 103 bytes úti
 `close()`, SIGINT, SIGTERM o `apagar` de quien administra dejan de aceptar, avisan y esperan hasta diez segundos;
 el cierre informa la cantidad de actos pendientes y libera la casa antes de borrar socket y pid.
 
-La terminal actual sigue usando sus puertos locales. No hay que migrar programas para subir a este paso:
-`HousePorts`, `localPorts`, el router y `startHouse` conservan su contrato. El cliente de terminal llega en el
-paso 2. La sesión de agentes llega aparte: en este paso se autentica, pero no recibe estado ni ejecuta pedidos de
+Los programas existentes pueden seguir usando sus puertos locales:
+`HousePorts`, `localPorts`, el router y `startHouse` conservan su contrato. La adopción del cliente se describe en
+«Terminal cliente de la casa (paso 2)». La sesión de agentes llega aparte: en este paso se autentica, pero no recibe estado ni ejecuta pedidos de
 terminal. Las llaves reales y su revocación individual llegan en el paso 3; sacar la identidad ya corta su conexión.
 
 El marco lleva largo uint32 big-endian (cuenta el byte de tipo y el cuerpo), un byte de tipo y el cuerpo.
@@ -1006,3 +1006,36 @@ Otra identidad o identificador constituye otro acto. Al reabrir se reconstruye e
 los resultados `interrupted` que escribe el arranque. Los registros anteriores, sin esa causa, siguen siendo válidos.
 El recibo `private` se conserva solo en memoria: tras un reinicio se recuperan estado, motivo y efectos públicos,
 nunca se persiste ni se vuelve a emitir una credencial para reconstruir un recibo perdido.
+
+## Terminal cliente de la casa (paso 2)
+
+El programa puede abrir `openProgramTerminal(raízDelPrograma, carpetaDeCasa, llave, program, shown)` desde
+`src/programs/open-terminal.ts`. `program` y `shown` son imports estáticos de su composición. La llave se entrega
+en memoria; nunca se pasa en argumentos del proceso servidor. Su provisión definitiva corresponde al paso 3.
+No cambia `HousePorts`: los programas locales existentes y `shop-open.ts` siguen compilando y funcionando.
+
+La función prueba `<carpetaDeCasa>/casa.sock`. Si falta, ejecuta con Node el archivo declarado en
+`package.json → desert.program`, pasándole únicamente la carpeta de la casa. Ese archivo sigue exportando
+`program` y `shown` y, cuando `import.meta.main`, llama `runProgramServer(program, opciones, carpeta)` de
+`src/programs/server-process.ts`. Las opciones son `by`, `creation`, `keys` (tabla del paso 1) y, si corresponde,
+`secretKeys`. Ver `tests/support/shop-program.ts` para una composición completa con custodia solo de prueba.
+El programa usa sus proveedores de custodia reales en su composición; la terminal no abre el almacenamiento.
+
+El arranque tiene cinco segundos para confirmar por IPC que escucha. Después, el proceso queda independiente.
+Cerrar la terminal no apaga la casa; esto implementa la decisión de la obra y queda como duda para el dueño.
+Un escritor sin socket devuelve literalmente `This house is already open in a running process`: este paso
+conserva ese texto en inglés. Una ruta de socket demasiado larga falla nombrándola, sin acortarla.
+Al perder una casa ya conectada, la terminal intenta reconectarse cada 500 ms y no vuelve a lanzarla.
+
+`socketConnection` conserva la última vista y `socketPorts` implementa el contrato existente. La Barra usa los
+cuatro iconos y colores de siempre, sin palabras nuevas. `now` suma a la hora recibida el tiempo monotónico
+transcurrido. Actos iguales pendientes comparten promesa; un corte resuelve con `interrupted` y
+«Se cortó antes de la respuesta: fijate en Actividad si se hizo.». Los identificadores inciertos se consultan
+al reconectar y cuando llega otro estado; nunca se reenvían automáticamente sus actos. El resultado recibido
+para esa consulta no reemplaza el mensaje de corte que ya vio la persona: Actividad y la vista de la casa
+siguen siendo la forma de comprobarlo. Los identificadores se conservan durante la vida de esa terminal.
+
+El defecto se arma con `failureEntry`; su texto público usa una excepción genérica, sin confiar en mensajes o
+motivos aportados por el acto. El diagnóstico completo viaja a la casa, que lo pasa por `prepare` antes de escribir.
+Los marcos locales y remotos se comparan después de aquietar el router y recibir el estado de sus actos,
+incluidos los que dispara un dibujo. También se comparan los hechos `act` del registro.

@@ -59,6 +59,7 @@ export async function socketHouse(transport: "unix" | "stream" = "unix", hold?: 
   const clients: Awaited<ReturnType<typeof probe>>[] = [];
   return {
     home,
+    attach: (stream: import("node:stream").Duplex) => door?.accept(stream),
     house: () => house,
     server: () => server,
     openAgain: open,

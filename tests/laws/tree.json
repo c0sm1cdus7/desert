@@ -235,10 +235,21 @@
     "doors/socket/door-session.ts": "Entrada por llave, controles de sesión y verificación de pertenencia antes de cada respuesta.",
     "doors/socket/door-requests.ts": "Pedidos de terminal: actuar, recuperar respuesta, catálogo, espera por hecho y defecto preparado.",
     "doors/socket/house-drain.ts": "Apagado con aviso, plazo de diez segundos, cuenta de actos pendientes y cierre de la casa.",
-    "doors/socket/request-book.ts": "Identidad de pedido en la causa del acto; reconstruye resultados e impide repetir tras un reinicio.",
+    "doors/socket/request-book.ts": "Identidad de pedido en la causa del acto; reconstruye resultados e impide repetir tras un reinicio. Al reabrir, un pedido sin resultado termina interrumpido y remite a Actividad.",
     "doors/socket/state-delivery.ts": "Agrupa cambios por turno y envía identityView antes de los resultados; corta identidades retiradas.",
     "programs/socket-listener.ts": "Frontera del sistema operativo: socket Unix privado, ruta macOS explícita, pid y limpieza con el escritor tomado.",
-    "texts/socket.texts.ts": "Textos de entrada, versiones incompatibles, pedidos y apagado del servidor local."
+    "texts/socket.texts.ts": "Textos de entrada, versiones incompatibles, pedidos y apagado del servidor local.",
+    "doors/socket/client-requests.ts": "Deduplica actos en camino, resuelve cortes y consulta pedidos inciertos sin reenviarlos.",
+    "doors/socket/client-stream.ts": "Saludo y recepción acotados sobre un stream; la conexión espera una vista completa.",
+    "doors/socket/connection-state.ts": "Última vista recibida, reloj de la casa extrapolado y cuatro estados de conexión.",
+    "doors/socket/socket-connection.ts": "Conexión reemplazable al servidor sin cambiar la sesión del router.",
+    "doors/socket/socket-ports.ts": "HousePorts remoto: actos asíncronos y defecto con texto público genérico.",
+    "programs/launch-house.ts": "Lanza la composición declarada como proceso independiente y espera cinco segundos por IPC.",
+    "programs/open-terminal.ts": "Abre la terminal de un programa con el router existente sobre puertos de socket.",
+    "programs/serve-program.ts": "Compone el servidor del programa; solo ese proceso abre el almacenamiento.",
+    "programs/server-process.ts": "Handshake público de arranque, error de candado y desconexión del proceso padre.",
+    "programs/terminal-client.ts": "Prueba el socket, arranca la casa si falta y reconecta sin relanzarla ni reenviar actos.",
+    "programs/terminal-program.ts": "Resuelve el ejecutable desert.program del manifiesto sin imports dinámicos."
   },
   "folders": {
     "adapters/secrets": 71,
@@ -247,10 +258,10 @@
     "doors/terminal": 702,
     "house": 91,
     "journal": 437,
-    "programs": 2594,
+    "programs": 2776,
     "surface": 1930,
     "surface/bridge": 1465,
-    "texts": 278,
+    "texts": 281,
     "tools": 1109,
     "tools/execution": 168,
     "surface/guards": 106,
@@ -290,6 +301,6 @@
     "texts/entry": 7,
     "catalogs/currency": 18,
     "catalogs/display": 4,
-    "doors/socket": 687
+    "doors/socket": 992
   }
 }

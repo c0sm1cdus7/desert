@@ -1,4 +1,6 @@
 // The request key travels in the act's existing cause. Replaying the journal restores deduplication after a crash.
+import { toolTexts } from "../../texts/tools.texts.ts";
+import { socketTexts } from "../../texts/socket.texts.ts";
 import type { Event } from "../../journal/events.ts";
 import type { RunningHouse } from "../../programs/house-runtime.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -44,6 +46,17 @@ export function requestBook<X extends Program>(house: RunningHouse<X>) {
     record(event);
     return null;
   });
+  // A durable request without a final result belongs to the stopped process, never to a live pending call.
+  for (const saved of requests.values()) {
+    if (!saved.result || (saved.result.status === "interrupted" && saved.result.reason === toolTexts.interrupted))
+      saved.result = {
+        tipo: "resultado",
+        id: "",
+        status: "interrupted",
+        reason: socketTexts.interrupted,
+        efectos: saved.effects,
+      };
+  }
   const stop = house.bus.on(record);
   const lookup = (by: string, id: string): ResultMessage | undefined => {
     const saved = requests.get(requestKey(by, id));
