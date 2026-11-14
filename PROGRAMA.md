@@ -656,9 +656,25 @@ composición o a un adaptador, lo rechaza, incluso con claves calculadas, spread
 que no se pueden rastrear estáticamente (incluida una fábrica que devuelve un parámetro) fallan cerrados: usá un arreglo explícito, con referencias a herramientas
 separadas; admite alias y spreads de arreglos rastreables. La ley no ejecuta la composición para descubrir valores.
 Una herramienta no puede importar custodia, fábrica, resolvedor ni composición, ni hacer I/O directo, leer entorno
-o evaluar código. `Reflect` es una capacidad del ambiente; los accesos con corchetes solo admiten claves literales
-(de texto o número), incluso para tablas públicas. Para claves variables, usá una representación con operaciones
-explícitas, por ejemplo `Map.get`. La base también comprueba que una fábrica no devuelva el resolvedor anidado.
+o evaluar código. `Reflect` sigue siendo una capacidad del ambiente. Los corchetes de clave variable se admiten
+sobre datos: arreglos, tuplas, texto y registros o mapas de índices cuyos valores sean datos, también anidados.
+La ley usa también las declaraciones de tipos ya instaladas; no habilitan imports ni dependencias nuevas.
+Conserva registros finitos, readonly y genéricos acotados a datos. El comprobador exige un resultado sin `any`,
+`unknown` ni capacidades invocables o construibles. Rechaza objetos
+opacos, funciones, clases y objetos del ambiente; una tabla de funciones tampoco es una tabla de datos.
+Siempre rechaza leer `constructor`, `__proto__` o `prototype`: con punto, corchetes, desestructuración o claves
+conocidas por su texto, concatenación, alias o tipo literal. Esas propiedades permiten llegar a evaluar código.
+
+Una conversión dentro de una fuente de herramienta no habilita el acceso: la ley sigue objeto y clave por alias,
+asignaciones, desestructuración y llamadas a auxiliares, también importadas. Rechaza `as any`, `as never`, dobles
+conversiones por `unknown` y otras aserciones de tipo en ese recorrido, incluso con clave literal. Conserva
+`as const` y `satisfies`: no inventan un tipo incompatible. El recorrido es conservador: considera las asignaciones
+y los cuerpos de auxiliares, sin demostrar qué rama se ejecutará. La composición confiable mantiene su frontera.
+El chequeo estricto de tipos ya frena accesos inválidos, exige estrechar `unknown` y contempla índices ausentes;
+el lint y la ley 12 ya prohíben aserciones inseguras y el lint rechaza `any` explícito y sus usos inseguros.
+La ley 212 agrega la clasificación de datos, las claves prohibidas y el rastreo del origen convertido en todas
+las fuentes alcanzadas, aunque estén fuera de las carpetas que cubren tipos y lint. No reemplaza esas compuertas.
+La base también comprueba que una fábrica no devuelva el resolvedor anidado.
 
 La composición es confiable: puede pasar custodia a una fábrica de herramienta; ese paso es su propio acto y la ley
 no analiza el flujo de capacidades que decide entregar. Importar un `.js` sin tipos ya falla con el chequeo estricto
@@ -667,9 +683,10 @@ La compuerta incluye esta ley una vez entre sus ocho partes (`tests/program/regi
 requiere revisar su API y agregar una frontera explícita; instalarlo no alcanza. Quedan fuera del análisis el código
 no alcanzado desde la composición, las mutaciones posteriores en ejecución y la intención de los adaptadores.
 
-Esto es una regla de fuentes y contratos, no un aislamiento de JavaScript frente a código hostil o dependencias
-alteradas. No demuestra que el adaptador firme bien, autorice bien al destinatario ni que un string público no
-codifique material privado. No borra copias externas, respaldos, memoria del proveedor ni páginas históricas del
+Esta ley frena el descuido y los caminos conocidos: es una regla de fuentes y contratos, no aislamiento de
+JavaScript frente a código hostil o dependencias alteradas. No ejecuta claves arbitrarias ni prueba que los tipos
+sean honestos en ejecución. No demuestra que el adaptador firme bien, autorice bien al destinatario ni que un string
+público no codifique material privado. No borra copias externas, respaldos, memoria del proveedor ni páginas históricas del
 disco. Restaurar una copia completa anterior puede revivir material revocado. Estas limitaciones siguen vigentes.
 
 ### Una llave de firma, de ingreso a desconexión
@@ -715,8 +732,10 @@ Al actualizar un programa:
 - Los conservados con credenciales se inspeccionan sin proveedor ni archivo de secretos; no copies llaves ni material.
   Sus lotes no se autentican contra la llave original. Renovar sigue comprobando los plegados y no abre custodia.
 - Para la ley 212, separá cada herramienta de composición y adaptadores, declarala en un registro rastreable y
-  revisá también los módulos importados fuera de `src/` o desde pruebas. Cambiá `Reflect` y los corchetes con
-  claves variables por operaciones explícitas; las claves literales siguen admitidas.
+  revisá también los módulos importados fuera de `src/` o desde pruebas. Quitá `Reflect` de las herramientas.
+  Conservá los índices de arreglos, tuplas, texto y tablas de datos; tipá y estrechá lo desconocido antes de leerlo.
+  Separá las tablas de funciones, quitá accesos a `constructor`, `__proto__` y `prototype`, y reemplazá las
+  conversiones de objeto o clave por comprobaciones de tipos. No hace falta reescribir las tablas de datos.
 - Quitá `keys` de opciones, contextos y arranques; `KeyStore` solo queda para adopción explícita. Cambiá `Tool.start`
   a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios. Un arranque ya no ejecuta acciones ni accede al registro: trasladá esa ejecución a una acción explícita del programa o expresá el cambio como hechos mediante el bus de arranque.
 - Mové lectura, validación del material, firma, I/O y resolución a adaptadores declarados. Las acciones y callbacks

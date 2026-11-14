@@ -1924,7 +1924,7 @@
     },
     {
       "id": 212,
-      "rule": "La compuerta recorre el grafo desde desert.program, incluyendo módulos fuera de src, pruebas y extensiones TypeScript revisables. Revisa cada fuente alcanzada salvo composición, adaptadores y frontera pública revisada de la base; lo no revisable falla cerrado. Rastrea los elementos del registry a sus valores o fábricas: rechaza herramientas definidas en composición o adaptadores, sin depender de claves literales, spreads o Object.fromEntries; un registro no rastreable falla. En herramientas rechaza custodia, fábrica, resolvedor, composición, I/O directo, entorno, evaluación y Reflect ambiente; los corchetes exigen clave literal. Sigue alias, reexportaciones, imports dinámicos y tipos; dependencias desconocidas e imports no literales fallan. La API pública exige nombres aprobados. La composición es confiable y puede entregar capacidades; no se analiza ese flujo ni las mutaciones posteriores. El chequeo estricto de tipos ya rechaza imports .js sin tipos. Los contratos y fábricas se prueban rotos con capacidades renombradas o anidadas. La marca entrega referencias antes de callbacks y solo el adaptador declarado resuelve; no demuestra corrección del adaptador, aislamiento de JavaScript ni borrado externo. testing.ts ofrece custodia sintética y controles reales sin credenciales reales.",
+      "rule": "La compuerta recorre el grafo desde desert.program, incluyendo módulos fuera de src, pruebas y extensiones TypeScript revisables. Revisa cada fuente alcanzada salvo composición, adaptadores y frontera pública revisada de la base; lo no revisable falla cerrado. Rastrea los elementos del registry a sus valores o fábricas: rechaza herramientas definidas en composición o adaptadores, sin depender de claves literales, spreads o Object.fromEntries; un registro no rastreable falla. En herramientas rechaza custodia, fábrica, resolvedor, composición, I/O directo, entorno, evaluación y Reflect ambiente; los corchetes variables se admiten solo sobre arreglos, tuplas, texto y registros o mapas de índices con valores de datos, con resultado sin any, unknown ni capacidades invocables o construibles. Rechaza funciones, clases, objetos del ambiente, claves constructor, __proto__ y prototype (también por texto, alias y concatenación), y conversiones del objeto o la clave dentro de las fuentes de herramienta; sigue alias, asignaciones, desestructuración y llamadas locales o importadas. as const y satisfies se conservan. Tipos y lint ya rechazan accesos inválidos, any inseguro y aserciones inseguras; esta ley añade la frontera de datos y su origen a todo el grafo alcanzado. Frena descuidos y caminos conocidos, no ejecuta claves arbitrarias ni prueba honestidad de tipos en ejecución. Sigue alias, reexportaciones, imports dinámicos y tipos; dependencias desconocidas e imports no literales fallan. La API pública exige nombres aprobados. La composición es confiable y puede entregar capacidades; no se analiza ese flujo ni las mutaciones posteriores. El chequeo estricto de tipos ya rechaza imports .js sin tipos. Los contratos y fábricas se prueban rotos con capacidades renombradas o anidadas. La marca entrega referencias antes de callbacks y solo el adaptador declarado resuelve; no demuestra corrección del adaptador, aislamiento de JavaScript ni borrado externo. testing.ts ofrece custodia sintética y controles reales sin credenciales reales.",
       "from": "13/11 · A01, segunda parte, paso 4: leyes",
       "guarantee": "spec",
       "evidence": [
@@ -1937,7 +1937,9 @@
         "PROGRAMA.md",
         "LEYES.md",
         "COSTURAS.md",
-        "tests/laws/program-secret-graph.spec.ts"
+        "tests/laws/program-secret-graph.spec.ts",
+        "tests/laws/secret-data.spec.ts",
+        "tests/laws/secret-data-neighbors.spec.ts"
       ]
     },
     {

@@ -2,6 +2,7 @@ import { posix } from "node:path";
 import ts from "typescript";
 import { boundaryEscapes, boundaryImports } from "./secret-syntax.ts";
 import { factoryLeaks } from "./secret-types.ts";
+import { trackConversions } from "./secret-expression.ts";
 export interface SecretBoundaryPolicy {
   composition: readonly string[];
   adapters: readonly string[];
@@ -15,9 +16,13 @@ export function virtualProgram(sources: Readonly<Record<string, string>>, aliase
   const options: ts.CompilerOptions = {
     target: ts.ScriptTarget.ES2023,
     noResolve: false,
+    strict: true,
+    noUncheckedIndexedAccess: true,
     allowImportingTsExtensions: true,
     module: ts.ModuleKind.NodeNext,
     moduleResolution: ts.ModuleResolutionKind.NodeNext,
+    // Package imports are already resolved by the source graph, including its package import map.
+    resolvePackageJsonImports: false,
   };
   const standard = ts.createCompilerHost(options);
   const host: ts.CompilerHost = {
@@ -25,7 +30,10 @@ export function virtualProgram(sources: Readonly<Record<string, string>>, aliase
     resolveModuleNameLiterals: (names, containing) =>
       names.map(name => {
         const file = targetOf(containing, name.text, sources, aliases);
-        return { resolvedModule: file ? { resolvedFileName: file, extension: ts.Extension.Ts } : undefined };
+        if (file) return { resolvedModule: { resolvedFileName: file, extension: ts.Extension.Ts } };
+        const from = containing.endsWith(".d.ts") ? containing : import.meta.filename;
+        const typed = ts.resolveModuleName(name.text, from, options, standard).resolvedModule;
+        return { resolvedModule: typed?.extension === ts.Extension.Dts ? typed : undefined };
       }),
     fileExists: path => path in sources || (path.endsWith(".d.ts") && standard.fileExists(path)),
     readFile: path => sources[path] ?? (path.endsWith(".d.ts") ? standard.readFile(path) : undefined),
@@ -41,7 +49,9 @@ export function virtualProgram(sources: Readonly<Record<string, string>>, aliase
     useCaseSensitiveFileNames: () => true,
     getNewLine: () => "\n",
   };
-  return ts.createProgram(Object.keys(sources), options, host);
+  const program = ts.createProgram(Object.keys(sources), options, host);
+  trackConversions(program);
+  return program;
 }
 function declarationFile(path: string, target: ts.ScriptTarget | ts.CreateSourceFileOptions, host: ts.CompilerHost) {
   return path.endsWith(".d.ts") ? host.getSourceFile(path, target) : undefined;
@@ -77,6 +87,10 @@ export function secretBoundaryViolations(
     checker = program.getTypeChecker();
   const privileged = new Set([...policy.composition, ...policy.adapters, ...policy.custody]);
   const publicTypes = new Set(policy.publicTypes);
+  trackConversions(
+    program,
+    new Set(Object.keys(sources).filter(file => !privileged.has(file) && !publicTypes.has(file))),
+  );
   const publicModules = policy.publicModules ?? {};
   const roots = policy.tools ?? Object.keys(sources).filter(file => !privileged.has(file) && !publicTypes.has(file));
   const found: string[] = [];

@@ -9,7 +9,9 @@ import { registryOrigins } from "./registry-origins.ts";
 const production = (directory: string): string[] => filesUnder(directory).filter(file => !file.endsWith(".spec.ts"));
 /** Inspect the composition's import graph and trace registry values, never executing program code.
  * Engine public imports are audited leaves; adapters and composition cannot define registered tools.
- * Unknown source/origins fail closed. This static gate is not JavaScript isolation. */
+ * Variable indices need arrays, tuples, strings or data records; no any/unknown/callable/constructible result.
+ * Converted object/key origins and constructor, __proto__, prototype reads are rejected in tools.
+ * Reflect and unknown source/origins fail closed. This catches mistakes/known paths, not JavaScript isolation. */
 export function programSecretBoundaries(root: string): string[] {
   const pkg: unknown = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
   const entry = field(field(pkg, "desert"), "program");

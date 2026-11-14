@@ -1,4 +1,7 @@
 import ts from "typescript";
+import { dataElement } from "./secret-data-types.ts";
+import { convertedValue } from "./secret-expression.ts";
+import { forbiddenKeys } from "./secret-keys.ts";
 export interface BoundaryImport {
   specifier: string;
   names: readonly string[];
@@ -66,11 +69,13 @@ export function boundaryEscapes(source: ts.SourceFile, checker: ts.TypeChecker):
       if (!declarations.length || declarations.every(item => item.getSourceFile().isDeclarationFile))
         found.push(node.text);
     }
-    if (ts.isPropertyAccessExpression(node) && node.name.text === "constructor") found.push("constructor");
+    found.push(...forbiddenKeys(node, checker));
     if (ts.isElementAccessExpression(node)) {
       const key = node.argumentExpression;
-      if (ts.isStringLiteralLike(key) && key.text === "constructor") found.push("constructor");
-      if (!ts.isStringLiteralLike(key) && !ts.isNumericLiteral(key)) found.push("nonliteral element access");
+      if (convertedValue(node.expression, checker) || convertedValue(key, checker))
+        found.push("converted element access");
+      if (!ts.isStringLiteralLike(key) && !ts.isNumericLiteral(key) && !dataElement(node, checker))
+        found.push("nonliteral element access outside data");
     }
     if (ts.isMetaProperty(node)) found.push(node.getText());
     ts.forEachChild(node, visit);
