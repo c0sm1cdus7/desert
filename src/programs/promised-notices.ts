@@ -63,22 +63,25 @@ function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>,
     staged(program, async ({ house }) => {
       await given(house(), aim.tool.id, kase.given, kase.at);
       await perform(house(), aim.tool.id, { ...kase, act: aim.name });
-      const { tools, router } = seated(house(), kase.by ?? cast.admin, shown);
-      /** What Attention says of one tool where a person stands: each row by the thing it leads to, or the tool. */
-      const told = (of: string, at?: string) =>
-        (listAt(tools, surface.attentionList, at) ?? [])
-          .filter(row => row.open?.kind === "view" && row.open.tool === of)
-          .map(row => ({ target: row.opens ?? of, why: row.detail }));
-      try {
-        for (const [tool, promised] of promisedNeeds(aim, kase.then)) {
-          const mine = promised
-            .filter(need => need.to === undefined || need.to === (kase.by ?? cast.admin))
-            .map(({ target, why }) => ({ target, why }));
-          deepStrictEqual(told(tool, tool), mine);
-          deepStrictEqual(told(tool), mine);
+      const actor = kase.by ?? cast.admin;
+      for (const [tool, promised] of promisedNeeds(aim, kase.then)) {
+        const readers = new Set([...promised.flatMap(need => (need.to === undefined ? [] : [need.to])), actor]);
+        for (const by of readers) {
+          const { tools, router } = seated(house(), by, shown);
+          const told = (at?: string) =>
+            (listAt(tools, surface.attentionList, at) ?? [])
+              .filter(row => row.open?.kind === "view" && row.open.tool === tool)
+              .map(row => ({ target: row.opens ?? tool, why: row.detail }));
+          try {
+            const mine = promised
+              .filter(need => need.to === undefined || need.to === by)
+              .map(({ target, why }) => ({ target, why }));
+            deepStrictEqual(told(tool), mine, said.needRecipient(tool, by));
+            deepStrictEqual(told(), mine, said.needRecipient(tool, by));
+          } finally {
+            router.stop();
+          }
         }
-      } finally {
-        router.stop();
       }
     });
   return { name: label(aim, said.needing(kase.promise)), run };

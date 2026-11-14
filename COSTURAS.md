@@ -30,8 +30,9 @@ plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, mar
   estaba antes del hecho), pero solo escribe la suya.
 - Ejecutar un acto (`execute`) reconoce al actor `mind:<herramienta>`, sin traer el motor de la mente ni journeys.
   Comprueba `allowedAct` también al ejecutar una acción anidada, con el mismo autor. Las condiciones previas van
-  en `offered`, `stops`, `among` o `holding`; `refuse` ya no existe. Por `own` se ofrecen actos de la casa:
-  cada identidad tiene preferencias, atender y dejar de atender; identidades y mentes escriben su propia `scene`.
+  en `offered`, `stops`, `among` o `holding`; `refuse` ya no existe. El programa ofrece actos propios por `own`,
+  solo para identidades. La casa agrega preferencias, atender y dejar de atender para identidades;
+  identidades y mentes escriben su propia `scene`. Una mente no recibe los actos de `own` del programa.
 - Las llaves (`KeyStore`) y el borrado de secretos (`secrets`) son puertos del motor.
 
 Qué cambió respecto de Kenon en este paso:
@@ -40,9 +41,11 @@ Qué cambió respecto de Kenon en este paso:
 - `visible` decide por canal, no por el nombre de la herramienta `communicator`.
 - `granted` sigue dando la herramienta entera. `kit-set` permite a quien administra recortar sus acciones:
   una identidad sin kit conserva todas; una mente sin kit no tiene ninguna y solo actúa en su propia herramienta.
-  Quien administra no tiene recorte. `null` da todas, `[]` ninguna; al perder la herramienta se pierde el kit.
+  Quien administra no tiene recorte. Al recibir la administración pierde todos sus kits; no vuelven al devolverla.
+  `null` da todas, `[]` ninguna; al perder la herramienta se pierde el kit.
 - La escena está en la casa: última por autor, general y partes por identidad, todas leídas por todos.
-  `Need.to` elige destinatario entre quienes tienen la herramienta; la necesidad sigue calculada por código.
+  `Need.to` elige una identidad que tenga la herramienta; si no la tiene o no es una identidad presente,
+  la necesidad llega a quienes la tienen. Sigue calculada por código.
 - Los textos con que la casa rechaza un acto están en español, como los de la superficie.
 
 ## 3. La superficie sobre la casa (HECHO)

@@ -1948,7 +1948,7 @@
     },
     {
       "id": 219,
-      "rule": "El kit tiene dos niveles: una identidad puede todas las acciones de su herramienta salvo recorte; una mente, solo las dadas de la suya. Solo quien administra da el kit, nunca se recorta a sí mismo. null da todas; [] ninguna sin quitar la herramienta. Al salir o perder una herramienta se pierde su kit. Cada ejecución, también anidada, lo comprueba.",
+      "rule": "El kit rige las acciones de herramientas: una identidad puede todas las de su herramienta salvo recorte; una mente, solo las dadas de la suya. Solo quien administra da el kit y no recibe recorte. null da todas; [] ninguna sin quitar la herramienta. Al salir o perder una herramienta se pierde su kit. Al recibir la administración se borran todos los kits de quien la recibe; al devolverla conserva sus herramientas enteras hasta un nuevo kit. Cada inicio de ejecución de herramienta, también anidado, comprueba el kit vigente; un acto ya iniciado puede terminar.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "spec",
       "evidence": [
@@ -1956,12 +1956,13 @@
         "src/tools/execute.ts",
         "src/house/kit.spec.ts",
         "src/house/minds.spec.ts",
-        "src/house/contract-neighbors.spec.ts"
+        "src/house/contract-neighbors.spec.ts",
+        "src/house/adversaria.spec.ts"
       ]
     },
     {
       "id": 220,
-      "rule": "La mente de una herramienta existente actúa a su propio nombre, con el mismo kit dentro de sus actos. No es una identidad: no recibe herramientas, canales, administración, preferencias ni tener a la vista.",
+      "rule": "La mente de una herramienta existente actúa sobre ella o sus cosas a su propio nombre, con el mismo kit dentro de sus actos. No es una identidad: no recibe herramientas, canales, administración, preferencias ni tener a la vista. De los actos propios de la casa solo recibe scene; los actos que el programa ofrece por own son para identidades.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "spec",
       "evidence": [
@@ -1969,12 +1970,14 @@
         "src/tools/execute.ts",
         "src/tools/scenes.ts",
         "src/house/minds.spec.ts",
-        "src/house/contract-neighbors.spec.ts"
+        "src/house/contract-neighbors.spec.ts",
+        "src/house/adversaria.spec.ts",
+        "src/tools/tools.ts"
       ]
     },
     {
       "id": 221,
-      "rule": "Cada identidad y cada mente escribe su propia escena: general y, si quiere, una parte por identidad. Nadie escribe la de otro. La casa guarda la última de cada autor y todos la leen, con tope y sin textos vacíos o hechos solo de espacios.",
+      "rule": "Cada identidad presente y cada mente de una herramienta existente puede ejecutar su propia escena: general y, si quiere, partes para identidades presentes en la casa. La ejecución rechaza antes de escribir un destinatario ausente o mente. Nadie escribe la de otro. El esquema limita el general a 4.000 caracteres, cada parte a 1.000, los nombres a 160 y la cantidad de partes a 64; no admite nombres ni textos vacíos o compuestos solo por espacios o U+200B–U+200D, U+2060 y U+FEFF. La casa guarda la última escena de cada autor y todos la leen entera, aun si luego sale su autor o un destinatario.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "spec",
       "evidence": [
@@ -1983,12 +1986,13 @@
         "src/journal/events.ts",
         "src/tools/scenes.ts",
         "src/house/scenes.spec.ts",
-        "src/house/contract-neighbors.spec.ts"
+        "src/house/contract-neighbors.spec.ts",
+        "src/house/adversaria.spec.ts"
       ]
     },
     {
       "id": 223,
-      "rule": "Una necesidad calculada por el código puede nombrar a quién le pide atención. Solo la ve ese destinatario si tiene la herramienta; sin destinatario, quienes la tienen. La escena la explica, no la calcula. Los casos prometen también el destinatario.",
+      "rule": "Una necesidad calculada por código puede nombrar a quién le pide atención. Si el destinatario es una identidad de la casa que tiene esa herramienta, solo la ve él; si no lo es o no tiene la herramienta, la ven quienes la tienen, como una necesidad sin destinatario. La escena la explica, no la calcula. Los casos prometen también el destinatario: la comprobación derivada mira desde quien hace el caso y desde cada destinatario prometido, y falla nombrándolo si no puede ver su necesidad.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "derived",
       "evidence": [

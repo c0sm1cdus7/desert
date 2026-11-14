@@ -4,7 +4,7 @@ import { programRule } from "./execution/program-causes.ts";
 import { actCatalog } from "../catalogs/acts.ts";
 import { ids } from "../catalogs/ids.ts";
 import { toolReminderLadder } from "../catalogs/time.ts";
-import { allowed, emptyHouse, houseStep, identityView, visible, type Attention } from "../house/house.ts";
+import { allowed, emptyHouse, houseStep, identityView, mindTool, visible, type Attention } from "../house/house.ts";
 import { effect, processOf, type Event, type HouseEmission } from "../journal/events.ts";
 import { emptyMap, initial, listOf } from "../journal/projections.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
@@ -111,7 +111,10 @@ export function startTools<X extends Program>(ports: Starting<X>) {
     ...ports,
     live: () => live,
     process: ports.process ?? (() => false),
-    own: state => [...offered(state.by), ...programRule(() => ports.own?.(state) ?? [])],
+    own: state => [
+      ...offered(state.by),
+      ...(mindTool(state.by) === undefined ? programRule(() => ports.own?.(state) ?? []) : []),
+    ],
   };
   const shutdown = startPrograms(registry, running);
   const stop = bus.on(event => {

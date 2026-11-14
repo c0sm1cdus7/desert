@@ -42,7 +42,10 @@ país lo declara el programa una vez.
 Las garantías 219, 220 y 221 agregan el kit en dos niveles, la mente que actúa con su propio nombre sin ser una
 identidad, y la última escena de cada autor leída por todos. Dar una herramienta conserva su sentido: sin recorte,
 una identidad tiene todas sus acciones; una mente necesita un kit explícito de su propia herramienta. Quien
-administra no tiene recorte. La garantía 223 permite dirigir una necesidad calculada por código a una identidad
-que tenga la herramienta. La escena explica esa necesidad, no la calcula.
+administra no tiene recorte y al recibir la administración pierde todos sus kits. El programa ofrece por `own`
+actos solo para identidades; a la mente la casa le ofrece su escena. Las partes de una escena nombran identidades
+presentes y tanto textos como nombres tienen tope. La garantía 223 permite dirigir una necesidad calculada por
+código a una identidad que tenga la herramienta; si no puede verla, llega a quienes la tienen. La comprobación
+derivada mira también desde cada destinatario prometido y falla si no puede verla. La escena explica, no calcula.
 Queda la deuda 224: una acción fuera del kit debe verse apagada con su motivo (leyes 4 y 6), a saldar por lectura y kit.
 El número 222 no se usa: el mensaje corresponde al motor de la mente.

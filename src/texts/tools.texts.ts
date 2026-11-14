@@ -1,4 +1,5 @@
 export const toolTexts = {
+  sceneRecipient: (name: string) => `La escena nombra a quien no es una identidad de la casa: ${name}`,
   scene: "Describir lo que está pasando y lo que necesita cada identidad.",
   target: "Una herramienta, o una cosa que una herramienta expone.",
   attend: "Tener esta herramienta o cosa a la vista.",

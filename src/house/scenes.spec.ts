@@ -1,3 +1,7 @@
+import { houseActs } from "../tools/scenes.ts";
+import { MemoryKeys } from "../../tests/support/shop-rig.ts";
+import { Value } from "@sinclair/typebox/value";
+import { scene } from "../catalogs/acts.ts";
 import { Type } from "@sinclair/typebox";
 import { afterEach, expect, it } from "vitest";
 import { baseProjectionVersion, sceneLimits } from "../catalogs/levers.ts";
@@ -62,6 +66,8 @@ it("8: rejects excess, blank identity keys and another author's scene before a s
   for (const input of invalid)
     expect(rig.act("ana", "scene", input)).toMatchObject({ status: "rejected", reason: toolTexts.invalid });
   expect(rig.facts().filter(event => event.kind === "scene")).toHaveLength(0);
+  for (let i = 0; i < sceneLimits.identities; i++)
+    rig.bus.emit(effect("granted", { identity: `id${i}`, tools: [] }, "ana"));
   const boundary = {
     general: "x".repeat(sceneLimits.general),
     to: Object.fromEntries(Array.from({ length: sceneLimits.identities }, (_, i) => [`id${i}`, "x".repeat(1000)])),
@@ -71,5 +77,49 @@ it("8: rejects excess, blank identity keys and another author's scene before a s
 });
 
 it("bumps the base fold version for the new house state", () => {
-  expect(baseProjectionVersion).toBe("desert/2");
+  expect(baseProjectionVersion).toBe("desert/3");
+});
+
+it("A6: the scene schema bounds recipient names independently of current membership", () => {
+  for (const name of ["", " ", "\u200b", "k".repeat(161), "k".repeat(160) + "\n"])
+    expect(Value.Check(scene, { general: "x", to: { [name]: "y" } })).toBe(false);
+  expect(Value.Check(scene, { general: "x", to: { ["k".repeat(160)]: "y" } })).toBe(true);
+  expect(Value.Check(scene, { general: "x", to: { ["k".repeat(159) + "\n"]: "y" } })).toBe(true);
+});
+
+it("A6: recipients must still belong, and rejection leaves the previous scene whole", () => {
+  const rig = open();
+  const name = "k".repeat(160);
+  rig.bus.emit(effect("granted", { identity: name, tools: [] }, "ana"));
+  const input = { general: "Antes", to: { [name]: "Para quien está", ana: "Para quien administra" } };
+  expect(rig.act("mind:desk", "scene", input).status).toBe("accepted");
+  const previous = rig.state().house.scenes.get("mind:desk");
+  rig.bus.emit(effect("removed", { identity: name }, "ana"));
+  rig.restart();
+  const result = rig.act("mind:desk", "scene", input);
+  expect(result.status).toBe("rejected");
+  expect(result.reason).toContain(name);
+  expect(rig.state().house.scenes.get("mind:desk")).toEqual(previous);
+  rig.bus.emit(effect("granted", { identity: name, tools: [] }, "ana"));
+  expect(rig.act("mind:desk", "scene", input).status).toBe("accepted");
+});
+
+it("A6: a manually supplied mind grant is still not a scene recipient", () => {
+  const rig = open();
+  const state = rig.state();
+  const house = { ...state.house, grants: new Map(state.house.grants).set("mind:desk", ["desk"]) };
+  const own = houseActs([])("ana").find(act => act.option === "scene");
+  expect(
+    own?.run(
+      { general: "x", to: { "mind:desk": "y" } },
+      {
+        by: "ana",
+        state: { ...state, house },
+        through: 0,
+        target: "me",
+        at: 0,
+        keys: new MemoryKeys(),
+      },
+    ),
+  ).toMatchObject({ status: "rejected", reason: toolTexts.sceneRecipient("mind:desk") });
 });

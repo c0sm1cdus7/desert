@@ -10,7 +10,7 @@ export type ViewLimits = Readonly<{ recentLines: number }> &
 export const secretLimits = { minLength: 12 } as const;
 
 /** Bump whenever the base changes how its own facts fold. */
-export const baseProjectionVersion = "desert/2";
+export const baseProjectionVersion = "desert/3";
 
 /** Bounded descriptions: one shared scene and a part for each identity. */
-export const sceneLimits = { general: 4000, each: 1000, identities: 64 } as const;
+export const sceneLimits = { general: 4000, each: 1000, identities: 64, name: 160 } as const;

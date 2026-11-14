@@ -649,31 +649,45 @@ quien administra: con una lista deja solo esas acciones; con `[]` ninguna, mante
 todas. Una identidad sin kit puede todas las acciones de la herramienta que tiene. No se da kit a un extraño ni
 para una herramienta que no tiene; el kit dirigido a quien administra se ignora y nunca le recorta acciones.
 Al sacar una herramienta se borra su kit; al devolverla llega entera. Al salir de la casa se pierden los kits.
+Al recibir la administración se borran todos los kits de quien la recibe. Si después la devuelve, sus herramientas
+siguen enteras hasta que quien administra le dé otro kit.
 
 `mindOf(tool)` y `mindTool(actor)`, en `house/house.ts`, nombran a la mente como `mind:<herramienta>`.
 No es una identidad: no recibe `granted`, canales ni administración. Solo puede actuar si su herramienta existe
 en el registro, sobre ella o sus cosas y con las acciones que le dio quien administra. Sin kit no puede actuar;
 `null` le da todas las de su herramienta. No necesita atenderla ni tiene preferencias o actos de atender.
+Los actos que el programa ofrece por `own` son solo para identidades; a la mente la casa le ofrece únicamente `scene`.
 `allowedAct(house, by, tool, act)` comprueba ambos niveles; toda acción anidada conserva autor y pasa de nuevo
-por ese control con el estado vigente. El resultado y la entrada quedan a nombre de la mente.
+por ese control con el estado vigente. Un acto ya iniciado puede terminar si cambia el kit; una ejecución anidada
+que todavía no empezó vuelve a comprobarlo. El resultado y la entrada quedan a nombre de la mente.
 
 La acción propia `scene`, sin destino explícito, toma `{ general, to? }`; `to` es un mapa de identidad a texto.
 El autor lo fija la ejecución. Cada identidad o mente escribe solo la suya, aun sin kit de acciones.
-El general tiene hasta 4.000 caracteres, cada parte hasta 1.000, con hasta 64 partes; no valen textos vacíos,
-hechos solo de espacios ni claves de identidad vacías. `house.scenes` guarda el último hecho de cada autor,
+El general tiene hasta 4.000 caracteres, cada parte hasta 1.000, con hasta 64 partes y nombres de hasta 160 caracteres.
+El esquema rechaza nombres y textos vacíos o compuestos solo por espacios o los caracteres de ancho cero
+U+200B–U+200D, U+2060 y U+FEFF. Antes de escribir, la acción comprueba que cada nombre sea una identidad presente
+en la casa: rechaza un ausente o una mente y dice a quién no pudo dirigir la parte.
+`house.scenes` guarda el último hecho de cada autor,
 con instante y secuencia; `identityView` lo comparte entero, incluidas las partes dirigidas. El historial queda
 en el registro. La última escena de quien sale queda guardada. El pliegue no conoce el registro de herramientas:
 un escritor directo puede guardar la escena de `mind:ausente`; la ejecución la rechaza.
 
 `Need` gana `to?: string`. Sin él Atención sigue llegando a quienes tienen la herramienta; con él solo a esa
-identidad, si la tiene. Cada caso que promete necesidades debe incluir ese mismo destinatario; la garantía de
-la casa compara el dato completo y la de Atención lo que ve quien hace el caso. La escena explica: no crea
+identidad, si está en la casa y tiene la herramienta. Si no cumple esas condiciones, la necesidad se muestra a
+quienes tienen la herramienta, igual que una sin destinatario. Cada caso que promete necesidades debe incluir ese
+mismo destinatario; la garantía de la casa compara el dato completo y la de Atención mira desde quien hace el caso
+y desde cada destinatario prometido. Si este no puede verla, falla diciendo a quién iba. La escena explica: no crea
 necesidades ni cambia quién puede leer entradas privadas o canales. No hay pantallas nuevas; apagar las acciones
 fuera del kit con su motivo queda como deuda 224 para lectura y kit.
 
 Un programa que no usa estas adiciones no tiene que cambiar sus herramientas ni casos. Quedan reservados los
 nombres de hechos `scene` y `kit-set`, y el prefijo de actor `mind:`; si los usaba, necesita resolver la colisión
-antes de subir. No se agrega `message`. Quien construye `House` a mano agrega `kits` y `scenes` vacíos o parte de
+antes de subir. `mind:` es un nombre reservado: ninguna identidad puede llamarse con ese prefijo. Un registro
+anterior que tenga una identidad `mind:…` se pliega distinto; no se corrige ni renombra en el plegado. En particular,
+si `mind:jefe` creó la casa, ese `house-created` se ignora y un siguiente `house-created` de `ana` deja a Ana como
+administradora. Los `granted` para `mind:…` quedan en el registro pero no incorporan esa identidad a la casa.
+No se agrega `message`. Quien construye `House` a mano agrega `kits` y `scenes` vacíos o parte de
 `emptyHouse`. `Need.to` es opcional y la entrada `testing.ts` no suma exportaciones.
-La versión de cálculos de la base pasa a `desert/2`: al actualizar se reconstruyen los plegados. En versión manual,
+La versión de cálculos de la base pasa a `desert/3`: al actualizar se reconstruyen los plegados, también los de
+la primera vuelta (`desert/2`), para borrar los kits al recibir la administración. En versión manual,
 la evidencia guardada debe renovarse con la entrega comprobada, conservando la anterior durante su control.

@@ -49,6 +49,7 @@ export const promiseTexts = {
   noActivity: (text: string) => `Activity does not tell the others, on the Menu and on the tool's menu: ${text}`,
   ownActivity: (text: string) => `Activity tells who did it what they did: ${text}`,
   staysNew: (text: string) => `Activity still tells of what was opened: ${text}`,
+  needRecipient: (tool: string, to: string) => `Attention for ${tool} does not match the needs promised to ${to}`,
   needing: (promise: string) => `${promise}, in Attention with why`,
   finding: (promise: string) => `${promise}, and what it leaves is found by its name from any menu`,
   notFound: (name: string) => `looking for ${name} from a menu does not find it`,

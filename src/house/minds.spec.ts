@@ -1,5 +1,5 @@
 import { afterEach, expect, it } from "vitest";
-import { mindOf, mindTool, houseChannel, channelFor } from "./house.ts";
+import { mindOf, mindTool, houseChannel, channelFor, allowedAct } from "./house.ts";
 import { effect } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { settle } from "../surface/bridge/house-ports.ts";
@@ -76,4 +76,24 @@ it.each(["prefer", "attend", "unattend"])("7: a mind is not offered %s", act => 
   expect(rig.act(mind, act, input)).toMatchObject({ status: "rejected", reason: toolTexts.unknown });
   expect(rig.state().house.hides.has(mind)).toBe(false);
   expect(rig.state().attendance.has(mind)).toBe(false);
+});
+
+it("5: rejects a foreign tool even when a manually supplied house gives its kit to a mind", () => {
+  const rig = open();
+  const house = {
+    ...rig.state().house,
+    kits: new Map([
+      [
+        mind,
+        new Map<string, string[] | null>([
+          ["desk", ["say"]],
+          ["other", null],
+        ]),
+      ],
+    ]),
+  };
+  expect(allowedAct(house, mind, "desk", "say")).toBe(true);
+  expect(allowedAct(house, mind, "other", "say")).toBe(false);
+  const admin = { ...house, admin: "ana", kits: new Map([["ana", new Map([["desk", []]])]]) };
+  expect(allowedAct(admin, "ana", "desk", "say")).toBe(true);
 });

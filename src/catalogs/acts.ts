@@ -13,15 +13,20 @@ export const preference = object({
   hide: Type.Union(hideable.map(what => Type.Literal(what))),
   on: Type.Boolean(),
 });
-const sceneText = (max: number) => Type.String({ minLength: toolLimits.minText, maxLength: max, pattern: "\\S" });
+const visibleText = "[^\\s\\u200B-\\u200D\\u2060\\uFEFF]";
+const sceneText = (max: number) => Type.String({ minLength: toolLimits.minText, maxLength: max, pattern: visibleText });
 /** What its author says is happening, shared with everyone, including the parts addressed to identities. */
 export const scene = object({
   general: sceneText(sceneLimits.general),
   to: Type.Optional(
-    Type.Record(Type.String({ pattern: "^.+$" }), sceneText(sceneLimits.each), {
-      maxProperties: sceneLimits.identities,
-      additionalProperties: false,
-    }),
+    Type.Record(
+      Type.String({ pattern: `^(?=[\\s\\S]{1,${sceneLimits.name}}$)(?=[\\s\\S]*${visibleText})[\\s\\S]+$` }),
+      sceneText(sceneLimits.each),
+      {
+        maxProperties: sceneLimits.identities,
+        additionalProperties: false,
+      },
+    ),
   ),
 });
 /** The acts every house offers each identity over itself, whatever its tools. */

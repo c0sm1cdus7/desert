@@ -52,7 +52,11 @@ export function houseStep(state: House, event: Event): House {
   }
   /** The house passes to someone who is in it, by the word of who administers it: nobody takes it. */
   if (event.kind === "handed" && event.by === state.admin && state.grants.has(event.data.to))
-    return { ...state, admin: event.data.to };
+    return {
+      ...state,
+      admin: event.data.to,
+      kits: new Map([...state.kits].filter(([holder]) => holder !== event.data.to)),
+    };
   if (event.kind === "channel-created") {
     const channel = channelFor(state, event.by, event.data.members);
     if (channel?.id === event.data.channel)
