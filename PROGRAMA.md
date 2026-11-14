@@ -947,3 +947,62 @@ conservados también copian mediante SQLite, incluyendo WAL, sin abrir descripto
 Las pruebas derivadas de cada caso y recorrido comparan estado completo y reloj tras cerrar y abrir con otra
 apertura después de borrar los plegados guardados. Los registros conservados hacen esa comparación antes de
 recorrerlos; el archivo auxiliar del escritor no se toma como un registro conservado.
+
+## La casa como servidor local (paso 1)
+
+Un programa puede abrir una sola casa con `startHouse(home, opciones)` y pasar ese resultado a
+`serveHouse(casa, home, llaves)` (`src/doors/socket/serve.ts`). La tabla de prueba es un `ReadonlyMap` de llave a
+`{ identity, door: "terminal" | "agente" }`; no es el almacenamiento definitivo de llaves. La identidad debe seguir
+perteneciendo a la casa. La llave decide identidad y puerta: el cliente no puede declararlas en su saludo.
+
+Solo el servidor abre almacenamiento. La composición debe dejar salir `WriterAlreadyOpen` con su texto y código
+no cero, sin reintentar; la prueba de proceso muestra ese arranque en `tests/support/socket-server-process.ts`.
+Después de tomar el escritor y verificar que pertenece a esa carpeta se reemplaza el socket viejo, se escucha en `<home>/casa.sock` (0600, carpeta 0700) y
+se escribe `casa.pid` (0600). La ruta completa debe entrar en los 103 bytes útiles de macOS: el error la nombra.
+`close()`, SIGINT, SIGTERM o `apagar` de quien administra dejan de aceptar, avisan y esperan hasta diez segundos;
+el cierre informa la cantidad de actos pendientes y libera la casa antes de borrar socket y pid.
+
+La terminal actual sigue usando sus puertos locales. No hay que migrar programas para subir a este paso:
+`HousePorts`, `localPorts`, el router y `startHouse` conservan su contrato. El cliente de terminal llega en el
+paso 2. La sesión de agentes llega aparte: en este paso se autentica, pero no recibe estado ni ejecuta pedidos de
+terminal. Las llaves reales y su revocación individual llegan en el paso 3; sacar la identidad ya corta su conexión.
+
+El marco lleva largo uint32 big-endian (cuenta el byte de tipo y el cuerpo), un byte de tipo y el cuerpo.
+Tipo 0: JSON UTF-8 válido, hasta 1 MiB, validado con TypeBox de ambos lados. Tipo 1: `node:v8`, hasta 16 MiB,
+solo de la casa al cliente terminal. Un cliente nunca puede enviar tipo 1. `hola` exige igualdad de protocolo y
+versión completa de Node; los límites y la versión están en `src/catalogs/levers.ts`. Los esquemas exactos están en
+`src/doors/socket/protocol.ts`. Todos los objetos JSON llevan `tipo` y rechazan propiedades adicionales:
+
+| Dirección | `tipo` | Campos además de `tipo` |
+|---|---|---|
+| Cliente | `hola` | `protocolo: entero`, `node: texto`, `token: texto`; primero y dentro de 5 s |
+| Cliente | `acto` | `id`, `act`, `target?`, `input`, `through: secuencia` |
+| Cliente | `leer` | `id`, `qué`, `desde?`; `catalogo` devuelve nombres y acciones, `pedido` recupera el acto con ese `id` |
+| Cliente | `esperar` | `id`, `hasta: instante`; espera un hecho o el plazo, hasta 240 s, sin sondeo |
+| Cliente | `defecto` | `entrada`: datos de `tool-entry`; la casa fija autor y procedencia y pasa la entrada por `prepare` |
+| Cliente | `apagar`, `chau` | ninguno |
+| Casa | `bienvenida` | `protocolo`, `identidad`, `admin: booleano`, `ahora`, `seq`; luego tipo 1 solo a terminal |
+| Casa | `estado` | `seq`, `ahora`; inmediatamente después su tipo 1 |
+| Casa | `resultado` | `id`, `status`, `reason?`, `private?`, `efectos` |
+| Casa | `respuesta` | `id`, `seq`, `datos`; la espera dice `{ cambio: booleano }` |
+| Casa | `rechazo` | `id?`, `motivo` |
+| Casa | `cortado` | `motivo` |
+| Casa | `cerrando` | ninguno |
+
+Los nombres e identificadores admiten de 1 a 256 caracteres; los números son enteros seguros no negativos.
+`desde` queda reservado: este paso no pagina el catálogo ni entrega el diario. Un `leer` de pedido ausente se
+rechaza. `status` es `accepted`, `rejected`, `draft`, `inconclusive`, `interrupted` o `processing`.
+`efectos` lleva solamente el texto de `tool-entry` con herramienta, destino y autor, y el objeto, acción y texto de
+`act-done`; no lleva todos los hechos ni diagnósticos. `defecto` responde con `id: "defecto"`.
+
+Cada terminal recibe `identityView` con secuencia, agrupando los cambios del turno. El resultado sale después del
+estado que contiene sus efectos. Entre miembros esa vista conserva los datos que la casa ya muestra; no sirve como
+frontera de permisos. Antes de entrar no hay estado, catálogo ni resultados. Una identidad retirada deja de recibir.
+
+El cliente elige un `id` estable por intento lógico de actuar. La causa del acto conserva
+`socket-request:` seguido de la representación JSON de `[identidad, id]`. Repetir el pedido devuelve su resultado,
+o `processing` mientras siga en curso; cambiar el contenido conservando el identificador tampoco vuelve a actuar.
+Otra identidad o identificador constituye otro acto. Al reabrir se reconstruye el índice desde el diario, incluidos
+los resultados `interrupted` que escribe el arranque. Los registros anteriores, sin esa causa, siguen siendo válidos.
+El recibo `private` se conserva solo en memoria: tras un reinicio se recuperan estado, motivo y efectos públicos,
+nunca se persiste ni se vuelve a emitir una credencial para reconstruir un recibo perdido.

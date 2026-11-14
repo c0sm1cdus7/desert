@@ -9,3 +9,6 @@ export type ViewLimits = Readonly<{ recentLines: number }> &
 
 /** Bump whenever the base changes how its own facts fold. */
 export const baseProjectionVersion = "desert/1";
+/** Local house wire: equality includes the complete Node version because state uses v8 serialization. */
+export const houseProtocolVersion = 1;
+export const socketLimits = { json: 1024 * 1024, state: 16 * 1024 * 1024, helloMs: 5000, drainMs: 10_000 } as const;

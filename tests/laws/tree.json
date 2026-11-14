@@ -20,7 +20,7 @@
     "journal/clock.ts": "deadlines folded from wake-at and woke; startClock arms the earliest one",
     "journal/events.ts": "house catalog, a program's facts beside it (vocabulary), effect, Bus, Journal",
     "journal/projections.ts": "projection caches that fold together and survive as snapshots",
-    "programs/house-runtime.ts": "startHouse: journal, vault, tools, clock and boot for one program's house; localPorts",
+    "programs/house-runtime.ts": "startHouse: journal, vault, tools, clock and boot for one program's house; localPorts; expone home para atar el socket al escritor de su carpeta",
     "programs/program-checks.ts": "programChecks: every derived check of a program in one list, for the gate that runs them all",
     "programs/real-terminal.ts": "realTerminal: a program on a real pseudo-terminal, its keys as bytes and its screen read back, for checks that enter as a person does; screenOf",
     "programs/promised-find.ts": "findChecks: what each case leaves is found by its name from its tool's menu and from the Menu",
@@ -226,19 +226,31 @@
     "surface/bridge/tool-index.ts": "toolIndex: lectura completa compartida por estado e instante para nombres, pertenencia y búsquedas.",
     "adapters/secrets/custody/custody-restoration.ts": "Revisa una copia sin descifrar y prepara los vínculos inutilizables y las purgas por llaves ausentes.",
     "adapters/secrets/custody/custody-maintenance.ts": "Mantenimiento cerrado: revisa, acepta una cabeza, informa pendientes, adopta, descarta y olvida por las dos fuentes.",
-    "programs/house-custody-maintenance.ts": "Conecta el registro del motor al mantenimiento de la custodia con la casa cerrada, sin ejecutar herramientas."
+    "programs/house-custody-maintenance.ts": "Conecta el registro del motor al mantenimiento de la custodia con la casa cerrada, sin ejecutar herramientas.",
+    "doors/socket/frame.ts": "Marcos binarios acotados: JSON TypeBox y estado v8 solo desde la casa; fragmentación y cierre inválido.",
+    "doors/socket/protocol.ts": "Formas cerradas de mensajes de cliente y servidor, validadas en ambas direcciones.",
+    "doors/socket/serve.ts": "Agrega el servidor local a una casa con candado; señales, cierre y limpieza del enlace.",
+    "doors/socket/socket-peer.ts": "Una conexión autenticada por llave, plazo de bienvenida y cola de salida acotada.",
+    "doors/socket/house-door.ts": "Compone sesiones, pedidos, entrega de estado y cierre sobre una única casa abierta.",
+    "doors/socket/door-session.ts": "Entrada por llave, controles de sesión y verificación de pertenencia antes de cada respuesta.",
+    "doors/socket/door-requests.ts": "Pedidos de terminal: actuar, recuperar respuesta, catálogo, espera por hecho y defecto preparado.",
+    "doors/socket/house-drain.ts": "Apagado con aviso, plazo de diez segundos, cuenta de actos pendientes y cierre de la casa.",
+    "doors/socket/request-book.ts": "Identidad de pedido en la causa del acto; reconstruye resultados e impide repetir tras un reinicio.",
+    "doors/socket/state-delivery.ts": "Agrupa cambios por turno y envía identityView antes de los resultados; corta identidades retiradas.",
+    "programs/socket-listener.ts": "Frontera del sistema operativo: socket Unix privado, ruta macOS explícita, pid y limpieza con el escritor tomado.",
+    "texts/socket.texts.ts": "Textos de entrada, versiones incompatibles, pedidos y apagado del servidor local."
   },
   "folders": {
     "adapters/secrets": 71,
     "adapters/storage": 510,
-    "catalogs": 201,
+    "catalogs": 204,
     "doors/terminal": 702,
     "house": 91,
     "journal": 437,
-    "programs": 2539,
+    "programs": 2594,
     "surface": 1930,
     "surface/bridge": 1465,
-    "texts": 263,
+    "texts": 278,
     "tools": 1109,
     "tools/execution": 168,
     "surface/guards": 106,
@@ -277,6 +289,7 @@
     "programs/entry": 16,
     "texts/entry": 7,
     "catalogs/currency": 18,
-    "catalogs/display": 4
+    "catalogs/display": 4,
+    "doors/socket": 687
   }
 }

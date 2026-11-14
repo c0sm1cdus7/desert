@@ -53,7 +53,7 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     if (!state().house.admin) createHouse(bus, creation);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
-    return { bus, journal, tools, registry, close, storageNotices: notices.read, now: () => time.now() };
+    return { home, bus, journal, tools, registry, close, storageNotices: notices.read, now: () => time.now() };
   } catch (error) {
     report(error, "program", "program", "start");
     close();

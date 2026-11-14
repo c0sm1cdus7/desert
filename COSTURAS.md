@@ -220,3 +220,15 @@ Los plegados se conservan por identidad y versión: alternar personas retoma sus
 `renewKeptJournals`, disponible desde testing, renueva la evidencia manual de una entrega sin nuevos hechos.
 La compuerta resume la lista de comprobaciones en `tests/program/setup.ts` antes de lanzar las partes; cada
 parte coteja su lista. Quien usa la base incorpora ese archivo en `globalSetup` de Vitest.
+
+## Servidor local de la casa (paso 1)
+
+`src/doors/socket/serve.ts` compone una casa ya abierta con el protocolo local. El acceso a `node:net` y al sistema
+de archivos está en `src/programs/socket-listener.ts`, respetando la separación del sistema operativo de la ley 10.
+La puerta usa `tools.state`, `tools.act`, `tools.prepare`, el bus y el diario que `startHouse` ya devuelve. El único agregado a
+`house-runtime.ts` es devolver `home`, para verificar que la carpeta del socket pertenece a ese escritor. Ningún cliente importa almacenamiento para conectarse. El índice de pedidos se reconstruye del
+registro existente, sin tabla adicional ni nueva versión de cálculo: el identificador viaja como causa del acto.
+
+Los módulos de sesión y entrega admiten streams para probar el protocolo sin abrir sockets. Las pruebas Unix y de
+procesos separados siguen siendo necesarias para comprobar permisos, señales y limpieza del enlace real. La sesión
+de agentes aún se debe: autenticar esa puerta no habilita el camino de terminal ni elimina su futura escena.

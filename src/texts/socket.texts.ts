@@ -1,0 +1,15 @@
+export const socketTexts = {
+  home: "El escritor abierto pertenece a otra carpeta de casa.",
+  denied: "La llave no da entrada a esta casa.",
+  removed: "Ya no estás en esta casa.",
+  admin: "Solo quien administra puede apagar la casa.",
+  unavailable: "Esta puerta todavía no atiende ese pedido.",
+  unknown: "No hay un pedido con ese identificador.",
+  closing: "La casa se está cerrando.",
+  failed: "La casa no pudo completar el pedido. Consultá el mismo identificador antes de volver a actuar.",
+  version: (house: number, client: number) => `La casa usa el protocolo ${house} y el cliente ${client}.`,
+  node: (house: string, client: string) => `La casa usa Node ${house} y el cliente ${client}.`,
+  path: (path: string) => `La ruta del socket no entra en el límite de macOS: ${path}`,
+  pending: (count: number) => `Casa cerrada. Actos que quedaron en curso: ${count}.`,
+  frame: "Marco inválido o demasiado grande.",
+};

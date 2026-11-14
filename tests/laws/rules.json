@@ -2111,6 +2111,69 @@
         "src/surface/bridge/window-derived.spec.ts",
         "tests/support/window-program.ts"
       ]
+    },
+    {
+      "id": 240,
+      "rule": "Un proceso servidor posee el escritor y sirve varios clientes por socket Unix 0600 en la carpeta privada. Un escritor cerrado no limpia el socket; otro escritor falla una vez. La ruta macOS no se acorta.",
+      "from": "14/11 · casa-servidor · paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-server.spec.ts",
+        "src/doors/socket/socket-start.spec.ts",
+        "src/doors/socket/socket-process.spec.ts"
+      ]
+    },
+    {
+      "id": 241,
+      "rule": "La entrada exige hola en cinco segundos, llave válida y pertenencia actual. Identidad y puerta salen de la llave. Protocolo y versión completa de Node deben coincidir. Quien no entró no recibe estado, catálogo ni resultados; sacar una identidad corta su conexión.",
+      "from": "14/11 · casa-servidor · paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-protocol.spec.ts",
+        "src/doors/socket/socket-neighbors.spec.ts"
+      ]
+    },
+    {
+      "id": 242,
+      "rule": "Cada marco lleva largo uint32 big-endian, tipo y cuerpo. JSON validado con TypeBox en ambos sentidos, hasta 1 MiB; estado v8 hasta 16 MiB solo desde la casa. Un marco inválido, truncado o binario de cliente corta solo esa conexión, sin deserializarlo.",
+      "from": "14/11 · casa-servidor · paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-frame.spec.ts",
+        "src/doors/socket/socket-protocol.spec.ts"
+      ]
+    },
+    {
+      "id": 243,
+      "rule": "La terminal recibe identityView con secuencia; los cambios de un turno se juntan y en reposo no se envía nada. El resultado va después del estado con sus efectos. La puerta de agentes no recibe estado ni atajos de terminal; su sesión se implementa aparte.",
+      "from": "14/11 · casa-servidor · paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-server.spec.ts",
+        "src/doors/socket/socket-requests.spec.ts",
+        "src/doors/socket/socket-cost.spec.ts"
+      ]
+    },
+    {
+      "id": 244,
+      "rule": "La identidad y el identificador de pedido distinguen el acto. Repetirlos devuelve su resultado o que sigue en curso, incluso tras perder la conexión o reabrir la casa; otro identificador o identidad es otro acto. La causa del acto conserva el pedido. El recibo privado no se persiste.",
+      "from": "14/11 · casa-servidor · paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-server.spec.ts",
+        "src/doors/socket/socket-neighbors.spec.ts"
+      ]
+    },
+    {
+      "id": 245,
+      "rule": "SIGINT, SIGTERM o apagar de quien administra dejan de aceptar y avisan cerrando. La casa espera hasta diez segundos, cuenta lo que sigue en curso, cierra sus recursos y borra socket y pid. Cerrar un cliente no apaga la casa.",
+      "from": "14/11 · casa-servidor · paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-neighbors.spec.ts",
+        "src/doors/socket/socket-drain.spec.ts",
+        "src/doors/socket/socket-process.spec.ts"
+      ]
     }
   ]
 }
