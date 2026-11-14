@@ -1,7 +1,7 @@
 // One journal for the house's facts and a program's: the house reads its own and carries the program's unread.
-import { Type, type Static, type TSchema } from "@sinclair/typebox";
+import { Type, TypeGuard, type Static, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { object, preference, scene } from "../catalogs/acts.ts";
+import { object, preference, scene, visibleText } from "../catalogs/acts.ts";
 import { toolLimits } from "../catalogs/levers.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 const literals = <T extends string>(...values: T[]) => Type.Union(values.map(value => Type.Literal(value)));
@@ -89,6 +89,20 @@ const arms = (layer: Layer, catalog: Catalog, fields: Readonly<Record<string, TS
   Object.entries(catalog).map(([kind, data]) =>
     object({ ...fields, layer: Type.Literal(layer), kind: Type.Literal(kind), data }),
   );
+// Free-text fields used \S before the visible-text rule; keep that rule for stored program facts.
+const historical = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(historical);
+  if (!value || typeof value !== "object") return value;
+  const copy = Object.fromEntries(Object.entries(value).map(([key, each]) => [key, historical(each)]));
+  for (const symbol of Object.getOwnPropertySymbols(value)) Reflect.set(copy, symbol, Reflect.get(value, symbol));
+  if (copy.plain === true && copy.pattern === visibleText) copy.pattern = "\\S";
+  return copy;
+};
+const historicalSchema = (schema: TSchema): TSchema => {
+  const result = historical(schema);
+  if (!TypeGuard.IsSchema(result)) throw new Error("Invalid historical schema");
+  return result;
+};
 const freeze = (value: unknown): void => {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return;
   Object.freeze(value);
@@ -108,7 +122,19 @@ export function vocabulary<C extends Catalog>(program: Own<C>) {
   if (taken.length) throw new Error(journalTexts.kindTaken(taken));
   const all = (fields: Readonly<Record<string, TSchema>>) =>
     Type.Union([...arms("house", houseCatalog, fields), ...arms("program", program, fields)]);
-  const event = Type.Unsafe<Event<ProgramFacts<C>>>(all({ ...provenance, ...position }));
+  const event = Type.Unsafe<Event<ProgramFacts<C>>>(
+    Type.Union([
+      ...arms("house", houseCatalog, { ...provenance, ...position }),
+      ...arms(
+        "program",
+        Object.fromEntries(Object.entries(program).map(([kind, schema]) => [kind, historicalSchema(schema)])),
+        {
+          ...provenance,
+          ...position,
+        },
+      ),
+    ]),
+  );
   return {
     event,
     emission: Type.Unsafe<Emission<ProgramFacts<C>>>(all(provenance)),

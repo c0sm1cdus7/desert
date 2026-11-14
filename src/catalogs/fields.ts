@@ -137,3 +137,9 @@ export function fine(schema: unknown, value: unknown): boolean {
   if (value === null || typeof value !== "object") return true;
   return Object.entries(value).every(([key, each]) => fine(part(part(schema, "properties"), key), each));
 }
+
+/** Validate a field as the house does, at the instant it is used. */
+export function fieldValidity(schema: TSchema, value: unknown, at: number) {
+  const invalid = !Value.Check(schema, value) || !fine(schema, value);
+  return { invalid, wrong: invalid ? undefined : wrongIn(schema, value, at) };
+}

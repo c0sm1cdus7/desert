@@ -1,7 +1,6 @@
 import { inspect } from "node:util";
 import { Type } from "@sinclair/typebox";
-import { Value } from "@sinclair/typebox/value";
-import { fine, wrongIn } from "../catalogs/fields.ts";
+import { fieldValidity } from "../catalogs/fields.ts";
 import { openingChecks } from "./coverage/opening-checks.ts";
 import { alsoCauses } from "./coverage/also-causes.ts";
 // The laws every act of every program keeps: nobody promises them case by case, and every act is checked on them.
@@ -80,7 +79,7 @@ export function defaultsIn(schema: unknown, path = "$"): void {
     const value = node.default;
     if (
       value !== undefined &&
-      (!Value.Check(Type.Unsafe(node), value) || !fine(node, value) || wrongIn(node, value, 0) !== undefined)
+      (({ invalid, wrong }) => invalid || wrong !== undefined)(fieldValidity(Type.Unsafe(node), value, 0))
     )
       throw new Error(`Invalid default at ${path}: ${inspect(value)}`);
   }

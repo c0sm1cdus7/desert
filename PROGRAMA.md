@@ -931,6 +931,9 @@ entonces actualizar y abrir. No se admite mezclar versiones en ejecución. No ca
 cambiar el vocabulario o los pliegues por A03. La primera apertura reconstruye los plegados del formato anterior:
 recupera lo que el registro conservó aunque el estado guardado estuviera incompleto, sin repetir las acciones.
 
+Los hechos anteriores con campos de texto libre siguen leyéndose con la regla anterior: al menos un carácter
+que no sea espacio según `\S`. Los hechos nuevos deben cumplir la regla actual de texto visible.
+
 La toma exige una escritura SQLite real en el auxiliar, dentro de la transacción que se mantiene hasta cerrar.
 Si el auxiliar o su carpeta no permiten escribir, SQLite se queda sin espacio, está dañado o es un enlace, abrir
 falla con `WriterLeaseUnavailable` (`WRITER_LEASE_UNAVAILABLE`, con la causa original). No se cambian sus permisos
