@@ -3,7 +3,7 @@ import { programCall } from "./boundaries/program-call.ts";
 import { Value } from "@sinclair/typebox/value";
 import { actEnvelope, type Act } from "../catalogs/acts.ts";
 import { ids } from "../catalogs/ids.ts";
-import { allowed, identityView } from "../house/house.ts";
+import { allowedAct, identityView, mindTool, present } from "../house/house.ts";
 import type { Bus } from "../journal/bus.ts";
 import { effect, type Emission, type HouseEvent } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
@@ -47,11 +47,12 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   const { by, process } = origin;
   const { state, offered, tool, act } = found;
   const target = origin.data.object;
-  if (!state.house.grants.has(by) || (process && !ports.process(process, by))) return toolTexts.unassigned;
+  if (!present(ports.registry, state.house, by) || (process && !ports.process(process, by)))
+    return toolTexts.unassigned;
   if (!act) return toolTexts.unknown;
-  if (!offered && (!tool || !allowed(state.house, by, tool.id))) return toolTexts.unassigned;
+  if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option))) return toolTexts.unassigned;
   if (!offered && tool && elsewhere(act, tool, target)) return toolTexts.unknown;
-  if (!offered && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
+  if (!offered && mindTool(by) !== tool?.id && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
   return programOffered(act, state, target, ports.now());
 }
 const decide = <X extends Program>(ports: Execution<X>, value: Act, origin: Origin): Decision<X> | Perform<X> => {

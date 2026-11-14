@@ -1,5 +1,5 @@
 {
-  "debts": 23,
+  "debts": 24,
   "rules": [
     {
       "id": 1,
@@ -1945,6 +1945,66 @@
         "src/surface/bridge/window-derived.spec.ts",
         "tests/support/window-program.ts"
       ]
+    },
+    {
+      "id": 219,
+      "rule": "El kit tiene dos niveles: una identidad puede todas las acciones de su herramienta salvo recorte; una mente, solo las dadas de la suya. Solo quien administra da el kit, nunca se recorta a sí mismo. null da todas; [] ninguna sin quitar la herramienta. Al salir o perder una herramienta se pierde su kit. Cada ejecución, también anidada, lo comprueba.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "spec",
+      "evidence": [
+        "src/house/house.ts",
+        "src/tools/execute.ts",
+        "src/house/kit.spec.ts",
+        "src/house/minds.spec.ts",
+        "src/house/contract-neighbors.spec.ts"
+      ]
+    },
+    {
+      "id": 220,
+      "rule": "La mente de una herramienta existente actúa a su propio nombre, con el mismo kit dentro de sus actos. No es una identidad: no recibe herramientas, canales, administración, preferencias ni tener a la vista.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "spec",
+      "evidence": [
+        "src/house/house.ts",
+        "src/tools/execute.ts",
+        "src/tools/scenes.ts",
+        "src/house/minds.spec.ts",
+        "src/house/contract-neighbors.spec.ts"
+      ]
+    },
+    {
+      "id": 221,
+      "rule": "Cada identidad y cada mente escribe su propia escena: general y, si quiere, una parte por identidad. Nadie escribe la de otro. La casa guarda la última de cada autor y todos la leen, con tope y sin textos vacíos o hechos solo de espacios.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "spec",
+      "evidence": [
+        "src/catalogs/acts.ts",
+        "src/catalogs/levers.ts",
+        "src/journal/events.ts",
+        "src/tools/scenes.ts",
+        "src/house/scenes.spec.ts",
+        "src/house/contract-neighbors.spec.ts"
+      ]
+    },
+    {
+      "id": 223,
+      "rule": "Una necesidad calculada por el código puede nombrar a quién le pide atención. Solo la ve ese destinatario si tiene la herramienta; sin destinatario, quienes la tienen. La escena la explica, no la calcula. Los casos prometen también el destinatario.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "derived",
+      "evidence": [
+        "src/tools/promises-contract.ts",
+        "src/surface/bridge/notices.ts",
+        "src/programs/promised-notices.ts",
+        "src/programs/directed-notices.spec.ts",
+        "src/surface/bridge/notices.spec.ts"
+      ]
+    },
+    {
+      "id": 224,
+      "rule": "Una acción fuera del kit de quien mira sale apagada diciendo por qué.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "debt",
+      "debt": "El carril lectura y kit agrega el motivo de kit a las acciones apagadas, por las leyes 4 y 6."
     }
   ]
 }

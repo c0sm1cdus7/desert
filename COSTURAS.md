@@ -5,7 +5,7 @@ En Kenon el núcleo está cosido a sus herramientas y a su mente en dos lugares.
 ## 1. Los hechos: la casa escribe los suyos, el programa suma los propios (HECHO)
 
 - `src/journal/events.ts` declara `houseCatalog`: lo que escribe toda casa, viva en ella el programa que viva
-  (crear la casa, permisos, canales, actos y sus resultados, entradas, atender, avisos, reloj).
+  (crear la casa, permisos, kits, escenas, canales, actos y sus resultados, entradas, atender, avisos, reloj).
 - Cada programa declara su catálogo y lo junta con `vocabulary(catalogo)`. De ahí salen el lector que valida,
   los esquemas para viajar por la puerta y `fact(...)` para escribir sus hechos.
 - Cada hecho lleva `layer`: `"house"` o `"program"`. El código de la casa recibe `Event` y, para leer un hecho,
@@ -16,27 +16,33 @@ En Kenon el núcleo está cosido a sus herramientas y a su mente en dos lugares.
   DESERT (porque ya lo usan dos), los registros viejos se siguen leyendo.
 
 Qué quedó fuera de `houseCatalog` respecto de Kenon (es de su mente o de sus herramientas): curl, journeys,
-plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, marcas, escena, memoria, percepción.
+plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, marcas, memoria, percepción.
 `act` ya no lleva `evidence` (es de la mente).
 
 ## 2. El estado: cada herramienta guarda lo suyo (HECHO)
 
-- El estado de la casa (`HouseState`) queda con lo que es de toda casa: permisos, canales, quién tiene qué a la
+- El estado de la casa (`HouseState`) queda con lo que es de toda casa: permisos, kits, última escena de cada autor, canales, quién tiene qué a la
   vista, actos en curso, entradas, avisos de atención. Ninguna parte de ninguna herramienta.
 - Un programa se describe con un solo tipo: `{ fact: SusHechos; tools: { ventas: ...; pagos: ... } }`.
   El estado completo es `State<Programa>`: el de la casa más `tools`, con la parte de cada herramienta bajo su nombre.
 - El programa junta las partes en `Slices<Programa>`: de dónde arranca cada una y cómo avanza con cada hecho.
   Si a una herramienta le falta su paso, no compila. Una herramienta puede leer la parte de otra (tal como
   estaba antes del hecho), pero solo escribe la suya.
-- Ejecutar un acto (`execute`) no conoce journeys ni mente. El programa puede vetar un acto por el puerto `refuse`
-  y ofrecer actos propios fuera de las herramientas por `own`; atender y dejar de atender los ofrece toda casa.
+- Ejecutar un acto (`execute`) reconoce al actor `mind:<herramienta>`, sin traer el motor de la mente ni journeys.
+  Comprueba `allowedAct` también al ejecutar una acción anidada, con el mismo autor. Las condiciones previas van
+  en `offered`, `stops`, `among` o `holding`; `refuse` ya no existe. Por `own` se ofrecen actos de la casa:
+  cada identidad tiene preferencias, atender y dejar de atender; identidades y mentes escriben su propia `scene`.
 - Las llaves (`KeyStore`) y el borrado de secretos (`secrets`) son puertos del motor.
 
 Qué cambió respecto de Kenon en este paso:
 - `acts` ya no es la lista de todos los actos desde el principio: son los actos abiertos (sin resultado todavía).
   `results` (lista de todos los resultados) no está: era de la mente.
 - `visible` decide por canal, no por el nombre de la herramienta `communicator`.
-- Un permiso es la herramienta entera; no queda la regla de los nombres con punto (era historia de Kenon).
+- `granted` sigue dando la herramienta entera. `kit-set` permite a quien administra recortar sus acciones:
+  una identidad sin kit conserva todas; una mente sin kit no tiene ninguna y solo actúa en su propia herramienta.
+  Quien administra no tiene recorte. `null` da todas, `[]` ninguna; al perder la herramienta se pierde el kit.
+- La escena está en la casa: última por autor, general y partes por identidad, todas leídas por todos.
+  `Need.to` elige destinatario entre quienes tienen la herramienta; la necesidad sigue calculada por código.
 - Los textos con que la casa rechaza un acto están en español, como los de la superficie.
 
 ## 3. La superficie sobre la casa (HECHO)

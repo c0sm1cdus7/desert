@@ -31,9 +31,11 @@ export function noticesOf<X extends Program>(
   const titled = (target: string): string => shown.titleOf?.(target) ?? target;
   /** What needs someone to act is a thing of the tool, or the tool itself: then the row leads to its own menu. */
   const needs = (): Notice[] =>
-    (programCall(tool.needs?.bind(tool), ports.state(), ports.now()) ?? []).map(({ target, why }) =>
-      target === tool.id ? { title: shown.name, detail: why } : { title: titled(target), detail: why, opens: target },
-    );
+    (programCall(tool.needs?.bind(tool), ports.state(), ports.now()) ?? [])
+      .filter(need => need.to === undefined || need.to === ports.me)
+      .map(({ target, why }) =>
+        target === tool.id ? { title: shown.name, detail: why } : { title: titled(target), detail: why, opens: target },
+      );
   const news = (): Notice[] =>
     unseen(ports, tool).map(({ data }) => {
       const leads = data.target === tool.id ? {} : { opens: data.target };

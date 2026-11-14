@@ -71,8 +71,11 @@ function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>,
           .map(row => ({ target: row.opens ?? of, why: row.detail }));
       try {
         for (const [tool, promised] of promisedNeeds(aim, kase.then)) {
-          deepStrictEqual(told(tool, tool), promised);
-          deepStrictEqual(told(tool), promised);
+          const mine = promised
+            .filter(need => need.to === undefined || need.to === (kase.by ?? cast.admin))
+            .map(({ target, why }) => ({ target, why }));
+          deepStrictEqual(told(tool, tool), mine);
+          deepStrictEqual(told(tool), mine);
         }
       } finally {
         router.stop();

@@ -23,6 +23,7 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - **La organización** (`house`): quién administra, qué herramientas enteras tiene cada usuario, sus preferencias. Quien
   administra da y quita herramientas (`granted`), saca a alguien (`removed`) y pasa la administración (`handed`):
   la base pliega esos hechos y cuida sus reglas; la acción que los escribe (y su pantalla) es del programa.
+  `kit-set` suma el recorte de acciones; `scene` guarda la última descripción de cada identidad o mente.
 - **El registro**: solo se agrega; cada hecho con autor e instante; el estado es el registro plegado.
 - **La superficie**: Menú, lista de cada herramienta, objeto abierto y pregunta; un router único para cualquier
   dibujante (hoy la terminal). Atención y Actividad en cada menú; buscar con espacio; Preferencias.
@@ -639,3 +640,40 @@ conservados también copian mediante SQLite, incluyendo WAL, sin abrir descripto
 Las pruebas derivadas de cada caso y recorrido comparan estado completo y reloj tras cerrar y abrir con otra
 apertura después de borrar los plegados guardados. Los registros conservados hacen esa comparación antes de
 recorrerlos; el archivo auxiliar del escritor no se toma como un registro conservado.
+
+
+## El kit, la escena y el destinatario de la atención (14/11)
+
+`granted` conserva su sentido: dar una herramienta entera. `kit-set` toma `{ holder, tool, acts }`, escrito por
+quien administra: con una lista deja solo esas acciones; con `[]` ninguna, manteniendo la herramienta; con `null`
+todas. Una identidad sin kit puede todas las acciones de la herramienta que tiene. No se da kit a un extraño ni
+para una herramienta que no tiene; el kit dirigido a quien administra se ignora y nunca le recorta acciones.
+Al sacar una herramienta se borra su kit; al devolverla llega entera. Al salir de la casa se pierden los kits.
+
+`mindOf(tool)` y `mindTool(actor)`, en `house/house.ts`, nombran a la mente como `mind:<herramienta>`.
+No es una identidad: no recibe `granted`, canales ni administración. Solo puede actuar si su herramienta existe
+en el registro, sobre ella o sus cosas y con las acciones que le dio quien administra. Sin kit no puede actuar;
+`null` le da todas las de su herramienta. No necesita atenderla ni tiene preferencias o actos de atender.
+`allowedAct(house, by, tool, act)` comprueba ambos niveles; toda acción anidada conserva autor y pasa de nuevo
+por ese control con el estado vigente. El resultado y la entrada quedan a nombre de la mente.
+
+La acción propia `scene`, sin destino explícito, toma `{ general, to? }`; `to` es un mapa de identidad a texto.
+El autor lo fija la ejecución. Cada identidad o mente escribe solo la suya, aun sin kit de acciones.
+El general tiene hasta 4.000 caracteres, cada parte hasta 1.000, con hasta 64 partes; no valen textos vacíos,
+hechos solo de espacios ni claves de identidad vacías. `house.scenes` guarda el último hecho de cada autor,
+con instante y secuencia; `identityView` lo comparte entero, incluidas las partes dirigidas. El historial queda
+en el registro. La última escena de quien sale queda guardada. El pliegue no conoce el registro de herramientas:
+un escritor directo puede guardar la escena de `mind:ausente`; la ejecución la rechaza.
+
+`Need` gana `to?: string`. Sin él Atención sigue llegando a quienes tienen la herramienta; con él solo a esa
+identidad, si la tiene. Cada caso que promete necesidades debe incluir ese mismo destinatario; la garantía de
+la casa compara el dato completo y la de Atención lo que ve quien hace el caso. La escena explica: no crea
+necesidades ni cambia quién puede leer entradas privadas o canales. No hay pantallas nuevas; apagar las acciones
+fuera del kit con su motivo queda como deuda 224 para lectura y kit.
+
+Un programa que no usa estas adiciones no tiene que cambiar sus herramientas ni casos. Quedan reservados los
+nombres de hechos `scene` y `kit-set`, y el prefijo de actor `mind:`; si los usaba, necesita resolver la colisión
+antes de subir. No se agrega `message`. Quien construye `House` a mano agrega `kits` y `scenes` vacíos o parte de
+`emptyHouse`. `Need.to` es opcional y la entrada `testing.ts` no suma exportaciones.
+La versión de cálculos de la base pasa a `desert/2`: al actualizar se reconstruyen los plegados. En versión manual,
+la evidencia guardada debe renovarse con la entrega comprobada, conservando la anterior durante su control.

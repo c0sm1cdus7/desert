@@ -1,5 +1,5 @@
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
-import { toolLimits } from "./levers.ts";
+import { toolLimits, sceneLimits } from "./levers.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 export const object = <T extends TProperties>(fields: T) => Type.Object(fields, { additionalProperties: false });
 const name = Type.String({ minLength: toolLimits.minText });
@@ -13,8 +13,20 @@ export const preference = object({
   hide: Type.Union(hideable.map(what => Type.Literal(what))),
   on: Type.Boolean(),
 });
+const sceneText = (max: number) => Type.String({ minLength: toolLimits.minText, maxLength: max, pattern: "\\S" });
+/** What its author says is happening, shared with everyone, including the parts addressed to identities. */
+export const scene = object({
+  general: sceneText(sceneLimits.general),
+  to: Type.Optional(
+    Type.Record(Type.String({ pattern: "^.+$" }), sceneText(sceneLimits.each), {
+      maxProperties: sceneLimits.identities,
+      additionalProperties: false,
+    }),
+  ),
+});
 /** The acts every house offers each identity over itself, whatever its tools. */
 export const actCatalog = {
+  scene: { input: scene, purpose: toolTexts.scene },
   attend: { input: target, purpose: toolTexts.attend },
   unattend: { input: target, purpose: toolTexts.unattend },
   prefer: { input: preference, purpose: toolTexts.prefer },
