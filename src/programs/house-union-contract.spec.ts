@@ -176,7 +176,9 @@ it("un registro escrito por la custodia sola (3e69d44) se pliega igual en el ár
   ]);
   const { house, ...rest } = rig.house.tools.state();
   const { kits, scenes, ...older } = house;
-  expect(folded({ ...rest, house: older })).toEqual(previous.fold);
+  expect(Object.hasOwn(older, "channels")).toBe(false);
+  const previousHouse = Object.fromEntries(Object.entries(previous.fold.house).filter(([key]) => key !== "channels"));
+  expect(folded({ ...rest, house: older })).toEqual({ ...previous.fold, house: previousHouse });
   expect([kits.size, scenes.size]).toEqual([0, 0]);
   expect([await outcome(rig, "ana", "use"), await outcome(rig, "beto", "use")]).toEqual(["accepted", "accepted"]);
   expect(await outcome(rig, mind, "use")).toBe(denied);

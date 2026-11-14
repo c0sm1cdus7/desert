@@ -4,7 +4,7 @@ import { programRule } from "./execution/program-causes.ts";
 import { actCatalog } from "../catalogs/acts.ts";
 import { ids } from "../catalogs/ids.ts";
 import { toolReminderLadder } from "../catalogs/time.ts";
-import { allowed, emptyHouse, houseStep, identityView, mindTool, visible, type Attention } from "../house/house.ts";
+import { allowed, emptyHouse, houseStep, identityView, mindTool, type Attention } from "../house/house.ts";
 import { effect, processOf, type Event, type HouseEmission } from "../journal/events.ts";
 import { emptyMap, initial, listOf } from "../journal/projections.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
@@ -159,15 +159,9 @@ function entryEffects<X extends Program>(
   registry: ToolRegistry<X>,
   event: Extract<Event, { kind: "tool-entry" }>,
 ): readonly HouseEmission[] {
-  const { tool, author, attention, draft, recipient, silent } = event.data;
+  const { tool, author, attention, draft, silent } = event.data;
   /** An entry written for the record calls nobody; the rest call whoever holds the tool and did not write it. */
-  const quiet =
-    silent ||
-    !allowed(state.house, state.by, tool) ||
-    (recipient !== undefined && recipient !== state.by) ||
-    (author === state.by && !attention) ||
-    draft ||
-    !visible(state.house, event, state.by);
+  const quiet = silent || !allowed(state.house, state.by, tool) || (author === state.by && !attention) || draft;
   if (quiet) return [];
   const stimulus = effect("stimulus", { tool }, state.by, [event.id]);
   if (state.attends.some(target => targetTool(registry, state, target)?.id === tool) || state.attention.has(tool))

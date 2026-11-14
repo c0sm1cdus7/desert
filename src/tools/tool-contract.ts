@@ -34,7 +34,7 @@ type Effects<X extends Program> = Readonly<{
   anchorPending?: true;
 }>;
 type Accepted<X extends Program> = Partial<
-  Pick<Entry["data"], "text" | "detail" | "target" | "recipient" | "attention" | "silent">
+  Pick<Entry["data"], "text" | "detail" | "target" | "attention" | "silent" | "made" | "diagnostic">
 > &
   Effects<X> &
   Readonly<{ status: "accepted"; private?: string }>;

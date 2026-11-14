@@ -79,7 +79,6 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
         strictEqual(saidBy(done)?.text, kase.then.says, said.saysMismatch);
         ok(composed.test(kase.then.says), said.notComposed(kase.then.says));
         ok(!addresses(kase.then.says), said.speaks(kase.then.says));
-        strictEqual(saidBy(done)?.recipient !== undefined, kase.then.privately === true, said.forWhom);
         const reads = kase.then.reads;
         if (reads) deepStrictEqual(readOn(house(), aim, kase, reads.on), reads.lines, said.readsMismatch);
         /** What was written in a shape is read in it, on the thing the act left and on its tool's list. */

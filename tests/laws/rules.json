@@ -2145,7 +2145,7 @@
     },
     {
       "id": 220,
-      "rule": "La mente de una herramienta existente actúa sobre ella o sus cosas a su propio nombre, con el mismo kit dentro de sus actos. No es una identidad: no recibe herramientas, canales, administración, preferencias ni tener a la vista. De los actos propios de la casa solo recibe scene; los actos que el programa ofrece por own son para identidades. Usa los adaptadores declarados de su herramienta como una identidad que la tiene; sus vínculos de credenciales son suyos.",
+      "rule": "La mente de una herramienta existente actúa sobre ella o sus cosas a su propio nombre, con el mismo kit dentro de sus actos. No es una identidad: no recibe herramientas, administración, preferencias ni tener a la vista. De los actos propios de la casa solo recibe scene; los actos que el programa ofrece por own son para identidades. Usa los adaptadores declarados de su herramienta como una identidad que la tiene; sus vínculos de credenciales son suyos.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "spec",
       "evidence": [

@@ -128,15 +128,6 @@ export const brokenShops: readonly Readonly<{
     because: ["what the act says speaks to who reads it: Registraste · s1"],
   },
   {
-    name: "a shop that tells of a sale only who registered it",
-    program: registering((input, context) => {
-      const done = honest(input, context);
-      return done.status === "accepted" ? { ...done, recipient: context.by } : done;
-    }),
-    fails: [told],
-    because: ["what the act says is for one identity alone exactly when its case promises that"],
-  },
-  {
     name: "a shop that keeps another total than the one its sale reads",
     program: { ...shopProgram, slices: { ...shopSlices, step: { ...shopSlices.step, sales: doubling } } },
     fails: [told],

@@ -21,7 +21,7 @@ Reglas:
 - Diseño de las dos costuras del núcleo: `COSTURAS.md`.
 
 ## Tercer paso
-- `src/house/`: la casa (quién administra, qué herramientas enteras tiene cada integrante, canales).
+- `src/house/`: la casa (quién administra, qué herramientas enteras tiene cada integrante y qué actividad lee cada identidad).
 - `src/tools/`: el motor de herramientas. Cada herramienta guarda su parte del estado; ejecutar un acto.
 - Un programa de prueba (`tests/support/shop.ts`) muestra cómo se arma un programa sobre DESERT.
 

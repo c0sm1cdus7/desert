@@ -1,10 +1,9 @@
-// Whole tools are the only assignment unit, the admin alone assigns them, and a channel is read by its members.
+// Whole tools are the only assignment unit, the admin alone assigns them, and identities read the house.
 import { afterEach, describe, expect, it } from "vitest";
-import { allowed, assigned, channelFor, hides, houseChannel, identityView, inChannel, visible } from "./house.ts";
+import { allowed, assigned, hides } from "./house.ts";
 import { effect } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
-import { shop } from "../../tests/support/shop.ts";
 
 const rigs: ReturnType<typeof shopRig>[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
@@ -38,7 +37,6 @@ describe("a house's assignments", () => {
     rig.bus.emit(effect("removed", { identity: "beto" }, "ana"));
     expect(allowed(rig.state().house, "beto", "sales")).toBe(false);
     expect([...rig.state().house.grants.keys()]).toEqual(["ana"]);
-    expect(inChannel(rig.state().house, houseChannel, "beto")).toBe(false);
     rig.restart();
     expect(rig.state().house.grants.has("beto")).toBe(false);
     /** Who was taken out comes back the way anyone comes in: the admin gives them tools again. */
@@ -66,12 +64,6 @@ describe("a house's assignments", () => {
     rig.bus.emit(effect("house-created", {}, "beto"));
     expect(rig.state().house.admin).toBe("ana");
     expect([...rig.state().house.grants.keys()]).toEqual(["ana", "beto"]);
-  });
-
-  it("puts every identity of the house in the house channel, in a stable order", () => {
-    const rig = open();
-    grant(rig, "ana", "aaron", []);
-    expect(rig.state().house.channels.get(houseChannel)).toEqual(["aaron", "ana", "beto"]);
   });
 });
 
@@ -113,38 +105,5 @@ describe("what each identity last had in front", () => {
     const kept = rig.state().looked;
     rig.restart();
     expect(rig.state().looked).toEqual(kept);
-  });
-});
-
-describe("a house's channels", () => {
-  it("names a channel by its members, whoever creates it and in whatever order", () => {
-    const rig = open({ grants: { ana: [], beto: [], carla: [] } });
-    const house = rig.state().house;
-    const channel = channelFor(house, "beto", ["beto", "ana", "ana"]);
-    expect(channel?.members).toEqual(["ana", "beto"]);
-    expect(channelFor(house, "ana", ["ana", "beto"])?.id).toBe(channel?.id);
-    expect(channelFor(house, "carla", ["ana", "beto"])).toBeUndefined();
-    expect(channelFor(house, "ana", ["ana", "nobody"])).toBeUndefined();
-    rig.bus.emit(effect("channel-created", { channel: channel?.id ?? "", members: ["ana", "beto"] }, "ana"));
-    rig.bus.emit(effect("channel-created", { channel: "communicator/made-up", members: ["ana", "carla"] }, "ana"));
-    expect([...rig.state().house.channels.keys()]).toEqual([houseChannel, channel?.id]);
-    expect(channelFor(rig.state().house, "beto", channel?.id ?? "")?.members).toEqual(["ana", "beto"]);
-  });
-
-  it("lets only a channel's members read what happens in it", () => {
-    const rig = open({ grants: { ana: ["sales"], beto: ["sales"], carla: ["sales"] } });
-    const { id = "" } = channelFor(rig.state().house, "ana", ["ana", "beto"]) ?? {};
-    rig.bus.emit(effect("channel-created", { channel: id, members: ["ana", "beto"] }, "ana"));
-    const said = rig.bus.emit(effect("tool-entry", { tool: "sales", target: id, author: "ana", text: "Hi" }, "ana"));
-    const done = rig.bus.emit(effect("act-done", { object: id, act: "send", text: "Hi" }, "ana"));
-    const house = rig.state().house;
-    expect(["ana", "beto", "carla"].map(by => visible(house, said, by))).toEqual([true, true, false]);
-    expect(["ana", "beto", "carla"].map(by => visible(house, done, by))).toEqual([true, true, false]);
-    expect(inChannel(house, "communicator/unknown", "ana")).toBe(false);
-    expect(inChannel(house, "sales/s1", "carla")).toBe(true);
-    expect(identityView(rig.state(), "carla").entries).toEqual([]);
-    expect(identityView(rig.state(), "beto").entries).toEqual([said]);
-    const fact = rig.bus.emit(shop.fact("sale-registered", { sale: "s1", total: 1 }, "ana"));
-    expect(visible(house, fact, "carla")).toBe(true);
   });
 });

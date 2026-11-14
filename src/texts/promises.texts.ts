@@ -32,7 +32,6 @@ export const promiseTexts = {
   unsure: "the act asks to be confirmed and no case promises what it puts before the person",
   unchanged: "refuses to leave the thing exactly as it is today",
   notSure: (asked: string) => `what the act puts to be confirmed is not what its case promises: ${asked}`,
-  forWhom: "what the act says is for one identity alone exactly when its case promises that",
   byKeys: (promise: string) => `${promise}, by keys`,
   notListed: (thing: string) => `no view of the tool leads to ${thing}`,
   notOffered: (act: string) => `the act ${act} is not on the list where its case needs it`,

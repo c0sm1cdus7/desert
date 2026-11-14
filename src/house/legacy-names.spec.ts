@@ -1,4 +1,4 @@
-// The adversarial replay generator, with the digest measured from caa7245 before the mind namespace existed.
+// The adversarial replay generator, with its digest pinned against the base's current fold.
 import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
 import { effect, type HouseEmission } from "../journal/events.ts";
@@ -15,7 +15,7 @@ it("preserves 5000 legacy house histories without mind names", () => {
   const tools = ["sales", "desk", "other"];
   const fact = (): HouseEmission => {
     const by = pick(people);
-    switch (rand(6)) {
+    switch (rand(5)) {
       case 0:
         return effect("house-created", {}, by);
       case 1:
@@ -27,11 +27,7 @@ it("preserves 5000 legacy house histories without mind names", () => {
       case 4:
         return effect("preferred", { hide: pick(["off"]), on: rand(2) === 1 }, by);
       default:
-        return effect(
-          "channel-created",
-          { channel: "communicator/x", members: [...new Set([by, pick(people)])].sort() },
-          by,
-        );
+        return effect("preferred", { hide: "off", on: rand(2) === 1 }, by);
     }
   };
   const digest = createHash("sha256");
@@ -43,7 +39,7 @@ it("preserves 5000 legacy house histories without mind names", () => {
     history.forEach((event, i) => {
       house = houseStep(house, { ...event, id: String(i), seq: i + 1, at: i });
     });
-    digest.update(JSON.stringify([house.admin, [...house.grants], [...house.channels], [...house.hides]]) + "\n");
+    digest.update(JSON.stringify([house.admin, [...house.grants], [...house.hides]]) + "\n");
   }
-  expect(digest.digest("hex")).toBe("5d73b4d027a2ba1c75a69a52aee1d14020df1fe1e8d3356dfb8212062bc4d15f");
+  expect(digest.digest("hex")).toBe("dd2bb159aef131bec5041c1531586096bc48b946e1f561875c2d6b80be715c15");
 });

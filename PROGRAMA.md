@@ -1005,7 +1005,7 @@ Al recibir la administración se borran todos los kits de quien la recibe. Si de
 siguen enteras hasta que quien administra le dé otro kit.
 
 `mindOf(tool)` y `mindTool(actor)`, en `house/house.ts`, nombran a la mente como `mind:<herramienta>`.
-No es una identidad: no recibe `granted`, canales ni administración. Solo puede actuar si su herramienta existe
+No es una identidad: no recibe `granted` ni administración. Solo puede actuar si su herramienta existe
 en el registro, sobre ella o sus cosas y con las acciones que le dio quien administra. Sin kit no puede actuar;
 `null` le da todas las de su herramienta. No necesita atenderla ni tiene preferencias o actos de atender.
 Los actos que el programa ofrece por `own` son solo para identidades; a la mente la casa le ofrece únicamente `scene`.
@@ -1032,7 +1032,13 @@ identidad, si está en la casa y tiene la herramienta. Si no cumple esas condici
 quienes tienen la herramienta, igual que una sin destinatario. Cada caso que promete necesidades debe incluir ese
 mismo destinatario; la garantía de la casa compara el dato completo y la de Atención mira desde quien hace el caso
 y desde cada destinatario prometido. Si este no puede verla, falla diciendo a quién iba. La escena explica: no crea
-necesidades ni cambia quién puede leer entradas privadas o canales. No hay pantallas nuevas; apagar las acciones
+necesidades ni cambia quién puede actuar. Las identidades leen todas las entradas de actividad, incluso las que una
+versión anterior dirigía a otra. `private` sigue devolviendo un recibo solo al actor y no se escribe en el registro.
+`identityView` deja pasar esos hechos históricos; el catálogo actual ya no permite escribir canales ni destinatarios
+en `tool-entry` o `act-done`. Ninguna acción ni efecto nuevo produce esos datos. Al subir, un programa que usaba
+`channel-created` o campos `recipient` debe dejar de producirlos y asumir que todas las identidades leen cada entrada,
+incluidas las que un registro viejo dirigía a otra. `private` conserva el recibo efímero que solo recibe quien actuó;
+los secretos siguen fuera de la actividad mediante la custodia estructural. No hay pantallas nuevas; apagar las acciones
 fuera del kit con su motivo queda como deuda 224 para lectura y kit.
 
 Un programa que no usa estas adiciones no tiene que cambiar sus herramientas ni casos. Quedan reservados los

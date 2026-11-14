@@ -34,7 +34,7 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
       );
       const [entry] = written;
       /** What was written for one identity alone is not for the rest to know of. */
-      if (!entry || entry.data.recipient !== undefined) return;
+      if (!entry) return;
       const theirs = seated(house(), other, shown);
       const own = seated(house(), actor, shown);
       const outside = seated(house(), cast.outsider, shown);

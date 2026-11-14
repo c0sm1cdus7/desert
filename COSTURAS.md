@@ -5,7 +5,7 @@ En Kenon el núcleo está cosido a sus herramientas y a su mente en dos lugares.
 ## 1. Los hechos: la casa escribe los suyos, el programa suma los propios (HECHO)
 
 - `src/journal/events.ts` declara `houseCatalog`: lo que escribe toda casa, viva en ella el programa que viva
-  (crear la casa, permisos, kits, escenas, canales, actos y sus resultados, entradas, atender, avisos, reloj).
+  (crear la casa, permisos, kits, escenas, actos y sus resultados, entradas, atender, avisos, reloj).
 - Cada programa declara su catálogo y lo junta con `vocabulary(catalogo)`. De ahí salen el lector que valida,
   los esquemas para viajar por la puerta y `fact(...)` para escribir sus hechos.
 - Cada hecho lleva `layer`: `"house"` o `"program"`. El código de la casa recibe `Event` y, para leer un hecho,
@@ -21,7 +21,7 @@ plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, mar
 
 ## 2. El estado: cada herramienta guarda lo suyo (HECHO)
 
-- El estado de la casa (`HouseState`) queda con lo que es de toda casa: permisos, kits, última escena de cada autor, canales, quién tiene qué a la
+- El estado de la casa (`HouseState`) queda con lo que es de toda casa: permisos, kits, última escena de cada autor, quién tiene qué a la
   vista, actos en curso, entradas, avisos de atención. Ninguna parte de ninguna herramienta.
 - Un programa se describe con un solo tipo: `{ fact: SusHechos; tools: { ventas: ...; pagos: ... } }`.
   El estado completo es `State<Programa>`: el de la casa más `tools`, con la parte de cada herramienta bajo su nombre.
@@ -39,7 +39,7 @@ plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, mar
 Qué cambió respecto de Kenon en este paso:
 - `acts` ya no es la lista de todos los actos desde el principio: son los actos abiertos (sin resultado todavía).
   `results` (lista de todos los resultados) no está: era de la mente.
-- `visible` decide por canal, no por el nombre de la herramienta `communicator`.
+- `identityView` adapta actividad y atención a quien mira; las entradas de actividad son comunes a todas las identidades.
 - `granted` sigue dando la herramienta entera. `kit-set` permite a quien administra recortar sus acciones:
   una identidad sin kit conserva todas; una mente sin kit no tiene ninguna y solo actúa en su propia herramienta.
   Quien administra no tiene recorte. Al recibir la administración pierde todos sus kits; no vuelven al devolverla.

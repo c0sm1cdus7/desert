@@ -160,7 +160,6 @@ it("A8: a mind's effects cannot grant itself identity privileges or escape its t
       effect("granted", { identity: by, tools: ["desk"] }, by),
       effect("handed", { to: by }, by),
       effect("kit-set", { holder: by, tool: "other", acts: null }, by),
-      effect("channel-created", { channel: "communicator/x", members: [by] }, by),
     ],
   }));
   const rig = open({ ...desk.acts, grantsSelf });
@@ -170,7 +169,6 @@ it("A8: a mind's effects cannot grant itself identity privileges or escape its t
   expect(h.grants.has("mind:desk")).toBe(false);
   expect(h.admin).toBe("ana");
   expect(h.kits.get("mind:desk")?.has("other")).toBe(false);
-  expect(h.channels.has("communicator/x")).toBe(false);
   expect(await settle(rig.act("mind:desk", "away", {}, "desk"))).toMatchObject({ reason: toolTexts.outsideKit });
 });
 
