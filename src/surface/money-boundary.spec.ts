@@ -71,10 +71,12 @@ it.each(["", " US$", "US$\n", "Dólares estadounidenses"])("C1: literal %j names
   }
 });
 it.each(["", " $", "Pesos argentinos"])("C2: country %j identifies its origin", currency => {
-  expect(() => formats({ ...shopShown.locale, currency })).toThrow(`country: ${JSON.stringify(currency)}`);
+  expect(() => formats({ ...shopShown.locale, currency })).toThrow(
+    `Símbolo de moneda inválido para el país: ${JSON.stringify(currency)}`,
+  );
 });
 it.each(["e\u0301", "ＵＳ＄ＵＳ", "￥￥￥￥￥"])("P7: %s is outside the shape", symbol => {
-  expect(() => asking(object({ value: money("Precio", 1, symbol) }), words)).toThrow("currency symbol");
+  expect(() => asking(object({ value: money("Precio", 1, symbol) }), words)).toThrow("Símbolo de moneda inválido");
 });
 it.each([
   ["US$", 3],

@@ -116,9 +116,11 @@ describe("a currency symbol has a bounded shape", () => {
     "U\u200bS",
   ])
     it(JSON.stringify(symbol), () => {
-      expect(() => asking(object({ amount: money("Importe", 1, symbol) }), words)).toThrow("currency symbol");
+      expect(() => asking(object({ amount: money("Importe", 1, symbol) }), words)).toThrow(
+        "Símbolo de moneda inválido",
+      );
       const ask = asking(object({ amount: money("Importe", 1, () => symbol) }), words);
-      expect(() => ask.next([])).toThrow("currency symbol");
+      expect(() => ask.next([])).toThrow("Símbolo de moneda inválido");
     });
   it.each(["$", "US$", "€", "12345678"])("accepts %s", symbol => {
     expect(asking(object({ amount: money("Importe", 1, symbol) }), words).next([])?.currency).toBe(symbol);
@@ -134,6 +136,8 @@ it("a currency resolver returning a non-string fails at the program boundary", (
 it.each(["", " US$", "US$ ", "123456789", "U\nS", "\u001b[31mX"])(
   "rejects an invalid country currency at composition: %s",
   currency => {
-    expect(() => formats({ currency, decimal: ",", thousands: ".", day: "dd/mm/aaaa" })).toThrow("currency symbol");
+    expect(() => formats({ currency, decimal: ",", thousands: ".", day: "dd/mm/aaaa" })).toThrow(
+      "Símbolo de moneda inválido",
+    );
   },
 );

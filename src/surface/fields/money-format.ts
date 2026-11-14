@@ -11,7 +11,7 @@ export const money = (locale: Locale): Format => {
   };
   return {
     keyboard: "digits",
-    currency: currencySymbol(locale.currency, "country"),
+    currency: currencySymbol(locale.currency, generic.countryCurrency),
     inCurrency: currency => money({ ...locale, currency }),
     empty: shown(""),
     shown,

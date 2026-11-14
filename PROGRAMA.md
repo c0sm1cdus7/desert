@@ -82,7 +82,8 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   El símbolo, incluido el del país, ocupa de una a ocho columnas del pintor, sin marcas combinantes,
   controles, saltos ni espacios al borde. `US$` ocupa tres columnas; `ＵＳ＄`, seis; `￥`, dos.
   Un símbolo literal inválido impide componer las preguntas y el diagnóstico nombra la pregunta y el valor;
-  si es el del país, dice `country`. Uno calculado se valida al resolverlo con el estado y destino reales,
+  si es el del país, dice «Símbolo de moneda inválido para el país», seguido del valor.
+  Uno calculado se valida al resolverlo con el estado y destino reales,
   también en las comprobaciones derivadas. Es un defecto del programa: la acción queda sin poder abrirse,
   con el código del defecto, la pregunta y el símbolo visibles; las otras acciones de la herramienta siguen disponibles.
   Si la moneda cambia, un importe escrito o propuesto se vuelve a preguntar vacío, sin convertir ni reutilizar
@@ -91,6 +92,11 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   Mostrar el importe vacío actualiza la sesión de ese dispositivo: aunque el símbolo vuelva antes de la
   siguiente tecla, el valor anterior no reaparece. Una acción en vuelo conserva los centavos enviados;
   si falla después de cambiar el símbolo, se ven el Error y «cambió la moneda», juntos.
+  Al vaciar por cambio de moneda se conservan el Error de la acción y los avisos de teclas descartadas,
+  y se agrega «cambió la moneda». Los motivos del valor se recalculan sobre el vacío en la moneda nueva:
+  desaparecen el mínimo, el tope o el motivo del programa que ya no correspondan. Si ya había un motivo de validación
+  guardado, se vuelve a validar el vacío como confirmado: un importe obligatorio dice «falta completar».
+  Si sigue correspondiendo un motivo del valor, se muestra actualizado, incluso junto al Error de la acción.
   La memoria de una acción sigue siendo local: reiniciar el dispositivo la pierde.
 - Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, (respondido, instante) => …)`).
 - `holding(campo, (valor, instante) => motivoOIndefinido)` recibe el mismo reloj que `run`, `stops` y `among`.

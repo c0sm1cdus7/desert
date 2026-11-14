@@ -82,11 +82,7 @@ export function expectedMatrix(state: MatrixState, event: MatrixEvent): Expected
       place: done ? "Listo" : "Procesando",
     };
   }
-  if (["moneda", "ida y vuelta", "otra persona"].includes(event)) {
-    want.currency = event === "ida y vuelta" ? "$" : "US$";
-    if (!want.reasons.includes("cambió la moneda")) want.reasons.push("cambió la moneda");
-    return { ...want, amount: "", entry: "" };
-  }
+  if (["moneda", "ida y vuelta", "otra persona"].includes(event)) return currencyChanged(state, event, want);
   if (state === "confirmación")
     return {
       ...want,
@@ -113,4 +109,12 @@ function later(event: MatrixEvent, want: Expected): Expected {
   const reasons = event === "espacio" ? ["sin espacios al principio ni dobles"] : [];
   if (event === "Enter") reasons.push("falta completar");
   return { ...want, entry: written[event] ?? "", pos: 1, place: "Nota", reasons };
+}
+
+function currencyChanged(state: MatrixState, event: MatrixEvent, want: Expected): Expected {
+  want.currency = event === "ida y vuelta" ? "$" : "US$";
+  if (state === "mínimo") want.reasons = ["falta completar"];
+  if (state === "programa") want.reasons = [];
+  if (!want.reasons.includes("cambió la moneda")) want.reasons.push("cambió la moneda");
+  return { ...want, amount: "", entry: "" };
 }

@@ -43,5 +43,5 @@ export function writtenAnswer(walk: Asking, field: Field, key: Intent): Asking |
     ...(changed.notices ?? []),
     ...(changed.ignored ? [{ reason: changed.ignored, ignored: true as const }] : []),
   ];
-  return { ...changed, notices: notices.filter(notice => notice.reason !== reason), ignored: reason };
+  return { ...changed, notices, ignored: reason };
 }

@@ -1761,7 +1761,7 @@
     },
     {
       "id": 216,
-      "rule": "Un carácter descartado conserva el valor y suma su motivo verdadero sin borrar los motivos visibles ni el Error de una acción fallida; cada motivo distinto se ve una vez. Borrar en vacío, mover el cursor y cero sobre cero conservan esos avisos; el cero sin efecto dice «cero inicial descartado». El texto libre explica espacios iniciales, dobles y antes de otro espacio, y el tope cuando se llena. Un pegado recorta los bordes y conserva el primer rechazo interior. Sólo una edición que cambia el valor limpia los avisos de edición; los motivos del valor se vuelven a comprobar. El Error que llega al terminar una acción fallida sigue visible junto al aviso de cambio, incluso si se vuelve a preguntar el importe vacío.",
+      "rule": "Un carácter descartado conserva el valor y suma su motivo verdadero sin borrar los motivos visibles ni el Error de una acción fallida; cada motivo distinto se ve una vez. Borrar en vacío, mover el cursor y cero sobre cero conservan esos avisos; el cero sin efecto dice «cero inicial descartado». El texto libre explica espacios iniciales, dobles y antes de otro espacio, y el tope cuando se llena. Un pegado recorta los bordes y conserva el primer rechazo interior. Sólo una edición que cambia el valor limpia los avisos de edición; los motivos del valor se vuelven a comprobar. El Error que llega al terminar una acción fallida sigue visible junto al aviso de cambio, incluso si se vuelve a preguntar el importe vacío. Al cambiar la moneda se conserva el Error de acción y los avisos de teclas y se agrega «cambió la moneda»; los motivos del valor se recalculan sobre el importe vacío con el símbolo nuevo, retirando los que ya no correspondan. Si había un motivo de validación guardado, se vuelve a comprobar el vacío como confirmado: un importe obligatorio dice «falta completar». Un motivo que siga correspondiendo se muestra actualizado aun junto al Error de la acción.",
       "from": "13/11 · campos · teclas descartadas",
       "guarantee": "spec",
       "evidence": [
@@ -1780,7 +1780,9 @@
         "src/texts/entry/entry-advice.ts",
         "src/surface/money-observed.spec.ts",
         "src/surface/money-matrix.spec.ts",
-        "src/surface/money-derived.spec.ts"
+        "src/surface/money-derived.spec.ts",
+        "src/surface/fields/money-memory.ts",
+        "src/surface/money-reasons.spec.ts"
       ]
     },
     {
