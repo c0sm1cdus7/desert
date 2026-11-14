@@ -65,3 +65,8 @@ código a una identidad que tenga la herramienta; si no puede verla, llega a qui
 derivada mira también desde cada destinatario prometido y falla si no puede verla. La escena explica, no calcula.
 Queda la deuda 224: una acción fuera del kit debe verse apagada con su motivo (leyes 4 y 6), a saldar por lectura y kit.
 El número 222 no se usa: el mensaje corresponde al motor de la mente.
+
+
+## La mente actúa desde su herramienta (14/11, ley 256)
+
+La mente de una herramienta actúa desde el proceso de esa herramienta por ToolStartup.act, por la ejecución de todos y con el nombre mind:<herramienta> fijado por la casa. Solo pide acciones de su herramienta según su kit y su propia escena. Conserva la causa del hecho que la despertó. El acto se difiere hasta terminar la entrega de ese hecho: sus escrituras y las de sus oyentes quedan enteras o se deshacen, y la mente recibe el rechazo. El reloj conserva fechas pendientes y no repite despertares entregados al reabrir. El arranque no recibe ejecución, registro de herramientas, custodia ni resolvedor, ni anidados; su bus rechaza hechos de ejecución falsificados. Cerrar invalida la puerta y reabrir cierra como interrumpido un acto en curso.

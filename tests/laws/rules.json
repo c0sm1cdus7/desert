@@ -1934,7 +1934,8 @@
         "tests/laws/testing-api.spec.ts",
         "PROGRAMA.md",
         "LEYES.md",
-        "COSTURAS.md"
+        "COSTURAS.md",
+        "tests/laws/startup-port.spec.ts"
       ]
     },
     {
@@ -2148,7 +2149,9 @@
         "src/house/contract-neighbors.spec.ts",
         "src/house/adversaria.spec.ts",
         "src/tools/tools.ts",
-        "src/programs/house-union-contract.spec.ts"
+        "src/programs/house-union-contract.spec.ts",
+        "src/house/holds.spec.ts",
+        "src/programs/house-mind-legacy.spec.ts"
       ]
     },
     {
@@ -2201,6 +2204,25 @@
         "src/tools/promises.spec.ts",
         "tests/support/window-volume.ts",
         "src/surface/bridge/window-cost.spec.ts"
+      ]
+    },
+    {
+      "id": 256,
+      "rule": "La mente de una herramienta actúa desde el proceso de esa herramienta por ToolStartup.act, por la ejecución de todos y con el nombre mind:<herramienta> fijado por la casa. Solo pide acciones de su herramienta según su kit y su propia escena. Conserva la causa del hecho que la despertó. El acto se difiere hasta terminar la entrega de ese hecho: sus escrituras y las de sus oyentes quedan enteras o se deshacen, y la mente recibe el rechazo. El reloj conserva fechas pendientes y no repite despertares entregados al reabrir. El arranque no recibe ejecución, registro de herramientas, custodia ni resolvedor, ni anidados; su bus rechaza hechos de ejecución falsificados. Cerrar invalida la puerta y reabrir cierra como interrumpido un acto en curso.",
+      "from": "14/11 · casa-mente0 · puerta de la mente desde su herramienta",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/startup-contract.ts",
+        "src/tools/boundaries/startup-mind.ts",
+        "src/tools/boundaries/tool-startup.ts",
+        "src/tools/boundaries/mind-startup.spec.ts",
+        "src/tools/boundaries/startup-forgery.spec.ts",
+        "src/tools/boundaries/mind-neighbors.spec.ts",
+        "src/programs/house-zero-mind.spec.ts",
+        "src/programs/house-mind-adapters.spec.ts",
+        "src/programs/house-mind-legacy.spec.ts",
+        "src/house/holds.spec.ts",
+        "tests/laws/startup-port.spec.ts"
       ]
     }
   ]

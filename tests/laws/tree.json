@@ -168,7 +168,7 @@
     "adapters/declared/credential-journal.ts": "Conecta agregados al commit del diario, rechaza un segundo lote y lee desde el cursor confirmado.",
     "adapters/declared/public-value.ts": "Copia datos públicos sin accesores ni capacidades y cierra los esquemas JSON declarados.",
     "programs/house-resources.ts": "Abre registro y custodia, une sus hechos, presta adaptadores a quien tiene la herramienta o a su mente y cierra recursos ante errores.",
-    "tools/boundaries/tool-startup.ts": "Presta al arranque solo métodos públicos, vínculos y un bus reducido; revoca al cerrar.",
+    "tools/boundaries/tool-startup.ts": "Arranque con puerto de mente propia y bus que rechaza actos falsificados; conserva capacidades públicas y revoca al cerrar.",
     "tools/capabilities-contract.ts": "Referencias, revisión, efectos de vínculos y métodos públicos recibidos por las herramientas.",
     "tools/execution-contract.ts": "Puertos internos del motor separados de las capacidades públicas de acciones y arranque.",
     "tools/execution/action-capabilities.ts": "Préstamo revocable de una acción hasta su final; devuelve el borrado pendiente sin tapar el resultado.",
@@ -228,7 +228,8 @@
     "adapters/secrets/custody/custody-maintenance.ts": "Mantenimiento cerrado: revisa, acepta una cabeza, informa pendientes, adopta, descarta y olvida por las dos fuentes.",
     "programs/house-custody-maintenance.ts": "Conecta el registro del motor al mantenimiento de la custodia con la casa cerrada, sin ejecutar herramientas.",
     "adapters/secrets/custody/ledger-verification.ts": "Verifica la cola autenticada con una sola llave transitoria y conserva únicamente el prefijo público confirmado.",
-    "tools/scenes.ts": "houseActs: each actor writes its shared scene only for current identities; identities also receive preferences and attendance"
+    "tools/scenes.ts": "houseActs: each actor writes its shared scene only for current identities; identities also receive preferences and attendance",
+    "tools/boundaries/startup-mind.ts": "Puerta diferida de la mente propia; conserva la causa del oyente y devuelve solo estado y motivo."
   },
   "folders": {
     "adapters/secrets": 71,
@@ -240,8 +241,8 @@
     "programs": 2554,
     "surface": 1919,
     "surface/bridge": 1473,
-    "texts": 266,
-    "tools": 1143,
+    "texts": 267,
+    "tools": 1145,
     "tools/execution": 179,
     "surface/guards": 106,
     "surface/bridge/questions": 51,
@@ -251,7 +252,7 @@
     "tools/answers": 22,
     "programs/choices": 56,
     "programs/coverage": 23,
-    "tools/boundaries": 173,
+    "tools/boundaries": 216,
     "surface/bridge/execution": 112,
     "texts/checks": 22,
     "programs/answers": 63,

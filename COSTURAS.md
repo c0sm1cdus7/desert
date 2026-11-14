@@ -33,6 +33,12 @@ plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, mar
   en `offered`, `stops`, `among` o `holding`; `refuse` ya no existe. El programa ofrece actos propios por `own`,
   solo para identidades. La casa agrega preferencias, atender y dejar de atender para identidades;
   identidades y mentes escriben su propia `scene`. Una mente no recibe los actos de `own` del programa.
+- `Tool.start` puede ser la mente en cero: escucha hechos y llama `ToolStartup.act({ act, target, input })`.
+  La casa fija `mind:<id de esa herramienta>` y pasa por `execute`, con su kit, su escena y sus adaptadores.
+  La promesa difiere el acto hasta terminar la entrega del hecho, conserva su causa y recién contesta tras escribir
+  junto con sus oyentes; si fallan, sus escrituras se deshacen. El bus de arranque rechaza hechos de ejecución
+  falsificados. `wake-at` pide una fecha y `woke` despierta el proceso; las fechas pendientes sobreviven al reinicio.
+  No se publica el motor, registro de herramientas, custodia ni resolvedor; cerrar invalida el puerto.
 - Las acciones y los arranques reciben métodos públicos de adaptadores declarados y operaciones de vínculos.
   La custodia y la limpieza de secretos son capacidades internas del motor; `KeyStore` queda solo para adopción.
 
