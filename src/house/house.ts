@@ -1,3 +1,4 @@
+export { checkCreation, checkIdentity, guardJournal, InvalidCreation } from "./identity/guards.ts";
 // A house: tool grants, action kits, shared scenes, preferences and reading.
 import { ids } from "../catalogs/ids.ts";
 import type { Hideable } from "../catalogs/acts.ts";
@@ -81,6 +82,8 @@ export function createHouse(bus: HouseBus, { admin: by, assignments }: Creation)
   bus.emit(effect("house-created", {}, by));
   for (const { identity, tools } of assignments) bus.emit(effect("granted", { identity, tools: [...tools] }, by));
 }
+/** The name shown for an identity defaults to its identifier. */
+export const identityDisplayName = (house: House, identity: string): string => house.names.get(identity) ?? identity;
 /** Whether an identity prefers not to see something. */
 export const hides = (house: House, by: string, what: Hideable): boolean =>
   house.hides.get(by)?.includes(what) === true;

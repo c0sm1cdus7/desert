@@ -4,7 +4,7 @@ import { houseResources } from "./house-resources.ts";
 import { defectReporter } from "../tools/failures/defect-reporter.ts";
 import type { HouseKeyProvider } from "../adapters/secrets/custody/house-keys.ts";
 import { type ViewLimits } from "../catalogs/levers.ts";
-import { createHouse, identityView, type Creation } from "../house/house.ts";
+import { checkCreation, InvalidCreation, createHouse, identityView, type Creation } from "../house/house.ts";
 import { startClock, systemTime, type TimeSource } from "../journal/clock.ts";
 import { effect, type Vocabulary } from "../journal/events.ts";
 import { houseProjections, requireProjectionVersion } from "./house-projections.ts";
@@ -38,8 +38,9 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     time,
   );
   try {
-    protection.mark();
     const { state, clock } = houseProjections(journal, options);
+    if (!state().house.admin) checkCreation(creation, by);
+    protection.mark();
     protection.attach(secrets, state);
     const tools = startTools({
       ...ports,
@@ -55,7 +56,7 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     bus.emit(effect("boot", {}, by));
     return { bus, journal, tools, registry, close, storageNotices: notices.read, now: () => time.now() };
   } catch (error) {
-    report(error, "program", "program", "start");
+    if (!(error instanceof InvalidCreation)) report(error, "program", "program", "start");
     close();
     throw error;
   }

@@ -15,7 +15,7 @@
     "doors/terminal/input.ts": "keyReader, keysOf: terminal bytes to surface intents, across chunks; a sequence that started waits for its end, and what is pasted is one text, never keys",
     "doors/terminal/paint.ts": "paint a Screen into cells: title and hint bars, lists, side panel layout; listRoom",
     "doors/terminal/thread.ts": "draw rows, wrapped threads with focus edges, side panels, focus screens",
-    "house/identity-name.ts": "Valida nombres nuevos de identidades y explica cada rechazo sin alterar registros anteriores",
+    "house/identity-name.ts": "Regla pública de identificadores nuevos, sin alterar el plegado histórico",
     "house/house.ts": "House: whole-tool grants, two-level action kits, latest shared scenes, identities and mind actors, who holds adapters and reading",
     "journal/bus.ts": "Bus: every fact is written through it, whole acts at a time, and heard once written",
     "journal/clock.ts": "deadlines folded from wake-at and woke; startClock arms the earliest one",
@@ -168,7 +168,7 @@
     "adapters/declared/credential-effects.ts": "Produce efectos de vínculos cuya autoridad queda en la sesión que los emitió.",
     "adapters/declared/credential-journal.ts": "Conecta agregados al commit del diario, rechaza un segundo lote y lee desde el cursor confirmado.",
     "adapters/declared/public-value.ts": "Copia datos públicos sin accesores ni capacidades y cierra los esquemas JSON declarados.",
-    "programs/house-resources.ts": "Abre registro y custodia, une sus hechos, presta adaptadores a quien tiene la herramienta o a su mente y cierra recursos ante errores.",
+    "programs/house-resources.ts": "Abre registro y custodia, une sus hechos, presta adaptadores a quien tiene la herramienta o a su mente y cierra recursos ante errores. Valida identificadores antes de escribir.",
     "tools/boundaries/tool-startup.ts": "Presta al arranque solo métodos públicos, vínculos y un bus reducido; revoca al cerrar.",
     "tools/capabilities-contract.ts": "Referencias, revisión, efectos de vínculos y métodos públicos recibidos por las herramientas.",
     "tools/execution-contract.ts": "Puertos internos del motor separados de las capacidades públicas de acciones y arranque.",
@@ -230,7 +230,8 @@
     "programs/house-custody-maintenance.ts": "Conecta el registro del motor al mantenimiento de la custodia con la casa cerrada, sin ejecutar herramientas.",
     "adapters/secrets/custody/ledger-verification.ts": "Verifica la cola autenticada con una sola llave transitoria y conserva únicamente el prefijo público confirmado.",
     "tools/scenes.ts": "houseActs: each actor writes its shared scene only for current identities; identities also receive preferences and attendance",
-    "tools/execution/running-acts.ts": "Señales vivas por acto: corte ordenado al oír permisos, cierre por kit antes de escribir y recuperación al arrancar; no modifica el plegado."
+    "tools/execution/running-acts.ts": "Señales vivas por acto: corte ordenado al oír permisos, cierre por kit antes de escribir y recuperación al arrancar; no modifica el plegado.",
+    "house/identity/guards.ts": "Comprueba identificadores nuevos antes de crear o escribir, sin tocar la historia."
   },
   "folders": {
     "adapters/secrets": 71,
@@ -239,10 +240,10 @@
     "doors/terminal": 702,
     "house": 160,
     "journal": 462,
-    "programs": 2661,
+    "programs": 2663,
     "surface": 1919,
     "surface/bridge": 1473,
-    "texts": 276,
+    "texts": 279,
     "tools": 1146,
     "tools/execution": 274,
     "surface/guards": 106,
@@ -253,7 +254,7 @@
     "tools/answers": 22,
     "programs/choices": 56,
     "programs/coverage": 23,
-    "tools/boundaries": 173,
+    "tools/boundaries": 174,
     "surface/bridge/execution": 113,
     "texts/checks": 22,
     "programs/answers": 63,
@@ -281,6 +282,7 @@
     "programs/entry": 16,
     "texts/entry": 7,
     "catalogs/currency": 18,
-    "catalogs/display": 4
+    "catalogs/display": 4,
+    "house/identity": 32
   }
 }

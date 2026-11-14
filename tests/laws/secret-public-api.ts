@@ -1,6 +1,7 @@
 import { join } from "node:path";
 /** Named public imports stop at the audited engine boundary. Internal composition and storage never do. */
 const modules: Record<string, readonly string[]> = {
+  "house/identity-name.ts": ["identityNameProblem"],
   "catalogs/acts.ts": ["object"],
   "catalogs/fields.ts": [
     "text",

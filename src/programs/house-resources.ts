@@ -13,7 +13,7 @@ import { privateDirectoryMode } from "../catalogs/levers.ts";
 import { Bus } from "../journal/bus.ts";
 import type { Emission } from "../journal/events.ts";
 import type { TimeSource } from "../journal/clock.ts";
-import { holds } from "../house/house.ts";
+import { holds, checkIdentity, guardJournal } from "../house/house.ts";
 import type { SecretVault } from "../adapters/secrets/secret-vault.ts";
 import type { Program, State } from "../tools/tool-contract.ts";
 import type { HouseOptions } from "./house-runtime.ts";
@@ -103,11 +103,12 @@ export function houseResources<X extends Program>(home: string, options: HouseOp
   mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
   const notices = storageNotices();
   const journal = new SqliteJournal(join(home, "journal.sqlite"), protection.words, notices.warn);
+  guardJournal(journal, by);
   const { credentials, secrets } = houseCustody(home, options, journal, time);
   const bus = busOf<X>(
     journal,
     time,
-    emission => credentials.write(emission, value => secrets.write(value)),
+    emission => credentials.write(checkIdentity(emission, by), value => secrets.write(value)),
     credentials.transaction,
   );
   credentials.publish(entry => bus.emit(entry));

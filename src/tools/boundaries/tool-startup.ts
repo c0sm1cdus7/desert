@@ -1,4 +1,5 @@
 import type { Bus } from "../../journal/bus.ts";
+import { mindOf } from "../../house/house.ts";
 import type { Emission, Event, Foreign } from "../../journal/events.ts";
 import type { Execution } from "../execute.ts";
 import type { Program, Tool } from "../tool-contract.ts";
@@ -39,7 +40,7 @@ function programBus<P extends Foreign>(bus: Bus<P>, lease?: CapabilityLease) {
 }
 export function startProgram<X extends Program>(tool: Tool<X>, ports: Execution<X>): () => void {
   if (!tool.start) return () => {};
-  const lease = ports.capabilities?.({ actor: ports.state().by, tool: tool.id, target: tool.id });
+  const lease = ports.capabilities?.({ actor: mindOf(tool.id), tool: tool.id, target: tool.id });
   const { ports: publicPorts, credentials } = lease ?? noCapabilities;
   const bus = programBus(ports.bus, lease);
   const running: ToolStartup<X> = {

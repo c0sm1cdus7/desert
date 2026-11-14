@@ -28,3 +28,15 @@ it("reserves the core and keeps removed identities without a kit upon readmissio
   expect(readmitted.grants.get("beto")).toEqual([]);
   expect(readmitted.kits.has("beto")).toBe(false);
 });
+
+it("keeps free display names, falls back to the identifier and only accepts the administrator's word", async () => {
+  const { identityDisplayName } = await import("./house.ts");
+  const house = fold([
+    effect("house-created", {}, "ana"),
+    effect("granted", { identity: "beto", tools: [] }, "ana"),
+    effect("named", { identity: "beto", name: "Beto 🦫" }, "ana"),
+    effect("named", { identity: "beto", name: "Otro" }, "beto"),
+  ]);
+  expect(identityDisplayName(house, "beto")).toBe("Beto 🦫");
+  expect(identityDisplayName(house, "ana")).toBe("ana");
+});

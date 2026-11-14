@@ -55,7 +55,7 @@ function optionsFor(acts: Tool<Shop>["acts"], extra: Partial<Tool<Shop>>, adapte
     ...extra,
   };
   return {
-    by: "ana",
+    by: "shop",
     projectionVersion: "adapters/1",
     words: shop,
     slices: shopSlices,

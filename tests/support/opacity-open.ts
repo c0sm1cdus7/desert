@@ -23,7 +23,7 @@ if (!home) throw new Error("Falta carpeta temporal");
 const program = opacityProgram();
 const house = startHouse(home, {
   ...program,
-  by: "ana",
+  by: "shop",
   secretKeys: new MemoryHouseKeys(),
   creation: { admin: "ana", assignments: [{ identity: "ana", tools: program.registry.map(tool => tool.id) }] },
 });

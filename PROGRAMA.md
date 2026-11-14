@@ -892,6 +892,7 @@ al migrar el import de `currentCloses` a esta entrada.
 | Recorrer | `seated`, `goTo`, `actRow`, `openRows`, `type`, `view`, `fitsSmallest`, `keysTo` |
 | Por una terminal de verdad | `realTerminal` (el programa corriendo con su propia entrada en una pseudo-terminal: `press` manda bytes, `until` espera un texto en pantalla, `screen` la lee), `screenOf`, `RealTerminal` |
 | Superficie | `asking`, `questionWords`, `offeredOn`, `houseRouter`, `houseTools`, `startRouter`, `begin`, `fieldOf`, `walkBody`, `walking` |
+| Validar identidades | `identityNameProblem`: comparte con el programa la regla aplicada a identificadores nuevos. |
 | Estado y hechos | `createHouse`, `identityView`, `houseStep`, `Bus`, `effect`, `vocabulary`, `houseCatalog`, `startState`, `startTools`, `toolsStep` |
 | Declarar datos y comprobar causas | `object`, `text`, `ids`, `caseInstant`, `programAct`, `OutsideDefect`, `outsideCause`, `MissingView`, `toolTexts`, `genericTexts` |
 | Tipos | `Aim`, `Check`, `Decided`, `Doing`, `House`, `Seat`, `Body`, `Screen`, `Choice`, `Session`, `Walk`, `Router`, `Shown`, `Tool`, `Emission`, `Case`, `Composition`, `ProgramAct`, `ProgramTool`, `Step`, `KeyStore`, `Program`, `State` |
@@ -1071,3 +1072,19 @@ la primera vuelta (`desert/2`), para borrar los kits al recibir la administraci�
 la evidencia guardada debe renovarse con la entrega comprobada, conservando la anterior durante su control.
 
 La composición puede pedir `identities: true`: quien administra tiene todas las acciones de cada herramienta, sin asignación; también recibe sus recordatorios. Sin esa opción, la asignación de herramientas conserva su comportamiento anterior. Un recorte sin acciones apaga los recordatorios y excluye la herramienta de Atención, aunque siga en el kit para la preferencia de lo ajeno. La superficie y la ejecución consultan el mismo permiso por acción.
+
+
+### Identificadores y nombres de identidades
+
+Al subir, usá `identityNameProblem(identificador, nombreDeLaCasa)` de
+`src/house/identity-name.ts` para validar a quien abre: devuelve `undefined` si es válido o un motivo sin repetir el valor.
+El identificador empieza con una letra minúscula ASCII, tiene entre 1 y 64 caracteres, y solo admite letras
+minúsculas ASCII, dígitos, puntos y guiones; debe ser distinto del nombre con que corre la casa. La casa aplica
+la regla al crearla, dar herramientas, readmitir y pasar la administración antes de escribir.
+
+La regla no se aplica al plegar historia: un `granted` anterior a `Ana​` conserva exactamente esa identidad y sus
+herramientas, y un `handed` anterior puede dejarla como administradora. Los hechos que antes ignoraban a una mente
+siguen ignorándose. Para escribir nuevos hechos de esas puertas se exige la regla actual incluso a identidades antiguas.
+`named` guarda un nombre libre con texto visible de hasta 160 unidades; solo quien administra lo establece y
+`identityDisplayName` devuelve el identificador cuando falta el nombre. Sacar conserva el nombre y la identidad en
+`removed`; readmitir con herramientas vacías la devuelve sin herramientas ni kit.

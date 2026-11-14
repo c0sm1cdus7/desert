@@ -2242,6 +2242,19 @@
         "src/programs/kit-adapters.spec.ts",
         "src/doors/terminal/kit-cut.spec.ts"
       ]
+    },
+    {
+      "id": 227,
+      "rule": "Cada identidad nueva tiene un identificador ASCII simple, distinto del nombre de la casa; creación, asignación, readmisión y traspaso lo comprueban antes de escribir. La historia anterior conserva su interpretación. Su nombre visible es texto libre acotado y queda al sacar; sin nombre se muestra el identificador.",
+      "from": "14/11 · casa-kit paso 5a",
+      "guarantee": "spec",
+      "evidence": [
+        "src/house/identity-name.ts",
+        "src/programs/house-resources.ts",
+        "src/programs/house-runtime.ts",
+        "src/programs/identity-doors.spec.ts",
+        "src/house/identities-core.spec.ts"
+      ]
     }
   ]
 }

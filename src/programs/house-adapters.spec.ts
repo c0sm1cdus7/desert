@@ -82,7 +82,7 @@ it("el arranque publica vínculos por su bus; cerrar revoca sus métodos guardad
   const rig = setup(
     {
       current: toolAct(Type.Object({}), (_, context) => {
-        expect(context.credentials.current("signing")?.revision).toBe(1);
+        expect(context.credentials.current("signing")).toBeUndefined();
         return { status: "accepted" };
       }),
     },
@@ -97,6 +97,8 @@ it("el arranque publica vínculos por su bus; cerrar revoca sus métodos guardad
     },
   );
   await pending;
+  expect(JSON.stringify(rig.facts())).toContain("credential-bound");
+  expect(JSON.stringify(rig.facts())).toContain("mind:vault");
   expect((await rig.act("current")).status).toBe("accepted");
   rig.close();
   for (const ports of borrowed) await expect(call(ports, "import")).rejects.toThrow("E-ADAPTER-DENIED");

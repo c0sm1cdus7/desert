@@ -9,7 +9,7 @@ it("p9: una acción propia secreta ofrecida más tarde dice que falta secretKeys
   let offered = false;
   const input = Type.Object({ value: Type.String({ secret: true }) });
   const house = startHouse(custodyRig().home, {
-    by: "ana",
+    by: "shop",
     projectionVersion: "shop/1",
     words: shop,
     slices: shopSlices,
