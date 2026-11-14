@@ -2131,7 +2131,7 @@
     },
     {
       "id": 219,
-      "rule": "El kit rige las acciones de herramientas: una identidad puede todas las de su herramienta salvo recorte; una mente, solo las dadas de la suya. Solo quien administra da el kit y no recibe recorte. null da todas; [] ninguna sin quitar la herramienta. Al salir o perder una herramienta se pierde su kit. Al recibir la administración se borran todos los kits de quien la recibe; al devolverla conserva sus herramientas enteras hasta un nuevo kit. Cada inicio de ejecución de herramienta, también anidado, comprueba el kit vigente; un acto ya iniciado puede terminar.",
+      "rule": "El kit rige las acciones de herramientas: una identidad puede todas las de su herramienta salvo recorte; una mente, solo las dadas de la suya. Solo quien administra da el kit y no recibe recorte. null da todas; [] ninguna sin quitar la herramienta. Al salir o perder una herramienta se pierde su kit. Al recibir la administración se borran todos los kits de quien la recibe; al devolverla conserva sus herramientas enteras hasta un nuevo kit. Cada inicio de ejecución de herramienta, también anidado, comprueba el kit vigente; sacar una acción corta también el acto iniciado según la garantía 226.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "spec",
       "evidence": [
@@ -2225,6 +2225,22 @@
         "src/tools/promises.spec.ts",
         "tests/support/window-volume.ts",
         "src/surface/bridge/window-cost.spec.ts"
+      ]
+    },
+    {
+      "id": 226,
+      "rule": "Sacar vale al instante, también para lo que corre: los actos de la acción sacada reciben una señal de corte, tanto para identidades como para mentes, sin cortar otras acciones ni resucitarlos al volver a darla. El oyente vivo corta, nunca el plegado. No se entra al cuerpo ni se inicia un anidado desde un acto cortado; cada uso de sus adaptadores y vínculos comprueba el corte. Antes del lote del resultado, finish vuelve a preguntar el kit: lo cortado termina interrupted con sacada y sin escribir sus hechos. Lo que un anidado ya escribió queda. Un lote ya iniciado y el éxito de un acto que salió al mundo se conservan con el motivo al lado, también en pantalla. Un reinicio cierra los actos colgados una sola vez. La fila abierta se apaga y la pregunta pendiente se rechaza al confirmar; la lectura permanece abierta.",
+      "from": "14/11 · casa-kit paso 4 · sacar vale al instante",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/execution/running-acts.ts",
+        "src/tools/failures/finish.ts",
+        "src/adapters/declared/compose-adapters.ts",
+        "src/tools/kit-running.spec.ts",
+        "src/tools/kit-races.spec.ts",
+        "src/tools/kit-boundaries.spec.ts",
+        "src/programs/kit-adapters.spec.ts",
+        "src/doors/terminal/kit-cut.spec.ts"
       ]
     }
   ]

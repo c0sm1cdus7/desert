@@ -15,6 +15,7 @@ export const toolTexts = {
   disconnected: "sin conexión con el servicio",
   unavailable: "acción fallida",
   interrupted: "acción interrumpida",
+  withdrawn: "sacada",
   /** What an act answers when it would leave the thing exactly as it is. */
   unchanged: "sin cambios",
   /** A thing an act picks and does not take, given the rest of what it was told: it was never on its list. */

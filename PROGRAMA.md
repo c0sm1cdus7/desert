@@ -1010,11 +1010,28 @@ en el registro, sobre ella o sus cosas y con las acciones que le dio quien admin
 `null` le da todas las de su herramienta. No necesita atenderla ni tiene preferencias o actos de atender.
 Los actos que el programa ofrece por `own` son solo para identidades; a la mente la casa le ofrece únicamente `scene`.
 `allowedAct(house, by, tool, act)` comprueba ambos niveles; toda acción anidada conserva autor y pasa de nuevo
-por ese control con el estado vigente. Un acto ya iniciado puede terminar si cambia el kit; una ejecución anidada
-que todavía no empezó vuelve a comprobarlo. El resultado y la entrada quedan a nombre de la mente.
+por ese control con el estado vigente. Sacar una acción corta también sus actos en curso, de identidad o mente;
+volver a darla habilita actos nuevos, sin resucitar los cortados. El resultado y la entrada quedan a nombre de la mente.
 Con la custodia, la mente usa los adaptadores declarados de su propia herramienta como una identidad que la tiene
 (`holds` en `house/house.ts`). Los vínculos de credenciales son por actor, herramienta y destino: la mente solo ve
 los que ella misma vinculó, y una identidad, los suyos.
+
+El contexto ofrece `signal?: AbortSignal`: los contextos existentes siguen compilando. Una acción larga puede
+escucharla o pasarla a operaciones que admitan corte. El oyente vivo corta al recibir `kit-set`, `granted` o
+`removed`; reconstruir el estado no emite cortes. La señal es propia de cada acto: sacar una acción no corta otra.
+La base impide entrar al cuerpo si el corte llegó al anunciar el inicio, iniciar anidados desde el acto cortado,
+y usar sus adaptadores o vínculos después del corte, también si el método quedó guardado antes. El control llega
+hasta un adaptador pendiente que todavía no empezó a usar material. `holds` conserva su significado para los actos
+que siguen habilitados: el kit recorta acciones, no métodos.
+
+El punto de cierre es antes de empezar a escribir el lote del resultado: `finish` vuelve a comprobar el kit.
+Si la acción fue sacada, termina `interrupted`, dice `sacada` y no escribe sus hechos ni entrega su recibo privado.
+Lo que un anidado ya escribió queda. Si el recorte llega con el lote ya en escritura, el lote termina entero y
+el cierre dice `sacada`. Si un acto `reach: "world"` devuelve éxito porque ya hizo lo suyo afuera, su resultado
+se conserva con `sacada` al lado, también en pantalla. La base no deshace efectos externos: el programa debe atender
+la señal antes de un efecto directo que aún no hizo; JavaScript en curso no se detiene por la fuerza.
+Un reinicio cierra una sola vez los actos colgados como `acción interrumpida`; no reconstruye señales ni los repite.
+La fila abierta se apaga al viajar el estado; una pregunta pendiente se rechaza al confirmar con `fuera del kit`.
 
 La acción propia `scene`, sin destino explícito, toma `{ general, to? }`; `to` es un mapa de identidad a texto.
 El autor lo fija la ejecución. Cada identidad o mente escribe solo la suya, aun sin kit de acciones.

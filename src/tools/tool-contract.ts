@@ -52,6 +52,7 @@ export type ActContext<X extends Program> = ToolCapabilities &
     target: string;
     at: number;
     id?: string;
+    signal?: AbortSignal | undefined;
     execute?: (act: Act) => Promise<ActResult<X>>;
   }>;
 export interface ToolAct<X extends Program> extends Readonly<{ input: TSchema; reach: Reach }> {

@@ -4,21 +4,28 @@ import type { Program } from "../tool-contract.ts";
 import type { ToolCapabilities } from "../capabilities-contract.ts";
 import { targetTool } from "../attendance.ts";
 import { noCapabilities } from "./capabilities.ts";
+import type { RunningAct } from "./running-acts.ts";
 /** Revocable capabilities last through completion, including drafts, synchronous throws and interruption. */
 export function usingCapabilities<X extends Program>(
   ports: Execution<X>,
   origin: Pick<HouseEvent<"act">, "by"> & { data: { object: string } },
   work: (ports: Execution<X>, capabilities: ToolCapabilities) => ExecutionResult<X>,
 ): ExecutionResult<X> {
+  ports.active?.controller.signal.throwIfAborted();
   const target = origin.data.object;
   const tool = targetTool(ports.registry, ports.state(), target)?.id ?? target;
-  const lease = ports.capabilities?.({ actor: origin.by, tool, target });
+  const active: RunningAct = { controller: new AbortController(), writing: false };
+  const lease = ports.capabilities?.({ actor: origin.by, tool, target }, active.controller.signal);
+  const close = () => {
+    if (active.origin) ports.running?.delete(active.origin.id);
+    lease?.close();
+  };
   try {
-    const scoped = lease ? { ...ports, credentialEffects: lease } : ports;
+    const scoped = { ...ports, active, ...(lease ? { credentialEffects: lease } : {}) };
     const result = work(scoped, lease ?? noCapabilities);
     const finish = (decision: Decision<X>): Decision<X> => {
       const anchorPending = lease?.anchorPending?.();
-      lease?.close();
+      close();
       return {
         ...decision,
         ...(lease?.cleanupPending?.() ? { cleanupPending: true } : {}),
@@ -29,13 +36,13 @@ export function usingCapabilities<X extends Program>(
       return {
         ...result,
         completion: result.completion.then(finish, (error: unknown) => {
-          lease?.close();
+          close();
           throw error;
         }),
       };
     return finish(result);
   } catch (error) {
-    lease?.close();
+    close();
     throw error;
   }
 }

@@ -90,22 +90,6 @@ it("A3: unknown acts grant nothing, premature kits are ignored, and the last kit
   ]).toEqual([false, true]);
 });
 
-it("A4: an already running act finishes after its kit is withdrawn", async () => {
-  let release = () => {};
-  const wait = new Promise<void>(resolve => (release = resolve));
-  const slow = toolAct<Shop, typeof nothing>(nothing, async () => {
-    await wait;
-    return { status: "accepted", text: "Lento · Mesa" };
-  });
-  const rig = open({ ...desk.acts, slow });
-  rig.attend("beto", "desk");
-  const started = rig.act("beto", "slow", {}, "desk");
-  kit(rig, "beto", []);
-  release();
-  expect((await settle(started)).status).toBe("accepted");
-  expect(rig.facts().filter(e => e.kind === "act-done")).toHaveLength(1);
-});
-
 it("A5: direct facts preserve the documented folding boundary", () => {
   const rig = open();
   rig.bus.emit(effect("scene", { general: "fantasma" }, "mind:nada"));

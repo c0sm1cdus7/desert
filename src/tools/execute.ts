@@ -1,4 +1,5 @@
 import { hasSecretInput } from "./inputs/secret-input.ts";
+import { runningSignal } from "./execution/running-acts.ts";
 import { decisionOf } from "./execution/action-decision.ts";
 import { programCall } from "./boundaries/program-call.ts";
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
@@ -66,10 +67,10 @@ const decide = <X extends Program>(
   const { state, offered, tool, act } = found;
   const refused = refusal(ports, origin, found);
   if (refused !== undefined || !act) return rejected(refused ?? toolTexts.unknown);
-  const execute = (nested: Act) => executeNested(ports, origin, nested);
   const { ports: publicPorts, credentials } = capabilities;
   const context: ActContext<X> = {
     state,
+    signal: runningSignal(ports, origin, offered ? undefined : tool?.id, act.reach),
     by,
     target,
     at: ports.now(),
@@ -77,7 +78,7 @@ const decide = <X extends Program>(
     ports: publicPorts,
     credentials,
     id,
-    execute,
+    execute: nested => executeNested(ports, origin, nested),
   };
   const draft = !offered && programCall(tool?.draft?.bind(tool), state, through, value.input, target, context.at);
   if (draft) {

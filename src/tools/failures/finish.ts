@@ -6,6 +6,7 @@ import type { Program } from "../tool-contract.ts";
 import { executionFailure } from "../execution/execution-failure.ts";
 import { writtenEffects } from "../execution/written-effects.ts";
 import { BaseFailure, baseEntry, lostDiagnostic } from "./base-failure.ts";
+import { cutDecision } from "../execution/running-acts.ts";
 
 const reportLost = <X extends Program>(ports: Execution<X>, act: HouseEvent<"act">, entry: unknown, error: unknown) =>
   lostDiagnostic(
@@ -19,8 +20,10 @@ const failedDecision = <X extends Program>(ports: Execution<X>, act: HouseEvent<
   ports.secrets.scrub(executionFailure(ports.registry, ports.state(), act, ports.secrets.scrub(error)));
 
 export function finish<X extends Program>(ports: Execution<X>, act: HouseEvent<"act">, decision: Decision<X>) {
+  decision = cutDecision(ports, decision);
   const safe = ports.secrets.scrub(decision);
   if (!ports.live()) return safe;
+  if (ports.active) ports.active.writing = true;
   const failure = writtenEffects(ports, act, decision.effects, decision.status === "accepted");
   let done: Decision<X> = safe;
   if (failure !== undefined) {
@@ -38,6 +41,7 @@ export function finish<X extends Program>(ports: Execution<X>, act: HouseEvent<"
       reportLost(ports, act, done, lost);
     }
   }
+  done = cutDecision(ports, done);
   const output = done.status === "accepted" && done.output ? { output: true } : {};
   const defect = done.defect ? { defect: true as const } : {};
   const data = { ...defect, act: act.id, status: done.status, reason: done.reason ?? "", ...output };

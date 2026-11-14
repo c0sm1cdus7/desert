@@ -1,12 +1,16 @@
 import { afterEach, expect, it } from "vitest";
+import { object } from "../catalogs/acts.ts";
+import { toolAct } from "../tools/act-definition.ts";
+import { settle } from "../surface/bridge/house-ports.ts";
+import type { Shop } from "../../tests/support/shop.ts";
 import { allowed, allowedAct } from "./house.ts";
 import { effect } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
-import { contractRig, grant, kit, type ContractRig } from "../../tests/support/contract-rig.ts";
+import { contractRig, desk, grant, kit, type ContractRig } from "../../tests/support/contract-rig.ts";
 const rigs: ContractRig[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
-const open = () => {
-  const rig = contractRig();
+const open = (acts = desk.acts) => {
+  const rig = contractRig(acts);
   rigs.push(rig);
   return rig;
 };
@@ -63,4 +67,28 @@ it("10: never narrows the admin, including after administration changes hands", 
   kit(rig, "ana", [], "desk", "beto");
   expect(allowedAct(rig.state().house, "ana", "desk", "open")).toBe(false);
   expect(allowedAct(rig.state().house, "beto", "missing", "open")).toBe(false);
+});
+
+it("A4: withdrawing the kit interrupts a running act without writing its result", async () => {
+  const nothing = object({});
+  let release = () => {};
+  const wait = new Promise<void>(resolve => (release = resolve));
+  const slow = toolAct<Shop, typeof nothing>(nothing, async () => {
+    await wait;
+    return { status: "accepted", text: "Lento · Mesa" };
+  });
+  const rig = open({ ...desk.acts, slow });
+  rig.attend("beto", "desk");
+  const started = rig.act("beto", "slow", {}, "desk");
+  expect(started.status).toBe("processing");
+  kit(rig, "beto", []);
+  release();
+  expect(await settle(started)).toMatchObject({ status: "interrupted", reason: toolTexts.withdrawn, effects: [] });
+  expect(rig.facts().filter(e => e.kind === "act-done")).toHaveLength(0);
+  expect(rig.state().entries).toEqual([]);
+  expect(rig.state().processing.size).toBe(0);
+  expect(rig.facts().findLast(e => e.kind === "act-result")?.data).toMatchObject({
+    status: "interrupted",
+    reason: toolTexts.withdrawn,
+  });
 });

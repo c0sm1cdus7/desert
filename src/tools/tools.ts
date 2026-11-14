@@ -1,4 +1,5 @@
 import { startPrograms, programEffects } from "./boundaries/tool-listeners.ts";
+import { interrupt, watchRunning } from "./execution/running-acts.ts";
 // The house's own state and each tool's, folded together; attention as a perpetual, replayable ladder.
 import { programRule } from "./execution/program-causes.ts";
 import { actCatalog } from "../catalogs/acts.ts";
@@ -102,22 +103,28 @@ export const attendanceActs = <X extends Program>(registry: ToolRegistry<X>): Ow
 /** What a program hands the engine; a program without processes or acts of its own leaves those out. */
 type Starting<X extends Program> = Omit<Execution<X>, "live" | "own" | "process"> &
   Partial<Pick<Execution<X>, "own" | "process">>;
+const ownOf = <X extends Program>(ports: Starting<X>) => {
+  const offered = houseActs(attendanceActs(ports.registry));
+  return (state: State<X>) => [
+    ...offered(state.by),
+    ...(mindTool(state.by) === undefined ? programRule(() => ports.own?.(state) ?? []) : []),
+  ];
+};
 export function startTools<X extends Program>(ports: Starting<X>) {
   const { bus, state: read, registry, secrets } = ports;
   let state = read();
   let live = true;
-  const offered = houseActs(attendanceActs(registry));
   const running: Execution<X> = {
     ...ports,
+    running: new Map(),
     live: () => live,
     process: ports.process ?? (() => false),
-    own: state => [
-      ...offered(state.by),
-      ...(mindTool(state.by) === undefined ? programRule(() => ports.own?.(state) ?? []) : []),
-    ],
+    own: ownOf(ports),
   };
   const shutdown = startPrograms(registry, running);
+  const cut = watchRunning(running);
   const stop = bus.on(event => {
+    cut(event);
     const effects = programEffects(registry, state, event);
     for (const by of state.house.grants.keys())
       effects.push(...attentionEffects(identityView(state, by), registry, event));
@@ -141,13 +148,6 @@ export function startTools<X extends Program>(ports: Starting<X>) {
       shutdown();
     },
   };
-}
-/** An act that had started when the house stopped never got its result: on boot it is closed as interrupted. */
-function interrupt<X extends Program>({ bus }: Execution<X>, state: State<X>): void {
-  for (const [act, started] of state.processing) {
-    const data = { act, status: "interrupted" as const, reason: toolTexts.interrupted };
-    bus.emit(effect("act-result", data, started.by, [act], started.process));
-  }
 }
 const reminderId = (by: string, tool: string): string => `${ids.attention}${JSON.stringify([by, tool])}`;
 const reminder = (by: string, tool: string, delay: number | null, event: Event): HouseEmission[] => [

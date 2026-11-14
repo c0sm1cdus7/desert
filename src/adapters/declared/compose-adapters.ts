@@ -61,8 +61,8 @@ export function declaredAdapters(options: AdapterComposition, tools: readonly st
     }),
   );
   return (custody: SecretCustody, allowed: (scope: CredentialScope) => boolean): CapabilityFactory =>
-    scope =>
-      leaseFor(custody, allowed, scope, slots[scope.tool] ?? [], declared);
+    (scope, signal) =>
+      leaseFor(custody, allowed, scope, slots[scope.tool] ?? [], declared, signal);
 }
 function leaseFor(
   custody: SecretCustody,
@@ -70,6 +70,7 @@ function leaseFor(
   scope: CredentialScope,
   owned: readonly string[],
   declared: Readonly<Record<string, AdapterDeclaration>>,
+  signal?: AbortSignal,
 ) {
   const session = custody.begin(scope);
   const initial = custody.snapshot(session, owned);
@@ -77,6 +78,7 @@ function leaseFor(
   const bindings = () => (snapshot ??= initial());
   let live = true;
   const check = () => {
+    signal?.throwIfAborted();
     if (!live || !allowed(scope)) throw new AdapterFailure("E-ADAPTER-DENIED");
   };
   const slotCheck = (slot: string) => {

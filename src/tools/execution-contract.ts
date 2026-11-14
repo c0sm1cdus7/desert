@@ -3,11 +3,14 @@ import type { TSchema } from "@sinclair/typebox";
 import type { Bus } from "../journal/bus.ts";
 import type { Program, State, ToolRegistry, OwnAct } from "./tool-contract.ts";
 import type { CapabilityFactory, CapabilityLease } from "./execution/capabilities.ts";
+import type { RunningAct } from "./execution/running-acts.ts";
 export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: () => number }> &
   Readonly<{ registry: ToolRegistry<X>; state: () => State<X>; own: (state: State<X>) => readonly OwnAct<X>[] }> &
   Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
   Readonly<{
     capabilities?: CapabilityFactory;
+    running?: Map<string, RunningAct>;
+    active?: RunningAct;
     credentialEffects?: Pick<CapabilityLease, "apply" | "together" | "capture">;
     secrets: {
       capture(value: unknown, registry: ToolRegistry<X>, state?: State<X>): void;
