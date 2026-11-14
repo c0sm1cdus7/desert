@@ -80,7 +80,8 @@ it("creates with an optional name, shows the rule, removes and readmits through 
     await term.until("Readmitida · luz · sin herramientas");
     term.press("\x1b");
     const readmitted = await term.until("0 herramientas");
-    expect(readmitted.join("\n")).toContain("Sin herramientas.");
+    expect((await term.until("Sin herramientas.")).join("\n")).toContain("Sin herramientas.");
+    expect(readmitted.join("\n")).toContain("0 herramientas");
   } finally {
     await term.close();
     rmSync(home, { recursive: true, force: true });

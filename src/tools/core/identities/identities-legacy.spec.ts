@@ -46,6 +46,7 @@ it("reads historical invalid identifiers and refuses new handovers or readmissio
         expect(
           core
             ?.view()
+            .filter(stack => stack.title === "Identidades")
             .flatMap(stack => stack.rows)
             .map(row => row.title),
         ).toEqual(["ana", "Ana vieja", "Mala"]);
@@ -55,6 +56,12 @@ it("reads historical invalid identifiers and refuses new handovers or readmissio
             .flatMap(stack => stack.rows)
             .some(row => row.detail === "sales · todas"),
         ).toBe(true);
+        expect(
+          core
+            ?.view()
+            .find(stack => stack.title === "Mentes")
+            ?.rows.map(row => row.title),
+        ).toEqual(["mente de sales", "mente de payments"]);
         rejectLegacy(house, core);
         expect(house.tools.state().house.admin).toBe("ana");
         expect(house.tools.state().house.removed.has("Mala")).toBe(true);

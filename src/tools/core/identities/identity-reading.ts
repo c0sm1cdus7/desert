@@ -1,7 +1,8 @@
-import { identityDisplayName, type House } from "../../../house/house.ts";
+import { identityDisplayName, mindTool, allowedAct, type House } from "../../../house/house.ts";
 import { identityTexts as words } from "../../../texts/identities/identities.texts.ts";
 import type { ToolWords } from "../../../surface/bridge/house-ports.ts";
 import type { ToolRegistry, Program } from "../../tool-contract.ts";
+import { kitCatalog, kitDatum } from "./kit-catalog.ts";
 export const identityTarget = (identity: string) => `identities/${identity}`;
 export const targetIdentity = (target: string) => target.slice("identities/".length);
 export const members = (house: House) => [...new Set([...house.grants.keys(), ...house.removed])];
@@ -25,18 +26,36 @@ export const identityWords: ToolWords = {
     { title: "kit", empty: words.emptyKit, reads: { kit: words.tools } },
   ],
 };
+function identityList<X extends Program>(house: House, registry: ToolRegistry<X>): string {
+  return [...members(house), ...kitCatalog(registry).map(tool => `mind:${tool.id}`)]
+    .map(identity =>
+      JSON.stringify({
+        id: identityTarget(identity),
+        text: mindTool(identity) ? words.mind(mindTool(identity) ?? "") : identityDisplayName(house, identity),
+        detail: mindTool(identity)
+          ? kitDatum(
+              house,
+              identity,
+              mindTool(identity) ?? "",
+              Object.keys(registry.find(tool => tool.id === mindTool(identity))?.acts ?? {}),
+            )
+          : identityDatum(house, identity),
+      }),
+    )
+    .join("\n");
+}
 export function identityReading<X extends Program>(house: House, target: string, registry: ToolRegistry<X>): string {
-  if (target === "identities")
-    return members(house)
-      .map(identity =>
-        JSON.stringify({
-          id: identityTarget(identity),
-          text: identityDisplayName(house, identity),
-          detail: identityDatum(house, identity),
-        }),
-      )
-      .join("\n");
+  if (target === "identities") return identityList(house, registry);
   const identity = targetIdentity(target);
+  const own = mindTool(identity);
+  const tool = registry.find(tool => tool.id === own);
+  if (tool)
+    return JSON.stringify({
+      identifier: identity,
+      name: words.mind(tool.id),
+      state: kitDatum(house, identity, tool.id, Object.keys(tool.acts)),
+      kit: Object.keys(tool.acts).map(act => `${act} · ${allowedAct(house, identity, tool.id, act) ? "sí" : words.no}`),
+    });
   const kit = registry
     .filter(tool => tool.id !== "identities")
     .flatMap(tool => {

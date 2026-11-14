@@ -1,5 +1,5 @@
 import { object } from "../../../catalogs/acts.ts";
-import { identityDisplayName, type House } from "../../../house/house.ts";
+import { identityDisplayName, mindTool, type House } from "../../../house/house.ts";
 import { identityNameProblem } from "../../../house/identity-name.ts";
 import { effect } from "../../../journal/events.ts";
 import { identityTexts as words } from "../../../texts/identities/identities.texts.ts";
@@ -10,17 +10,18 @@ import { removeCases, readmitCases, handCases } from "./identity-cases.ts";
 const input = object({});
 function otherPresent(house: House, target: string): string | undefined {
   const identity = targetIdentity(target);
+  if (mindTool(identity)) return words.ownActions;
   if (identity === house.admin) return words.admin;
   return house.removed.has(identity) ? words.removed : undefined;
 }
-function removeIdentity<X extends Program>() {
+function removeIdentity<X extends Program>(registry: ToolRegistry<X>) {
   return programAct<X, typeof input>({
     ...words.remove,
     input,
     on: "thing",
     leaves: false,
     undoable: false,
-    refuses: [words.only, words.admin, words.removed],
+    refuses: [words.only, words.admin, words.removed, ...(registry.length ? [words.ownActions] : [])],
     offered: ({ house }, target) => otherPresent(house, target),
     confirms: (_, { house }, target) => words.sureRemove(identityDisplayName(house, targetIdentity(target))),
     run: (_, { by, state, target }) => ({
@@ -31,16 +32,20 @@ function removeIdentity<X extends Program>() {
     cases: removeCases,
   });
 }
-function readmitIdentity<X extends Program>(runner: string) {
+function readmitProblem(house: House, identity: string, runner: string) {
+  if (mindTool(identity)) return words.ownActions;
+  if (!house.removed.has(identity)) return words.inside;
+  return identityNameProblem(identity, runner);
+}
+function readmitIdentity<X extends Program>(runner: string, registry: ToolRegistry<X>) {
   return programAct<X, typeof input>({
     ...words.readmit,
     input,
     on: "thing",
     leaves: false,
     undoable: true,
-    refuses: [words.only, words.inside],
-    offered: ({ house }, target) =>
-      !house.removed.has(targetIdentity(target)) ? words.inside : identityNameProblem(targetIdentity(target), runner),
+    refuses: [words.only, words.inside, ...(registry.length ? [words.ownActions] : [])],
+    offered: ({ house }, target) => readmitProblem(house, targetIdentity(target), runner),
     run: (_, { by, state, target }) => ({
       status: "accepted",
       text: words.readmitted(identityDisplayName(state.house, targetIdentity(target))),
@@ -56,7 +61,7 @@ function handIdentity<X extends Program>(runner: string, registry: ToolRegistry<
     on: "thing",
     leaves: false,
     undoable: false,
-    refuses: [words.only, words.admin, words.removed],
+    refuses: [words.only, words.admin, words.removed, ...(registry.length ? [words.ownActions] : [])],
     offered: ({ house }, target) => otherPresent(house, target) ?? identityNameProblem(targetIdentity(target), runner),
     confirms: (_, { house }, target) => words.sureHand(identityDisplayName(house, targetIdentity(target))),
     run: (_, { by, state, target }) => ({
@@ -68,7 +73,7 @@ function handIdentity<X extends Program>(runner: string, registry: ToolRegistry<
   });
 }
 export const identityActions = <X extends Program>(runner: string, registry: ToolRegistry<X>) => ({
-  remove: removeIdentity<X>(),
-  readmit: readmitIdentity<X>(runner),
+  remove: removeIdentity<X>(registry),
+  readmit: readmitIdentity<X>(runner, registry),
   hand: handIdentity<X>(runner, registry),
 });

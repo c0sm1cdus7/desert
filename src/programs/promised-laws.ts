@@ -1,3 +1,4 @@
+import { mindTargetCauses } from "./core/kit-checks.ts";
 import { withoutActionCheck, closeCoreSetup } from "./core/identity-checks.ts";
 import { alsoCauses } from "./coverage/also-causes.ts";
 // The laws every act of every program keeps: nobody promises them case by case, and every act is checked on them.
@@ -84,7 +85,7 @@ export function coverage<X extends Program>(program: Composition<X>, aim: Aim<X>
       const own = (causes: readonly string[]) => [...new Set(causes.filter(cause => !ofTheBase(cause)))].sort();
       deepStrictEqual(
         own(
-          [...refused, ...(await alsoCauses(program, aim))].map(
+          [...refused, ...(await alsoCauses(program, aim)), ...(await mindTargetCauses(program, aim))].map(
             cause => aim.act.outside.find(out => cause.startsWith(`${out} · `)) ?? cause,
           ),
         ),

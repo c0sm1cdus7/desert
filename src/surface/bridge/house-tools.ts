@@ -1,3 +1,4 @@
+import { kitScreen } from "../../tools/core/identities/kit-screen.ts";
 import { identityWords } from "../../tools/core/identities/identity-reading.ts";
 import { programCall } from "../../tools/boundaries/program-call.ts";
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
@@ -165,7 +166,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
   const own: Tool[] = built.map(({ contract, words, acts, start }) => {
     const mine = (): boolean => allowed(ports.state().house, ports.me, contract.id);
     const screen = builtScreen(shown.screens?.[contract.id], observed, contract, words, acts, start);
-    const tool = withThings(observed, contract, { words, shown }, screen);
+    const tool = kitScreen(observed, contract, withThings(observed, contract, { words, shown }, screen), start);
     const calls = () => ports.state().attention.has(contract.id);
     const { notices, seen: looked } = noticesOf(observed, contract, tool);
     /** What the other tools offer on a thing of this one: only on a thing, never on a view that groups them. */

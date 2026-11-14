@@ -1,3 +1,4 @@
+import { absentMindAction } from "./core/kit-checks.ts";
 import { checkKitChange, checkForeignVisibility } from "./core/identity-checks.ts";
 // What a person sees of what they cannot do, and what they may prefer not to see: checked for every tool and act.
 import { effect } from "../journal/events.ts";
@@ -23,6 +24,7 @@ function foreignActions<X extends Program>(seat: Seat<X>, tool: ProgramTool<X>):
     const targets = act.on === "tool" ? [tool.id] : tool.targets(seat.state());
     for (const target of targets) {
       const found = actRow(seat, { tool, name, act }, target);
+      if (absentMindAction(tool, name, target, found)) continue;
       ok(found, said.notOffered(name));
       ok(found.row.off);
       ok(found.row.detail?.endsWith(toolTexts.kitRefusal(tool.id)));

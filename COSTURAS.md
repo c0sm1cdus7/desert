@@ -238,6 +238,15 @@ parte coteja su lista. Quien usa la base incorpora ese archivo en `globalSetup` 
 
 - Identidades del core vive en `src/tools/core/identities/`: usa el contrato declarado para la Lista y los Hilos,
   sin slice ni proceso. `startHouse` la compone solo con `identities: true`; `houseTools` incorpora sus palabras.
-  El estado sigue en `House`, y sus cuatro acciones producen hechos de casa mediante el lote habitual.
+  El estado sigue en `House`, y sus acciones producen hechos de casa mediante el lote habitual.
   El límite de escritura reserva `identities` fuera de `granted` y `kit-set`; las derivadas comprueban ese rechazo
   además del permiso de quien administra. La preferencia de lo ajeno no oculta esta pieza del Sistema.
+
+- El kit de Identidades se declara en `kit-actions.ts` y `kit-cases.ts`; el catálogo excluye el core y limita el
+  menú a nueve filas de edición, contando la herramienta entera cuando el destinatario es una identidad. `kit-screen.ts` y `kit-views.ts` componen Lista, filas y Hilos existentes desde esas
+  declaraciones, incluidos menús que se pueden leer aunque sus acciones estén apagadas. No dibuja celdas ni crea
+  otro router. `houseTools` aplica esa composición únicamente a Identidades.
+  La edición vuelve a leer el kit al ejecutar; `kit-effects.ts` emite los hechos existentes en un lote: una acción conserva las
+  demás; dar todo elimina el recorte de esa herramienta, y sacar todo elimina herramienta y recorte.
+  Las mentes son destinatarios distintos de las identidades: `kit-checks.ts` deriva su dominio permitido y comprueba
+  tanto la ausencia de opciones ajenas como el rechazo sin cambios de una llamada directa.

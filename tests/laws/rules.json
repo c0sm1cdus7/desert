@@ -1,5 +1,5 @@
 {
-  "debts": 22,
+  "debts": 23,
   "rules": [
     {
       "id": 1,
@@ -2269,6 +2269,33 @@
         "src/tools/core/identities/identities-legacy.spec.ts",
         "src/doors/terminal/identities-terminal.spec.ts"
       ]
+    },
+    {
+      "id": 229,
+      "rule": "Desde Identidades, quien administra da o saca herramientas enteras y acciones de cada identidad, y solo acciones propias a cada mente. El catálogo genera los actos: nada inexistente se ofrece. Quien administra tiene todas sin recorte; los demás leen menús con acciones apagadas. Cada cambio conserva los otros recortes, viaja al instante y usa el corte de la casa ya existente.",
+      "from": "14/11 · casa-kit paso 5c",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/core/identities/kit-actions.ts",
+        "src/tools/core/identities/kit-effects.ts",
+        "src/tools/core/identities/kit-cases.ts",
+        "src/tools/core/identities/kit-screen.ts",
+        "src/tools/core/identities/kit-views.ts",
+        "src/tools/core/identities/identity-kit.spec.ts",
+        "src/tools/core/identities/identity-kit-neighbors.spec.ts",
+        "src/tools/core/identities/identity-kit-readers.spec.ts",
+        "src/tools/core/identities/identity-kit-limit-derived.spec.ts",
+        "src/tools/core/identities/identities-derived.spec.ts",
+        "src/doors/terminal/identity-kit-terminal.spec.ts",
+        "src/programs/core/kit-checks.ts"
+      ]
+    },
+    {
+      "id": 230,
+      "rule": "Un menú de kit con más de nueve filas de edición requiere una forma aprobada que cumpla la tecla de cada opción.",
+      "from": "LEYES 2 · casa-kit paso 5c",
+      "guarantee": "debt",
+      "debt": "Caso: sales con nueve acciones action0…action8 requiere diez filas para una identidad, contando la herramienta entera; ese menú y sus ediciones para identidades no se ofrecen. La mente puede editar sus nueve acciones. Con diez acciones no se construye ningún menú. La fila pendiente dice menú pendiente · más de nueve acciones. Aprobar una composición y teclas para superar ese límite. Bordes en identity-kit-neighbors.spec.ts e identity-kit-readers.spec.ts; derivadas en identity-kit-limit-derived.spec.ts."
     }
   ]
 }

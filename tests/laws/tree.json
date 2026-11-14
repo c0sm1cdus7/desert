@@ -233,7 +233,7 @@
     "tools/execution/running-acts.ts": "Señales vivas por acto: corte ordenado al oír permisos, cierre por kit antes de escribir y recuperación al arrancar; no modifica el plegado.",
     "house/identity/guards.ts": "Comprueba identificadores nuevos antes de crear o escribir, sin tocar la historia.",
     "tools/core/identities/identities.ts": "Composición optativa de Identidades: reserva su id y declara lectura y acciones sin proceso ni estado propio.",
-    "tools/core/identities/identity-reading.ts": "Lista y ficha de identidades presentes y sacadas, con nombre, administración y kit de solo lectura.",
+    "tools/core/identities/identity-reading.ts": "Lista y ficha de identidades y mentes, con nombre, administración y kit actual.",
     "tools/core/identities/identity-actions.ts": "Acciones declaradas de sacar, readmitir sin herramientas y pasar la administración, con disponibilidad actual.",
     "tools/core/identities/new-identity.ts": "Preguntas y ejecución del alta: identificador literal validado, nombre opcional y herramientas enteras en un lote.",
     "house/identity/validation/emission-identity.ts": "Valida identificadores nuevos y rechaza asignaciones o recortes del id reservado identities antes de escribir.",
@@ -241,7 +241,14 @@
     "texts/identities/identity-name.texts.ts": "Texto único de la regla pública de identificadores y vocabulario de diagnóstico conservado.",
     "programs/core/identity-checks.ts": "Deriva las garantías de autorización: el core rechaza cambios de kit y permanece legible fuera de él.",
     "tools/core/identities/identity-cases.ts": "Casos declarados de sacar, readmitir y pasar la administración, incluidos los motivos de rechazo.",
-    "tools/core/identities/new-identity-cases.ts": "Casos declarados de alta con nombre y kit, alta vacía, duplicados y permiso de administración."
+    "tools/core/identities/new-identity-cases.ts": "Casos declarados de alta con nombre y kit, alta vacía, duplicados y permiso de administración.",
+    "tools/core/identities/kit-catalog.ts": "Catálogo de kit, nombres, disponibilidad por destinatario, resumen y límite de nueve acciones.",
+    "tools/core/identities/kit-actions.ts": "Acciones declaradas de dar y sacar una herramienta o una acción mediante granted y kit-set.",
+    "tools/core/identities/kit-cases.ts": "Casos de edición de kit que derivan ejecución, recorridos, permisos y valores actuales.",
+    "tools/core/identities/kit-screen.ts": "Listas y menús del kit compuestos desde catálogo y actos: identidades y mentes leen sin permiso de editar.",
+    "programs/core/kit-checks.ts": "Deriva rechazos sin efectos y ausencia obligatoria de acciones ajenas al destinatario mente.",
+    "tools/core/identities/kit-effects.ts": "Lote de granted y kit-set calculado sobre el estado vigente; conserva las otras acciones y herramientas.",
+    "tools/core/identities/kit-views.ts": "Lecturas y menús por destinatario: listas de identidades y mentes, herramientas, acciones propias y deudas."
   },
   "folders": {
     "adapters/secrets": 71,
@@ -294,9 +301,9 @@
     "catalogs/currency": 18,
     "catalogs/display": 4,
     "house/identity": 32,
-    "tools/core/identities": 370,
+    "tools/core/identities": 714,
     "house/identity/validation": 22,
-    "texts/identities": 63,
-    "programs/core": 44
+    "texts/identities": 80,
+    "programs/core": 86
   }
 }

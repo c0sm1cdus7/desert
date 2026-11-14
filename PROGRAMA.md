@@ -1115,3 +1115,43 @@ con que corre la casa. `tests/support/identities-program.ts` muestra ese program
 El campo declarado `verbatim: true` conserva espacios y saltos al escribir, pegar y convertir la respuesta.
 Identificador lo usa para rechazar el valor completo con la regla compartida; los campos comunes conservan su
 normalización anterior. No es una composición ni un control nuevos.
+
+### Herramientas y acciones de identidades y mentes (paso 5c)
+
+En Identidades, la ficha de una identidad abre `herramientas`: una fila por herramienta del catálogo con `todas`,
+`n de total` o `no`. Cada herramienta abre su fila entera (`t`) y una por acción. El menú admite nueve filas de edición en total. Cada fila abre su propio
+Hilo con `sí` y `no`; el valor actual queda apagado como `actual`. Dar la herramienta entera escribe `granted` y
+`kit-set` con `acts: null`; sacarla escribe `granted` sin ella. Una acción usa `kit-set`; si la identidad no tenía
+la herramienta, primero la recibe en el mismo lote. El resto de las herramientas y sus recortes se conserva.
+`kit-effects.ts` arma ese lote. No cambian el significado de los hechos, la ejecución ni la versión del cálculo.
+
+Una herramienta parcialmente dada no equivale ni a darla entera ni a sacarla: su fila entera dice `n de total`
+y permite elegir ambos extremos, también con `0 de total` si conserva la herramienta sin acciones. En ese caso
+ninguno dice `actual`; las filas de cada acción sí tienen su valor
+actual. Así se puede quitar la herramienta parcial o completarla sin tocar las acciones una por una.
+
+El stack Mentes es provisorio y abre directamente las acciones propias de `mind:<herramienta>`, sin fila para dar
+la herramienta entera. La base ya reconoce ese actor para cada herramienta del catálogo; Identidades queda afuera.
+Una mente parte sin acciones; si la herramienta no declara ninguna, dice `Sin acciones.`. Su lectura como objeto
+también dice el kit actual; no recibe `granted`, ni se saca,
+readmite o recibe administración. El lugar puede moverse sin cambiar los hechos ni las acciones de edición.
+
+Todos los miembros leen los menús; las ediciones ajenas quedan apagadas con `solo quien administra`. La fila de
+quien administra dice `todas` y sus acciones `administra · todas`. Se consulta el permiso otra vez al confirmar.
+Los menús abiertos leen el estado actual: una acción revocada queda `fuera del kit` y lo que corre se corta mediante
+la garantía del paso 4. Dos ediciones de acciones distintas conservan lo que la otra ya escribió.
+
+Los actos del core se generan como `kit:<herramienta>` y `kit:<herramienta>:<acción>` y toman `{ value: "yes" | "no" }`.
+Nunca se ofrece un `kit-set` libre ni nombres fuera del catálogo. `programChecks` deriva los casos de esas filas,
+y además prueba los destinos de mente que no corresponden: deben faltar de la pantalla y rechazarse sin efectos.
+`tests/support/kit-program.ts` agrega una acción pendiente solo para comprobar el corte, sin proveedores reales.
+
+Deuda de la ley 2: para una identidad, una herramienta con nueve acciones requeriría diez filas contando la
+herramienta entera. Ese menú no se construye; la fila dice `menú pendiente · más de nueve acciones`.
+Para su mente, las nueve acciones sí caben, porque no recibe una fila de herramienta; con diez no se construye
+ninguno de los dos menús. Los bordes de ocho, nueve y diez acciones están en `identity-kit-neighbors.spec.ts` y
+`identity-kit-readers.spec.ts`; las derivadas del caso de nueve, en `identity-kit-limit-derived.spec.ts`.
+La herramienta entera tiene `t`; las acciones usan números. Los actos que solo caben para la mente rechazan
+una llamada sobre una identidad, además de no ofrecerse allí.
+No hay cambio exigido al programa original que no pide Identidades (`tests/support/shop-program.ts`); una composición
+que ya la pide recibe estos menús automáticamente. No se inspeccionaron programas externos a esta copia.
