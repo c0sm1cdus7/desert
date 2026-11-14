@@ -9,6 +9,7 @@ export const toolTexts = {
   unknown: "destino inexistente",
   unattended: "destino sin abrir",
   unassigned: "sin acceso",
+  outsideKit: "fuera del kit",
   defect: (act: string): string => `E-PROG-1 · Falló el programa · ${act}`,
   baseFailure: "E-BASE-1 · Falló la base",
   disconnected: "sin conexión con el servicio",

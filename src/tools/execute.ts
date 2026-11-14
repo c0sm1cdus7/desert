@@ -49,7 +49,7 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   if (!present(ports.registry, state.house, by) || (process && !ports.process(process, by)))
     return toolTexts.unassigned;
   if (!act) return toolTexts.unknown;
-  if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option))) return toolTexts.unassigned;
+  if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option))) return toolTexts.outsideKit;
   if (!offered && tool && elsewhere(act, tool, target)) return toolTexts.unknown;
   if (!offered && mindTool(by) !== tool?.id && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
   return programOffered(act, state, target, ports.now());

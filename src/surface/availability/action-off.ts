@@ -1,6 +1,6 @@
 // The reason an action is unavailable, shared by its rows and every derived guarantee.
 import { allowed } from "../../house/house.ts";
-import { genericTexts } from "../../texts/generic-surface.texts.ts";
+import { toolTexts } from "../../texts/tools.texts.ts";
 import { programOffered, programAlso } from "../../tools/program-run.ts";
 import type { ProgramAct } from "../../tools/promises.ts";
 import type { Program, State } from "../../tools/tool-contract.ts";
@@ -17,7 +17,7 @@ export function actionOff<X extends Program>(
   first: () => Field | null,
   from?: string,
 ): string | undefined {
-  if (!allowed(state.house, state.by, tool)) return genericTexts.notHeld;
+  if (!allowed(state.house, state.by, tool)) return toolTexts.outsideKit;
   return (
     programOffered(act, state, target, at) ??
     (from === undefined ? undefined : programAlso(act, state, from, at)) ??

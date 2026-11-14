@@ -81,7 +81,7 @@ it("checks a changed kit again when an in-flight mind later starts a nested act"
   expect(started.status).toBe("processing");
   kit(rig, "mind:desk", ["delayed"]);
   release();
-  expect(await settle(started)).toMatchObject({ status: "rejected", reason: "sin acceso" });
+  expect(await settle(started)).toMatchObject({ status: "rejected", reason: "fuera del kit" });
   expect(rig.facts().filter(event => event.kind === "act-done")).toHaveLength(0);
 });
 

@@ -3,7 +3,6 @@ import { programCall } from "../../tools/boundaries/program-call.ts";
 import { builtScreen } from "./execution/program-screen.ts";
 import { thingView } from "./presented.ts";
 import { allowed, hides } from "../../house/house.ts";
-import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import type { ProgramTool } from "../../tools/promises.ts";
 import type { Program, Tool as HouseTool } from "../../tools/tool-contract.ts";
 import type { Tool, ViewRow } from "../shown-tool.ts";
@@ -101,16 +100,13 @@ function auditActs<X extends Program>(tool: ProgramTool<X>): void {
 }
 /** A row that leads to a thing, as an option that picks it. */
 const picked = ({ title, detail }: ViewRow, value: string): Option => ({ title, ...(detail ? { detail } : {}), value });
-/** The things of a tool as an answer picks them: only of a tool this identity holds, found the way its menu finds. */
+/** The things of a tool as an answer picks them: found the way its menu finds, whatever the kit. */
 const thingsOf = <X extends Program>(ports: HousePorts<X>, { words }: Shown<X>, shown: () => readonly Tool[]) => {
   const make = makerOptions();
   return (id: string): Things | undefined => {
     const tool = shown().find(known => known.id === id);
     const contract = ports.registry.filter(isProgramTool).find(known => known.id === id);
     if (!tool?.find || !contract) return undefined;
-    /** The things of a tool this identity does not hold are out of reach: none is found, and it says why. */
-    const why = tool.off?.();
-    if (why !== undefined) return { found: () => [], shown: thing => thing, has: () => false, empty: why };
     const open = (thing: string): boolean =>
       programCall(contract.closed?.bind(contract), ports.state(), thing, ports.now()) !== true;
     return {
@@ -179,7 +175,6 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
       ...tool,
       notices,
       alsoOn,
-      off: () => (mine() ? undefined : generic.notHeld),
       /** A tool nobody gave you is on your Menu unless you prefer not to see what is not yours. */
       listed: () => mine() || !hides(ports.state().house, ports.me, "foreign"),
       calls,

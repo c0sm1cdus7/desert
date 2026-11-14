@@ -84,7 +84,7 @@ const outcome = async (rig: ReturnType<typeof opened>, by: string, act: string) 
   const { status, reason } = await rig.act(by, act);
   return status === "accepted" ? "accepted" : `${status} · ${reason ?? ""}`;
 };
-const denied = `rejected · ${toolTexts.unassigned}`;
+const denied = `rejected · ${toolTexts.outsideKit}`;
 
 it("casa con custodia: kits, mente, actos con y sin credencial, escenas; cierra y reabre igual", async () => {
   const home = temporary(),

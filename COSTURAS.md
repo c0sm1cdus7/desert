@@ -88,6 +88,8 @@ interacción con la casa sea la misma en todas las superficies.
   terminó un acto o pasó el tiempo.
 - `src/surface/bridge/house-router.ts`: `houseRouter(ports, palabras)`. Es lo único que un renderer recibe de un
   programa: las herramientas con sus palabras, la barra (conexión y hora) y los cambios de la casa.
+- La superficie abre y busca también herramientas fuera del kit; sus acciones quedan apagadas con su motivo.
+  Actividad muestra lo escrito por otras personas en toda la casa; Atención solo llega a quien tiene la herramienta.
 - Un renderer hace dos cosas: dibuja `router.screen()` y traduce lo suyo a `router.send(intención)`.
   La terminal (`doors/terminal/boot.ts`) ya es eso. Web, iPhone y Android usan el mismo router.
 

@@ -20,7 +20,7 @@ function listAt(tools: readonly Tool[], title: string, tool?: string): readonly 
   const place = tool === undefined ? ({ kind: "menu", at: 0 } as const) : ({ kind: "view", tool, at: 0 } as const);
   return stacksOf(place, tools).find(stack => stack.title === title)?.rows;
 }
-/** What someone does is in Activity for the others who hold its tool, on the Menu and on the tool's own menu, until
+/** What someone does is in Activity for other identities, on the Menu and on the tool's own menu, until
  * they open it by its key; and it is never there for who did it. */
 function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
   const actor = kase.by ?? cast.admin;
@@ -37,11 +37,14 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
       if (!entry || entry.data.recipient !== undefined) return;
       const theirs = seated(house(), other, shown);
       const own = seated(house(), actor, shown);
+      const outside = seated(house(), cast.outsider, shown);
       const news = (tools: readonly Tool[], tool?: string) =>
         listAt(tools, surface.activity, tool)?.find(row => row.title === firstLine(entry.data.text));
       try {
         ok(news(theirs.tools) && news(theirs.tools, aim.tool.id), said.noActivity(entry.data.text));
         strictEqual(news(own.tools), undefined, said.ownActivity(entry.data.text));
+        ok(news(outside.tools) && news(outside.tools, aim.tool.id), said.noActivity(entry.data.text));
+        strictEqual((listAt(outside.tools, surface.attentionList, aim.tool.id) ?? []).length, 0);
         const at = choices({ kind: "menu", at: 0 }, theirs.tools).findIndex(
           row => row.title === firstLine(entry.data.text),
         );
@@ -51,7 +54,7 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
         theirs.router.send({ kind: "menu" });
         strictEqual(news(theirs.tools), undefined, said.staysNew(entry.data.text));
       } finally {
-        [theirs, own].forEach(seat => seat.router.stop());
+        [theirs, own, outside].forEach(seat => seat.router.stop());
       }
     });
   return { name: label(aim, said.activity(kase.promise)), run };

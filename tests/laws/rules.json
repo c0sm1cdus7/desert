@@ -780,17 +780,21 @@
     },
     {
       "id": 104,
-      "rule": "LEYES 4: se muestran todas las acciones, apagadas con motivo, también la ajena",
+      "rule": "LEYES 4: todas las acciones conservan su tecla; las que están fuera del kit quedan apagadas con motivo",
       "from": "LEYES 4",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-off.ts", "src/programs/promised-walk.ts", "src/tools/promises.ts"]
+      "evidence": ["src/programs/promised-off.ts", "src/surface/availability/action-off.ts", "src/tools/execute.ts"]
     },
     {
       "id": 105,
-      "rule": "LEYES 5: ocultar apagadas, ajenas o vacías es preferencia de cada usuario",
+      "rule": "LEYES 5: cada identidad puede ocultar acciones apagadas, herramientas fuera del kit en el Menú o listas vacías",
       "from": "LEYES 5",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-notices.ts", "src/programs/promised-off.ts"]
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/programs/promised-notices.ts",
+        "src/surface/bridge/program-acts.ts"
+      ]
     },
     {
       "id": 106,
@@ -808,10 +812,10 @@
     },
     {
       "id": 108,
-      "rule": "LEYES 8: dos stacks fijos, Atención y Actividad, en todos los menús",
+      "rule": "LEYES 8: Atención para quienes tienen la herramienta y Actividad de toda la casa salvo la propia, en los dos menús",
       "from": "LEYES 8",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-notices.ts", "src/surface/lists.ts"]
+      "evidence": ["src/programs/promised-notices.ts", "src/surface/bridge/notices.ts", "src/surface/lists.ts"]
     },
     {
       "id": 109,
@@ -898,7 +902,7 @@
     },
     {
       "id": 119,
-      "rule": "Lo que una fila lee se sigue leyendo cuando su acción no se puede hacer: apagada dice el dato y después por qué; oculta por preferencia queda el dato sin tecla",
+      "rule": "Lo que una fila lee queda visible con su dato y, si su acción está apagada, el motivo después; por preferencia queda el dato sin tecla",
       "from": "11/11 · consecuencia de «una fila que se puede cambiar abre su acción» y de LEYES 5",
       "guarantee": "derived",
       "evidence": [
@@ -1008,10 +1012,14 @@
     },
     {
       "id": 130,
-      "rule": "Lo que un objeto nombra se abre, sea de la herramienta que sea, con su número (1 a 9, contados en todo el objeto); lo de una herramienta que la persona no tiene queda nombrado, apagado, diciendo por qué",
+      "rule": "Lo que un objeto nombra se abre, sea de la herramienta que sea, con su número (1 a 9); quien no tiene esa herramienta la lee igual, con sus acciones apagadas diciendo por qué",
       "from": "11/11 · objetos: presentación y navegación",
-      "guarantee": "spec",
-      "evidence": ["src/surface/lists.ts", "src/surface/bridge/presented.spec.ts", "src/surface/router.spec.ts"]
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/surface/lists.ts",
+        "src/surface/bridge/window-neighbors.spec.ts"
+      ]
     },
     {
       "id": 131,
@@ -2184,7 +2192,19 @@
       "rule": "Una acción fuera del kit de quien mira sale apagada diciendo por qué.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "debt",
-      "debt": "El carril lectura y kit agrega el motivo de kit a las acciones apagadas, por las leyes 4 y 6."
+      "debt": "El paso 3 hace que la superficie compruebe el kit por acción; este paso comprueba la herramienta entera."
+    },
+    {
+      "id": 225,
+      "rule": "Cada identidad presente puede abrir y leer las herramientas fuera de su kit, buscar y elegir sus cosas; sus acciones quedan apagadas con el motivo de kit. Mirar no exige tener la herramienta.",
+      "from": "14/11 · lectura en la superficie",
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/surface/bridge/window-neighbors.spec.ts",
+        "src/tools/slices.spec.ts",
+        "src/surface/finding.ts"
+      ]
     },
     {
       "id": 255,

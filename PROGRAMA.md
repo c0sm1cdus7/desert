@@ -26,7 +26,9 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   `kit-set` suma el recorte de acciones; `scene` guarda la última descripción de cada identidad o mente.
 - **El registro**: solo se agrega; cada hecho con autor e instante; el estado es el registro plegado.
 - **La superficie**: Menú, lista de cada herramienta, objeto abierto y pregunta; un router único para cualquier
-  dibujante (hoy la terminal). Atención y Actividad en cada menú; buscar con espacio; Preferencias.
+  dibujante (hoy la terminal). Cada identidad puede leer y buscar todas las herramientas y sus objetos; las acciones
+  fuera del kit quedan apagadas. Atención se limita a las herramientas que tiene, y Actividad muestra lo de las demás
+  personas; buscar con espacio; Preferencias. Por ahora la superficie comprueba la herramienta entera.
 - **Las pruebas**: de cada caso sale la prueba sobre la organización y el recorrido con teclas desde el Menú; de
   cada acción, que rechace lo que su forma no admite, que su fila apagada diga su motivo, que lo que deja se
   encuentre buscando. Las garantías bajan por listas y menús hasta leer la fila, también en la ventana mínima;

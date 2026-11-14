@@ -92,7 +92,6 @@ export const attendanceActs = <X extends Program>(registry: ToolRegistry<X>): Ow
       (input, { state, by }) => {
         const tool = targetTool(registry, state, input.target);
         if (!tool) return rejected(toolTexts.unknown);
-        if (!allowed(state.house, by, tool.id)) return rejected(toolTexts.unassigned);
         return accepted(effect(option === "attend" ? "attended" : "unattended", input, by));
       },
     );

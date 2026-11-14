@@ -2,7 +2,7 @@ import { walked, type Asked } from "./actions/asked-act.ts";
 import { OutsideDefect } from "../../tools/outside.ts";
 import { programCall } from "../../tools/boundaries/program-call.ts";
 // The acts of a program's tool as a surface offers them: each asked from its declaration, where it stands.
-import { allowed, hides } from "../../house/house.ts";
+import { hides } from "../../house/house.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import { aid, worded } from "../../tools/act-words.ts";
 import type { ProgramTool } from "../../tools/promises.ts";
@@ -81,8 +81,7 @@ const offersOf =
       const fixed = ask.leading(given);
       const why = actionOff(act, ports.state(), tool, tool, ports.now(), () => walk.next(fixed), target);
       /** Off, it says why; and it is not there for who prefers not to see what cannot be done. */
-      const held = allowed(ports.state().house, ports.me, tool);
-      if (why !== undefined && hides(ports.state().house, ports.me, held ? "off" : "foreign")) return [];
+      if (why !== undefined && hides(ports.state().house, ports.me, "off")) return [];
       if (why !== undefined) return [{ ...row, detail: why, off: true }];
       /** What the thing suggests comes after what it fixes: those questions open on it, and are still asked. */
       const answers = ask.leading({ ...given, ...programCall(also.opens?.bind(also), ports.state(), target) });
@@ -101,7 +100,6 @@ const beside = (act: Readonly<{ undoable: boolean; purpose: string }>): string =
 /** Every act of a tool as the surface offers it: on the tool itself, on one of its things, or under a menu. */
 export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, asked: Asked) {
   /** Which hiding preference applies to the identity reading this tool. */
-  const foreign = (): boolean => !allowed(ports.state().house, ports.me, tool.id);
   const entries = Object.entries(tool.acts).map(([name, act]) => walked(ports, { tool: tool.id, name, act }, asked));
   const onTool = entries
     .filter(({ act }) => act.on === "tool")
@@ -110,8 +108,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
        * for who prefers not to see what is not theirs, or what cannot be done. */
       const off = (): string | undefined =>
         actionOff(act, ports.state(), tool.id, tool.id, ports.now(), () => walk.next([]));
-      const listed = (): boolean =>
-        off() === undefined || !hides(ports.state().house, ports.me, foreign() ? "foreign" : "off");
+      const listed = (): boolean => off() === undefined || !hides(ports.state().house, ports.me, "off");
       const datum = (): string => programCall(act.datum?.bind(act), ports.state(), tool.id) ?? beside(act);
       const next: ToolAct["next"] = answers => walk.next(answers);
       /** What changes a datum is taken from the row of that datum, not from among the actions. */

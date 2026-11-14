@@ -56,7 +56,8 @@ it("names a reference to an old object even when its tool is not held", () => {
   const ports = { ...hands.rig.ports("beto", () => 1), limits: { recentLines: 40 } };
   const tools = houseTools(ports, hands.shown);
   const rows = stacksOf({ kind: "view", tool: "payments", at: 0 }, tools).flatMap(stack => stack.rows);
-  expect(rows).toContainEqual(expect.objectContaining({ title: "s1", off: true, detail: "sin acceso" }));
+  const link = rows.find(row => row.title === "Primera venta")?.open;
+  expect(link).toEqual({ kind: "view", tool: "sales", target: "sales/s1", at: 0 });
 });
 it("reuses one full reading for titles and searches until the state or instant changes", () => {
   const hands = seat();
@@ -119,4 +120,47 @@ it("retries a failed full reading instead of keeping a partial index", () => {
   expect(() => screen.titleOf?.("sales/s1")).toThrow("lectura interrumpida");
   broken = false;
   expect(screen.titleOf?.("sales/s1")).toBe("s1");
+});
+it("finds and opens an unheld tool and its old objects even when foreign tools are hidden", () => {
+  const hands = seat();
+  hands.rig.bus.emit(effect("granted", { identity: "beto", tools: ["payments"] }, "ana"));
+  hands.rig.act("beto", "prefer", { hide: "foreign", on: true });
+  const tools = houseTools({ ...hands.rig.ports("beto", () => 1), limits: { recentLines: 40 } }, hands.shown);
+  const menu = stacksOf({ kind: "menu", at: 0 }, tools).flatMap(stack => stack.rows);
+  expect(menu.some(row => row.key === "v")).toBe(false);
+  const find = (text: string) => stacksOf({ kind: "menu", at: 0, find: text }, tools).flatMap(stack => stack.rows);
+  expect(find("ventas").some(row => row.open?.kind === "view" && row.open.tool === "sales")).toBe(true);
+  expect(find("antigua").some(row => row.open?.kind === "view" && row.open.target === "sales/s1")).toBe(true);
+  const rows = stacksOf({ kind: "view", tool: "sales", at: 0 }, tools).flatMap(stack => stack.rows);
+  expect(rows).toContainEqual(expect.objectContaining({ key: "r", off: true, detail: "fuera del kit" }));
+});
+it("reads activity and chooses an unheld old object after reopening", () => {
+  const hands = seat();
+  hands.rig.bus.emit(effect("granted", { identity: "beto", tools: ["payments"] }, "ana"));
+  hands.rig.bus.emit(
+    effect(
+      "tool-entry",
+      {
+        tool: "sales",
+        target: "sales/s1",
+        author: "ana",
+        text: "Revisada",
+        attention: false,
+      },
+      "ana",
+    ),
+  );
+  hands.rig.act("beto", "prefer", { hide: "foreign", on: true });
+  hands.rig.restart();
+  const tools = houseTools({ ...hands.rig.ports("beto", () => 1), limits: { recentLines: 40 } }, hands.shown);
+  const menu = stacksOf({ kind: "menu", at: 0 }, tools);
+  expect(menu.find(stack => stack.title === "Actividad")?.rows).toContainEqual(
+    expect.objectContaining({ title: "Revisada", opens: "sales/s1" }),
+  );
+  expect(menu.find(stack => stack.title === "Atención")?.rows ?? []).toEqual([]);
+  const pick = tools.find(tool => tool.id === "payments")?.acts.pay?.next([]);
+  expect(pick?.kind).toBe("pick");
+  if (pick?.kind !== "pick") throw new Error("expected a picker");
+  expect(pick.valid?.("sales/s1")).toBe(true);
+  expect(pick.found("antigua")).toContainEqual(expect.objectContaining({ value: "sales/s1" }));
 });

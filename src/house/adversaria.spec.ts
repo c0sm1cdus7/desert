@@ -171,7 +171,7 @@ it("A8: a mind's effects cannot grant itself identity privileges or escape its t
   expect(h.admin).toBe("ana");
   expect(h.kits.get("mind:desk")?.has("other")).toBe(false);
   expect(h.channels.has("communicator/x")).toBe(false);
-  expect(await settle(rig.act("mind:desk", "away", {}, "desk"))).toMatchObject({ reason: toolTexts.unassigned });
+  expect(await settle(rig.act("mind:desk", "away", {}, "desk"))).toMatchObject({ reason: toolTexts.outsideKit });
 });
 
 it("A9: a legacy mind:jefe founder is ignored and the next house-created takes administration", () => {

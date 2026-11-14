@@ -17,7 +17,7 @@ it("2: gives identities every act by default, then only the admin's kit, across 
   expect(rig.act("beto", "open", {}, "desk").status).toBe("accepted");
   kit(rig, "beto", ["say"]);
   kit(rig, "beto", null, "desk", "beto");
-  expect(rig.act("beto", "open", {}, "desk")).toMatchObject({ reason: toolTexts.unassigned });
+  expect(rig.act("beto", "open", {}, "desk")).toMatchObject({ reason: toolTexts.outsideKit });
   expect(rig.act("beto", "say", {}, "desk").status).toBe("accepted");
   rig.restart();
   expect(allowedAct(rig.state().house, "beto", "desk", "open")).toBe(false);
@@ -25,7 +25,7 @@ it("2: gives identities every act by default, then only the admin's kit, across 
   expect(rig.act("beto", "open", {}, "desk").status).toBe("accepted");
   kit(rig, "beto", []);
   expect(allowed(rig.state().house, "beto", "desk")).toBe(true);
-  expect(rig.act("beto", "say", {}, "desk")).toMatchObject({ reason: toolTexts.unassigned });
+  expect(rig.act("beto", "say", {}, "desk")).toMatchObject({ reason: toolTexts.outsideKit });
   kit(rig, "stranger", null);
   kit(rig, "beto", null, "missing");
   expect(rig.state().house.kits.has("stranger")).toBe(false);

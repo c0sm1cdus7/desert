@@ -54,12 +54,12 @@ export function noticesOf<X extends Program>(
   return {
     notices: () => ({
       needs: mine() ? needs() : [],
-      news: mine() ? news() : [],
+      news: news(),
       quiet: hides(ports.state().house, ports.me, "empty"),
     }),
     /** Having in front what someone else wrote on is attending it: the same act anyone does. */
     seen: (target: string): void => {
-      if (mine() && unseen(ports, tool).some(entry => entry.data.target === target))
+      if (unseen(ports, tool).some(entry => entry.data.target === target))
         ports.act({ act: "attend", input: { target } });
     },
   };

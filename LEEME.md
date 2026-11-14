@@ -3,7 +3,8 @@
 Base compartida entre Kenon y Capibara, extraída de Kenon (la parte que no sabe nada de Kenon).
 
 Reglas:
-- No entra nada hasta que dos programas lo usan.
+- No entra nada hasta que dos programas lo usan. Las piezas de la casa (identidades, kit, escenas, puerta y mentes)
+  entran por definición del dueño: Kenon y Capibara son esos dos programas; Capibara las adopta al levantarse su pausa.
 - Las rutas son las mismas que en Kenon, así traer un cambio es comparar archivo contra archivo.
 - Kenon se sube a DESERT cuando se retome, en TypeScript (13/11/2026: el pase a Rust salió del plan; un solo lenguaje para la base y sus programas).
 

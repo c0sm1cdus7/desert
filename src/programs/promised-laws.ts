@@ -59,7 +59,7 @@ export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X
     ...outsideOf(aim.act.input, kase.input).map((input, index) =>
       refusal(said.outside(index + 1), {}, toolTexts.invalid, input),
     ),
-    refusal(said.notHeld, { by: cast.outsider }, toolTexts.unassigned),
+    refusal(said.notHeld, { by: cast.outsider }, toolTexts.outsideKit),
     refusal(said.unseen, { by: cast.member, attends: false }, toolTexts.unattended),
     placeCheck(program, aim, kase),
     ...unchangedCheck(program, aim, kase),
