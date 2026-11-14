@@ -34,6 +34,7 @@ for (const kind of ["fact", "exposed"] as const) {
       try {
         startHouse(path, {
           by: rig.options.by,
+          projectionVersion: rig.options.projectionVersion,
           secretKeys: rig.options.secretKeys ?? new MemoryHouseKeys(),
           creation: rig.options.creation,
           words,

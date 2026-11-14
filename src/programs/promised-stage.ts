@@ -1,6 +1,8 @@
 import { MemoryHouseKeys } from "../adapters/secrets/custody/house-keys.ts";
 // Where a derived check runs: a real house on disk at a fixed instant, its three people, an act done as anyone does.
 import { ok } from "node:assert/strict";
+import { join } from "node:path";
+import { checkReopenedState } from "../adapters/storage/reopened-state.ts";
 import { rmSync } from "node:fs";
 import { promiseHome } from "./promise-temporaries.ts";
 import { caseInstant } from "../catalogs/time.ts";
@@ -63,6 +65,9 @@ export async function staged<X extends Program>(program: Composition<X>, use: (s
       active = house;
     };
     await use({ house: () => house, reopen });
+    house.close();
+    active = undefined;
+    checkReopenedState<X>(join(home, "journal.sqlite"), { ...program, by: runner });
   } finally {
     try {
       active?.close();

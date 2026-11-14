@@ -12,10 +12,7 @@ export const textLimit = 120;
 /** Free text: the question, and a placeholder that shows what goes there. It says something, not only spaces. */
 export const text = (ask: string, placeholder: string) =>
   Type.String({ minLength: 1, maxLength: textLimit, pattern: "\\S", plain: true, title: ask, placeholder });
-/** Money, kept in cents: up to what its thirteen digits say, $ 99.999.999.999,99. Where nothing is not an amount
- * — a price, a payment — `least` is one cent, and the field does not take zero. */
-export const money = (ask: string, least: 0 | 1 = 0) =>
-  Type.Integer({ minimum: least, maximum: 9_999_999_999_999, title: ask, mask: "money" });
+export { money } from "./fields/money-field.ts";
 /** How many decimals a quantity carries: what its mask lets be written, and what every door is held to. */
 export const quantityDecimals = 3;
 /** How many of something; `initial` is what the field already says when it opens. */
@@ -108,7 +105,10 @@ const isAsker = (asks: unknown): asks is Asked => typeof asks === "function";
 export type Wrong = (value: string, at: number) => string | undefined;
 /** A field that knows when what it was given is complete and wrong, and why. Said once, with the datum: the
  * surface says it where the datum is written, and no act runs with it, through whatever door it comes. */
-export const holding = <T extends TSchema>(field: T, wrong: Wrong): T => ({ ...field, wrong });
+export const holding = <T extends TSchema>(field: T, wrong: Wrong): T => ({
+  ...field,
+  wrong: (value: string, at: number) => wrongIn(field, value, at) ?? programCall(wrong, value, at),
+});
 const isWrong = (check: unknown): check is Wrong => typeof check === "function";
 const part = (schema: unknown, key: string): unknown =>
   schema !== null && typeof schema === "object" ? Reflect.get(schema, key) : undefined;

@@ -1,11 +1,12 @@
 // What each key does inside an act: writing an answer, choosing one, picking a thing, going back, leaving.
+import { nextMoneyAnswer } from "./fields/money-memory.ts";
 import { answerValidity } from "../tools/answers/answer-change.ts";
-import type { Field, Intent, Mask, Option } from "./contract.ts";
+import type { Field, Intent, Option } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
 import { actOf, begin, fieldOf, maskOf, optionsOf, opened, opening, pickedFrom, validOf } from "./screen.ts";
 import type { Asking, Session, Stepped, Walk } from "./screen.ts";
 import { answersAfter } from "./kept-answers.ts";
-import { edited } from "./talk.ts";
+import { writtenAnswer } from "./entry/written-answer.ts";
 import { movedOptions } from "./reading.ts";
 import { must } from "./window.ts";
 type Tools = readonly Tool[];
@@ -20,58 +21,49 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
   const why =
     answerValidity(current.valid?.(answer), current.wrong?.(answer)) ?? act.stops?.(answers.slice(0, walk.pos + 1));
   if (why !== undefined) return { session: replace(session, opening(tools, { ...walk, error: why })) };
-  const asked = [...walk.asked.slice(0, walk.pos), { ask: current.ask, shown: maskOf(current, answer) }];
+  const asked = [
+    ...walk.asked.slice(0, walk.pos),
+    { ask: current.ask, shown: maskOf(current, answer), ...(current.currency ? { currency: current.currency } : {}) },
+  ];
   /** A walk that asked only part asks on when the rest no longer says everything the act takes. */
   const open = walk.until === undefined ? null : act.next(answers);
   const { until: _part, ...whole } = walk;
   const moved: Walk = { ...(open && open.kind !== "confirm" ? whole : walk), answers, asked, pos: walk.pos + 1 };
-  const { error: _gone, failed: _result, finding: _sought, read: _back, reading: _reading, ...clean } = moved;
+  const {
+    error: _gone,
+    ignored: _key,
+    failed: _result,
+    notices: _notices,
+    finding: _sought,
+    read: _back,
+    reading: _reading,
+    ...clean
+  } = moved;
   const field = fieldOf(tools, clean);
-  if (field) return { session: replace(session, opening(tools, clean, answers[clean.pos])) };
+  if (field) return { session: replace(session, opening(tools, clean, nextMoneyAnswer(act.next, walk, answers))) };
   const running: Walk = { ...clean, phase: "running", since: now };
   return { session: replace(session, running), run: running };
-}
-/** In a field with a format the keys go through its mask: what does not fit is not typed. */
-function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
-  const typed =
-    key.kind === "type" ? Array.from(key.text).reduce((now, text) => mask.put(now, text), walk.typed) : walk.typed;
-  if (key.kind === "type") return { ...walk, typed, caret: Array.from(typed).length };
-  if (key.kind === "erase") return { ...walk, typed: Array.from(walk.typed).slice(0, -1).join("") };
-  return key.kind === "left" || key.kind === "right" ? walk : undefined;
-}
-/** Editing clears a prior result; invalid or excess keys leave the entire question untouched. */
-function rewritten({ error: _was, failed: _result, ...written }: Asking): Asking {
-  return { ...written, suggested: false };
-}
-/** A space that says nothing is not typed: before anything is written, or next to another space. Two names that
- * read the same are written the same. */
-function idleSpace({ typed, caret }: Asking, key: Intent): boolean {
-  if (key.kind !== "type" || key.text !== " ") return false;
-  const chars = Array.from(typed);
-  return caret === 0 || chars[caret - 1] === " " || chars[caret] === " ";
 }
 function typing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
   /** What the question opened with gives way to the first key written. */
   const fresh = walk.suggested && key.kind === "type" ? { ...walk, typed: "", caret: 0 } : walk;
-  /** A text takes no more than it may hold: the key that would pass it is not typed. */
-  const full = key.kind === "type" && "max" in field && Array.from(fresh.typed).length >= (field.max ?? Infinity);
-  if (full) return { session };
-  if (field.kind !== "secret" && !("mask" in field) && idleSpace(fresh, key)) return { session };
-  const changed = "mask" in field ? masked(fresh, field.mask, key) : edited(fresh, key);
-  if (key.kind === "type" && changed?.typed === fresh.typed) return { session };
-  if (changed)
-    return {
-      session: replace(
-        session,
-        rewritten(
-          field.kind === "secret" && key.kind === "type"
-            ? { ...changed, caret: fresh.caret + Array.from(key.text).length }
-            : changed,
-        ),
-      ),
-    };
+  const changed = writtenAnswer(fresh, field, key);
+  if (key.kind === "type" && walk.suggested && changed?.typed === "" && changed.ignored !== undefined)
+    return { session: replace(session, { ...walk, ignored: changed.ignored }) };
+  if (changed) return { session: replace(session, changed) };
   if (key.kind !== "confirm") return { session };
-  return validOf(field, walk.typed) ? advance(session, walk, tools, walk.typed, now) : { session };
+  if (validOf(field, walk.typed)) return advance(session, walk, tools, walk.typed, now);
+  const reason = field.wrong?.(walk.typed, true);
+  if (reason === undefined) return { session };
+  if (walk.failed || walk.notices?.length)
+    return {
+      session: replace(session, {
+        ...walk,
+        notices: [...(walk.notices ?? []).filter(notice => notice.reason !== reason), { reason }],
+      }),
+    };
+  const { ignored: _key, ...confirmed } = walk;
+  return { session: replace(session, { ...confirmed, error: reason }) };
 }
 function choosing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
   const options = optionsOf(field);
@@ -148,7 +140,15 @@ function picking(
   return taken(key.kind === "confirm" ? found[walk.at] : undefined);
 }
 function back(session: Session, walk: Asking, tools: readonly Tool[]): Session {
-  const { error: _gone, failed: _result, read: _back, reading: _reading, ...clean } = walk;
+  const {
+    error: _gone,
+    ignored: _key,
+    failed: _result,
+    notices: _notices,
+    read: _back,
+    reading: _reading,
+    ...clean
+  } = walk;
   const earlier = { ...clean, pos: walk.pos - 1 };
   return replace(session, opening(tools, earlier, walk.answers[earlier.pos]));
 }

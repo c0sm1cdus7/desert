@@ -1,9 +1,10 @@
-// What each intent does where you are: the only place that moves a session.
+// What each intent does where you are, and how the session receives completed actions and messages.
+import { renewedMoney } from "./fields/money-memory.ts";
 import type { Intent } from "./contract.ts";
 import type { Result, Tool } from "./shown-tool.ts";
 import { findable } from "./finding.ts";
 import { choices, cursorOf, goneOf } from "./lists.ts";
-import { begin, fieldOf, toolOf, start } from "./screen.ts";
+import { actOf, begin, fieldOf, toolOf, start } from "./screen.ts";
 import type { Picture, Running, Session, Stepped } from "./screen.ts";
 import { actedOn, conversationOf, sent, talkStep, writesMessage } from "./talk.ts";
 import { replace, up, walking } from "./walking.ts";
@@ -43,9 +44,15 @@ function writing(place: Session[number], tools: Tools): boolean {
  * and is never a shortcut. */
 function pasted(session: Session, text: string, tools: Tools, now: number): Stepped {
   const place = must(session.at(-1));
-  const secret = place.kind === "act" && place.phase === "asking" && fieldOf(tools, place)?.kind === "secret";
-  if (secret) return step(session, { kind: "type", text }, tools, now);
+  const field = place.kind === "act" && place.phase === "asking" ? fieldOf(tools, place) : undefined;
+  /** Secret material is typed whole, line breaks and spaces included: a paste never trims or joins it. */
+  if (place.kind === "act" && field?.kind === "secret") return step(session, { kind: "type", text }, tools, now);
   const chars = Array.from(text.trim().replace(/[\r\n\t]+/gu, " ")).filter(char => !/\p{Cc}/u.test(char));
+  /** A written paste is one edit: later accepted characters cannot hide an earlier rejection. */
+  if (place.kind === "act" && field && (field.kind === "text" || field.kind === "secret")) {
+    const written = chars.join("");
+    return written === "" ? { session } : walking(session, place, tools, { kind: "type", text: written }, now);
+  }
   return chars.reduce<Stepped>(
     (stepped, char) => {
       const there = must(stepped.session.at(-1));
@@ -56,6 +63,9 @@ function pasted(session: Session, text: string, tools: Tools, now: number): Step
 }
 export function step(session: Session, key: Intent, tools: readonly Tool[], now: number): Stepped {
   if (key.kind === "quit") return { session, quit: true };
+  const previous = must(session.at(-1));
+  if (previous.kind === "act")
+    session = replace(session, renewedMoney(previous, actOf(tools, previous).next, actOf(tools, previous).stops));
   if (key.kind === "paste") return pasted(session, key.text, tools, now);
   const place = must(session.at(-1));
   if (place.kind === "act") return walking(session, place, tools, key, now);

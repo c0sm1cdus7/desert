@@ -20,8 +20,8 @@ export function withStops(walk: Walk, field: Field, act: Act): Field {
     return { ...field, options, wrong: value => answerChange(stop(value)).reason, unchanged };
   }
   if (field.kind !== "text" && field.kind !== "secret") return field;
-  const wrong = (typed: string): string | undefined => {
-    const reason = field.wrong?.(typed);
+  const wrong = (typed: string, submitted = false): string | undefined => {
+    const reason = field.wrong?.(typed, submitted);
     if (reason !== undefined) return answerChange(reason).reason;
     if (!(field.valid ?? (value => value.trim() !== ""))(typed)) return undefined;
     const stopped = stop(typed);

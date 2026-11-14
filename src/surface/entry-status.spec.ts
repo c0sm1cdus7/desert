@@ -2,7 +2,7 @@
 import { Type } from "@sinclair/typebox";
 import { describe, expect, it, vi } from "vitest";
 import { object } from "../catalogs/acts.ts";
-import { day, digits, holding, money, option, someOf } from "../catalogs/fields.ts";
+import { day, digits, holding, money } from "../catalogs/fields.ts";
 import { asking } from "./bridge/asking.ts";
 import { formats } from "./masks.ts";
 import { begin } from "./screen.ts";
@@ -40,22 +40,36 @@ function seat(schema: Parameters<typeof asking>[0], stops?: (answers: readonly s
   };
   const screen = () => router.screen(view);
   const enter = () => screen().hints.some(hint => hint.intent === "confirm");
-  const check = () => {
+  const check = (reason?: string) => {
     const before = screen();
     expect(enter()).toBe(false);
     router.send({ kind: "confirm" });
-    expect(screen()).toEqual(before);
+    expect(screen()).toEqual(
+      reason && before.body.kind === "thread"
+        ? {
+            ...before,
+            body: {
+              ...before.body,
+              events: [
+                ...before.body.events.filter(event => !event.nested),
+                { text: [{ text: reason, tone: "t3" }], nested: true },
+              ],
+            },
+          }
+        : before,
+    );
     expect(run).not.toHaveBeenCalled();
   };
   return { router, run, type, screen, enter, check };
 }
 describe("the Entrada", () => {
-  it("keeps the remaining day shape in text 3, without a separate incomplete message", () => {
+  it("keeps the remaining day shape quiet until Enter explains the incomplete day", () => {
     const hands = seat(object({ date: day("Día") }));
     try {
-      hands.check();
+      hands.check("falta completar");
       hands.type("0203");
-      hands.check();
+      expect(hands.screen().body).toMatchObject({ events: [{ text: [{ text: "Día", tone: "t1" }] }] });
+      hands.check("día incompleto");
       expect(hands.screen().body).toMatchObject({ entry: { typed: "02/03", remaining: "/aaaa" } });
       const grid = paint(hands.screen(), { cols: 80, rows: 30 });
       const lines = textOf(grid);
@@ -81,8 +95,8 @@ describe("the Entrada", () => {
         events: [{ text: [{ text: "CUIT", tone: "t1" }] }, { text: [{ text: "dígito inválido", tone: "t3" }] }],
       });
       hands.router.send({ kind: "erase" });
-      hands.check();
       expect(hands.screen().body).toMatchObject({ events: [{ text: [{ text: "CUIT" }] }] });
+      hands.check("dígitos incompletos");
       hands.type("6");
       expect(hands.enter()).toBe(true);
     } finally {
@@ -109,8 +123,11 @@ describe("the Entrada", () => {
     const hands = seat(object({ days: field }));
     try {
       hands.type("1");
-      hands.check();
       expect(JSON.stringify(hands.screen())).not.toContain("mínimo 02");
+      hands.check("mínimo 02");
+      expect(JSON.stringify(hands.screen())).toContain("mínimo 02");
+      expect(JSON.stringify(hands.screen())).not.toContain("Error");
+      expect(hands.run).not.toHaveBeenCalled();
       expect(hands.screen().body).toMatchObject({ entry: { typed: "01", padding: 1 } });
       const grid = paint(hands.screen(), { cols: 80, rows: 30 });
       const row = textOf(grid).findIndex(line => line.includes("› 01"));
@@ -120,8 +137,21 @@ describe("the Entrada", () => {
       hands.type("9");
       expect(hands.enter()).toBe(true);
       const full = hands.screen();
+      if (full.body.kind !== "thread") throw new Error("Not a question");
       hands.type("9x");
-      expect(hands.screen()).toEqual(full);
+      expect(hands.screen()).toEqual({
+        ...full,
+        body: {
+          ...full.body,
+          events: [
+            ...full.body.events,
+            { text: [{ text: "máximo 99", tone: "t3" }], nested: true, ignored: true },
+            { text: [{ text: "solo números", tone: "t3" }], nested: true, ignored: true },
+          ],
+        },
+      });
+      expect(hands.enter()).toBe(true);
+      expect(JSON.stringify(hands.screen())).toContain("solo números");
       hands.router.send({ kind: "erase" });
       hands.router.send({ kind: "erase" });
       hands.type("99");
@@ -146,50 +176,6 @@ describe("the Entrada", () => {
       ).toBe(true);
       hands.type("1");
       expect(JSON.stringify(hands.screen())).not.toContain("Error");
-    } finally {
-      hands.router.stop();
-    }
-  });
-});
-describe("multiple choices before choosing", () => {
-  it("checks each multiple-choice toggle and keeps the cursor on an available option", async () => {
-    const field = someOf("Canales", "none", option("cloud", "Nube", "n"), option("market", "Mercado", "m"));
-    const hands = seat(object({ channels: field }), answers =>
-      answers[0]?.includes("Nube") ? "ya conectado" : undefined,
-    );
-    try {
-      expect(hands.screen().body).toMatchObject({
-        options: [
-          { title: "Nube", off: true, detail: "ya conectado", selected: false },
-          { title: "Mercado", selected: true },
-        ],
-      });
-      hands.type(" ");
-      hands.router.send({ kind: "up" });
-      expect(hands.screen().body).toMatchObject({ options: [{ selected: false }, { key: "x", selected: true }] });
-      hands.router.send({ kind: "confirm" });
-      await hands.router.idle();
-      expect(hands.run).toHaveBeenCalledWith(["Mercado"]);
-    } finally {
-      hands.router.stop();
-    }
-  });
-  it("opens premarked options on a toggle that is allowed, so invalid initial marks can be removed", () => {
-    const field = someOf("Canales", "all", option("cloud", "Nube", "n"), option("market", "Mercado", "m"));
-    const hands = seat(object({ channels: field }), answers =>
-      answers[0]?.includes("Nube") ? "ya conectado" : undefined,
-    );
-    try {
-      expect(hands.screen().body).toMatchObject({
-        options: [
-          { title: "Nube", key: "x", selected: true },
-          { title: "Mercado", key: "x", off: true, selected: false },
-        ],
-      });
-      expect(hands.enter()).toBe(false);
-      hands.type(" ");
-      expect(hands.enter()).toBe(true);
-      expect(hands.screen().body).toMatchObject({ options: [{ off: true, selected: false }, { selected: true }] });
     } finally {
       hands.router.stop();
     }

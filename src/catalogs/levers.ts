@@ -6,3 +6,6 @@ export const privateDirectoryMode = 0o700;
 export type ViewLimits = Readonly<{ recentLines: number }> &
   /** The instant of the reading, for what a tool reads by the day: what is due today. */
   Readonly<{ now: number }>;
+
+/** Bump whenever the base changes how its own facts fold. */
+export const baseProjectionVersion = "desert/1";

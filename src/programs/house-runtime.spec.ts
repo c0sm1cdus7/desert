@@ -35,6 +35,7 @@ const vault: Tool<Shop> = {
 const registry = [...shopRegistry, vault];
 const options: HouseOptions<Shop> = {
   by: "shop",
+  projectionVersion: "shop/1",
   creation: { admin: "ana", assignments: [{ identity: "ana", tools: registry.map(tool => tool.id) }] },
   secretKeys: new MemoryHouseKeys(),
   words: shop,

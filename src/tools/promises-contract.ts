@@ -1,4 +1,5 @@
 import type { AdapterComposition } from "../adapters/declared/adapter-contract.ts";
+import type { CalculationVersion } from "../programs/calculation-version.ts";
 // The declarations a program supplies once, shared by execution, surfaces and derived checks.
 import type { Static, TSchema } from "@sinclair/typebox";
 import type { Vocabulary } from "../journal/events.ts";
@@ -101,6 +102,7 @@ export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
 /** A program, whole: what DESERT needs to run it and to check everything it promises. */
 export type Composition<X extends Program> = AdapterComposition &
   Readonly<{
+    projectionVersion: CalculationVersion;
     words: Vocabulary<X["fact"]>;
     registry: readonly ProgramTool<X>[];
     slices: Slices<X>;

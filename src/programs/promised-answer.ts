@@ -6,22 +6,26 @@ import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { readThrough, reasonIn } from "./read-screen.ts";
 import { type, view } from "./promised-keys.ts";
 import { confirmAnswer, probeWritten, writeAnswer } from "./promised-entry.ts";
-export type Stopped = Readonly<{ kind: "data" | "cause"; ask: string }>;
+export type Stopped = Readonly<{ kind: "data" | "cause"; ask: string; reason?: string }>;
 /** One answer as a person gives it: written over what the field opened on and confirmed, or chosen by the key of
  * its option. False when the field itself does not take it: what cannot be written cannot be sent. */
 export function answer(router: Router, field: Field, given: string, opened = field.initial ?? ""): true | Stopped {
   if (field.kind === "text" || field.kind === "secret") {
     Array.from(opened).forEach(() => router.send({ kind: "erase" }));
-    probeWritten(router, field, "");
     writeAnswer(router, field, given);
     probeWritten(router, field, given);
     const canSend = router.screen(view).hints.some(hint => hint.intent === "confirm");
-    confirmAnswer(router);
+    confirmAnswer(router, field, given);
     /** What is complete and wrong stays where it was written, and the screen says why. */
     const why = field.wrong?.(given);
     if (why !== undefined) ok(reasonIn(router.screen(view).body, why), said.notSaid(why));
     if (canSend && why === undefined) return true;
-    return { kind: field.valid?.(given) === false && why === undefined ? "data" : "cause", ask: field.ask };
+    const reason = field.wrong?.(given, true);
+    return {
+      kind: field.valid?.(given) === false && why === undefined ? "data" : "cause",
+      ask: field.ask,
+      ...(reason === undefined ? {} : { reason }),
+    };
   }
   if (field.kind === "many") {
     /** Each option is marked or cleared with space until what is marked is what the case says. */

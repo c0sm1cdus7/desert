@@ -1,4 +1,5 @@
 // A declared action as questions and confirmation, preserving the receiver of each program method.
+import { currencyQuestions } from "../currency/currency-defect.ts";
 import { programCall } from "../../../tools/boundaries/program-call.ts";
 import { declaredCause } from "../../../tools/execution/program-causes.ts";
 import { hides } from "../../../house/house.ts";
@@ -51,11 +52,15 @@ export type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["thi
 type Own<X extends Program> = Readonly<{ tool: string; name: string; act: ProgramAct<X> }>;
 /** One act as a person walks it: its questions from what it takes, a confirmation when it asks for one, its result. */
 export function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
-  const ask = asking(act.input, {
-    ...questionWords(ports.now, asked),
+  const declared = asking(act.input, {
+    ...questionWords(ports.now, asked, { state: ports.state, target: tool }),
     things: asked.things,
     cause: reason => declaredCause(act.refuses, reason),
   });
+  const ask = {
+    ...declared,
+    next: currencyQuestions(declared.next, (error, target) => ports.defect(error, tool, target ?? tool, name)),
+  };
   const title = act.title ?? capital(act.name);
   const sure = confirmation(ports, act, ask, tool);
   const asks = offeredOn(act, ask, ports.state, tool, ports.now, () => hides(ports.state().house, ports.me, "off"));

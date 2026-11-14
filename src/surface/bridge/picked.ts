@@ -24,7 +24,7 @@ export const offeredOn =
     hidden: () => boolean = () => false,
   ) =>
   (answers: readonly string[], target = tool): Field | null => {
-    const field = besides(ask.next(answers), target);
+    const field = besides(ask.next(answers, target), target);
     const check = (read: () => string | undefined) => programRule(() => declaredCause(act.refuses, read()));
     const stops = (answer: string) =>
       declaredCause(

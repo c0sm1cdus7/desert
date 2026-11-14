@@ -1,6 +1,6 @@
 // SQLite round trips preserve envelopes, reducer results and causal identity; one open journal per house.
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -109,6 +109,7 @@ describe("journal", () => {
     opened.push(db);
     db.prepare(insert).run(2, "foreign", 100, kind, "main", "[]", "{}");
     expect(() => all(journal)).toThrow(`does not read: #2 ${kind}`);
+    expect(() => journal.close()).toThrow(expect.objectContaining({ code: "WRITER_LEASE_LOST" }));
   });
 
   it("rejects persisted invalid data of either layer and enforces append-only SQL", () => {
@@ -122,6 +123,7 @@ describe("journal", () => {
     expect(all(journal)).toEqual([original]);
     db.prepare(insert).run(2, "bad", 100, "sale-registered", "ana", "[]", "{}");
     expect(() => all(journal)).toThrow("This house's journal holds a fact this program does not read");
+    expect(() => journal.close()).toThrow(expect.objectContaining({ code: "WRITER_LEASE_LOST" }));
   });
 
   it("leaves neither a row nor a sequence gap when validation fails", () => {
@@ -146,18 +148,20 @@ describe("journal lock", () => {
   it("refuses a second open of the same house until the first one closes", () => {
     const { file, lock } = house();
     const first = open(file);
-    expect(readFileSync(lock, "utf8")).toBe(String(process.pid));
+    expect(existsSync(lock)).toBe(false);
     expect(() => open(file)).toThrow(journalTexts.locked);
     first.close();
     expect(existsSync(lock)).toBe(false);
     expect(open(file).append(boot, 100).seq).toBe(1);
   });
 
-  it("refuses a house that another live process holds and leaves its lock in place", () => {
+  it("does not treat a live PID in an abandoned bridge as proof of ownership", () => {
     const { file, lock } = house();
     writeFileSync(lock, String(process.ppid));
-    expect(() => open(file)).toThrow(journalTexts.locked);
-    expect(readFileSync(lock, "utf8")).toBe(String(process.ppid));
+    const journal = open(file);
+    expect(existsSync(lock)).toBe(false);
+    journal.close();
+    expect(existsSync(lock)).toBe(false);
   });
 
   it.each([
@@ -168,16 +172,16 @@ describe("journal lock", () => {
     const { file, lock } = house();
     writeFileSync(lock, holder);
     const journal = open(file);
-    expect(readFileSync(lock, "utf8")).toBe(String(process.pid));
+    expect(existsSync(lock)).toBe(false);
     journal.close();
     expect(existsSync(lock)).toBe(false);
   });
 
-  it("keeps a lock on close when it no longer names this process", () => {
+  it("ignores a legacy bridge written after ownership and never removes it on close", () => {
     const { file, lock } = house();
     const journal = open(file);
     writeFileSync(lock, String(process.ppid));
     journal.close();
-    expect(readFileSync(lock, "utf8")).toBe(String(process.ppid));
+    expect(existsSync(lock)).toBe(true);
   });
 });

@@ -1,12 +1,17 @@
 // Append-only facts; replay folds the complete journal without publishing effects.
 import { ProjectionGroup } from "../../journal/projections.ts";
-import { privateFileMode, snapshotEvery } from "../../catalogs/levers.ts";
-import { createHash } from "node:crypto";
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { snapshotEvery } from "../../catalogs/levers.ts";
+import { factOf, derivedId, stored } from "./journal-record.ts";
+export { derivedId } from "./journal-record.ts";
+import { storageIdentity } from "./storage-identity.ts";
+import { journalIdentity } from "./journal-identity.ts";
+import type { FoldWarning } from "../../journal/snapshot-format.ts";
+import { snapshotWarning } from "./storage-notices.ts";
+import { journalPosition } from "./journal-position.ts";
+import { writerLease } from "./writer-lease.ts";
 import { privateDatabase } from "./home.ts";
 import { DatabaseSync } from "node:sqlite";
-import { layerOf, type Emission, type Event, type Foreign, type Vocabulary } from "../../journal/events.ts";
+import type { Emission, Event, Foreign, Vocabulary } from "../../journal/events.ts";
 import { journalTexts } from "../../texts/journal.texts.ts";
 const schema = `
   create table if not exists events (
@@ -18,101 +23,93 @@ const schema = `
   create trigger if not exists events_no_update before update on events begin select raise(abort, 'append-only'); end;
   create trigger if not exists events_no_delete before delete on events begin select raise(abort, 'append-only'); end;
 `;
-const parse = (value: unknown): unknown => {
-  if (typeof value !== "string") throw new Error(journalTexts.invalidEvent);
-  return JSON.parse(value);
-};
-/** A row holds a fact without its layer: the kind says whose it is, so a kind the house adopts later still reads. */
-const factOf = ({ process, ...fact }: Readonly<Record<string, unknown>>): unknown => ({
-  ...fact,
-  ...(typeof process === "string" ? { process } : {}),
-  layer: layerOf(String(fact.kind)),
-  cause: parse(fact.cause),
-  data: parse(fact.data),
-});
 /** A journal another process may be writing, read without its lock: the events after a sequence, oldest first. */
 export function journalReader<P extends Foreign>(file: string, words: Vocabulary<P>) {
-  const db = new DatabaseSync(file, { readOnly: true });
-  const after = db.prepare("select * from events where seq > ? order by seq");
-  return {
-    since: (seq: number): Event<P>[] => after.all(seq).map(row => words.read(factOf(row))),
-    close: () => db.close(),
-  };
-}
-/** A kept journal supplies its boot identity and last instant; discard its cache to fold every fact again. */
-export function journalKept(file: string): Readonly<{ runner: string; last: number }> {
-  const db = new DatabaseSync(file);
+  const db = new DatabaseSync(storageIdentity(file), { readOnly: true });
   try {
-    db.exec("delete from snapshots");
-    const boot = db.prepare("select by from events where kind = 'boot' order by seq limit 1").get();
-    const last = db.prepare("select max(at) as at from events").get();
-    if (typeof last?.at !== "number") throw new Error("A kept journal has no dated fact");
-    return { runner: String(boot?.by ?? ""), last: last.at };
-  } finally {
-    db.close();
-  }
-}
-/** Derive identity from provenance, kind, writer and the ordinal among their effects. */
-export function derivedId(emission: Emission, ordinal: number): string {
-  return createHash("sha256")
-    .update(JSON.stringify([emission.cause, emission.by, emission.kind, ordinal]))
-    .digest("hex");
-}
-/** What is stored has no process when it has none, so the event folded live is the event replay will read. */
-const stored = ({ process, ...fact }: Emission) => (process === undefined ? fact : { ...fact, process });
-const held = new Set<string>();
-const holder = (lock: string): number => (existsSync(lock) ? Number(readFileSync(lock, "utf8")) : 0);
-function alive(pid: number): boolean {
-  try {
-    return pid > 0 && process.kill(pid, 0);
+    const after = db.prepare("select * from events where seq > ? order by seq");
+    return {
+      since: (seq: number): Event<P>[] => after.all(seq).map(row => words.read(factOf(row))),
+      close: () => db.close(),
+    };
   } catch (error) {
-    return error instanceof Error && "code" in error && error.code === "EPERM";
+    db.close();
+    throw error;
   }
 }
-function hold(lock: string): string {
-  const pid = holder(lock);
-  if (held.has(lock) || (pid !== process.pid && alive(pid))) throw new Error(journalTexts.locked);
-  writeFileSync(lock, String(process.pid), { flag: existsSync(lock) ? "w" : "wx", mode: privateFileMode });
-  held.add(lock);
-  return lock;
-}
+export { journalKept } from "./kept-journal.ts";
 export class SqliteJournal<P extends Foreign = Foreign> {
   private readonly db: DatabaseSync;
   private readonly words: Vocabulary<P>;
   private readonly projections = new ProjectionGroup<Event<P>>();
-  private readonly lock: string | undefined;
+  private readonly lease: ReturnType<typeof writerLease>;
+  private readonly position: ReturnType<typeof journalPosition>;
+  private readonly identity: string;
+  private readonly warn: (warning: FoldWarning) => void;
+  private readonly warnings: FoldWarning[] = [];
+  private restored = false;
+  private restoreFailed = false;
   private batching = false;
-  constructor(file: string, words: Vocabulary<P>) {
+  constructor(file: string, words: Vocabulary<P>, warn: (warning: FoldWarning) => void = snapshotWarning) {
+    this.warn = warning => {
+      this.warnings.push(warning);
+      warn(warning);
+    };
     this.words = words;
-    this.db = privateDatabase(file);
+    const canonical = storageIdentity(file);
+    this.lease = writerLease(canonical);
+    let db: DatabaseSync | undefined;
     try {
-      this.lock = file === ":memory:" ? undefined : hold(resolve(dirname(file), "journal.lock"));
-      this.db.exec(`pragma journal_mode = wal; pragma synchronous = full; ${schema}`);
+      this.lease.check();
+      db = privateDatabase(canonical);
+      this.lease.check();
+      db.exec(`pragma journal_mode = wal; pragma synchronous = full; ${schema}`);
+      this.identity = journalIdentity(db, this.lease.check);
+      this.db = db;
+      this.position = journalPosition(db, this.lease);
     } catch (error) {
-      this.close();
+      try {
+        db?.close();
+      } finally {
+        this.lease.release();
+      }
       throw error;
     }
+  }
+  restoration() {
+    return {
+      reused: [...this.projections.caches.values()].every(cache => cache.reused),
+      warnings: [...this.warnings],
+    };
   }
   /** Several facts written whole or not at all. One that does not fold is never kept: neither it nor what was
    * written with it stays, on disk or in what is folded, and whoever wrote hears why. */
   batch<T>(write: () => T): T {
+    this.lease.check();
     if (this.batching) return write();
-    this.db.exec("begin immediate");
+    this.position.begin();
+    const position = this.position.mark();
     this.batching = true;
     const back = this.projections.mark();
+    const restored = this.restored;
     try {
+      this.position.check();
       const done = write();
+      this.lease.check();
       this.db.exec("commit");
       return done;
     } catch (error) {
       this.db.exec("rollback");
+      position();
       back();
+      this.restored = restored;
       throw error;
     } finally {
       this.batching = false;
     }
   }
   append(emission: Emission<P>, at: number): Event<P> {
+    if (!this.restored) this.restore();
     return this.batch(() => {
       const position = this.db.prepare("select coalesce(max(seq), 0) + 1 as seq from events").get();
       const count = this.db
@@ -123,9 +120,11 @@ export class SqliteJournal<P extends Foreign = Foreign> {
       const id = derivedId(emission, count.ordinal);
       const event = this.words.read({ ...stored(emission), seq: position.seq, id, at });
       const { seq, kind, by, cause, data, process } = event;
+      this.lease.check();
       this.db
         .prepare("insert into events values (?, ?, ?, ?, ?, ?, ?, ?)")
         .run(seq, id, at, kind, by, JSON.stringify(cause), JSON.stringify(data), process ?? null);
+      this.position.wrote(seq);
       this.projections.fold(event);
       if (event.seq % snapshotEvery === 0) this.snapshot();
       return event;
@@ -145,26 +144,57 @@ export class SqliteJournal<P extends Foreign = Foreign> {
       throw new Error(journalTexts.unreadable(Number(row.seq), String(row.kind)));
     }
   }
-  watch<S>(name: string, initial: S, reduce: (state: S, event: Event<P>) => S): () => S {
+  watch<S>(name: string, initial: S, reduce: (state: S, event: Event<P>) => S, identity = ""): () => S {
     const row = this.db.prepare("select state from snapshots where name = ?").get(name);
-    return this.projections.add(name, initial, reduce, row?.state);
+    this.restored = false;
+    const last = this.db.prepare("select coalesce(max(seq), 0) as seq from events").get();
+    return this.projections.add(name, initial, reduce, row?.state, Number(last?.seq), identity, this.identity, reason =>
+      this.warn({ name, reason }),
+    );
   }
-  /** Brings what is watched up to the last fact. What was kept under a name nobody watches now is dropped. */
-  restore(): void {
-    const watched = [...this.projections.caches.keys()];
-    const names = watched.map(() => "?").join(", ");
-    this.db.prepare(`delete from snapshots where name not in (${names})`).run(...watched);
-    this.replay(null, (_, event) => this.projections.fold(event), this.projections.after());
+  /** Restores watched folds; drops names outside them and the explicitly retained calculation family. */
+  restore(retainPrefix = ""): void {
+    this.restored = false;
+    try {
+      this.batch(() => {
+        const watched = [...this.projections.caches.keys()];
+        for (const row of this.db.prepare("select name from snapshots").all())
+          if (typeof row.name === "string" && !watched.includes(row.name)) {
+            if (retainPrefix && row.name.startsWith(retainPrefix)) watched.push(row.name);
+            else this.warn({ name: row.name, reason: journalTexts.unwatchedFold });
+          }
+        const names = watched.map(() => "?").join(", ");
+        this.lease.check();
+        this.db.prepare(`delete from snapshots where name not in (${names})`).run(...watched);
+        this.replay(null, (_, event) => this.projections.fold(event), this.projections.after());
+      });
+    } catch (error) {
+      this.restoreFailed = true;
+      throw error;
+    }
+    this.restored = true;
   }
   private snapshot(): void {
-    for (const [name, projection] of this.projections.caches)
-      this.db.prepare("insert or replace into snapshots values (?, ?)").run(name, projection.encode());
+    if (!this.restored || this.restoreFailed) return;
+    this.batch(() => {
+      for (const [name, projection] of this.projections.caches) {
+        const bytes = projection.encode();
+        this.lease.check();
+        this.db.prepare("insert or replace into snapshots values (?, ?)").run(name, bytes);
+      }
+    });
   }
   close(): void {
     if (!this.db.isOpen) return;
-    this.snapshot();
-    this.db.close();
-    if (this.lock) held.delete(this.lock);
-    if (this.lock && holder(this.lock) === process.pid) unlinkSync(this.lock);
+    try {
+      this.lease.check();
+      this.snapshot();
+    } finally {
+      try {
+        this.db.close();
+      } finally {
+        this.lease.release();
+      }
+    }
   }
 }

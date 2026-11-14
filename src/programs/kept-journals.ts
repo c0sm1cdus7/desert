@@ -1,10 +1,12 @@
 import type { AdapterComposition } from "../adapters/declared/adapter-contract.ts";
+import { copyJournal } from "../adapters/storage/copy-journal.ts";
 // The journals a program keeps of what organizations wrote with it: each still opens with the program of today.
 // Every fact is read and folds from the first, and every thing is read as whoever administers it reads it.
 import { deepStrictEqual, ok } from "node:assert/strict";
-import { copyFileSync, existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { checkReopenedState } from "../adapters/storage/reopened-state.ts";
 import { journalKept } from "../adapters/storage/journal-store.ts";
 import { houseTools } from "../surface/bridge/house-tools.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
@@ -13,6 +15,10 @@ import { promiseTexts as said } from "../texts/promises.texts.ts";
 import type { Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../tools/tools.ts";
+import { codeUpgradeCheck } from "./code-upgrade-check.ts";
+import { CodeProjectionVersion } from "./calculation-version.ts";
+import { keptNames } from "./kept-names.ts";
+import { keptUpgrade, upgradeEvidence } from "./kept-upgrade.ts";
 import { localPorts, startHouse } from "./house-runtime.ts";
 import { breadthFirst, keptWalkLimits, type WalkCoverage } from "./kept-walk.ts";
 import { keptPath, type Path } from "./kept-path.ts";
@@ -61,9 +67,10 @@ async function opened<X extends Program, R>(
 ): Promise<R> {
   const home = mkdtempSync(join(tmpdir(), "desert-kept-"));
   try {
-    copyFileSync(file, join(home, "journal.sqlite"));
+    copyJournal(file, join(home, "journal.sqlite"));
     const { runner, last } = journalKept(join(home, "journal.sqlite"));
     ok(runner, said.keptEmpty);
+    checkReopenedState<X>(join(home, "journal.sqlite"), { ...kept.program, by: runner });
     const now = last + 1;
     const creation = { admin: runner, assignments: [] };
     const time = { now: () => now, wait: () => () => {} };
@@ -95,14 +102,21 @@ function walk<X extends Program>(source: Kept<X>, file: string, name: string): C
     report: () => walked && said.keptWalked(name, walked),
   };
 }
-/** Two checks for each journal kept in a folder of the program; none, where the program keeps none. */
-export function keptChecks<X extends Program>(program: Composition<X>, shown: Shown<X>, folder: string): Check[] {
-  if (!existsSync(folder)) return [];
-  const kept = readdirSync(folder).filter(name => name.endsWith(".sqlite"));
-  return kept.sort().flatMap(name => {
+/** Three checks per kept journal, plus mandatory evidence for the explicitly composed version mode. */
+export function keptChecks<X extends Program>(program: Composition<X>, shown: Shown<X>, folder?: string): Check[] {
+  const kept = keptNames(folder);
+  const upgrades = kept.map(name => keptUpgrade(program, join(folder ?? "", name), name));
+  const checks = kept.flatMap((name, index) => {
     const source = { program, shown };
-    const file = join(folder, name);
+    const file = join(folder ?? "", name);
     const opens = () => opened(source, file, (house, now) => read(source, house, now));
-    return [{ name: said.keptOpens(name), run: opens }, walk(source, file, name)];
+    return [
+      { name: said.keptOpens(name), run: opens },
+      walk(source, file, name),
+      upgrades[index] ?? keptUpgrade(program, file, name),
+    ];
   });
+  return program.projectionVersion instanceof CodeProjectionVersion
+    ? [...checks, codeUpgradeCheck(program)]
+    : [...checks, upgradeEvidence(upgrades)];
 }

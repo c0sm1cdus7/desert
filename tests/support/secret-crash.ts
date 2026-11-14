@@ -24,6 +24,7 @@ if (!home || !mode) throw new Error("Falta carpeta temporal");
 const kill = () => process.kill(process.pid, "SIGKILL");
 const options = {
   by: "fixture",
+  projectionVersion: "fixture/1",
   secretKeys: processKeys(home),
   words: vocabulary({}),
   slices: { initial: { vault: 0 }, step: { vault: (state: unknown) => Number(state) + 1 } },

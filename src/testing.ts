@@ -47,6 +47,7 @@ export {
   type AdapterMethod,
   type SecretResolver,
 } from "./programs/house-runtime.ts";
+export { renewKeptJournals } from "./programs/renew-kept.ts";
 export { programChecks } from "./programs/program-checks.ts";
 export { promisedChecks } from "./programs/promised.ts";
 export { currentCloses } from "./programs/answers/current.ts";

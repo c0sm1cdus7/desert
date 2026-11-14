@@ -21,6 +21,7 @@ const names = [
   "Credential",
   "CredentialOperations",
   "PublicPorts",
+  "renewKeptJournals",
   "count",
   "day",
   "digits",

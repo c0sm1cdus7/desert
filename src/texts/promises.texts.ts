@@ -2,6 +2,7 @@ import { closureTexts } from "./closures/closures.texts.ts";
 import { checkDiagnostics } from "./checks/diagnostics.texts.ts";
 // How the checks that a program's promises derive are named, and what they say when a case cannot even start.
 export const promiseTexts = {
+  keptUpgrades: (name: string) => `the journal kept as ${name} upgrades from previous folds to the complete replay`,
   ...checkDiagnostics,
   ...closureTexts,
   nonOpaqueInput: (slot: string) => `Entrada no opaca: ${slot}`,

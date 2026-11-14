@@ -164,7 +164,12 @@ export const paymentsTool: ProgramTool<Shop> = {
 };
 export const shopRegistry: ToolRegistry<Shop> = [salesTool, paymentsTool];
 /** The shop, whole: what its promises are checked on. */
-export const shopProgram = { words: shop, registry: [salesTool, paymentsTool], slices: shopSlices };
+export const shopProgram = {
+  projectionVersion: "shop/1",
+  words: shop,
+  registry: [salesTool, paymentsTool],
+  slices: shopSlices,
+};
 /** What the shop calls its tools where a person reads them, and how its country writes money and days. */
 export const shopWords: SurfaceWords = {
   sales: {

@@ -49,6 +49,7 @@ export const home = () => {
 function optionsFor(act: ToolAct<P>, changed: Partial<HouseOptions<P>>): HouseOptions<P> {
   return {
     by: "fixture",
+    projectionVersion: "fixture/1",
     secretKeys: new MemoryHouseKeys(),
     words,
     slices,

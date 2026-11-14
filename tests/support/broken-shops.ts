@@ -145,7 +145,26 @@ export const brokenShops: readonly Readonly<{
   {
     name: "a shop whose sales cannot be rebuilt from the journal alone",
     program: { ...shopProgram, slices: { ...shopSlices, step: { ...shopSlices.step, sales: forgetful } } },
-    fails: [told, again, paid],
-    because: ["The reading differs from the case", "Replaying the journal changes the state"],
+    fails: [
+      told,
+      again,
+      "sales · register · is refused anywhere but where it stands: on its tool, or on one of its things",
+      paid,
+      ...Array.from({ length: 11 }, (_, n) => `payments · receive · refuses what it does not ask for (${n + 1})`),
+      "payments · receive · is refused to who does not hold its tool",
+      "payments · receive · is refused without its target in view",
+      "payments · receive · is refused anywhere but where it stands: on its tool, or on one of its things",
+      ...[told, again, paid].map(keys),
+      ...[again, paid].map(check => `${check}, blocked choices`),
+      ...[again, paid].map(check => `${check}, no empty first choice`),
+      `${again}, hidden for who prefers not to see what cannot be done`,
+      ...[told, paid].map(check => `${check}, in Activity for the others until they open it`),
+      ...[told, paid].map(check => `${check}, and what it leaves is found by its name from any menu`),
+    ],
+    because: [
+      "The reading differs from the case",
+      "Replaying the journal changes the state",
+      "Reopened state differs from the complete journal fold",
+    ],
   },
 ];

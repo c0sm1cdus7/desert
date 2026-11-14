@@ -30,6 +30,7 @@ afterEach(() => {
 });
 const options: HouseOptions<Shop> = {
   by: "shop",
+  projectionVersion: "shop/1",
   words: shop,
   slices: shopSlices,
   creation: { admin: "ana", assignments: [] },

@@ -8,6 +8,7 @@ import { declaredAdapters } from "../adapters/declared/compose-adapters.ts";
 import { credentialJournal } from "../adapters/declared/credential-journal.ts";
 import { openSecretVault } from "../adapters/secrets/custody/open-secret-vault.ts";
 import { SqliteJournal } from "../adapters/storage/journal-store.ts";
+import { storageNotices } from "../adapters/storage/storage-notices.ts";
 import { privateDirectoryMode } from "../catalogs/levers.ts";
 import { Bus } from "../journal/bus.ts";
 import type { Emission } from "../journal/events.ts";
@@ -16,6 +17,8 @@ import { allowed } from "../house/house.ts";
 import type { SecretVault } from "../adapters/secrets/secret-vault.ts";
 import type { Program, State } from "../tools/tool-contract.ts";
 import type { HouseOptions } from "./house-runtime.ts";
+/** The bus of a running house: every fact is written to its journal as `kept` leaves it. What one act writes goes
+ * whole or not at all, and all of it happens at one instant: the one at which it began to be written. */
 function busOf<X extends Program>(
   journal: SqliteJournal<X["fact"]>,
   time: TimeSource,
@@ -93,7 +96,8 @@ export function houseResources<X extends Program>(home: string, options: HouseOp
   const compose = houseAdapters(options);
   const protection = protectedHouse(home, options);
   mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
-  const journal = new SqliteJournal(join(home, "journal.sqlite"), protection.words);
+  const notices = storageNotices();
+  const journal = new SqliteJournal(join(home, "journal.sqlite"), protection.words, notices.warn);
   const { credentials, secrets } = houseCustody(home, options, journal, time);
   const bus = busOf<X>(
     journal,
@@ -119,6 +123,7 @@ export function houseResources<X extends Program>(home: string, options: HouseOp
     stops,
     report,
     close,
+    notices,
   };
 }
 function closing(

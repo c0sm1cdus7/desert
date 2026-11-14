@@ -2,6 +2,8 @@
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import { withStops } from "./guards/answer-status.ts";
 import { currentField, markedCurrent, uniqueCurrent } from "./current-field.ts";
+import type { Walk, Running } from "./walk-state.ts";
+export type { Asking, Running, Done, Walk } from "./walk-state.ts";
 import type { Talk } from "./talk.ts";
 import { must } from "./window.ts";
 import type { Field, Option, Screen, Stack } from "./contract.ts";
@@ -16,48 +18,6 @@ type Finding = { readonly find?: string } & {
 export type Picture =
   | ({ readonly kind: "menu"; readonly at: number } & Finding)
   | ({ readonly kind: "view"; readonly tool: string; readonly target?: string; readonly at: number } & Finding);
-interface Walking {
-  readonly kind: "act";
-  readonly tool: string;
-  readonly act: string;
-  readonly target?: string;
-  readonly answers: readonly string[];
-  /** What was asked, as it was asked: an act can change what its questions would say now. */
-  readonly asked: readonly { readonly ask: string; readonly shown: string }[];
-  readonly pos: number;
-  /** The first question it asks: what comes before was fixed by the row that started it. */
-  readonly floor: number;
-  /** Where it stops asking, when it asks only part of what the act takes: the rest it already has. */
-  readonly until?: number;
-  readonly carried?: true;
-  /** Those answers, as they were when it began: what each datum is today, whatever is answered since. */
-  readonly was?: readonly string[];
-  /** It asks one datum and nothing else. */
-  readonly lone?: true;
-  readonly typed: string;
-  readonly caret: number;
-  readonly at: number;
-  readonly marks: readonly string[];
-  /** How many windows back of what the question says the person is reading, from its options. */
-  readonly read?: number;
-  readonly reading?: number;
-  /** What is written was there when the question opened: the first key written replaces it, any other edits it. */
-  readonly suggested: boolean;
-  readonly error?: string;
-  /** Only a result returned by an action that ran is an Error. */
-  readonly failed?: true;
-  /** In a question that picks a thing, the person is looking for it: what they type is what they look for. */
-  readonly finding?: true;
-  /** It was started from a question that picks a thing, to make a new one: what it makes answers that question. */
-  readonly returns?: true;
-}
-export type Asking = Walking & { readonly phase: "asking" };
-export type Running = Walking & { readonly phase: "running"; readonly since: number };
-export type Done = Walking & { readonly phase: "done"; readonly done: string; readonly doneAt?: string } & {
-  /** The thing it made, when it made one. */
-  readonly made?: string;
-};
-export type Walk = Asking | Running | Done;
 export type Place = Picture | Walk | Talk;
 /** The act a row starts: said even while the act is off, so anyone can tell which act the row stands for. */
 export type Starts = Readonly<{ tool: string; act: string; target?: string }>;
@@ -120,7 +80,7 @@ export function optionsOf(field: Field | null): readonly Option[] {
 }
 /** A field as it opens: an earlier answer wins over its initial value, so going back keeps what you wrote. A choice
  * opens on the option it already is. */
-type Opened = Pick<Walk, "typed" | "caret" | "at" | "marks" | "suggested">;
+type Opened = Pick<Walk, "typed" | "caret" | "at" | "marks" | "suggested" | "currency">;
 export const opened = (field: Field | null, answer?: string): Opened => {
   const value = answer ?? field?.initial ?? "";
   const typed = field?.kind === "text" || field?.kind === "secret" ? value : "";
@@ -129,6 +89,7 @@ export const opened = (field: Field | null, answer?: string): Opened => {
   const at = matched >= 0 ? matched : options.findIndex(option => !option.off);
   return {
     typed,
+    currency: field?.currency ?? "",
     caret: Array.from(typed).length,
     at,
     marks: field?.kind === "many" && value ? value.split(" · ") : [],
@@ -190,7 +151,7 @@ export function begin(tools: readonly Tool[], tool: string, act: string, target?
   const { next } = actOf(tools, bare);
   const asked = answers.slice(0, from).map((answer, index) => {
     const field = must(next(answers.slice(0, index)));
-    return { ask: field.ask, shown: maskOf(field, answer) };
+    return { ask: field.ask, shown: maskOf(field, answer), ...(field.currency ? { currency: field.currency } : {}) };
   });
   /** It asks one datum when it stops right after it, or when nothing but being sure comes after it. */
   const after = until === undefined ? next(answers.slice(0, from + 1)) : null;

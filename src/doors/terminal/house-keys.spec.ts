@@ -47,7 +47,10 @@ describe("a key that could have done nothing", () => {
     const full = await press(`vrs1\r${"9".repeat(13)}`);
     expect(full).toContain("› $ 99.999.999.999,99");
     expect(full.some(line => line.startsWith("Error"))).toBe(false);
-    expect(await press("9a")).toEqual(full);
+    const ignored = await press("9a");
+    expect(ignored.filter(line => line === "solo números")).toHaveLength(1);
+    expect(ignored.filter(line => line === "máximo $ 99.999.999.999,99")).toHaveLength(1);
+    expect(ignored.filter(line => !["solo números", "máximo $ 99.999.999.999,99"].includes(line))).toEqual(full);
   });
 
   it("finds a tool by its name from the Menu, before what each tool finds", async () => {

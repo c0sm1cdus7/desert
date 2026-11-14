@@ -26,7 +26,7 @@ function blocked<X extends Program>(
   target: string,
 ): readonly Expected[] {
   const ask = asking(aim.act.input, seat.words);
-  const field = ask.next(answers);
+  const field = ask.next(answers, target);
   const stops = (value: string) => aim.act.stops?.(ask.sofar([...answers, value]), seat.state(), target, seat.now());
   if (field?.kind === "one")
     return field.options.flatMap(option => {

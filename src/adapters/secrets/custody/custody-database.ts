@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { privateDatabase } from "../../storage/home.ts";
+import { sqliteFiles } from "../../storage/sqlite-files.ts";
 import { CustodyError } from "./house-keys.ts";
 import type { CredentialFact, CredentialLedger, CustodyRow, SecretRef } from "./custody-contract.ts";
 export class CustodyDatabase implements CredentialLedger {
@@ -130,6 +131,8 @@ export class CustodyDatabase implements CredentialLedger {
 /** Reject a populated legacy vault without a provider before taking a writable SQLite connection. */
 export function custodyPreflight(file: string, provider: boolean): void {
   if (file === ":memory:" || !existsSync(file)) return;
+  /** Like every storage file of the base, links in the vault or its siblings are refused before SQLite opens it. */
+  sqliteFiles(file);
   const db = new DatabaseSync(file, { readOnly: true });
   try {
     const tables = new Set(

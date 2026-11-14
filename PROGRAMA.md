@@ -32,7 +32,14 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   comparan motivos enteros en filas apagadas o bajo la pregunta. Un dato que no se puede escribir queda sin
   Enter, error ni motivo de la acción. También se prueba que todas las filas fijen una respuesta incompatible;
   sin esa evidencia positiva, una ruta ausente falla indicando la pregunta y la fila que queda abierta.
-  El programa no escribe ninguna de esas (`tests/program/program.checks.ts`).
+  El programa no escribe ninguna de esas: la base las reparte por posición en ocho archivos
+  (`tests/program/part-*.checks.ts`), también los recorridos de registros guardados. Cada comprobación corre una
+  sola vez y conserva su grupo y nombre. Al subir de base no se cambia la configuración: el patrón
+  `tests/program/**/*.checks.ts` ya encuentra todas las partes. El número vive en `tests/program/parts.ts`.
+  Para comparar una actualización, guardá antes y después `pnpm vitest list --staticParse=false --json=lista.json`:
+  compará los nombres completos como multiconjunto, sin la ruta del archivo ni el orden. Deben ser los mismos;
+  una parte sin comprobaciones agrega solamente «this part has no derived checks» bajo «derived checks».
+  El armado de la lista se repite en cada parte; no ejecuta las comprobaciones.
 
 ## Una acción
 
@@ -62,11 +69,60 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   El contexto trae `execute` para hacer otra acción por el mismo camino; su resultado amplio no se reenvía a ciegas.
 - Un campo lleva siempre máscara o placeholder y tope. Lo incompleto muestra la parte de la forma que falta en
   texto 3, dentro de la Entrada. Lo completo que `wrong` o `stops` no permite dice su motivo bajo la pregunta, en
-  texto 3, sin «Error» y sin `enter`. Enter no hace nada si no se ofrece; una tecla que no entra conserva el campo.
+  texto 3, sin «Error» y sin `enter`. Enter sobre un valor inválido agrega su motivo sin avanzar; una tecla que no entra conserva el campo.
   Un prefijo numérico como «0», que todavía puede crecer, no agrega «mínimo» ni «mayor a».
   «Error» en coral queda para el resultado de una acción que corrió.
+- `money(pregunta, mínimo, moneda)` conserva el dato como centavos enteros. El tercer argumento es opcional:
+  un símbolo (`"US$"`) o `(respondido, estado, destino, instante) => símboloOIndefinido`. Sin símbolo usa
+  `locale.currency`; conserva los separadores del país. Para tipar el estado, usar `money<State<MiPrograma>>(…)`
+  o una función cuyo segundo parámetro ya tenga ese tipo. La función recibe el estado actual y el destino de la
+  acción, como `among` y `stops`; puede usar la moneda elegida antes o buscar la venta/factura sobre la que actúa.
+  En una entrada `also`, la cosa elegida está en las respuestas que fija `also.with`; el destino sigue siendo
+  el de la acción. Dentro de objetos, listas y alternativas, recibe lo respondido antes en los niveles exteriores
+  y en el objeto actual; el nombre del nivel más cercano prevalece. No recibe campos todavía sin contestar.
+  El símbolo aparece en el campo vacío, al escribir, en sus límites, en el eco y en la fila del valor actual.
+  Las preguntas derivadas de los casos usan el estado y el destino de cada caso. `confirms` sigue siendo texto
+  del programa: debe usar esa misma decisión de moneda. La base no garantiza ese texto.
+  No hace falta envolver `next` para cambiar la máscara.
+  La base distingue monedas por su símbolo: dos monedas con el mismo símbolo son la misma para la base.
+  Todo importe se escribe y muestra con dos decimales; el dato guardado sigue siendo centavos enteros.
+  El símbolo, incluido el del país, ocupa de una a ocho columnas del pintor, sin marcas combinantes,
+  controles, saltos ni espacios al borde. `US$` ocupa tres columnas; `ＵＳ＄`, seis; `￥`, dos.
+  Un símbolo literal inválido impide componer las preguntas y el diagnóstico nombra la pregunta y el valor;
+  si es el del país, dice «Símbolo de moneda inválido para el país», seguido del valor.
+  Uno calculado se valida al resolverlo con el estado y destino reales,
+  también en las comprobaciones derivadas. Es un defecto del programa: la acción queda sin poder abrirse,
+  con el código del defecto, la pregunta y el símbolo visibles; las otras acciones de la herramienta siguen disponibles.
+  Si la moneda cambia, un importe escrito o propuesto se vuelve a preguntar vacío, sin convertir ni reutilizar
+  sus centavos. También se comprueba al escribir y al confirmar si cambió el estado. Volver atrás sin cambiar
+  la moneda conserva lo escrito. Si el estado cambia su moneda durante el recorrido, se dice «cambió la moneda».
+  Mostrar el importe vacío actualiza la sesión de ese dispositivo: aunque el símbolo vuelva antes de la
+  siguiente tecla, el valor anterior no reaparece. Una acción en vuelo conserva los centavos enviados;
+  si falla después de cambiar el símbolo, se ven el Error y «cambió la moneda», juntos.
+  Al vaciar por cambio de moneda se conservan el Error de la acción y los avisos de teclas descartadas,
+  y se agrega «cambió la moneda». Los motivos del valor se recalculan sobre el vacío en la moneda nueva:
+  desaparecen el mínimo, el tope o el motivo del programa que ya no correspondan. Si ya había un motivo de validación
+  guardado, se vuelve a validar el vacío como confirmado: un importe obligatorio dice «falta completar».
+  Si sigue correspondiendo un motivo del valor, se muestra actualizado, incluso junto al Error de la acción.
+  La memoria de una acción sigue siendo local: reiniciar el dispositivo la pierde.
 - Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, (respondido, instante) => …)`).
 - `holding(campo, (valor, instante) => motivoOIndefinido)` recibe el mismo reloj que `run`, `stops` y `among`.
+  Conserva los motivos que el campo ya tenía: primero comprueba el campo y después la regla agregada, solo si
+  el campo acepta. Por ejemplo, agregar una regla a `day` no permite guardar un día inexistente. Se pueden
+  encadenar reglas; se muestra el primer motivo que aplique, en el orden en que se agregaron.
+  Al Enter, todo valor inválido dice el motivo: «falta completar» si es obligatorio vacío, «día incompleto»,
+  «dígitos incompletos», el mínimo de caracteres o el límite numérico. Mientras se escribe, un prefijo que
+  puede completarse no molesta. Un campo opcional vacío sigue aceptando «nada».
+  Un carácter que el campo descarta dice por qué debajo de la pregunta, una sola vez por motivo distinto.
+  Borrar en vacío, mover el cursor o repetir cero sobre cero no borra motivos ni el Error anterior.
+  El cero que no agrega ningún dígito dice «cero inicial descartado». Sólo una edición que cambia el
+  valor limpia los avisos de edición; los motivos propios del valor se vuelven a comprobar.
+  El texto libre también explica el tope y los espacios iniciales o dobles. Un pegado conserva el
+  primer motivo interior hasta terminar ese pegado, después de recortar espacios y saltos de los bordes;
+  la siguiente edición que cambia el valor lo limpia. Un carácter permitido que excede el largo dice el tope. El valor
+  aceptado no cambia; un motivo anterior, incluido el Error de una acción fallida, sigue a la vista
+  con el aviso de la tecla debajo.
+  Un día inexistente dice eso antes de comprobar si es futuro.
   No usar `Date.now()` en esas reglas: el instante lo da la casa y los casos lo pueden fijar.
 - `day(pregunta, "today", "today")` limita la Entrada; la regla del programa contra fechas futuras va también
   en `stops` o `holding`, con su causa en `refuses`. Así se rechaza antes de `run` por cualquier puerta.
@@ -489,7 +545,8 @@ entorno, base de datos, red o procesos por su cuenta, ni recurrir a evaluación 
 o un import no literal se rechaza: no se supone seguro por no poder inspeccionarlo. Los imports públicos de la base
 son nombrados, según `tests/laws/secret-public-api.ts`; `testing.ts` no habilita sus fábricas para una herramienta.
 
-La compuerta de cada programa incluye `tests/program/secret-boundaries.checks.ts`: revisa las fuentes `.ts` de `src`,
+La compuerta de cada programa incluye una comprobación más entre sus ocho partes (`tests/program/registration.ts`,
+«tools cannot import secret custody, factories or direct I/O»), que corre una sola vez: revisa las fuentes `.ts` de `src`,
 excepto specs; `desert.program` nombra la composición y `src/adapters/` contiene los adaptadores confiables. Las
 herramientas y sus funciones viven separadas de ambos. Los alias vienen de `paths` de `tsconfig.json`. La base prueba
 además que un alias no agrega un resolvedor a los contratos públicos y que una fábrica no lo devuelve anidado.
@@ -576,12 +633,83 @@ Al actualizar un programa:
   estados posibles: las garantías derivadas de los casos siguen siendo obligatorias.
 - El único remedio que la base tiene hoy es no romper la lectura: un hecho que cambia de forma es un hecho nuevo, con
   otro nombre, y el viejo se sigue leyendo y plegando. No hay lectura versionada de un hecho viejo.
-- Ojo: una organización en uso guarda su estado plegado y lo vuelve a usar mientras el programa no cambie sus hechos
-  ni su estado inicial. Si cambia solo cómo pliega un hecho, la organización sigue con lo plegado antes: cambiar un
-  pliegue pide cambiar también el hecho (o el estado inicial) para que se vuelva a plegar todo.
+- Cada composición y apertura declara `projectionVersion`. Hay dos modos explícitos: un string no vacío es una
+  versión **manual**; `codeProjectionVersion(rutas, extensiones)` de `src/programs/calculation-version.ts` devuelve
+  una versión **de código**, con su declaración y huella calculadas por la base. No se elige el modo por el texto
+  del string. `projectionVersion(rutas, extensiones)` sigue disponible como huella string; usar ese string solo
+  constituye modo manual y conserva sus exigencias de evidencia.
+- En modo manual, cambiar un cálculo exige cambiar la versión. El control abre cada registro guardado sobre una
+  copia con sus plegados y compara estado completo y reloj con reconstruir. Informa **REUTILIZADO** o
+  **RECONSTRUIDO**, y el motivo real de la apertura. La misma decisión de compatibilidad sirve al control y a la
+  apertura. Además, tiene que haber **al menos un registro reutilizado por la candidata**: si ninguno se reutiliza,
+  incluso si falta la carpeta declarada, falla por falta de evidencia. Un plegado en secuencia cero no acredita
+  cálculos anteriores. Un formato anterior legible o plegados de dos
+  entregas atrás no acreditan esa reutilización. Los registros se renuevan con los plegados de **cada entrega**;
+  conservá la evidencia anterior durante su control, y renovala como parte de publicar esa entrega. Un cambio
+  deliberado de identidad necesita también evidencia reutilizable de esa identidad; no alcanza comparar dos
+  reconstrucciones. No regeneres a ciegas todos los registros con la candidata para hacer pasar el control.
+  Para renovar la entrega ya verificada usá `renewKeptJournals(program, carpeta)`, exportada por `src/testing.ts`.
+  Reconstruye y comprueba los plegados de todos sus registros, sin arranque, servicios ni hechos nuevos; devuelve
+  sus nombres. Una carpeta vacía falla. Conservá los registros anteriores hasta terminar el control de actualización.
+  Los auxiliares `*.writer.sqlite*`, `*.sqlite-wal`, `*.sqlite-shm` y `*.sqlite-journal` no son registros guardados:
+  excluilos del control de versiones de la carpeta de pruebas.
+- En modo de código no se exigen plegados reutilizables: los cambios dentro del código declarado cambian su
+  identidad y reconstruyen. El control modifica una copia del código, comprueba que cambia la huella y que esa
+  identidad reconstruye plegados reales; también funciona sin carpeta de registros guardados. Cada registro que sí
+  se guarda se compara con reconstruir y dice qué probó. Si el código cambió después de componer, el control falla:
+  componé una entrega inmutable. La base mantiene además su propia `baseProjectionVersion`.
+  `codeProjectionVersion` fija la primera huella de cada declaración de rutas y extensiones en el proceso:
+  componer de nuevo o abrir otra organización no vuelve a leer el código. Calculala al cargar la composición.
+  Desplegá reemplazando la entrega y reiniciando los procesos, nunca editando archivos debajo de uno que corre.
+  Si igual cambian, ese proceso conserva su primera huella; la compuerta compara contra los bytes actuales y falla.
+  El proceso siguiente toma la nueva huella y reconstruye. Cambiar archivos entre importar el cálculo y tomar
+  su primera huella queda fuera de este contrato: la entrega debe permanecer inmutable desde su carga.
+  La función de bajo nivel `projectionVersion` calcula los bytes actuales para verificaciones de la compuerta.
+- La huella cubre nombres relativos y bytes de **archivos regulares**, en orden fijo, más la versión de Node.
+  Por defecto admite `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`, `.mts` y `.cts`. Podés declarar otra lista de
+  extensiones para carpetas y archivos sueltos: `codeProjectionVersion([src, baseSrc, lockfile])`.
+  Un archivo suelto declarado entra cualquiera sea su extensión; un archivo privado o de almacenamiento se rechaza.
+  No lee el contenido de archivos ocultos; inspecciona metadatos de carpetas ocultas para detectar registros; las extensiones que no declaraste quedan afuera. Los archivos de pruebas
+  con extensiones declaradas sí participan. No sigue enlaces simbólicos ni acepta enlaces duros. Primero revisa
+  los metadatos de **toda** la declaración; si contiene un registro SQLite o está debajo de una organización,
+  falla antes de leer bytes. Nunca apuntes a una organización, a una carpeta de registros o a sus auxiliares.
+- Lo que el programa carga **fuera de los árboles o archivos declarados** no queda cubierto: dependencias instaladas
+  por enlaces, configuración, datos externos y cambios de zona horaria no entran solos. El archivo de versiones de
+  dependencias cubre sus bytes, no prueba que lo instalado coincida. Declarar archivos regulares adicionales sirve
+  para esos insumos; la zona horaria y las dependencias efectivamente cargadas deben quedar fijas en la entrega.
+  Incluí sus árboles reales si intervienen en los cálculos; no uses el repositorio entero como atajo.
+  La compuerta revisa imports locales, reexportaciones, `require`, imports dinámicos literales y alias `#` del código
+  declarado: si apuntan fuera de la huella (también a una carpeta oculta), falla nombrando el archivo. Un import
+  calculado que no puede enumerar también falla. Los archivos de pruebas entran en la huella pero no se examinan
+  como raíces de cálculos; si el cálculo los importa, sí se recorren sus dependencias. La composición declarada
+  en `desert.program` también debe estar incluida. Los paquetes externos siguen sujetos al contrato de la entrega.
+- Medición del 13/11/2026, Node 24.16.0, sobre `capibara-obra/src` y `capibara-obra/desert/src`:
+  tres procesos nuevos tardaron **109,60 / 46,13 / 46,12 ms** en la primera `codeProjectionVersion`;
+  repetirla con la misma declaración tardó **0,016–0,020 ms**, conservando la primera huella.
+  Es frío de proceso; frío de caché de disco del sistema: **no comprobado**. Como supera 50 ms, una mejora propuesta,
+  todavía no implementada, es calcular un manifiesto de hashes durante la construcción de la entrega inmutable,
+  empaquetarlo con ella y verificar la correspondencia de código y manifiesto antes de publicarla. No alcanza
+  cachear por fecha o tamaño ni confiar en un manifiesto de una carpeta que se pueda modificar después.
+- Los cálculos devuelven estado nuevo: **no modifican en el lugar el estado que reciben**, ni sus objetos, arrays,
+  mapas o conjuntos anidados. La compuerta derivada de casos, recorridos y registros guardados pliega los hechos
+  sobre estado congelado y verifica que el anterior siga igual. Un cálculo que lo modifica falla la compuerta.
+  El registro conserva además una copia de su marca de vuelta atrás: un reintento de una reconstrucción fallida
+  dentro de la misma instancia no duplica estado. Una reconstrucción fallida impide guardar plegados durante toda
+  esa instancia, aun si un reintento termina bien; una instancia nueva puede reconstruir y guardar normalmente.
 
 ## Un objeto
 
+- La ventana `recentLines` limita las filas recientes que la herramienta entrega para listar; no define qué
+  objetos existen. `targets` sigue declarando todos los objetos, y un objeto anterior se puede nombrar, buscar,
+  elegir y abrir desde Atención, Actividad, una referencia o una acción aunque ya no esté entre esas filas.
+- Para resolver nombres, la base pide la lectura completa con `recentLines: Number.MAX_SAFE_INTEGER` y arma
+  un índice compartido por herramienta, versión del estado e instante de lectura. `houseRouter` fija ese instante
+  durante cada pintado o intención; un nuevo estado o instante renueva el índice. La búsqueda usa la misma lectura.
+  Los datos propios de `itself` siguen separados de las filas de objetos. No cambia lo guardado ni hace falta
+  adaptar las herramientas: la lectura completa ya era la que usaba la búsqueda.
+- Que el objeto no exista, o que falte su nombre en la lectura completa, sigue siendo un defecto o una ausencia
+  explícita según la entrada; no se inventa un nombre para ocultarlo. El listado reciente no agrega filas antiguas
+  con identificadores usados como nombres. El recorte visual por altura sigue dejando recorrer las filas listadas.
 - La herramienta declara en `presents` los grupos de sus objetos, en orden, cada uno con su título, lo que dice
   vacío y las claves de la lectura que lleva. `view(estado, objeto)` devuelve en su primera línea un JSON con esas
   claves. La base dibuja el objeto: los grupos siempre en el mismo lugar, el vacío dicho, las acciones al final.
@@ -634,9 +762,8 @@ Al actualizar un programa:
   La base todavía no lo comprueba.
 - Una devolución de plata sin cosas y un rechazo que deje escrito lo que contestó el fisco: pedidos de Capibara que
   hoy se resuelven del lado del programa.
-- Un importe que se escribe en otra moneda: la máscara de plata muestra siempre el signo del país («$»), aunque la
-  respuesta anterior, o la cosa elegida, diga dólares. Y, en general, un valor sugerido o una forma de campo que
-  dependan de una respuesta anterior o del estado (la cantidad que queda por devolver de ESE artículo).
+- Un valor sugerido o una forma de campo, fuera de la moneda de `money`, que dependan de una respuesta anterior
+  o del estado (la cantidad que queda por devolver de ESE artículo).
 
 ## Las casas temporales de las pruebas
 
@@ -700,3 +827,85 @@ Se suman los tipos `ViewLimits`, `HouseState`, `TimeSource`, `Catalog`, `Event`,
 `SurfacePorts`, `ScreenActs`, `Start`, `Locale`, `ViewRow`, `RunResult`, `Also`, `Need`, `Offered`, `Told`,
 `ActContext`, `ActResult` y `Slices`. Para evitar dos nombres iguales, `House` es la casa de pruebas y `HouseState`
 es el estado de la organización; `padded` declara el campo y `paddedMask` arma su formato de escritura.
+
+La configuración de Vitest de quien usa la base debe incluir `desert/tests/program/setup.ts` en `globalSetup`
+del proyecto que ejecuta las ocho partes. El coordinador resume una vez sus grupos y nombres en orden, incluyendo
+repeticiones; cada parte compara su lista con ese resumen antes de registrar pruebas. Si cambió, falla esa parte.
+Una carpeta `desert.journals` nombrada vacía o inexistente falla en ambos modos, contando registros regulares,
+no controles ni auxiliares. Cada registro aporta apertura, recorrido y actualización; el paso de tres posiciones
+reparte los nueve recorridos 1/1/2/1/1/1/1/1 entre las ocho partes, sin cambiar sus nombres.
+
+## Un solo escritor y recuperación del estado
+
+Una organización abre una sola vez por almacenamiento, aunque se llegue por un enlace simbólico, una ruta
+relativa, otro hilo u otro proceso. Otro escritor recibe `WriterAlreadyOpen` (`WRITER_ALREADY_OPEN`), con el rechazo habitual y no altera al que ya está abierto.
+El lector de hechos puede seguir leyendo. Se rechazan enlaces duros y enlaces simbólicos colgantes; las bases
+en memoria siguen siendo independientes. Dos archivos distintos también son independientes dentro de una carpeta.
+
+Para subir desde la versión anterior hay que detener **todos** los procesos que usan la organización y recién
+entonces actualizar y abrir. No se admite mezclar versiones en ejecución. No cambia ningún hecho ni hace falta
+cambiar el vocabulario o los pliegues por A03. La primera apertura reconstruye los plegados del formato anterior:
+recupera lo que el registro conservó aunque el estado guardado estuviera incompleto, sin repetir las acciones.
+
+La toma exige una escritura SQLite real en el auxiliar, dentro de la transacción que se mantiene hasta cerrar.
+Si el auxiliar o su carpeta no permiten escribir, SQLite se queda sin espacio, está dañado o es un enlace, abrir
+falla con `WriterLeaseUnavailable` (`WRITER_LEASE_UNAVAILABLE`, con la causa original). No se cambian sus permisos
+para arreglarlo. Un auxiliar nuevo se crea con modo `600` mediante SQLite (`modeof`), sin abrirlo con funciones de archivos.
+También se rechazan enlaces y archivos no regulares en sus vecinos `-journal`, `-wal` y `-shm`,
+antes de que SQLite los abra; la misma revisión protege las entradas del registro y de la apertura privada. Se exige un archivo regular sin enlaces duros y se fija el modo de journal del auxiliar a DELETE;
+no se acepta que `BEGIN IMMEDIATE` sobre una conexión de solo lectura aparente haber tomado la exclusión.
+Un vecino con cero enlaces está siendo borrado y se considera ausente, no un enlace inválido.
+El sistema libera la exclusión si el dueño muere, incluso con SIGKILL. No hay que borrar candados ni buscar un
+PID. El archivo auxiliar `journal.sqlite.writer.sqlite` debe permanecer junto al registro: no se borra para
+abrir. Borrar ese archivo con la organización abierta rompe la exclusión; reemplazarlo también. Otro proceso
+podría tomar el archivo nuevo. Antes de escribir y antes de confirmar una transacción, el dueño comprueba que
+la ruta conserva el mismo archivo regular, sin enlaces duros, dispositivo, inodo e instante de creación: si no, rechaza con `WriterLeaseLost`, código
+`WRITER_LEASE_LOST`, revierte la transacción y deja de escribir durante toda esa instancia. El cierre libera
+recursos, sin guardar plegados, y también informa esa pérdida. Renombrar la carpeta de una organización abierta
+hace que el dueño deje de escribir con ese error; cerrá antes de moverla. Hay que cerrar y volver a abrir. Esta comprobación
+no autoriza a modificar archivos mientras la organización está abierta ni sincroniza cambios externos a SQLite.
+
+Un proceso que abre por su cuenta el archivo de la exclusión con funciones de archivos (leerlo o copiar la
+carpeta de una organización abierta) suelta su propia exclusión POSIX. La base nunca lo hace. Para copiar el
+registro de una organización abierta usá `copyJournal(origen, destino)` de `src/adapters/storage/copy-journal.ts`:
+la copia de SQLite incluye lo confirmado en WAL. No uses `readFile`, `copyFile` ni `cp` sobre el auxiliar.
+Si igual ocurre y otro escribe, el dueño detecta el avance del registro dentro de su próxima transacción:
+lanza `WriterLeaseLost`, esa escritura no deja nada y la instancia no vuelve a escribir ni guarda plegados.
+También lo informa si encuentra otra transacción de escritura ocupando el registro. La pérdida por lectura ajena
+no es observable por la identidad del archivo antes de que otro tome la escritura; no se promete detectarla al leer.
+
+`journal.lock` ya no es un puente: no se crea ni se lee. Uno anterior se ignora y se borra después de tomar la
+exclusión del auxiliar; el cierre no lo toca. Este cambio de contrato modifica a propósito las pruebas y los
+papeles que antes exigían el puente. Actualizar sigue exigiendo detener todos los procesos.
+
+Los plegados guardados tienen formato 4 y se aceptan en un solo punto (`journal/snapshot-format.ts`). Cada
+registro recibe una identidad propia persistente al nacer; uno anterior la recibe en su primera apertura de escritura
+o mantenimiento con esta versión. Cada plegado lleva esa identidad: copiar solo un plegado de otra organización obliga a reconstruir.
+Una copia completa del registro conserva su identidad, y se puede mover o restaurar sin perderla.
+Un formato incompatible o una secuencia inválida obliga a reconstruir el grupo entero. Un salto al plegar aborta
+toda la escritura; el grupo se guarda en una transacción después de restaurarse. La identidad de cálculos incluye
+la versión del programa y de la base, además del vocabulario y los iniciales. Un plegado sin esas identidades se
+reconstruye una vez. El sobre lleva SHA-256 de los bytes serializados del plegado completo: si falta o no coincide,
+se descarta, se reconstruye y se avisa. Los plegados de formato 3 sin suma se reconstruyen una vez.
+Una suma de control detecta daño, no autentica archivos: alterar el estado y recalcular también su suma a propósito
+sigue fuera de lo garantizado en ejecución; la comparación de la compuerta contra el registro sí lo detecta.
+
+Cada descarte dice el nombre del plegado y el motivo: formato anterior o desconocido, bytes ilegibles, secuencia
+inválida o adelantada, otro registro, cálculos distintos, nombre retirado o un grupo dependiente incompleto.
+Son avisos `SAVED_FOLD_REBUILT`, no fallas. Durante el arranque salen por la salida de diagnósticos (stderr,
+`StorageNotice`) y quedan disponibles en `house.storageNotices()`, en la instancia que abrió. No son hechos,
+no escriben `tool-entry` ni agregan historia por reconstruir. Diez aperturas del almacenamiento, alternando
+identidades, dejan exactamente los mismos hechos. El arranque de `startHouse` conserva su hecho de ciclo de vida
+`boot`, independiente de los avisos; también siguen siendo hechos los resultados reales de las herramientas.
+Los pares de estado y reloj se conservan por identidad dentro de la misma versión de cálculos: cada identidad
+reconstruye la primera vez y después retoma desde su último hecho, aunque otras hayan abierto en el medio.
+No se comparten estados calculados para personas distintas. Un cambio de versión retira los pares anteriores.
+Una apertura sin descartes no repite el aviso. Quien usa `SqliteJournal` directamente recibe stderr o pasa un
+receptor de diagnósticos como tercer argumento.
+
+Solo SQLite abre y cierra los archivos del auxiliar, del registro y de la bóveda. Las comprobaciones de registros
+conservados también copian mediante SQLite, incluyendo WAL, sin abrir descriptores propios sobre el registro.
+
+Las pruebas derivadas de cada caso y recorrido comparan estado completo y reloj tras cerrar y abrir con otra
+apertura después de borrar los plegados guardados. Los registros conservados hacen esa comparación antes de
+recorrerlos; el archivo auxiliar del escritor no se toma como un registro conservado.

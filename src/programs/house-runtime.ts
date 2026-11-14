@@ -1,20 +1,21 @@
+import type { CalculationVersion } from "./calculation-version.ts";
 import { houseResources } from "./house-resources.ts";
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
 import { defectReporter } from "../tools/failures/defect-reporter.ts";
 import type { HouseKeyProvider } from "../adapters/secrets/custody/house-keys.ts";
 import { type ViewLimits } from "../catalogs/levers.ts";
 import { createHouse, identityView, type Creation } from "../house/house.ts";
-import { clockStep, startClock, systemTime, type Deadlines, type TimeSource } from "../journal/clock.ts";
+import { startClock, systemTime, type TimeSource } from "../journal/clock.ts";
 import { effect, type Vocabulary } from "../journal/events.ts";
-import { shapeOf } from "../journal/projections.ts";
+import { houseProjections, requireProjectionVersion } from "./house-projections.ts";
 import type { HousePorts } from "../surface/bridge/house-ports.ts";
 import type { Execution } from "../tools/execute.ts";
 import type { Program, Slices, ToolRegistry } from "../tools/tool-contract.ts";
-import { startState, startTools, toolsStep } from "../tools/tools.ts";
+import { startTools } from "../tools/tools.ts";
 import type { AdapterComposition } from "../adapters/declared/adapter-contract.ts";
 /** What a program hands a house to live in it: its vocabulary, its tools, and what each of them keeps. */
 export type HouseOptions<X extends Program> = AdapterComposition &
-  Readonly<{ by: string; creation: Creation }> &
+  Readonly<{ by: string; projectionVersion: CalculationVersion; creation: Creation }> &
   Readonly<{ words: Vocabulary<X["fact"]>; registry: ToolRegistry<X>; slices: Slices<X> }> &
   Partial<Pick<Execution<X>, "own" | "process">> &
   Readonly<{ secretKeys?: HouseKeyProvider }>;
@@ -22,28 +23,24 @@ export type HouseOptions<X extends Program> = AdapterComposition &
 function ownerless<X extends Program>({ slices, registry }: HouseOptions<X>): string[] {
   return Object.keys(slices.step).filter(part => !registry.some(tool => tool.id === part));
 }
-/** The bus of a running house: every fact is written to its journal as `kept` leaves it. What one act writes goes
- * whole or not at all, and all of it happens at one instant: the one at which it began to be written. */
 export function startHouse<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource = systemTime) {
-  const { by, words, registry, slices, creation } = options;
+  requireProjectionVersion(options.projectionVersion);
+  const { by, registry, creation } = options;
   const ports = {
     ...(options.own ? { own: options.own } : {}),
     ...(options.process ? { process: options.process } : {}),
   };
   if (!by) throw new Error("An explicit identity is required");
   if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
-  const { capabilities, protection, journal, secrets, bus, stops, report, close } = houseResources(home, options, time);
+  const { capabilities, protection, journal, secrets, bus, stops, report, close, notices } = houseResources(
+    home,
+    options,
+    time,
+  );
   try {
     protection.mark();
-    /** What a house keeps between runs came from one shape of its program: the facts it reads, and where its state
-     * starts. Kept under that shape, another shape of the program folds the journal again from its first fact. */
-    const shape = shapeOf(JSON.stringify(words.event), startState<X>(slices, by));
-    const clock = journal.watch<Deadlines>(`clock@${shape}`, new Map(), clockStep);
-    const state = journal.watch(`tools:${by}@${shape}`, startState<X>(slices, by), (state, event) =>
-      toolsStep<X>(state, event, slices),
-    );
+    const { state, clock } = houseProjections(journal, options);
     protection.attach(secrets, state);
-    journal.restore();
     const tools = startTools({
       ...ports,
       ...capabilities(state),
@@ -56,7 +53,7 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     if (!state().house.admin) createHouse(bus, creation);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
-    return { bus, journal, tools, registry, close, now: () => time.now() };
+    return { bus, journal, tools, registry, close, storageNotices: notices.read, now: () => time.now() };
   } catch (error) {
     report(error, "program", "program", "start");
     close();

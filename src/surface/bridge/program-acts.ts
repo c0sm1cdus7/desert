@@ -18,10 +18,10 @@ export const menuTarget = (target: string, menu: string): string => `${target}#$
 export { capital } from "./actions/asked-act.ts";
 type Walked<X extends Program> = ReturnType<typeof walked<X>>;
 /** What a thing has today as its row shows it: each answer in the shape of its field. */
-const shownOf = (ask: Asking, answers: readonly string[], from: number, until: number): string =>
+const shownOf = (ask: Asking, answers: readonly string[], from: number, until: number, target: string): string =>
   answers
     .slice(from, until)
-    .map((answer, index) => maskOf(ask.next(answers.slice(0, from + index)), answer))
+    .map((answer, index) => maskOf(ask.next(answers.slice(0, from + index), target), answer))
     .filter(Boolean)
     .join(" · ");
 /** The row that starts one act of a thing. Given what the thing has today, the act opens on it; and it may ask
@@ -44,7 +44,8 @@ const starter =
       throw new OutsideDefect(
         new Error(`A row starts ${name} of ${tool} asking nothing, and the act does not ask to be confirmed`),
       );
-    const detail = how.detail ?? shownOf(ask, answers, from, until ?? answers.length);
+    const detail =
+      how.detail ?? shownOf(ask, answers, from, until ?? answers.length, act.on === "tool" ? tool : target);
     return { ...row, detail, with: { answers, from, ...(until === undefined ? {} : { until }), today: true } };
   };
 /** Each menu of the tool among a thing's actions: off while nothing under it can be done, saying why. */

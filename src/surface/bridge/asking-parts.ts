@@ -1,4 +1,5 @@
 // What asking an act and reading its answers share: how a declared field says its question, its options and its value.
+import { moneyQuestion, type MoneyContext } from "./currency/money-question.ts";
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { addresses } from "../../catalogs/addressing.ts";
@@ -19,7 +20,8 @@ export type Things = Readonly<{
 }>;
 /** What asking needs beyond the declaration: the formats of the program's country, the marks of an optional field
  * and of picking nothing, and the things of each tool that an answer can pick. */
-export type AskWords = Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string }> &
+export type AskWords = MoneyContext &
+  Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string }> &
   Readonly<{
     things?: (tool: string) => Things | undefined;
     secret?: (material: string, position: number) => string;
@@ -102,32 +104,48 @@ function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   return { ask: asked(word(schema, "title")), kind: "pick", of, found, shown, valid, nothing };
 }
 /** A numeric prefix below the minimum can still grow: only a complete value gets a reason. */
-function numericReason(schema: TSchema, ctx: Ctx, typed: string): string | undefined {
+function numericReason(schema: TSchema, ctx: Ctx, typed: string, submitted: boolean): string | undefined {
   const value = valueOf(schema, ctx, typed);
   if (typeof value !== "number") return undefined;
   const format = formatOf(schema, ctx);
   const said = (limit: number): string => format?.shown(format.typed(limit)) ?? String(limit);
   const most = at(schema, "maximum");
   if (typeof most === "number" && value > most) return generic.lacks.most(said(most));
-  if (!format || Array.from("0123456789").some(digit => format.put(typed, digit) !== typed)) return undefined;
+  if (!submitted && (!format || Array.from("0123456789").some(digit => format.put(typed, digit) !== typed)))
+    return undefined;
   const least = at(schema, "minimum");
   const above = at(schema, "exclusiveMinimum");
   if (typeof least === "number" && value < least) return generic.lacks.least(said(least));
   if (typeof above === "number" && value <= above) return generic.lacks.above(said(above));
   return undefined;
 }
+/** A submitted value that cannot satisfy its field says what still needs completing. */
+function invalidReason(schema: TSchema, ctx: Ctx, typed: string, submitted: boolean): string | undefined {
+  const value = valueOf(schema, ctx, typed);
+  const numeric = numericReason(schema, ctx, typed, submitted);
+  if (numeric !== undefined || !submitted) return numeric;
+  if (typed.trim() === "") return generic.lacks.missing;
+  if (at(schema, "mask") === "day") return generic.lacks.day;
+  if (at(schema, "mask") === "digits") return generic.lacks.digits;
+  const least = at(schema, "minLength");
+  if (typeof least === "number" && typeof value === "string" && Array.from(value).length < least)
+    return generic.lacks.least(generic.lacks.characters(least));
+  return generic.lacks.shape;
+}
+/** A secret is checked as typed: its material never becomes a value outside the private handoff. */
+const secretField = (schema: TSchema, ctx: Ctx): Field => ({
+  ask: titleOf(schema, ctx),
+  kind: "secret",
+  valid: typed => (ctx.optional && typed === "") || Value.Check(schema, typed),
+  wrong: typed => {
+    if (!Value.Check(schema, typed)) return undefined;
+    const reason = wrongIn(schema, valueOf(schema, ctx, typed), ctx.now());
+    return ctx.cause ? ctx.cause(reason) : reason;
+  },
+});
 export function written(schema: TSchema, ctx: Ctx): Field {
-  if (schema.secret === true)
-    return {
-      ask: titleOf(schema, ctx),
-      kind: "secret",
-      valid: typed => (ctx.optional && typed === "") || Value.Check(schema, typed),
-      wrong: typed => {
-        if (!Value.Check(schema, typed)) return undefined;
-        const reason = wrongIn(schema, valueOf(schema, ctx, typed), ctx.now());
-        return ctx.cause ? ctx.cause(reason) : reason;
-      },
-    };
+  if (schema.secret === true) return secretField(schema, ctx);
+  ctx = moneyQuestion(schema, ctx);
   const of = at(schema, "of");
   if (typeof of === "string") return picked(schema, ctx, of);
   const format = formatOf(schema, ctx);
@@ -139,17 +157,26 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   /** A day that already happened is not after today, as the program's country counts its days. */
   const late = (value: unknown): boolean =>
     at(schema, "last") === "today" && typeof value === "string" && value > ctx.today();
-  const wrong = (typed: string): string | undefined => {
+  const wrong = (typed: string, submitted = false): string | undefined => {
     const value = valueOf(schema, ctx, typed);
-    if (!valid(typed)) return numericReason(schema, ctx, typed);
-    if (late(value)) return generic.future;
+    if (!valid(typed)) return invalidReason(schema, ctx, typed, submitted);
     const reason = wrongIn(schema, value, ctx.now());
+    if (reason === undefined && late(value)) return generic.future;
     return ctx.cause ? ctx.cause(reason) : reason;
   };
   /** What a person writes has a top: a number without one, or a text without a length, is a defect. */
   const numeric = at(schema, "type") === "integer" || at(schema, "type") === "number";
   if (format && numeric && typeof at(schema, "maximum") !== "number") throw new Error(`The field ${ask} has no top`);
-  if (format) return { ask, valid, wrong, kind: "text", mask: format, ...initial };
+  if (format)
+    return {
+      ask,
+      valid,
+      wrong,
+      kind: "text",
+      mask: format,
+      ...(format.currency === undefined ? {} : { currency: format.currency }),
+      ...initial,
+    };
   if (at(schema, "type") !== "string") throw new Error(`The field ${ask} has no format and is not text`);
   /** A datum with a shape takes only what fits it: declared as free text, any key would go in. */
   if (at(schema, "pattern") !== undefined && at(schema, "plain") !== true)
