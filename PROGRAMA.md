@@ -347,7 +347,9 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
 - `secret: true` en un campo string garantiza la posición declarada por estructura: al escribir una acción o
   un hecho, esa posición lleva una referencia `secret:<UUID>`. Vale para vacío, una letra, cualquier largo,
   vocabulario y multilínea. La entrada original se valida antes de escribir hechos; al leer se admiten referencias
-  aunque excedan el largo o patrón original. Dos escrituras del mismo valor reciben referencias distintas, también
+  aunque excedan el largo o patrón original. La apertura común `houseJournal` se usa en la casa viva,
+  la comparación final de casos, la lectura de conservados, su renovación, las subidas y el mantenimiento.
+  Dos escrituras del mismo valor reciben referencias distintas, también
   dentro de una acción y después de reiniciar. Las referencias ya escritas se conservan al releer.
 - No hay búsqueda ni reemplazo de repeticiones literales. Un secreto «a» no altera «banana», «ana», los nombres
   del vocabulario ni los mensajes de la base. Una acción solo puede copiar o transformar la referencia recibida,
@@ -363,20 +365,37 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   Los esquemas de ejecución validan referencias en esas posiciones; largo y patrón originales se aplican al
   material en el ingreso. Un texto escrito que parece `secret:<UUID>` es material nuevo, nunca autorización.
 - La pregunta secreta pertenece a la base: oculta teclas y pegados con marcas, conserva espacios y varios
-  renglones y muestra puntos al volver o confirmar. `holding` recibe la referencia; si necesitás comprobar
+  renglones y muestra puntos al volver o confirmar. Al Enter, un secreto inválido dice «falta completar»,
+  «mínimo N caracteres», «máximo N caracteres» o «formato inválido», calculado por largo y esquema sin generar
+  referencias ni repetir el material. Un opcional vacío avanza. El editor secreto no tiene tope de ingreso:
+  conserva entero lo pegado para no cortar una credencial en silencio; el máximo del esquema impide avanzar y
+  se explica al Enter. Se puede borrar y corregir sin volver a pegar.
+  `holding` recibe la referencia; si necesitás comprobar
   contenido, hacelo en un adaptador declarado. Antes de ejecutar, las referencias de preguntas son provisionales
   en memoria y no resuelven custodia. Cancelar o cerrar no deja material en disco. Solo `submit` arma un
   traspaso privado de un uso al motor; `input`, condiciones y confirmaciones nunca llevan ese traspaso.
+- Conservados con secretos (H6): leer y comparar referencias ya respeta el esquema protegido, pero abrir la casa
+  conservada para sus recorridos sigue sin proveedor ni material de custodia. Sigue fallando con
+  `E-CUSTODY-PROVIDER`; pasar llaves sintéticas no reconstruye los lotes firmados originales. El modo de inspección
+  o el traslado de custodia sintética sigue pendiente de la decisión de quien dirige la obra; este paso no lo cambia.
 - `programChecks` deriva una comprobación por acción secreta, ejecuta todos sus casos y observa la frontera
   real. Cada posición, opcional, elemento de lista y rama necesita al menos un caso ejecutado con referencia;
   una posición sin cobertura falla. Retirar la sustitución hace fallar el centinela de la compuerta.
 - Los plegados en memoria y guardados conservan las referencias de los hechos. La invalidación de plegados de
-  versiones anteriores depende de la versión de su formato, fuera de esta protección.
+  versiones anteriores depende de la versión de su formato, fuera de esta protección. Al abrir, la vigilancia y
+  restauración de los plegados preceden a cualquier limpieza de la custodia: recuperar material huérfano conserva
+  los pares de estado y reloj de otras identidades de la misma versión y no avisa un cambio de cálculo inexistente.
 - Al abrir sin marca, o con una marca válida de versión 1, la base revisa acciones **y hechos del programa** con
   los esquemas actuales, antes de abrir la bóveda, restaurar plegados o agregar un arranque. Un valor en una posición
   secreta impide abrir: `E-SECRET-HISTORY` nombra acción o tipo de hecho, posición y número de hecho, nunca el valor.
   No modifica los bytes del registro ni de la bóveda. La conexión de lectura SQLite puede crear los auxiliares
   `journal.sqlite-shm` (índice compartido) y `journal.sqlite-wal` vacío; eso no agrega hechos ni cambia la bóveda.
+- Ventana pendiente de la revisión histórica (H4): hoy se revisa con un lector antes de tomar la exclusión de
+  escritor. Si una versión anterior escribe material en claro y cierra justo entre esa revisión y la adquisición,
+  la nueva puede marcar versión 2 sin haber visto ese último hecho; las aperturas siguientes omiten la revisión.
+  La exclusión posterior no hace segura esa ventana. Hasta cerrar este punto, detener la versión anterior antes de
+  abrir la nueva sobre la misma casa. Falta mover la revisión bajo la exclusión o volver a verificar antes de marcar,
+  conservando el rechazo sin modificaciones de la historia. Este paso documenta la ventana; no la corrige.
 - Si no encuentra valores deja una marca versión 2: `reviewed` cuenta acciones revisadas, `reviewedFacts` hechos
   del programa revisados y `unreviewable` acciones sin declaración disponible. Lo no revisable no frena la apertura
   ni se certifica limpio. Una casa nueva empieza con las tres cuentas en cero. Una marca ilegible o de formato
@@ -495,6 +514,11 @@ no cambia vínculos; la recolección espera al commit. Ni la custodia ni la bóv
   El ancla tiene 81 bytes constantes (contador hexadecimal de 16 dígitos, separador y autenticador de 64).
   El ejecutor recibe `{ timeout: 5000 }`, entrada y salida en búferes. `systemKeychainCommand` es optativo;
   nunca se elige solo. `-U` se usa únicamente para metadata pública, nunca para sobrescribir llaves.
+- La casa comprueba su exclusión antes de pasar una emisión a custodia y antes de cada operación de una sesión
+  de custodia, incluidos los adaptadores ya abiertos. Si el auxiliar fue borrado o reemplazado, falla con
+  `WRITER_LEASE_LOST` antes de retener material o crear su llave; cerrar sigue liberando los recursos.
+  Un `CredentialLedger` propio puede ofrecer `check()` para imponer la exclusión de su registro antes de operar.
+  `startHouse` y `maintainHouseCustody` lo conectan; la custodia independiente conserva su contrato anterior.
 - Los `CredentialLedger` propios deben implementar `appendBatch` atómico. Si participan de una transacción externa,
   `pending()` dice que todavía no confirmó y `afterCommit` se ejecuta solo tras el commit, nunca tras rollback.
   `startHouse` ya lo conecta. Tanto acciones como `bus.together` de un arranque reúnen los vínculos en un solo

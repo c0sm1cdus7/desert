@@ -1,7 +1,7 @@
 // Append-only facts; replay folds the complete journal without publishing effects.
 import { ProjectionGroup } from "../../journal/projections.ts";
 import { snapshotEvery } from "../../catalogs/levers.ts";
-import { factOf, derivedId, stored } from "./journal-record.ts";
+import { factOf, derivedId, stored, readFact } from "./journal-record.ts";
 export { derivedId } from "./journal-record.ts";
 import { storageIdentity } from "./storage-identity.ts";
 import { journalIdentity } from "./journal-identity.ts";
@@ -13,6 +13,7 @@ import { privateDatabase } from "./home.ts";
 import { DatabaseSync } from "node:sqlite";
 import type { Emission, Event, Foreign, Vocabulary } from "../../journal/events.ts";
 import { journalTexts } from "../../texts/journal.texts.ts";
+/** The storage layout belongs to the same envelope decoded by journal-record. */
 const schema = `
   create table if not exists events (
     seq integer primary key, id text not null unique, at integer not null,
@@ -23,6 +24,7 @@ const schema = `
   create trigger if not exists events_no_update before update on events begin select raise(abort, 'append-only'); end;
   create trigger if not exists events_no_delete before delete on events begin select raise(abort, 'append-only'); end;
 `;
+
 /** A journal another process may be writing, read without its lock: the events after a sequence, oldest first. */
 export function journalReader<P extends Foreign>(file: string, words: Vocabulary<P>) {
   const db = new DatabaseSync(storageIdentity(file), { readOnly: true });
@@ -75,6 +77,10 @@ export class SqliteJournal<P extends Foreign = Foreign> {
       }
       throw error;
     }
+  }
+  /** Check ownership before another house store starts a write. */
+  check(): void {
+    this.lease.check();
   }
   restoration() {
     return {
@@ -133,16 +139,8 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   replay<S>(initial: S, reduce: (state: S, event: Event<P>) => S, after = 0): S {
     let state = initial;
     for (const row of this.db.prepare("select * from events where seq > ? order by seq").iterate(after))
-      state = reduce(state, this.readRow(row));
+      state = reduce(state, readFact(this.words, row));
     return state;
-  }
-  /** A fact this program does not read stops the house where it is found, named: it is never skipped. */
-  private readRow(row: Readonly<Record<string, unknown>>): Event<P> {
-    try {
-      return this.words.read(factOf(row));
-    } catch {
-      throw new Error(journalTexts.unreadable(Number(row.seq), String(row.kind)));
-    }
   }
   watch<S>(name: string, initial: S, reduce: (state: S, event: Event<P>) => S, identity = ""): () => S {
     const row = this.db.prepare("select state from snapshots where name = ?").get(name);

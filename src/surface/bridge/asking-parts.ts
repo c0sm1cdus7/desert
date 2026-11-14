@@ -132,13 +132,24 @@ function invalidReason(schema: TSchema, ctx: Ctx, typed: string, submitted: bool
     return generic.lacks.least(generic.lacks.characters(least));
   return generic.lacks.shape;
 }
+/** Invalid secret material yields only schema bounds, never a reference or its contents. */
+function secretReason(schema: TSchema, typed: string): string {
+  if (typed === "") return generic.lacks.missing;
+  const length = Array.from(typed).length;
+  if (typeof schema.minLength === "number" && length < schema.minLength)
+    return generic.lacks.least(generic.lacks.characters(schema.minLength));
+  if (typeof schema.maxLength === "number" && length > schema.maxLength)
+    return generic.lacks.most(generic.lacks.characters(schema.maxLength));
+  return generic.lacks.shape;
+}
 /** A secret is checked as typed: its material never becomes a value outside the private handoff. */
 const secretField = (schema: TSchema, ctx: Ctx): Field => ({
   ask: titleOf(schema, ctx),
   kind: "secret",
   valid: typed => (ctx.optional && typed === "") || Value.Check(schema, typed),
-  wrong: typed => {
-    if (!Value.Check(schema, typed)) return undefined;
+  wrong: (typed, submitted = false) => {
+    if (ctx.optional && typed === "") return undefined;
+    if (!Value.Check(schema, typed)) return submitted ? secretReason(schema, typed) : undefined;
     const reason = wrongIn(schema, valueOf(schema, ctx, typed), ctx.now());
     return ctx.cause ? ctx.cause(reason) : reason;
   },

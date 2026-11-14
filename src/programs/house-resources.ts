@@ -7,7 +7,9 @@ import { protectedHouse } from "../adapters/secrets/positions/protected-house.ts
 import { declaredAdapters } from "../adapters/declared/compose-adapters.ts";
 import { credentialJournal } from "../adapters/declared/credential-journal.ts";
 import { openSecretVault } from "../adapters/secrets/custody/open-secret-vault.ts";
-import { SqliteJournal } from "../adapters/storage/journal-store.ts";
+import { houseJournal } from "../adapters/storage/house-journal.ts";
+import { houseProjections } from "./house-projections.ts";
+import type { SqliteJournal } from "../adapters/storage/journal-store.ts";
 import { storageNotices } from "../adapters/storage/storage-notices.ts";
 import { privateDirectoryMode } from "../catalogs/levers.ts";
 import { Bus } from "../journal/bus.ts";
@@ -27,7 +29,10 @@ function busOf<X extends Program>(
 ) {
   let together: number | undefined;
   return new Bus<X["fact"]>(
-    emission => journal.append(kept(emission), together ?? time.now()),
+    emission => {
+      journal.check();
+      return journal.append(kept(emission), together ?? time.now());
+    },
     write =>
       transaction(() =>
         journal.batch(() => {
@@ -85,6 +90,7 @@ function houseCustody<X extends Program>(
         after,
       ),
     entry => journal.append(entry, time.now()),
+    () => journal.check(),
   );
   const secrets = openSecretVault<X>(
     join(home, "secrets.sqlite"),
@@ -95,14 +101,27 @@ function houseCustody<X extends Program>(
   );
   return { credentials, secrets };
 }
+function restoredCustody<X extends Program>(
+  home: string,
+  options: HouseOptions<X>,
+  journal: SqliteJournal<X["fact"]>,
+  time: TimeSource,
+) {
+  try {
+    return { ...houseProjections(journal, options), ...houseCustody(home, options, journal, time) };
+  } catch (error) {
+    journal.close();
+    throw error;
+  }
+}
 export function houseResources<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource) {
   const { by, registry } = options;
   const compose = houseAdapters(options);
   const protection = protectedHouse(home, options);
   mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
   const notices = storageNotices();
-  const journal = new SqliteJournal(join(home, "journal.sqlite"), protection.words, notices.warn);
-  const { credentials, secrets } = houseCustody(home, options, journal, time);
+  const journal = houseJournal(join(home, "journal.sqlite"), options.words, notices.warn);
+  const { credentials, secrets, state, clock } = restoredCustody(home, options, journal, time);
   const bus = busOf<X>(
     journal,
     time,
@@ -121,6 +140,8 @@ export function houseResources<X extends Program>(home: string, options: HouseOp
   return {
     capabilities: (state: () => State<X>) => publicCapabilities(secrets, compose, state),
     protection,
+    state,
+    clock,
     journal,
     secrets,
     bus,

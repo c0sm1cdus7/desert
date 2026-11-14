@@ -21,6 +21,8 @@ export type CredentialFact = Readonly<{
 }>;
 /** append must commit all-or-nothing before returning; facts returns only committed batches, in order. */
 export interface CredentialLedger {
+  /** The owning journal rejects a lost writer before custody touches its material. */
+  check?(): void;
   append(fact: CredentialFact): void;
   facts(): readonly CredentialFact[];
   /** Only an exclusively held, append-only source may offer an incremental tail. */

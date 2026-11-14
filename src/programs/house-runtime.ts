@@ -7,7 +7,7 @@ import { type ViewLimits } from "../catalogs/levers.ts";
 import { createHouse, identityView, type Creation } from "../house/house.ts";
 import { startClock, systemTime, type TimeSource } from "../journal/clock.ts";
 import { effect, type Vocabulary } from "../journal/events.ts";
-import { houseProjections, requireProjectionVersion } from "./house-projections.ts";
+import { requireProjectionVersion } from "./house-projections.ts";
 import type { HousePorts } from "../surface/bridge/house-ports.ts";
 import type { Execution } from "../tools/execute.ts";
 import type { Program, Slices, ToolRegistry } from "../tools/tool-contract.ts";
@@ -32,14 +32,10 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
   };
   if (!by) throw new Error("An explicit identity is required");
   if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
-  const { capabilities, protection, journal, secrets, bus, stops, report, close, notices } = houseResources(
-    home,
-    options,
-    time,
-  );
+  const { capabilities, protection, journal, secrets, bus, stops, report, close, notices, state, clock } =
+    houseResources(home, options, time);
   try {
     protection.mark();
-    const { state, clock } = houseProjections(journal, options);
     protection.attach(secrets, state);
     const tools = startTools({
       ...ports,

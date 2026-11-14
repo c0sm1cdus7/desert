@@ -1,6 +1,6 @@
 // SQLite rows preserve the vocabulary envelope and deterministic causal identity.
 import { createHash } from "node:crypto";
-import { layerOf, type Emission } from "../../journal/events.ts";
+import { layerOf, type Emission, type Event, type Foreign, type Vocabulary } from "../../journal/events.ts";
 import { journalTexts } from "../../texts/journal.texts.ts";
 const parse = (value: unknown): unknown => {
   if (typeof value !== "string") throw new Error(journalTexts.invalidEvent);
@@ -22,3 +22,12 @@ export function derivedId(emission: Emission, ordinal: number): string {
 }
 /** What is stored has no process when it has none, so the event folded live is the event replay will read. */
 export const stored = ({ process, ...fact }: Emission) => (process === undefined ? fact : { ...fact, process });
+
+/** A fact this program does not read stops the house where it is found, named: it is never skipped. */
+export function readFact<P extends Foreign>(words: Vocabulary<P>, row: Readonly<Record<string, unknown>>): Event<P> {
+  try {
+    return words.read(factOf(row));
+  } catch {
+    throw new Error(journalTexts.unreadable(Number(row.seq), String(row.kind)));
+  }
+}

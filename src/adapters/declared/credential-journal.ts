@@ -101,11 +101,13 @@ function publicEntry<P extends Foreign>(
 export function credentialJournal<P extends Foreign>(
   replay: (after?: number) => readonly Event<P>[],
   append: (entry: Emission<P>) => unknown,
+  check?: () => void,
 ) {
   let emit = append;
   const owned = new WeakSet<object>();
   const boundary = commitBoundary();
   const ledger: CredentialLedger = {
+    ...(check ? { check } : {}),
     pending: boundary.pending,
     afterCommit: boundary.afterCommit,
     facts: () => readFacts(replay()),

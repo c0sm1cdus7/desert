@@ -1795,7 +1795,7 @@
     },
     {
       "id": 204,
-      "rule": "Los plegados en memoria y guardados conservan referencias en las posiciones declaradas porque pliegan hechos ya protegidos; se conservan al cerrar y reabrir, también para vacío, uno, once, doce y trece caracteres, vocabulario y multilínea.",
+      "rule": "Los plegados en memoria y guardados conservan referencias en las posiciones declaradas porque pliegan hechos ya protegidos; se conservan al cerrar y reabrir, también para vacío, uno, once, doce y trece caracteres, vocabulario y multilínea. Una apertura común usa vocabulario protegido también al comprobar casos y conservados, renovar y comparar subidas, aunque el material declare máximo, mínimo o patrón incompatibles con el largo de una referencia.",
       "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
       "guarantee": "spec",
       "evidence": [
@@ -1803,7 +1803,9 @@
         "tests/support/secret-snapshots.ts",
         "src/adapters/secrets/secret-vault.spec.ts",
         "src/adapters/secrets/secret-rig.spec.ts",
-        "src/adapters/secrets/secret-crash.spec.ts"
+        "src/adapters/secrets/secret-crash.spec.ts",
+        "src/adapters/storage/house-journal.ts",
+        "src/programs/secret-reopen.spec.ts"
       ]
     },
     {
@@ -1945,7 +1947,7 @@
     },
     {
       "id": 213,
-      "rule": "Al Enter, todo valor inválido dice por qué no avanza: obligatorio vacío, día o dígitos incompletos, texto corto y número bajo el mínimo. Mientras se escribe un prefijo que puede completarse no molesta; un opcional vacío sigue valiendo nada.",
+      "rule": "Al Enter, todo valor inválido dice por qué no avanza: obligatorio vacío, día o dígitos incompletos, texto corto y número bajo el mínimo. Mientras se escribe un prefijo que puede completarse no molesta; un opcional vacío sigue valiendo nada. Un secreto inválido explica vacío, mínimo, máximo o forma a partir del esquema sin crear referencia ni mostrar material. El pegado secreto se conserva entero y el máximo se explica al Enter, sin truncar credenciales.",
       "from": "13/11 · campos · H05 y H18",
       "guarantee": "spec",
       "evidence": [
@@ -1955,7 +1957,9 @@
         "src/surface/field-reasons.spec.ts",
         "src/surface/field-confirmation.spec.ts",
         "src/surface/field-rejections.spec.ts",
-        "src/surface/entry-status.spec.ts"
+        "src/surface/entry-status.spec.ts",
+        "src/surface/secret-entry-status.spec.ts",
+        "src/doors/terminal/secret-reasons.spec.ts"
       ]
     },
     {
@@ -2031,7 +2035,7 @@
     },
     {
       "id": 197,
-      "rule": "Un almacenamiento tiene un solo escritor por ruta canónica, también por alias, entre hilos y procesos. Adquirir exige una escritura SQLite real en un auxiliar regular sin enlaces: solo lectura, carpeta no escribible, falta de espacio o archivo inválido fallan con WriterLeaseUnavailable, sin cambiar sus permisos. Un rechazo local no suelta al dueño; en la base solo SQLite abre y cierra los archivos de almacenamiento, y se rechazan enlaces en sus vecinos journal/WAL/SHM antes de abrirlos. Antes de escribir y confirmar se verifica el auxiliar: borrar, reemplazar o renombrar la carpeta hace que WriterLeaseLost impida escribir y guardar plegados durante esa instancia. Al morir el dueño otro abre sin intervención. journal.lock no se crea ni se lee: se limpia al adquirir. Los enlaces duros y simbólicos colgantes del registro se rechazan. Un proceso que abre por su cuenta el archivo de la exclusión (leerlo o copiar la carpeta de una organización abierta con funciones de archivos) suelta su propia exclusión; la base nunca lo hace. Para copiar el registro de una organización abierta se usa copyJournal. Si otro escribe, el dueño detecta el avance o una transacción ajena al escribir: falla con WriterLeaseLost, esa escritura no deja nada y la instancia no escribe más. El auxiliar nuevo se crea solo para su dueño, con modo 600. Un vecino que se está borrando cuenta como ausente; el contendiente pierde con WriterAlreadyOpen y código WRITER_ALREADY_OPEN.",
+      "rule": "Un almacenamiento tiene un solo escritor por ruta canónica, también por alias, entre hilos y procesos. Adquirir exige una escritura SQLite real en un auxiliar regular sin enlaces: solo lectura, carpeta no escribible, falta de espacio o archivo inválido fallan con WriterLeaseUnavailable, sin cambiar sus permisos. Un rechazo local no suelta al dueño; en la base solo SQLite abre y cierra los archivos de almacenamiento, y se rechazan enlaces en sus vecinos journal/WAL/SHM antes de abrirlos. Antes de escribir y confirmar se verifica el auxiliar: borrar, reemplazar o renombrar la carpeta hace que WriterLeaseLost impida escribir y guardar plegados durante esa instancia. Al morir el dueño otro abre sin intervención. journal.lock no se crea ni se lee: se limpia al adquirir. Los enlaces duros y simbólicos colgantes del registro se rechazan. Un proceso que abre por su cuenta el archivo de la exclusión (leerlo o copiar la carpeta de una organización abierta con funciones de archivos) suelta su propia exclusión; la base nunca lo hace. Para copiar el registro de una organización abierta se usa copyJournal. Si otro escribe, el dueño detecta el avance o una transacción ajena al escribir: falla con WriterLeaseLost, esa escritura no deja nada y la instancia no escribe más. El auxiliar nuevo se crea solo para su dueño, con modo 600. Un vecino que se está borrando cuenta como ausente; el contendiente pierde con WriterAlreadyOpen y código WRITER_ALREADY_OPEN. Antes de retener material o capturarlo desde un adaptador ya abierto, la custodia de la casa comprueba también la exclusión del registro y rechaza su pérdida antes de crear filas o llaves.",
       "from": "13/11 · auditoría A03 y carrera entre procesos; tercer diseño decidido",
       "guarantee": "spec",
       "evidence": [
@@ -2054,12 +2058,13 @@
         "src/adapters/storage/journal-position.ts",
         "src/adapters/storage/writer-foreign-close.spec.ts",
         "src/adapters/storage/writer-guards.spec.ts",
-        "src/adapters/storage/writer-race.spec.ts"
+        "src/adapters/storage/writer-race.spec.ts",
+        "src/programs/house-custody-union.spec.ts"
       ]
     },
     {
       "id": 198,
-      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato 4 exige suma SHA-256 del contenido serializado, identidad del registro, versión de cálculos y continuidad de secuencia; un grupo incompatible se reconstruye entero. Cada descarte explica su motivo por diagnósticos y queda visible en la instancia, nunca como hecho del registro: reconstruir no agrega historia. Un grupo se guarda entero y solo después de restaurarse correctamente. Un daño o una suma ausente descarta el plegado y avisa; el formato anterior se reconstruye una vez. Recalcular deliberadamente la suma de un estado falso queda fuera de la garantía en ejecución. Cada identidad conserva su par de estado y reloj dentro de la misma versión: al alternar aperturas se procesa la cola pendiente, sin reconstruir siempre todo.",
+      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato 4 exige suma SHA-256 del contenido serializado, identidad del registro, versión de cálculos y continuidad de secuencia; un grupo incompatible se reconstruye entero. Cada descarte explica su motivo por diagnósticos y queda visible en la instancia, nunca como hecho del registro: reconstruir no agrega historia. Un grupo se guarda entero y solo después de restaurarse correctamente. Un daño o una suma ausente descarta el plegado y avisa; el formato anterior se reconstruye una vez. Recalcular deliberadamente la suma de un estado falso queda fuera de la garantía en ejecución. Cada identidad conserva su par de estado y reloj dentro de la misma versión: al alternar aperturas se procesa la cola pendiente, sin reconstruir siempre todo. La casa vigila y restaura los plegados antes de que limpiar custodia huérfana agregue hechos; conserva los de otras identidades y no inventa un cambio de cálculo.",
       "from": "13/11 · auditoría A03; recuperación de los plegados incompletos anteriores",
       "guarantee": "derived",
       "evidence": [
@@ -2076,7 +2081,8 @@
         "src/adapters/storage/snapshot-neighbors.spec.ts",
         "src/programs/storage-notices.spec.ts",
         "src/adapters/storage/snapshot-checksum.spec.ts",
-        "src/programs/alternating-runners.spec.ts"
+        "src/programs/alternating-runners.spec.ts",
+        "src/programs/house-custody-union.spec.ts"
       ]
     },
     {
