@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { effect } from "../journal/events.ts";
 import { Type } from "@sinclair/typebox";
 import { adapterHouse as setup } from "../../tests/support/adapter-house.ts";
 import { imported, call, signer, synthetic } from "../../tests/support/declared-adapters.ts";
@@ -82,7 +83,7 @@ it("el arranque publica vínculos por su bus; cerrar revoca sus métodos guardad
   const rig = setup(
     {
       current: toolAct(Type.Object({}), (_, context) => {
-        expect(context.credentials.current("signing")?.revision).toBe(1);
+        expect(context.credentials.current("signing")?.revision).toBe(context.by === "mind:vault" ? 1 : undefined);
         return { status: "accepted" };
       }),
     },
@@ -97,6 +98,8 @@ it("el arranque publica vínculos por su bus; cerrar revoca sus métodos guardad
     },
   );
   await pending;
+  rig.bus().emit(effect("kit-set", { holder: "mind:vault", tool: "vault", acts: ["current"] }, "ana"));
+  expect(await borrowed[0]?.act({ act: "current", target: "vault", input: {} })).toStrictEqual({ status: "accepted" });
   expect((await rig.act("current")).status).toBe("accepted");
   rig.close();
   for (const ports of borrowed) await expect(call(ports, "import")).rejects.toThrow("E-ADAPTER-DENIED");

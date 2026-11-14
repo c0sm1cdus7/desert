@@ -16,7 +16,7 @@ function opened() {
   rigs.push(rig);
   const kit = (acts: string[] | null) =>
     rig.bus.emit(effect("kit-set", { holder: "mind:desk", tool: "desk", acts }, "ana"));
-  const wake = () => rig.bus.emit(effect("woke", { id: "zero:desk" }, "shop"));
+  const wake = () => rig.bus.emit(effect("woke", { id: "desk:zero" }, "shop"));
   return { rig, mind, other, kit, wake };
 }
 it("a zero mind wakes without a kit, writes its scene, gains and loses its act", async () => {
@@ -89,11 +89,11 @@ it("scheduled wakes survive restart and are delivered once, and the wake causes 
   kit(["write"]);
   const request = mind.schedule(Date.now() + 50);
   rig.restart();
-  await vi.advanceTimersByTimeAsync(50);
+  await vi.advanceTimersByTimeAsync(51);
   expect(await mind.pending.at(-1)).toMatchObject({ status: "accepted" });
   rig.restart();
-  await vi.advanceTimersByTimeAsync(50);
-  const wakes = rig.facts().filter(event => event.kind === "woke" && event.data.id === "zero:desk");
+  await vi.advanceTimersByTimeAsync(51);
+  const wakes = rig.facts().filter(event => event.kind === "woke" && event.data.id === "desk:zero");
   expect(wakes).toHaveLength(1);
   expect(wakes[0]?.cause).toEqual([request.id]);
   expect(rig.facts().filter(event => event.kind === "act" && event.cause.includes(wakes[0]?.id ?? ""))).toHaveLength(1);

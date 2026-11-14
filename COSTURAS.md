@@ -35,9 +35,14 @@ plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, mar
   identidades y mentes escriben su propia `scene`. Una mente no recibe los actos de `own` del programa.
 - `Tool.start` puede ser la mente en cero: escucha hechos y llama `ToolStartup.act({ act, target, input })`.
   La casa fija `mind:<id de esa herramienta>` y pasa por `execute`, con su kit, su escena y sus adaptadores.
-  La promesa difiere el acto hasta terminar la entrega del hecho, conserva su causa y recién contesta tras escribir
-  junto con sus oyentes; si fallan, sus escrituras se deshacen. El bus de arranque rechaza hechos de ejecución
-  falsificados. `wake-at` pide una fecha y `woke` despierta el proceso; las fechas pendientes sobreviven al reinicio.
+  La promesa siempre resuelve: difiere a otra tarea, conserva la causa de la escucha original incluso en
+  continuaciones, y rechaza si esa escritura o el `together` del pedido se deshicieron. Sus escrituras y las de
+  sus oyentes quedan juntas o se deshacen. La cadena propia admite 32 actos; el siguiente recibe rechazo.
+  El bus solo escribe credenciales originales y `wake-at` propio, con autor fijado por la casa; rechaza todo
+  otro hecho o autor. Un ID nuevo empieza por `encodeURIComponent(herramienta) + ":"`; conserva el primer dueño,
+  aun cancelado o anterior a esta versión. El espacio `attention:[…]` queda reservado a la casa.
+  Solo el reloj escribe `woke`. Las fechas pendientes sobreviven al reinicio; al arrancar, el programa revisa
+  su estado para recuperar trabajo de un despertar consumido justo al cerrar, sin repetir lo cumplido.
   No se publica el motor, registro de herramientas, custodia ni resolvedor; cerrar invalida el puerto.
 - Las acciones y los arranques reciben métodos públicos de adaptadores declarados y operaciones de vínculos.
   La custodia y la limpieza de secretos son capacidades internas del motor; `KeyStore` queda solo para adopción.

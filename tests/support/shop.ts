@@ -24,7 +24,7 @@ export const shop = vocabulary(shopCatalog);
 /** What each tool of the shop keeps. */
 export type Sales = ReadonlyMap<string, Readonly<{ total: number; paid: number; by: string }>>;
 export type Payments = Readonly<{ received: number; unmatched: readonly string[] }>;
-export type Shop = { fact: ShopFact; tools: { sales: Sales; payments: Payments } };
+export type Shop = { fact: ShopFact; tools: { sales: Sales; payments: Payments; desk?: ReadonlyMap<string, string> } };
 const salesStep = (kept: Sales, event: ShopEvent): Sales => {
   if (event.kind === "sale-registered")
     return new Map(kept).set(event.data.sale, { total: event.data.total, paid: 0, by: event.by });

@@ -12,7 +12,7 @@ export type Entry = HouseEvent<"tool-entry">;
 /** What every house keeps, whatever lives in it. */
 export type HouseState = HouseView &
   Readonly<{ processing: ReadonlyMap<string, HouseEvent<"act-started">>; through: number }> &
-  Readonly<{ acts: ReadonlyMap<string, HouseEvent<"act">> }>;
+  Readonly<{ acts: ReadonlyMap<string, HouseEvent<"act">>; wakeOwners: ReadonlyMap<string, string> }>;
 export type State<X extends Program> = HouseState & Readonly<{ tools: X["tools"] }>;
 /** What each tool keeps: where it starts, and how each fact moves it. A tool without a step does not exist. */
 export type Slices<X extends Program> = Readonly<{

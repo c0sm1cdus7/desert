@@ -20,8 +20,8 @@ it("two simultaneous wakes keep their own causes, including a request after an a
   a.startup().bus.on("stimulus", event => {
     if (event.data.tool === "trigger") later.push(Promise.resolve().then(() => a.act()));
   });
-  const first = rig.bus.emit(effect("woke", { id: "zero:a" }, "shop"));
-  const second = rig.bus.emit(effect("woke", { id: "zero:b" }, "shop"));
+  const first = rig.bus.emit(effect("woke", { id: "a:zero" }, "shop"));
+  const second = rig.bus.emit(effect("woke", { id: "b:zero" }, "shop"));
   const third = rig.bus.emit(effect("stimulus", { tool: "trigger" }, "shop"));
   expect((await Promise.all([...a.pending, ...b.pending, ...later])).map(result => result.status)).toEqual([
     "accepted",

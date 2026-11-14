@@ -47,6 +47,8 @@ export const journalTexts = {
   unreadable: (seq: number, kind: string) =>
     `This house's journal holds a fact this program does not read: #${seq} ${kind}`,
   executionOnly: "Hecho reservado a la ejecución; usar act en el arranque",
+  mindRolledBack: "Acción rechazada: se deshizo la escritura que la pidió",
+  mindChain: "Acción rechazada: la cadena de esta mente llegó a 32 actos",
   closedBus: "The event bus is closed",
   listenerFailed: "Someone who listens to the house failed on hearing a fact",
   writerLeaseSql:

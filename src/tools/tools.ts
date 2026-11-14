@@ -1,3 +1,4 @@
+import { openActs } from "./execution/open-acts.ts";
 import { startPrograms, programEffects } from "./boundaries/tool-listeners.ts";
 // The house's own state and each tool's, folded together; attention as a perpetual, replayable ladder.
 import { programRule } from "./execution/program-causes.ts";
@@ -19,6 +20,7 @@ export const emptyHouseState: HouseState = initial({
   attendance: emptyMap<readonly string[]>(),
   processing: emptyMap(),
   acts: emptyMap(),
+  wakeOwners: emptyMap(),
   attentionBy: emptyMap<ReadonlyMap<string, Attention>>(),
   looked: emptyMap<ReadonlyMap<string, number>>(),
   entries: listOf(),
@@ -44,16 +46,6 @@ function attentionStep(state: ReadonlyMap<string, Attention>, event: Event): Rea
     if (current) next.set(current[0], { ...current[1], wake: event.id });
   }
   return next;
-}
-/** The acts still open: an act stays until its result, so what it caused can be traced to it. */
-function openActs(state: HouseState, event: Event): Pick<HouseState, "acts" | "processing"> {
-  if (event.layer !== "house") return state;
-  const acts = new Map(state.acts);
-  const processing = new Map(state.processing);
-  if (event.kind === "act") acts.set(event.id, event);
-  if (event.kind === "act-started") processing.set(event.data.act, event);
-  if (event.kind === "act-result") [acts, processing].forEach(open => open.delete(event.data.act));
-  return { acts, processing };
 }
 function houseStateStep<S extends HouseState>(state: S, event: Event): S {
   const process = processOf(event);

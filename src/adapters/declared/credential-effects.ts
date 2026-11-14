@@ -1,5 +1,5 @@
 import { effect, type Emission } from "../../journal/events.ts";
-import type { CredentialOperations, SecretRefs } from "../../tools/capabilities-contract.ts";
+import { credentialCommand, type CredentialOperations, type SecretRefs } from "../../tools/capabilities-contract.ts";
 import type { CredentialSession, SecretCustody } from "../secrets/custody/secret-custody.ts";
 /** A command is usable only by the lease that issued it; copies and bus writes carry no authority. */
 export function credentialEffects(custody: SecretCustody, session: CredentialSession, check: (slot: string) => void) {
@@ -10,7 +10,10 @@ export function credentialEffects(custody: SecretCustody, session: CredentialSes
     const held = refs ? Object.freeze({ ...refs }) : undefined;
     const { actor, tool, target } = session.scope;
     const detail = { credentialRequest: { slot, expected, refs: held ?? {}, release: held === undefined } };
-    const request = effect("tool-entry", { tool, target, author: actor, text: "", silent: true, detail }, actor);
+    const request = {
+      ...effect("tool-entry", { tool, target, author: actor, text: "", silent: true, detail }, actor),
+      [credentialCommand]: true as const,
+    };
     commands.set(request, () => {
       check(slot);
       custody.confirm(session, slot, expected, held);

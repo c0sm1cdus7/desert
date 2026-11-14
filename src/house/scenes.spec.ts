@@ -76,8 +76,8 @@ it("8: rejects excess, blank identity keys and another author's scene before a s
   expect(rig.state().house.scenes.get("ana")?.data).toEqual(boundary);
 });
 
-it("bumps the base fold version for the new house state", () => {
-  expect(baseProjectionVersion).toBe("desert/3");
+it("bumps the base fold version for house state with wake ownership", () => {
+  expect(baseProjectionVersion).toBe("desert/4");
 });
 
 it("A6: the scene schema bounds recipient names independently of current membership", () => {

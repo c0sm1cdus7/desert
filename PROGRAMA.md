@@ -573,7 +573,8 @@ de la casa agrega su revisión de salida. Cada escritura individual del llavero 
 
 `ActContext` tiene `ports` y `credentials`; no tiene `keys`, custodia ni resolvedor. `Tool.start` recibe
 `ToolStartup`: esos mismos puertos públicos, `state`, `now`, `live`, `act` como su propia mente y un bus reducido
-a `on`, `emit` y `together`. `act` no recibe autor y devuelve una promesa con estado y motivo.
+a `on`, `emit` y `together`. `emit` solo publica comandos originales de sus credenciales y despertares propios.
+`act` no recibe autor y devuelve una promesa con estado y, cuando lo hay, motivo.
 No recibe el objeto `Execution`. El tipo `KeyStore` anterior se adapta a un borde que entregue bytes antes de llamar a `importLegacyKeys`.
 
 El programa declara `adapters` y `credentialSlots` en `Composition` o `HouseOptions`. Cada adaptador tiene
@@ -606,8 +607,9 @@ return { status: "accepted", effects: [
 ```
 
 Una acción presta sus capacidades hasta terminar, incluso si rechaza, falla, propone un borrador o se interrumpe.
-El arranque las presta hasta su cierre; su identidad es la del programa y su objeto es la propia herramienta.
-Resolver material requiere además que esa identidad tenga la herramienta en la casa. Un uso ya iniciado termina
+El arranque las presta hasta su cierre; su actor es `mind:<herramienta>` y su objeto es la propia herramienta.
+Sus vínculos pertenecen a esa mente. Resolver material exige `holds`: la herramienta de la mente debe existir;
+para una identidad, debe tener la herramienta en la casa. Un uso ya iniciado termina
 con su versión; cerrar o revocar impide nuevos usos. Las referencias de otra casa, identidad u objeto no autorizan.
 
 Al migrar: quitá `keys` de `startHouse`, `startTools` y los contextos de pruebas directas. Para una prueba directa
@@ -680,8 +682,9 @@ el ayudante no bloquea la red de código que vos le entregues. Para lotes, vínc
 Al actualizar un programa:
 - Quitá `keys` de opciones, contextos y arranques; `KeyStore` solo queda para adopción explícita. Cambiá `Tool.start`
   a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios. El arranque no accede al registro ni recibe `Execution`: pide acciones con `act`, siempre como la mente de su
-  propia herramienta. El bus rechaza `act`, `act-started`, `act-result` y `act-done` escritos a mano, también dentro
-  de `together`; esos hechos los escribe la ejecución.
+  propia herramienta. Expresá los cambios del programa como efectos de una acción de su kit pedida por `act`;
+  pedí la escena también por `act`. El bus solo acepta sus credenciales originales y sus despertares, sin autor
+  elegido por el programa; cualquier otro hecho se rechaza también dentro de `together`.
 - Mové lectura, validación del material, firma, I/O y resolución a adaptadores declarados. Las acciones y callbacks
   trabajan con referencias; conservá `secret: true` y quitá `secretInputs` y `secretLimits.minLength` sin efecto.
 - Agregá `secretKeys`, métodos con esquemas cerrados y permisos, y `credentialSlots`. Usá `revision(slot)`, incluso
@@ -1045,8 +1048,9 @@ cuando recibe el kit para esa acción. Sin kit se rechaza antes de usar el adapt
 esa colisión en el plegado: el programa debe resolverla antes de subir.
 No se agrega `message`. Quien construye `House` a mano agrega `kits` y `scenes` vacíos o parte de
 `emptyHouse`. `Need.to` es opcional y la entrada `testing.ts` no suma exportaciones.
-La versión de cálculos de la base pasa a `desert/3`: al actualizar se reconstruyen los plegados, también los de
-la primera vuelta (`desert/2`), para borrar los kits al recibir la administración. En versión manual,
+La versión de cálculos de la base pasa a `desert/4`: al actualizar se reconstruyen los plegados anteriores,
+incluidos `desert/3`, para conservar el primer dueño de cada despertar; también conserva el cierre anterior
+que borra los kits al recibir la administración. En versión manual,
 la evidencia guardada debe renovarse con la entrega comprobada, conservando la anterior durante su control.
 
 
@@ -1058,7 +1062,7 @@ elige autor. Puede pedir acciones declaradas de Notas, incluidas las de sus cosa
 `scene` sin kit. Otra herramienta, los actos propios del programa y las preferencias siguen fuera de su alcance.
 Los rechazos son los mismos de `execute`: por ejemplo, fuera del kit dice «sin acceso», y la forma inválida dice
 «datos inválidos». La acción recibe sus adaptadores con el alcance de la mente, no el del proceso que abrió la casa.
-Los puertos de adaptadores ya existentes en el arranque conservan su contrato; no son el contexto de esta acción.
+Los adaptadores del arranque y sus credenciales se prestan a la misma mente; su objeto es la propia herramienta.
 
 ```ts
 start({ bus, act, now }) {
@@ -1069,24 +1073,40 @@ start({ bus, act, now }) {
       });
     }
   });
-  bus.emit(effect("wake-at", { id: "notas:revisar", at: now() + 60_000 }, "mind:notas"));
+  bus.emit({ layer: "house", kind: "wake-at", data: { id: "notas:revisar", at: now() + 60_000 } });
   return stop;
 }
 ```
 
 El reloj persiste `wake-at`; al reabrir programa lo pendiente, aunque ya venció, y un `woke` entregado no se repite.
-El ID identifica el recordatorio: volver a escribirlo reemplaza su fecha, y `at: null` lo cancela. El ejemplo
+Un ID nuevo empieza por `encodeURIComponent(idDeHerramienta) + ":"`. El primer pedido fija su dueño en el
+registro, incluso después de cancelarlo o reabrir. Los IDs anteriores conservan ese primer autor: su mente
+puede reprogramarlos aunque no usaran el prefijo nuevo. El espacio `attention:[…]` de las personas está reservado.
+Otra herramienta no lo puede reemplazar ni cancelar, ni escribir `woke`; eso lo hace el reloj.
+Volver a escribir el ID propio reemplaza su fecha; `at: null` lo cancela. El ejemplo
 programa una fecha nueva cada vez que arranca; para mantener una fecha de negocio entre arranques, el programa la
 pide sólo cuando corresponde según su estado plegado. No hay reintento automático del acto.
+Un despertar puede quedar consumido justo al cerrar, antes de ejecutar el acto diferido. Por eso el programa
+no depende solo de oír `woke`: conserva el trabajo pendiente en su estado, lo revisa al arrancar y ejecuta una
+acción que lo marca cumplido junto con su resultado. `tests/support/zero-mind.ts` y `zero-house.ts` lo prueban
+con una reapertura en la misma tarea del despertar, y una segunda reapertura que no repite el trabajo.
 
-`act` siempre devuelve una promesa. La petición se ejecuta en una microtarea, después de terminar la entrega del
-hecho y su transacción; pasa por `execute` como primer nivel. Conserva como causa el hecho que oye ese callback,
-incluso en su continuación asincrónica, y fuera de una escucha no inventa una causa. Al ejecutar consulta el kit
+`act` siempre resuelve su promesa con estado y motivo opcional; nunca la rechaza. Una entrada cíclica, con
+`BigInt` o ilegible por un getter devuelve «datos inválidos». Una falla interna devuelve «E-BASE-1 · Falló la base»
+y deja un diagnóstico; si el registro también falla, se intenta informar esa pérdida por la salida de diagnóstico.
+La petición se ejecuta en otra tarea, después de terminar la entrega del hecho y su transacción, por `execute`
+como primer nivel. Conserva la causa del hecho que se estaba oyendo cuando nació el pedido, también si una
+continuación termina más tarde o la libera otro hecho. Fuera de una escucha no inventa causa. Si esa escritura
+o el `together` del pedido se deshacen, rechaza sin escribir nada a nombre de la mente. Cada acto cede una tarea
+para intercalar personas y reloj. Una cadena de actos de la misma mente causada por sus propios actos llega
+a 32; el siguiente se rechaza con el motivo de límite de cadena, sin ejecutarse. Al ejecutar consulta el kit
 vigente. Lo escrito por la acción y por sus oyentes se confirma junto o se deshace junto; la mente recibe el
 rechazo si un oyente falla. Quedan el intento y su resultado/diagnóstico como para una persona. Los efectos sobre
 el mundo o la memoria privada de un oyente no son una transacción del registro.
 
 Cerrar el proceso invalida su puerto, incluidas peticiones todavía diferidas. Un acto ya iniciado queda en el
 registro; si la casa se reinicia a mitad, el arranque lo cierra como interrumpido. No se entrega `Execution`, registro
-de herramientas, custodia ni resolvedor, ni en el resultado de `act`. Emitir manualmente hechos de ejecución por el
-bus de arranque lanza «Hecho reservado a la ejecución; usar act en el arranque» antes de guardar nada.
+de herramientas, custodia ni resolvedor, ni en el resultado de `act`. El bus solo admite los comandos originales
+de `credentials.replace`/`release` y `wake-at` propio. La casa fija el autor; otro autor o cualquier otro hecho
+—del programa o de la casa, incluida `scene`— lanza «Hecho reservado a la ejecución; usar act en el arranque»
+antes de guardar nada. El tipo impide publicar hechos comunes, fabricar credenciales o elegir autor.

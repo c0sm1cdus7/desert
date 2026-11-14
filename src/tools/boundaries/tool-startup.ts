@@ -1,8 +1,10 @@
+import { ids } from "../../catalogs/ids.ts";
+import { mindOf } from "../../house/house.ts";
 import { OutsideDefect } from "../outside.ts";
 import { startupMind } from "./startup-mind.ts";
 import { journalTexts } from "../../texts/journal.texts.ts";
 import type { Bus } from "../../journal/bus.ts";
-import type { Emission, Event, Foreign } from "../../journal/events.ts";
+import { effect, type Emission, type Event, type Foreign } from "../../journal/events.ts";
 import type { Execution } from "../execute.ts";
 import type { Program, Tool } from "../tool-contract.ts";
 import type { ToolStartup } from "../startup-contract.ts";
@@ -13,6 +15,7 @@ const ofKind = <E extends { kind: string }, K extends string>(event: E, kind: K)
   event.kind === kind;
 function programBus<P extends Foreign>(
   bus: Bus<P>,
+  scope: { tool: string; owner: (id: string) => string | undefined },
   hear: (id: string, listener: () => void) => void,
   lease?: CapabilityLease,
 ) {
@@ -31,15 +34,7 @@ function programBus<P extends Foreign>(
   }
   const safe = baseFunctions(bus);
   const together = <T>(work: () => T): T => safe.together(() => (lease ? lease.together(work) : work()));
-  const emit = (entry: Emission<P>) => {
-    if (entry.layer === "house" && ["act", "act-started", "act-result", "act-done"].includes(entry.kind))
-      throw new OutsideDefect(new Error(journalTexts.executionOnly));
-    const write = () => {
-      lease?.apply(entry, true);
-      return safe.emit(entry);
-    };
-    return together(write);
-  };
+  const emit = (entry: Emission<P>) => together(() => startupEmission(safe, scope, entry, lease));
   return new Proxy(safe, {
     get: (target, key): unknown => {
       if (key === "on") return on;
@@ -50,10 +45,10 @@ function programBus<P extends Foreign>(
 }
 export function startProgram<X extends Program>(tool: Tool<X>, ports: Execution<X>): () => void {
   if (!tool.start) return () => {};
-  const lease = ports.capabilities?.({ actor: ports.state().by, tool: tool.id, target: tool.id });
+  const lease = ports.capabilities?.({ actor: mindOf(tool.id), tool: tool.id, target: tool.id });
   const { ports: publicPorts, credentials } = lease ?? noCapabilities;
   const mind = startupMind(tool.id, ports);
-  const bus = programBus(ports.bus, mind.hear, lease);
+  const bus = programBus(ports.bus, { tool: tool.id, owner: id => ports.state().wakeOwners.get(id) }, mind.hear, lease);
   const running: ToolStartup<X> = {
     ...baseFunctions({ state: ports.state, now: ports.now, live: ports.live }),
     bus: { on: bus.on.bind(bus), emit: bus.emit.bind(bus), together: bus.together.bind(bus) },
@@ -76,4 +71,28 @@ export function startProgram<X extends Program>(tool: Tool<X>, ports: Execution<
     lease?.close();
     throw error;
   }
+}
+
+function startupEmission<P extends Foreign>(
+  bus: Bus<P>,
+  scope: { tool: string; owner: (id: string) => string | undefined },
+  entry: Emission<P>,
+  lease?: CapabilityLease,
+) {
+  const { tool, owner } = scope;
+  const refuse = (): never => {
+    throw new OutsideDefect(new Error(journalTexts.executionOnly));
+  };
+  const by: unknown = Reflect.get(entry, "by");
+  if (by !== undefined && by !== mindOf(tool)) return refuse();
+  if (entry.layer === "house" && entry.kind === "tool-entry" && lease?.apply(entry, true))
+    return bus.emit(
+      effect("tool-entry", { tool, target: tool, author: mindOf(tool), text: "", silent: true }, mindOf(tool)),
+    );
+  if (entry.layer !== "house" || entry.kind !== "wake-at") return refuse();
+  const { id, at } = entry.data;
+  if (typeof id !== "string" || id.startsWith(`${ids.attention}[`)) return refuse();
+  const held = owner(id);
+  if (held !== undefined ? held !== mindOf(tool) : !id.startsWith(`${encodeURIComponent(tool)}:`)) return refuse();
+  return bus.emit(effect("wake-at", { id, at }, mindOf(tool)));
 }

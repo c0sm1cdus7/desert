@@ -7,6 +7,7 @@ const ofKind = <E extends Readonly<{ kind: string }>, K extends string>(event: E
 export class Bus<P extends Foreign = Foreign> {
   private readonly listeners = new Set<(event: Event<P>) => void>();
   private readonly queue: Event<P>[] = [];
+  private readonly writes: { committed: boolean }[] = [];
   private delivering = false;
   private closed = false;
   private readonly append: (emission: Emission<P>) => Event<P>;
@@ -19,7 +20,20 @@ export class Bus<P extends Foreign = Foreign> {
   /** What is emitted inside is written whole or not at all. Who listens hears each fact as it is written, as
    * always, and what a listener writes on hearing it is part of the same whole: it stays or goes with it. */
   together<T>(write: () => T): T {
-    return this.batch(write);
+    const scope = { committed: false };
+    this.writes.push(scope);
+    try {
+      const result = this.batch(write);
+      scope.committed = true;
+      return result;
+    } finally {
+      this.writes.pop();
+    }
+  }
+  /** A deferred request keeps the outcome of every enclosing write, including a later outer rollback. */
+  confirmation(): () => boolean {
+    const scopes = [...this.writes];
+    return () => scopes.every(scope => scope.committed);
   }
   emit<K extends HouseKind>(emission: HouseEmission & { kind: K }): HouseEvent<K>;
   emit<E extends P>(emission: E): E & Position;

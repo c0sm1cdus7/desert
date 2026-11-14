@@ -4,8 +4,8 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { startHouse } from "../../src/programs/house-runtime.ts";
-import { shop, shopRegistry, shopSlices, type ShopEvent } from "./shop.ts";
-import { zeroMind } from "./zero-mind.ts";
+import { shop, shopRegistry, type ShopEvent } from "./shop.ts";
+import { zeroMind, zeroSlices } from "./zero-mind.ts";
 import { effect } from "../../src/journal/events.ts";
 const homes: string[] = [],
   houses: { close(): void }[] = [];
@@ -20,7 +20,7 @@ export function zeroHouse(mind = zeroMind()) {
     by: "shop",
     projectionVersion: "zero/1",
     words: shop,
-    slices: shopSlices,
+    slices: zeroSlices,
     registry: [...shopRegistry, mind.tool],
     creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments", mind.tool.id] }] },
   };

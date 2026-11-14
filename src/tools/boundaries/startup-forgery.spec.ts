@@ -1,3 +1,4 @@
+import { emitUnchecked } from "../../../tests/support/startup-forge.ts";
 import { afterEach, expect, it } from "vitest";
 import { effect, type HouseEmission } from "../../journal/events.ts";
 import { zeroMind } from "../../../tests/support/zero-mind.ts";
@@ -18,8 +19,8 @@ for (const by of ["ana", "mind:other", "mind:desk"])
       const rig = shopRig({ registry: [...shopRegistry, mind.tool] });
       rigs.push(rig);
       const before = rig.facts();
-      expect(() => mind.startup().bus.emit(fact)).toThrow("reservado a la ejecución");
-      expect(() => mind.startup().bus.together(() => mind.startup().bus.emit(fact))).toThrow(
+      expect(() => emitUnchecked(mind.startup().bus, fact)).toThrow("reservado a la ejecución");
+      expect(() => mind.startup().bus.together(() => emitUnchecked(mind.startup().bus, fact))).toThrow(
         "reservado a la ejecución",
       );
       expect(rig.facts()).toEqual(before);
