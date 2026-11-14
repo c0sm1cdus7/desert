@@ -104,7 +104,8 @@ export const holds = (registry: readonly { id: string }[], house: House, by: str
   mindTool(by) === undefined ? allowed(house, by, tool) : mindTool(by) === tool && present(registry, house, by);
 /** Identities inherit every act of a granted tool; minds receive only explicit acts of their own tool. */
 export function allowedAct(house: House, by: string, tool: string, act: string): boolean {
-  if (tool === "identities") return house.identities === true && by === house.admin && house.grants.has(by);
+  if (tool === "identities")
+    return house.identities === true && (act === "scene" || by === house.admin) && house.grants.has(by);
   if (house.identities && by === house.admin && house.grants.has(by)) return true;
   const kit = by === house.admin ? undefined : house.kits.get(by)?.get(tool);
   const own = mindTool(by);

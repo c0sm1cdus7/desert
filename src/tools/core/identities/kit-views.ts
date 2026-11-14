@@ -1,3 +1,4 @@
+import { sceneReading } from "./scene-reading.ts";
 import { mindTool } from "../../../house/house.ts";
 import { MissingView } from "../../../surface/navigation/missing-view.ts";
 import { section, type Start, type SurfacePorts } from "../../../surface/bridge/house-ports.ts";
@@ -67,6 +68,7 @@ export function kitView<X extends Program>(
     if (own && !target.includes("#")) {
       const tool = catalog.find(tool => tool.id === own);
       return [
+        ...sceneReading(plain.view(target)).filter(stack => stack.title === words.sceneTitle && stack.rows.length > 0),
         section(
           words.mind(own),
           tool && kitFits(Object.keys(tool.acts).length) ? rows(target, own) : [],
@@ -74,6 +76,6 @@ export function kitView<X extends Program>(
         ),
       ];
     }
-    return plain.view(target);
+    return sceneReading(plain.view(target));
   };
 }

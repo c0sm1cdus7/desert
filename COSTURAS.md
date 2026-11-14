@@ -250,3 +250,13 @@ parte coteja su lista. Quien usa la base incorpora ese archivo en `globalSetup` 
   demás; dar todo elimina el recorte de esa herramienta, y sacar todo elimina herramienta y recorte.
   Las mentes son destinatarios distintos de las identidades: `kit-checks.ts` deriva su dominio permitido y comprueba
   tanto la ausencia de opciones ajenas como el rechazo sin cambios de una llamada directa.
+
+- La escena de Identidades se declara en `identity-scene.ts`: reutiliza el límite y la validación de General del
+  contrato de casa y escribe `scene` a nombre del actor. `allowedAct` admite esa acción para miembros presentes;
+  el `offered` declarado compara una sola vez la fila con el actor, tanto para pintar como para ejecutar.
+  Las otras acciones conservan el permiso de administrar. Las derivadas comprueban la excepción sin dar kit al core.
+  `identity-reading.ts` lee la última general y selecciona solo `to[by]` para el objeto; `scene-reading.ts` compone
+  renglones del tipo existente y `kit-views.ts` los integra también en Mentes. No cambia el contrato compartido de
+  escenas ni su plegado. La terminal escribe General; las partes dirigidas permanecen en el acto de casa.
+  Al adoptar `identities: true`, un programa reserva el id del core, usa la regla pública del identificador y distingue
+  `names`, `removed` y `grants`: el nombre y la fila sobreviven a sacar, mientras la readmisión no restaura herramientas.

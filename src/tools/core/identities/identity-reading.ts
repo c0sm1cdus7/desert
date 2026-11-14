@@ -24,6 +24,7 @@ export const identityWords: ToolWords = {
       reads: { identifier: words.identifier, name: words.display, state: words.state },
     },
     { title: "kit", empty: words.emptyKit, reads: { kit: words.tools } },
+    { title: words.sceneTitle, empty: words.emptyScene, reads: { general: words.general, addressed: words.addressed } },
   ],
 };
 function identityList<X extends Program>(house: House, registry: ToolRegistry<X>): string {
@@ -32,25 +33,35 @@ function identityList<X extends Program>(house: House, registry: ToolRegistry<X>
       JSON.stringify({
         id: identityTarget(identity),
         text: mindTool(identity) ? words.mind(mindTool(identity) ?? "") : identityDisplayName(house, identity),
-        detail: mindTool(identity)
-          ? kitDatum(
-              house,
-              identity,
-              mindTool(identity) ?? "",
-              Object.keys(registry.find(tool => tool.id === mindTool(identity))?.acts ?? {}),
-            )
-          : identityDatum(house, identity),
+        detail:
+          house.scenes.get(identity)?.data.general ??
+          (mindTool(identity)
+            ? kitDatum(
+                house,
+                identity,
+                mindTool(identity) ?? "",
+                Object.keys(registry.find(tool => tool.id === mindTool(identity))?.acts ?? {}),
+              )
+            : identityDatum(house, identity)),
       }),
     )
     .join("\n");
 }
-export function identityReading<X extends Program>(house: House, target: string, registry: ToolRegistry<X>): string {
+export function identityReading<X extends Program>(
+  house: House,
+  target: string,
+  registry: ToolRegistry<X>,
+  by: string,
+): string {
   if (target === "identities") return identityList(house, registry);
   const identity = targetIdentity(target);
+  const scene = house.scenes.get(identity)?.data;
+  const reading = scene ? { general: scene.general, ...(scene.to?.[by] ? { addressed: scene.to[by] } : {}) } : {};
   const own = mindTool(identity);
   const tool = registry.find(tool => tool.id === own);
   if (tool)
     return JSON.stringify({
+      ...reading,
       identifier: identity,
       name: words.mind(tool.id),
       state: kitDatum(house, identity, tool.id, Object.keys(tool.acts)),
@@ -67,6 +78,7 @@ export function identityReading<X extends Program>(house: House, target: string,
       return [`${tool.id} · ${detail}`];
     });
   return JSON.stringify({
+    ...reading,
     identifier: identity,
     name: identityDisplayName(house, identity),
     state: identityDatum(house, identity),

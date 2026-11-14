@@ -1090,7 +1090,7 @@ siguen ignorándose. Para escribir nuevos hechos de esas puertas se exige la reg
 `identityDisplayName` devuelve el identificador cuando falta el nombre. Sacar conserva el nombre y la identidad en
 `removed`; readmitir con herramientas vacías la devuelve sin herramientas ni kit.
 
-### Identidades del core (paso 5b)
+### Identidades del core (pasos 5b y 5d)
 
 `identities: true` en la composición incorpora `identities` al registro de ejecución. Sin ese pedido no existe.
 La superficie recibe automáticamente sus palabras y la ofrece en Sistema con `i`, sin pantalla personalizada.
@@ -1098,12 +1098,13 @@ El id queda reservado: un programa no puede declararlo por su cuenta. No tiene s
 `mind:identities` no es un actor. `granted` y `kit-set` rechazan ese id antes de escribir, y `assigned` lo excluye
 incluso para quien administra. Los programas que calculan «todas» desde su registro deben excluir `identities`.
 
-La lista conserva presentes y sacados. La ficha muestra identificador, nombre, estado y kit de solo lectura.
+La lista conserva presentes y sacados. La ficha muestra identificador, nombre, estado, kit y escena.
 `new` pide Identificador, Nombre opcional y Herramientas; escribe `granted` y, si hay nombre, `named`, en el mismo
 lote. El identificador se valida con `identityNameProblem`, también en la pregunta, sin recortar lo escrito.
 `remove` conserva la fila y borra herramientas; `readmit` escribe `granted` vacío; `hand` escribe `handed`.
-Sacar y pasar confirman con `volver` elegido. Ninguna acción depende del kit: las demás identidades leen todo y
-ven `solo quien administra`. El cambio de administración se consulta de nuevo al ejecutar una pregunta abierta.
+Sacar y pasar confirman con `volver` elegido. Ninguna acción depende del kit: crear, sacar, readmitir, pasar y editar el kit exigen administrar;
+las demás identidades leen esas acciones apagadas con `solo quien administra`. La excepción es `scene`,
+que cada identidad presente puede ejecutar solo sobre su propia fila, incluso quien administra. El cambio de administración se consulta de nuevo al ejecutar una pregunta abierta.
 El nombre conserva el tope del campo de texto corto (120); los nombres históricos de hasta 160 se siguen leyendo.
 
 Las pruebas de una composición que pide la pieza pueden incluir `identitiesTool(registry, nombreDeLaCasa)` de
@@ -1155,3 +1156,30 @@ La herramienta entera tiene `t`; las acciones usan números. Los actos que solo 
 una llamada sobre una identidad, además de no ofrecerse allí.
 No hay cambio exigido al programa original que no pide Identidades (`tests/support/shop-program.ts`); una composición
 que ya la pide recibe estos menús automáticamente. No se inspeccionaron programas externos a esta copia.
+
+### Escena propia desde Identidades (paso 5d)
+
+La composición sigue pidiendo únicamente `identities: true`; no incorpora otro proceso, estado ni herramienta.
+La acción declarada `scene` sobre `identities/<autor>` pregunta General y escribe el hecho de casa `scene`
+a nombre de quien actúa. `allowedAct` exceptúa únicamente esa acción del permiso de administrar; su declaración
+comprueba la fila propia una sola vez para la superficie y la ejecución. Una identidad sacada no puede escribir;
+quien administra tampoco escribe por otra. La fila ajena conserva la acción apagada con `solo la escena propia`.
+
+General tiene el tope del contrato (4.000 caracteres) y exige texto con algo visible; un texto invisible se queda
+en la pregunta con su motivo. Escribir reemplaza la escena completa anterior, incluidas sus partes dirigidas.
+El acto propio de casa sigue aceptando `to` por las otras puertas: hasta 64 identidades presentes, nombres de hasta
+160 y textos de hasta 1.000. La terminal no pregunta esas partes en este paso: el conjunto dinámico de identidades
+y un texto por cada elegida quedan pendientes del dueño, sin otro tipo de pregunta ni pantalla inventados.
+
+La lista usa la última escena general como dato; sin escena mantiene el estado o dato del kit anterior. En el
+objeto se lee entera y solo la parte dirigida a quien mira. En Mentes se lee igual, junto a sus acciones del kit.
+La lectura usa renglones existentes de hasta 36 columnas y el scroll común, también en terminal de 40×16.
+Las partes dirigidas siguen siendo datos compartidos del contrato; esta selección es la presentación del objeto,
+no una promesa de confidencialidad ni un cambio del frame o del acceso a los hechos.
+
+Al subir, no hay migración ni nueva versión del cálculo: los hechos `scene` anteriores se leen igual. El programa
+que adopta Identidades reserva su id fuera de sus kits, valida identificadores nuevos con `identityNameProblem`,
+usa `names` para el nombre mostrado y conserva los sacados desde `removed`; la reapertura no renombra la historia.
+Los programas sin el pedido conservan su composición. No se exige trasladar Usuarios de otro programa en este paso.
+El lugar de escritura de escenas, el stack Mentes, más de nueve filas de edición, la llave mostrada una sola vez
+y la ubicación de la puerta siguen pendientes del dueño o del carril correspondiente.

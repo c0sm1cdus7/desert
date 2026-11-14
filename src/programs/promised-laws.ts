@@ -1,5 +1,5 @@
 import { mindTargetCauses } from "./core/kit-checks.ts";
-import { withoutActionCheck, closeCoreSetup } from "./core/identity-checks.ts";
+import { withoutActionCheck, closeCoreSetup, isCoreScene } from "./core/identity-checks.ts";
 import { alsoCauses } from "./coverage/also-causes.ts";
 // The laws every act of every program keeps: nobody promises them case by case, and every act is checked on them.
 import { deepStrictEqual, ok } from "node:assert/strict";
@@ -60,13 +60,18 @@ export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X
   });
   const core = aim.tool.id === "identities";
   const kitReason = toolTexts.kitRefusal(aim.tool.id);
+  const unheld = core ? cast.member : cast.outsider;
   return [
     withoutActionCheck(program, aim, kase),
     ...outsideOf(aim.act.input, kase.input).map((input, index) =>
       refusal(said.outside(index + 1), {}, toolTexts.invalid, input),
     ),
-    refusal(said.notHeld, { by: core ? cast.member : cast.outsider }, kitReason),
-    refusal(said.unseen, { by: core ? cast.admin : cast.member, attends: false }, toolTexts.unattended),
+    refusal(
+      said.notHeld,
+      { by: isCoreScene(aim) ? "absent" : unheld },
+      isCoreScene(aim) ? toolTexts.unassigned : kitReason,
+    ),
+    refusal(said.unseen, { by: core ? (kase.by ?? cast.admin) : cast.member, attends: false }, toolTexts.unattended),
     placeCheck(program, aim, kase),
     ...unchangedCheck(program, aim, kase),
   ];

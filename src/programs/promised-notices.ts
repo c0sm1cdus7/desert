@@ -38,7 +38,7 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
       if (!entry) return;
       const theirs = seated(house(), other, shown);
       const own = seated(house(), actor, shown);
-      const outside = seated(house(), cast.outsider, shown);
+      const outside = seated(house(), actor === cast.outsider ? cast.admin : cast.outsider, shown);
       const news = (tools: readonly Tool[], tool?: string) =>
         listAt(tools, surface.activity, tool)?.find(row => row.title === firstLine(entry.data.text));
       try {

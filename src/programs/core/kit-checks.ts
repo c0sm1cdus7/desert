@@ -35,9 +35,10 @@ export async function mindTargetCauses<X extends Program>(program: Composition<X
       const before = house().tools.state().house;
       const input = aim.name.startsWith("kit:") ? { value: "yes" } : {};
       const done = await perform(house(), aim.tool.id, { act: aim.name, on, input });
-      deepStrictEqual([done.status, done.reason], ["rejected", words.ownActions]);
+      const cause = aim.name === "scene" ? words.ownScene : words.ownActions;
+      deepStrictEqual([done.status, done.reason], ["rejected", cause]);
       deepStrictEqual(house().tools.state().house, before);
-      causes.push(words.ownActions);
+      causes.push(cause);
     }
   });
   return causes;

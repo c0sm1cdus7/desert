@@ -2,6 +2,7 @@
 import type { ProgramTool } from "../../promises.ts";
 import type { Program, ToolRegistry } from "../../tool-contract.ts";
 import { identityTexts as words } from "../../../texts/identities/identities.texts.ts";
+import { identityScene } from "./identity-scene.ts";
 import { identityActions } from "./identity-actions.ts";
 import { newIdentity } from "./new-identity.ts";
 import { identityReading, identityTarget, members } from "./identity-reading.ts";
@@ -14,10 +15,15 @@ export function identitiesTool<X extends Program>(registry: ToolRegistry<X>, run
     purpose: words.purpose,
     targets: ({ house }) =>
       [...members(house), ...kitCatalog(registry).map(tool => `mind:${tool.id}`)].map(identityTarget),
-    view: ({ house }, target) => identityReading(house, target, registry),
+    view: ({ house, by }, target) => identityReading(house, target, registry, by),
     summary: ({ house }) => words.countIdentities(members(house).length),
     menus: kitMenus(registry),
-    acts: { new: newIdentity<X>(registry, runner), ...identityActions<X>(runner, registry), ...kitActions(registry) },
+    acts: {
+      scene: identityScene<X>(),
+      new: newIdentity<X>(registry, runner),
+      ...identityActions<X>(runner, registry),
+      ...kitActions(registry),
+    },
   };
   core.add(tool);
   return tool;
