@@ -3,12 +3,12 @@ import { ok } from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { copyJournal } from "../adapters/storage/copy-journal.ts";
+import { copyKeptJournal } from "../adapters/storage/copy-kept-journal.ts";
 import { houseJournal } from "../adapters/storage/house-journal.ts";
 import { journalKept } from "../adapters/storage/journal-store.ts";
 import { checkReopenedState } from "../adapters/storage/reopened-state.ts";
 import { Redactor } from "../adapters/secrets/redact.ts";
-import { CustodyError } from "../adapters/secrets/custody/house-keys.ts";
+import { InspectionUnavailable } from "../tools/failures/inspection-unavailable.ts";
 import { credentialJournal } from "../adapters/declared/credential-journal.ts";
 import { Bus } from "../journal/bus.ts";
 import { effect } from "../journal/events.ts";
@@ -20,7 +20,7 @@ import { inspectionCapabilities } from "./kept-capabilities.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 type InspectionProgram<X extends Program> = Omit<HouseOptions<X>, "by" | "creation">;
 const denied = (): never => {
-  throw new CustodyError("E-CUSTODY-DENIED");
+  throw new InspectionUnavailable(said.inspectionWrite);
 };
 function inspectionTools<X extends Program>(
   program: InspectionProgram<X>,
@@ -95,7 +95,7 @@ export async function inspectKept<X extends Program, R>(
   const home = mkdtempSync(join(tmpdir(), "desert-inspection-"));
   try {
     const copy = join(home, "journal.sqlite");
-    copyJournal(file, copy);
+    copyKeptJournal(file, copy);
     return await inspectCopy(program, copy, use);
   } finally {
     rmSync(home, { recursive: true, force: true });

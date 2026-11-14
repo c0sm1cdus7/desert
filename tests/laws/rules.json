@@ -2068,7 +2068,7 @@
     },
     {
       "id": 198,
-      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato 4 exige suma SHA-256 del contenido serializado, identidad del registro, versión de cálculos y continuidad de secuencia; un grupo incompatible se reconstruye entero. Cada descarte explica su motivo por diagnósticos y queda visible en la instancia, nunca como hecho del registro: reconstruir no agrega historia. Un grupo se guarda entero y solo después de restaurarse correctamente. Un daño o una suma ausente descarta el plegado y avisa; el formato anterior se reconstruye una vez. Recalcular deliberadamente la suma de un estado falso queda fuera de la garantía en ejecución. Cada identidad conserva su par de estado y reloj dentro de la misma versión: al alternar aperturas se procesa la cola pendiente, sin reconstruir siempre todo. La casa vigila y restaura los plegados antes de que limpiar custodia huérfana agregue hechos; conserva los de otras identidades y no inventa un cambio de cálculo. El mantenimiento con la casa cerrada agrega sin restaurar ni tocar plegados de ninguna identidad: aceptar, reintentar, adoptar y descartar no avisan reconstrucción; la siguiente apertura reutiliza y pliega la cola. Los conservados se abren y recorren como evidencia en inspección sobre una copia desechable, sin proveedor ni archivo de secretos: los lotes conservan referencias sin autenticarse con la llave original; no habilita casas vivas ni usos de material.",
+      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato 4 exige suma SHA-256 del contenido serializado, identidad del registro, versión de cálculos y continuidad de secuencia; un grupo incompatible se reconstruye entero. Cada descarte explica su motivo por diagnósticos y queda visible en la instancia, nunca como hecho del registro: reconstruir no agrega historia. Un grupo se guarda entero y solo después de restaurarse correctamente. Un daño o una suma ausente descarta el plegado y avisa; el formato anterior se reconstruye una vez. Recalcular deliberadamente la suma de un estado falso queda fuera de la garantía en ejecución. Cada identidad conserva su par de estado y reloj dentro de la misma versión: al alternar aperturas se procesa la cola pendiente, sin reconstruir siempre todo. La casa vigila y restaura los plegados antes de que limpiar custodia huérfana agregue hechos; conserva los de otras identidades y no inventa un cambio de cálculo. El mantenimiento con la casa cerrada agrega sin restaurar ni tocar plegados de ninguna identidad: aceptar, reintentar, adoptar y descartar no avisan reconstrucción; la siguiente apertura reutiliza y pliega la cola. Los conservados se abren como evidencia en inspección sobre una copia desechable, sin proveedor ni archivo de secretos: los lotes conservan referencias sin autenticarse con la llave original; no habilita casas vivas ni usos de material. Se recorre lo que no usa credenciales ni adaptadores: InspectionUnavailable corta solo esa rama, reconocida por su identidad y no por el texto. El informe cuenta las ramas no recorribles en inspección con acción y motivo, aunque ninguna acción pueda completarse, separado de los cortes por topes; cualquier otra falla sigue haciendo fallar la comprobación. La copia temporal se borra también ante una falla y la evidencia original no recibe auxiliares nuevos.",
       "from": "13/11 · auditoría A03; recuperación de los plegados incompletos anteriores",
       "guarantee": "derived",
       "evidence": [
@@ -2089,7 +2089,14 @@
         "src/programs/house-custody-union.spec.ts",
         "src/programs/house-custody-folds.spec.ts",
         "src/programs/kept-custody.spec.ts",
-        "src/programs/kept-inspection.ts"
+        "src/programs/kept-inspection.ts",
+        "src/programs/q-b3-recorrer-con-actos.spec.ts",
+        "src/programs/q-orden-adaptador-antes.spec.ts",
+        "src/programs/kept-capabilities.spec.ts",
+        "src/programs/kept-inspection.spec.ts",
+        "src/programs/kept-coverage.spec.ts",
+        "src/adapters/storage/copy-kept-journal.spec.ts",
+        "src/programs/kept-inspection-secrets.spec.ts"
       ]
     },
     {

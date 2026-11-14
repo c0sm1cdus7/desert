@@ -1,3 +1,4 @@
+import { inspectionUnavailable } from "../tools/failures/inspection-unavailable.ts";
 // Replay one path on a disposable journal copy, using the same transitions and action bridge as the router.
 import { ok } from "node:assert/strict";
 import type { Intent } from "../surface/contract.ts";
@@ -18,7 +19,8 @@ import { errorIn } from "./read-screen.ts";
 import { quietScreen } from "./promised-entry.ts";
 import { localPorts, type RunningHouse } from "./house-runtime.ts";
 export type Path = readonly Intent[];
-export type KeptPath = Readonly<{ fingerprint: string; branches: readonly Path[] }>;
+export type InspectionCut = Readonly<{ tool: string; action: string; reason: string }>;
+export type KeptPath = Readonly<{ fingerprint: string; branches: readonly Path[]; unavailable?: InspectionCut }>;
 const moveTo = (from: number, to: number): Intent[] =>
   Array.from({ length: Math.abs(to - from) }, (): Intent => ({ kind: to < from ? "up" : "down" }));
 /** Only offered input is taken: no invented text, no secrets, no calls made outside the action bridge. */
@@ -69,6 +71,15 @@ function outsideResult<X extends Program>(
   const body = resolve(failed, tools, bar, { rows: 10000 }).body;
   ok(errorIn(body, reason));
 }
+async function runOffered(tools: readonly Tool[], run: Running) {
+  try {
+    return await actOf(tools, run).run(run.answers);
+  } catch (error) {
+    const unavailable = inspectionUnavailable(error);
+    if (!unavailable) throw error;
+    return { unavailable: { tool: run.tool, action: run.act, reason: unavailable.reason } };
+  }
+}
 /** A fingerprint includes the program state, not the journal sequence or random ids of navigation events. */
 const fingerprint = (session: Session, state: unknown): string =>
   JSON.stringify([session, state], (_key, value: unknown) => (value instanceof Map ? [...value] : value));
@@ -89,7 +100,9 @@ export async function keptPath<X extends Program>(
     const stepped = step(session, intent, tools, now);
     session = stepped.session;
     if (stepped.run) {
-      const result = await actOf(tools, stepped.run).run(stepped.run.answers);
+      const result = await runOffered(tools, stepped.run);
+      if ("unavailable" in result)
+        return { fingerprint: fingerprint(session, house.tools.state().tools), branches: [], ...result };
       if (!result.ok) {
         outsideResult(program, tools, session, stepped.run, result.reason, now);
         return { fingerprint: fingerprint(session, house.tools.state().tools), branches: [] };

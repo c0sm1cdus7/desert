@@ -3,7 +3,7 @@ import { ok } from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { copyJournal } from "../adapters/storage/copy-journal.ts";
+import { copyKeptJournal } from "../adapters/storage/copy-kept-journal.ts";
 import { journalKept } from "../adapters/storage/journal-store.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
@@ -27,7 +27,7 @@ function inspect<X extends Program>(
   const home = mkdtempSync(join(tmpdir(), "desert-upgrade-"));
   try {
     const copy = join(home, "journal.sqlite");
-    copyJournal(file, copy);
+    copyKeptJournal(file, copy);
     const { runner } = journalKept(copy, false);
     const before = upgradeComparison(program, copy, runner, name);
     try {

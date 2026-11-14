@@ -374,13 +374,19 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   contenido, hacelo en un adaptador declarado. Antes de ejecutar, las referencias de preguntas son provisionales
   en memoria y no resuelven custodia. Cancelar o cerrar no deja material en disco. Solo `submit` arma un
   traspaso privado de un uso al motor; `input`, condiciones y confirmaciones nunca llevan ese traspaso.
-- Un registro conservado con credenciales abre y se recorre en **modo de inspección**, como evidencia de prueba.
-  Se copia solo el registro a una carpeta temporal; no se abre el archivo de secretos, ningún proveedor de llaves
+- Un registro conservado con credenciales abre en **modo de inspección**, como evidencia de prueba.
+  Se recorre lo que no usa credenciales ni adaptadores. Si una acción ofrecida llega a un adaptador o intenta usar,
+  capturar, reemplazar o liberar una credencial, se corta esa rama y se cuenta como «no recorrible en inspección».
+  El informe da la cantidad de ramas cortadas, con acción y motivo, aunque ninguna acción pueda completarse.
+  Se copia solo la evidencia cerrada del registro a una carpeta temporal; no se abre el archivo de secretos, ningún proveedor de llaves
   ni el llavero. Los lotes se leen como hechos con referencias y se comprueba su forma, **no su autenticación
   contra la llave del registro original**: esa llave no forma parte de la evidencia conservada.
   Este modo no abre una casa viva: no es una opción de `startHouse`, trabaja únicamente sobre una copia desechable
-  y no habilita material. Pedir un uso, ingreso, reemplazo o liberación se rechaza con `E-CUSTODY-DENIED`;
-  las fábricas de adaptadores no se abren. La casa viva sigue exigiendo proveedor, material, autenticación y ancla.
+  y no habilita material. Esos intentos lanzan `InspectionUnavailable`, con código `E-CUSTODY-DENIED` y motivo;
+  el recorrido reconoce la identidad del error, nunca su texto. Cualquier otra falla de una acción sigue haciendo
+  fallar la comprobación. Las fábricas de adaptadores no se abren. Leer referencias vigentes y su revisión sí se permite.
+  La casa viva sigue exigiendo proveedor, material, autenticación y ancla. La copia temporal se borra al terminar,
+  también si falla la apertura o el recorrido; no se crean auxiliares junto a la evidencia original.
 - `programChecks` deriva una comprobación por acción secreta, ejecuta todos sus casos y observa la frontera
   real. Cada posición, opcional, elemento de lista y rama necesita al menos un caso ejecutado con referencia;
   una posición sin cobertura falla. Retirar la sustitución hace fallar el centinela de la compuerta.
@@ -730,7 +736,10 @@ el ayudante no bloquea la red de código que vos le entregues. Para lotes, vínc
 
 Al actualizar un programa:
 - Los conservados con credenciales se inspeccionan sin proveedor ni archivo de secretos; no copies llaves ni material.
-  Sus lotes no se autentican contra la llave original. Renovar sigue comprobando los plegados y no abre custodia.
+  Sus lotes no se autentican contra la llave original. Se recorre lo que no usa credenciales ni adaptadores;
+  las demás ramas se cortan y el informe las cuenta con acción y motivo. Conservá las acciones del programa:
+  no hace falta retirarlas ni inventarles causas `outside`. Un error ajeno a la inspección sigue fallando.
+  Renovar sigue comprobando los plegados y no abre custodia.
 - Para la ley 212, separá cada herramienta de composición y adaptadores, declarala en un registro rastreable y
   revisá también los módulos importados fuera de `src/` o desde pruebas. Quitá `Reflect` de las herramientas.
   Conservá los índices de arreglos, tuplas, texto y tablas de datos; tipá y estrechá lo desconocido antes de leerlo.
@@ -767,7 +776,9 @@ Al actualizar un programa:
   niveles de decisiones y 16 alternativas por estado. Acepta opciones, marcas y texto que ya se ofrece y puede
   enviarse; no inventa texto ni escribe secretos, y no recorre conversaciones. Un error interno, una pregunta de
   opciones sin respuesta elegible o una fila apagada sin motivo hacen fallar la compuerta. Las fallas declaradas en
-  `outside` pueden terminar en `Error` con su causa.
+  `outside` pueden terminar en `Error` con su causa. Un `InspectionUnavailable` al ejecutar una acción corta
+  solamente esa rama: el informe cuenta las ramas no recorribles con acción y motivo, separadas de los cortes
+  por los topes del recorrido. No equivale a haber ejecutado esas acciones, aunque la comprobación termine bien.
 - Lo que el recorrido cubrió se lee en la salida de la compuerta, una línea por registro: cuántos caminos, cuántos
   lugares y cuántas respuestas ofrecidas quedaron sin recorrer. Es una muestra acotada, no una prueba de todos los
   estados posibles: las garantías derivadas de los casos siguen siendo obligatorias.
@@ -1043,8 +1054,11 @@ No se comparten estados calculados para personas distintas. Un cambio de versió
 Una apertura sin descartes no repite el aviso. Quien usa `SqliteJournal` directamente recibe stderr o pasa un
 receptor de diagnósticos como tercer argumento.
 
-Solo SQLite abre y cierra los archivos del auxiliar, del registro y de la bóveda. Las comprobaciones de registros
-conservados también copian mediante SQLite, incluyendo WAL, sin abrir descriptores propios sobre el registro.
+En una casa viva, solo SQLite abre y cierra los archivos del auxiliar, del registro y de la bóveda.
+`copyJournal` sigue copiando el registro vivo mediante SQLite, incluyendo WAL, sin descriptores propios que
+liberen sus bloqueos. La inspección y la comparación de conservados reciben evidencia cerrada e inmóvil:
+copian su archivo y, si fue conservado, su WAL a una carpeta privada antes de abrir SQLite allí. El índice `-shm`
+se reconstruye solo en esa copia. Ese copiado de evidencia no se usa para sacar respaldos de una casa abierta.
 
 Las pruebas derivadas de cada caso y recorrido comparan estado completo y reloj tras cerrar y abrir con otra
 apertura después de borrar los plegados guardados. Los registros conservados hacen esa comparación antes de

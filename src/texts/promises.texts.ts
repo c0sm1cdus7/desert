@@ -2,6 +2,13 @@ import { closureTexts } from "./closures/closures.texts.ts";
 import { checkDiagnostics } from "./checks/diagnostics.texts.ts";
 // How the checks that a program's promises derive are named, and what they say when a case cannot even start.
 export const promiseTexts = {
+  inspectionDenied: (reason: string) => `E-CUSTODY-DENIED · ${reason}`,
+  inspectionAdapter: (id: string, method: string) => `adaptador ${id}.${method}`,
+  inspectionCapture: "capturar credencial",
+  inspectionReplace: "reemplazar credencial",
+  inspectionRelease: "liberar credencial",
+  inspectionRead: "leer credencial fuera del préstamo o casillero declarado",
+  inspectionWrite: "capturar credencial o escribir custodia",
   keptUpgrades: (name: string) => `the journal kept as ${name} upgrades from previous folds to the complete replay`,
   ...checkDiagnostics,
   ...closureTexts,
@@ -11,10 +18,21 @@ export const promiseTexts = {
   keptWalks: (name: string, to: Readonly<{ whole: number; paths: number; depth: number; choices: number }>) =>
     `the journal kept as ${name} walks every answer offered in its first ${to.whole} levels, and past them ` +
     `${to.paths} paths within ${to.depth} levels, ${to.choices} choices`,
-  keptWalked: (name: string, walk: Readonly<{ whole: number; paths: number; states: number; clipped: number }>) =>
+  keptWalked: (
+    name: string,
+    walk: Readonly<{
+      whole: number;
+      paths: number;
+      states: number;
+      clipped: number;
+      unavailable: readonly Readonly<{ tool: string; action: string; reason: string }>[];
+    }>,
+  ) =>
     `the journal kept as ${name}: ${walk.whole} paths walked its first levels whole and ${walk.paths} went past ` +
     `them, through ${walk.states} places; ` +
-    (walk.clipped ? `${walk.clipped} offered answers were left unwalked` : "no offered answer was left unwalked"),
+    `${walk.clipped} offered answers were left unwalked by limits; ` +
+    `${walk.unavailable.length} ramas no recorribles en inspección` +
+    walk.unavailable.map(cut => `; ${cut.tool}/${cut.action}: ${cut.reason}`).join(""),
   disabledReason: "A disabled row has no reason",
   offeredFailed: (reason: string) => `An offered answer failed internally: ${reason}`,
   emptyQuestion: "A question has nothing eligible to choose",

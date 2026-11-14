@@ -1,17 +1,18 @@
+import { promiseTexts as said } from "../texts/promises.texts.ts";
 // References are evidence. Every material operation stays unavailable during inspection.
 import type { AdapterComposition } from "../adapters/declared/adapter-contract.ts";
 import type { CredentialFact } from "../adapters/secrets/custody/custody-contract.ts";
 import { sameScope } from "../adapters/secrets/custody/custody-contract.ts";
-import { CustodyError } from "../adapters/secrets/custody/house-keys.ts";
+import { InspectionUnavailable } from "../tools/failures/inspection-unavailable.ts";
 import type { CapabilityFactory } from "../tools/execution/capabilities.ts";
-const denied = (): never => {
-  throw new CustodyError("E-CUSTODY-DENIED");
+const denied = (reason: string) => (): never => {
+  throw new InspectionUnavailable(reason);
 };
 function inspectionPorts(program: AdapterComposition) {
   return Object.fromEntries(
     Object.entries(program.adapters ?? {}).map(([id, adapter]) => [
       id,
-      Object.fromEntries(Object.keys(adapter.methods).map(name => [name, denied])),
+      Object.fromEntries(Object.keys(adapter.methods).map(name => [name, denied(said.inspectionAdapter(id, name))])),
     ]),
   );
 }
@@ -23,7 +24,7 @@ export function inspectionCapabilities(
   return scope => {
     let live = true;
     const latest = (slot: string) => {
-      if (!live || !program.credentialSlots?.[scope.tool]?.includes(slot)) return denied();
+      if (!live || !program.credentialSlots?.[scope.tool]?.includes(slot)) return denied(said.inspectionRead)();
       return facts
         .filter(
           fact =>
@@ -41,10 +42,10 @@ export function inspectionCapabilities(
           return fact?.kind === "credential-bound" ? { revision: fact.revision, refs: { ...fact.refs } } : undefined;
         },
         revision: slot => latest(slot)?.revision ?? 0,
-        replace: denied,
-        release: denied,
+        replace: denied(said.inspectionReplace),
+        release: denied(said.inspectionRelease),
       },
-      capture: denied,
+      capture: denied(said.inspectionCapture),
       apply: () => false,
       together: work => work(),
       close: () => {

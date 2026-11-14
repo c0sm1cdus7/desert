@@ -15,7 +15,8 @@ vi.mock("../catalogs/levers.ts", async importOriginal => {
 });
 import { adapterHouse } from "../../tests/support/adapter-house.ts";
 import { imported, call } from "../../tests/support/declared-adapters.ts";
-import { shopShown, type Shop } from "../../tests/support/shop.ts";
+import { type Shop } from "../../tests/support/shop.ts";
+import { firmar, inspectionShown, declaredRegistry } from "../../tests/support/kept-inspection.ts";
 import { toolAct } from "../tools/act-definition.ts";
 import type { Composition } from "../tools/promises.ts";
 import { MemoryHouseKeys } from "../adapters/secrets/custody/house-keys.ts";
@@ -31,32 +32,10 @@ import { inspectKept } from "./kept-inspection.ts";
 import { inspectionCapabilities } from "./kept-capabilities.ts";
 import { startHouse } from "./house-runtime.ts";
 import * as vault from "../adapters/secrets/custody/open-secret-vault.ts";
-const shown = {
-  ...shopShown,
-  words: {
-    ...shopShown.words,
-    vault: {
-      name: "Firma",
-      key: "f",
-      empty: "Sin firma.",
-      listed: "Firmas",
-      reads: {},
-      presents: [{ title: "Firma", empty: "Sin firma.", reads: {} }],
-    },
-  },
-};
 for (const bound of [true, false])
   for (const withKeys of [false, true])
     it(`B3: abre y recorre antes y después de renovar, vínculos=${bound}, proveedor=${withKeys}`, async () => {
-      const rig = adapterHouse(
-        {
-          rotate: toolAct(Type.Object({}), async (_, ctx) => ({
-            status: "accepted",
-            effects: [ctx.credentials.replace("signing", await imported(ctx), ctx.credentials.revision("signing"))],
-          })),
-        },
-        { view: () => "{}" },
-      );
+      const rig = adapterHouse({ rotate: firmar }, { view: () => "{}" });
       if (bound) expect((await rig.act("rotate")).status).toBe("accepted");
       rig.close();
       const folder = mkdtempSync(join(tmpdir(), "kept-custody-"));
@@ -65,7 +44,7 @@ for (const bound of [true, false])
       const { secretKeys: _keys, ...options } = rig.options;
       const program: Composition<Shop> = {
         ...options,
-        registry: options.registry.map(tool => ({ ...tool, acts: {} })),
+        registry: declaredRegistry(options.registry),
       };
       const keys = new MemoryHouseKeys();
       const open = vi.spyOn(vault, "openSecretVault");
@@ -81,7 +60,7 @@ for (const bound of [true, false])
       for (const version of ["desert/1", "desert/3", "renovado"]) {
         if (version === "renovado") expect(renewKeptJournals(program, folder)).toEqual(["kept.sqlite"]);
         else base.version = version;
-        const checks = keptChecks(variant, shown, folder);
+        const checks = keptChecks(variant, inspectionShown, folder);
         // The manual evidence must be renewed after changing the calculation version.
         const applicable = version === "desert/3" ? checks.slice(0, 3) : checks;
         for (const check of applicable) await expect(check.run(), `${version}: ${check.name}`).resolves.toBeUndefined();
@@ -131,6 +110,16 @@ it("B3: inspeccionar nunca abre custodia, ejecuta un adaptador ni habilita una c
     expect(readdirSync(rig.path).filter(name => /^(fixture|secret)/u.test(name))).toEqual(files);
     // An unrecognized inspection flag cannot bypass the live-house provider requirement.
     expect(() => startHouse(rig.path, { ...options, ...{ inspection: true } })).toThrow("E-CUSTODY-PROVIDER");
+    const live = startHouse(rig.path, { ...rig.options, ...{ inspection: true } });
+    try {
+      expect(open).toHaveBeenCalledTimes(1);
+      const rotated = live.tools.act({ act: "rotate", target: "vault", input: {} }, 0, "ana");
+      const done = rotated.status === "processing" ? await rotated.completion : rotated;
+      expect(done.status).toBe("accepted");
+      expect(adapter).toHaveBeenCalledTimes(1);
+    } finally {
+      live.close();
+    }
   } finally {
     open.mockRestore();
     adapter.mockRestore();
