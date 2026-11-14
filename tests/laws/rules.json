@@ -2255,6 +2255,20 @@
         "src/programs/identity-doors.spec.ts",
         "src/house/identities-core.spec.ts"
       ]
+    },
+    {
+      "id": 228,
+      "rule": "Identidades es del core, sin mente, proceso ni kit propio, y entra solo por pedido de la composición. Todas las identidades la leen; solo quien administra crea, saca, readmite sin herramientas y pasa la administración. Sacar conserva la fila y el nombre. Las confirmaciones de sacar y pasar empiezan en volver.",
+      "from": "14/11 · casa-kit paso 5b",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/core/identities/identities.ts",
+        "src/tools/core/identities/identities.spec.ts",
+        "src/tools/core/identities/identities-neighbors.spec.ts",
+        "src/tools/core/identities/identities-derived.spec.ts",
+        "src/tools/core/identities/identities-legacy.spec.ts",
+        "src/doors/terminal/identities-terminal.spec.ts"
+      ]
     }
   ]
 }

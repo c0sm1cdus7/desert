@@ -14,8 +14,7 @@ import { programOffered, runProgram } from "./program-run.ts";
 import { executionFailure } from "./execution/execution-failure.ts";
 import { startAct } from "./failures/start-act.ts";
 import { finish } from "./failures/finish.ts";
-import { actNews, type ActContext, type ActResult } from "./tool-contract.ts";
-import type { Program, Tool, ToolAct } from "./tool-contract.ts";
+import { actNews, type ActContext, type ActResult, type Program, type Tool, type ToolAct } from "./tool-contract.ts";
 import type { Execution } from "./execution-contract.ts";
 export type { Execution } from "./execution-contract.ts";
 import type { ToolCapabilities } from "./capabilities-contract.ts";
@@ -50,7 +49,8 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   if (!present(ports.registry, state.house, by) || (process && !ports.process(process, by)))
     return toolTexts.unassigned;
   if (!act) return toolTexts.unknown;
-  if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option))) return toolTexts.outsideKit;
+  if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option)))
+    return toolTexts.kitRefusal(tool?.id ?? "");
   if (!offered && tool && elsewhere(act, tool, target)) return toolTexts.unknown;
   if (!offered && mindTool(by) !== tool?.id && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
   return programOffered(act, state, target, ports.now());

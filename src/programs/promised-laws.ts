@@ -1,4 +1,4 @@
-import { effect } from "../journal/events.ts";
+import { withoutActionCheck, closeCoreSetup } from "./core/identity-checks.ts";
 import { alsoCauses } from "./coverage/also-causes.ts";
 // The laws every act of every program keeps: nobody promises them case by case, and every act is checked on them.
 import { deepStrictEqual, ok } from "node:assert/strict";
@@ -50,31 +50,22 @@ export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X
     run: () =>
       staged(program, async ({ house }) => {
         await given(house(), aim.tool.id, kase.given, kase.at);
+        closeCoreSetup(house(), aim.tool.id, doing);
         const before = house().tools.state().through;
         const done = await perform(house(), aim.tool.id, { ...kase, act: aim.name, input, ...doing });
         deepStrictEqual([done.status, done.reason], ["rejected", cause]);
         deepStrictEqual(wroteSince(house(), before), []);
       }),
   });
-  const withoutAction: Check = {
-    name: label(aim, said.outsideKit),
-    run: () =>
-      staged(program, async ({ house }) => {
-        await given(house(), aim.tool.id, kase.given, kase.at);
-        house().bus.emit(effect("kit-set", { holder: cast.member, tool: aim.tool.id, acts: [] }, cast.admin));
-        const before = house().tools.state().through;
-        const done = await perform(house(), aim.tool.id, { ...kase, act: aim.name, by: cast.member });
-        deepStrictEqual([done.status, done.reason], ["rejected", toolTexts.outsideKit]);
-        deepStrictEqual(wroteSince(house(), before), []);
-      }),
-  };
+  const core = aim.tool.id === "identities";
+  const kitReason = toolTexts.kitRefusal(aim.tool.id);
   return [
-    withoutAction,
+    withoutActionCheck(program, aim, kase),
     ...outsideOf(aim.act.input, kase.input).map((input, index) =>
       refusal(said.outside(index + 1), {}, toolTexts.invalid, input),
     ),
-    refusal(said.notHeld, { by: cast.outsider }, toolTexts.outsideKit),
-    refusal(said.unseen, { by: cast.member, attends: false }, toolTexts.unattended),
+    refusal(said.notHeld, { by: core ? cast.member : cast.outsider }, kitReason),
+    refusal(said.unseen, { by: core ? cast.admin : cast.member, attends: false }, toolTexts.unattended),
     placeCheck(program, aim, kase),
     ...unchangedCheck(program, aim, kase),
   ];

@@ -1,3 +1,4 @@
+import { coreRegistry } from "../tools/core/identities/identities.ts";
 import type { CalculationVersion } from "./calculation-version.ts";
 import { houseResources } from "./house-resources.ts";
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
@@ -24,6 +25,7 @@ function ownerless<X extends Program>({ slices, registry }: HouseOptions<X>): st
   return Object.keys(slices.step).filter(part => !registry.some(tool => tool.id === part));
 }
 export function startHouse<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource = systemTime) {
+  options = { ...options, registry: coreRegistry(options.registry, options.by, options.identities) };
   requireProjectionVersion(options.projectionVersion);
   const { by, registry, creation } = options;
   const ports = {

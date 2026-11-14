@@ -140,7 +140,7 @@ export interface Mask {
 export type Field = Question &
   /** A written field says what it expects: its mask, or a placeholder in the program's words. Never neither. */
   (
-    | { readonly kind: "text"; readonly placeholder: string; readonly max?: number }
+    | { readonly kind: "text"; readonly placeholder: string; readonly max?: number; readonly verbatim?: boolean }
     | { readonly kind: "text"; readonly mask: Mask }
     | { readonly kind: "secret" }
     | { readonly kind: "one" | "many"; readonly options: readonly Option[] }

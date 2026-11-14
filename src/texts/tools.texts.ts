@@ -1,15 +1,5 @@
-export const identityNameTexts = {
-  rule:
-    "La identidad debe empezar con una letra minúscula ASCII, tener de 1 a 64 caracteres " +
-    "(letras minúsculas ASCII, dígitos, puntos o guiones) y ser distinta del nombre de la casa.",
-  house: "nombre reservado para la casa",
-  mind: "prefijo reservado para una mente",
-  trim: "nombre no está recortado",
-  control: "carácter de control",
-  format: "carácter de formato",
-  visible: "nombre sin carácter visible",
-} as const;
-
+import { identityTexts } from "./identities/identities.texts.ts";
+export { identityNameTexts } from "./identities/identity-name.texts.ts";
 export const toolTexts = {
   sceneRecipient: (name: string) => `La escena nombra a quien no es una identidad de la casa: ${name}`,
   scene: "Describir lo que está pasando y lo que necesita cada identidad.",
@@ -22,6 +12,7 @@ export const toolTexts = {
   unattended: "destino sin abrir",
   unassigned: "sin acceso",
   outsideKit: "fuera del kit",
+  kitRefusal: (tool: string) => (tool === "identities" ? identityTexts.only : "fuera del kit"),
   defect: (act: string): string => `E-PROG-1 · Falló el programa · ${act}`,
   baseFailure: "E-BASE-1 · Falló la base",
   disconnected: "sin conexión con el servicio",

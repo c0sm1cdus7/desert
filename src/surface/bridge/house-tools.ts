@@ -1,3 +1,4 @@
+import { identityWords } from "../../tools/core/identities/identity-reading.ts";
 import { programCall } from "../../tools/boundaries/program-call.ts";
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
 import { builtScreen } from "./execution/program-screen.ts";
@@ -148,6 +149,8 @@ function questionsFor<X extends Program>(ports: HousePorts<X>, shown: Shown<X>, 
   };
 }
 export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown<X>): readonly Tool[] {
+  if (ports.registry.some(tool => tool.id === "identities"))
+    shown = { ...shown, words: { ...shown.words, identities: identityWords } };
   const seen = new Map<string, number>();
   const observed: SurfacePorts<X> = { ...ports, act: value => ports.act(value, seen.get(value.target ?? "") ?? 0) };
   const undeclared = ports.registry.filter(tool => !isProgramTool(tool)).map(tool => tool.id);
@@ -176,7 +179,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
       notices,
       alsoOn,
       /** A tool nobody gave you is on your Menu unless you prefer not to see what is not yours. */
-      listed: () => mine() || !hides(ports.state().house, ports.me, "foreign"),
+      listed: () => contract.id === "identities" || mine() || !hides(ports.state().house, ports.me, "foreign"),
       calls,
       rendered: (target = contract.id) => {
         seen.set(target, ports.state().through);

@@ -88,7 +88,7 @@ export const identityDisplayName = (house: House, identity: string): string => h
 export const hides = (house: House, by: string, what: Hideable): boolean =>
   house.hides.get(by)?.includes(what) === true;
 export const assigned = (house: House, by: string, tools: readonly string[]): string[] =>
-  tools.filter(tool => allowed(house, by, tool));
+  tools.filter(tool => tool !== "identities" && allowed(house, by, tool));
 
 /** The journal name of a tool's mind; an empty suffix does not name a tool. */
 export const mindOf = (tool: string): string => `${ids.mind}${tool}`;

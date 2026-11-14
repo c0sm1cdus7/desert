@@ -893,6 +893,7 @@ al migrar el import de `currentCloses` a esta entrada.
 | Por una terminal de verdad | `realTerminal` (el programa corriendo con su propia entrada en una pseudo-terminal: `press` manda bytes, `until` espera un texto en pantalla, `screen` la lee), `screenOf`, `RealTerminal` |
 | Superficie | `asking`, `questionWords`, `offeredOn`, `houseRouter`, `houseTools`, `startRouter`, `begin`, `fieldOf`, `walkBody`, `walking` |
 | Validar identidades | `identityNameProblem`: comparte con el programa la regla aplicada a identificadores nuevos. |
+| Probar Identidades | `identitiesTool` e `identityWords`: incorporan la pieza optativa a los casos derivados de una composición. |
 | Estado y hechos | `createHouse`, `identityView`, `houseStep`, `Bus`, `effect`, `vocabulary`, `houseCatalog`, `startState`, `startTools`, `toolsStep` |
 | Declarar datos y comprobar causas | `object`, `text`, `ids`, `caseInstant`, `programAct`, `OutsideDefect`, `outsideCause`, `MissingView`, `toolTexts`, `genericTexts` |
 | Tipos | `Aim`, `Check`, `Decided`, `Doing`, `House`, `Seat`, `Body`, `Screen`, `Choice`, `Session`, `Walk`, `Router`, `Shown`, `Tool`, `Emission`, `Case`, `Composition`, `ProgramAct`, `ProgramTool`, `Step`, `KeyStore`, `Program`, `State` |
@@ -1088,3 +1089,29 @@ siguen ignorándose. Para escribir nuevos hechos de esas puertas se exige la reg
 `named` guarda un nombre libre con texto visible de hasta 160 unidades; solo quien administra lo establece y
 `identityDisplayName` devuelve el identificador cuando falta el nombre. Sacar conserva el nombre y la identidad en
 `removed`; readmitir con herramientas vacías la devuelve sin herramientas ni kit.
+
+### Identidades del core (paso 5b)
+
+`identities: true` en la composición incorpora `identities` al registro de ejecución. Sin ese pedido no existe.
+La superficie recibe automáticamente sus palabras y la ofrece en Sistema con `i`, sin pantalla personalizada.
+El id queda reservado: un programa no puede declararlo por su cuenta. No tiene slice, `start` ni mente;
+`mind:identities` no es un actor. `granted` y `kit-set` rechazan ese id antes de escribir, y `assigned` lo excluye
+incluso para quien administra. Los programas que calculan «todas» desde su registro deben excluir `identities`.
+
+La lista conserva presentes y sacados. La ficha muestra identificador, nombre, estado y kit de solo lectura.
+`new` pide Identificador, Nombre opcional y Herramientas; escribe `granted` y, si hay nombre, `named`, en el mismo
+lote. El identificador se valida con `identityNameProblem`, también en la pregunta, sin recortar lo escrito.
+`remove` conserva la fila y borra herramientas; `readmit` escribe `granted` vacío; `hand` escribe `handed`.
+Sacar y pasar confirman con `volver` elegido. Ninguna acción depende del kit: las demás identidades leen todo y
+ven `solo quien administra`. El cambio de administración se consulta de nuevo al ejecutar una pregunta abierta.
+El nombre conserva el tope del campo de texto corto (120); los nombres históricos de hasta 160 se siguen leyendo.
+
+Las pruebas de una composición que pide la pieza pueden incluir `identitiesTool(registry, nombreDeLaCasa)` de
+`src/tools/core/identities/identities.ts` en su registro y `identityWords` de `identity-reading.ts` en `shown.words`.
+Eso hace que `programChecks` derive también sus casos. La ejecución recompone esa declaración con el nombre real
+con que corre la casa. `tests/support/identities-program.ts` muestra ese programa adicional; el programa original
+`tests/support/shop-program.ts` sigue sin pedir Identidades. No se vuelve a subir la versión del cálculo de 5a.
+
+El campo declarado `verbatim: true` conserva espacios y saltos al escribir, pegar y convertir la respuesta.
+Identificador lo usa para rechazar el valor completo con la regla compartida; los campos comunes conservan su
+normalización anterior. No es una composición ni un control nuevos.

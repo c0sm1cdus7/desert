@@ -1,3 +1,4 @@
+import { checkKitChange, checkForeignVisibility } from "./core/identity-checks.ts";
 // What a person sees of what they cannot do, and what they may prefer not to see: checked for every tool and act.
 import { effect } from "../journal/events.ts";
 import { ok, strictEqual } from "node:assert/strict";
@@ -24,7 +25,7 @@ function foreignActions<X extends Program>(seat: Seat<X>, tool: ProgramTool<X>):
       const found = actRow(seat, { tool, name, act }, target);
       ok(found, said.notOffered(name));
       ok(found.row.off);
-      ok(found.row.detail?.endsWith(toolTexts.outsideKit));
+      ok(found.row.detail?.endsWith(toolTexts.kitRefusal(tool.id)));
       strictEqual(found.row.open, undefined);
     }
   }
@@ -58,7 +59,7 @@ function foreignCheck<X extends Program>(program: Composition<X>, shown: Shown<X
         foreignReferences(seat, program);
         seat.router.send({ kind: "menu" });
         await prefer(seat, "foreign", true);
-        strictEqual(row(), undefined, said.stillShown(tool.id));
+        checkForeignVisibility(tool.id, row());
         await prefer(seat, "foreign", false);
         ok(row()?.open, said.notOnMenu(tool.id));
       } finally {
@@ -85,7 +86,9 @@ function partialCheck<X extends Program>(program: Composition<X>, shown: Shown<X
             const before = actRow(seat, other, target)?.row;
             return before ? [{ other, target, off: before.off, detail: before.detail }] : [];
           });
-          house().bus.emit(effect("kit-set", { holder: cast.member, tool: aim.tool.id, acts }, cast.admin));
+          checkKitChange(aim.tool.id, () =>
+            house().bus.emit(effect("kit-set", { holder: cast.member, tool: aim.tool.id, acts }, cast.admin)),
+          );
           for (const { other, target, off, detail } of others) {
             const row = actRow(seat, other, target)?.row;
             strictEqual(row?.off, off);
@@ -94,7 +97,7 @@ function partialCheck<X extends Program>(program: Composition<X>, shown: Shown<X
           const row = actRow(seat, aim, kase.on ?? aim.tool.id, undefined, caseOrigin(aim, kase));
           ok(row, said.notOffered(aim.name));
           ok(row.row.off);
-          ok(row.row.detail?.endsWith(toolTexts.outsideKit));
+          ok(row.row.detail?.endsWith(toolTexts.kitRefusal(aim.tool.id)));
         } finally {
           seat.router.stop();
         }

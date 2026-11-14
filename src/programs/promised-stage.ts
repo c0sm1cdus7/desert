@@ -36,7 +36,7 @@ function open<X extends Program>(
   { time, pass, setTime }: Clock,
   secretKeys: MemoryHouseKeys,
 ) {
-  const tools = program.registry.map(tool => tool.id);
+  const tools = program.registry.filter(tool => tool.id !== "identities").map(tool => tool.id);
   const holding = [cast.admin, cast.member].map(identity => ({ identity, tools }));
   const assignments = [...holding, { identity: cast.outsider, tools: [] }];
   const creation = { admin: cast.admin, assignments };

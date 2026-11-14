@@ -235,3 +235,9 @@ Los plegados se conservan por identidad y versión: alternar personas retoma sus
 `renewKeptJournals`, disponible desde testing, renueva la evidencia manual de una entrega sin nuevos hechos.
 La compuerta resume la lista de comprobaciones en `tests/program/setup.ts` antes de lanzar las partes; cada
 parte coteja su lista. Quien usa la base incorpora ese archivo en `globalSetup` de Vitest.
+
+- Identidades del core vive en `src/tools/core/identities/`: usa el contrato declarado para la Lista y los Hilos,
+  sin slice ni proceso. `startHouse` la compone solo con `identities: true`; `houseTools` incorpora sus palabras.
+  El estado sigue en `House`, y sus cuatro acciones producen hechos de casa mediante el lote habitual.
+  El límite de escritura reserva `identities` fuera de `granted` y `kit-set`; las derivadas comprueban ese rechazo
+  además del permiso de quien administra. La preferencia de lo ajeno no oculta esta pieza del Sistema.

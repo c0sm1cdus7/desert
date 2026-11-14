@@ -35,7 +35,7 @@
     "programs/promised.ts": "promisedChecks: every check a program's promises derive, each case on a real house",
     "surface/bridge/any-tool.ts": "anyToolScreen: a tool without a screen of its own; its rows from its view, its menus from its acts",
     "surface/bridge/asking-back.ts": "write, audit: the answers that say a datum; and that every field of a declaration can be asked",
-    "surface/bridge/asking-parts.ts": "how a declared field says its question, options, value and mask; the field that picks a thing of a tool; declared currency and reasons for every invalid submitted value, calendar before future; el editor secreto oculta material y los validadores reciben referencias",
+    "surface/bridge/asking-parts.ts": "how a declared field says its question, options, value and mask; the field that picks a thing of a tool; declared currency and reasons for every invalid submitted value, calendar before future; el editor secreto oculta material y los validadores reciben referencias; propaga verbatim para validar identificadores sin normalizarlos",
     "surface/bridge/asking.ts": "asking: the questions of an act from the declaration of what it takes, and its answers read back as data; Lee preguntas y respuestas; lleva lo contestado antes y el destino a la moneda de cada campo; sin exponer material a callbacks: solo submit produce el traspaso privado al motor",
     "surface/bridge/house-ports.ts": "HousePorts, Shown, SurfaceWords, ProgramScreen; settle, attendAndAct, section",
     "surface/bridge/house-router.ts": "houseRouter: the router every renderer of a program starts from, over a house's ports",
@@ -194,7 +194,7 @@
     "surface/fields/money-memory.ts": "Abre vacío el importe cuya moneda cambió, incluso al escribir o confirmar; conserva el Error de acción y avisos de teclas, y recalcula los motivos del valor vacío con la moneda nueva",
     "surface/bridge/currency/money-question.ts": "Aplica la moneda a una sola pregunta sin cambiar el formato del país ni otras preguntas",
     "surface/bridge/context/local-calendar.ts": "Reloj y calendario compartidos por una acción; un calendario ausente es un defecto de declaración",
-    "surface/entry/written-answer.ts": "writtenAnswer: character edits and paste preserve the first discarded-key reason beside existing errors; only a changed value clears editing advice; no-op erase and keys preserve it",
+    "surface/entry/written-answer.ts": "writtenAnswer: character edits and paste preserve the first discarded-key reason beside existing errors; only a changed value clears editing advice; no-op erase and keys preserve it; conserva el identificador literal cuando el campo declara verbatim",
     "programs/entry/checked-reason.ts": "withReason: derived screen comparisons retain prior reasons when adding discarded-key advice",
     "texts/entry/entry-advice.ts": "Advice for changed currency and redundant spaces in a written answer; explains repeated zero and identifies malformed computed symbols",
     "catalogs/currency/currency-symbol.ts": "currencySymbol: validates country and declared currency symbols before their format can be used; rejects combining marks and more than eight painted columns, identifying source and value",
@@ -231,7 +231,17 @@
     "adapters/secrets/custody/ledger-verification.ts": "Verifica la cola autenticada con una sola llave transitoria y conserva únicamente el prefijo público confirmado.",
     "tools/scenes.ts": "houseActs: each actor writes its shared scene only for current identities; identities also receive preferences and attendance",
     "tools/execution/running-acts.ts": "Señales vivas por acto: corte ordenado al oír permisos, cierre por kit antes de escribir y recuperación al arrancar; no modifica el plegado.",
-    "house/identity/guards.ts": "Comprueba identificadores nuevos antes de crear o escribir, sin tocar la historia."
+    "house/identity/guards.ts": "Comprueba identificadores nuevos antes de crear o escribir, sin tocar la historia.",
+    "tools/core/identities/identities.ts": "Composición optativa de Identidades: reserva su id y declara lectura y acciones sin proceso ni estado propio.",
+    "tools/core/identities/identity-reading.ts": "Lista y ficha de identidades presentes y sacadas, con nombre, administración y kit de solo lectura.",
+    "tools/core/identities/identity-actions.ts": "Acciones declaradas de sacar, readmitir sin herramientas y pasar la administración, con disponibilidad actual.",
+    "tools/core/identities/new-identity.ts": "Preguntas y ejecución del alta: identificador literal validado, nombre opcional y herramientas enteras en un lote.",
+    "house/identity/validation/emission-identity.ts": "Valida identificadores nuevos y rechaza asignaciones o recortes del id reservado identities antes de escribir.",
+    "texts/identities/identities.texts.ts": "Palabras de Identidades: preguntas, motivos, confirmaciones, resultados y lecturas.",
+    "texts/identities/identity-name.texts.ts": "Texto único de la regla pública de identificadores y vocabulario de diagnóstico conservado.",
+    "programs/core/identity-checks.ts": "Deriva las garantías de autorización: el core rechaza cambios de kit y permanece legible fuera de él.",
+    "tools/core/identities/identity-cases.ts": "Casos declarados de sacar, readmitir y pasar la administración, incluidos los motivos de rechazo.",
+    "tools/core/identities/new-identity-cases.ts": "Casos declarados de alta con nombre y kit, alta vacía, duplicados y permiso de administración."
   },
   "folders": {
     "adapters/secrets": 71,
@@ -283,6 +293,10 @@
     "texts/entry": 7,
     "catalogs/currency": 18,
     "catalogs/display": 4,
-    "house/identity": 32
+    "house/identity": 32,
+    "tools/core/identities": 370,
+    "house/identity/validation": 22,
+    "texts/identities": 63,
+    "programs/core": 44
   }
 }
