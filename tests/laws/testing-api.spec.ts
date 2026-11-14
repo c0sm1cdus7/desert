@@ -63,6 +63,7 @@ const names = [
   "matches",
   "formats",
   "shaped",
+  "shownMoney",
   "paddedMask",
   "Locale",
   "ViewRow",

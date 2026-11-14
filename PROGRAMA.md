@@ -84,6 +84,10 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   El símbolo aparece en el campo vacío, al escribir, en sus límites, en el eco y en la fila del valor actual.
   Las preguntas derivadas de los casos usan el estado y el destino de cada caso. `confirms` sigue siendo texto
   del programa: debe usar esa misma decisión de moneda. La base no garantiza ese texto.
+  La vista y el texto propios del programa también deben convertir los centavos al mostrarlos. La tienda de prueba
+  usa `shownMoney(String(centavos), locale)` con el mismo `locale` de sus campos. Recibe una cadena de centavos
+  enteros entre 0 y 9.999.999.999.999, sin ceros iniciales salvo `"0"`; rechaza cualquier otro valor con un
+  error que muestra lo recibido, incluso una cadena vacía o espacios.
   No hace falta envolver `next` para cambiar la máscara.
   La base distingue monedas por su símbolo: dos monedas con el mismo símbolo son la misma para la base.
   Todo importe se escribe y muestra con dos decimales; el dato guardado sigue siendo centavos enteros.

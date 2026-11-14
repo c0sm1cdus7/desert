@@ -17,12 +17,12 @@ const seat = () => {
 afterEach(() => seats.splice(0).forEach(each => each.close()));
 it("refreshes an old row after an event and after replay of already written facts", () => {
   const hands = seat();
-  expect(hands.sale.find?.("antigua")[0]?.detail).toBe("$ 1500");
+  expect(hands.sale.find?.("antigua")[0]?.detail).toBe("$ 15,00");
   hands.rig.bus.emit(shop.fact("sale-corrected", { sale: "s1", total: 2000, paid: 0 }, "beto"));
-  expect(hands.sale.find?.("antigua")[0]?.detail).toBe("$ 2000");
+  expect(hands.sale.find?.("antigua")[0]?.detail).toBe("$ 20,00");
   hands.rig.restart();
   expect(hands.sale.titleOf?.("sales/s1")).toBe("s1");
-  expect(hands.sale.find?.("antigua")[0]?.detail).toBe("$ 2000");
+  expect(hands.sale.find?.("antigua")[0]?.detail).toBe("$ 20,00");
 });
 it("does not turn a missing thing or an incomplete full reading into an invented name", () => {
   const hands = seat();

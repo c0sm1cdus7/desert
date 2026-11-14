@@ -53,7 +53,7 @@ describe("what is confirmed", () => {
   });
   it("is what the act puts to be confirmed and nothing under it, when it can be undone", async () => {
     const { said, options } = await confirming(markingShop, knowingShown, "kt");
-    expect(said.at(-1)).toBe("Marcar · $ 1500");
+    expect(said.at(-1)).toBe("Marcar · $ 15,00");
     expect(options).toEqual(["marcar", "volver"]);
   });
 });

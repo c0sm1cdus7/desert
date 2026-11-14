@@ -44,7 +44,7 @@ describe("a program whose act changes a datum its tool reads", () => {
 
   it("takes the act from the row of that datum, with its key and what it is today: never among the actions", () =>
     atTill([], now => {
-      expect(now()).toEqual(["f | fondo | $ 0 | "]);
+      expect(now()).toEqual(["f | fondo | $ 0,00 | "]);
       return Promise.resolve();
     }));
 
@@ -77,14 +77,14 @@ describe("a program whose act changes a datum its tool reads", () => {
 
   it("keeps saying the datum while it cannot be changed, and says why after it", () =>
     atTill([closedTill], now => {
-      expect(now()).toEqual(["f | fondo | $ 0 · cerrada | off", " | Estado | cerrada | "]);
+      expect(now()).toEqual(["f | fondo | $ 0,00 · cerrada | off", " | Estado | cerrada | "]);
       return Promise.resolve();
     }));
 
   it("keeps the datum read for who prefers not to see what cannot be done: only the way to change it goes", () =>
     atTill([closedTill], async (now, hide) => {
       await hide();
-      expect(now()).toEqual([" | fondo | $ 0 | ", " | Estado | cerrada | "]);
+      expect(now()).toEqual([" | fondo | $ 0,00 | ", " | Estado | cerrada | "]);
     }));
 
   it("refuses an act named as a datum that does not say it changes it, and one that changes what is not read", () =>
@@ -124,7 +124,7 @@ describe("a tool that reads data of its own, in the stacks its words say", () =>
   it("puts each datum in its stack, the one an act changes as the row that starts it; a stack with none says so", () =>
     stacked([], stackedTillShown, now =>
       expect(now()).toEqual([
-        ["Fondo", ["f | fondo | $ 0"], ""],
+        ["Fondo", ["f | fondo | $ 0,00"], ""],
         ["Estado", [], "Abierta."],
       ]),
     ));
@@ -132,7 +132,7 @@ describe("a tool that reads data of its own, in the stacks its words say", () =>
   it("reads under its label what no act changes", () =>
     stacked([closedTill], stackedTillShown, now =>
       expect(now()).toEqual([
-        ["Fondo", ["f | fondo | $ 0 · cerrada"], ""],
+        ["Fondo", ["f | fondo | $ 0,00 · cerrada"], ""],
         ["Estado", [" | Estado | cerrada"], ""],
       ]),
     ));

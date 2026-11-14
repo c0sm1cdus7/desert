@@ -128,7 +128,7 @@ describe("a program with acts on its things", () => {
 
   it("a tool that does not say what its cases promise needs someone to act fails that, on every door", async () => {
     const checks = [...promisedChecks(carelessShop), ...walkedChecks(carelessShop, shopShown)];
-    expect(await failing(checks, ["Attention differs from the case", "Debe $ 90"])).toEqual([
+    expect(await failing(checks, ["Attention differs from the case", "Debe $ 0,90"])).toEqual([
       stillOwing,
       `${stillOwing}, in Attention with why`,
     ]);
