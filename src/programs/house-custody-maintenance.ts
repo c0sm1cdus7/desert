@@ -31,11 +31,15 @@ export function maintainHouseCustody<X extends Program>(
   const journal = new SqliteJournal(join(home, "journal.sqlite"), protectedVocabulary(options.words));
   try {
     const credentials = credentialJournal(
-      () =>
-        journal.replay<ReturnType<typeof journal.append>[]>([], (all, event) => {
-          all.push(event);
-          return all;
-        }),
+      (after = 0) =>
+        journal.replay<ReturnType<typeof journal.append>[]>(
+          [],
+          (all, event) => {
+            all.push(event);
+            return all;
+          },
+          after,
+        ),
       entry => journal.append(entry, Date.now()),
     );
     // Each custody addition is one durable engine transaction; its anchor runs only after commit.

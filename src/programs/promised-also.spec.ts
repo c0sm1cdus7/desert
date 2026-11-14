@@ -64,12 +64,12 @@ describe("a program whose acts reach across its tools", () => {
 
   it("asks which thing with their list: a number takes its row, and space looks for one by what is typed", async () => {
     const { rig, router, press } = seat("ana");
-    expect(press("pc")).toEqual(["Cobrar", "Venta", "s1 | $ 1500", "s2 | $ 90"]);
-    expect(press(" ")).toEqual(["Cobrar", "Venta", "› ", "s1 | $ 1500", "s2 | $ 90"]);
-    expect(press("s2")).toEqual(["Cobrar", "Venta", "› s2", "s2 | $ 90"]);
+    expect(press("pc")).toEqual(["Cobrar", "Venta", "s1 | $ 15,00", "s2 | $ 0,90"]);
+    expect(press(" ")).toEqual(["Cobrar", "Venta", "› ", "s1 | $ 15,00", "s2 | $ 0,90"]);
+    expect(press("s2")).toEqual(["Cobrar", "Venta", "› s2", "s2 | $ 0,90"]);
     expect(press("x")).toEqual(["Cobrar", "Venta", "› s2x", "Sin resultados."]);
     /** Escape closes the search and the whole list is back; the number of a row takes it. */
-    expect(press("\x1b")).toEqual(["Cobrar", "Venta", "s1 | $ 1500", "s2 | $ 90"]);
+    expect(press("\x1b")).toEqual(["Cobrar", "Venta", "s1 | $ 15,00", "s2 | $ 0,90"]);
     expect(press("2")).toEqual(["Cobrar", "Venta s2", "Monto"]);
     press("90\r\r");
     await router.idle();
@@ -78,17 +78,23 @@ describe("a program whose acts reach across its tools", () => {
 
   it("makes a new thing right where one is picked: what it makes is the answer, and the act goes on", async () => {
     const { rig, router, press } = seat("ana", makingRegistry);
-    expect(press("pc")).toEqual(["Cobrar", "Venta", "s1 | $ 1500", "s2 | $ 90", "registrar | lo que el almacén vende"]);
+    expect(press("pc")).toEqual([
+      "Cobrar",
+      "Venta",
+      "s1 | $ 15,00",
+      "s2 | $ 0,90",
+      "registrar | lo que el almacén vende",
+    ]);
     /** While looking for one, making a new one is not among what is found. */
-    expect(press(" ")).toEqual(["Cobrar", "Venta", "› ", "s1 | $ 1500", "s2 | $ 90"]);
+    expect(press(" ")).toEqual(["Cobrar", "Venta", "› ", "s1 | $ 15,00", "s2 | $ 0,90"]);
     press("\x1b");
     expect(press("r")).toEqual(["Registrar", "Venta"]);
     /** Leaving it at its first question goes back to the list, with nothing made. */
     expect(press("\x1b")).toEqual([
       "Cobrar",
       "Venta",
-      "s1 | $ 1500",
-      "s2 | $ 90",
+      "s1 | $ 15,00",
+      "s2 | $ 0,90",
       "registrar | lo que el almacén vende",
     ]);
     press("rs3\r700\r");
@@ -146,9 +152,9 @@ describe("a program whose acts reach across its tools", () => {
 
   it("shows it off to who does not hold that other tool, and hides it if they prefer not to see such", () => {
     const { rig, tools } = seat("beto");
-    expect(actionsOn(tools, "sales/s1")).toEqual([["c", "cobrar", "sin acceso", true]]);
+    expect(actionsOn(tools, "sales/s1")).toEqual([["c", "cobrar", "fuera del kit", true]]);
     rig.act("beto", "prefer", { hide: "foreign", on: true });
-    expect(actionsOn(tools, "sales/s1")).toEqual([]);
+    expect(actionsOn(tools, "sales/s1")).toEqual([["c", "cobrar", "fuera del kit", true]]);
   });
 });
 
@@ -158,8 +164,8 @@ describe("an act that takes only some things of another tool", () => {
 
   it("shows rejected things with their reason, including in search, and never takes them", () => {
     const { press } = seat("ana", narrowRegistry);
-    expect(press("pc")).toEqual(["Cobrar", "Venta", "s1 | $ 1500", "s2 | venta menor a mil"]);
-    expect(press(" s")).toEqual(["Cobrar", "Venta", "› s", "s1 | $ 1500", "s2 | venta menor a mil"]);
+    expect(press("pc")).toEqual(["Cobrar", "Venta", "s1 | $ 15,00", "s2 | venta menor a mil"]);
+    expect(press(" s")).toEqual(["Cobrar", "Venta", "› s", "s1 | $ 15,00", "s2 | venta menor a mil"]);
     expect(press("2")).toEqual(["Cobrar", "Venta", "› s2", "s2 | venta menor a mil"]);
   });
 

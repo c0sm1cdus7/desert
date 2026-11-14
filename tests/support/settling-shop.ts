@@ -6,7 +6,7 @@ import type { ProgramScreen, Shown, ToolWords } from "../../src/surface/bridge/h
 import type { ViewRow } from "../../src/surface/shown-tool.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
-import { paymentsTool, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
+import { paymentsTool, pesos, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
 
 const taken = object({});
 const nameOf = (target: string): string => target.replace("sales/", "");
@@ -51,7 +51,7 @@ const settle = programAct<Shop, typeof taken>({
       then: {
         says: "Saldada · s1",
         facts: [{ kind: "payment-received", data: whole }],
-        reads: { lines: [{ total: "$ 1500", paid: "$ 1500", by: "ana" }] },
+        reads: { lines: [{ total: "$ 15,00", paid: "$ 15,00", by: "ana" }] },
         needs: [],
       },
     },
@@ -63,7 +63,7 @@ const settle = programAct<Shop, typeof taken>({
       then: {
         says: "Saldada · s1",
         facts: [{ kind: "payment-received", data: whole }],
-        needs: [{ target: "sales/s2", why: "Debe $ 90" }],
+        needs: [{ target: "sales/s2", why: "Debe $ 0,90" }],
       },
     },
     {
@@ -80,7 +80,7 @@ const owing = (state: State<Shop>) =>
   [...state.tools.sales.keys()]
     .map(sale => `sales/${sale}`)
     .filter(target => owed(state, target) > 0)
-    .map(target => ({ target, why: `Debe $ ${owed(state, target)}` }));
+    .map(target => ({ target, why: `Debe ${pesos(owed(state, target))}` }));
 const needing = { ...salesTool, needs: owing, acts: { ...salesTool.acts, settle } };
 export const settlingShop: Composition<Shop> = { ...shopProgram, registry: [needing, paymentsTool] };
 /** The same shop, whose sales never say they need anyone: what its cases promise of that is not kept. */

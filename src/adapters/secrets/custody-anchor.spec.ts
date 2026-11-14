@@ -14,7 +14,8 @@ for (const after of [false, true])
       if (after) anchor(house, head);
       throw new Error("corte");
     });
-    expect(() => session.replace("signing", refs, 0)).toThrow();
+    expect(() => session.replace("signing", refs, 0)).not.toThrow();
+    expect(store.anchorPending()).toBe(true);
     store.close();
     fail.mockRestore();
     const again = rig.open();
@@ -25,11 +26,14 @@ it("dos agregados por delante del ancla no se aceptan como un corte simple", () 
     store = rig.open(),
     session = store.begin(custodyScope);
   const refs = { key: session.capture(Buffer.from("inventado")) };
-  const skip = vi.spyOn(rig.keys, "anchor").mockImplementation(() => {});
+  const head = vi.spyOn(rig.keys, "head");
   session.replace("one", refs, 0);
-  expect(() => session.replace("two", refs, 0)).toThrow("E-CUSTODY-ROLLBACK");
+  session.replace("two", refs, 0);
+  const house = head.mock.calls[0]?.[0];
+  if (!house) throw new Error("fixture");
+  rig.keys.anchor(house, { count: 0, authentication: "" });
+  expect(() => store.facts()).toThrow("E-CUSTODY-ROLLBACK");
   store.close();
-  skip.mockRestore();
   expect(() => rig.open()).toThrow("E-CUSTODY-ROLLBACK");
 });
 for (const shape of ["empty", "empty-plus-marker", "prefix", "missing", "different"])
@@ -51,9 +55,7 @@ for (const shape of ["empty", "empty-plus-marker", "prefix", "missing", "differe
     if (shape === "missing") vi.spyOn(rig.keys, "head").mockReturnValue(undefined);
     if (shape === "different") rig.keys.anchor(house, { count: 2, authentication: "a".repeat(64) });
     expect(() => rig.open()).toThrow(
-      shape === "missing"
-        ? "E-CUSTODY-KEY"
-        : /E-CUSTODY-ROLLBACK.*quitaron renglones.*copia vieja.*acceptRestoredCopy/u,
+      shape === "missing" ? "E-CUSTODY-KEY" : /E-CUSTODY-ROLLBACK.*ancla espera.*vínculos/u,
     );
   });
 it("aceptar una restauración verifica todo antes de mover el ancla", () => {
@@ -85,7 +87,8 @@ it("un lote de varios vínculos es un solo agregado recuperable y no admite un p
       store.confirm(session, "one", 0, refs);
       store.confirm(session, "two", 0, refs);
     }),
-  ).toThrow();
+  ).not.toThrow();
+  expect(store.anchorPending()).toBe(true);
   store.close();
   anchor.mockRestore();
   const recovered = rig.open();

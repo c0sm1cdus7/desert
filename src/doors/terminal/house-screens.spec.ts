@@ -40,10 +40,9 @@ describe("the terminal, on a program's house", () => {
       expect.arrayContaining(["[v] ventas | 0 ventas", "[p] pagos | 0 sin venta"]),
     );
     const { router, press } = open("beto");
-    expect(shown(router)).toEqual(expect.arrayContaining(["[v] ventas | 0 ventas", "[p] pagos | sin acceso"]));
+    expect(shown(router)).toEqual(expect.arrayContaining(["[v] ventas | 0 ventas", "[p] pagos | 0 sin venta"]));
     expect(shown(router)[0]).toContain(clock);
-    expect((await press("p"))[0]).toContain("Menú");
-    expect((await press("\r"))[0]).toContain("Ventas");
+    expect((await press("p"))[0]).toContain("Pagos");
   });
 
   it("lets each person say what they prefer not to see, from Preferences on the Menu", async () => {
@@ -104,11 +103,11 @@ describe("the terminal, on a program's house", () => {
     const done = await press("00\r");
     expect(done).toEqual(expect.arrayContaining(["Venta s1", "Total $ 1.500,00", `Listo Registrada · s1 · ${clock}`]));
     expect(rig.state().tools.sales.get("s1")).toEqual({ total: 150_000, paid: 0, by: "ana" });
-    expect(await press(escape)).toContain("[1] s1 | $ 150000");
+    expect(await press(escape)).toContain("[1] s1 | $ 1.500,00");
     const sale = await press("\r");
     expect(sale[0]).toContain("s1");
     expect(sale).toEqual(
-      expect.arrayContaining(["Venta", "Total | $ 150000", "Cobrado | $ 0", "Actividad", "Creó | ana"]),
+      expect.arrayContaining(["Venta", "Total | $ 1.500,00", "Cobrado | $ 0,00", "Actividad", "Creó | ana"]),
     );
     expect(await press(`${escape}${escape}`)).toContain("[v] ventas | 1 venta");
   });
@@ -118,7 +117,7 @@ describe("the terminal, on a program's house", () => {
     rig.attend("beto", "sales");
     rig.act("beto", "register", { sale: "s7", total: 70 }, "sales");
     expect(shown(router).some(line => line.includes("Requiere atención"))).toBe(true);
-    expect(await press("v")).toContain("[2] s7 | $ 70");
+    expect(await press("v")).toContain("[2] s7 | $ 0,70");
     expect((await press(escape)).some(line => line.includes("Requiere atención"))).toBe(false);
   });
 
@@ -132,11 +131,11 @@ describe("the terminal, on a program's house", () => {
     expect(shown(router)).toEqual(expect.arrayContaining(["Actividad", "[1] Registrada · s7 | beto"]));
     expect(shown(router).some(line => line.includes("· s8"))).toBe(false);
     expect(await press("v")).toEqual(
-      expect.arrayContaining(["Actividad", "[1] Registrada · s7 | beto", "[2] s7 | $ 70"]),
+      expect.arrayContaining(["Actividad", "[1] Registrada · s7 | beto", "[2] s7 | $ 0,70"]),
     );
     expect((await press("1"))[0]).toContain("s7");
     const back = await press(escape);
-    expect(back).toEqual(expect.arrayContaining(["Actividad", "Sin novedades.", "[1] s7 | $ 70"]));
+    expect(back).toEqual(expect.arrayContaining(["Actividad", "Sin novedades.", "[1] s7 | $ 0,70"]));
     expect(shown(open("beto").router)).toEqual(expect.arrayContaining(lists));
   });
 

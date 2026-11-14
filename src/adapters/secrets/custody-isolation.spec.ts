@@ -106,7 +106,7 @@ it("M18: cerrar durante uso borra lo prestado inmediatamente y al finalizar", as
   expect(erase).toHaveBeenCalledTimes(1);
   expect(borrowed.every(byte => byte === 0)).toBe(true);
   finish();
-  await work;
+  await expect(work).rejects.toMatchObject({ code: "E-CUSTODY-DENIED" });
   expect(borrowed.every(byte => byte === 0)).toBe(true);
   expect(erase).toHaveBeenCalledTimes(2);
   expect(store.cleanupPending()).toBe(false);

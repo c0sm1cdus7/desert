@@ -1,14 +1,11 @@
 import { currencySymbol } from "../../catalogs/currency/currency-symbol.ts";
+import { shownMoney } from "../../catalogs/fields/money-field.ts";
 import type { Format, Locale } from "../masks.ts";
 import { maskKeys, numericKeyReason } from "../mask-keys.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
-const grouped = (whole: string, separator: string): string => whole.replace(/\B(?=(\d{3})+(?!\d))/g, separator);
 /** Money as a cash register takes it: digits come in from the right, and the last two are always the cents. */
 export const money = (locale: Locale): Format => {
-  const shown = (typed: string): string => {
-    const cents = typed.padStart(3, "0");
-    return `${locale.currency} ${grouped(cents.slice(0, -2), locale.thousands)}${locale.decimal}${cents.slice(-2)}`;
-  };
+  const shown = (typed: string): string => shownMoney(typed || "0", locale);
   return {
     keyboard: "digits",
     currency: currencySymbol(locale.currency, generic.countryCurrency),

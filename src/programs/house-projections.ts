@@ -10,6 +10,7 @@ import type { Program, Slices } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../tools/tools.ts";
 export type HouseFolds<X extends Program> = Readonly<{
   by: string;
+  identities?: boolean;
   words: Vocabulary<X["fact"]>;
   slices: Slices<X>;
   projectionVersion: CalculationVersion;
@@ -17,12 +18,12 @@ export type HouseFolds<X extends Program> = Readonly<{
 export function houseProjections<X extends Program>(journal: SqliteJournal<X["fact"]>, folds: HouseFolds<X>) {
   const { by, words, slices, projectionVersion } = folds;
   requireProjectionVersion(projectionVersion);
-  const initial = startState<X>(slices, by);
+  const initial = startState<X>(slices, by, folds.identities);
   const identity = shapeOf(
     baseProjectionVersion,
     calculationIdentity(projectionVersion),
     JSON.stringify(words.event),
-    startState<X>(slices, ""),
+    startState<X>(slices, "", folds.identities),
   );
   const prefix = `house@${identity}:`;
   const clock = journal.watch<Deadlines>(`${prefix}clock:${by}`, new Map(), clockStep, identity);

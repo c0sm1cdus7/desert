@@ -11,6 +11,7 @@ export const doorKeys: ReadonlyMap<string, DoorKey> = new Map([
   ["beto-terminal", { identity: "beto", door: "terminal" }],
   ["beto-agente", { identity: "beto", door: "agente" }],
   ["nadie-terminal", { identity: "nadie", door: "terminal" }],
+  ["mente-terminal", { identity: "mind:payments", door: "terminal" }],
 ]);
 function program(hold?: Promise<void>) {
   const receive = paymentsTool.acts.receive;

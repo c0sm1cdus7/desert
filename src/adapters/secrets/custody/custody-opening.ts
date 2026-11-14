@@ -1,3 +1,4 @@
+import { secretTexts } from "../../../texts/secrets/secrets.texts.ts";
 import type { CustodyState } from "./custody-state.ts";
 import { CustodyError, type LedgerHead } from "./house-keys.ts";
 import { migrateFieldVault } from "./custody-migration.ts";
@@ -24,7 +25,8 @@ export function openCustody(state: CustodyState, restore = false, expected?: Led
   for (const row of rows)
     if (row.payload !== null) {
       state.cipher.check(row.ref, row.payload);
-      if (!retired.has(row.ref) && !state.cipher.present(row.ref)) throw new CustodyError("E-CUSTODY-KEY");
+      if (!retired.has(row.ref) && !state.cipher.present(row.ref))
+        throw new CustodyError("E-CUSTODY-KEY", secretTexts.missingKey);
     }
   const present = new Set(rows.filter(row => row.payload !== null && !retired.has(row.ref)).map(row => row.ref));
   for (const fact of latestBindings(facts))

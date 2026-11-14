@@ -1,6 +1,7 @@
 // Session controls are available only after hello; every later response checks current membership again.
 import { houseProtocolVersion } from "../../catalogs/levers.ts";
 import type { RunningHouse } from "../../programs/house-runtime.ts";
+import { mindTool } from "../../house/house.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import { socketTexts as said } from "../../texts/socket.texts.ts";
 import type { ClientMessage } from "./protocol.ts";
@@ -73,7 +74,8 @@ function welcome<X extends Program>(
     return;
   }
   const key = keys.get(message.token);
-  if (!key || !house.tools.state().house.grants.has(key.identity)) {
+  /** Identities are always outside the house; a tool's mind never enters through the door. */
+  if (!key || mindTool(key.identity) !== undefined || !house.tools.state().house.grants.has(key.identity)) {
     peer.end({ tipo: "rechazo", motivo: said.denied });
     return;
   }

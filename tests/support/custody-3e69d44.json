@@ -1,0 +1,867 @@
+{
+  "commit": "3e69d44",
+  "journal": {
+    "schema": [
+      "CREATE TABLE events (\n    seq integer primary key, id text not null unique, at integer not null,\n    kind text not null, by text not null, cause text not null, data text not null, process text\n  )",
+      "CREATE TABLE snapshots (name text primary key, state blob not null)",
+      "CREATE INDEX events_cause on events (kind, by, cause)",
+      "CREATE TRIGGER events_no_update before update on events begin select raise(abort, 'append-only'); end",
+      "CREATE TRIGGER events_no_delete before delete on events begin select raise(abort, 'append-only'); end",
+      "CREATE TABLE journal_identity (singleton integer primary key check(singleton = 1), id text)"
+    ],
+    "tables": {
+      "journal_identity": [
+        {
+          "singleton": 1,
+          "id": "45cfafd0-5d52-4b8e-b9be-b6028abe88a7"
+        }
+      ],
+      "events": [
+        {
+          "seq": 1,
+          "id": "f6c1e4b4ed50c0dbc16c6021c0425c7a4a07d31edafa126863c5ccbc51dd248a",
+          "at": 1794635992689,
+          "kind": "house-created",
+          "by": "ana",
+          "cause": "[]",
+          "data": "{}",
+          "process": null
+        },
+        {
+          "seq": 2,
+          "id": "44ab29ba000a0e9f14ee4fb9e7da2b1023be2f46240a754e2eefc24d0df9e73b",
+          "at": 1794635992690,
+          "kind": "granted",
+          "by": "ana",
+          "cause": "[]",
+          "data": "{\"identity\":\"ana\",\"tools\":[\"sales\",\"payments\",\"vault\"]}",
+          "process": null
+        },
+        {
+          "seq": 3,
+          "id": "57285db0b59df79dd5045dcaae7845826079c236518b6e37e110114124bb16af",
+          "at": 1794635992691,
+          "kind": "boot",
+          "by": "shop",
+          "cause": "[]",
+          "data": "{}",
+          "process": null
+        },
+        {
+          "seq": 4,
+          "id": "1c9842e87f85aacb0c9b351bb32cdf690398489ffe96dba8593bec4185cb4678",
+          "at": 1794635992691,
+          "kind": "granted",
+          "by": "ana",
+          "cause": "[]",
+          "data": "{\"identity\":\"beto\",\"tools\":[\"vault\"]}",
+          "process": null
+        },
+        {
+          "seq": 5,
+          "id": "00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f",
+          "at": 1794635992693,
+          "kind": "act",
+          "by": "ana",
+          "cause": "[]",
+          "data": "{\"object\":\"me\",\"option\":\"attend\",\"input\":{\"target\":\"vault\"},\"through\":0}",
+          "process": null
+        },
+        {
+          "seq": 6,
+          "id": "115d4f7de1eeb8d3aed0e7fe1e36f47de5c7945321db6884e8089af834ea36a7",
+          "at": 1794635992694,
+          "kind": "act-started",
+          "by": "ana",
+          "cause": "[\"00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f\"]",
+          "data": "{\"act\":\"00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f\",\"object\":\"me\",\"option\":\"attend\"}",
+          "process": null
+        },
+        {
+          "seq": 7,
+          "id": "9cb929ede7b538f5f84b3a1607b8acad960430712dfe4d0e394b3c798cf5bbf1",
+          "at": 1794635992695,
+          "kind": "attended",
+          "by": "ana",
+          "cause": "[\"00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f\"]",
+          "data": "{\"target\":\"vault\"}",
+          "process": null
+        },
+        {
+          "seq": 8,
+          "id": "5d06658395fb5debc74ff8e0f1f3110f5ea6987b002149917da647b3b644f33e",
+          "at": 1794635992696,
+          "kind": "act-result",
+          "by": "ana",
+          "cause": "[\"00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f\"]",
+          "data": "{\"act\":\"00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f\",\"status\":\"accepted\",\"reason\":\"\",\"output\":true}",
+          "process": null
+        },
+        {
+          "seq": 9,
+          "id": "160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c",
+          "at": 1794635992697,
+          "kind": "act",
+          "by": "ana",
+          "cause": "[]",
+          "data": "{\"object\":\"vault\",\"option\":\"plain\",\"input\":{},\"through\":0}",
+          "process": null
+        },
+        {
+          "seq": 10,
+          "id": "18e1c4d646534ebf415fc73db61a4300fd7f040f348fb308243a6f3a930de9bc",
+          "at": 1794635992698,
+          "kind": "act-started",
+          "by": "ana",
+          "cause": "[\"160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c\"]",
+          "data": "{\"act\":\"160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c\",\"object\":\"vault\",\"option\":\"plain\"}",
+          "process": null
+        },
+        {
+          "seq": 11,
+          "id": "3548bc634215d9b8de6c00d7612eb2a11d64e4d9c965a7bf105314d78e64484c",
+          "at": 1794635992700,
+          "kind": "act-done",
+          "by": "ana",
+          "cause": "[\"160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c\"]",
+          "data": "{\"object\":\"vault\",\"act\":\"plain\",\"text\":\"Sin secretos\"}",
+          "process": null
+        },
+        {
+          "seq": 12,
+          "id": "c09a8cb22b7b87735e010423a07edd4ba3935a205ab6a4f7e2ac9be0e36fb92b",
+          "at": 1794635992700,
+          "kind": "tool-entry",
+          "by": "ana",
+          "cause": "[\"160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c\"]",
+          "data": "{\"tool\":\"vault\",\"target\":\"vault\",\"author\":\"ana\",\"text\":\"Sin secretos\"}",
+          "process": null
+        },
+        {
+          "seq": 13,
+          "id": "874e569f3105713931c0959adfca5cb105d47d294ce7f90b8e982e67bebb4c88",
+          "at": 1794635992700,
+          "kind": "attention",
+          "by": "beto",
+          "cause": "[\"c09a8cb22b7b87735e010423a07edd4ba3935a205ab6a4f7e2ac9be0e36fb92b\"]",
+          "data": "{\"tool\":\"vault\",\"delay\":60000}",
+          "process": null
+        },
+        {
+          "seq": 14,
+          "id": "4c55a26c7eac659e93083574dba115d66e9490217e7d7b4d446863a201a387cd",
+          "at": 1794635992700,
+          "kind": "wake-at",
+          "by": "beto",
+          "cause": "[\"c09a8cb22b7b87735e010423a07edd4ba3935a205ab6a4f7e2ac9be0e36fb92b\"]",
+          "data": "{\"id\":\"attention:[\\\"beto\\\",\\\"vault\\\"]\",\"at\":1794636052700}",
+          "process": null
+        },
+        {
+          "seq": 15,
+          "id": "69c1447df3a302ec0c7a54e704ea4d5e8a3b9d7d32ac8ad70bcbac1a97c9029a",
+          "at": 1794635992700,
+          "kind": "stimulus",
+          "by": "beto",
+          "cause": "[\"c09a8cb22b7b87735e010423a07edd4ba3935a205ab6a4f7e2ac9be0e36fb92b\"]",
+          "data": "{\"tool\":\"vault\"}",
+          "process": null
+        },
+        {
+          "seq": 16,
+          "id": "74eb42a19e5917a7c2e4402fd6efbe5642d5745c0989c06266109b8ab6743759",
+          "at": 1794635992704,
+          "kind": "act-result",
+          "by": "ana",
+          "cause": "[\"160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c\"]",
+          "data": "{\"act\":\"160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c\",\"status\":\"accepted\",\"reason\":\"\"}",
+          "process": null
+        },
+        {
+          "seq": 17,
+          "id": "2a51aaa0aecb278fba441bc8ec7c9045b26b0a066138063ba6cdbc0d19d98849",
+          "at": 1794635992705,
+          "kind": "act",
+          "by": "ana",
+          "cause": "[]",
+          "data": "{\"object\":\"vault\",\"option\":\"sign\",\"input\":{},\"through\":0}",
+          "process": null
+        },
+        {
+          "seq": 18,
+          "id": "b2a399cc2af183d7226ead955ef7ddd1201433364f08746e921a54326e5709ed",
+          "at": 1794635992706,
+          "kind": "act-started",
+          "by": "ana",
+          "cause": "[\"2a51aaa0aecb278fba441bc8ec7c9045b26b0a066138063ba6cdbc0d19d98849\"]",
+          "data": "{\"act\":\"2a51aaa0aecb278fba441bc8ec7c9045b26b0a066138063ba6cdbc0d19d98849\",\"object\":\"vault\",\"option\":\"sign\"}",
+          "process": null
+        },
+        {
+          "seq": 19,
+          "id": "5ab490b6b38d2fe6ac0cbf942457334e54e1c2a98f085d0aca573ff1ccc639e6",
+          "at": 1794635992711,
+          "kind": "act-done",
+          "by": "ana",
+          "cause": "[\"2a51aaa0aecb278fba441bc8ec7c9045b26b0a066138063ba6cdbc0d19d98849\"]",
+          "data": "{\"object\":\"vault\",\"act\":\"sign\",\"text\":\"Firmado\"}",
+          "process": null
+        },
+        {
+          "seq": 20,
+          "id": "e3755aaa3af29cc3096dadbc9b53e2ba811babaa809e94ac9462fb208c708d9e",
+          "at": 1794635992711,
+          "kind": "tool-entry",
+          "by": "ana",
+          "cause": "[\"2a51aaa0aecb278fba441bc8ec7c9045b26b0a066138063ba6cdbc0d19d98849\"]",
+          "data": "{\"tool\":\"vault\",\"target\":\"vault\",\"author\":\"ana\",\"text\":\"Firmado\"}",
+          "process": null
+        },
+        {
+          "seq": 21,
+          "id": "0daf4a5ae1084e68a12c1bd408bf60cd15fcf2ea9102319c94f634102de53360",
+          "at": 1794635992711,
+          "kind": "stimulus",
+          "by": "beto",
+          "cause": "[\"e3755aaa3af29cc3096dadbc9b53e2ba811babaa809e94ac9462fb208c708d9e\"]",
+          "data": "{\"tool\":\"vault\"}",
+          "process": null
+        },
+        {
+          "seq": 22,
+          "id": "d0bf4bc66055d90d948e9cb1854fbffece15244fa621d8929eda0279907a4ec6",
+          "at": 1794635992711,
+          "kind": "tool-entry",
+          "by": "ana",
+          "cause": "[\"ea5251c5-a374-4c88-88eb-f73be9093b81\"]",
+          "data": "{\"tool\":\"vault\",\"target\":\"vault\",\"author\":\"ana\",\"text\":\"\",\"silent\":true,\"detail\":{\"custodyBatch\":[{\"id\":\"fd2fa823-96a4-4c49-a5c1-99f24629148d\",\"kind\":\"credential-bound\",\"actor\":\"ana\",\"tool\":\"vault\",\"target\":\"vault\",\"slot\":\"signing\",\"revision\":1,\"refs\":{\"key\":\"secret:ce036cf1-bc84-4507-8774-6cf09d78cfc9\"},\"cause\":\"ea5251c5-a374-4c88-88eb-f73be9093b81\",\"batchSize\":1,\"batchIndex\":0,\"authentication\":\"7512b7048d199795d787abd5e1624133642e0491a9356485659bdbdc67e810b7\"}]}}",
+          "process": null
+        },
+        {
+          "seq": 23,
+          "id": "c34f93772bd39d83684d61af9bc78602769144e4a642e8f7a4d1ff2af9c8a70b",
+          "at": 1794635992714,
+          "kind": "act-result",
+          "by": "ana",
+          "cause": "[\"2a51aaa0aecb278fba441bc8ec7c9045b26b0a066138063ba6cdbc0d19d98849\"]",
+          "data": "{\"act\":\"2a51aaa0aecb278fba441bc8ec7c9045b26b0a066138063ba6cdbc0d19d98849\",\"status\":\"accepted\",\"reason\":\"\"}",
+          "process": null
+        },
+        {
+          "seq": 24,
+          "id": "34873616f21adda92d51092c7a90c1313146fc052e14ba61411019b9fa08368d",
+          "at": 1794635992715,
+          "kind": "act",
+          "by": "ana",
+          "cause": "[]",
+          "data": "{\"object\":\"vault\",\"option\":\"use\",\"input\":{},\"through\":0}",
+          "process": null
+        },
+        {
+          "seq": 25,
+          "id": "cfc6266da2f2b807cdca47f861a04a7d0bb3e13d3690ecf62704e81b171c1c27",
+          "at": 1794635992716,
+          "kind": "act-started",
+          "by": "ana",
+          "cause": "[\"34873616f21adda92d51092c7a90c1313146fc052e14ba61411019b9fa08368d\"]",
+          "data": "{\"act\":\"34873616f21adda92d51092c7a90c1313146fc052e14ba61411019b9fa08368d\",\"object\":\"vault\",\"option\":\"use\"}",
+          "process": null
+        },
+        {
+          "seq": 26,
+          "id": "dd5ac2c85764ab8ecb75691401f39aa87d7fe1e6e87c19353020ef7e3c96f10b",
+          "at": 1794635992717,
+          "kind": "act-done",
+          "by": "ana",
+          "cause": "[\"34873616f21adda92d51092c7a90c1313146fc052e14ba61411019b9fa08368d\"]",
+          "data": "{\"object\":\"vault\",\"act\":\"use\",\"text\":\"Usada\"}",
+          "process": null
+        },
+        {
+          "seq": 27,
+          "id": "7032531900eb9a124bd6b22fc1da8375b00b1986dd9765b5582d6c502e9100ce",
+          "at": 1794635992717,
+          "kind": "tool-entry",
+          "by": "ana",
+          "cause": "[\"34873616f21adda92d51092c7a90c1313146fc052e14ba61411019b9fa08368d\"]",
+          "data": "{\"tool\":\"vault\",\"target\":\"vault\",\"author\":\"ana\",\"text\":\"Usada\"}",
+          "process": null
+        },
+        {
+          "seq": 28,
+          "id": "8bfb2303b433a4c6a9e3e795e79523a83b458713f56140d5e97ccadd9e6fa2e0",
+          "at": 1794635992717,
+          "kind": "stimulus",
+          "by": "beto",
+          "cause": "[\"7032531900eb9a124bd6b22fc1da8375b00b1986dd9765b5582d6c502e9100ce\"]",
+          "data": "{\"tool\":\"vault\"}",
+          "process": null
+        },
+        {
+          "seq": 29,
+          "id": "93f0d91072a72ff5a2c7597bd22795af5280e6bc88666de3978a01075e085ca2",
+          "at": 1794635992719,
+          "kind": "act-result",
+          "by": "ana",
+          "cause": "[\"34873616f21adda92d51092c7a90c1313146fc052e14ba61411019b9fa08368d\"]",
+          "data": "{\"act\":\"34873616f21adda92d51092c7a90c1313146fc052e14ba61411019b9fa08368d\",\"status\":\"accepted\",\"reason\":\"\"}",
+          "process": null
+        },
+        {
+          "seq": 30,
+          "id": "5e74975d4131cd86e5cbfb85ed967ad631c0f09b9acb904fed0e92ca4bb0703a",
+          "at": 1794635992720,
+          "kind": "act",
+          "by": "beto",
+          "cause": "[]",
+          "data": "{\"object\":\"me\",\"option\":\"attend\",\"input\":{\"target\":\"vault\"},\"through\":0}",
+          "process": null
+        },
+        {
+          "seq": 31,
+          "id": "ecd276e900bb84370304e1a61072abbde78c1addeefa79d0d6762db7dceba214",
+          "at": 1794635992721,
+          "kind": "act-started",
+          "by": "beto",
+          "cause": "[\"5e74975d4131cd86e5cbfb85ed967ad631c0f09b9acb904fed0e92ca4bb0703a\"]",
+          "data": "{\"act\":\"5e74975d4131cd86e5cbfb85ed967ad631c0f09b9acb904fed0e92ca4bb0703a\",\"object\":\"me\",\"option\":\"attend\"}",
+          "process": null
+        },
+        {
+          "seq": 32,
+          "id": "be897e15511561767830278effd46eacbbad6a90f99bdef0833e1db031e32fc8",
+          "at": 1794635992721,
+          "kind": "attended",
+          "by": "beto",
+          "cause": "[\"5e74975d4131cd86e5cbfb85ed967ad631c0f09b9acb904fed0e92ca4bb0703a\"]",
+          "data": "{\"target\":\"vault\"}",
+          "process": null
+        },
+        {
+          "seq": 33,
+          "id": "15fd4b9ed812174376166e27d939e1287469ca693c880928a76c0bcd461a8d68",
+          "at": 1794635992721,
+          "kind": "attention",
+          "by": "beto",
+          "cause": "[\"be897e15511561767830278effd46eacbbad6a90f99bdef0833e1db031e32fc8\"]",
+          "data": "{\"tool\":\"vault\",\"delay\":null}",
+          "process": null
+        },
+        {
+          "seq": 34,
+          "id": "2306b15193d68bfe8a116338577ca92c0c352fbcca95a091930796d7a86d16fc",
+          "at": 1794635992721,
+          "kind": "wake-at",
+          "by": "beto",
+          "cause": "[\"be897e15511561767830278effd46eacbbad6a90f99bdef0833e1db031e32fc8\"]",
+          "data": "{\"id\":\"attention:[\\\"beto\\\",\\\"vault\\\"]\",\"at\":null}",
+          "process": null
+        },
+        {
+          "seq": 35,
+          "id": "951b759e2b88fd2eaf3da3f3c505ea49f0b7334ab644ba39f6f5c3927e08cc33",
+          "at": 1794635992723,
+          "kind": "act-result",
+          "by": "beto",
+          "cause": "[\"5e74975d4131cd86e5cbfb85ed967ad631c0f09b9acb904fed0e92ca4bb0703a\"]",
+          "data": "{\"act\":\"5e74975d4131cd86e5cbfb85ed967ad631c0f09b9acb904fed0e92ca4bb0703a\",\"status\":\"accepted\",\"reason\":\"\",\"output\":true}",
+          "process": null
+        },
+        {
+          "seq": 36,
+          "id": "8c09e97a1431983e892008eebb33c072436aee9bf8fd66a89ca69d75d89505f1",
+          "at": 1794635992723,
+          "kind": "act",
+          "by": "beto",
+          "cause": "[]",
+          "data": "{\"object\":\"vault\",\"option\":\"plain\",\"input\":{},\"through\":0}",
+          "process": null
+        },
+        {
+          "seq": 37,
+          "id": "07d6ebdeb5e31769bff2bed7ac358d1a675a59ffb6e80931676dcb5577f29540",
+          "at": 1794635992724,
+          "kind": "act-started",
+          "by": "beto",
+          "cause": "[\"8c09e97a1431983e892008eebb33c072436aee9bf8fd66a89ca69d75d89505f1\"]",
+          "data": "{\"act\":\"8c09e97a1431983e892008eebb33c072436aee9bf8fd66a89ca69d75d89505f1\",\"object\":\"vault\",\"option\":\"plain\"}",
+          "process": null
+        },
+        {
+          "seq": 38,
+          "id": "0e7787b334ec530c768c718c095a789b4a64104718d9184dda2f374912ffc75a",
+          "at": 1794635992725,
+          "kind": "act-done",
+          "by": "beto",
+          "cause": "[\"8c09e97a1431983e892008eebb33c072436aee9bf8fd66a89ca69d75d89505f1\"]",
+          "data": "{\"object\":\"vault\",\"act\":\"plain\",\"text\":\"Sin secretos\"}",
+          "process": null
+        },
+        {
+          "seq": 39,
+          "id": "3fc301baafec99d7e27b8e8e12b9309ed6582d55c5c9f021e3841c8a4cb1dbbf",
+          "at": 1794635992725,
+          "kind": "tool-entry",
+          "by": "beto",
+          "cause": "[\"8c09e97a1431983e892008eebb33c072436aee9bf8fd66a89ca69d75d89505f1\"]",
+          "data": "{\"tool\":\"vault\",\"target\":\"vault\",\"author\":\"beto\",\"text\":\"Sin secretos\"}",
+          "process": null
+        },
+        {
+          "seq": 40,
+          "id": "c0e6563521838a4d536f3c918e079788a7a80c6d1f4d009d86f52e557f917ab2",
+          "at": 1794635992725,
+          "kind": "stimulus",
+          "by": "ana",
+          "cause": "[\"3fc301baafec99d7e27b8e8e12b9309ed6582d55c5c9f021e3841c8a4cb1dbbf\"]",
+          "data": "{\"tool\":\"vault\"}",
+          "process": null
+        },
+        {
+          "seq": 41,
+          "id": "2af1b014973e7945ee8d2d6a05b7d4ceb0900e382f88c46bcc0417814f62ba66",
+          "at": 1794635992726,
+          "kind": "act-result",
+          "by": "beto",
+          "cause": "[\"8c09e97a1431983e892008eebb33c072436aee9bf8fd66a89ca69d75d89505f1\"]",
+          "data": "{\"act\":\"8c09e97a1431983e892008eebb33c072436aee9bf8fd66a89ca69d75d89505f1\",\"status\":\"accepted\",\"reason\":\"\"}",
+          "process": null
+        },
+        {
+          "seq": 42,
+          "id": "0e3953a63de403fd3e0529167dfd73cc1eebd4fdb3f0f181be5ccb92de2e5961",
+          "at": 1794635992727,
+          "kind": "act",
+          "by": "beto",
+          "cause": "[]",
+          "data": "{\"object\":\"vault\",\"option\":\"sign\",\"input\":{},\"through\":0}",
+          "process": null
+        },
+        {
+          "seq": 43,
+          "id": "9f2900d9c6e2715e070121a41ba0bb79c0afb12e003e0fa41883fe5bd9a5fbf5",
+          "at": 1794635992728,
+          "kind": "act-started",
+          "by": "beto",
+          "cause": "[\"0e3953a63de403fd3e0529167dfd73cc1eebd4fdb3f0f181be5ccb92de2e5961\"]",
+          "data": "{\"act\":\"0e3953a63de403fd3e0529167dfd73cc1eebd4fdb3f0f181be5ccb92de2e5961\",\"object\":\"vault\",\"option\":\"sign\"}",
+          "process": null
+        },
+        {
+          "seq": 44,
+          "id": "e790ee4d24402eec4f215ff36e73441fea98682d29ef1344138aaaf53509e8c3",
+          "at": 1794635992730,
+          "kind": "act-done",
+          "by": "beto",
+          "cause": "[\"0e3953a63de403fd3e0529167dfd73cc1eebd4fdb3f0f181be5ccb92de2e5961\"]",
+          "data": "{\"object\":\"vault\",\"act\":\"sign\",\"text\":\"Firmado\"}",
+          "process": null
+        },
+        {
+          "seq": 45,
+          "id": "7b9c7e4c0695ccdd06d5d5ff25338607646478b017925529ef5ae3898e366f5b",
+          "at": 1794635992730,
+          "kind": "tool-entry",
+          "by": "beto",
+          "cause": "[\"0e3953a63de403fd3e0529167dfd73cc1eebd4fdb3f0f181be5ccb92de2e5961\"]",
+          "data": "{\"tool\":\"vault\",\"target\":\"vault\",\"author\":\"beto\",\"text\":\"Firmado\"}",
+          "process": null
+        },
+        {
+          "seq": 46,
+          "id": "b42aa225970b8fe4e1a2d7bf6a946862f6ec6c0d28e8145c68d825aa848c6f03",
+          "at": 1794635992730,
+          "kind": "stimulus",
+          "by": "ana",
+          "cause": "[\"7b9c7e4c0695ccdd06d5d5ff25338607646478b017925529ef5ae3898e366f5b\"]",
+          "data": "{\"tool\":\"vault\"}",
+          "process": null
+        },
+        {
+          "seq": 47,
+          "id": "1c1e4b160ae3c7728fdf08f3dfc6fc0ca67a941ebd778f223457a524d604dacf",
+          "at": 1794635992730,
+          "kind": "tool-entry",
+          "by": "beto",
+          "cause": "[\"7bc961b5-801f-463e-9f5d-6d15d8cac580\"]",
+          "data": "{\"tool\":\"vault\",\"target\":\"vault\",\"author\":\"beto\",\"text\":\"\",\"silent\":true,\"detail\":{\"custodyBatch\":[{\"id\":\"b6d7838b-816b-48da-980c-b6b3b4654d38\",\"kind\":\"credential-bound\",\"actor\":\"beto\",\"tool\":\"vault\",\"target\":\"vault\",\"slot\":\"signing\",\"revision\":1,\"refs\":{\"key\":\"secret:1c8677bd-247d-4bf9-bbb5-80ddda19889d\"},\"cause\":\"7bc961b5-801f-463e-9f5d-6d15d8cac580\",\"batchSize\":1,\"batchIndex\":0,\"authentication\":\"8c3ef43130a319dbddf08e11f9973f5ab4e45d3cbd5976883226272e2957bd2a\"}]}}",
+          "process": null
+        },
+        {
+          "seq": 48,
+          "id": "4ae1c1107d5d20a3a24bd38da7b4f62cfdfbb039d3eccd5d9630f0dcdfc2afcc",
+          "at": 1794635992732,
+          "kind": "act-result",
+          "by": "beto",
+          "cause": "[\"0e3953a63de403fd3e0529167dfd73cc1eebd4fdb3f0f181be5ccb92de2e5961\"]",
+          "data": "{\"act\":\"0e3953a63de403fd3e0529167dfd73cc1eebd4fdb3f0f181be5ccb92de2e5961\",\"status\":\"accepted\",\"reason\":\"\"}",
+          "process": null
+        },
+        {
+          "seq": 49,
+          "id": "7fda2dbe93ae018bfa42b3cd2b062a0559404d6b5a32aa40e59a3f08c3fc82c2",
+          "at": 1794635992733,
+          "kind": "act",
+          "by": "beto",
+          "cause": "[]",
+          "data": "{\"object\":\"vault\",\"option\":\"use\",\"input\":{},\"through\":0}",
+          "process": null
+        },
+        {
+          "seq": 50,
+          "id": "2bd6c286739a4f778502215514ecb282ab51f5ef8f4a0f003747162c1f46ed0e",
+          "at": 1794635992734,
+          "kind": "act-started",
+          "by": "beto",
+          "cause": "[\"7fda2dbe93ae018bfa42b3cd2b062a0559404d6b5a32aa40e59a3f08c3fc82c2\"]",
+          "data": "{\"act\":\"7fda2dbe93ae018bfa42b3cd2b062a0559404d6b5a32aa40e59a3f08c3fc82c2\",\"object\":\"vault\",\"option\":\"use\"}",
+          "process": null
+        },
+        {
+          "seq": 51,
+          "id": "49cb6811fe97b13da1d25c9fb5f4caebf6850ee11bfdcf6f35face4ad91ed2be",
+          "at": 1794635992735,
+          "kind": "act-done",
+          "by": "beto",
+          "cause": "[\"7fda2dbe93ae018bfa42b3cd2b062a0559404d6b5a32aa40e59a3f08c3fc82c2\"]",
+          "data": "{\"object\":\"vault\",\"act\":\"use\",\"text\":\"Usada\"}",
+          "process": null
+        },
+        {
+          "seq": 52,
+          "id": "8b3c77020350c0511e6e2c1ef2fcb4eb6f10e6f389d2ed5b14c50ec5b8155769",
+          "at": 1794635992735,
+          "kind": "tool-entry",
+          "by": "beto",
+          "cause": "[\"7fda2dbe93ae018bfa42b3cd2b062a0559404d6b5a32aa40e59a3f08c3fc82c2\"]",
+          "data": "{\"tool\":\"vault\",\"target\":\"vault\",\"author\":\"beto\",\"text\":\"Usada\"}",
+          "process": null
+        },
+        {
+          "seq": 53,
+          "id": "4061f118dab81740ade4c6f7f4aed4ddb430cf7b698a54d1f4de11c906177da0",
+          "at": 1794635992735,
+          "kind": "stimulus",
+          "by": "ana",
+          "cause": "[\"8b3c77020350c0511e6e2c1ef2fcb4eb6f10e6f389d2ed5b14c50ec5b8155769\"]",
+          "data": "{\"tool\":\"vault\"}",
+          "process": null
+        },
+        {
+          "seq": 54,
+          "id": "c949e1c9483d5e2e75147e87fa73c749c8b5e61556d8fe1e6a6f382943036adf",
+          "at": 1794635992736,
+          "kind": "act-result",
+          "by": "beto",
+          "cause": "[\"7fda2dbe93ae018bfa42b3cd2b062a0559404d6b5a32aa40e59a3f08c3fc82c2\"]",
+          "data": "{\"act\":\"7fda2dbe93ae018bfa42b3cd2b062a0559404d6b5a32aa40e59a3f08c3fc82c2\",\"status\":\"accepted\",\"reason\":\"\"}",
+          "process": null
+        },
+        {
+          "seq": 55,
+          "id": "3101d2a858ac380cc173ad8517758fdaad4ff9878f7644c11a025cfd6a496dd0",
+          "at": 1794635992744,
+          "kind": "boot",
+          "by": "shop",
+          "cause": "[]",
+          "data": "{}",
+          "process": null
+        },
+        {
+          "seq": 56,
+          "id": "929234b9b7744ea29a4f9073c28f3d5aa6dc7a749145a7bbdd5861f1244a7031",
+          "at": 1794635992744,
+          "kind": "act",
+          "by": "beto",
+          "cause": "[]",
+          "data": "{\"object\":\"vault\",\"option\":\"use\",\"input\":{},\"through\":0}",
+          "process": null
+        },
+        {
+          "seq": 57,
+          "id": "26b97d9f9005df9062e1405bba463cde801ee0e49a0d7110648c1921550667d4",
+          "at": 1794635992745,
+          "kind": "act-started",
+          "by": "beto",
+          "cause": "[\"929234b9b7744ea29a4f9073c28f3d5aa6dc7a749145a7bbdd5861f1244a7031\"]",
+          "data": "{\"act\":\"929234b9b7744ea29a4f9073c28f3d5aa6dc7a749145a7bbdd5861f1244a7031\",\"object\":\"vault\",\"option\":\"use\"}",
+          "process": null
+        },
+        {
+          "seq": 58,
+          "id": "9104a6c65ed524cea2c1cda80ef7793fbddc881159ae1443dd985909b50d7f0f",
+          "at": 1794635992746,
+          "kind": "act-done",
+          "by": "beto",
+          "cause": "[\"929234b9b7744ea29a4f9073c28f3d5aa6dc7a749145a7bbdd5861f1244a7031\"]",
+          "data": "{\"object\":\"vault\",\"act\":\"use\",\"text\":\"Usada\"}",
+          "process": null
+        },
+        {
+          "seq": 59,
+          "id": "88ca11d1ff23075d75ab9d8c3f4d488aada95703fddb55beab160bb43d1caedd",
+          "at": 1794635992746,
+          "kind": "tool-entry",
+          "by": "beto",
+          "cause": "[\"929234b9b7744ea29a4f9073c28f3d5aa6dc7a749145a7bbdd5861f1244a7031\"]",
+          "data": "{\"tool\":\"vault\",\"target\":\"vault\",\"author\":\"beto\",\"text\":\"Usada\"}",
+          "process": null
+        },
+        {
+          "seq": 60,
+          "id": "ee232eb6c8e8516bcf3ae6e9becbfd686d2fbfb334e9ba67069bebd4d3dbe117",
+          "at": 1794635992746,
+          "kind": "stimulus",
+          "by": "ana",
+          "cause": "[\"88ca11d1ff23075d75ab9d8c3f4d488aada95703fddb55beab160bb43d1caedd\"]",
+          "data": "{\"tool\":\"vault\"}",
+          "process": null
+        },
+        {
+          "seq": 61,
+          "id": "8068995ada7988507b77dd1d0f6a31fb612efdac21a26e6f8da7233eee31d374",
+          "at": 1794635992748,
+          "kind": "act-result",
+          "by": "beto",
+          "cause": "[\"929234b9b7744ea29a4f9073c28f3d5aa6dc7a749145a7bbdd5861f1244a7031\"]",
+          "data": "{\"act\":\"929234b9b7744ea29a4f9073c28f3d5aa6dc7a749145a7bbdd5861f1244a7031\",\"status\":\"accepted\",\"reason\":\"\"}",
+          "process": null
+        }
+      ],
+      "snapshots": [
+        {
+          "name": "house@59a69e2244c6f937:clock:shop",
+          "state": {
+            "base64": "/w9vIgdwYXlsb2FkXAps/w9vIgd2ZXJzaW9uSQgiCGlkZW50aXR5IhA1OWE2OWUyMjQ0YzZmOTM3Igdqb3VybmFsIiQ0NWNmYWZkMC01ZDUyLTRiOGUtYjliZS1iNjAyOGFiZTg4YTciA3NlcUl6IgVzdGF0ZTs6AHsFIghjaGVja3N1bSJAZjBhNDJkMjlmMjFiYjhhZWQzNjUyOWE1NDc2OWMxMjcxZmFmNTNlNDhmOGQzNzUzNDYwMDgyOGNhZjZhYTU2M3sC"
+          }
+        },
+        {
+          "name": "house@59a69e2244c6f937:tools:shop",
+          "state": {
+            "base64": "/w9vIgdwYXlsb2FkXArPHf8PbyIHdmVyc2lvbkkIIghpZGVudGl0eSIQNTlhNjllMjI0NGM2ZjkzNyIHam91cm5hbCIkNDVjZmFmZDAtNWQ1Mi00YjhlLWI5YmUtYjYwMjhhYmU4OGE3IgNzZXFJeiIFc3RhdGVvIgJieSIEc2hvcCIFaG91c2VvIgVhZG1pbiIDYW5hIgZncmFudHM7IgNhbmFhA0kAIgVzYWxlc0kCIghwYXltZW50c0kEIgV2YXVsdEADAyIEYmV0b2EBSQAiBXZhdWx0QAEBOgQiCGNoYW5uZWxzOyISY29tbXVuaWNhdG9yL2hvdXNlYQJJACIDYW5hSQIiBGJldG9AAgI6AiIFaGlkZXM7OgB7BCIKYXR0ZW5kYW5jZTsiA2FuYWEBSQAiBXZhdWx0QAEBIgRiZXRvYQFJACIFdmF1bHRAAQE6BCIKcHJvY2Vzc2luZzs6ACIEYWN0czs6ACILYXR0ZW50aW9uQnk7IgRiZXRvOzoAOgIiBmxvb2tlZDsiA2FuYTsiBXZhdWx0SQ46AiIEYmV0bzsiBXZhdWx0SUA6AjoEIgdlbnRyaWVzYQlJAG8iBWxheWVyIgVob3VzZSIEa2luZCIKdG9vbC1lbnRyeSIEZGF0YW8iBHRvb2wiBXZhdWx0IgZ0YXJnZXQiBXZhdWx0IgZhdXRob3IiA2FuYSIEdGV4dCIMU2luIHNlY3JldG9zewQiAmJ5IgNhbmEiBWNhdXNlYQFJACJAMTYwZmVlYWRmMTQ4MTZiNDQ0ZDQ4OTUwMjc1Y2NjMTNkNWRmNTVhZGIxNDExZWFhMjJhYTAwYzljZTViNjAwY0ABASIDc2VxSRgiAmlkIkBjMDlhOGNiMjJiN2I4NzczNWUwMTA0MjNhMDdlZGQ0YmEzOTM1YTIwNWFiNmE0ZjdlMmFjOWJlMGUzNmZiOTJiIgJhdE4AwOdAih16QnsISQJvIgVsYXllciIFaG91c2UiBGtpbmQiCnRvb2wtZW50cnkiBGRhdGFvIgR0b29sIgV2YXVsdCIGdGFyZ2V0IgV2YXVsdCIGYXV0aG9yIgNhbmEiBHRleHQiB0Zpcm1hZG97BCICYnkiA2FuYSIFY2F1c2VhAUkAIkAyYTUxYWFhMGFlY2IyNzhmYmE0NDFiYzhlYzdjOTA0NWIyNmIwYTA2NjEzODA2M2JhNmNkYmMwZDE5ZDk4ODQ5QAEBIgNzZXFJKCICaWQiQGUzNzU1YWFhM2FmMjljYzMwOTZkYWRiYzliNTNlMmJhODExYmFiYWE4MDllOTRhYzk0NjJmYjIwOGM3MDhkOWUiAmF0TgBw6ECKHXpCewhJBG8iBWxheWVyIgVob3VzZSIEa2luZCIKdG9vbC1lbnRyeSIEZGF0YW8iBHRvb2wiBXZhdWx0IgZ0YXJnZXQiBXZhdWx0IgZhdXRob3IiA2FuYSIEdGV4dCIAIgZzaWxlbnRUIgZkZXRhaWxvIgxjdXN0b2R5QmF0Y2hhAUkAbyICaWQiJGZkMmZhODIzLTk2YTQtNGM0OS1hNWMxLTk5ZjI0NjI5MTQ4ZCIEa2luZCIQY3JlZGVudGlhbC1ib3VuZCIFYWN0b3IiA2FuYSIEdG9vbCIFdmF1bHQiBnRhcmdldCIFdmF1bHQiBHNsb3QiB3NpZ25pbmciCHJldmlzaW9uSQIiBHJlZnNvIgNrZXkiK3NlY3JldDpjZTAzNmNmMS1iYzg0LTQ1MDctODc3NC02Y2YwOWQ3OGNmYzl7ASIFY2F1c2UiJGVhNTI1MWM1LWEzNzQtNGM4OC04OGViLWY3M2JlOTA5M2I4MSIJYmF0Y2hTaXplSQIiCmJhdGNoSW5kZXhJACIOYXV0aGVudGljYXRpb24iQDc1MTJiNzA0OGQxOTk3OTVkNzg3YWJkNWUxNjI0MTMzNjQyZTA0OTFhOTM1NjQ4NTY1OWJkYmRjNjdlODEwYjd7DEABAXsBewYiAmJ5IgNhbmEiBWNhdXNlYQFJACIkZWE1MjUxYzUtYTM3NC00Yzg4LTg4ZWItZjczYmU5MDkzYjgxQAEBIgNzZXFJLCICaWQiQGQwYmY0YmM2NjA1NWQ5MGQ5NDhlOWNiMTg1NGZiZmZlY2UxNTI0NGZhNjIxZDg5MjllZGEwMjc5OTA3YTRlYzYiAmF0TgBw6ECKHXpCewhJBm8iBWxheWVyIgVob3VzZSIEa2luZCIKdG9vbC1lbnRyeSIEZGF0YW8iBHRvb2wiBXZhdWx0IgZ0YXJnZXQiBXZhdWx0IgZhdXRob3IiA2FuYSIEdGV4dCIFVXNhZGF7BCICYnkiA2FuYSIFY2F1c2VhAUkAIkAzNDg3MzYxNmYyMWFkZGE5MmQ1MTA5MmM3YTkwYzEzMTMxNDZmYzA1MmUxNGJhNjE0MTEwMTliOWZhMDgzNjhkQAEBIgNzZXFJNiICaWQiQDcwMzI1MzE5MDBlYjlhMTI0YmQ2YjIyZmMxZGE4Mzc1YjAwYjE5ODZkZDk3NjViNTU4MmQ2YzUwMmU5MTAwY2UiAmF0TgDQ6ECKHXpCewhJCG8iBWxheWVyIgVob3VzZSIEa2luZCIKdG9vbC1lbnRyeSIEZGF0YW8iBHRvb2wiBXZhdWx0IgZ0YXJnZXQiBXZhdWx0IgZhdXRob3IiBGJldG8iBHRleHQiDFNpbiBzZWNyZXRvc3sEIgJieSIEYmV0byIFY2F1c2VhAUkAIkA4YzA5ZTk3YTE0MzE5ODNlODkyMDA4ZWViYjMzYzA3MjQzNmFlZTliZjhmZDY2YTg5Y2E2OWQ3NWQ4OTUwNWYxQAEBIgNzZXFJTiICaWQiQDNmYzMwMWJhYWZlYzk5ZDdlMjdiOGU4ZTEyYjkzMDllZDY1ODJkNTVjNWM5ZjAyMWUzODQxYzhhNGNiMWRiYmYiAmF0TgBQ6UCKHXpCewhJCm8iBWxheWVyIgVob3VzZSIEa2luZCIKdG9vbC1lbnRyeSIEZGF0YW8iBHRvb2wiBXZhdWx0IgZ0YXJnZXQiBXZhdWx0IgZhdXRob3IiBGJldG8iBHRleHQiB0Zpcm1hZG97BCICYnkiBGJldG8iBWNhdXNlYQFJACJAMGUzOTUzYTYzZGU0MDNmZDNlMDUyOTE2N2RmZDczY2MxZWViZDRmZGIzZjBmMTgxYmU1Y2NiOTJkZTJlNTk2MUABASIDc2VxSVoiAmlkIkA3YjljN2U0YzA2OTVjY2RkMDZkNWQ1ZmYyNTMzODYwNzY0NjQ3OGIwMTc5MjU1MjllZjVhZTM4OThlMzY2ZjViIgJhdE4AoOlAih16QnsISQxvIgVsYXllciIFaG91c2UiBGtpbmQiCnRvb2wtZW50cnkiBGRhdGFvIgR0b29sIgV2YXVsdCIGdGFyZ2V0IgV2YXVsdCIGYXV0aG9yIgRiZXRvIgR0ZXh0IgAiBnNpbGVudFQiBmRldGFpbG8iDGN1c3RvZHlCYXRjaGEBSQBvIgJpZCIkYjZkNzgzOGItODE2Yi00OGRhLTk4MGMtYjZiM2I0NjU0ZDM4IgRraW5kIhBjcmVkZW50aWFsLWJvdW5kIgVhY3RvciIEYmV0byIEdG9vbCIFdmF1bHQiBnRhcmdldCIFdmF1bHQiBHNsb3QiB3NpZ25pbmciCHJldmlzaW9uSQIiBHJlZnNvIgNrZXkiK3NlY3JldDoxYzg2NzdiZC0yNDdkLTRiZjktYmJiNS04MGRkZGExOTg4OWR7ASIFY2F1c2UiJDdiYzk2MWI1LTgwMWYtNDYzZS05ZjVkLTZkMTVkOGNhYzU4MCIJYmF0Y2hTaXplSQIiCmJhdGNoSW5kZXhJACIOYXV0aGVudGljYXRpb24iQDhjM2VmNDMxMzBhMzE5ZGJkZGYwOGUxMWY5OTczZjVhYjRlNDVkM2NiZDU5NzY4ODMyMjYyNzJlMjk1N2JkMmF7DEABAXsBewYiAmJ5IgRiZXRvIgVjYXVzZWEBSQAiJDdiYzk2MWI1LTgwMWYtNDYzZS05ZjVkLTZkMTVkOGNhYzU4MEABASIDc2VxSV4iAmlkIkAxYzFlNGIxNjBhZTNjNzcyOGZkZjA4ZjNkZmM2ZmMwY2E2N2E5NDFlYmQ3NzhmMjIzNDU3YTUyNGQ2MDRkYWNmIgJhdE4AoOlAih16QnsISQ5vIgVsYXllciIFaG91c2UiBGtpbmQiCnRvb2wtZW50cnkiBGRhdGFvIgR0b29sIgV2YXVsdCIGdGFyZ2V0IgV2YXVsdCIGYXV0aG9yIgRiZXRvIgR0ZXh0IgVVc2FkYXsEIgJieSIEYmV0byIFY2F1c2VhAUkAIkA3ZmRhMmRiZTkzYWUwMThiZmE0MmIzY2QyYjA2MmEwNTU5NDA0ZDZiNWEzMmFhNDBlNTlhM2YwOGMzZmM4MmMyQAEBIgNzZXFJaCICaWQiQDhiM2M3NzAyMDM1MGMwNTExZTZlMmMxZWYyZmNiNGViNmYxMGU2ZjM4OWQyZWQ1YjE0YzUwZWM1YjgxNTU3NjkiAmF0TgDw6UCKHXpCewhJEG8iBWxheWVyIgVob3VzZSIEa2luZCIKdG9vbC1lbnRyeSIEZGF0YW8iBHRvb2wiBXZhdWx0IgZ0YXJnZXQiBXZhdWx0IgZhdXRob3IiBGJldG8iBHRleHQiBVVzYWRhewQiAmJ5IgRiZXRvIgVjYXVzZWEBSQAiQDkyOTIzNGI5Yjc3NDRlYTI5YTRmOTA3M2MyOGYzZDVhYTZkYzdhNzQ5MTQ1YTdiYmRkNTg2MWYxMjQ0YTcwMzFAAQEiA3NlcUl2IgJpZCJAODhjYTExZDFmZjIzMDc1ZDc1YWI5ZDhjM2Y0ZDQ4OGFhZGE5NTcwM2ZkZGI1NWJlYWIxNjBiYjQzZDFjYWVkZCICYXROAKDqQIodekJ7CEAJCSIHYXR0ZW5kc0EAJAAAIglhdHRlbnRpb247OgAiB3Rocm91Z2hJeiIFdG9vbHNvIgVzYWxlczs6ACIIcGF5bWVudHNvIghyZWNlaXZlZEkAIgl1bm1hdGNoZWRhAEAAAHsCewJ7DHsFIghjaGVja3N1bSJANmEwNDUxZjNhNzYzOWJiMWE5NDFhYjRhOGY0NjEzNzVlNTM2YTEzMzViNTY5NWNlMzNhODg5YTEwYjk3MTlhOXsC"
+          }
+        }
+      ]
+    }
+  },
+  "custody": "U1FMaXRlIGZvcm1hdCAzABAAAQEAQCAgAAAABwAAAAgAAAAAAAAAAAAAAAYAAAAEAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAC6VyA0P+AAJDAQADxUPtw6kDf4Oaw1MDcMMqAwEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC8DYwFzZWNyZXQ6MWM4Njc3YmQtMjQ3ZC00YmY5LWJiYjUtODBkZGRhMTk4ODlkAi4DYwlzZWNyZXQ6Y2UwMzZjZjEtYmM4NC00NTA3LTg3NzQtNmNmMDlkNzhjZmM5DQAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AAAACD7cAD88PtwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYCAx8ha2V5LWNoZWNrY3VzdG9keS12Mi8BAx1VaG91c2UtaWRlZTkwYTBiZS1iZWM1LTQyYTQtYTc4Yi1lYjVhMTVkZGZhNTQKAAAAAg/mAA/0D+YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0DHwFrZXktY2hlY2sCCwMdCWhvdXNlLWlkDQAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+  "keychain": {
+    "desert.house-custody.v3/ee90a0be-bec5-42a4-a78b-eb5a15ddfa54": "VjBlTmdsTDlHc3JjaXQ4NnoxaTh0ZGRCc2ZDdCtDUlhmTzYvRW5IaTg0Zz0=",
+    "desert.custody-anchor.v3/ee90a0be-bec5-42a4-a78b-eb5a15ddfa54": "MDAwMDAwMDAwMDAwMDAwMjo4YzNlZjQzMTMwYTMxOWRiZGRmMDhlMTFmOTk3M2Y1YWI0ZTQ1ZDNjYmQ1OTc2ODgzMjI2MjcyZTI5NTdiZDJh",
+    "desert.custody-index.v3/ee90a0be-bec5-42a4-a78b-eb5a15ddfa54": "N2IyMjYxNjM2MzZmNzU2ZTc0NzMyMjNhNWIyMjY1NjUzOTMwNjEzMDYyNjUyZDYyNjU2MzM1MmQzNDMyNjEzNDJkNjEzNzM4NjIyZDY1NjIzNTYxMzEzNTY0NjQ2NjYxMzUzNDJkNzM2NTYzNzI2NTc0MmQ2MzY1MzAzMzM2NjM2NjMxMmQ2MjYzMzgzNDJkMzQzNTMwMzcyZDM4MzczNzM0MmQzNjYzNjYzMDM5NjQzNzM4NjM2NjYzMzkyMjJjMjI2NTY1MzkzMDYxMzA2MjY1MmQ2MjY1NjMzNTJkMzQzMjYxMzQyZDYxMzczODYyMmQ2NTYyMzU2MTMxMzU2NDY0NjY2MTM1MzQyZDczNjU2MzcyNjU3NDJkMzE2MzM4MzYzNzM3NjI2NDJkMzIzNDM3NjQyZDM0NjI2NjM5MmQ2MjYyNjIzNTJkMzgzMDY0NjQ2NDYxMzEzOTM4MzgzOTY0MjI1ZDdk",
+    "desert.house-custody.v3/ee90a0be-bec5-42a4-a78b-eb5a15ddfa54-secret-ce036cf1-bc84-4507-8774-6cf09d78cfc9": "ZEUvbGdVNHMwSFZkdWxIbmZDL0J4blVSM0xwMEkzQWo3bU9YakpSUWlCOD0=",
+    "desert.house-custody.v3/ee90a0be-bec5-42a4-a78b-eb5a15ddfa54-secret-1c8677bd-247d-4bf9-bbb5-80ddda19889d": "dWVGK3ZFNHpJZlNRY2tjVWJualo4allGRkVqdEdMUExTWHhtRGVDTzBiQT0="
+  },
+  "fold": {
+    "by": "shop",
+    "house": {
+      "admin": "ana",
+      "grants": [
+        ["ana", ["sales", "payments", "vault"]],
+        ["beto", ["vault"]]
+      ],
+      "channels": [["communicator/house", ["ana", "beto"]]],
+      "hides": []
+    },
+    "attendance": [
+      ["ana", ["vault"]],
+      ["beto", ["vault"]]
+    ],
+    "processing": [],
+    "acts": [],
+    "attentionBy": [["beto", []]],
+    "looked": [
+      ["ana", [["vault", 7]]],
+      ["beto", [["vault", 32]]]
+    ],
+    "entries": [
+      {
+        "layer": "house",
+        "kind": "tool-entry",
+        "data": {
+          "tool": "vault",
+          "target": "vault",
+          "author": "ana",
+          "text": "Sin secretos"
+        },
+        "by": "ana",
+        "cause": ["160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c"],
+        "seq": 12,
+        "id": "c09a8cb22b7b87735e010423a07edd4ba3935a205ab6a4f7e2ac9be0e36fb92b",
+        "at": 1794635992700
+      },
+      {
+        "layer": "house",
+        "kind": "tool-entry",
+        "data": {
+          "tool": "vault",
+          "target": "vault",
+          "author": "ana",
+          "text": "Firmado"
+        },
+        "by": "ana",
+        "cause": ["2a51aaa0aecb278fba441bc8ec7c9045b26b0a066138063ba6cdbc0d19d98849"],
+        "seq": 20,
+        "id": "e3755aaa3af29cc3096dadbc9b53e2ba811babaa809e94ac9462fb208c708d9e",
+        "at": 1794635992711
+      },
+      {
+        "layer": "house",
+        "kind": "tool-entry",
+        "data": {
+          "tool": "vault",
+          "target": "vault",
+          "author": "ana",
+          "text": "",
+          "silent": true,
+          "detail": {
+            "custodyBatch": [
+              {
+                "id": "fd2fa823-96a4-4c49-a5c1-99f24629148d",
+                "kind": "credential-bound",
+                "actor": "ana",
+                "tool": "vault",
+                "target": "vault",
+                "slot": "signing",
+                "revision": 1,
+                "refs": {
+                  "key": "secret:ce036cf1-bc84-4507-8774-6cf09d78cfc9"
+                },
+                "cause": "ea5251c5-a374-4c88-88eb-f73be9093b81",
+                "batchSize": 1,
+                "batchIndex": 0,
+                "authentication": "7512b7048d199795d787abd5e1624133642e0491a9356485659bdbdc67e810b7"
+              }
+            ]
+          }
+        },
+        "by": "ana",
+        "cause": ["ea5251c5-a374-4c88-88eb-f73be9093b81"],
+        "seq": 22,
+        "id": "d0bf4bc66055d90d948e9cb1854fbffece15244fa621d8929eda0279907a4ec6",
+        "at": 1794635992711
+      },
+      {
+        "layer": "house",
+        "kind": "tool-entry",
+        "data": {
+          "tool": "vault",
+          "target": "vault",
+          "author": "ana",
+          "text": "Usada"
+        },
+        "by": "ana",
+        "cause": ["34873616f21adda92d51092c7a90c1313146fc052e14ba61411019b9fa08368d"],
+        "seq": 27,
+        "id": "7032531900eb9a124bd6b22fc1da8375b00b1986dd9765b5582d6c502e9100ce",
+        "at": 1794635992717
+      },
+      {
+        "layer": "house",
+        "kind": "tool-entry",
+        "data": {
+          "tool": "vault",
+          "target": "vault",
+          "author": "beto",
+          "text": "Sin secretos"
+        },
+        "by": "beto",
+        "cause": ["8c09e97a1431983e892008eebb33c072436aee9bf8fd66a89ca69d75d89505f1"],
+        "seq": 39,
+        "id": "3fc301baafec99d7e27b8e8e12b9309ed6582d55c5c9f021e3841c8a4cb1dbbf",
+        "at": 1794635992725
+      },
+      {
+        "layer": "house",
+        "kind": "tool-entry",
+        "data": {
+          "tool": "vault",
+          "target": "vault",
+          "author": "beto",
+          "text": "Firmado"
+        },
+        "by": "beto",
+        "cause": ["0e3953a63de403fd3e0529167dfd73cc1eebd4fdb3f0f181be5ccb92de2e5961"],
+        "seq": 45,
+        "id": "7b9c7e4c0695ccdd06d5d5ff25338607646478b017925529ef5ae3898e366f5b",
+        "at": 1794635992730
+      },
+      {
+        "layer": "house",
+        "kind": "tool-entry",
+        "data": {
+          "tool": "vault",
+          "target": "vault",
+          "author": "beto",
+          "text": "",
+          "silent": true,
+          "detail": {
+            "custodyBatch": [
+              {
+                "id": "b6d7838b-816b-48da-980c-b6b3b4654d38",
+                "kind": "credential-bound",
+                "actor": "beto",
+                "tool": "vault",
+                "target": "vault",
+                "slot": "signing",
+                "revision": 1,
+                "refs": {
+                  "key": "secret:1c8677bd-247d-4bf9-bbb5-80ddda19889d"
+                },
+                "cause": "7bc961b5-801f-463e-9f5d-6d15d8cac580",
+                "batchSize": 1,
+                "batchIndex": 0,
+                "authentication": "8c3ef43130a319dbddf08e11f9973f5ab4e45d3cbd5976883226272e2957bd2a"
+              }
+            ]
+          }
+        },
+        "by": "beto",
+        "cause": ["7bc961b5-801f-463e-9f5d-6d15d8cac580"],
+        "seq": 47,
+        "id": "1c1e4b160ae3c7728fdf08f3dfc6fc0ca67a941ebd778f223457a524d604dacf",
+        "at": 1794635992730
+      },
+      {
+        "layer": "house",
+        "kind": "tool-entry",
+        "data": {
+          "tool": "vault",
+          "target": "vault",
+          "author": "beto",
+          "text": "Usada"
+        },
+        "by": "beto",
+        "cause": ["7fda2dbe93ae018bfa42b3cd2b062a0559404d6b5a32aa40e59a3f08c3fc82c2"],
+        "seq": 52,
+        "id": "8b3c77020350c0511e6e2c1ef2fcb4eb6f10e6f389d2ed5b14c50ec5b8155769",
+        "at": 1794635992735
+      },
+      {
+        "layer": "house",
+        "kind": "tool-entry",
+        "data": {
+          "tool": "vault",
+          "target": "vault",
+          "author": "beto",
+          "text": "Usada"
+        },
+        "by": "beto",
+        "cause": ["929234b9b7744ea29a4f9073c28f3d5aa6dc7a749145a7bbdd5861f1244a7031"],
+        "seq": 59,
+        "id": "88ca11d1ff23075d75ab9d8c3f4d488aada95703fddb55beab160bb43d1caedd",
+        "at": 1794635992746
+      }
+    ],
+    "attends": [],
+    "attention": [],
+    "through": 62,
+    "tools": {
+      "sales": [],
+      "payments": {
+        "received": 0,
+        "unmatched": []
+      }
+    }
+  }
+}

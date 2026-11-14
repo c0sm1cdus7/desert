@@ -4,7 +4,7 @@ import { money } from "../../src/catalogs/fields.ts";
 import { anyToolScreen } from "../../src/surface/bridge/any-tool.ts";
 import { section, type ProgramScreen, type Shown } from "../../src/surface/bridge/house-ports.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
-import { paymentsTool, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
+import { paymentsTool, pesos, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
 
 const marked = object({ paid: money("Cobrado") });
 const nameOf = (target: string): string => target.replace("sales/", "");
@@ -20,7 +20,7 @@ const mark = programAct<Shop, typeof marked>({
   on: "thing",
   under: "marks",
   input: marked,
-  confirms: ({ paid }) => `Marcar · $ ${paid}`,
+  confirms: ({ paid }) => `Marcar · ${pesos(paid)}`,
   refuses: ["over"],
   stops: ({ paid }, state, target) =>
     typeof paid === "number" && paid > (state.tools.sales.get(nameOf(target))?.total ?? 0) ? "over" : undefined,
@@ -36,7 +36,7 @@ const mark = programAct<Shop, typeof marked>({
       on: "sales/s1",
       input: { paid: 1500 },
       then: {
-        sure: "Marcar · $ 1500",
+        sure: "Marcar · $ 15,00",
         says: "Marcada · s1",
         facts: [{ kind: "sale-corrected", data: { sale: "s1", total: 1500, paid: 1500 } }],
       },
@@ -66,7 +66,7 @@ const marking =
         const total = ports.state().tools.sales.get(nameOf(thing ?? ""))?.total;
         if (thing === undefined || total === undefined) return plain.view(target);
         const row = (paid: number, key: string, title: string) =>
-          start("mark", thing, { today: { paid }, asks: [1], key, title, detail: `$ ${paid}` });
+          start("mark", thing, { today: { paid }, asks: [1], key, title, detail: pesos(paid) });
         const more = row(total + 1, "d", "de más");
         const over = knows ? { ...more, off: true, detail: `${more.detail ?? ""} · over` } : more;
         return [section("Marcas", [row(total, "t", "todo"), over])];

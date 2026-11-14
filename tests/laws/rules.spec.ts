@@ -43,3 +43,18 @@ describe("law 13: a rule nothing makes hold is a wish", () => {
     expect(readFileSync(join(root, "GARANTIAS.md"), "utf8")).toBe(rulesText());
   });
 });
+
+it("records law 255 for reading confirmed money and rejecting invalid cents", () => {
+  const law = rules.find(rule => rule.id === 255);
+  expect(law?.rule).toBe(
+    "Un programa lee el mismo importe que confirmó, antes y después de reabrir, " +
+      "y la función que lo muestra rechaza lo que no es un importe.",
+  );
+  expect(law?.evidence).toEqual(
+    expect.arrayContaining([
+      "src/surface/shop-money-terminal.spec.ts",
+      "src/surface/shop-money-neighbors.spec.ts",
+      "src/catalogs/fields/money-field.spec.ts",
+    ]),
+  );
+});

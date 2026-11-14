@@ -7,7 +7,7 @@ import type { Program, State } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../tools/tools.ts";
 import type { HouseFolds } from "./house-projections.ts";
 export function checkCalculations<X extends Program>(journal: SqliteJournal<X["fact"]>, folds: HouseFolds<X>) {
-  const initial: State<X> = structuredClone(startState<X>(folds.slices, folds.by));
+  const initial: State<X> = structuredClone(startState<X>(folds.slices, folds.by, folds.identities));
   return journal.replay(initial, (state, event) => {
     const before: State<X> = structuredClone(state);
     const next = toolsStep<X>(frozenState(state), event, folds.slices);

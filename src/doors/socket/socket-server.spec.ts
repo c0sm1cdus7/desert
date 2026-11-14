@@ -3,6 +3,7 @@ import { readdirSync, statSync, existsSync } from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
 import { socketHouse } from "../../../tests/support/socket-house.ts";
 import { effect } from "../../journal/events.ts";
+import { socketTexts } from "../../texts/socket.texts.ts";
 describe.each(["stream", "unix"] as const)("%s", transport => {
   let fixture: Awaited<ReturnType<typeof socketHouse>> | undefined;
   afterEach(async () => {
@@ -69,6 +70,10 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
     const outsider = await f.client("nadie-terminal");
     expect(outsider.states).toHaveLength(0);
     expect(outsider.messages.some(m => m.tipo === "bienvenida")).toBe(false);
+    f.house().bus.emit(effect("granted", { identity: "mind:payments", tools: ["payments"] }, "ana"));
+    const mind = await f.client("mente-terminal");
+    expect(await mind.until(mind.closed)).toBe(true);
+    expect([mind.states.length, mind.messages]).toEqual([0, [{ tipo: "rechazo", motivo: socketTexts.denied }]]);
     const b = await f.client("beto-terminal");
     expect(b.states).toHaveLength(1);
     f.house().bus.emit(effect("granted", { identity: "beto", tools: [] }, "ana"));

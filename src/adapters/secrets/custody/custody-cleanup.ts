@@ -34,30 +34,35 @@ function cleanupPlan(state: CustodyState) {
   return { candidates, origins, pending, completed };
 }
 export function pendingCleanup(state: CustodyState): readonly SecretRef[] {
-  return [...cleanupPlan(state).candidates];
+  return state.ledger.read(() => [...cleanupPlan(state).candidates]);
+}
+function recordCleanup(state: CustodyState, kind: CredentialFact["kind"], ref: SecretRef, origin?: CredentialFact) {
+  state.fact(
+    kind,
+    origin ?? maintenance,
+    origin?.slot ?? "",
+    origin?.revision ?? 0,
+    { material: ref },
+    origin?.id ?? "unbound",
+  );
 }
 /** Two durable additions regardless of candidate count: intents first, completed receipts after physical deletion. */
 export function collectCustody(state: CustodyState): void {
+  return state.ledger.read(() => collect(state));
+}
+function collect(state: CustodyState): void {
   state.check();
   if (state.cleanupDepth) return;
   const { candidates, origins, pending, completed } = cleanupPlan(state);
-  const record = (kind: CredentialFact["kind"], ref: SecretRef) => {
-    const origin = origins.get(ref);
-    state.fact(
-      kind,
-      origin ?? maintenance,
-      origin?.slot ?? "",
-      origin?.revision ?? 0,
-      { material: ref },
-      origin?.id ?? "unbound",
-    );
-  };
+  if (candidates.size && state.ledger.pending()) throw new CustodyError("E-CUSTODY-TRANSACTION");
   const deleted: SecretRef[] = [];
   let failed = false;
   try {
     state.ledger.batch(() => {
-      for (const ref of candidates) if (!pending.has(ref)) record("credential-cleanup-pending", ref);
+      for (const ref of candidates)
+        if (!pending.has(ref)) recordCleanup(state, "credential-cleanup-pending", ref, origins.get(ref));
     });
+    if (state.ledger.anchorPending()) return;
     for (const ref of candidates) {
       try {
         state.store.remove(ref);
@@ -68,12 +73,15 @@ export function collectCustody(state: CustodyState): void {
       }
     }
     state.ledger.batch(() => {
-      for (const ref of deleted) if (!completed.has(ref)) record("credential-purged", ref);
+      for (const ref of deleted)
+        if (!completed.has(ref)) recordCleanup(state, "credential-purged", ref, origins.get(ref));
     });
     if (failed) throw new CustodyError("E-CUSTODY-CLEANUP");
     state.cleanupFailed = false;
-  } catch {
+    state.cleanupNeeded = state.uses.size > 0;
+  } catch (error) {
     state.cleanupFailed = true;
+    if (error instanceof CustodyError && error.code === "E-CUSTODY-TRANSACTION") throw error;
     throw new CustodyError("E-CUSTODY-CLEANUP");
   }
 }

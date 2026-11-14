@@ -20,10 +20,12 @@ export class CustodyState {
   readonly ledger: AuthenticatedLedger;
   readonly buffers = new Set<Uint8Array>();
   readonly sessions = new Map<string, CredentialIngress>();
+  readonly touched = new Set<string>();
   readonly uses = new Map<SecretRef, number>();
   closed = false;
   cleanupDepth = 0;
   cleanupFailed = false;
+  cleanupNeeded = false;
   constructor(file: string, _house: string, keys?: HouseKeyProvider, ledger?: CredentialLedger) {
     custodyPreflight(file, !!keys);
     this.store = new CustodyDatabase(file);
@@ -51,9 +53,8 @@ export class CustodyState {
     this.store.saveKeyCheck("custody-v2");
   }
 
-  latest(scope: CredentialScope, slot: string): CredentialFact | undefined {
-    return this.ledger
-      .facts()
+  latest(scope: CredentialScope, slot: string, facts = this.ledger.facts()): CredentialFact | undefined {
+    return facts
       .filter(
         fact =>
           sameScope(scope, fact) &&
@@ -63,6 +64,21 @@ export class CustodyState {
             fact.kind === "credential-unusable"),
       )
       .at(-1);
+  }
+  snapshot(session: CredentialIngress, slots: readonly string[]) {
+    const initial = this.ledger.snapshot();
+    return () => {
+      this.check(session);
+      this.ledger.facts();
+      return new Map(
+        slots.map(slot => {
+          const fact = this.latest(session.scope, slot, initial);
+          const current =
+            fact?.kind === "credential-bound" ? { revision: fact.revision, refs: { ...fact.refs } } : undefined;
+          return [slot, { current, revision: fact?.revision ?? 0 }] as const;
+        }),
+      );
+    };
   }
   bindings(): CredentialFact[] {
     const latest = new Map<string, CredentialFact>();
@@ -96,6 +112,7 @@ export class CustodyState {
     cause = "",
   ): void {
     this.prepareKey();
+    this.cleanupNeeded = true;
     this.ledger.append({
       id: randomUUID(),
       kind,
@@ -124,6 +141,7 @@ export class CustodyState {
   close(): void {
     this.closed = true;
     this.sessions.clear();
+    this.touched.clear();
     for (const buffer of this.buffers) buffer.fill(0);
     this.buffers.clear();
     this.cipher.close();

@@ -33,6 +33,7 @@ export function runProgram<X extends Program>(
   value: unknown,
   context: ActContext<X>,
 ): ActResult<X> | Promise<ActResult<X>> {
+  context.signal?.throwIfAborted();
   if (!isProgram(act)) return act.run(value, context);
   const reason = before(act, value, context);
   if (reason !== undefined) return { status: "rejected", reason };

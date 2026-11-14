@@ -3,7 +3,8 @@
 Base compartida entre Kenon y Capibara, extraída de Kenon (la parte que no sabe nada de Kenon).
 
 Reglas:
-- No entra nada hasta que dos programas lo usan.
+- No entra nada hasta que dos programas lo usan. Las piezas de la casa (identidades, kit, escenas, puerta y mentes)
+  entran por definición del dueño: Kenon y Capibara son esos dos programas; Capibara las adopta al levantarse su pausa.
 - Las rutas son las mismas que en Kenon, así traer un cambio es comparar archivo contra archivo.
 - Kenon se sube a DESERT cuando se retome, en TypeScript (13/11/2026: el pase a Rust salió del plan; un solo lenguaje para la base y sus programas).
 
@@ -20,7 +21,7 @@ Reglas:
 - Diseño de las dos costuras del núcleo: `COSTURAS.md`.
 
 ## Tercer paso
-- `src/house/`: la casa (quién administra, qué herramientas enteras tiene cada integrante, canales).
+- `src/house/`: la casa (quién administra, qué herramientas enteras tiene cada integrante y qué actividad lee cada identidad).
 - `src/tools/`: el motor de herramientas. Cada herramienta guarda su parte del estado; ejecutar un acto.
 - Un programa de prueba (`tests/support/shop.ts`) muestra cómo se arma un programa sobre DESERT.
 

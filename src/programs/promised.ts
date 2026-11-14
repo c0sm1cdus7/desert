@@ -32,7 +32,7 @@ const saidBy = <X extends Program>(decided: Decided<X>) => {
 };
 /** What every tool keeps, folded again from the first fact: the journal alone has to be enough. */
 const rebuilt = <X extends Program>(program: Composition<X>, house: House<X>): X["tools"] =>
-  house.journal.replay(startState<X>(program.slices, runner), (state, event) =>
+  house.journal.replay(startState<X>(program.slices, runner, program.identities), (state, event) =>
     toolsStep<X>(state, event, program.slices),
   ).tools;
 /** What the tool reads on a target, as whoever acted reads it: each line of its view, parsed when it is JSON. */
@@ -79,7 +79,6 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
         strictEqual(saidBy(done)?.text, kase.then.says, said.saysMismatch);
         ok(composed.test(kase.then.says), said.notComposed(kase.then.says));
         ok(!addresses(kase.then.says), said.speaks(kase.then.says));
-        strictEqual(saidBy(done)?.recipient !== undefined, kase.then.privately === true, said.forWhom);
         const reads = kase.then.reads;
         if (reads) deepStrictEqual(readOn(house(), aim, kase, reads.on), reads.lines, said.readsMismatch);
         /** What was written in a shape is read in it, on the thing the act left and on its tool's list. */

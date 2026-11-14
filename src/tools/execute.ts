@@ -1,11 +1,12 @@
 import { hasSecretInput } from "./inputs/secret-input.ts";
+import { runningSignal } from "./execution/running-acts.ts";
 import { decisionOf } from "./execution/action-decision.ts";
 import { programCall } from "./boundaries/program-call.ts";
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
 import { Value } from "@sinclair/typebox/value";
 import { actEnvelope, type Act } from "../catalogs/acts.ts";
 import { ids } from "../catalogs/ids.ts";
-import { allowed, identityView } from "../house/house.ts";
+import { allowedAct, identityView, mindTool, present } from "../house/house.ts";
 import { effect, type Emission, type HouseEvent } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "./attendance.ts";
@@ -22,7 +23,7 @@ import { usingCapabilities } from "./execution/action-capabilities.ts";
 type Origin = HouseEvent<"act">;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
   Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &
-  Readonly<{ private?: string | undefined; output?: boolean; cleanupPending?: true }>;
+  Readonly<{ private?: string | undefined; output?: boolean; cleanupPending?: true; anchorPending?: true }>;
 type Processing<X extends Program> = Readonly<{ status: "processing"; effects: readonly []; reason?: string }> &
   Readonly<{ completion: Promise<Decision<X>> }>;
 export type ExecutionResult<X extends Program> = Decision<X> | Processing<X>;
@@ -46,11 +47,12 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   const { by, process } = origin;
   const { state, offered, tool, act } = found;
   const target = origin.data.object;
-  if (!state.house.grants.has(by) || (process && !ports.process(process, by))) return toolTexts.unassigned;
+  if (!present(ports.registry, state.house, by) || (process && !ports.process(process, by)))
+    return toolTexts.unassigned;
   if (!act) return toolTexts.unknown;
-  if (!offered && (!tool || !allowed(state.house, by, tool.id))) return toolTexts.unassigned;
+  if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option))) return toolTexts.outsideKit;
   if (!offered && tool && elsewhere(act, tool, target)) return toolTexts.unknown;
-  if (!offered && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
+  if (!offered && mindTool(by) !== tool?.id && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
   return programOffered(act, state, target, ports.now());
 }
 const decide = <X extends Program>(
@@ -65,10 +67,10 @@ const decide = <X extends Program>(
   const { state, offered, tool, act } = found;
   const refused = refusal(ports, origin, found);
   if (refused !== undefined || !act) return rejected(refused ?? toolTexts.unknown);
-  const execute = (nested: Act) => executeNested(ports, origin, nested);
   const { ports: publicPorts, credentials } = capabilities;
   const context: ActContext<X> = {
     state,
+    signal: runningSignal(ports, origin, offered ? undefined : tool?.id, act.reach),
     by,
     target,
     at: ports.now(),
@@ -76,7 +78,7 @@ const decide = <X extends Program>(
     ports: publicPorts,
     credentials,
     id,
-    execute,
+    execute: nested => executeNested(ports, origin, nested),
   };
   const draft = !offered && programCall(tool?.draft?.bind(tool), state, through, value.input, target, context.at);
   if (draft) {
@@ -109,7 +111,11 @@ async function executeNested<X extends Program>(
     result.status === "accepted"
       ? { status: "accepted" }
       : { status: "rejected", reason: result.reason ?? toolTexts.invalid };
-  return result.cleanupPending ? { ...done, cleanupPending: true } : done;
+  return {
+    ...done,
+    ...(result.cleanupPending ? { cleanupPending: true } : {}),
+    ...(result.anchorPending ? { anchorPending: true } : {}),
+  };
 }
 export function execute<X extends Program>(
   ports: Execution<X>,

@@ -8,7 +8,7 @@ import type { ViewRow } from "../../src/surface/shown-tool.ts";
 import { toolTexts } from "../../src/texts/tools.texts.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
-import { paymentsTool, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
+import { paymentsTool, pesos, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
 
 const corrected = object({ total: money("Total"), paid: money("Cobrado") });
 const nameOf = (target: string): string => target.replace("sales/", "");
@@ -20,7 +20,7 @@ export const registered = { act: "register", input: { sale: "s1", total: 1500 } 
 const told = (total: number, paid: number) => ({
   says: "Corregida · s1",
   facts: [{ kind: "sale-corrected" as const, data: { sale: "s1", total, paid } }],
-  reads: { lines: [{ total: `$ ${total}`, paid: `$ ${paid}`, by: "ana" }] },
+  reads: { lines: [{ total: pesos(total), paid: pesos(paid), by: "ana" }] },
 });
 export const totalCorrected = "sales · correct · a sale's total is corrected, and what it was paid stays";
 export const paidCorrected = "sales · correct · what a sale was paid is corrected, and its total stays";

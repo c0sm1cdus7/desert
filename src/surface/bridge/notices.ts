@@ -1,6 +1,6 @@
 import { programCall } from "../../tools/boundaries/program-call.ts";
 // What a tool tells a person from any menu: what of it needs someone to act, and what the others did since they looked.
-import { allowed, hides } from "../../house/house.ts";
+import { holdsAny, hides, mindTool } from "../../house/house.ts";
 import type { ProgramTool } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { Notice, Tool } from "../shown-tool.ts";
@@ -27,13 +27,21 @@ export function noticesOf<X extends Program>(
   tool: ProgramTool<X>,
   shown: Pick<Tool, "titleOf" | "name">,
 ) {
-  const mine = (): boolean => allowed(ports.state().house, ports.me, tool.id);
+  const mine = (): boolean => holdsAny(ports.state().house, ports.me, tool.id);
   const titled = (target: string): string => shown.titleOf?.(target) ?? target;
   /** What needs someone to act is a thing of the tool, or the tool itself: then the row leads to its own menu. */
   const needs = (): Notice[] =>
-    (programCall(tool.needs?.bind(tool), ports.state(), ports.now()) ?? []).map(({ target, why }) =>
-      target === tool.id ? { title: shown.name, detail: why } : { title: titled(target), detail: why, opens: target },
-    );
+    (programCall(tool.needs?.bind(tool), ports.state(), ports.now()) ?? [])
+      .filter(
+        need =>
+          need.to === undefined ||
+          mindTool(need.to) !== undefined ||
+          !holdsAny(ports.state().house, need.to, tool.id) ||
+          need.to === ports.me,
+      )
+      .map(({ target, why }) =>
+        target === tool.id ? { title: shown.name, detail: why } : { title: titled(target), detail: why, opens: target },
+      );
   const news = (): Notice[] =>
     unseen(ports, tool).map(({ data }) => {
       const leads = data.target === tool.id ? {} : { opens: data.target };
@@ -46,12 +54,12 @@ export function noticesOf<X extends Program>(
   return {
     notices: () => ({
       needs: mine() ? needs() : [],
-      news: mine() ? news() : [],
+      news: news(),
       quiet: hides(ports.state().house, ports.me, "empty"),
     }),
     /** Having in front what someone else wrote on is attending it: the same act anyone does. */
     seen: (target: string): void => {
-      if (mine() && unseen(ports, tool).some(entry => entry.data.target === target))
+      if (unseen(ports, tool).some(entry => entry.data.target === target))
         ports.act({ act: "attend", input: { target } });
     },
   };

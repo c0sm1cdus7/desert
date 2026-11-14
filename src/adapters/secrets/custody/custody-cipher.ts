@@ -1,3 +1,4 @@
+import { secretTexts } from "../../../texts/secrets/secrets.texts.ts";
 import { createCipheriv, createDecipheriv, randomBytes, createHmac, timingSafeEqual } from "node:crypto";
 import { CustodyError, type HouseKeyProvider, type LedgerHead } from "./house-keys.ts";
 /** No cached keys. The provider copy is erased on every exit, including malformed input. */
@@ -36,7 +37,20 @@ export class CustodyCipher {
     }
   }
   prepare(create: boolean): void {
-    this.#using(this.#house, create, () => undefined);
+    try {
+      this.#using(this.#house, create, () => undefined);
+    } catch (error) {
+      if (!create && error instanceof CustodyError && error.code === "E-CUSTODY-KEY") {
+        let present = true;
+        try {
+          present = this.#providerOf().has(this.#house);
+        } catch {
+          /* preserve the provider error */
+        }
+        if (!present) throw new CustodyError("E-CUSTODY-KEY", secretTexts.missingCopy);
+      }
+      throw error;
+    }
     if (create && !this.head()) this.anchor({ count: 0, authentication: "" });
   }
   head(): LedgerHead | undefined {
@@ -115,20 +129,32 @@ export class CustodyCipher {
       }
     });
   }
-  sign(body: string): string {
+  signing<T>(work: (sign: (body: string) => string) => T): T {
     return this.#using(this.#house, false, key =>
-      createHmac("sha256", key)
-        .update(JSON.stringify(["custody-fact-v2", this.#house, body]))
-        .digest("hex"),
+      work(body =>
+        createHmac("sha256", key)
+          .update(JSON.stringify(["custody-fact-v2", this.#house, body]))
+          .digest("hex"),
+      ),
+    );
+  }
+  sign(body: string): string {
+    return this.signing(sign => sign(body));
+  }
+  verifying<T>(work: (verify: (body: string, signature: string | undefined) => void) => T): T {
+    return this.signing(sign =>
+      work((body, signature) => {
+        if (
+          !signature ||
+          !/^[a-f0-9]{64}$/u.test(signature) ||
+          !timingSafeEqual(Buffer.from(sign(body), "hex"), Buffer.from(signature, "hex"))
+        )
+          throw new CustodyError("E-CUSTODY-INTEGRITY");
+      }),
     );
   }
   verify(body: string, signature: string | undefined): void {
-    if (
-      !signature ||
-      !/^[a-f0-9]{64}$/u.test(signature) ||
-      !timingSafeEqual(Buffer.from(this.sign(body), "hex"), Buffer.from(signature, "hex"))
-    )
-      throw new CustodyError("E-CUSTODY-INTEGRITY");
+    this.verifying(verify => verify(body, signature));
   }
   close(): void {
     for (const key of this.#active) key.fill(0);

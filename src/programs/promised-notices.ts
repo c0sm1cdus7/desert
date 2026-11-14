@@ -1,4 +1,5 @@
 // The two lists every menu opens with, checked for every program: what needs someone to act, and what the others did.
+import { effect } from "../journal/events.ts";
 import { errorIn } from "./read-screen.ts";
 import { firstLine } from "../surface/bridge/notices.ts";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
@@ -20,7 +21,7 @@ function listAt(tools: readonly Tool[], title: string, tool?: string): readonly 
   const place = tool === undefined ? ({ kind: "menu", at: 0 } as const) : ({ kind: "view", tool, at: 0 } as const);
   return stacksOf(place, tools).find(stack => stack.title === title)?.rows;
 }
-/** What someone does is in Activity for the others who hold its tool, on the Menu and on the tool's own menu, until
+/** What someone does is in Activity for other identities, on the Menu and on the tool's own menu, until
  * they open it by its key; and it is never there for who did it. */
 function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
   const actor = kase.by ?? cast.admin;
@@ -34,14 +35,17 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
       );
       const [entry] = written;
       /** What was written for one identity alone is not for the rest to know of. */
-      if (!entry || entry.data.recipient !== undefined) return;
+      if (!entry) return;
       const theirs = seated(house(), other, shown);
       const own = seated(house(), actor, shown);
+      const outside = seated(house(), cast.outsider, shown);
       const news = (tools: readonly Tool[], tool?: string) =>
         listAt(tools, surface.activity, tool)?.find(row => row.title === firstLine(entry.data.text));
       try {
         ok(news(theirs.tools) && news(theirs.tools, aim.tool.id), said.noActivity(entry.data.text));
         strictEqual(news(own.tools), undefined, said.ownActivity(entry.data.text));
+        ok(news(outside.tools) && news(outside.tools, aim.tool.id), said.noActivity(entry.data.text));
+        strictEqual((listAt(outside.tools, surface.attentionList, aim.tool.id) ?? []).length, 0);
         const at = choices({ kind: "menu", at: 0 }, theirs.tools).findIndex(
           row => row.title === firstLine(entry.data.text),
         );
@@ -51,10 +55,23 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
         theirs.router.send({ kind: "menu" });
         strictEqual(news(theirs.tools), undefined, said.staysNew(entry.data.text));
       } finally {
-        [theirs, own].forEach(seat => seat.router.stop());
+        [theirs, own, outside].forEach(seat => seat.router.stop());
       }
     });
   return { name: label(aim, said.activity(kase.promise)), run };
+}
+function checkPartialAttention<X extends Program>(
+  by: string,
+  house: import("./promised-stage.ts").House<X>,
+  tool: string,
+  told: (at?: string) => unknown,
+  mine: unknown,
+): void {
+  if (by !== cast.member) return;
+  house.bus.emit(effect("kit-set", { holder: cast.member, tool, acts: [] }, cast.admin));
+  deepStrictEqual(told(tool), [], said.needRecipient(tool, cast.member));
+  house.bus.emit(effect("kit-set", { holder: cast.member, tool, acts: null }, cast.admin));
+  deepStrictEqual(told(tool), mine, said.needRecipient(tool, cast.member));
 }
 /** What a case promises needs someone to act is in Attention for who holds the tool, on the Menu and on the tool's
  * own menu: the thing, saying why, on a row that leads to it. */
@@ -63,19 +80,30 @@ function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>,
     staged(program, async ({ house }) => {
       await given(house(), aim.tool.id, kase.given, kase.at);
       await perform(house(), aim.tool.id, { ...kase, act: aim.name });
-      const { tools, router } = seated(house(), kase.by ?? cast.admin, shown);
-      /** What Attention says of one tool where a person stands: each row by the thing it leads to, or the tool. */
-      const told = (of: string, at?: string) =>
-        (listAt(tools, surface.attentionList, at) ?? [])
-          .filter(row => row.open?.kind === "view" && row.open.tool === of)
-          .map(row => ({ target: row.opens ?? of, why: row.detail }));
-      try {
-        for (const [tool, promised] of promisedNeeds(aim, kase.then)) {
-          deepStrictEqual(told(tool, tool), promised);
-          deepStrictEqual(told(tool), promised);
+      const actor = kase.by ?? cast.admin;
+      for (const [tool, promised] of promisedNeeds(aim, kase.then)) {
+        const readers = new Set([
+          ...promised.flatMap(need => (need.to === undefined ? [] : [need.to])),
+          actor,
+          cast.member,
+        ]);
+        for (const by of readers) {
+          const { tools, router } = seated(house(), by, shown);
+          const told = (at?: string) =>
+            (listAt(tools, surface.attentionList, at) ?? [])
+              .filter(row => row.open?.kind === "view" && row.open.tool === tool)
+              .map(row => ({ target: row.opens ?? tool, why: row.detail }));
+          try {
+            const mine = promised
+              .filter(need => need.to === undefined || need.to === by)
+              .map(({ target, why }) => ({ target, why }));
+            deepStrictEqual(told(tool), mine, said.needRecipient(tool, by));
+            deepStrictEqual(told(), mine, said.needRecipient(tool, by));
+            checkPartialAttention(by, house(), tool, told, mine);
+          } finally {
+            router.stop();
+          }
         }
-      } finally {
-        router.stop();
       }
     });
   return { name: label(aim, said.needing(kase.promise)), run };

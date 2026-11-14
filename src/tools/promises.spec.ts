@@ -5,7 +5,15 @@ import { day } from "../catalogs/fields.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { programAct, type Offered } from "./promises.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
-import { registerCases, registerOffer, shop, shopCatalog, shopRegistry, type Shop } from "../../tests/support/shop.ts";
+import {
+  pesos,
+  registerCases,
+  registerOffer,
+  shop,
+  shopCatalog,
+  shopRegistry,
+  type Shop,
+} from "../../tests/support/shop.ts";
 
 const input = shopCatalog["sale-registered"];
 type Parts = Partial<Offered> & Readonly<{ refuses?: readonly string[] }>;
@@ -109,7 +117,8 @@ describe("what an act says cannot go on, given to it whole", () => {
     input: sold,
     refuses: ["total de más"],
     /** At the question it says by how much; the cause it declares is what any other door is refused with. */
-    stops: ({ total }) => (typeof total === "number" && total > 9000 ? `total de más · $ ${total - 9000}` : undefined),
+    stops: ({ total }) =>
+      typeof total === "number" && total > 9000 ? `total de más · ${pesos(total - 9000)}` : undefined,
     run: (told, { by }) => ({
       status: "accepted",
       text: "Registrada",
@@ -127,6 +136,7 @@ describe("what an act says cannot go on, given to it whole", () => {
     rig.attend("ana", "capping");
     const refused = rig.act("ana", "register", { sale: "s8", total: 9500 }, "capping");
     const taken = rig.act("ana", "register", { sale: "s9", total: 9000 }, "capping");
+    expect(capped.stops?.({ sale: "s8", total: 9500 }, rig.state(), "capping", 1)).toBe("total de más · $ 5,00");
     const kept = [...rig.state().tools.sales.keys()];
     rig.close();
     expect(refused).toMatchObject({ status: "rejected", reason: "total de más" });

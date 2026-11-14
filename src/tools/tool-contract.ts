@@ -28,9 +28,13 @@ export interface KeyStore {
   set(provider: string, value: string, hosts?: readonly string[]): Promise<void>;
   remove(provider: string): Promise<void>;
 }
-type Effects<X extends Program> = Readonly<{ effects?: readonly Emission<X["fact"]>[]; cleanupPending?: true }>;
+type Effects<X extends Program> = Readonly<{
+  effects?: readonly Emission<X["fact"]>[];
+  cleanupPending?: true;
+  anchorPending?: true;
+}>;
 type Accepted<X extends Program> = Partial<
-  Pick<Entry["data"], "text" | "detail" | "target" | "recipient" | "attention" | "silent">
+  Pick<Entry["data"], "text" | "detail" | "target" | "attention" | "silent" | "made" | "diagnostic">
 > &
   Effects<X> &
   Readonly<{ status: "accepted"; private?: string }>;
@@ -48,6 +52,7 @@ export type ActContext<X extends Program> = ToolCapabilities &
     target: string;
     at: number;
     id?: string;
+    signal?: AbortSignal | undefined;
     execute?: (act: Act) => Promise<ActResult<X>>;
   }>;
 export interface ToolAct<X extends Program> extends Readonly<{ input: TSchema; reach: Reach }> {

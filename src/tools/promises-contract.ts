@@ -26,7 +26,6 @@ type Done<X extends Program> = Readonly<{ says: string; facts: readonly Told<X>[
   /** What the act puts before the person to be sure, word for word, when it asks that. */
   Readonly<{ sure?: string }> &
   /** What it says is for who did it alone, when the case promises that: otherwise whoever holds the tool reads it. */
-  Readonly<{ privately?: true }> &
   Readonly<{ reads?: Readonly<{ on?: string; lines: readonly unknown[] }> }> &
   /** Whom the act calls for attention, when the case promises it: nobody, for what is written only for the record. */
   Readonly<{ calls?: readonly string[] }> &
@@ -34,7 +33,7 @@ type Done<X extends Program> = Readonly<{ says: string; facts: readonly Told<X>[
    * each by its name, when doing this is what makes something of theirs need someone. */
   Readonly<{ needs?: readonly Need[]; needsIn?: Readonly<Record<string, readonly Need[]>> }>;
 /** A thing that needs someone to act, and why: it stays so until what it says is no longer true. */
-export type Need = Readonly<{ target: string; why: string }>;
+export type Need = Readonly<{ target: string; why: string; to?: string }>;
 /** Given this, when someone does this, this happens. Nobody writes its spec: every door's check derives from it. */
 export type Case<X extends Program, S extends TSchema = TSchema> = Readonly<{
   promise: string;
@@ -102,6 +101,7 @@ export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
 /** A program, whole: what DESERT needs to run it and to check everything it promises. */
 export type Composition<X extends Program> = AdapterComposition &
   Readonly<{
+    identities?: boolean;
     projectionVersion: CalculationVersion;
     words: Vocabulary<X["fact"]>;
     registry: readonly ProgramTool<X>[];

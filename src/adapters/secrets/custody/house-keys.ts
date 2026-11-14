@@ -11,6 +11,7 @@ export interface HouseKeyProvider {
   forgetHouse(house: string, known?: readonly string[]): void;
 }
 export type CustodyCode =
+  | "E-CUSTODY-TRANSACTION"
   | "E-CUSTODY-KEY"
   | "E-CUSTODY-PROVIDER"
   | "E-CUSTODY-CLEANUP"
@@ -27,14 +28,19 @@ export type CustodyCode =
 export class CustodyError extends Error {
   override readonly cause = undefined;
   readonly code: CustodyCode;
-  constructor(code: CustodyCode) {
+  constructor(code: CustodyCode, message?: string) {
     const detail: Partial<Record<CustodyCode, string>> = {
+      "E-CUSTODY-TRANSACTION": secretTexts.transaction,
       "E-CUSTODY-KEY": secretTexts.key,
       "E-CUSTODY-PROVIDER": secretTexts.provider,
-      "E-CUSTODY-ROLLBACK": secretTexts.rollback,
+      "E-CUSTODY-INTEGRITY": secretTexts.integrity,
+      "E-CUSTODY-MISSING": secretTexts.missing,
+      "E-CUSTODY-LOCKED": secretTexts.locked,
+      "E-CUSTODY-STORAGE": secretTexts.storage,
       "E-CUSTODY-FORMAT": secretTexts.format,
     };
-    super(detail[code] ? `${code}: ${detail[code]}` : code);
+    const text = message ?? detail[code];
+    super(text ? `${code}: ${text}` : code);
     this.name = "CustodyError";
     this.code = code;
   }

@@ -20,7 +20,7 @@ export function actionUnavailable<X extends Program>(
   const at = seat.now();
   const fixed =
     from === undefined ? answers : asking(aim.act.input, seat.words).leading(aim.act.also?.with(state, from, at) ?? {});
-  return actionOff(aim.act, state, aim.tool.id, on, at, () => act?.next(fixed, on) ?? null, from);
+  return actionOff(aim.act, state, aim.tool.id, on, at, () => act?.next(fixed, on) ?? null, from, aim.name);
 }
 /** Where a case takes a row supplied by another tool. */
 export const caseOrigin = <X extends Program>(aim: Aim<X>, kase: Case<X>) =>

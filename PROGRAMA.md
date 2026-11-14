@@ -23,9 +23,12 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - **La organización** (`house`): quién administra, qué herramientas enteras tiene cada usuario, sus preferencias. Quien
   administra da y quita herramientas (`granted`), saca a alguien (`removed`) y pasa la administración (`handed`):
   la base pliega esos hechos y cuida sus reglas; la acción que los escribe (y su pantalla) es del programa.
+  `kit-set` suma el recorte de acciones; `scene` guarda la última descripción de cada identidad o mente.
 - **El registro**: solo se agrega; cada hecho con autor e instante; el estado es el registro plegado.
 - **La superficie**: Menú, lista de cada herramienta, objeto abierto y pregunta; un router único para cualquier
-  dibujante (hoy la terminal). Atención y Actividad en cada menú; buscar con espacio; Preferencias.
+  dibujante (hoy la terminal). Cada identidad puede leer y buscar todas las herramientas y sus objetos; las acciones
+  fuera del kit quedan apagadas. Atención se limita a las herramientas de las que tiene al menos una acción, y Actividad muestra lo de las demás
+  personas; buscar con espacio; Preferencias. Por ahora la superficie comprueba la herramienta entera.
 - **Las pruebas**: de cada caso sale la prueba sobre la organización y el recorrido con teclas desde el Menú; de
   cada acción, que rechace lo que su forma no admite, que su fila apagada diga su motivo, que lo que deja se
   encuentre buscando. Las garantías bajan por listas y menús hasta leer la fila, también en la ventana mínima;
@@ -83,6 +86,10 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   El símbolo aparece en el campo vacío, al escribir, en sus límites, en el eco y en la fila del valor actual.
   Las preguntas derivadas de los casos usan el estado y el destino de cada caso. `confirms` sigue siendo texto
   del programa: debe usar esa misma decisión de moneda. La base no garantiza ese texto.
+  La vista y el texto propios del programa también deben convertir los centavos al mostrarlos. La tienda de prueba
+  usa `shownMoney(String(centavos), locale)` con el mismo `locale` de sus campos. Recibe una cadena de centavos
+  enteros entre 0 y 9.999.999.999.999, sin ceros iniciales salvo `"0"`; rechaza cualquier otro valor con un
+  error que muestra lo recibido, incluso una cadena vacía o espacios.
   No hace falta envolver `next` para cambiar la máscara.
   La base distingue monedas por su símbolo: dos monedas con el mismo símbolo son la misma para la base.
   Todo importe se escribe y muestra con dos decimales; el dato guardado sigue siendo centavos enteros.
@@ -387,11 +394,13 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
 - Al actualizar, quitá las declaraciones sin efecto, mantené las marcas de esquema y aceptá referencias en los
   plegados. Tratá el rechazo histórico sin escribir sobre el registro. Las marcas v1 se revisan otra vez porque
   no incluían los hechos del programa. No se recuperan esquemas desaparecidos ni se certifican datos no declarados.
-- El ingreso de acciones usa la sesión de custodia de la acción: vincular conserva su material; rechazo,
+- El ingreso por acciones llega como texto y esa cadena original no puede ponerse en cero. El ingreso de acciones usa la sesión de custodia de la acción: vincular conserva su material; rechazo,
   borrador o final sin vínculo libera el provisional al cerrar el préstamo. Las escrituras directas antiguas
   por el bus conservan la retención para adopción explícita. No se deduplican posiciones por su valor.
 
 ## Custodia de credenciales · contrato de memoria, disco y cortes
+
+Un programa sin posiciones secretas y una casa sin material abre sin proveedor.
 
 Contrato de la custodia, incluida la aceptación y el mantenimiento con la casa cerrada. `Kregistro` solo autentica el registro y los sobres cifrados;
 `Ksecreto(ref)` cifra exclusivamente ese secreto. Cada llave es un elemento independiente del proveedor externo.
@@ -402,7 +411,7 @@ Un agregado es una escritura atómica: una fila o un lote completo con tamaño e
 | Operación | En claro en el proceso y duración | Disco de la casa | Llavero | Si el proceso muere |
 |---|---|---|---|---|
 | Ingresar | Búfer recibido y Ksecreto solo durante cifrado; copia prestada se borra al terminar. Kregistro solo durante autenticación. | Intención con referencia antes de crear la llave; luego sobre AES-GCM autenticado, sin autoridad. | Se crea Ksecreto independiente; Kregistro y ancla inicial si es el primer ingreso. | Antes de intención no hay nada; entre intención, creación y sobre queda provisional que se purga al abrir. Nunca se inventa llave para un sobre existente. |
-| Vincular | Ningún secreto; Kregistro mientras se verifica y firma. | Un agregado autenticado da autoridad a referencias presentes. | Ancla avanza después del commit. | Antes del commit no hay vínculo; después del commit y antes del ancla se admite exactamente un agregado íntegro y se reancla. |
+| Vincular | Ningún secreto; Kregistro mientras se verifica y firma. | Un agregado autenticado da autoridad a referencias presentes. | Ancla avanza después del commit; si falla, queda `anchorPending` a la vista sin rechazar lo escrito. | Antes del commit no hay vínculo; después del commit y antes del ancla se admite exactamente un agregado íntegro y se reancla. |
 | Usar | Solo los secretos pedidos en búferes durante el callback; cada llave se borra apenas termina de descifrar. Los materiales se ponen en cero al resolver, rechazar o fallar la preparación parcial. Kregistro solo durante verificación. | Reserva en memoria; sin copia en claro. | Se piden únicamente las llaves de las referencias usadas, sin caché. | El uso externo puede haber ocurrido; no se reintenta automáticamente. No quedan reservas tras reiniciar. |
 | Reemplazar | Ningún secreto; Kregistro transitoria. Un uso ya empezado conserva sus búferes hasta terminar. | Nueva revisión atómica; la anterior pierde autoridad. | Ancla después del commit; llaves anteriores hasta su purga. | Rollback conserva la revisión anterior; commit conserva la nueva. Un agregado por delante se recupera; el material anterior sin raíces se purga. |
 | Liberar | Ningún secreto; Kregistro transitoria. | Revocación durable, luego pendiente de purga. | Ancla de revocación; llave del secreto hasta purga. | La revocación no se deshace por falla de borrado. La acción devuelve su resultado con `cleanupPending: true`; la API directa de borrado comunica `E-CUSTODY-CLEANUP`. |
@@ -411,7 +420,7 @@ Un agregado es una escritura atómica: una fila o un lote completo con tamaño e
 | Adoptar retención | Ningún secreto; Kregistro transitoria. | Vínculo con dueño y propósito explícitos; se retira la retención anterior. | Ancla del vínculo. | Antes del commit sigue retenido sin autoridad; después el vínculo manda aunque falte retirar la marca de retención. |
 | Abrir | Ningún secreto ni llave de secreto. Kregistro solo al verificar registro y sobres; no queda entre operaciones. | Verifica primero la cadena y el ancla, después sobres y presencia; recoge provisionales y reintenta pendientes. | Lee Kregistro/ancla; consulta presencia sin extraer Ksecreto. | Fallar integridad impide usar; fallar un borrado deja pendiente visible y permite abrir. Un registro recortado/restaurado falla con indicación de aceptación explícita. |
 | Aceptar copia restaurada | Ningún secreto; Kregistro mientras verifica cadena y sobres y autentica las marcas. | Exige la cabeza revisada; marca `credential-unusable` y aumenta la revisión de cada vínculo sin llave; escribe pendientes y recibos de purga del material sin llave. | Reancla al terminar, incluso si faltaba el ancla. Nunca recrea llaves de secretos. | Un corte se retoma revisando y aceptando la nueva cabeza durable; no repite inutilizaciones ni recibos. Después abre, conserva los vínculos con llave y muestra cualquier borrado pendiente. |
-| Cerrar | No hay llaves retenidas; los búferes de usos en curso se borran inmediatamente al cerrar y nuevamente al terminar. | Cierra bloqueo; provisionales se recogen al próximo inicio. | Sin cambios. | Equivale a un cierre interrumpido: se reconstruye de lo durable. |
+| Cerrar | No hay llaves retenidas; los búferes de usos en curso se borran inmediatamente al cerrar y nuevamente al terminar; esos usos rechazan con `E-CUSTODY-DENIED`, aunque el adaptador devuelva un resultado. | Cierra bloqueo; provisionales se recogen al próximo inicio. | Sin cambios. | Equivale a un cierre interrumpido: se reconstruye de lo durable. |
 | Olvidar casa | Ningún secreto; solo identificación pública. | No se borra ni cambia la carpeta. | Enumera cuentas propias del índice, filas e historia de la carpeta; borra esas llaves, después Kregistro, ancla e índice; reintento idempotente. | Un olvido parcial ya puede dejar material ilegible; se continúa con la misma identidad. Antes de ejecutarlo se advierte que también quedan ilegibles otras copias de esa casa en esta máquina. |
 
 La apertura sin descifrado es la del formato v2. Si encuentra la bóveda anterior en claro, el primer ingreso
@@ -423,10 +432,10 @@ usuario puede pedirle al llavero lo mismo que la custodia. La custodia no conser
 material o llaves a texto. Los búferes que controla se ponen en cero; no promete borrar copias que cree un adaptador,
 memoria interna del motor criptográfico, páginas del sistema operativo ni texto previo del editor o de un proveedor
 antiguo. El adaptador confiable recibe bytes y es responsable de sus propias copias. Comprometer una Ksecreto no
-permite descifrar otra referencia. Comprometer Kregistro no permite descifrar ninguna.
+permite descifrar otra referencia. Comprometer Kregistro no permite descifrar ninguna. Pero con esa llave y escritura en la carpeta se puede hacer usar cualquier secreto a cualquier herramienta. Kregistro está en la memoria del proceso durante cada verificación. Atar cada vínculo también a la llave del secreto chocaría con abrir sin descifrar y queda pendiente de decisión del dueño.
 
 La identidad aleatoria de la casa persiste al mover, renombrar, cambiar mayúsculas o acceder por enlace. Copiar
-la carpeta conserva esa identidad; en otra máquina hay que trasladar las llaves y el ancla al proveedor. Una casa
+la carpeta conserva esa identidad; solo una copia por máquina puede escribir; en otra máquina hay que trasladar las llaves y el ancla al proveedor. Una casa
 nueva en una ruta reutilizada recibe otra identidad. Una llave ausente nunca se regenera para material ya cifrado.
 El formato experimental anterior con una llave por casa nunca se unió ni guardó datos reales: se rechaza, no se
 convierte. Sí se adopta la bóveda en claro de la base de partida, con una llave por secreto y sin cambiar IDs.
@@ -453,6 +462,15 @@ adopción o descarte; no hay vencimiento inferido. Los pendientes se ven en `fac
 y al abrir. Un borrado ajeno fallido nunca tapa el resultado de un adaptador ni impide abrir; quien pidió borrar
 recibe `E-CUSTODY-CLEANUP` por la API directa. Una acción conserva su resultado y añade `cleanupPending: true`,
 también cuando otra acción la ejecuta; el aviso no agrega material ni llaves al resultado. No se anuncian borradas las copias fuera de la carpeta o del proveedor actual.
+
+Si el ancla falla después del commit, la acción conserva estado, efectos y resultado y añade `anchorPending: true`,
+también en acciones anidadas. `SecretCustody.anchorPending()` y el estado del mantenimiento permiten consultarlo.
+La próxima lectura o apertura compara el ancla y vuelve a intentar escribirla. La advertencia de la acción conserva
+el aviso aunque el cierre del préstamo ya haya podido reanclar. Mientras no se pueda anclar, una segunda escritura
+falla antes de agregar otro lote; leer lo confirmado sigue permitido si se puede comprobar el ancla anterior.
+La purga espera a que su marca pendiente quede anclada. Ninguna falla posterior del ancla se presenta como rechazo
+de lo ya confirmado. Si tampoco se puede leer el llavero, la consulta falla con `E-CUSTODY-KEY`; el pendiente sigue
+consultable sin acceder al proveedor.
 
 El proveedor se exige al componer posiciones secretas y al ingresar por una acción ofrecida más tarde. La interfaz
 entrega copias de llaves, consulta presencia sin extraerlas y lee/escribe anclas. El comando macOS es inyectado,
@@ -486,7 +504,13 @@ no cambia vínculos; la recolección espera al commit. Ni la custodia ni la bóv
   nunca se elige solo. `-U` se usa únicamente para metadata pública, nunca para sobrescribir llaves.
 - Los `CredentialLedger` propios deben implementar `appendBatch` atómico. Si participan de una transacción externa,
   `pending()` dice que todavía no confirmó y `afterCommit` se ejecuta solo tras el commit, nunca tras rollback.
-  `startHouse` ya lo conecta. Una acción con varios vínculos escribe un solo `custodyBatch` reservado; no lo fabriques.
+  `startHouse` ya lo conecta. Tanto acciones como `bus.together` de un arranque reúnen los vínculos en un solo
+  `custodyBatch` reservado; no lo fabriques. Un segundo agregado dentro de una transacción abierta da
+  `E-CUSTODY-TRANSACTION` antes del commit. La API directa no purga dentro de una transacción: reuní confirmaciones
+  con `deferCleanup` dentro de la transacción del registro y terminá el préstamo después del commit.
+  Un registro propio puede ofrecer `factsAfter(count)` solo bajo exclusión de escritor y con prefijo inmutable;
+  devuelve las filas posteriores a esa cantidad, sin omitir ni alterar ninguna. Sin ese método se verifica todo.
+  Al cerrar se descarta el punto verificado; la apertura siguiente vuelve a comprobar la historia completa.
 - Con una casa de `startHouse`, usá `maintainHouseCustody(home, options, request)` desde la composición, con
   la casa cerrada. Toma la exclusión del registro del motor, conecta sus hechos de custodia y cierra ambos recursos
   al terminar. No ejecuta herramientas, adaptadores, arranques, proyecciones ni reloj. No es un puerto de herramientas.
@@ -506,26 +530,46 @@ no cambia vínculos; la recolección espera al commit. Ni la custodia ni la bóv
 - `finish(session)` es el cierre de mantenimiento del préstamo y conserva el resultado; `cancel`, `collect`,
   `release`, `replace`, `discardLegacy` y `releaseRetention` comunican las fallas de borrado a quien los pidió.
 
-Costo medido con el comando falso, sin pendientes: un uso de una referencia y un renglón de vínculo hace diez
-consultas al llavero (una llave de secreto, cinco préstamos de Kregistro y cuatro lecturas del índice/ancla), sin
-escrituras. Con R referencias distintas y F renglones, son `(2R+2)F + 4R + 2` consultas si no hay limpieza; repetir
-una referencia en varios campos repite autorización, aunque descifrarla se hace una sola vez. Los usos no guardan
-una caché de llaves para ahorrar esas consultas. No se midieron latencia, permisos interactivos ni comportamiento
-del llavero real. Abrir cuenta lecturas, no tiempo: sus pasadas son proporcionales a filas e historia.
+Costo medido con el comando falso, una referencia vigente y sin pendientes: una firma por `startHouse` hace
+**4 idas al llavero y 2 lecturas incrementales del diario**, tanto con 0 como con 60 o 600 rotaciones posteriores
+al vínculo inicial. Una lectura fija la vista inicial de credenciales y otra autoriza el uso: cada una compara el
+ancla. Las otras dos idas verifican el sobre con Kregistro y descifran con Ksecreto. La API directa de uso cuesta
+**3 idas** y una lectura incremental, porque no pide además la vista de la acción. Repetir una referencia en varios
+campos no vuelve a descifrarla. No hay caché de llaves.
 
-Con una referencia vigente, sin pendientes y usando `SecretCustody` directamente, la prueba contada da:
+La llave del registro se pide una vez por pasada de verificación y se borra al terminar, también si falla una fila.
+Dentro de una operación sincrónica se comparte la lectura verificada, nunca la llave. Con ambos registros tomados
+en exclusiva se conservan solo hechos públicos, cantidad verificada, autenticador y cursor del diario; se verifican
+únicamente las filas nuevas y se sigue comparando el ancla. La vista inicial de una acción se fija al empezar; su
+primera consulta realiza la verificación. Una acción que no toca secretos, incluso rechazada, no consulta el
+llavero ni recorre el diario de custodia. La limpieza se ejecuta cuando hubo ingreso o cambios, al terminar un uso
+que demoró una purga, explícitamente o al abrir.
+
+La prueba de casa cuenta todas las llamadas a `replay`, incluidas las de apertura del motor. Cada celda indica
+**idas al llavero / lecturas del diario**; «0 rotaciones» ya tiene su primer vínculo:
+
+| Rotaciones | Abrir | Acto sin secretos | Acto rechazado sin secretos | Firma |
+|---|---:|---:|---:|---:|
+| 0 | 5 / 3 | 0 / 0 | 0 / 0 | 4 / 2 |
+| 60 | 5 / 3 | 0 / 0 | 0 / 0 | 4 / 2 |
+| 600 | 5 / 3 | 0 / 0 | 0 / 0 | 4 / 2 |
+
+Abrir sigue leyendo y verificando toda la historia y los sobres vigentes: su trabajo total es proporcional a esos
+renglones, aunque las idas al llavero no crezcan con las rotaciones de una sola referencia. Las lecturas posteriores
+usan el cursor y no vuelven a traer la historia. La prueba cuenta además los renglones devueltos al firmar para
+impedir que dos lecturas completas pasen por incrementales. Pendientes, retenciones y varias referencias suman
+su trabajo propio. No se midieron tiempo, permisos ni diálogos del llavero real.
+
+Con custodia independiente, una referencia vigente y sin pendientes, las invocaciones del comando falso son:
 
 | Historia | Abrir | Usar | Aceptar la cabeza revisada | Olvidar |
 |---|---:|---:|---:|---:|
-| 1 vínculo, 1 cuenta creada | 9 | 10 | 17 | 5 |
-| 10 rotaciones, 28 renglones, 10 cuentas creadas | 90 | 118 | 206 | 14 |
+| 1 vínculo, 1 cuenta creada | 5 | 3 | 8 | 5 |
+| 10 ingresos, 28 renglones, 10 cuentas creadas | 5 | 3 | 8 | 14 |
 
-Son invocaciones del comando falso, no milisegundos. Abrir cuesta `3F + 2M + 4`; aceptar sin material ausente,
-`7F + 4M + 6`; olvidar cuesta `C + 4`, donde C es la unión de cuentas propias del índice, filas e historia,
-incluso las que ya no existen. Cada borrado ausente es idempotente. La entrada de mantenimiento de la casa agrega
-su revisión de salida; aceptar con material ausente suma marcas, purgas y sus verificaciones. Cada escritura
-individual del llavero tiene tamaño limitado y ninguna reescribe historia; la cantidad de verificaciones todavía
-crece con F. El costo de las acciones sin secretos y la optimización de esas pasadas quedan para otro paso.
+Olvidar sigue costando `C + 4`, donde C es la unión de cuentas propias del índice, filas e historia, incluso las que
+ya no existen: cada borrado ausente es idempotente. Aceptar material ausente agrega marcas y purgas; el mantenimiento
+de la casa agrega su revisión de salida. Cada escritura individual del llavero conserva su límite de tamaño.
 
 ## Adaptadores declarados y referencias en las acciones (A01, paso 2)
 
@@ -636,7 +680,7 @@ el ayudante no bloquea la red de código que vos le entregues. Para lotes, vínc
 
 Al actualizar un programa:
 - Quitá `keys` de opciones, contextos y arranques; `KeyStore` solo queda para adopción explícita. Cambiá `Tool.start`
-  a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios.
+  a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios. Un arranque ya no ejecuta acciones ni accede al registro: trasladá esa ejecución a una acción explícita del programa o expresá el cambio como hechos mediante el bus de arranque.
 - Mové lectura, validación del material, firma, I/O y resolución a adaptadores declarados. Las acciones y callbacks
   trabajan con referencias; conservá `secret: true` y quitá `secretInputs` y `secretLimits.minLength` sin efecto.
 - Agregá `secretKeys`, métodos con esquemas cerrados y permisos, y `credentialSlots`. Usá `revision(slot)`, incluso
@@ -649,6 +693,7 @@ Al actualizar un programa:
   expuesta sin sobrescribirla ni declarar limpio lo no revisable. La bóveda en claro se cifra antes de retirarla;
   para proveedores anteriores, adaptá `get` a `Promise<Uint8Array | undefined>`: `importLegacyKeys` verifica destinos antes de borrar orígenes.
 - Prevé recuperación de las llaves y el ancla externas, revisión de pendientes, borrado pendiente y restauraciones de respaldos.
+  La apertura verifica toda la historia y los sobres: su costo crece con ellos; el índice público crece con las cuentas vigentes y tiene un límite de tamaño. Olvidar consulta las cuentas de la historia aunque ya se hayan purgado.
   Las referencias no invalidan snapshots de otra versión ni acreditan autorización de servicios externos.
 
 ## Los registros que se guardan
@@ -953,7 +998,8 @@ recorrerlos; el archivo auxiliar del escritor no se toma como un registro conser
 Un programa puede abrir una sola casa con `startHouse(home, opciones)` y pasar ese resultado a
 `serveHouse(casa, home, llaves)` (`src/doors/socket/serve.ts`). La tabla de prueba es un `ReadonlyMap` de llave a
 `{ identity, door: "terminal" | "agente" }`; no es el almacenamiento definitivo de llaves. La identidad debe seguir
-perteneciendo a la casa. La llave decide identidad y puerta: el cliente no puede declararlas en su saludo.
+perteneciendo a la casa. La llave decide identidad y puerta: el cliente no puede declararlas en su saludo. Una llave que nombra
+una mente (`mind:…`) se rechaza siempre: las mentes no entran por la puerta.
 
 Solo el servidor abre almacenamiento. La composición debe dejar salir `WriterAlreadyOpen` con su texto y código
 no cero, sin reintentar; la prueba de proceso muestra ese arranque en `tests/support/socket-server-process.ts`.
@@ -1039,3 +1085,81 @@ El defecto se arma con `failureEntry`; su texto público usa una excepción gen�
 motivos aportados por el acto. El diagnóstico completo viaja a la casa, que lo pasa por `prepare` antes de escribir.
 Los marcos locales y remotos se comparan después de aquietar el router y recibir el estado de sus actos,
 incluidos los que dispara un dibujo. También se comparan los hechos `act` del registro.
+
+## El kit, la escena y el destinatario de la atención (14/11)
+
+`granted` conserva su sentido: dar una herramienta entera. `kit-set` toma `{ holder, tool, acts }`, escrito por
+quien administra: con una lista deja solo esas acciones; con `[]` ninguna, manteniendo la herramienta; con `null`
+todas. Una identidad sin kit puede todas las acciones de la herramienta que tiene. No se da kit a un extraño ni
+para una herramienta que no tiene; el kit dirigido a quien administra se ignora y nunca le recorta acciones.
+Al sacar una herramienta se borra su kit; al devolverla llega entera. Al salir de la casa se pierden los kits.
+Al recibir la administración se borran todos los kits de quien la recibe. Si después la devuelve, sus herramientas
+siguen enteras hasta que quien administra le dé otro kit.
+
+`mindOf(tool)` y `mindTool(actor)`, en `house/house.ts`, nombran a la mente como `mind:<herramienta>`.
+No es una identidad: no recibe `granted` ni administración. Solo puede actuar si su herramienta existe
+en el registro, sobre ella o sus cosas y con las acciones que le dio quien administra. Sin kit no puede actuar;
+`null` le da todas las de su herramienta. No necesita atenderla ni tiene preferencias o actos de atender.
+Los actos que el programa ofrece por `own` son solo para identidades; a la mente la casa le ofrece únicamente `scene`.
+`allowedAct(house, by, tool, act)` comprueba ambos niveles; toda acción anidada conserva autor y pasa de nuevo
+por ese control con el estado vigente. Sacar una acción corta también sus actos en curso, de identidad o mente;
+volver a darla habilita actos nuevos, sin resucitar los cortados. El resultado y la entrada quedan a nombre de la mente.
+Con la custodia, la mente usa los adaptadores declarados de su propia herramienta como una identidad que la tiene
+(`holds` en `house/house.ts`). Los vínculos de credenciales son por actor, herramienta y destino: la mente solo ve
+los que ella misma vinculó, y una identidad, los suyos.
+
+El contexto ofrece `signal?: AbortSignal`: los contextos existentes siguen compilando. Una acción larga puede
+escucharla o pasarla a operaciones que admitan corte. El oyente vivo corta al recibir `kit-set`, `granted` o
+`removed`; reconstruir el estado no emite cortes. La señal es propia de cada acto: sacar una acción no corta otra.
+La base impide entrar al cuerpo si el corte llegó al anunciar el inicio, iniciar anidados desde el acto cortado,
+y usar sus adaptadores o vínculos después del corte, también si el método quedó guardado antes. El control llega
+hasta un adaptador pendiente que todavía no empezó a usar material. `holds` conserva su significado para los actos
+que siguen habilitados: el kit recorta acciones, no métodos.
+
+El punto de cierre es antes de empezar a escribir el lote del resultado: `finish` vuelve a comprobar el kit.
+Si la acción fue sacada, termina `interrupted`, dice `sacada` y no escribe sus hechos ni entrega su recibo privado.
+Lo que un anidado ya escribió queda. Si el recorte llega con el lote ya en escritura, el lote termina entero y
+el cierre dice `sacada`. Si un acto `reach: "world"` devuelve éxito porque ya hizo lo suyo afuera, su resultado
+se conserva con `sacada` al lado, también en pantalla. La base no deshace efectos externos: el programa debe atender
+la señal antes de un efecto directo que aún no hizo; JavaScript en curso no se detiene por la fuerza.
+Un reinicio cierra una sola vez los actos colgados como `acción interrumpida`; no reconstruye señales ni los repite.
+La fila abierta se apaga al viajar el estado; una pregunta pendiente se rechaza al confirmar con `fuera del kit`.
+
+La acción propia `scene`, sin destino explícito, toma `{ general, to? }`; `to` es un mapa de identidad a texto.
+El autor lo fija la ejecución. Cada identidad o mente escribe solo la suya, aun sin kit de acciones.
+El general tiene hasta 4.000 caracteres, cada parte hasta 1.000, con hasta 64 partes y nombres de hasta 160 caracteres.
+El esquema rechaza nombres y textos vacíos o compuestos solo por espacios o los caracteres de ancho cero
+U+200B–U+200D, U+2060 y U+FEFF. Antes de escribir, la acción comprueba que cada nombre sea una identidad presente
+en la casa: rechaza un ausente o una mente y dice a quién no pudo dirigir la parte.
+`house.scenes` guarda el último hecho de cada autor,
+con instante y secuencia; `identityView` lo comparte entero, incluidas las partes dirigidas. El historial queda
+en el registro. La última escena de quien sale queda guardada. El pliegue no conoce el registro de herramientas:
+un escritor directo puede guardar la escena de `mind:ausente`; la ejecución la rechaza.
+
+`Need` gana `to?: string`. Sin él Atención sigue llegando a quienes tienen la herramienta; con él solo a esa
+identidad, si está en la casa y tiene la herramienta. Si no cumple esas condiciones, la necesidad se muestra a
+quienes tienen la herramienta, igual que una sin destinatario. Cada caso que promete necesidades debe incluir ese
+mismo destinatario; la garantía de la casa compara el dato completo y la de Atención mira desde quien hace el caso
+y desde cada destinatario prometido. Si este no puede verla, falla diciendo a quién iba. La escena explica: no crea
+necesidades ni cambia quién puede actuar. Las identidades leen todas las entradas de actividad, incluso las que una
+versión anterior dirigía a otra. `private` sigue devolviendo un recibo solo al actor y no se escribe en el registro.
+`identityView` deja pasar esos hechos históricos; el catálogo actual ya no permite escribir canales ni destinatarios
+en `tool-entry` o `act-done`. Ninguna acción ni efecto nuevo produce esos datos. Al subir, un programa que usaba
+`channel-created` o campos `recipient` debe dejar de producirlos y asumir que todas las identidades leen cada entrada,
+incluidas las que un registro viejo dirigía a otra. `private` conserva el recibo efímero que solo recibe quien actuó;
+los secretos siguen fuera de la actividad mediante la custodia estructural. No hay pantallas nuevas; apagar las acciones
+fuera del kit con su motivo queda como deuda 224 para lectura y kit.
+
+Un programa que no usa estas adiciones no tiene que cambiar sus herramientas ni casos. Quedan reservados los
+nombres de hechos `scene` y `kit-set`, y el prefijo de actor `mind:`; si los usaba, necesita resolver la colisión
+antes de subir. `mind:` es un nombre reservado: ninguna identidad puede llamarse con ese prefijo. Un registro
+anterior que tenga una identidad `mind:…` se pliega distinto; no se corrige ni renombra en el plegado. En particular,
+si `mind:jefe` creó la casa, ese `house-created` se ignora y un siguiente `house-created` de `ana` deja a Ana como
+administradora. Los `granted` para `mind:…` quedan en el registro pero no incorporan esa identidad a la casa.
+No se agrega `message`. Quien construye `House` a mano agrega `kits` y `scenes` vacíos o parte de
+`emptyHouse`. `Need.to` es opcional y la entrada `testing.ts` no suma exportaciones.
+La versión de cálculos de la base pasa a `desert/3`: al actualizar se reconstruyen los plegados, también los de
+la primera vuelta (`desert/2`), para borrar los kits al recibir la administración. En versión manual,
+la evidencia guardada debe renovarse con la entrega comprobada, conservando la anterior durante su control.
+
+La composición puede pedir `identities: true`: quien administra tiene todas las acciones de cada herramienta, sin asignación; también recibe sus recordatorios. Sin esa opción, la asignación de herramientas conserva su comportamiento anterior. Un recorte sin acciones apaga los recordatorios y excluye la herramienta de Atención, aunque siga en el kit para la preferencia de lo ajeno. La superficie y la ejecución consultan el mismo permiso por acción.

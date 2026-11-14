@@ -915,11 +915,13 @@
     },
     {
       "id": 104,
-      "rule": "LEYES 4: se muestran todas las acciones, apagadas con motivo, también la ajena",
+      "rule": "LEYES 4: todas las acciones conservan su tecla; cada acción fuera del kit queda apagada con su motivo",
       "from": "LEYES 4",
       "guarantee": "derived",
       "evidence": [
         "src/programs/promised-off.ts",
+        "src/surface/availability/action-off.ts",
+        "src/tools/execute.ts",
         "src/programs/promised-walk.ts",
         "src/tools/promises.ts",
         "src/doors/socket/same-screens.spec.ts"
@@ -927,12 +929,13 @@
     },
     {
       "id": 105,
-      "rule": "LEYES 5: ocultar apagadas, ajenas o vacías es preferencia de cada usuario",
+      "rule": "LEYES 5: cada identidad puede ocultar acciones apagadas, herramientas fuera del kit en el Menú o listas vacías",
       "from": "LEYES 5",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/promised-notices.ts",
         "src/programs/promised-off.ts",
+        "src/programs/promised-notices.ts",
+        "src/surface/bridge/program-acts.ts",
         "src/doors/socket/same-screens.spec.ts"
       ]
     },
@@ -956,10 +959,10 @@
     },
     {
       "id": 108,
-      "rule": "LEYES 8: dos stacks fijos, Atención y Actividad, en todos los menús",
+      "rule": "LEYES 8: Atención para quienes tienen la herramienta y Actividad de toda la casa salvo la propia, en los dos menús",
       "from": "LEYES 8",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-notices.ts", "src/surface/lists.ts"]
+      "evidence": ["src/programs/promised-notices.ts", "src/surface/bridge/notices.ts", "src/surface/lists.ts"]
     },
     {
       "id": 109,
@@ -1046,7 +1049,7 @@
     },
     {
       "id": 119,
-      "rule": "Lo que una fila lee se sigue leyendo cuando su acción no se puede hacer: apagada dice el dato y después por qué; oculta por preferencia queda el dato sin tecla",
+      "rule": "Lo que una fila lee queda visible con su dato y, si su acción está apagada, el motivo después; por preferencia queda el dato sin tecla",
       "from": "11/11 · consecuencia de «una fila que se puede cambiar abre su acción» y de LEYES 5",
       "guarantee": "derived",
       "evidence": [
@@ -1156,10 +1159,14 @@
     },
     {
       "id": 130,
-      "rule": "Lo que un objeto nombra se abre, sea de la herramienta que sea, con su número (1 a 9, contados en todo el objeto); lo de una herramienta que la persona no tiene queda nombrado, apagado, diciendo por qué",
+      "rule": "Lo que un objeto nombra se abre, sea de la herramienta que sea, con su número (1 a 9); quien no tiene esa herramienta la lee igual, con sus acciones apagadas diciendo por qué",
       "from": "11/11 · objetos: presentación y navegación",
-      "guarantee": "spec",
-      "evidence": ["src/surface/lists.ts", "src/surface/bridge/presented.spec.ts", "src/surface/router.spec.ts"]
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/surface/lists.ts",
+        "src/surface/bridge/window-neighbors.spec.ts"
+      ]
     },
     {
       "id": 131,
@@ -1972,7 +1979,7 @@
     },
     {
       "id": 208,
-      "rule": "Cada secreto se cifra con AES-256-GCM, nonce de 12 bytes y etiqueta de 16, con una llave propia en un elemento del llavero. La casa tiene otra llave que solo autentica registro y sobres: no descifra secretos. Abrir el formato cifrado verifica primero cadena y ancla, después integridad y presencia sin descifrar ni pedir llaves de secretos; la adopción inicial del legado en claro compara cada fila antes de retirarla. El uso recibe búferes prestados; sus bytes y las copias de llaves se ponen en cero en éxito, falla y cierre, sin caché ni conversión a texto en la custodia. Durante un uso, el secreto en uso y su llave están en la memoria del proceso; un programa de la misma cuenta de usuario puede pedirle al llavero lo mismo que la custodia. El comando usa búferes por entrada y salida, nunca llaves como argumentos, y tiene tiempo límite. La adopción del legado en claro conserva IDs y asigna una llave por fila, compara antes de retirar y compacta; sin proveedor falla antes de escribir. El formato experimental por casa no se convierte. Olvidar exige advertir que también quedan ilegibles otras copias de esa casa en la misma máquina. Autentica versión, identidad aleatoria persistida de casa y referencia; mover o renombrar conserva identidad, reutilizar ruta crea otra. JSON e inspección no exponen llave ni material. La composición y los ingresos tardíos exigen proveedor. Tras retirar el legado tampoco queda texto en auxiliares, aun con un corte antes de compactar. El llavero v3 separa el ancla fija del índice público de cuentas, que se escribe fuera de la entrada interactiva y se poda después de borrar la llave. Los tamaños fuera de límite fallan antes de escribir; ninguna llave viaja por argumentos. El llavero v2 experimental no se convierte. Olvidar combina cuentas propias del índice con filas e historia de la carpeta y nunca borra cuentas ajenas; índice perdido o dañado no impide ese recorrido.",
+      "rule": "Cada secreto se cifra con AES-256-GCM, nonce de 12 bytes y etiqueta de 16, con una llave propia en un elemento del llavero. La casa tiene otra llave que solo autentica registro y sobres: no descifra secretos. Abrir el formato cifrado verifica primero cadena y ancla, después integridad y presencia sin descifrar ni pedir llaves de secretos; la adopción inicial del legado en claro compara cada fila antes de retirarla. El uso recibe búferes prestados; sus bytes y las copias de llaves se ponen en cero en éxito, falla y cierre, sin caché ni conversión a texto en la custodia. Durante un uso, el secreto en uso y su llave están en la memoria del proceso; un programa de la misma cuenta de usuario puede pedirle al llavero lo mismo que la custodia. El comando usa búferes por entrada y salida, nunca llaves como argumentos, y tiene tiempo límite. La adopción del legado en claro conserva IDs y asigna una llave por fila, compara antes de retirar y compacta; sin proveedor falla antes de escribir. El formato experimental por casa no se convierte. Olvidar exige advertir que también quedan ilegibles otras copias de esa casa en la misma máquina. Autentica versión, identidad aleatoria persistida de casa y referencia; mover o renombrar conserva identidad, reutilizar ruta crea otra. JSON e inspección no exponen llave ni material. La composición y los ingresos tardíos exigen proveedor. Tras retirar el legado tampoco queda texto en auxiliares, aun con un corte antes de compactar. El llavero v3 separa el ancla fija del índice público de cuentas, que se escribe fuera de la entrada interactiva y se poda después de borrar la llave. Los tamaños fuera de límite fallan antes de escribir; ninguna llave viaja por argumentos. El llavero v2 experimental no se convierte. Olvidar combina cuentas propias del índice con filas e historia de la carpeta y nunca borra cuentas ajenas; índice perdido o dañado no impide ese recorrido. La llave del registro se pide una sola vez por pasada de verificación y se pone en cero al terminar, incluso ante una fila inválida. Cerrar durante un uso borra los búferes inmediatamente y el uso rechaza con E-CUSTODY-DENIED aunque el adaptador entregue un resultado. La primera apertura de una bóveda anterior en claro sí descifra para comparar antes de retirarla. La llave del registro está en memoria durante cada verificación: comprometerla no descifra secretos, pero con escritura en la carpeta permite hacer usar cualquier secreto a cualquier herramienta; atar vínculos a cada llave de secreto queda pendiente de decisión del dueño por chocar con abrir sin descifrar.",
       "from": "13/11 · A01, segunda parte, paso 1: custodia",
       "guarantee": "spec",
       "evidence": [
@@ -1997,12 +2004,16 @@
         "src/adapters/secrets/custody-keychain-status.spec.ts",
         "src/adapters/secrets/custody-keychain-cuts.spec.ts",
         "src/adapters/secrets/custody-retained-lifetime.spec.ts",
-        "src/adapters/secrets/custody-index.spec.ts"
+        "src/adapters/secrets/custody-index.spec.ts",
+        "src/adapters/secrets/custody-incremental.spec.ts",
+        "src/adapters/secrets/custody-close-neighbors.spec.ts",
+        "src/adapters/secrets/custody-messages.spec.ts",
+        "tests/laws/custody-text.spec.ts"
       ]
     },
     {
       "id": 209,
-      "rule": "La custodia restringe usos por sesión, identidad, herramienta, objeto y vínculo autenticado. Cada agregado autentica casa, posición, predecesor y límites del lote; su cabeza se ancla fuera de la carpeta en el llavero. Quitar renglones, alterar la cadena o restaurar una copia vieja impide abrir y explica cómo aceptar explícitamente la restauración. Solo un agregado atómico completo por delante del ancla se verifica y reancla automáticamente. Un uso iniciado conserva su versión; los lotes rechazados no avanzan el ancla. Borrar conserva pendiente durable antes de eliminar cifrado y llave; la falla la recibe quien pidió borrar y nunca tapa otro uso exitoso ni impide abrir. La apertura recorre material e historia en proporción, también al recoger provisionales. Retienen los vínculos vigentes, usos en curso, propósitos explícitos y legado sin dueño hasta adopción o descarte; el historial solo no retiene. La purga alcanza archivos actuales y la llave del proveedor, no respaldos ni copias externas. Los pendientes se reintentan al abrir y mediante collect; cleanupPending informa una falla de mantenimiento. Cancelar o reiniciar libera provisionales; reemplazar compara revisión y conserva la tumba después de liberar. El límite de la memoria durante el uso y del acceso desde la misma cuenta está en la regla 208. Una copia vieja se detecta antes de exigir llaves de secretos. Aceptar exige la cantidad y el autenticador revisados, verifica la cadena, marca y nombra los vínculos sin llave como inutilizables, purga el material sin llave y finalmente reancla; si falta el ancla, la crea. Una falla de borrado conserva su pendiente y permite abrir, sin devolver autoridad al vínculo inutilizable. Sin restauración aceptada, una llave ausente sigue siendo una falla. El mantenimiento de composición con la casa cerrada conecta el registro del motor y permite revisar, aceptar, olvidar, adoptar o descartar legado, ver pendientes y reintentarlos. Una acción que liberó conserva su resultado e informa cleanupPending, también en su resultado anidado. La purga se comprueba aun abierta o tras un corte y no anuncia eliminación antes de completar disco y proveedor.",
+      "rule": "La custodia restringe usos por sesión, identidad, herramienta, objeto y vínculo autenticado. Cada agregado autentica casa, posición, predecesor y límites del lote; su cabeza se ancla fuera de la carpeta en el llavero. Quitar renglones, alterar la cadena o restaurar una copia vieja impide abrir y explica cómo aceptar explícitamente la restauración. Solo un agregado atómico completo por delante del ancla se verifica y reancla automáticamente. Un uso iniciado conserva su versión; los lotes rechazados no avanzan el ancla. Borrar conserva pendiente durable antes de eliminar cifrado y llave; la falla la recibe quien pidió borrar y nunca tapa otro uso exitoso ni impide abrir. La apertura recorre material e historia en proporción, también al recoger provisionales. Retienen los vínculos vigentes, usos en curso, propósitos explícitos y legado sin dueño hasta adopción o descarte; el historial solo no retiene. La purga alcanza archivos actuales y la llave del proveedor, no respaldos ni copias externas. Los pendientes se reintentan al abrir y mediante collect; cleanupPending informa una falla de mantenimiento. Cancelar o reiniciar libera provisionales; reemplazar compara revisión y conserva la tumba después de liberar. El límite de la memoria durante el uso y del acceso desde la misma cuenta está en la regla 208. Una copia vieja se detecta antes de exigir llaves de secretos. Aceptar exige la cantidad y el autenticador revisados, verifica la cadena, marca y nombra los vínculos sin llave como inutilizables, purga el material sin llave y finalmente reancla; si falta el ancla, la crea. Una falla de borrado conserva su pendiente y permite abrir, sin devolver autoridad al vínculo inutilizable. Sin restauración aceptada, una llave ausente sigue siendo una falla. El mantenimiento de composición con la casa cerrada conecta el registro del motor y permite revisar, aceptar, olvidar, adoptar o descartar legado, ver pendientes y reintentarlos. Una acción que liberó conserva su resultado e informa cleanupPending, también en su resultado anidado. La purga se comprueba aun abierta o tras un corte y no anuncia eliminación antes de completar disco y proveedor. Los arranques reúnen sus vínculos dentro del mismo together del registro; un segundo agregado en una transacción abierta se rechaza antes del commit. Si falla el ancla posterior al commit, lo confirmado conserva su resultado y queda anchorPending consultable; la acción transmite el aviso también al ejecutor anidado. La próxima lectura o apertura reintenta; no se agrega otro lote mientras siga pendiente. Bajo exclusión se recuerda solo el prefijo público verificado y se lee y verifica la cola, siempre comparando el ancla. Cada operación comparte una pasada; una acción sin secretos no consulta el llavero ni el diario de custodia. La firma por casa cuesta cuatro consultas y dos lecturas incrementales con cero, sesenta o seiscientas rotaciones. Una sola copia de una casa por máquina escribe. La aceptación identifica la cabeza y advierte que puede cambiar vínculos y revivir revocaciones posteriores.",
       "from": "13/11 · A01, segunda parte, paso 1: custodia",
       "guarantee": "spec",
       "evidence": [
@@ -2024,7 +2035,11 @@
         "src/adapters/secrets/custody-cost.spec.ts",
         "src/adapters/secrets/custody-restoration.spec.ts",
         "src/adapters/secrets/custody-restoration-cuts.spec.ts",
-        "src/programs/house-custody-maintenance.spec.ts"
+        "src/programs/house-custody-maintenance.spec.ts",
+        "src/adapters/secrets/custody-transactions.spec.ts",
+        "src/programs/house-custody-transactions.spec.ts",
+        "src/programs/house-custody-neighbors.spec.ts",
+        "src/programs/house-custody-cost.spec.ts"
       ]
     },
     {
@@ -2042,7 +2057,8 @@
         "src/tools/startup-contract.ts",
         "src/adapters/declared/credential-journal.ts",
         "PROGRAMA.md",
-        "src/adapters/declared/credential-journal.spec.ts"
+        "src/adapters/declared/credential-journal.spec.ts",
+        "src/programs/house-union-contract.spec.ts"
       ]
     },
     {
@@ -2258,6 +2274,120 @@
         "src/surface/bridge/window-cost.spec.ts",
         "src/surface/bridge/window-derived.spec.ts",
         "tests/support/window-program.ts"
+      ]
+    },
+    {
+      "id": 219,
+      "rule": "El kit rige las acciones de herramientas: una identidad puede todas las de su herramienta salvo recorte; una mente, solo las dadas de la suya. Solo quien administra da el kit y no recibe recorte. null da todas; [] ninguna sin quitar la herramienta. Al salir o perder una herramienta se pierde su kit. Al recibir la administración se borran todos los kits de quien la recibe; al devolverla conserva sus herramientas enteras hasta un nuevo kit. Cada inicio de ejecución de herramienta, también anidado, comprueba el kit vigente; sacar una acción corta también el acto iniciado según la garantía 226.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "spec",
+      "evidence": [
+        "src/house/house.ts",
+        "src/tools/execute.ts",
+        "src/house/kit.spec.ts",
+        "src/house/minds.spec.ts",
+        "src/house/contract-neighbors.spec.ts",
+        "src/house/adversaria.spec.ts"
+      ]
+    },
+    {
+      "id": 220,
+      "rule": "La mente de una herramienta existente actúa sobre ella o sus cosas a su propio nombre, con el mismo kit dentro de sus actos. No es una identidad: no recibe herramientas, administración, preferencias ni tener a la vista. De los actos propios de la casa solo recibe scene; los actos que el programa ofrece por own son para identidades. Usa los adaptadores declarados de su herramienta como una identidad que la tiene; sus vínculos de credenciales son suyos.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "spec",
+      "evidence": [
+        "src/house/house.ts",
+        "src/tools/execute.ts",
+        "src/tools/scenes.ts",
+        "src/house/minds.spec.ts",
+        "src/house/contract-neighbors.spec.ts",
+        "src/house/adversaria.spec.ts",
+        "src/tools/tools.ts",
+        "src/programs/house-union-contract.spec.ts"
+      ]
+    },
+    {
+      "id": 221,
+      "rule": "Cada identidad presente y cada mente de una herramienta existente puede ejecutar su propia escena: general y, si quiere, partes para identidades presentes en la casa. La ejecución rechaza antes de escribir un destinatario ausente o mente. Nadie escribe la de otro. El esquema limita el general a 4.000 caracteres, cada parte a 1.000, los nombres a 160 y la cantidad de partes a 64; no admite nombres ni textos vacíos o compuestos solo por espacios o U+200B–U+200D, U+2060 y U+FEFF. La casa guarda la última escena de cada autor y todos la leen entera, aun si luego sale su autor o un destinatario.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "spec",
+      "evidence": [
+        "src/catalogs/acts.ts",
+        "src/catalogs/levers.ts",
+        "src/journal/events.ts",
+        "src/tools/scenes.ts",
+        "src/house/scenes.spec.ts",
+        "src/house/contract-neighbors.spec.ts",
+        "src/house/adversaria.spec.ts"
+      ]
+    },
+    {
+      "id": 223,
+      "rule": "Una necesidad calculada por código puede nombrar a quién le pide atención. Si el destinatario es una identidad de la casa que tiene esa herramienta, solo la ve él; si no lo es o no tiene la herramienta, la ven quienes la tienen, como una necesidad sin destinatario. La escena la explica, no la calcula. Los casos prometen también el destinatario: la comprobación derivada mira desde quien hace el caso y desde cada destinatario prometido, y falla nombrándolo si no puede ver su necesidad.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "derived",
+      "evidence": [
+        "src/tools/promises-contract.ts",
+        "src/surface/bridge/notices.ts",
+        "src/programs/promised-notices.ts",
+        "src/programs/directed-notices.spec.ts",
+        "src/surface/bridge/notices.spec.ts"
+      ]
+    },
+    {
+      "id": 224,
+      "rule": "Una acción fuera del kit de quien mira sale apagada diciendo por qué.",
+      "from": "14/11 · casa-contrato · decisiones del dueño",
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/surface/availability/action-off.ts",
+        "src/house/kit-core.spec.ts"
+      ]
+    },
+    {
+      "id": 225,
+      "rule": "Cada identidad presente puede abrir y leer las herramientas fuera de su kit, buscar y elegir sus cosas; sus acciones quedan apagadas con el motivo de kit. Mirar no exige tener la herramienta.",
+      "from": "14/11 · lectura en la superficie",
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/surface/bridge/window-neighbors.spec.ts",
+        "src/tools/slices.spec.ts",
+        "src/surface/finding.ts"
+      ]
+    },
+    {
+      "id": 255,
+      "rule": "Un programa lee el mismo importe que confirmó, antes y después de reabrir, y la función que lo muestra rechaza lo que no es un importe.",
+      "from": "14/11 · importe · revisión adversaria",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/support/shop.ts",
+        "src/surface/shop-money-terminal.spec.ts",
+        "src/surface/shop-money-neighbors.spec.ts",
+        "tests/laws/program-secret-boundaries.spec.ts",
+        "src/catalogs/fields/money-field.ts",
+        "src/catalogs/fields/money-field.spec.ts",
+        "src/tools/promises.spec.ts",
+        "tests/support/window-volume.ts",
+        "src/surface/bridge/window-cost.spec.ts"
+      ]
+    },
+    {
+      "id": 226,
+      "rule": "Sacar vale al instante, también para lo que corre: los actos de la acción sacada reciben una señal de corte, tanto para identidades como para mentes, sin cortar otras acciones ni resucitarlos al volver a darla. El oyente vivo corta, nunca el plegado. No se entra al cuerpo ni se inicia un anidado desde un acto cortado; cada uso de sus adaptadores y vínculos comprueba el corte. Antes del lote del resultado, finish vuelve a preguntar el kit: lo cortado termina interrupted con sacada y sin escribir sus hechos. Lo que un anidado ya escribió queda. Un lote ya iniciado y el éxito de un acto que salió al mundo se conservan con el motivo al lado, también en pantalla. Un reinicio cierra los actos colgados una sola vez. La fila abierta se apaga y la pregunta pendiente se rechaza al confirmar; la lectura permanece abierta.",
+      "from": "14/11 · casa-kit paso 4 · sacar vale al instante",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/execution/running-acts.ts",
+        "src/tools/failures/finish.ts",
+        "src/adapters/declared/compose-adapters.ts",
+        "src/tools/kit-running.spec.ts",
+        "src/tools/kit-races.spec.ts",
+        "src/tools/kit-boundaries.spec.ts",
+        "src/programs/kit-adapters.spec.ts",
+        "src/doors/terminal/kit-cut.spec.ts"
       ]
     },
     {

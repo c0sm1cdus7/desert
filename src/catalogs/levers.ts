@@ -8,7 +8,10 @@ export type ViewLimits = Readonly<{ recentLines: number }> &
   Readonly<{ now: number }>;
 
 /** Bump whenever the base changes how its own facts fold. */
-export const baseProjectionVersion = "desert/1";
+export const baseProjectionVersion = "desert/4";
+
+/** Bounded descriptions: one shared scene and a part for each identity. */
+export const sceneLimits = { general: 4000, each: 1000, identities: 64, name: 160 } as const;
 /** Local house wire: equality includes the complete Node version because state uses v8 serialization. */
 export const houseProtocolVersion = 1;
 export const socketLimits = { json: 1024 * 1024, state: 16 * 1024 * 1024, helloMs: 5000, drainMs: 10_000 } as const;

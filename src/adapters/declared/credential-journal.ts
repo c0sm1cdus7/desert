@@ -36,10 +36,14 @@ function factEntry(facts: readonly CredentialFact[]) {
   );
 }
 function commitBoundary() {
-  let depth = 0;
+  let depth = 0,
+    additions = 0;
   let callbacks: (() => void)[] = [];
   return {
     pending: () => depth > 0,
+    addition: () => {
+      if (depth && additions++) throw new CustodyError("E-CUSTODY-TRANSACTION");
+    },
     afterCommit: (work: () => void) => {
       if (depth) callbacks.push(work);
       else work();
@@ -47,6 +51,7 @@ function commitBoundary() {
     transaction: <T>(work: () => T): T => {
       if (depth) return work();
       depth++;
+      additions = 0;
       try {
         const result = work();
         depth--;
@@ -56,14 +61,45 @@ function commitBoundary() {
         return result;
       } finally {
         depth = 0;
+        additions = 0;
         callbacks = [];
       }
     },
   };
 }
+function incrementalFacts<P extends Foreign>(
+  replay: (after?: number) => readonly Event<P>[],
+  afterCommit: (work: () => void) => void,
+) {
+  let cursor = { count: 0, seq: 0 };
+  return (count: number) => {
+    const base = cursor.count <= count ? cursor : { count: 0, seq: 0 };
+    const events = replay(base.seq).filter(event => event.seq > base.seq);
+    const facts = readFacts(events);
+    const tail = facts.slice(count - base.count);
+    const last = events.at(-1)?.seq ?? base.seq;
+    afterCommit(() => {
+      if (last >= cursor.seq) cursor = { count: count + tail.length, seq: last };
+    });
+    return tail;
+  };
+}
+function publicEntry<P extends Foreign>(
+  entry: Emission<P>,
+  owned: WeakSet<object>,
+  otherwise: (entry: Emission<P>) => Emission<P>,
+) {
+  if (owned.has(entry)) return entry;
+  if (entry.layer === "house" && entry.kind === "tool-entry") {
+    const detail = entry.data.detail;
+    if (detail && typeof detail === "object" && ("custodyFact" in detail || "custodyBatch" in detail))
+      throw new CustodyError("E-CUSTODY-DENIED");
+  }
+  return otherwise(entry);
+}
 /** Custody facts ride existing silent entries, so they share the action's journal transaction. */
 export function credentialJournal<P extends Foreign>(
-  replay: () => readonly Event<P>[],
+  replay: (after?: number) => readonly Event<P>[],
   append: (entry: Emission<P>) => unknown,
 ) {
   let emit = append;
@@ -73,8 +109,10 @@ export function credentialJournal<P extends Foreign>(
     pending: boundary.pending,
     afterCommit: boundary.afterCommit,
     facts: () => readFacts(replay()),
+    factsAfter: incrementalFacts(replay, boundary.afterCommit),
     append: fact => ledger.appendBatch?.([fact]),
     appendBatch: facts => {
+      boundary.addition();
       const entry = factEntry(facts);
       owned.add(entry);
       try {
@@ -84,19 +122,10 @@ export function credentialJournal<P extends Foreign>(
       }
     },
   };
-  const write = (entry: Emission<P>, otherwise: (entry: Emission<P>) => Emission<P>) => {
-    if (owned.has(entry)) return entry;
-    if (entry.layer === "house" && entry.kind === "tool-entry") {
-      const detail = entry.data.detail;
-      if (detail && typeof detail === "object" && ("custodyFact" in detail || "custodyBatch" in detail))
-        throw new CustodyError("E-CUSTODY-DENIED");
-    }
-    return otherwise(entry);
-  };
   return {
     ledger,
     transaction: boundary.transaction,
-    write,
+    write: (entry: Emission<P>, otherwise: (entry: Emission<P>) => Emission<P>) => publicEntry(entry, owned, otherwise),
     publish: (publish: typeof append) => {
       emit = publish;
     },

@@ -166,20 +166,29 @@ describe("what decides an act", () => {
     expect(rig.facts().filter(event => event.kind === "act" && event.data.option === "loop")).toHaveLength(1);
   });
 
-  it("gives a private result to its recipient alone", () => {
-    const whisper = toolAct<Shop, typeof nothing>(nothing, () => ({
-      status: "accepted",
-      text: "For beto",
-      recipient: "beto",
-    }));
+  it("shows a private receipt only to the actor and never writes it to the journal", () => {
+    const whisper = toolAct<Shop, typeof nothing>(nothing, () =>
+      Object.assign({ status: "accepted" as const, text: "Resultado", private: "recibo" }, { recipient: "beto" }),
+    );
     const everyone = { ana: ["desk", "sales"], beto: ["desk"], carla: ["desk"] };
     const rig = open(tool("desk", { whisper }), { grants: everyone });
-    rig.act("ana", "whisper", {}, "desk");
-    expect(rig.facts().findLast(event => event.kind === "act-done")?.data).toMatchObject({ recipient: "beto" });
-    const called = rig.facts().flatMap(event => (event.kind === "stimulus" ? [event.by] : []));
-    expect(called).toEqual(["beto"]);
+    const result = rig.act("ana", "whisper", {}, "desk");
+    expect(result).toMatchObject({ private: "recibo" });
+    expect(rig.facts().some(event => JSON.stringify(event).includes("recibo"))).toBe(false);
+    expect(
+      rig
+        .facts()
+        .filter(event => event.kind === "act-done" || event.kind === "tool-entry")
+        .every(event => !Object.hasOwn(event.data, "recipient")),
+    ).toBe(true);
+    expect(rig.facts().findLast(event => event.kind === "act-done")?.data).toEqual({
+      object: "desk",
+      act: "whisper",
+      text: "Resultado",
+    });
     const reads = (by: string) => identityView(rig.state(), by).entries.map(entry => entry.data.text);
-    expect(reads("beto")).toEqual(["For beto"]);
-    expect(reads("carla")).toEqual([]);
+    expect(reads("ana")).toEqual(["Resultado"]);
+    expect(reads("beto")).toEqual(["Resultado"]);
+    expect(reads("carla")).toEqual(["Resultado"]);
   });
 });

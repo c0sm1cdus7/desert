@@ -32,5 +32,6 @@ export async function programResult<X extends Program>(
   const text = wroteBy(done.effects) ?? said.ok;
   const made = madeBy(done.effects, target);
   const told = done.private ? `${text} · ${ports.receipt?.(done.private) ?? done.private}` : text;
-  return { ok: true, text: told, ...(made === undefined ? {} : { made }) };
+  const textWithReason = done.reason ? `${told} · ${done.reason}` : told;
+  return { ok: true, text: textWithReason, ...(made === undefined ? {} : { made }) };
 }

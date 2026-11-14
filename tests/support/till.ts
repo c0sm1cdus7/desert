@@ -1,4 +1,5 @@
 // A program that is one tool with nothing but its settings: a till that says its float, changed where it is read.
+import { pesos, shopLocale } from "./shop.ts";
 import { object } from "../../src/catalogs/acts.ts";
 import { money } from "../../src/catalogs/fields.ts";
 import { vocabulary, type Event, type ProgramFacts } from "../../src/journal/events.ts";
@@ -40,7 +41,7 @@ const floating = (how: Offered) =>
     offered: whyNot,
     run: (input, { by }) => ({
       status: "accepted",
-      text: `Cambiado · Fondo · $ ${input.float}`,
+      text: `Cambiado · Fondo · ${pesos(input.float)}`,
       effects: [till.fact("till-floated", input, by)],
     }),
     cases: [
@@ -48,9 +49,9 @@ const floating = (how: Offered) =>
         promise: "the float of the till is changed where it is read",
         input: { float: 500 },
         then: {
-          says: "Cambiado · Fondo · $ 500",
+          says: "Cambiado · Fondo · $ 5,00",
           facts: [{ kind: "till-floated", data: { float: 500 } }],
-          reads: { lines: [{ float: "$ 500" }] },
+          reads: { lines: [{ float: "$ 5,00" }] },
         },
       },
       {
@@ -87,8 +88,8 @@ const tillTool = (how: Offered): ProgramTool<Till> => ({
   purpose: "Keeps the float of the till.",
   targets: () => [],
   view: state =>
-    JSON.stringify({ float: `$ ${state.tools.till.float}`, ...(state.tools.till.closed ? { state: "cerrada" } : {}) }),
-  summary: state => `$ ${state.tools.till.float}`,
+    JSON.stringify({ float: pesos(state.tools.till.float), ...(state.tools.till.closed ? { state: "cerrada" } : {}) }),
+  summary: state => pesos(state.tools.till.float),
   acts: { float: floating(how), close },
 });
 const programWith = (how: Offered): Composition<Till> => ({
@@ -113,7 +114,7 @@ export const tillShown: Shown<Till> = {
       presents: [],
     },
   },
-  locale: { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" },
+  locale: shopLocale,
 };
 /** The same till, saying the stacks its own data goes in instead of one list. */
 export const stackedTillShown: Shown<Till> = {

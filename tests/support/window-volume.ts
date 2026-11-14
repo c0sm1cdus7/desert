@@ -28,7 +28,7 @@ const registryOf = (rig: Rig, calls: Calls, count: number, notices: number) => {
     needs: () => Array.from({ length: notices / 2 }, (_, i) => ({ target: `${id}/s${i + 1}`, why: "Pendiente" })),
     view: (...args: Parameters<typeof rig.sales.view>) => {
       const [state, target, limits] = args;
-      if (target !== id) return JSON.stringify({ total: "$ 1500", paid: "$ 0", by: "ana" });
+      if (target !== id) return JSON.stringify({ total: "$ 15,00", paid: "$ 0,00", by: "ana" });
       calls[id]++;
       return [...state.tools.sales.keys()]
         .slice(-limits.recentLines)

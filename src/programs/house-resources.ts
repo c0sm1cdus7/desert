@@ -13,7 +13,7 @@ import { privateDirectoryMode } from "../catalogs/levers.ts";
 import { Bus } from "../journal/bus.ts";
 import type { Emission } from "../journal/events.ts";
 import type { TimeSource } from "../journal/clock.ts";
-import { allowed } from "../house/house.ts";
+import { holds } from "../house/house.ts";
 import type { SecretVault } from "../adapters/secrets/secret-vault.ts";
 import type { Program, State } from "../tools/tool-contract.ts";
 import type { HouseOptions } from "./house-runtime.ts";
@@ -46,11 +46,12 @@ function publicCapabilities<X extends Program>(
   secrets: SecretVault<X>,
   compose: ReturnType<typeof declaredAdapters>,
   state: () => State<X>,
+  registry: HouseOptions<X>["registry"],
 ) {
   return typeof secrets.capabilities === "function"
     ? {
         capabilities: secrets.capabilities(custody =>
-          compose(custody, scope => allowed(state().house, scope.actor, scope.tool)),
+          compose(custody, scope => holds(registry, state().house, scope.actor, scope.tool)),
         ),
       }
     : {};
@@ -75,11 +76,15 @@ function houseCustody<X extends Program>(
 ) {
   const { words, secretKeys } = options;
   const credentials = credentialJournal(
-    () =>
-      journal.replay<ReturnType<typeof journal.append>[]>([], (all, event) => {
-        all.push(event);
-        return all;
-      }),
+    (after = 0) =>
+      journal.replay<ReturnType<typeof journal.append>[]>(
+        [],
+        (all, event) => {
+          all.push(event);
+          return all;
+        },
+        after,
+      ),
     entry => journal.append(entry, time.now()),
   );
   const secrets = openSecretVault<X>(
@@ -115,7 +120,7 @@ export function houseResources<X extends Program>(home: string, options: HouseOp
   );
   const close = closing(stops, [bus, journal, secrets], report);
   return {
-    capabilities: (state: () => State<X>) => publicCapabilities(secrets, compose, state),
+    capabilities: (state: () => State<X>) => publicCapabilities(secrets, compose, state, options.registry),
     protection,
     journal,
     secrets,

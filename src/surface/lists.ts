@@ -79,16 +79,11 @@ function startRow(
   return [{ ...row, ...said, starts, open: begin(tools, tool.id, act, target, row.with) }];
 }
 /** A row that names something leads to it, whatever tool has it: its own first, then the one that says it is its.
- * What is of a tool this person does not hold stays named, off, and says so: nothing else of it is read here. */
+ * References are readable regardless of whether the identity holds the destination tool. */
 function led(tools: readonly Tool[], here: Tool, row: ViewRow, target: string): Choice {
   const theirs = here.has?.(target) === true ? undefined : tools.find(tool => tool !== here && tool.has?.(target));
   if (!theirs && here.has?.(target) === false) throw new Error(`${here.id} names ${target}, and no tool has it`);
   const holder = theirs ?? here;
-  const why = theirs?.off?.();
-  if (theirs && why !== undefined) {
-    const named = { title: theirs.titleOf?.(target) ?? row.title, detail: why, off: true };
-    return row.key === undefined ? named : { ...named, key: row.key };
-  }
   const open: Place = holder.conversationAt?.(target)
     ? startTalk(holder.id, target)
     : { kind: "view", tool: holder.id, target, at: 0 };
@@ -120,11 +115,10 @@ const noticeRows = (tool: Tool, notices: readonly Notice[], tone?: Tone): Choice
 /** Attention and Activity, the two lists a menu opens with: what needs someone to act, and what the others did.
  * They are there even with nothing in them, unless the person prefers not to see them then. */
 function noticed(tools: readonly Tool[]): readonly Listed[] {
-  /** A tool a person does not hold tells them nothing, and the lists are there all the same. */
+  /** Activity and Attention are filtered by their own rules, not by the Menu preference. */
   const all = tools.flatMap(tool => {
     const notices = tool.notices?.();
-    const mine = tool.off?.() === undefined;
-    return notices ? [{ tool, notices: mine ? notices : { ...notices, needs: [], news: [] } }] : [];
+    return notices ? [{ tool, notices }] : [];
   });
   const quiet = all.some(({ notices }) => notices.quiet);
   const needs = all.flatMap(({ tool, notices }) => noticeRows(tool, notices.needs, "wait"));
@@ -158,7 +152,7 @@ function listedAt(place: Picture, tools: readonly Tool[]): readonly Listed[] {
         rows: listed.filter(tool => tool.place.section === section).map(menuRow),
       }))
       .filter(stack => stack.rows.length);
-    return [...noticed(listed), ...sections];
+    return [...noticed(tools), ...sections];
   }
   const tool = toolOf(tools, place.tool);
   const read = tool.view(place.target).map(stack => ({

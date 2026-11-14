@@ -6,10 +6,11 @@ export type CapabilityLease = ToolCapabilities &
     capture(value: string): string;
     close(): void;
     cleanupPending?(): boolean;
+    anchorPending?(): boolean;
     together<T>(work: () => T): T;
     apply(emission: Emission, accepted: boolean): boolean;
   }>;
-export type CapabilityFactory = (scope: CredentialScope) => CapabilityLease;
+export type CapabilityFactory = (scope: CredentialScope, signal?: AbortSignal) => CapabilityLease;
 const denied = (): never => {
   throw new Error("E-CREDENTIAL-DENIED");
 };

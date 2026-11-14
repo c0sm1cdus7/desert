@@ -13,6 +13,7 @@ import { leavingShop, mutedShown, settledTwice, settlingShop } from "../../tests
 import { carelessShop, deafShown, stillOwing, stubbornShown } from "../../tests/support/settling-shop.ts";
 import { shopShown } from "../../tests/support/shop.ts";
 
+const partialKit = "sales · settle · shows an action outside a partial kit";
 /** The names of the checks that fail, in the order they ran. */
 describe("a program that breaks a promise", () => {
   it.each(brokenShops)("$name: fails exactly the checks of what it broke", async ({ program, fails, because }) => {
@@ -44,7 +45,7 @@ describe("a program with acts on its things", () => {
         "the act settle is not on the list",
         "An unavailable action is missing",
       ]),
-    ).toEqual([`${settledTwice}, by keys`, unavailable, hidden]);
+    ).toEqual([`${settledTwice}, by keys`, unavailable, partialKit, hidden]);
   });
 
   it("a screen that shows what cannot be done to who prefers not to see it fails that, and nothing else", async () => {
@@ -128,7 +129,7 @@ describe("a program with acts on its things", () => {
 
   it("a tool that does not say what its cases promise needs someone to act fails that, on every door", async () => {
     const checks = [...promisedChecks(carelessShop), ...walkedChecks(carelessShop, shopShown)];
-    expect(await failing(checks, ["Attention differs from the case", "Debe $ 90"])).toEqual([
+    expect(await failing(checks, ["Attention differs from the case", "Debe $ 0,90"])).toEqual([
       stillOwing,
       `${stillOwing}, in Attention with why`,
     ]);

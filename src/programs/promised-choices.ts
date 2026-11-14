@@ -33,7 +33,7 @@ function blocked<X extends Program>(
       const why = stops(option.title);
       return why === undefined ? [] : [{ value: option.title, why }];
     });
-  if (field?.kind !== "pick" || seat.tools.find(tool => tool.id === field.of)?.off?.() !== undefined) return [];
+  if (field?.kind !== "pick") return [];
   const source = program.registry.find(tool => tool.id === field.of);
   const among = aim.act.among?.(ask.sofar(answers), seat.state(), target, seat.now())[field.of];
   return (source?.targets(seat.state()) ?? []).flatMap(value => {
