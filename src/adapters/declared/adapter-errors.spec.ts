@@ -95,7 +95,7 @@ it("la fábrica no puede usar un resolvedor guardado después de terminar su ope
     },
   });
   const refs = await imported(lease);
-  expect(() => resolver?.capture(synthetic)).toThrow("E-ADAPTER-DENIED");
+  expect(() => resolver?.capture(Buffer.from(synthetic))).toThrow("E-ADAPTER-DENIED");
   expect(() => resolver?.use(refs, () => true)).toThrow("E-ADAPTER-DENIED");
   lease.close();
 });
@@ -124,7 +124,7 @@ it("un uso en curso conserva la versión retirada y las llamadas siguientes ya n
         if (!Value.Check(references, input)) throw new Error("fixture input");
         return resolver.use(input, async material => {
           await waiting;
-          return { valid: material.key === synthetic };
+          return { valid: Buffer.from(material.key ?? []).toString("utf8") === synthetic };
         });
       },
     }),

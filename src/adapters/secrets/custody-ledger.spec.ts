@@ -1,3 +1,4 @@
+import { SecretCustody } from "./custody/secret-custody.ts";
 import { expect, it } from "vitest";
 import { copyFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
@@ -7,7 +8,7 @@ for (const mutation of ["append", "edit", "duplicate", "reorder", "malformed"])
     const rig = custodyRig(),
       store = rig.open(),
       session = store.begin(custodyScope);
-    const refs = { key: session.capture("SINTETICO") };
+    const refs = { key: session.capture(Buffer.from("SINTETICO")) };
     session.replace("signing", refs, 0);
     session.replace("another", refs, 0);
     store.close();
@@ -39,20 +40,27 @@ for (const mutation of ["append", "edit", "duplicate", "reorder", "malformed"])
     db.close();
     expect(() => rig.open()).toThrow("E-CUSTODY-INTEGRITY");
   });
-it("una copia vieja completa restaura los secretos que contenía: límite explícito (a2)", async () => {
+it("una copia vieja exige aceptación explícita; solo vuelve material cuya llave sigue presente", async () => {
   const rig = custodyRig(),
     backup = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture("ANTERIOR") };
+  const refs = { key: session.capture(Buffer.from("ANTERIOR")) };
   session.replace("signing", refs, 0);
   store.close();
   copyFileSync(rig.file, backup.file);
   const next = rig.open();
+  next.retain(refs.key, "respaldo aceptable");
   next.begin(custodyScope).release("signing", 1);
-  expect(next.ids()).toEqual([]);
+  expect(next.ids()).toEqual([refs.key]);
   next.close();
   copyFileSync(backup.file, rig.file);
+  expect(() => rig.open()).toThrow("E-CUSTODY-ROLLBACK");
+  SecretCustody.acceptRestoredCopy(rig.file, rig.home, rig.keys);
   const restored = rig.open();
-  expect(await restored.adapter(restored.begin(custodyScope), ["signing"]).use(refs, m => m.key)).toBe("ANTERIOR");
+  expect(
+    await restored
+      .adapter(restored.begin(custodyScope), ["signing"])
+      .use(refs, m => Buffer.from(m.key ?? []).toString("utf8")),
+  ).toBe("ANTERIOR");
 });

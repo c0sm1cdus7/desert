@@ -6,13 +6,16 @@ for (const action of ["cancel", "replace", "releaseRetention", "discardLegacy"])
     const rig = custodyRig(),
       store = rig.open(),
       session = store.begin(custodyScope);
-    const refs = { key: action === "discardLegacy" ? store.keep("SINTETICO") : session.capture("SINTETICO") };
+    const refs = {
+      key:
+        action === "discardLegacy" ? store.keep(Buffer.from("SINTETICO")) : session.capture(Buffer.from("SINTETICO")),
+    };
     if (action === "replace" || action === "releaseRetention") session.replace("signing", refs, 0);
     if (action === "releaseRetention") {
       store.retain(refs.key, "history");
       session.release("signing", 1);
     }
-    const next = action === "replace" ? { key: session.capture("NUEVO") } : refs;
+    const next = action === "replace" ? { key: session.capture(Buffer.from("NUEVO")) } : refs;
     const fail = vi.spyOn(CustodyDatabase.prototype, "remove").mockImplementation(() => {
       throw new Error("disco");
     });
@@ -29,11 +32,11 @@ for (const action of ["cancel", "replace", "releaseRetention", "discardLegacy"])
     store.collect();
     expect(store.ids()).toEqual(action === "replace" ? [next.key] : []);
   });
-it("el uso reservado informa el fallo de limpieza al terminar y la reapertura lo reintenta", async () => {
+it("el uso reservado conserva su resultado y la reapertura reintenta la limpieza", async () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture("SINTETICO") };
+  const refs = { key: session.capture(Buffer.from("SINTETICO")) };
   session.replace("signing", refs, 0);
   let finish = () => {};
   const work = store.adapter(session, ["signing"]).use(
@@ -48,7 +51,7 @@ it("el uso reservado informa el fallo de limpieza al terminar y la reapertura lo
     throw new Error("disco");
   });
   finish();
-  await expect(work).rejects.toThrow("E-CUSTODY-CLEANUP");
+  await expect(work).resolves.toBeUndefined();
   expect(store.facts().some(f => f.kind === "credential-purged")).toBe(false);
   store.close();
   fail.mockRestore();

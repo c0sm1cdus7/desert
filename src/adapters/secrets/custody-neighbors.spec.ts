@@ -7,24 +7,24 @@ import type { SecretRef } from "./custody/custody-contract.ts";
 it("el manifiesto no resucita una referencia purgada ni deja filas con ids inválidos", () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
-  const ref = session.capture("inventado");
+  const ref = session.capture(Buffer.from("inventado"));
   session.cancel();
-  expect(() => store.importLegacy(ref, "inventado")).toThrow("E-CUSTODY-DENIED");
-  expect(() => store.importLegacy("secret:inventada", "inventado")).toThrow("E-CUSTODY-LEGACY");
+  expect(() => store.importLegacy(ref, Buffer.from("inventado"))).toThrow("E-CUSTODY-DENIED");
+  expect(() => store.importLegacy("secret:inventada", Buffer.from("inventado"))).toThrow("E-CUSTODY-LEGACY");
   expect(store.ids()).toEqual([]);
   const next = store.begin(custodyScope);
-  expect(next.capture("otro")).toMatch(/^secret:/u);
+  expect(next.capture(Buffer.from("otro"))).toMatch(/^secret:/u);
 });
 it("reconectar tras liberar conserva revisión y rechaza una confirmación anterior al borrado", () => {
   const rig = custodyRig(),
     store = rig.open(),
     first = store.begin(custodyScope);
-  first.replace("signing", { key: first.capture("anterior") }, first.revision("signing"));
+  first.replace("signing", { key: first.capture(Buffer.from("anterior")) }, first.revision("signing"));
   first.release("signing", 1);
   store.close();
   const reopened = rig.open(),
     session = reopened.begin(custodyScope);
-  const refs = { key: session.capture("renovado") };
+  const refs = { key: session.capture(Buffer.from("renovado")) };
   expect(session.current("signing")).toBeUndefined();
   expect(session.revision("signing")).toBe(2);
   expect(() => session.replace("signing", refs, 0)).toThrow("E-CUSTODY-CONFLICT");
@@ -35,7 +35,7 @@ it("una retención histórica conserva bytes pero no concede usos, y se libera p
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture("sintetico") };
+  const refs = { key: session.capture(Buffer.from("sintetico")) };
   session.replace("signing", refs, 0);
   store.retain(refs.key, "pedido-pendiente");
   store.retain(refs.key, "archivo-historico");
@@ -53,8 +53,8 @@ it("dos reemplazos de una revisión ganan una sola vez y el rechazado se recoge 
   const store = custodyRig().open(),
     a = store.begin(custodyScope),
     b = store.begin(custodyScope);
-  const first = { key: a.capture("uno") },
-    second = { key: b.capture("dos") };
+  const first = { key: a.capture(Buffer.from("uno")) },
+    second = { key: b.capture(Buffer.from("dos")) };
   const results = await Promise.allSettled([
     Promise.resolve().then(() => a.replace("signing", first, 0)),
     Promise.resolve().then(() => b.replace("signing", second, 0)),
@@ -66,7 +66,7 @@ it("dos reemplazos de una revisión ganan una sola vez y el rechazado se recoge 
 it("otra herramienta, objeto, identidad, sesión o casa no usa ni vincula lo ajeno", async () => {
   const store = custodyRig().open(),
     a = store.begin(custodyScope);
-  const refs = { key: a.capture("uno") };
+  const refs = { key: a.capture(Buffer.from("uno")) };
   const otherSession = store.begin(custodyScope);
   expect(() => otherSession.replace("signing", refs, 0)).toThrow();
   a.replace("signing", refs, 0);
@@ -83,7 +83,7 @@ it("cancelar durante un uso corta usos nuevos y recoge cuando termina la reserva
   const store = custodyRig().open(),
     session = store.begin(custodyScope),
     adapter = store.adapter(session, []);
-  const refs = { key: adapter.capture("sintetico") };
+  const refs = { key: adapter.capture(Buffer.from("sintetico")) };
   let finish = () => {};
   const work = adapter.use(
     refs,
@@ -107,14 +107,21 @@ it("el manifiesto de KeyStore importa a la custodia común sin inferir nombres y
   await provider.set("provider-id", "MATERIAL_SINTETICO");
   await provider.set("sin-manifiesto", "OTRO_SINTETICO");
   const manifest = [{ provider: "provider-id", ref }];
-  await importLegacyKeys(store, provider, manifest);
+  const bytes = {
+    get: async (id: string) => {
+      const value = await provider.get(id);
+      return value === undefined ? undefined : Buffer.from(value);
+    },
+    remove: (id: string) => provider.remove(id),
+  };
+  await importLegacyKeys(store, bytes, manifest);
   expect(await provider.get("provider-id")).toBeUndefined();
   expect(await provider.get("sin-manifiesto")).toBe("OTRO_SINTETICO");
-  await importLegacyKeys(store, provider, manifest);
+  await importLegacyKeys(store, bytes, manifest);
   store.adopt(custodyScope, "signing", { key: ref });
   expect(
     await store
       .adapter(store.begin(custodyScope), ["signing"])
-      .use({ key: ref }, value => value.key === "MATERIAL_SINTETICO"),
+      .use({ key: ref }, value => Buffer.from(value.key ?? []).toString("utf8") === "MATERIAL_SINTETICO"),
   ).toBe(true);
 });

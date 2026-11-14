@@ -24,7 +24,7 @@ function signer(): AdapterDeclaration {
           throw new Error("Invalid fixture");
         const key = input.key;
         if (!isReference(key)) throw new Error("Invalid reference");
-        return resolver.use({ key }, material => material.key === "SINTETICO");
+        return resolver.use({ key }, material => Buffer.from(material.key ?? []).toString("utf8") === "SINTETICO");
       },
     }),
   };

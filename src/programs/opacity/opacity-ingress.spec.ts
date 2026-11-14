@@ -22,8 +22,12 @@ for (const value of [
   "secret:00000000-0000-0000-0000-000000000000",
 ])
   it(`material exacto de ${value.length} caracteres, también al reabrir`, async () => {
-    const observed: unknown[] = [];
+    const observed: Record<string, Uint8Array>[] = [];
+    const borrowed: Uint8Array[] = [];
     const input = { first: value, second: `${value}\notro` };
+    const expected = Object.fromEntries(
+      Object.entries(input).map(([key, text]) => [key, Uint8Array.from(Buffer.from(text))]),
+    );
     const schema = Type.Object({
       first: Type.String({ secret: true, title: "Primer material", maxLength: 5000 }),
       second: Type.String({ secret: true, title: "Segundo material", maxLength: 5000 }),
@@ -91,7 +95,11 @@ for (const value of [
             check: (refs: unknown) => {
               if (!Value.Check(referenceInput, refs)) throw new Error("Referencia inválida");
               return resolver.use(refs, material => {
-                observed.push(material);
+                // Snapshot synthetic bytes during use; the borrowed buffers must be erased afterward.
+                observed.push(
+                  Object.fromEntries(Object.entries(material).map(([key, bytes]) => [key, Uint8Array.from(bytes)])),
+                );
+                borrowed.push(...Object.values(material));
                 return { valid: true };
               });
             },
@@ -106,9 +114,13 @@ for (const value of [
       );
       const fromQuestions = ask.submit([input.first, input.second]);
       expect((await perform(house(), "vault", { act: "set", input: fromQuestions })).status).toBe("accepted");
-      expect(observed).toEqual([input]);
+      expect(observed).toEqual([expected]);
+      expect(borrowed).toHaveLength(2);
+      for (const bytes of borrowed) expect(bytes.every(byte => byte === 0)).toBe(true);
       reopen();
       expect((await perform(house(), "vault", { act: "read", input: {} })).status).toBe("accepted");
-      expect(observed).toEqual([input, input]);
+      expect(observed).toEqual([expected, expected]);
+      expect(borrowed).toHaveLength(4);
+      for (const bytes of borrowed) expect(bytes.every(byte => byte === 0)).toBe(true);
     });
   });

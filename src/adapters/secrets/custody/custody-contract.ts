@@ -2,6 +2,8 @@ import type { CredentialScope, SecretRefs, SecretRef } from "../../../tools/capa
 export type { CredentialScope, SecretRefs, SecretRef, Credential } from "../../../tools/capabilities-contract.ts";
 export type CredentialFact = Readonly<{
   authentication?: string;
+  batchSize?: number;
+  batchIndex?: number;
   id: string;
   kind: "credential-bound" | "credential-released" | "credential-cleanup-pending" | "credential-purged";
   actor: string;
@@ -16,6 +18,9 @@ export type CredentialFact = Readonly<{
 export interface CredentialLedger {
   append(fact: CredentialFact): void;
   facts(): readonly CredentialFact[];
+  appendBatch?(facts: readonly CredentialFact[]): void;
+  pending?(): boolean;
+  afterCommit?(work: () => void): void;
 }
 export type CustodyRow = Readonly<{ ref: SecretRef; payload: string | null; owner: string | null; retained: boolean }>;
 export type CredentialIngress = Readonly<{ id: string; scope: CredentialScope }>;

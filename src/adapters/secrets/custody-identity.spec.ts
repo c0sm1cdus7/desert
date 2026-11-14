@@ -1,3 +1,4 @@
+import { stubKeys } from "../../../tests/support/custody-provider.ts";
 import { expect, it } from "vitest";
 import { copyFileSync, existsSync, mkdirSync, renameSync, rmSync, symlinkSync } from "node:fs";
 import { join } from "node:path";
@@ -12,7 +13,7 @@ it("la identidad persiste al renombrar, mover y abrir por enlace o mayúsculas (
   const file = join(folder, "fixture.sqlite");
   const store = new SecretCustody(file, folder, rig.keys),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture("SINTETICO") };
+  const refs = { key: session.capture(Buffer.from("SINTETICO")) };
   session.replace("signing", refs, 0);
   store.close();
   const moved = join(rig.home, "Movida");
@@ -24,7 +25,11 @@ it("la identidad persiste al renombrar, mover y abrir por enlace o mayúsculas (
   for (const path of paths) {
     const reopened = new SecretCustody(join(path, "fixture.sqlite"), path, rig.keys);
     try {
-      expect(await reopened.adapter(reopened.begin(custodyScope), ["signing"]).use(refs, m => m.key)).toBe("SINTETICO");
+      expect(
+        await reopened
+          .adapter(reopened.begin(custodyScope), ["signing"])
+          .use(refs, m => Buffer.from(m.key ?? []).toString("utf8")),
+      ).toBe("SINTETICO");
     } finally {
       reopened.close();
     }
@@ -34,7 +39,7 @@ it("una casa nueva en la ruta de una borrada pide otra identidad y otra llave (a
   const rig = custodyRig(),
     identities: string[] = [],
     copies: Uint8Array[] = [];
-  const provider = {
+  const provider = stubKeys({
     forget() {},
     key: (id: string, create: boolean) => {
       identities.push(id);
@@ -42,22 +47,24 @@ it("una casa nueva en la ruta de una borrada pide otra identidad y otra llave (a
       copies.push(Uint8Array.from(value));
       return value;
     },
-  };
+  });
   for (let index = 0; index < 2; index++) {
     const store = new SecretCustody(rig.file, rig.home, provider);
-    store.keep("SINTETICO");
+    store.keep(Buffer.from("SINTETICO"));
     store.close();
     rmSync(rig.file);
   }
-  expect(new Set(identities).size).toBe(2);
-  for (const id of identities) expect(id).toMatch(/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/u);
+  expect(new Set(identities.filter(id => !id.includes("-secret-"))).size).toBe(2);
+  expect(new Set(identities.filter(id => id.includes("-secret-"))).size).toBe(2);
+  for (const id of identities.filter(id => !id.includes("-secret-")))
+    expect(id).toMatch(/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/u);
   expect(copies[0]).not.toEqual(copies[1]);
 });
 it("una copia en otra máquina requiere llevar su llave y después conserva identidad (a2)", () => {
   const rig = custodyRig(),
     copy = custodyRig(),
     store = rig.open();
-  store.keep("SINTETICO");
+  store.keep(Buffer.from("SINTETICO"));
   store.close();
   copyFileSync(rig.file, copy.file);
   expect(() => new SecretCustody(copy.file, copy.home, new MemoryHouseKeys())).toThrow(/llave.*traslad/iu);
@@ -68,7 +75,7 @@ it("una copia en otra máquina requiere llevar su llave y después conserva iden
 it("si falta la llave con material guardado, jamás se pide crearla (a5/a9)", () => {
   const rig = custodyRig(),
     store = rig.open();
-  store.keep("SINTETICO");
+  store.keep(Buffer.from("SINTETICO"));
   store.close();
   for (const removeCheck of [false, true]) {
     if (removeCheck) {
@@ -79,13 +86,17 @@ it("si falta la llave con material guardado, jamás se pide crearla (a5/a9)", ()
     const calls: boolean[] = [];
     expect(
       () =>
-        new SecretCustody(rig.file, rig.home, {
-          forget() {},
-          key: (_id, create) => {
-            calls.push(create);
-            throw new Error("ausente");
-          },
-        }),
+        new SecretCustody(
+          rig.file,
+          rig.home,
+          stubKeys({
+            forget() {},
+            key: (_id, create) => {
+              calls.push(create);
+              throw new Error("ausente");
+            },
+          }),
+        ),
     ).toThrow("E-CUSTODY-KEY");
     expect(calls).toEqual([false]);
   }
@@ -94,12 +105,12 @@ it("si falta la llave con material guardado, jamás se pide crearla (a5/a9)", ()
 it("otra identidad rechaza el mismo registro aun si el proveedor repite la llave", () => {
   const first = custodyRig(),
     second = custodyRig();
-  const keys = { forget() {}, key: () => new Uint8Array(32).fill(13) };
+  const keys = stubKeys({ forget() {}, key: () => new Uint8Array(32).fill(13) });
   const a = new SecretCustody(first.file, first.home, keys);
-  const ref = a.keep("SINTETICO");
+  const ref = a.keep(Buffer.from("SINTETICO"));
   a.close();
   const b = new SecretCustody(second.file, second.home, keys);
-  b.importLegacy(ref, "OTRO");
+  b.importLegacy(ref, Buffer.from("OTRO"));
   b.close();
   const source = new DatabaseSync(first.file),
     target = new DatabaseSync(second.file);
@@ -114,7 +125,7 @@ it("otra identidad rechaza el mismo registro aun si el proveedor repite la llave
 it("si se borra la identidad de una custodia con material no inventa otra ni pide crear llave", () => {
   const rig = custodyRig(),
     store = rig.open();
-  store.keep("SINTETICO");
+  store.keep(Buffer.from("SINTETICO"));
   store.close();
   const db = new DatabaseSync(rig.file);
   db.exec("delete from custody_meta");
@@ -122,13 +133,17 @@ it("si se borra la identidad de una custodia con material no inventa otra ni pid
   let calls = 0;
   expect(
     () =>
-      new SecretCustody(rig.file, rig.home, {
-        forget() {},
-        key: () => {
-          calls++;
-          return new Uint8Array(32);
-        },
-      }),
+      new SecretCustody(
+        rig.file,
+        rig.home,
+        stubKeys({
+          forget() {},
+          key: () => {
+            calls++;
+            return new Uint8Array(32);
+          },
+        }),
+      ),
   ).toThrow("E-CUSTODY-INTEGRITY");
   expect(calls).toBe(0);
 });

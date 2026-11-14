@@ -1,3 +1,4 @@
+import { CustodyCipher } from "./custody/custody-cipher.ts";
 import { expect, it, vi } from "vitest";
 import { DatabaseSync } from "node:sqlite";
 import { containing } from "../../../tests/support/custody-files.ts";
@@ -30,7 +31,11 @@ it("adopta cifrando, verifica lectura, conserva ids y retiene sin autorizar hast
   const reopened = rig.open();
   reopened.adopt(custodyScope, "signing", rig.refs);
   const next = reopened.begin(custodyScope);
-  expect(await reopened.adapter(next, ["signing"]).use(rig.refs, values => values.certificate === "")).toBe(true);
+  expect(
+    await reopened
+      .adapter(next, ["signing"])
+      .use(rig.refs, values => Buffer.from(values.certificate ?? []).toString("utf8") === ""),
+  ).toBe(true);
   reopened.close();
   const again = rig.open();
   expect(again.begin(custodyScope).current("signing")).toEqual({ revision: 1, refs: rig.refs });
@@ -78,6 +83,18 @@ it("si la copia cifrada no se puede leer, lo viejo no se retira", () => {
   });
   expect(() => rig.open()).toThrow("E-CUSTODY-INTEGRITY");
   failure.mockRestore();
+  const db = new DatabaseSync(rig.file);
+  expect(db.prepare("select count(*) as n from secrets").get()?.n).toBe(2);
+  db.close();
+});
+it("una copia cifrada válida pero de otro valor no permite retirar el original", () => {
+  const rig = legacy();
+  vi.spyOn(CustodyDatabase.prototype, "put").mockImplementation(function (this: CustodyDatabase, ref) {
+    const cipher = new CustodyCipher(this.identity(), rig.keys);
+    const other = cipher.seal(ref, Buffer.from("OTRO_VALOR_SINTETICO"), false);
+    this.db.prepare("update custody_material set payload=? where ref=?").run(other, ref);
+  });
+  expect(() => rig.open()).toThrow("E-CUSTODY-INTEGRITY");
   const db = new DatabaseSync(rig.file);
   expect(db.prepare("select count(*) as n from secrets").get()?.n).toBe(2);
   db.close();

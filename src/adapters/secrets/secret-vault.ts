@@ -12,7 +12,7 @@ export class SecretVault<X extends Program> extends Redactor<X> {
   constructor(file: string, journal: TSchema, keys?: HouseKeyProvider, ledger?: CredentialLedger) {
     const custody = new SecretCustody(file, dirname(file), keys, ledger);
     try {
-      super(journal, value => custody.keep(value));
+      super(journal, value => custody.keep(Buffer.from(value)));
     } catch (error) {
       custody.close();
       throw error;

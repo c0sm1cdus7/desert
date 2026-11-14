@@ -14,14 +14,11 @@ export function writtenEffects<X extends Program>(
   const made = making(ports);
   try {
     const write = () =>
-      ports.bus.together(() =>
-        effects.forEach(each => {
-          if (!ports.credentialEffects?.apply(each, accepted))
-            ports.bus.emit({ ...made(each), process: act.process, cause: [act.id] });
-        }),
-      );
-    if (ports.credentialEffects) ports.credentialEffects.together(write);
-    else write();
+      effects.forEach(each => {
+        if (!ports.credentialEffects?.apply(each, accepted))
+          ports.bus.emit({ ...made(each), process: act.process, cause: [act.id] });
+      });
+    ports.bus.together(() => (ports.credentialEffects ? ports.credentialEffects.together(write) : write()));
     return undefined;
   } catch (error) {
     return { error: failureOrigin(error) };

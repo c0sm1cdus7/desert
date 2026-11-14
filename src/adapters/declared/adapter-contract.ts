@@ -1,8 +1,8 @@
 import type { TSchema } from "@sinclair/typebox";
 import type { SecretRef, SecretRefs } from "../../tools/capabilities-contract.ts";
 export interface SecretResolver {
-  capture(value: string): SecretRef;
-  use<T>(refs: SecretRefs, body: (material: Readonly<Record<string, string>>) => T | Promise<T>): Promise<T>;
+  capture(value: Uint8Array): SecretRef;
+  use<T>(refs: SecretRefs, body: (material: Readonly<Record<string, Uint8Array>>) => T | Promise<T>): Promise<T>;
 }
 export type AdapterMethod = Readonly<{
   input: TSchema;

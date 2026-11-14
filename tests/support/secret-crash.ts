@@ -1,3 +1,4 @@
+import { processKeys } from "./custody-provider.ts";
 // hcrash's two action cut points, using an invented value and an in-memory test key only.
 import { registerHooks } from "node:module";
 import { readFileSync } from "node:fs";
@@ -23,7 +24,7 @@ if (!home || !mode) throw new Error("Falta carpeta temporal");
 const kill = () => process.kill(process.pid, "SIGKILL");
 const options = {
   by: "fixture",
-  secretKeys: { forget() {}, key: () => new Uint8Array(32).fill(7) },
+  secretKeys: processKeys(home),
   words: vocabulary({}),
   slices: { initial: { vault: 0 }, step: { vault: (state: unknown) => Number(state) + 1 } },
   creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["vault"] }] },

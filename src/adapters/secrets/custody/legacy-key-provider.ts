@@ -1,11 +1,10 @@
-import type { KeyStore } from "../../../tools/tool-contract.ts";
 import type { SecretCustody } from "./secret-custody.ts";
 import type { SecretRef } from "./custody-contract.ts";
 import { CustodyError } from "./house-keys.ts";
 /** The owner supplies every source/destination explicitly; KeyStore has no reliable enumeration contract. */
 export async function importLegacyKeys(
   custody: SecretCustody,
-  source: KeyStore,
+  source: { get(provider: string): Promise<Uint8Array | undefined>; remove(provider: string): Promise<void> },
   manifest: readonly Readonly<{ provider: string; ref: SecretRef }>[],
 ): Promise<void> {
   try {

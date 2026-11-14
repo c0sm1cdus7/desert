@@ -53,7 +53,11 @@ it("cada posición del ingreso y cada escritura obtiene su referencia y se liber
     if (!first || !second) throw new Error("Falta vínculo");
     session.release("slot-0", 1);
     expect(store.ids()).not.toContain(first.refs.key);
-    expect(await store.adapter(session, ["slot-1"]).use(second.refs, material => material.key)).toBe("igual");
+    expect(
+      await store
+        .adapter(session, ["slot-1"])
+        .use(second.refs, material => Buffer.from(material.key ?? []).toString("utf8")),
+    ).toBe("igual");
     for (let i = 1; i < 6; i++) session.release(`slot-${i}`, 1);
     expect(store.ids()).toEqual([]);
   } finally {

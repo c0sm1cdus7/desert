@@ -1,3 +1,4 @@
+import { processKeys } from "./custody-provider.ts";
 // Child process uses only synthetic material and a fixed in-memory test key; never a real provider.
 import type { SecretRef } from "../../src/adapters/secrets/custody/custody-contract.ts";
 import { mock } from "node:test";
@@ -37,7 +38,7 @@ if (point === "compact")
     this.db.exec("vacuum;");
     stop();
   });
-const store = new SecretCustody(file, home, { forget() {}, key: () => new Uint8Array(32).fill(19) });
+const store = new SecretCustody(file, home, processKeys(home));
 if (point === "purge" || point === "released")
   store.begin({ actor: "ana", tool: "vault", target: "organization:test" }).release("signing", 1);
 stop();

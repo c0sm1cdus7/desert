@@ -21,14 +21,14 @@ async function invoke(
   try {
     const methods = declaration.open(
       Object.freeze({
-        capture: (material: string) => {
+        capture: (material: Uint8Array) => {
           check();
           if (!method.permissions.capture) throw new AdapterFailure("E-ADAPTER-DENIED");
           return resolver.capture(material);
         },
         use: <T>(
           refs: Parameters<typeof resolver.use>[0],
-          body: (values: Readonly<Record<string, string>>) => T | Promise<T>,
+          body: (values: Readonly<Record<string, Uint8Array>>) => T | Promise<T>,
         ) => {
           check();
           return resolver.use(refs, body);

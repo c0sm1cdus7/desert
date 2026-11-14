@@ -1,38 +1,11 @@
+import { secretRef, factFrom } from "./custody-rows.ts";
+export { secretRef, factSchema } from "./custody-rows.ts";
+import { existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import type { DatabaseSync } from "node:sqlite";
-import { Type, type Static } from "@sinclair/typebox";
-import { Value } from "@sinclair/typebox/value";
+import { DatabaseSync } from "node:sqlite";
 import { privateDatabase } from "../../storage/home.ts";
 import { CustodyError } from "./house-keys.ts";
 import type { CredentialFact, CredentialLedger, CustodyRow, SecretRef } from "./custody-contract.ts";
-export const factSchema = Type.Object({
-  authentication: Type.Optional(Type.String()),
-  id: Type.String(),
-  kind: Type.Union([
-    Type.Literal("credential-bound"),
-    Type.Literal("credential-released"),
-    Type.Literal("credential-cleanup-pending"),
-    Type.Literal("credential-purged"),
-  ]),
-  actor: Type.String(),
-  tool: Type.String(),
-  target: Type.String(),
-  slot: Type.String(),
-  revision: Type.Integer({ minimum: 0 }),
-  cause: Type.String(),
-  refs: Type.Record(Type.String(), Type.TemplateLiteral("secret:${string}")),
-});
-function factFrom(body: unknown): Static<typeof factSchema> {
-  try {
-    const value: unknown = typeof body === "string" ? JSON.parse(body) : undefined;
-    if (!Value.Check(factSchema, value)) throw new CustodyError("E-CUSTODY-INTEGRITY");
-    return value;
-  } catch {
-    throw new CustodyError("E-CUSTODY-INTEGRITY");
-  }
-}
-export const secretRef = (value: unknown): value is SecretRef =>
-  typeof value === "string" && /^secret:[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/u.test(value);
 export class CustodyDatabase implements CredentialLedger {
   readonly db: DatabaseSync;
   constructor(file: string) {
@@ -76,6 +49,17 @@ export class CustodyDatabase implements CredentialLedger {
         return { ref: row.ref, payload: row.payload, owner: row.owner, retained: row.retained === 1 };
       });
   }
+  row(ref: SecretRef): CustodyRow | undefined {
+    const row = this.db.prepare("select * from custody_material where ref=?").get(ref);
+    if (!row) return undefined;
+    if (row.payload !== null && typeof row.payload !== "string") throw new CustodyError("E-CUSTODY-STORAGE");
+    return {
+      ref,
+      payload: row.payload,
+      owner: typeof row.owner === "string" ? row.owner : null,
+      retained: row.retained === 1,
+    };
+  }
   identity(): string {
     const row = this.db.prepare("select value from custody_meta where name='house-id'").get();
     if (typeof row?.value === "string" && /^[0-9a-f-]{36}$/u.test(row.value)) return row.value;
@@ -116,6 +100,16 @@ export class CustodyDatabase implements CredentialLedger {
   append(fact: CredentialFact): void {
     this.db.prepare("insert into custody_facts (body) values (?)").run(JSON.stringify(fact));
   }
+  appendBatch(facts: readonly CredentialFact[]): void {
+    this.db.exec("begin immediate");
+    try {
+      facts.forEach(fact => this.append(fact));
+      this.db.exec("commit");
+    } catch (error) {
+      this.db.exec("rollback");
+      throw error;
+    }
+  }
   facts(): readonly CredentialFact[] {
     return this.db
       .prepare("select body from custody_facts order by seq")
@@ -130,5 +124,32 @@ export class CustodyDatabase implements CredentialLedger {
   }
   compactLegacy(): void {
     this.db.exec("pragma wal_checkpoint(TRUNCATE); vacuum; pragma wal_checkpoint(TRUNCATE); drop table secrets;");
+  }
+}
+
+/** Reject a populated legacy vault without a provider before taking a writable SQLite connection. */
+export function custodyPreflight(file: string, provider: boolean): void {
+  if (file === ":memory:" || !existsSync(file)) return;
+  const db = new DatabaseSync(file, { readOnly: true });
+  try {
+    const tables = new Set(
+      db
+        .prepare("select name from sqlite_master where type='table'")
+        .all()
+        .map(r => r.name),
+    );
+    if (!provider && tables.has("secrets") && db.prepare("select 1 from secrets limit 1").get())
+      throw new CustodyError("E-CUSTODY-PROVIDER");
+    if (tables.has("custody_meta")) {
+      const check = db.prepare("select value from custody_meta where name='key-check'").get()?.value;
+      if (typeof check === "string" && check !== "custody-v2") throw new CustodyError("E-CUSTODY-FORMAT");
+    }
+  } catch (error) {
+    if (error instanceof CustodyError) throw error;
+    throw new CustodyError(
+      error instanceof Error && error.message.includes("locked") ? "E-CUSTODY-LOCKED" : "E-CUSTODY-STORAGE",
+    );
+  } finally {
+    db.close();
   }
 }

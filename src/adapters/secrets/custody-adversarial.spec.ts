@@ -1,3 +1,4 @@
+import { stubKeys } from "../../../tests/support/custody-provider.ts";
 import { expect, it, vi } from "vitest";
 import { inspect } from "node:util";
 import { createCipheriv } from "node:crypto";
@@ -17,8 +18,8 @@ class InspectableRedactor extends Redactor<Shop> {
 const material = "MARCADOR_ADVERSARIO_SINTETICO";
 for (const length of [0, 1, 3, 4, 8, 12, 15, 17])
   it(`rechaza etiqueta de ${length} bytes antes de abrir (a9)`, () => {
-    const cipher = new CustodyCipher("house", { forget() {}, key: () => new Uint8Array(32).fill(17) });
-    const envelope = cipher.seal("ref", material, true).split(".");
+    const cipher = new CustodyCipher("house", stubKeys({ forget() {}, key: () => new Uint8Array(32).fill(17) }));
+    const envelope = cipher.seal("ref", Buffer.from(material), true).split(".");
     envelope[2] = Buffer.from(envelope[2] ?? "", "base64")
       .subarray(0, length)
       .toString("base64");
@@ -39,18 +40,18 @@ for (const length of [8, 16])
       native.getAuthTag().toString("base64"),
       bytes.toString("base64"),
     ].join(".");
-    const cipher = new CustodyCipher("house", { forget() {}, key: () => Uint8Array.from(key) });
+    const cipher = new CustodyCipher("house", stubKeys({ forget() {}, key: () => Uint8Array.from(key) }));
     expect(() => cipher.open("ref", envelope)).toThrow("E-CUSTODY-INTEGRITY");
     cipher.close();
   });
 it("dos escrituras y una reapertura no repiten nonce, aun con el mismo material (a9)", () => {
   const rig = custodyRig(),
     store = rig.open();
-  store.keep(material);
-  store.keep(material);
+  store.keep(Buffer.from(material));
+  store.keep(Buffer.from(material));
   store.close();
   const again = rig.open();
-  again.keep(material);
+  again.keep(Buffer.from(material));
   again.close();
   const db = new CustodyDatabase(rig.file);
   const nonces = db.rows().map(row => row.payload?.split(".")[1]);
@@ -60,19 +61,33 @@ it("dos escrituras y una reapertura no repiten nonce, aun con el mismo material 
 });
 it("la copia del proveedor se pone en cero después de cargarla, incluso si es inválida (a3)", () => {
   for (const length of [32, 16]) {
-    const copy = new Uint8Array(length).fill(17);
-    const cipher = new CustodyCipher("house", { forget() {}, key: () => copy });
-    if (length === 32) expect(cipher.open("ref", cipher.seal("ref", material, true))).toBe(material);
-    else expect(() => cipher.seal("ref", material, true)).toThrow("E-CUSTODY-KEY");
-    expect([...copy].every(byte => byte === 0)).toBe(true);
+    const copies: Uint8Array[] = [];
+    const cipher = new CustodyCipher(
+      "house",
+      stubKeys({
+        forget() {},
+        key: () => {
+          const copy = new Uint8Array(length).fill(17);
+          copies.push(copy);
+          return copy;
+        },
+      }),
+    );
+    if (length === 32)
+      expect(Buffer.from(cipher.open("ref", cipher.seal("ref", Buffer.from(material), true))).toString()).toBe(
+        material,
+      );
+    else expect(() => cipher.seal("ref", Buffer.from(material), true)).toThrow("E-CUSTODY-KEY");
+    expect(copies.length).toBeGreaterThan(0);
+    expect(copies.every(copy => copy.every(byte => byte === 0))).toBe(true);
     cipher.close();
   }
 });
 it("custodia, bóveda y diccionario activo no entregan material ni llave a JSON o inspect (a1/a3)", () => {
   const rig = custodyRig();
   const key = new Uint8Array(32).fill(117);
-  const store = new SecretCustody(rig.file, rig.home, { forget() {}, key: () => Uint8Array.from(key) });
-  store.keep(material);
+  const store = new SecretCustody(rig.file, rig.home, stubKeys({ forget() {}, key: () => Uint8Array.from(key) }));
+  store.keep(Buffer.from(material));
   const hidden = (object: unknown) => {
     const output = JSON.stringify(object) + inspect(object, { depth: null, showHidden: true, customInspect: false });
     expect(output).not.toContain(material);
@@ -80,13 +95,17 @@ it("custodia, bóveda y diccionario activo no entregan material ni llave a JSON 
     expect(output).not.toContain("117, 117");
     expect(output).not.toContain("75 75 75");
   };
-  const cipher = new CustodyCipher("house", { forget() {}, key: () => Uint8Array.from(key) });
-  cipher.seal("ref", material, true);
+  const cipher = new CustodyCipher("house", stubKeys({ forget() {}, key: () => Uint8Array.from(key) }));
+  cipher.seal("ref", Buffer.from(material), true);
   hidden(cipher);
   cipher.close();
   hidden(store);
   store.close();
-  const vault = new SecretVault<Shop>(rig.file, Type.Object({}), { forget() {}, key: () => Uint8Array.from(key) });
+  const vault = new SecretVault<Shop>(
+    rig.file,
+    Type.Object({}),
+    stubKeys({ forget() {}, key: () => Uint8Array.from(key) }),
+  );
   const schema = Type.Object({ key: Type.String({ secret: true }) });
   try {
     vault.scope(schema, { key: material }, () => hidden(vault));
@@ -102,7 +121,7 @@ it("custodia, bóveda y diccionario activo no entregan material ni llave a JSON 
 it("el borrado fallido informa error tipado y deja pendiente sin volver a autorizar (a8)", async () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(material) };
+  const refs = { key: session.capture(Buffer.from(material)) };
   session.replace("signing", refs, 0);
   vi.spyOn(CustodyDatabase.prototype, "remove").mockImplementation(() => {
     throw new Error(material);

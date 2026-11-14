@@ -55,9 +55,9 @@ Qué cambió respecto de Kenon en este paso:
 - `src/tools/inputs/`: separa restricciones de material y esquema de referencias; guarda el traspaso privado,
   de un uso, del editor de preguntas. `asking-parts.ts` pregunta como secreto y preserva su material multilínea.
   `src/programs/opacity/` exige casos ejecutados para cada posición secreta y observa qué recibe cada acción.
-- `src/adapters/secrets/custody/`: una custodia cifrada por casa, con proveedor de llaves externo, ingreso
+- `src/adapters/secrets/custody/`: una custodia cifrada con una llave externa por secreto y otra de autenticación por casa, ingreso
   provisional, vínculos autenticados con revisión, reservas de uso y recuperación. La identidad aleatoria persiste
-  al mover la casa; el proveedor recibe esa identidad y transporta la llave por entrada estándar. La composición
+  al mover la casa; el proveedor recibe esa identidad y transporta llaves en búferes por entrada estándar. La composición
   exige proveedor si hay posiciones secretas; las fallas de purga llegan con tipo y quedan pendientes.
   La bóveda anterior se adopta conservando IDs,
   después de la revisión histórica y antes del arranque. `secretKeys` se queda en la composición, fuera de los
@@ -174,7 +174,8 @@ es explícita en `secret-public-api.ts`; no se confía en un módulo desconocido
 La marca de esquema garantiza referencias antes de callbacks y resolución solo por adaptadores declarados.
 La composición, custodia y editor son partes confiables de la base. El adaptador sigue siendo responsable del uso
 correcto y de no codificar material en una respuesta pública. Las leyes no constituyen aislamiento de JavaScript,
-no certifican lo no revisable en la historia y no borran copias externas ni evitan restaurar un respaldo anterior.
+no certifican lo no revisable en la historia ni borran copias externas. El ancla de la custodia detecta restauraciones
+anteriores y exige aceptación explícita; no recrea llaves purgadas.
 
 `src/programs/testing/adapter-test.ts`, exportado por `testing.ts`, prueba métodos con referencias provisionales,
 custodia temporal cifrada, proveedor en memoria y controles reales. No llama al llavero ni elige un transporte:

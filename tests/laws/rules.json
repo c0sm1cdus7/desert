@@ -1799,7 +1799,7 @@
     },
     {
       "id": 208,
-      "rule": "La custodia cifra con AES-256-GCM, nonce de 12 bytes y etiqueta de 16, autenticando identidad aleatoria persistida de casa y referencia. La llave externa no viaja en argumentos; las copias recibidas se ponen en cero. JSON e inspección no exponen llave ni diccionario. Componer posiciones secretas exige proveedor. La adopción conserva IDs, cifra y verifica antes de retirar; tras el retiro tampoco quedan textos en auxiliares, aun con un corte antes de compactar. Mover o renombrar conserva identidad; reutilizar ruta crea otra. El proveedor puede olvidar una casa. El llavero no protege frente a programas del mismo usuario.",
+      "rule": "Cada secreto se cifra con AES-256-GCM, nonce de 12 bytes y etiqueta de 16, con una llave propia en un elemento del llavero. La casa tiene otra llave que solo autentica registro y sobres: no descifra secretos. Abrir verifica integridad y presencia sin descifrar ni pedir llaves de secretos. El uso recibe búferes prestados; sus bytes y las copias de llaves se ponen en cero en éxito, falla y cierre, sin caché ni conversión a texto en la custodia. Durante un uso, el secreto en uso y su llave están en la memoria del proceso; un programa de la misma cuenta de usuario puede pedirle al llavero lo mismo que la custodia. El comando usa búferes por entrada y salida, nunca llaves como argumentos, y tiene tiempo límite. La adopción del legado en claro conserva IDs y asigna una llave por fila, compara antes de retirar y compacta; sin proveedor falla antes de escribir. El formato experimental por casa no se convierte. Olvidar exige advertir que también quedan ilegibles otras copias de esa casa en la misma máquina. Autentica versión, identidad aleatoria persistida de casa y referencia; mover o renombrar conserva identidad, reutilizar ruta crea otra. JSON e inspección no exponen llave ni material. La composición y los ingresos tardíos exigen proveedor. Tras retirar el legado tampoco queda texto en auxiliares, aun con un corte antes de compactar.",
       "from": "13/11 · A01, segunda parte, paso 1: custodia",
       "guarantee": "spec",
       "evidence": [
@@ -1812,12 +1812,23 @@
         "src/adapters/secrets/custody-keychain.spec.ts",
         "src/adapters/secrets/custody-identity.spec.ts",
         "src/adapters/secrets/custody-disk.spec.ts",
-        "src/programs/house-runtime.spec.ts"
+        "src/programs/house-runtime.spec.ts",
+        "src/adapters/secrets/custody-isolation.spec.ts",
+        "src/adapters/secrets/custody-heap.spec.ts",
+        "src/adapters/secrets/custody-keychain-bytes.spec.ts",
+        "src/adapters/secrets/custody-command.spec.ts",
+        "src/adapters/secrets/custody-retention.spec.ts",
+        "src/adapters/secrets/custody-buffer-lifetime.spec.ts",
+        "src/adapters/secrets/custody-cipher-edges.spec.ts",
+        "src/adapters/secrets/custody-provider-lifecycle.spec.ts",
+        "src/adapters/secrets/custody-keychain-status.spec.ts",
+        "src/adapters/secrets/custody-keychain-cuts.spec.ts",
+        "src/adapters/secrets/custody-retained-lifetime.spec.ts"
       ]
     },
     {
       "id": 209,
-      "rule": "La custodia restringe usos por sesión, identidad, herramienta, objeto y vínculo autenticado. Un renglón agregado o alterado falla por integridad. Cancelar o reiniciar libera provisionales; reemplazar compara revisión; un uso iniciado conserva su versión. La recuperación conserva batches confirmados y reintenta borrados pendientes; una falla física devuelve error tipado y no anuncia eliminación. La purga retira material y cifrado de todos los archivos actuales, aun abierta o tras un corte. Restaurar una copia vieja completa revive sus secretos: no hay defensa contra esa restauración. El historial solo no retiene material. La frontera pública de acciones y arranques se completa en la regla 210.",
+      "rule": "La custodia restringe usos por sesión, identidad, herramienta, objeto y vínculo autenticado. Cada agregado autentica casa, posición, predecesor y límites del lote; su cabeza se ancla fuera de la carpeta en el llavero. Quitar renglones, alterar la cadena o restaurar una copia vieja impide abrir y explica cómo aceptar explícitamente la restauración. Solo un agregado atómico completo por delante del ancla se verifica y reancla automáticamente. Un uso iniciado conserva su versión; los lotes rechazados no avanzan el ancla. Borrar conserva pendiente durable antes de eliminar cifrado y llave; la falla la recibe quien pidió borrar y nunca tapa otro uso exitoso ni impide abrir. La apertura recorre material e historia en proporción, también al recoger provisionales. Retienen los vínculos vigentes, usos en curso, propósitos explícitos y legado sin dueño hasta adopción o descarte; el historial solo no retiene. La purga alcanza archivos actuales y la llave del proveedor, no respaldos ni copias externas. Los pendientes se reintentan al abrir y mediante collect; cleanupPending informa una falla de mantenimiento. Cancelar o reiniciar libera provisionales; reemplazar compara revisión y conserva la tumba después de liberar. El límite de la memoria durante el uso y del acceso desde la misma cuenta está en la regla 208.",
       "from": "13/11 · A01, segunda parte, paso 1: custodia",
       "guarantee": "spec",
       "evidence": [
@@ -1828,12 +1839,20 @@
         "PROGRAMA.md",
         "src/adapters/secrets/custody-ledger.spec.ts",
         "src/adapters/secrets/custody-adversarial.spec.ts",
-        "src/adapters/secrets/custody-disk.spec.ts"
+        "src/adapters/secrets/custody-disk.spec.ts",
+        "src/adapters/secrets/custody-third-review.spec.ts",
+        "src/adapters/secrets/custody-chain.spec.ts",
+        "src/adapters/secrets/custody-anchor.spec.ts",
+        "src/adapters/secrets/custody-all-cuts.spec.ts",
+        "src/adapters/secrets/custody-retention.spec.ts",
+        "src/programs/house-custody-anchor.spec.ts",
+        "src/adapters/secrets/custody-transaction-edges.spec.ts",
+        "src/adapters/secrets/custody-cost.spec.ts"
       ]
     },
     {
       "id": 210,
-      "rule": "Las acciones y los arranques reciben solo métodos públicos de adaptadores declarados y operaciones de vínculos; no reciben KeyStore, custodia ni resolvedor. Cada operación fija entrada, salida, herramientas, slots e ingreso permitido. La fábrica recibe un resolvedor por llamada, revocable y limitado al alcance. Los resultados se validan como datos públicos cerrados y las fallas cruzan como códigos, sin mensaje, causa ni traza originales. current y revision fijan la vista inicial; replace y release producen efectos no copiables que se confirman con el lote aceptado y dejan hechos autenticados. Rechazo, conflicto o rollback conservan el vínculo anterior; la recolección espera al lote. La sustitución del ingreso se comprueba en la regla 211; las leyes transitivas se comprueban en la regla 212.",
+      "rule": "Las acciones y los arranques reciben solo métodos públicos de adaptadores declarados y operaciones de vínculos; no reciben KeyStore, custodia ni resolvedor. Cada operación fija entrada, salida, herramientas, slots e ingreso permitido. La fábrica recibe un resolvedor por llamada, revocable y limitado al alcance. Los resultados se validan como datos públicos cerrados y las fallas cruzan como códigos, sin mensaje, causa ni traza originales. current y revision fijan la vista inicial; replace y release producen efectos no copiables que se confirman con el lote aceptado y dejan hechos autenticados. Rechazo, conflicto o rollback conservan el vínculo anterior; la recolección espera al lote. La sustitución del ingreso se comprueba en la regla 211; las leyes transitivas se comprueban en la regla 212. El resolvedor ingresa bytes y presta búferes durante use; cada lote de vínculos se guarda como un custodyBatch autenticado y se ancla después del commit.",
       "from": "13/11 · A01, segunda parte, paso 2: contratos y composición",
       "guarantee": "spec",
       "evidence": [
@@ -1845,7 +1864,8 @@
         "src/tools/capabilities-contract.ts",
         "src/tools/startup-contract.ts",
         "src/adapters/declared/credential-journal.ts",
-        "PROGRAMA.md"
+        "PROGRAMA.md",
+        "src/adapters/declared/credential-journal.spec.ts"
       ]
     },
     {

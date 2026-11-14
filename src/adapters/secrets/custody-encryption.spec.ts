@@ -1,3 +1,4 @@
+import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
 import { afterEach, expect, it } from "vitest";
 import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -28,7 +29,7 @@ it("el disco solo guarda cifrado privado y una copia de carpeta no trae la llave
   const path = home(),
     custody = open(path),
     session = custody.begin(scope);
-  const refs = { key: session.capture("MARCADOR_INVENTADO_MULTILINEA\nSIN_VALOR") };
+  const refs = { key: session.capture(Buffer.from("MARCADOR_INVENTADO_MULTILINEA\nSIN_VALOR")) };
   session.replace("signing", refs, 0);
   custody.close();
   for (const file of readdirSync(path)) {
@@ -45,7 +46,7 @@ it("una llave perdida no se regenera aunque ya se hayan borrado todos los materi
   const path = home(),
     store = open(path),
     session = store.begin(scope);
-  session.capture("sintetico");
+  session.capture(Buffer.from("sintetico"));
   session.cancel();
   expect(store.ids()).toEqual([]);
   store.close();
@@ -54,8 +55,8 @@ it("una llave perdida no se regenera aunque ya se hayan borrado todos los materi
 it("mover o alterar un registro rompe la autenticación aunque la llave sea la misma", () => {
   const path = home(),
     custody = open(path);
-  const first = custody.keep("uno"),
-    second = custody.keep("dos");
+  const first = custody.keep(Buffer.from("uno")),
+    second = custody.keep(Buffer.from("dos"));
   custody.close();
   const db = new CustodyDatabase(join(path, "fixture.sqlite"));
   const payload = db.rows().find(row => row.ref === first)?.payload;
@@ -66,27 +67,21 @@ it("mover o alterar un registro rompe la autenticación aunque la llave sea la m
   expect(() => open(path)).toThrow("E-CUSTODY-INTEGRITY");
 });
 it("el proveedor macOS usa solo el comando inyectado, no sobrescribe y cierra errores", () => {
-  const saved = new Map<string, string>();
-  const calls: string[][] = [];
-  const provider = new MacOSHouseKeys((file, args, input) => {
-    expect(file).toBe("/usr/bin/security");
-    calls.push([...args]);
-    const account = args[args.indexOf("-a") + 1] ?? "";
-    if (args[0] === "find-generic-password")
-      return { status: saved.has(account) ? 0 : 44, stdout: saved.get(account) ?? "" };
-    const command = input.trim().split(" ");
-    saved.set(command[command.indexOf("-a") + 1] ?? "", command.at(-1) ?? "");
-    return { status: 0, stdout: "" };
-  });
+  const { calls, command } = fakeKeychain();
+  const provider = new MacOSHouseKeys(command);
   expect(() => provider.key("a", false)).toThrow("E-CUSTODY-KEY");
   const first = provider.key("a", true);
   expect(provider.key("a", false)).toEqual(first);
   expect(provider.key("b", true)).not.toEqual(first);
-  expect(calls.every(args => !args.includes("-U"))).toBe(true);
+  expect(
+    calls.filter(call => call.args.includes("desert.house-custody.v2")).every(call => !call.args.includes("-U")),
+  ).toBe(true);
   expect(() =>
     new MacOSHouseKeys(() => {
       throw new Error("SINTETICO");
     }).key("a", true),
   ).toThrow("E-CUSTODY-KEY");
-  expect(() => new MacOSHouseKeys(() => ({ status: 36, stdout: "SINTETICO" })).key("a", true)).toThrow("E-CUSTODY-KEY");
+  expect(() => new MacOSHouseKeys(() => ({ status: 36, stdout: Buffer.from("SINTETICO") })).key("a", true)).toThrow(
+    "E-CUSTODY-KEY",
+  );
 });

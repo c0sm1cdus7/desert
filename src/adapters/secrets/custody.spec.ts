@@ -29,8 +29,8 @@ it("ingresa por pregunta o adaptador, vincula un par y conserva solo referencias
     session = store.begin(scope);
   const adapter = store.adapter(session, ["signing", "backup"]);
   const refs = {
-    certificate: session.capture("CERTIFICADO_SINTETICO\nSIN_VALIDEZ"),
-    privateKey: adapter.capture("MATERIAL_SINTETICO\nNO_ES_LLAVE"),
+    certificate: session.capture(Buffer.from("CERTIFICADO_SINTETICO\nSIN_VALIDEZ")),
+    privateKey: adapter.capture(Buffer.from("MATERIAL_SINTETICO\nNO_ES_LLAVE")),
   };
   expect(await adapter.use(refs, material => (material.privateKey?.length ?? 0) > 0)).toBe(true);
   session.replace("signing", refs, 0);
@@ -52,12 +52,12 @@ it("cancelar y reiniciar liberan provisionales y nunca habilitan referencias inv
   const r = rig(),
     store = r.open(),
     session = store.begin(scope);
-  const refs = { key: session.capture("x") };
+  const refs = { key: session.capture(Buffer.from("x")) };
   const other = store.begin({ ...scope, actor: "bea" });
   await expect(store.adapter(other, ["signing"]).use(refs, () => true)).rejects.toThrow("E-CUSTODY-DENIED");
   session.cancel();
   expect(store.ids()).toEqual([]);
-  const abandoned = store.begin(scope).capture("");
+  const abandoned = store.begin(scope).capture(Buffer.from(""));
   store.close();
   const reopened = r.open(),
     next = reopened.begin(scope);
@@ -68,8 +68,8 @@ it("reemplazo compara revisión, conserva vínculos compartidos y drena un uso i
   const r = rig(),
     store = r.open(),
     session = store.begin(scope);
-  const old = { key: session.capture("anterior") },
-    fresh = { key: session.capture("siguiente") };
+  const old = { key: session.capture(Buffer.from("anterior")) },
+    fresh = { key: session.capture(Buffer.from("siguiente")) };
   session.replace("signing", old, 0);
   session.replace("backup", old, 0);
   const adapter = store.adapter(session, ["signing"]);
@@ -98,11 +98,11 @@ it("texto que parece referencia se captura de nuevo y errores del adaptador cruz
     store = r.open(),
     session = store.begin(scope);
   const raw = "secret:00000000-0000-0000-0000-000000000000",
-    ref = session.capture(raw);
+    ref = session.capture(Buffer.from(raw));
   expect(ref).not.toBe(raw);
   await expect(
     store.adapter(session, []).use({ key: ref }, material => {
-      throw new Error(material.key);
+      throw new Error(Buffer.from(material.key ?? []).toString("utf8"));
     }),
   ).rejects.toMatchObject({ message: "E-CUSTODY-ADAPTER", cause: undefined });
 });

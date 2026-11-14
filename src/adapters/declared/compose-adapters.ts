@@ -84,7 +84,7 @@ function leaseFor(
   };
   const changes = credentialEffects(custody, session, slotCheck);
   return {
-    capture: session.capture,
+    capture: (value: string) => session.capture(Buffer.from(value)),
     apply: changes.apply,
     together: <T>(work: () => T) => custody.deferCleanup(work),
     ports: adapterPorts(declared, { custody, session, check }),
@@ -92,7 +92,7 @@ function leaseFor(
     close: () => {
       if (live) {
         live = false;
-        session.cancel();
+        custody.finish(session);
       }
     },
   };

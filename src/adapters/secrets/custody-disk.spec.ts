@@ -1,3 +1,4 @@
+import { processKeys } from "../../../tests/support/custody-provider.ts";
 import { expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
 import { DatabaseSync } from "node:sqlite";
@@ -7,7 +8,6 @@ import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts"
 import { containing } from "../../../tests/support/custody-files.ts";
 import { SecretCustody } from "./custody/secret-custody.ts";
 const marker = "MARCADOR_SINTETICO_DE_DISCO_".repeat(20);
-const keys = { forget() {}, key: () => new Uint8Array(32).fill(19) };
 function cut(file: string, home: string, point: string) {
   const child = spawnSync(
     process.execPath,
@@ -28,7 +28,7 @@ for (const wal of [false, true])
     db.close();
     cut(rig.file, rig.home, "retire");
     expect(containing(rig.home, marker)).toEqual([]);
-    const reopened = new SecretCustody(rig.file, rig.home, keys);
+    const reopened = new SecretCustody(rig.file, rig.home, processKeys(rig.home));
     try {
       expect(reopened.ids()).toHaveLength(40);
       expect(containing(rig.home, marker)).toEqual([]);
@@ -40,9 +40,9 @@ for (const wal of [false, true])
 for (const point of ["open", "closed", "purge", "released"])
   it(`liberar y purgar borra material y cifrado de TODOS los archivos: ${point} (a8/a9)`, () => {
     const rig = custodyRig(),
-      store = new SecretCustody(rig.file, rig.home, keys),
+      store = new SecretCustody(rig.file, rig.home, processKeys(rig.home)),
       session = store.begin(custodyScope);
-    const refs = { key: session.capture(marker) };
+    const refs = { key: session.capture(Buffer.from(marker)) };
     session.replace("signing", refs, 0);
     expect(containing(rig.home, marker)).toEqual([]);
     store.close();
@@ -55,7 +55,7 @@ for (const point of ["open", "closed", "purge", "released"])
     expect(containing(rig.home, ciphertext).length).toBeGreaterThan(0);
     if (point === "purge" || point === "released") cut(rig.file, rig.home, point);
     else {
-      const reopened = new SecretCustody(rig.file, rig.home, keys);
+      const reopened = new SecretCustody(rig.file, rig.home, processKeys(rig.home));
       try {
         reopened.begin(custodyScope).release("signing", 1);
         expect(containing(rig.home, marker)).toEqual([]);
@@ -81,7 +81,7 @@ for (const point of ["copy", "before-retire", "compact", "adopted"])
     cut(rig.file, rig.home, point);
     const beforeRetirement = point === "copy" || point === "before-retire";
     expect(containing(rig.home, marker).length > 0).toBe(beforeRetirement);
-    const recovered = new SecretCustody(rig.file, rig.home, keys);
+    const recovered = new SecretCustody(rig.file, rig.home, processKeys(rig.home));
     try {
       expect(recovered.ids()).toHaveLength(3);
       expect(containing(rig.home, marker)).toEqual([]);

@@ -1,3 +1,4 @@
+import { custodyPreflight } from "./custody-database.ts";
 import { randomUUID } from "node:crypto";
 import { CustodyDatabase } from "./custody-database.ts";
 import { AuthenticatedLedger } from "./authenticated-ledger.ts";
@@ -16,16 +17,24 @@ import {
 export class CustodyState {
   readonly store: CustodyDatabase;
   readonly cipher: CustodyCipher;
-  readonly ledger: CredentialLedger;
+  readonly ledger: AuthenticatedLedger;
+  readonly buffers = new Set<Uint8Array>();
   readonly sessions = new Map<string, CredentialIngress>();
   readonly uses = new Map<SecretRef, number>();
   closed = false;
   cleanupDepth = 0;
+  cleanupFailed = false;
   constructor(file: string, _house: string, keys?: HouseKeyProvider, ledger?: CredentialLedger) {
+    custodyPreflight(file, !!keys);
     this.store = new CustodyDatabase(file);
     try {
-      this.cipher = new CustodyCipher(this.store.identity(), keys);
-      this.ledger = new AuthenticatedLedger(ledger ?? this.store, this.cipher);
+      const house = this.store.identity();
+      this.cipher = new CustodyCipher(house, keys);
+      this.ledger = new AuthenticatedLedger(
+        ledger ?? this.store,
+        this.cipher,
+        () => !!this.store.keyCheck() || !!keys?.head(house),
+      );
     } catch (error) {
       this.store.close();
       throw error;
@@ -36,14 +45,12 @@ export class CustodyState {
       throw new CustodyError("E-CUSTODY-DENIED");
   }
   prepareKey(): void {
-    const check = this.store.keyCheck();
-    if (check) {
-      if (this.cipher.open("house-key-check", check) !== "custody-v1") throw new CustodyError("E-CUSTODY-INTEGRITY");
-    } else {
-      const create = !this.store.rows().some(row => row.payload !== null);
-      this.store.saveKeyCheck(this.cipher.seal("house-key-check", "custody-v1", create));
-    }
+    if (this.store.keyCheck()) return;
+    const create = !this.store.rows().some(row => row.payload !== null) && !this.store.facts().length;
+    this.cipher.prepare(create);
+    this.store.saveKeyCheck("custody-v2");
   }
+
   latest(scope: CredentialScope, slot: string): CredentialFact | undefined {
     return this.ledger
       .facts()
@@ -110,6 +117,8 @@ export class CustodyState {
   close(): void {
     this.closed = true;
     this.sessions.clear();
+    for (const buffer of this.buffers) buffer.fill(0);
+    this.buffers.clear();
     this.cipher.close();
     this.store.close();
   }

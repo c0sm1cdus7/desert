@@ -7,7 +7,7 @@ it("un segundo escritor no recoge provisionales de una sesión viva", () => {
   const rig = custodyRig(),
     first = rig.open(),
     session = first.begin(custodyScope);
-  const ref = session.capture("sintetico");
+  const ref = session.capture(Buffer.from("sintetico"));
   expect(() => new SecretCustody(rig.file, rig.home, rig.keys)).toThrow("E-CUSTODY-LOCKED");
   expect(first.ids()).toContain(ref);
 });
@@ -16,7 +16,7 @@ for (const after of [false, true])
     const rig = custodyRig(),
       store = rig.open(),
       session = store.begin(custodyScope);
-    const old = { key: session.capture("vigente") };
+    const old = { key: session.capture(Buffer.from("vigente")) };
     session.replace("signing", old, 0);
     let count = 0;
     const fail = vi.spyOn(CustodyDatabase.prototype, "put").mockImplementation(function (
@@ -27,8 +27,8 @@ for (const after of [false, true])
       if (++count !== 2 || after) this.db.prepare("update custody_material set payload=? where ref=?").run(value, ref);
       if (count === 2) throw new Error("corte");
     });
-    session.capture("certificado sintetico");
-    expect(() => session.capture("llave sintetica")).toThrow();
+    session.capture(Buffer.from("certificado sintetico"));
+    expect(() => session.capture(Buffer.from("llave sintetica"))).toThrow();
     store.close();
     fail.mockRestore();
     const recovered = rig.open();
@@ -49,9 +49,9 @@ for (const committed of [false, true])
     const rig = custodyRig(),
       store = rig.open(ledger),
       session = store.begin(custodyScope);
-    const old = { key: session.capture("uno") };
+    const old = { key: session.capture(Buffer.from("uno")) };
     session.replace("signing", old, 0);
-    const next = { key: session.capture("dos") };
+    const next = { key: session.capture(Buffer.from("dos")) };
     fail = true;
     expect(() => session.replace("signing", next, 1)).toThrow();
     store.close();
@@ -64,7 +64,7 @@ it("borrado fallido revoca ya, informa pendiente y reintenta al abrir", async ()
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture("sintetico") };
+  const refs = { key: session.capture(Buffer.from("sintetico")) };
   session.replace("signing", refs, 0);
   const fail = vi.spyOn(CustodyDatabase.prototype, "remove").mockImplementation(() => {
     throw new Error("disco");
@@ -84,7 +84,7 @@ for (const point of ["credential-cleanup-pending", "credential-purged"])
     const rig = custodyRig(),
       store = rig.open(),
       session = store.begin(custodyScope);
-    const refs = { key: session.capture("sintetico") };
+    const refs = { key: session.capture(Buffer.from("sintetico")) };
     session.replace("signing", refs, 0);
     const fail = vi.spyOn(CustodyDatabase.prototype, "append").mockImplementation(function (
       this: CustodyDatabase,

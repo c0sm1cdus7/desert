@@ -1,3 +1,5 @@
+import { secretTexts } from "../../../texts/secrets/secrets.texts.ts";
+import { openCustody } from "./custody-opening.ts";
 import { randomUUID } from "node:crypto";
 import { CustodyError, type HouseKeyProvider } from "./house-keys.ts";
 import type {
@@ -8,13 +10,12 @@ import type {
   SecretRefs,
 } from "./custody-contract.ts";
 import { CustodyState } from "./custody-state.ts";
-import { collectCustody } from "./custody-cleanup.ts";
-import { authorizeRefs, readMaterial, useMaterial } from "./custody-access.ts";
+import { collectCustody, retryCleanup } from "./custody-cleanup.ts";
+import { authorizeRefs, checkMaterial, useMaterial } from "./custody-access.ts";
 import { retainMaterial, adoptMaterial } from "./retained-material.ts";
-import { migrateFieldVault } from "./custody-migration.ts";
 export type CredentialSession = CredentialIngress &
   Readonly<{
-    capture(value: string): SecretRef;
+    capture(value: Uint8Array): SecretRef;
     current(slot: string): ReturnType<CustodyState["current"]>;
     revision(slot: string): number;
     replace(slot: string, refs: SecretRefs, expected: number): void;
@@ -27,13 +28,7 @@ export class SecretCustody {
   constructor(file: string, house: string, keys?: HouseKeyProvider, ledger?: CredentialLedger) {
     this.#state = new CustodyState(file, house, keys, ledger);
     try {
-      migrateFieldVault(this.#state);
-      if (this.#state.store.keyCheck()) this.#state.prepareKey();
-      this.#state.store
-        .rows()
-        .filter(row => row.payload !== null)
-        .forEach(row => readMaterial(this.#state, row.ref));
-      collectCustody(this.#state);
+      openCustody(this.#state);
     } catch (error) {
       this.#state.close();
       throw error instanceof CustodyError ? error : new CustodyError("E-CUSTODY-STORAGE");
@@ -44,7 +39,7 @@ export class SecretCustody {
     const session: CredentialSession = Object.freeze({
       id: randomUUID(),
       scope: Object.freeze({ ...scope }),
-      capture: (value: string) => this.capture(session, value),
+      capture: (value: Uint8Array) => this.capture(session, value),
       current: (slot: string) => {
         this.#state.check(session);
         return this.#state.current(session.scope, slot);
@@ -64,19 +59,24 @@ export class SecretCustody {
     this.#state.sessions.set(session.id, session);
     return session;
   }
-  private capture(session: CredentialIngress, value: string): SecretRef {
-    this.#state.check(session);
-    const ref: SecretRef = `secret:${randomUUID()}`;
-    this.#state.prepareKey();
-    this.#state.store.intent(ref, session.id, false);
-    this.#state.store.put(ref, this.#state.cipher.seal(ref, value, false));
-    return ref;
+  private capture(session: CredentialIngress, value: Uint8Array): SecretRef {
+    try {
+      this.#state.check(session);
+      const ref: SecretRef = `secret:${randomUUID()}`;
+      this.#state.prepareKey();
+      this.#state.store.intent(ref, session.id, false);
+      this.#state.store.put(ref, this.#state.cipher.seal(ref, value, true));
+      return ref;
+    } finally {
+      value.fill(0);
+    }
   }
+
   private replace(session: CredentialIngress, slot: string, refs: SecretRefs, expected: number): void {
     this.#state.check(session);
     const revision = this.#state.revision(session.scope, slot, expected);
     authorizeRefs(this.#state, session, refs);
-    Object.values(refs).forEach(ref => readMaterial(this.#state, ref));
+    Object.values(refs).forEach(ref => checkMaterial(this.#state, ref));
     this.#state.fact("credential-bound", session.scope, slot, revision, refs, session.id);
     Object.values(refs).forEach(ref => this.#state.store.unretain(ref));
     collectCustody(this.#state);
@@ -94,7 +94,7 @@ export class SecretCustody {
     const revision = this.#state.revision(session.scope, slot, expected);
     if (refs) {
       authorizeRefs(this.#state, session, refs);
-      Object.values(refs).forEach(ref => readMaterial(this.#state, ref));
+      Object.values(refs).forEach(ref => checkMaterial(this.#state, ref));
     }
     this.#state.fact(
       refs ? "credential-bound" : "credential-released",
@@ -109,8 +109,8 @@ export class SecretCustody {
     this.#state.check(session);
     const slots = [...allowedSlots];
     return Object.freeze({
-      capture: (value: string) => this.capture(session, value),
-      use: <T>(refs: SecretRefs, body: (material: Readonly<Record<string, string>>) => T | Promise<T>) =>
+      capture: (value: Uint8Array) => this.capture(session, value),
+      use: <T>(refs: SecretRefs, body: (material: Readonly<Record<string, Uint8Array>>) => T | Promise<T>) =>
         useMaterial(this.#state, session, slots, refs, body),
     });
   }
@@ -125,10 +125,18 @@ export class SecretCustody {
   deferCleanup<T>(work: () => T): T {
     this.#state.cleanupDepth++;
     try {
-      return work();
+      return this.#state.ledger.batch(work);
     } finally {
       this.#state.cleanupDepth--;
     }
+  }
+  finish(session: CredentialSession): void {
+    if (this.#state.closed) return;
+    this.#state.sessions.delete(session.id);
+    retryCleanup(this.#state);
+  }
+  cleanupPending(): boolean {
+    return this.#state.cleanupFailed;
   }
   collect(): void {
     collectCustody(this.#state);
@@ -148,19 +156,35 @@ export class SecretCustody {
     this.#state.store.unretain(ref);
     collectCustody(this.#state);
   }
+  static acceptRestoredCopy(file: string, house: string, keys: HouseKeyProvider, ledger?: CredentialLedger): void {
+    const state = new CustodyState(file, house, keys, ledger);
+    try {
+      openCustody(state, true);
+    } finally {
+      state.close();
+    }
+  }
+  forgetWarning(): string {
+    return secretTexts.forget;
+  }
+  forgetHouse(acknowledgement: string): void {
+    if (acknowledgement !== this.forgetWarning()) throw new CustodyError("E-CUSTODY-DENIED");
+    this.#state.cipher.forgetHouse();
+    this.close();
+  }
   close(): void {
     this.#state.close();
   }
   /** Old redaction captures are held without authority until an explicit owner adopts their purpose. */
-  keep(value: string): SecretRef {
+  keep(value: Uint8Array): SecretRef {
     return retainMaterial(this.#state, value);
   }
-  importLegacy(ref: SecretRef, value: string): void {
+  importLegacy(ref: SecretRef, value: Uint8Array): void {
     retainMaterial(this.#state, value, ref);
   }
   verifyLegacy(ref: SecretRef): void {
     this.#state.check();
-    readMaterial(this.#state, ref);
+    checkMaterial(this.#state, ref);
   }
   adopt(scope: CredentialScope, slot: string, refs: SecretRefs, expected = 0): void {
     adoptMaterial(this.#state, scope, slot, refs, expected);

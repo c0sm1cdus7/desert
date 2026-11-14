@@ -20,20 +20,23 @@ function busOf<X extends Program>(
   journal: SqliteJournal<X["fact"]>,
   time: TimeSource,
   kept: (emission: Emission<X["fact"]>) => Emission<X["fact"]>,
+  transaction: <T>(work: () => T) => T,
 ) {
   let together: number | undefined;
   return new Bus<X["fact"]>(
     emission => journal.append(kept(emission), together ?? time.now()),
     write =>
-      journal.batch(() => {
-        const outer = together;
-        together = outer ?? time.now();
-        try {
-          return write();
-        } finally {
-          together = outer;
-        }
-      }),
+      transaction(() =>
+        journal.batch(() => {
+          const outer = together;
+          together = outer ?? time.now();
+          try {
+            return write();
+          } finally {
+            together = outer;
+          }
+        }),
+      ),
   );
 }
 function publicCapabilities<X extends Program>(
@@ -61,14 +64,19 @@ function houseAdapters<X extends Program>(options: HouseOptions<X>) {
   if (!options.secretKeys && (captures || binds)) throw new CustodyError("E-CUSTODY-PROVIDER");
   return compose;
 }
-export function houseResources<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource) {
-  const { by, registry, words, secretKeys } = options;
-  const compose = houseAdapters(options);
-  const protection = protectedHouse(home, options);
-  mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
-  const journal = new SqliteJournal(join(home, "journal.sqlite"), protection.words);
+function houseCustody<X extends Program>(
+  home: string,
+  options: HouseOptions<X>,
+  journal: SqliteJournal<X["fact"]>,
+  time: TimeSource,
+) {
+  const { words, secretKeys } = options;
   const credentials = credentialJournal(
-    () => journal.replay<ReturnType<typeof journal.append>[]>([], (all, event) => [...all, event]),
+    () =>
+      journal.replay<ReturnType<typeof journal.append>[]>([], (all, event) => {
+        all.push(event);
+        return all;
+      }),
     entry => journal.append(entry, time.now()),
   );
   const secrets = openSecretVault<X>(
@@ -78,7 +86,21 @@ export function houseResources<X extends Program>(home: string, options: HouseOp
     () => journal.close(),
     credentials.ledger,
   );
-  const bus = busOf<X>(journal, time, emission => credentials.write(emission, value => secrets.write(value)));
+  return { credentials, secrets };
+}
+export function houseResources<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource) {
+  const { by, registry } = options;
+  const compose = houseAdapters(options);
+  const protection = protectedHouse(home, options);
+  mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
+  const journal = new SqliteJournal(join(home, "journal.sqlite"), protection.words);
+  const { credentials, secrets } = houseCustody(home, options, journal, time);
+  const bus = busOf<X>(
+    journal,
+    time,
+    emission => credentials.write(emission, value => secrets.write(value)),
+    credentials.transaction,
+  );
   credentials.publish(entry => bus.emit(entry));
   const stops: (() => void)[] = [];
   const report = defectReporter(

@@ -12,10 +12,12 @@ export const signer: AdapterDeclaration = {
     inspect: { input: references, output: validity, permissions },
   },
   open: resolver => ({
-    import: () => ({ key: resolver.capture(synthetic) }),
+    import: () => ({ key: resolver.capture(Buffer.from(synthetic)) }),
     inspect: input => {
       if (!Value.Check(references, input)) throw new Error("fixture input");
-      return resolver.use(input, material => ({ valid: material.key === synthetic }));
+      return resolver.use(input, material => ({
+        valid: Buffer.from(material.key ?? []).toString("utf8") === synthetic,
+      }));
     },
   }),
 };
