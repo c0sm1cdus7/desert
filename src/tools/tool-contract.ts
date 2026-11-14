@@ -68,6 +68,8 @@ export interface ToolAct<X extends Program> extends Readonly<{ input: TSchema; r
   reject?(context: ActContext<X>, result: Accepted<X>): string | undefined;
 }
 export interface Tool<X extends Program> extends Readonly<{ id: string; purpose: string }> {
+  /** Program fact kinds owned exclusively by this tool; absent means no program facts. */
+  readonly facts?: readonly X["fact"]["kind"][];
   start?(ports: ToolStartup<X>): () => void;
   readonly acts: Readonly<Record<string, ToolAct<X>>>;
   targets(state: State<X>): readonly string[];

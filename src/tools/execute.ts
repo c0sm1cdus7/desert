@@ -1,6 +1,7 @@
+import { coreSelf } from "./execution/effect-authority.ts";
 import { hasSecretInput } from "./inputs/secret-input.ts";
 import { runningSignal } from "./execution/running-acts.ts";
-import { decisionOf } from "./execution/action-decision.ts";
+import { checkedDecision } from "./execution/action-decision.ts";
 import { programCall } from "./boundaries/program-call.ts";
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
 import { Value } from "@sinclair/typebox/value";
@@ -50,7 +51,9 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   if (!present(ports.registry, state.house, by) || (process && !ports.process(process, by)))
     return toolTexts.unassigned;
   if (!act) return toolTexts.unknown;
-  if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option))) return toolTexts.outsideKit;
+  const self = state.house.identities && coreSelf(tool?.id, by, target);
+  if (!offered && !self && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option)))
+    return toolTexts.outsideKit;
   if (!offered && tool && elsewhere(act, tool, target)) return toolTexts.unknown;
   if (!offered && mindTool(by) !== tool?.id && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
   return programOffered(act, state, target, ports.now());
@@ -88,10 +91,8 @@ const decide = <X extends Program>(
   }
   return () => {
     const result = runProgram(act, value.input, context);
-    const finish = (result: ActResult<X>): Decision<X> => ({
-      ...decisionOf(result, act, context, offered ? undefined : tool?.id, value.act),
-      ...(act.output ? { output: true } : {}),
-    });
+    const finish = (result: ActResult<X>): Decision<X> =>
+      checkedDecision(ports, result, act, context, tool, offered, value.act);
     return result instanceof Promise ? result.then(finish) : finish(result);
   };
 };

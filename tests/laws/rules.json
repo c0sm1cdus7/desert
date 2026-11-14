@@ -2131,7 +2131,7 @@
     },
     {
       "id": 219,
-      "rule": "El kit rige las acciones de herramientas: una identidad puede todas las de su herramienta salvo recorte; una mente, solo las dadas de la suya. Solo quien administra da el kit y no recibe recorte. null da todas; [] ninguna sin quitar la herramienta. Al salir o perder una herramienta se pierde su kit. Al recibir la administración se borran todos los kits de quien la recibe; al devolverla conserva sus herramientas enteras hasta un nuevo kit. Cada inicio de ejecución de herramienta, también anidado, comprueba el kit vigente; sacar una acción corta también el acto iniciado según la garantía 226.",
+      "rule": "El kit rige las acciones de herramientas: una identidad puede todas las de su herramienta salvo recorte; una mente, solo las dadas de la suya. Solo quien administra da el kit y no recibe recorte. null da todas; [] ninguna sin quitar la herramienta. Al salir o perder una herramienta se pierde su kit. Al recibir la administración se borran todos los kits de quien la recibe; al devolverla conserva sus herramientas enteras hasta un nuevo kit. Cada inicio de ejecución de herramienta, también anidado, comprueba el kit vigente; sacar una acción corta también el acto iniciado según la garantía 226. Los efectos de cada acto de programa son hechos propios declarados por su herramienta, a nombre de quien actúa (también la mente); cualquier efecto de casa, ajeno o con otro autor rechaza el lote entero a la vista. Solo los actos propios de la casa y el core reservado identities escriben hechos de casa: el core requiere administración salvo escena y nombre propios sobre sí, siempre con el autor del acto. Un kit-set inválido por titular, herramienta, acción o repetición se rechaza antes de escribir. Un acto own que tapa una acción por objeto y nombre falla al componer.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "spec",
       "evidence": [
@@ -2140,7 +2140,15 @@
         "src/house/kit.spec.ts",
         "src/house/minds.spec.ts",
         "src/house/contract-neighbors.spec.ts",
-        "src/house/adversaria.spec.ts"
+        "src/house/adversaria.spec.ts",
+        "src/tools/execution/effect-authority.ts",
+        "src/tools/execution/composed-authority.ts",
+        "src/tools/effect-authority.spec.ts",
+        "src/tools/core-effects.spec.ts",
+        "src/tools/effect-neighbors.spec.ts",
+        "src/tools/own-collision.spec.ts",
+        "src/tools/effect-late.spec.ts",
+        "src/programs/own-composition.spec.ts"
       ]
     },
     {

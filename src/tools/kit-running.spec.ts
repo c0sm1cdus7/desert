@@ -23,7 +23,7 @@ it.each(["beto", "mind:slow"])("corta lo pendiente de %s, rechaza lo nuevo y con
   rig.calls[0]?.done.resolve({
     ...saved,
     private: "Recibo de prueba",
-    effects: [shop.fact("sale-registered", { sale: "tardia", total: 100 }, by)],
+    effects: [shop.fact("slow-written", { sale: "tardia", total: 100 }, by)],
   });
   const done = await settled(pending);
   expect(done).toMatchObject(cut);

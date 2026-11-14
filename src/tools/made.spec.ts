@@ -16,12 +16,13 @@ const pair = (): Result => ({
   status: "accepted",
   text: "Registradas · 2",
   effects: [
-    shop.fact("sale-registered", { sale: "s8", total: 10 }, "ana"),
-    shop.fact("sale-registered", { sale: "s9", total: 20 }, "ana"),
+    shop.fact("batch-sale-registered", { sale: "s8", total: 10 }, "ana"),
+    shop.fact("batch-sale-registered", { sale: "s9", total: 20 }, "ana"),
   ],
 });
 const bulk = {
   id: "bulk",
+  facts: ["batch-sale-registered"] as const,
   purpose: "A tool of the test.",
   targets: () => [],
   view: () => "",
@@ -53,7 +54,7 @@ describe("what an act writes", () => {
     const rig = open();
     /** Something that folds every fact of the house and does not take the sale called s9. */
     rig.journal.watch("guard", 0, (count: number, event) => {
-      if (event.kind === "sale-registered" && event.data.sale === "s9") throw new Error("s9 no se pliega");
+      if (event.kind === "batch-sale-registered" && event.data.sale === "s9") throw new Error("s9 no se pliega");
       return count + 1;
     });
     const done = rig.act("ana", "run", {}, "bulk");

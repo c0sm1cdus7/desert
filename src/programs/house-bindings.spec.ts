@@ -95,7 +95,9 @@ it("copiar un efecto o escribir un hecho de custodia por el bus no concede autor
       return { status: "accepted" };
     }),
   });
-  expect((await rig.act("set")).status).toBe("accepted");
+  const copied = await rig.act("set");
+  expect(copied).toMatchObject({ status: "rejected", effects: [] });
+  expect(copied.reason).toContain("tool-entry");
   expect((await rig.act("current")).status).toBe("accepted");
   expect(() =>
     rig

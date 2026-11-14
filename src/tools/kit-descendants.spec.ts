@@ -17,7 +17,7 @@ it.each(["beto", "mind:slow"])("R2/R2m: %s corta hijos pendientes sin cortar act
   expect(rig.calls.map(call => call.context.signal?.aborted)).toEqual([true, true, false]);
   rig.calls[1]?.done.resolve({
     ...saved,
-    effects: [shop.fact("sale-registered", { sale: "tardia", total: 1 }, by)],
+    effects: [shop.fact("slow-written", { sale: "tardia", total: 1 }, by)],
   });
   expect(await nested).toMatchObject(cut);
   expect(rig.state().tools.sales.has("tardia")).toBe(false);
@@ -80,7 +80,7 @@ it("un hijo que ya cerró conserva su escritura y su señal al cortar al padre",
   const child = rig.calls[0]?.context.execute?.({ act: "other", target: "slow", input: {} });
   rig.calls[1]?.done.resolve({
     ...saved,
-    effects: [shop.fact("sale-registered", { sale: "antes", total: 1 }, "beto")],
+    effects: [shop.fact("slow-written", { sale: "antes", total: 1 }, "beto")],
   });
   expect(await child).toMatchObject({ status: "accepted" });
   rig.kit("beto", ["other"]);

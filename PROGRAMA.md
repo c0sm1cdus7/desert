@@ -9,7 +9,7 @@ programa (Kenon). Lo que una regla hace cumplir está en `GARANTIAS.md`; las ley
 |---|---|---|
 | Sus hechos | `vocabulary(catálogo)`: cada hecho con su forma (TypeBox). La base suma los suyos. | `src/journal/events.ts` |
 | Lo que guarda cada herramienta | `Slices`: un valor inicial y un paso por herramienta (hecho → nuevo estado). | `src/tools/tool-contract.ts` |
-| Cada herramienta | `ProgramTool`: `id`, `purpose`, `targets`, `view`, `summary`, `acts`, y si hace falta `menus`, `closed`, `needs`, `words`, `start`. | `src/tools/promises.ts` |
+| Cada herramienta | `ProgramTool`: `id`, `purpose`, `facts`, `targets`, `view`, `summary`, `acts`, y si hace falta `menus`, `closed`, `needs`, `words`, `start`. | `src/tools/promises.ts` |
 | Cada acción | `programAct({ name, enter, undoable, purpose, key, on, input, run, cases, … })`. | `src/tools/promises.ts` |
 | Lo que promete | `cases`: dado esto, al hacer esto, pasa esto (dice, escribe, se lee, pide atención) o se rechaza con un motivo. | `src/tools/promises.ts` |
 | Sus palabras | `Shown.words[herramienta]`: `name`, `key`, y `system` o `inside`; si lista cosas, `empty`, `listed`, `reads` y `presents`; si lee datos propios, `itself`. | `src/surface/bridge/house-ports.ts` |
@@ -22,7 +22,7 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 
 - **La organización** (`house`): quién administra, qué herramientas enteras tiene cada usuario, sus preferencias. Quien
   administra da y quita herramientas (`granted`), saca a alguien (`removed`) y pasa la administración (`handed`):
-  la base pliega esos hechos y cuida sus reglas; la acción que los escribe (y su pantalla) es del programa.
+  la base pliega esos hechos y cuida sus reglas; los escriben sus actos propios y sus piezas del core.
   `kit-set` suma el recorte de acciones; `scene` guarda la última descripción de cada identidad o mente.
 - **El registro**: solo se agrega; cada hecho con autor e instante; el estado es el registro plegado.
 - **La superficie**: Menú, lista de cada herramienta, objeto abierto y pregunta; un router único para cualquier
@@ -43,6 +43,46 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   compará los nombres completos como multiconjunto, sin la ruta del archivo ni el orden. Deben ser los mismos;
   una parte sin comprobaciones agrega solamente «this part has no derived checks» bajo «derived checks».
   El armado de la lista se repite en cada parte; no ejecuta las comprobaciones.
+
+## Quién escribe los hechos de un acto
+
+| Quién actúa y por dónde | Qué puede devolver en `effects` | Autor |
+|---|---|---|
+| Identidad, en una herramienta de programa | Solo hechos de programa declarados en `Tool.facts` de esa herramienta. | La identidad que actúa. |
+| Mente, en su herramienta | Los mismos hechos propios, con una acción dada en su kit. | `mind:<herramienta>`. |
+| Acto propio del programa (`own`) | Solo hechos de la herramienta de su objeto; sin herramienta, ningún hecho. | Quien actúa. |
+| Pieza del core `identities`, con administración | Hechos de la casa; `kit-set` se valida antes de escribir. | Quien actúa. |
+| Pieza del core sobre `identities/<actor>` | Su propia `scene` o `named`, también sin administrar. | Quien actúa; `named.identity` coincide con él. |
+| Actos que ofrece la casa y motor | Sus hechos de escena, preferencias, lectura, ejecución, avisos y reloj. | El autor que corresponde a cada acto de la casa. |
+
+`facts` enumera los nombres del catálogo de programa que pertenecen a la herramienta. Omitirlo equivale a `[]`.
+Dos herramientas no pueden declarar el mismo hecho, ni una declarar un nombre reservado para la casa.
+La composición rechaza esos casos. Una pieza del core se reconoce por el identificador reservado `identities`,
+con `identities: true`; no existe una marca pública que convierta otra herramienta en core.
+La pieza se agrega al registro de herramientas de la casa. Sus objetos propios usan `identities/<actor>`.
+No necesita un escritor alternativo: sus acciones devuelven efectos y pasan por la misma ejecución.
+
+El lote devuelto se comprueba entero antes de escribir, también si el resultado dice rechazo, interrupción o
+inconcluso. Un efecto de casa, ajeno a la herramienta o con otro autor rechaza el lote con
+`Efecto no permitido · <tipo> · <motivo>`; no se escriben sus hechos ni su entrada de éxito.
+El registro conserva el pedido, el inicio y el rechazo de la ejecución. Un acto anidado que ya terminó conserva
+lo escrito; no se deshace el mundo exterior. Los comandos opacos que devuelve `context.credentials` siguen siendo
+pedidos a la custodia: solo su préstamo original los reconoce; una copia de una entrada no tiene esa autoridad.
+
+Un `kit-set` exige titular presente (o mente de herramienta existente), herramienta dada, acciones declaradas
+sin repeticiones. La mente solo recibe el kit de su herramienta; administración no recibe recortes.
+Se admiten `null`, `[]` y subconjuntos válidos. Si un lote primero da la herramienta, puede después darle el kit;
+si primero la saca, el kit posterior rechaza todo. La autoridad se vuelve a leer al terminar un acto pendiente.
+Los registros anteriores se siguen leyendo: esta validación no reescribe hechos ni agrega un filtro al plegado de kits.
+
+Un acto `own` no puede tener el mismo objeto y nombre que una acción declarada de una herramienta: falla al
+componer, con ambos nombres. Se comprueba el puerto para cada identidad presente y también cada oferta que produce
+al cambiar el estado; no hay una resolución por prioridad que habilite tapar una acción.
+
+Al actualizar, cada herramienta que escribe hechos declara `facts`. Los actos de programa que daban herramientas,
+kit o administración pasan a las acciones del core; una acción que necesita otra herramienta la ejecuta por
+`context.execute`, con el mismo actor y sus permisos, o deja un hecho propio que las otras partes pueden leer.
+La tienda de prueba declara los hechos de Ventas y Pagos; saldar escribe `sale-settled`, que ambas partes leen.
 
 ## Una acción
 
@@ -1065,7 +1105,7 @@ incluidas las que un registro viejo dirigía a otra. `private` conserva el recib
 los secretos siguen fuera de la actividad mediante la custodia estructural. No hay pantallas nuevas; apagar las acciones
 fuera del kit con su motivo cumple la garantía 224 para lectura y kit.
 
-Un programa que no usa estas adiciones no tiene que cambiar sus herramientas ni casos. Quedan reservados los
+Además de declarar `facts`, un programa que no usa estas adiciones no necesita cambiar sus casos. Quedan reservados los
 nombres de hechos `scene` y `kit-set`, y el prefijo de actor `mind:`; si los usaba, necesita resolver la colisión
 antes de subir. `mind:` es un nombre reservado: ninguna identidad puede llamarse con ese prefijo. Un registro
 anterior que tenga una identidad `mind:…` se pliega distinto; no se corrige ni renombra en el plegado. En particular,
@@ -1073,8 +1113,8 @@ si `mind:jefe` creó la casa, ese `house-created` se ignora y un siguiente `hous
 administradora. Los `granted` para `mind:…` quedan en el registro pero no incorporan esa identidad a la casa.
 No se agrega `message`. Quien construye `House` a mano agrega `kits` y `scenes` vacíos o parte de
 `emptyHouse`. `Need.to` es opcional y la entrada `testing.ts` no suma exportaciones.
-La versión de cálculos de la base pasa a `desert/4`: al actualizar se reconstruyen los plegados, también los de
-la primera vuelta (`desert/2`), para borrar los kits al recibir la administración. En versión manual,
+La versión de cálculos de la base pasa a `desert/6`: al actualizar se reconstruyen los plegados, también los de
+la primera vuelta (`desert/2`), para borrar los kits al recibir la administración y reconocer el nombre que una identidad escribe sobre sí. En versión manual,
 la evidencia guardada debe renovarse con la entrega comprobada, conservando la anterior durante su control.
 
 La composición puede pedir `identities: true`: quien administra tiene todas las acciones de cada herramienta, sin asignación; también recibe sus recordatorios. Sin esa opción, la asignación de herramientas conserva su comportamiento anterior. Un recorte sin acciones apaga los recordatorios y excluye la herramienta de Atención, aunque siga en el kit para la preferencia de lo ajeno. La superficie y la ejecución consultan el mismo permiso por acción.

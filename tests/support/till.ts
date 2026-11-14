@@ -85,6 +85,7 @@ const close = programAct<Till, typeof nothing>({
 });
 const tillTool = (how: Offered): ProgramTool<Till> => ({
   id: "till",
+  facts: ["till-floated", "till-closed"],
   purpose: "Keeps the float of the till.",
   targets: () => [],
   view: state =>

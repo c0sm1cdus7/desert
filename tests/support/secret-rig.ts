@@ -57,6 +57,7 @@ function optionsFor(act: ToolAct<P>, changed: Partial<HouseOptions<P>>): HouseOp
     registry: [
       {
         id: "vault",
+        facts: ["sale-registered"],
         purpose: "Dato inventado",
         targets: () => ["child"],
         view: () => "",

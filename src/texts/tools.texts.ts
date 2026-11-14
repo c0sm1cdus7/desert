@@ -7,7 +7,20 @@ export const identityNameTexts = {
   visible: "nombre sin carácter visible",
 } as const;
 
+export const effectRefusalTexts = {
+  absentHolder: "titular fuera de la casa",
+  unassignedTool: "herramienta no dada",
+  adminKit: "kit de administración",
+  repeatedActs: "acciones repetidas",
+  unknownAct: "acción inexistente",
+  otherAuthor: "autor distinto de quien actúa",
+  otherTool: "hecho ajeno a la herramienta",
+  houseFact: "hecho de la casa",
+  adminRequired: "requiere administración",
+} as const;
+
 export const toolTexts = {
+  effectRefused: (kind: string, why: string) => `Efecto no permitido · ${kind} · ${why}`,
   sceneRecipient: (name: string) => `La escena nombra a quien no es una identidad de la casa: ${name}`,
   scene: "Describir lo que está pasando y lo que necesita cada identidad.",
   target: "Una herramienta, o una cosa que una herramienta expone.",

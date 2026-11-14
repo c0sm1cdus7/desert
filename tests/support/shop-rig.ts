@@ -22,12 +22,13 @@ export const testTime: TimeSource = {
 export const runner = "shop";
 const plain = { capture: () => {}, scrub: <T>(value: T): T => value };
 type Options = Readonly<{ registry?: ToolRegistry<Shop>; grants?: Readonly<Record<string, readonly string[]>> }> &
-  Partial<Pick<Execution<Shop>, "own" | "process">>;
+  Partial<Pick<Execution<Shop>, "own" | "process">> &
+  Readonly<{ identities?: boolean }>;
 
 type Journal = SqliteJournal<ShopFact>;
 /** Fold the journal, then listen: a restart reads history before it attaches new observers. */
 const resume = (bus: Bus<ShopFact>, journal: Journal, registry: ToolRegistry<Shop>, ports: Options) => {
-  const state = journal.watch("tools", startState<Shop>(shopSlices, runner), (state, event) =>
+  const state = journal.watch("tools", startState<Shop>(shopSlices, runner, ports.identities), (state, event) =>
     toolsStep<Shop>(state, event, shopSlices),
   );
   journal.restore();

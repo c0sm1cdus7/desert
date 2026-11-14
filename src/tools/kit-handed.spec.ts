@@ -25,6 +25,7 @@ it.each(["house", "world"] as const)("R10: pasar la administraci√≥n corta la se√
   );
   const slow: Tool<Shop> = {
     id: "slow",
+    facts: ["slow-written"],
     purpose: "Prueba del traspaso",
     targets: () => [],
     view: () => "",
@@ -45,7 +46,7 @@ it.each(["house", "world"] as const)("R10: pasar la administraci√≥n corta la se√
     house.bus.emit(effect("handed", { to: "beto" }, "ana"));
     expect(allowedAct(house.tools.state().house, "ana", "slow", "run")).toBe(false);
     expect(contexts[0]?.signal?.aborted).toBe(true);
-    done.resolve({ ...saved, effects: [shop.fact("sale-registered", { sale: "traspaso", total: 1 }, "ana")] });
+    done.resolve({ ...saved, effects: [shop.fact("slow-written", { sale: "traspaso", total: 1 }, "ana")] });
     expect(await settled(pending)).toMatchObject({
       status: reach === "world" ? "accepted" : "interrupted",
       reason: "sacada",

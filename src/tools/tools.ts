@@ -1,3 +1,4 @@
+import { checkComposition, checkOwn } from "./execution/composed-authority.ts";
 import { attentionEffects, reminderId } from "./attention-effects.ts";
 import { startPrograms, programEffects } from "./boundaries/tool-listeners.ts";
 import { interrupt, watchRunning } from "./execution/running-acts.ts";
@@ -104,22 +105,31 @@ export const attendanceActs = <X extends Program>(registry: ToolRegistry<X>): Ow
 type Starting<X extends Program> = Omit<Execution<X>, "live" | "own" | "process"> &
   Partial<Pick<Execution<X>, "own" | "process">>;
 const ownOf = <X extends Program>(ports: Starting<X>) => {
+  const houseOwn = new WeakSet<OwnAct<X>>();
   const offered = houseActs(attendanceActs(ports.registry));
-  return (state: State<X>) => [
-    ...offered(state.by),
-    ...(mindTool(state.by) === undefined ? programRule(() => ports.own?.(state) ?? []) : []),
-  ];
+  const own = (state: State<X>) => {
+    const builtins = offered(state.by);
+    builtins.forEach(act => houseOwn.add(act));
+    const program = mindTool(state.by) === undefined ? programRule(() => ports.own?.(state) ?? []) : [];
+    checkOwn(ports.registry, state, program);
+    return [...builtins, ...program];
+  };
+  return {
+    own,
+    houseOwn: (act: OwnAct<X>) => houseOwn.has(act),
+  };
 };
 export function startTools<X extends Program>(ports: Starting<X>) {
   const { bus, state: read, registry, secrets } = ports;
   let state = read();
+  checkComposition(registry, state, ports.own);
   let live = true;
   const running: Execution<X> = {
     ...ports,
     running: new Map(),
     live: () => live,
     process: ports.process ?? (() => false),
-    own: ownOf(ports),
+    ...ownOf(ports),
   };
   const shutdown = startPrograms(registry, running);
   const cut = watchRunning(running);

@@ -1,3 +1,4 @@
+import { salesStep, paymentsStep } from "./shop-folds.ts";
 // A program that lives in a house only in tests: a shop whose tools register sales and receive payments.
 import { Type } from "@sinclair/typebox";
 import { object } from "../../src/catalogs/acts.ts";
@@ -10,6 +11,9 @@ import type { Slices, State, ToolRegistry } from "../../src/tools/tool-contract.
 const sale = text("Venta", "Nombre de la venta");
 export const shopCatalog = {
   "sale-registered": object({ sale, total: money("Total") }),
+  "slow-written": object({ sale, total: money("Total") }),
+  "batch-sale-registered": object({ sale, total: money("Total") }),
+  "sale-settled": object({ sale, amount: money("Monto") }),
   "sale-corrected": object({ sale, total: money("Total"), paid: money("Cobrado") }),
   "payment-received": object({
     payment: text("Pago", "Nombre del pago"),
@@ -25,27 +29,6 @@ export const shop = vocabulary(shopCatalog);
 export type Sales = ReadonlyMap<string, Readonly<{ total: number; paid: number; by: string }>>;
 export type Payments = Readonly<{ received: number; unmatched: readonly string[] }>;
 export type Shop = { fact: ShopFact; tools: { sales: Sales; payments: Payments } };
-const salesStep = (kept: Sales, event: ShopEvent): Sales => {
-  if (event.kind === "sale-registered")
-    return new Map(kept).set(event.data.sale, { total: event.data.total, paid: 0, by: event.by });
-  if (event.kind === "sale-corrected") {
-    const { sale: name, total, paid } = event.data;
-    const corrected = kept.get(name);
-    return corrected ? new Map(kept).set(name, { ...corrected, total, paid }) : kept;
-  }
-  const sale = event.kind === "payment-received" ? kept.get(event.data.sale ?? "") : undefined;
-  if (event.kind !== "payment-received" || !event.data.sale || !sale) return kept;
-  return new Map(kept).set(event.data.sale, { ...sale, paid: sale.paid + event.data.amount });
-};
-/** A payment reads the sales as they were before it: one that names no known sale stays unmatched. */
-const paymentsStep = (kept: Payments, event: ShopEvent, before: State<Shop>): Payments => {
-  if (event.kind !== "payment-received") return kept;
-  const matched = before.tools.sales.has(event.data.sale ?? "");
-  return {
-    received: kept.received + event.data.amount,
-    unmatched: matched ? kept.unmatched : [...kept.unmatched, event.data.payment],
-  };
-};
 export const shopSlices: Slices<Shop> = {
   initial: { sales: new Map(), payments: { received: 0, unmatched: [] } },
   step: { sales: salesStep, payments: paymentsStep },
@@ -98,6 +81,7 @@ export const registerOffer = {
 } as const;
 export const salesTool: ProgramTool<Shop> = {
   id: "sales",
+  facts: ["sale-registered", "sale-corrected", "sale-settled"],
   purpose: "Registers what the shop sells.",
   targets: state => [...state.tools.sales.keys()].map(sale => `sales/${sale}`),
   view: salesView,
@@ -122,6 +106,7 @@ export const salesTool: ProgramTool<Shop> = {
 const paid = { payment: "p1", amount: 1500, sale: "s1" };
 export const paymentsTool: ProgramTool<Shop> = {
   id: "payments",
+  facts: ["payment-received"],
   purpose: "Receives what the shop is paid.",
   targets: () => [],
   view: paymentsView,

@@ -89,6 +89,7 @@ function leaseFor(
   return {
     capture: (value: string) => session.capture(Buffer.from(value)),
     apply: changes.apply,
+    recognizes: changes.recognizes,
     together: <T>(work: () => T) => custody.deferCleanup(work),
     ports: adapterPorts(declared, { custody, session, check }),
     credentials: bindingPort(bindings, slotCheck, changes),

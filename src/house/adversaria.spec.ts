@@ -50,7 +50,8 @@ it("A1: only identities receive program own acts; a mind receives its scene", as
   });
   expect(rig.state().house.scenes.has("mind:desk")).toBe(false);
   expect(rig.act("mind:desk", "scene", { general: "Mi escena" }).status).toBe("accepted");
-  expect(rig.act("beto", "programa-propio", {}).status).toBe("accepted");
+  expect(rig.act("beto", "programa-propio", {})).toMatchObject({ status: "rejected", effects: [] });
+  expect(rig.state().house.scenes.has("beto")).toBe(false);
 });
 
 it("A2: taking administration clears every old kit, also after handing it back and restarting", () => {
@@ -148,7 +149,17 @@ it("A8: a mind's effects cannot grant itself identity privileges or escape its t
   }));
   const rig = open({ ...desk.acts, grantsSelf });
   kit(rig, "mind:desk", ["grantsSelf", "away"]);
-  expect((await settle(rig.act("mind:desk", "grantsSelf", {}, "desk"))).status).toBe("accepted");
+  const before = rig.facts().length;
+  expect(await settle(rig.act("mind:desk", "grantsSelf", {}, "desk"))).toMatchObject({
+    status: "rejected",
+    effects: [],
+  });
+  expect(
+    rig
+      .facts()
+      .slice(before)
+      .some(e => ["granted", "handed", "kit-set"].includes(e.kind)),
+  ).toBe(false);
   const h = rig.state().house;
   expect(h.grants.has("mind:desk")).toBe(false);
   expect(h.admin).toBe("ana");

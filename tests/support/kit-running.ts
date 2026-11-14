@@ -28,6 +28,7 @@ export function runningRig(reach: Reach = "house") {
   );
   const tool: Tool<Shop> = {
     id: "slow",
+    facts: ["slow-written"],
     purpose: "Prueba de corte",
     targets: () => [],
     view: () => "Lectura abierta",

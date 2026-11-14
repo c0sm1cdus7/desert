@@ -1,5 +1,6 @@
+import { coreSelf } from "./effect-authority.ts";
 // Live cancellation belongs to the listener, never to a replayed projection.
-import { allowedAct, houseStep, type House } from "../../house/house.ts";
+import { allowedAct, houseStep, present, type House } from "../../house/house.ts";
 import { effect, type Event, type HouseEvent } from "../../journal/events.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import type { Decision, Execution } from "../execute.ts";
@@ -29,6 +30,8 @@ function withdrawn<X extends Program>(ports: Execution<X>, active: RunningAct, h
   const { origin, tool } = active;
   if (active.controller.signal.aborted) return true;
   if (!origin || !tool) return false;
+  if (house.identities && coreSelf(tool, origin.by, origin.data.object))
+    return !present(ports.registry, house, origin.by);
   return !allowedAct(house, origin.by, tool, origin.data.option);
 }
 /** Each heard removal sees the current folded house; a later grant cannot unabort this particular act. */

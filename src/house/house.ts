@@ -55,7 +55,10 @@ export function houseStep(state: House, event: Event): House {
     if (state.grants.has(event.data.identity)) removed.add(event.data.identity);
     return { ...state, grants, removed };
   }
-  if (event.kind === "named" && event.by === state.admin)
+  if (
+    event.kind === "named" &&
+    (event.by === state.admin || (event.data.identity === event.by && state.grants.has(event.by)))
+  )
     return { ...state, names: new Map(state.names).set(event.data.identity, event.data.name) };
   /** The house passes to someone who is in it, by the word of who administers it: nobody takes it. */
   if (event.kind === "handed" && event.by === state.admin && state.grants.has(event.data.to))

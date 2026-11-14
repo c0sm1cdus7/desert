@@ -8,10 +8,11 @@ export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: 
   Readonly<{ registry: ToolRegistry<X>; state: () => State<X>; own: (state: State<X>) => readonly OwnAct<X>[] }> &
   Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
   Readonly<{
+    houseOwn?: (act: OwnAct<X>) => boolean;
     capabilities?: CapabilityFactory;
     running?: Map<string, RunningAct>;
     active?: RunningAct;
-    credentialEffects?: Pick<CapabilityLease, "apply" | "together" | "capture">;
+    credentialEffects?: Pick<CapabilityLease, "apply" | "together" | "capture" | "recognizes">;
     secrets: {
       capture(value: unknown, registry: ToolRegistry<X>, state?: State<X>): void;
       scrub<T>(value: T): T;

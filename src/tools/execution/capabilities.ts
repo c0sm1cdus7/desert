@@ -8,6 +8,7 @@ export type CapabilityLease = ToolCapabilities &
     cleanupPending?(): boolean;
     anchorPending?(): boolean;
     together<T>(work: () => T): T;
+    recognizes(emission: Emission): boolean;
     apply(emission: Emission, accepted: boolean): boolean;
   }>;
 export type CapabilityFactory = (scope: CredentialScope, signal?: AbortSignal) => CapabilityLease;

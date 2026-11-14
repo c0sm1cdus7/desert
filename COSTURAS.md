@@ -19,6 +19,20 @@ Qué quedó fuera de `houseCatalog` respecto de Kenon (es de su mente o de sus h
 plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, marcas, memoria, percepción.
 `act` ya no lleva `evidence` (es de la mente).
 
+| Origen del efecto de un acto | Hechos permitidos | Autor |
+|---|---|---|
+| Herramienta del programa, identidad o mente | Solo los de su `Tool.facts`; cada tipo tiene un único dueño. | Quien actúa. |
+| Puerto `own` del programa | Los de la herramienta de su objeto; no puede tapar una acción declarada. | Quien actúa. |
+| Core reservado `identities` | Casa, administrando; sobre `identities/<actor>`, solo su escena y nombre propios. | Quien actúa. |
+| Actos propios de la casa y motor | Hechos que ya ofrecen y hechos internos de ejecución, avisos y reloj. | El actor correspondiente. |
+
+`effect-authority.ts` valida el lote antes de agregar los hechos de ejecución. Rechaza todo el lote indicando el
+primer efecto no permitido. `composed-authority.ts` rechaza dueños de hechos repetidos y colisiones de `own` al
+componer. El préstamo reconoce sus comandos opacos de credenciales sin ejecutarlos durante la validación.
+`kit-set` valida presencia, herramienta dada y acciones existentes sin repetir, considerando el orden del lote.
+La escritura directa del bus confiable y la lectura histórica conservan su contrato; esta costura cierra los
+resultados de acciones. El bus público de arranque se cierra en el carril de la mente.
+
 ## 2. El estado: cada herramienta guarda lo suyo (HECHO)
 
 - El estado de la casa (`HouseState`) queda con lo que es de toda casa: permisos, kits, última escena de cada autor, quién tiene qué a la
@@ -145,8 +159,8 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 - **Una herramienta que el programa suma después no es de nadie.** Quien crea la casa recibe las herramientas que
   el programa tiene ese día. Si el programa suma una después, no la tiene nadie, tampoco quien administra, y sin
   Equipo no hay cómo dársela. Hay que decidir: o quien administra tiene siempre todas, o la casa se las da al abrir.
-- **Un programa escribe hechos de la casa.** Equipo, en Capibara, escribe `granted` desde sus acciones. Un caso
-  hoy promete hechos del programa y lo que se lee después; no puede prometer un hecho de la casa.
+- **Un programa escribe hechos de la casa.** CERRADA (14/11, kit 6c): sus actos ya no pueden hacerlo.
+  Usuarios, en Capibara, deberá usar los actos del core al adoptar esta versión.
 - **Una fila que lleva a la cosa de otra herramienta.** La venta muestra sus pagos, envíos y documentos como
   renglones quietos; deberían abrir esa cosa en su herramienta.
 - **Un campo completo que no avanza no dice por qué.** CERRADA EN PARTE (11/11): un campo puede declarar por qué

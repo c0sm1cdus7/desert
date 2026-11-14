@@ -5,7 +5,7 @@ import { ownAct } from "./act-definition.ts";
 import { deferred, runningRig, saved, settled } from "../../tests/support/kit-running.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
 import type { ActContext, ActResult } from "./tool-contract.ts";
-import type { Shop } from "../../tests/support/shop.ts";
+import { shop, type Shop } from "../../tests/support/shop.ts";
 
 const rigs: { close(): void }[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
@@ -38,9 +38,9 @@ it("el kit no corta lo que la casa ofrece directamente, aunque nombre una herram
   const pending = rig.act("beto", "own", {}, "sales");
   rig.bus.emit(effect("granted", { identity: "beto", tools: [] }, "ana"));
   expect(contexts[0]?.signal?.aborted).toBe(false);
-  done.resolve({ status: "accepted", effects: [effect("preferred", { hide: "empty", on: true }, "beto")] });
+  done.resolve({ status: "accepted", effects: [shop.fact("sale-registered", { sale: "propia", total: 1 }, "beto")] });
   expect(await settled(pending)).toMatchObject({ status: "accepted" });
-  expect(rig.state().house.hides.get("beto")).toContain("empty");
+  expect(rig.state().tools.sales.get("propia")?.by).toBe("beto");
 });
 
 it("un padre cortado no inicia otro acto aunque la otra acción siga dada", async () => {

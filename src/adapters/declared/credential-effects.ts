@@ -24,6 +24,7 @@ export function credentialEffects(custody: SecretCustody, session: CredentialSes
     replace,
     release,
     changed: () => changed,
+    recognizes: (emission: Emission) => commands.has(emission),
     apply: (emission: Emission, accepted: boolean) => {
       const commit = commands.get(emission);
       if (!commit) return false;
