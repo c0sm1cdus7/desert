@@ -1017,15 +1017,22 @@ Con la custodia, la mente usa los adaptadores declarados de su propia herramient
 los que ella misma vinculó, y una identidad, los suyos.
 
 El contexto ofrece `signal?: AbortSignal`: los contextos existentes siguen compilando. Una acción larga puede
-escucharla o pasarla a operaciones que admitan corte. El oyente vivo corta al recibir `kit-set`, `granted` o
-`removed`; reconstruir el estado no emite cortes. La señal es propia de cada acto: sacar una acción no corta otra.
+escucharla o pasarla a operaciones que admitan corte. El oyente vivo reevalúa cada hecho de la casa, sin lista de
+tipos: también corta cuando pasar la administración retira una acción. Reconstruir el estado no emite cortes.
+El corte alcanza a los hijos que el acto inició y a sus descendientes, aunque conserven su propia acción.
+Dos actos independientes del mismo actor no se cortan entre sí si el otro conserva su acción.
 La base impide entrar al cuerpo si el corte llegó al anunciar el inicio, iniciar anidados desde el acto cortado,
-y usar sus adaptadores o vínculos después del corte, también si el método quedó guardado antes. El control llega
+y usar sus adaptadores o vínculos después del corte, también si el método quedó guardado antes.
+`context.execute` devuelve `{ status: "interrupted", reason: "sacada" }` si el padre ya estaba cortado, sin
+iniciar nada, o si el anidado en curso fue interrumpido: no rechaza la promesa con un texto suelto. El control llega
 hasta un adaptador pendiente que todavía no empezó a usar material. `holds` conserva su significado para los actos
 que siguen habilitados: el kit recorta acciones, no métodos.
 
 El punto de cierre es antes de empezar a escribir el lote del resultado: `finish` vuelve a comprobar el kit.
 Si la acción fue sacada, termina `interrupted`, dice `sacada` y no escribe sus hechos ni entrega su recibo privado.
+Si el programa además falló por su cuenta, su diagnóstico se escribe y genera los mismos avisos que sin corte,
+según quién conserve acciones; el resultado sigue siendo `interrupted · sacada`, con la marca de defecto.
+El motivo de la señal y el rechazo de un adaptador por el corte no dejan un defecto.
 Lo que un anidado ya escribió queda. Si el recorte llega con el lote ya en escritura, el lote termina entero y
 el cierre dice `sacada`. Si un acto `reach: "world"` devuelve éxito porque ya hizo lo suyo afuera, su resultado
 se conserva con `sacada` al lado, también en pantalla. La base no deshace efectos externos: el programa debe atender

@@ -11,10 +11,10 @@ import { effect, type Emission, type HouseEvent } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "./attendance.ts";
 import { programOffered, runProgram } from "./program-run.ts";
-import { executionFailure } from "./execution/execution-failure.ts";
+import { performAct } from "./execution/perform-act.ts";
 import { startAct } from "./failures/start-act.ts";
 import { finish } from "./failures/finish.ts";
-import { actNews, type ActContext, type ActResult } from "./tool-contract.ts";
+import { type ActContext, type ActResult } from "./tool-contract.ts";
 import type { Program, Tool, ToolAct } from "./tool-contract.ts";
 import type { Execution } from "./execution-contract.ts";
 export type { Execution } from "./execution-contract.ts";
@@ -100,6 +100,7 @@ async function executeNested<X extends Program>(
   origin: Origin,
   nested: Act,
 ): Promise<ActResult<X>> {
+  if (ports.active?.controller.signal.aborted) return { status: "interrupted", reason: toolTexts.withdrawn };
   const { by, id, process } = origin;
   const tool = targetTool(ports.registry, identityView(ports.state(), by), nested.target ?? "");
   const unknown: ActResult<X> = { status: "rejected", reason: toolTexts.unknown };
@@ -110,7 +111,10 @@ async function executeNested<X extends Program>(
   const done: ActResult<X> =
     result.status === "accepted"
       ? { status: "accepted" }
-      : { status: "rejected", reason: result.reason ?? toolTexts.invalid };
+      : {
+          status: result.status === "interrupted" ? "interrupted" : "rejected",
+          reason: result.reason ?? toolTexts.invalid,
+        };
   return {
     ...done,
     ...(result.cleanupPending ? { cleanupPending: true } : {}),
@@ -164,37 +168,10 @@ function executeScoped<X extends Program>(
     try {
       decision = decide(ports, value, act, capabilities);
     } catch (error) {
-      return run(ports, act, () => {
+      return performAct(ports, act, () => {
         throw error;
       });
     }
-    return typeof decision === "function" ? run(ports, act, decision) : finish(ports, act, decision);
+    return typeof decision === "function" ? performAct(ports, act, decision) : finish(ports, act, decision);
   }
 }
-const run = <X extends Program>(ports: Execution<X>, act: Origin, perform: Perform<X>): ExecutionResult<X> => {
-  const { object, option } = act.data;
-  const tool = targetTool(ports.registry, identityView(ports.state(), act.by), object)?.id ?? object;
-  try {
-    ports.bus.emit(effect("act-started", { act: act.id, object, option }, act.by, [act.id], act.process));
-  } catch (error) {
-    return finish(ports, act, executionFailure(ports.registry, ports.state(), act, ports.secrets.scrub(error)));
-  }
-  /** Program failures have one public message and a separate support record. */
-  const failed = (error: unknown): Decision<X> =>
-    executionFailure(ports.registry, ports.state(), act, ports.secrets.scrub(error));
-  let result: Decision<X> | Promise<Decision<X>>;
-  try {
-    result = perform();
-  } catch (error) {
-    return finish(ports, act, failed(error));
-  }
-  if (!(result instanceof Promise)) return finish(ports, act, result);
-  const completion = result.catch(failed).then(decision => {
-    if (!ports.live()) return rejected(toolTexts.interrupted);
-    const done = finish(ports, act, decision);
-    if (actNews({ ...done, output: done.status === "accepted" && done.output }))
-      ports.bus.emit(effect("stimulus", { tool }, act.by, [act.id], act.process));
-    return done;
-  });
-  return { status: "processing", effects: [], completion };
-};

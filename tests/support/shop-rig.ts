@@ -22,7 +22,7 @@ export const testTime: TimeSource = {
 export const runner = "shop";
 const plain = { capture: () => {}, scrub: <T>(value: T): T => value };
 type Options = Readonly<{ registry?: ToolRegistry<Shop>; grants?: Readonly<Record<string, readonly string[]>> }> &
-  Partial<Pick<Execution<Shop>, "own">>;
+  Partial<Pick<Execution<Shop>, "own" | "process">>;
 
 type Journal = SqliteJournal<ShopFact>;
 /** Fold the journal, then listen: a restart reads history before it attaches new observers. */

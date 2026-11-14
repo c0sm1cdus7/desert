@@ -55,7 +55,7 @@ it("un padre cortado no inicia otro acto aunque la otra acción siga dada", asyn
     target: "sales",
     input: { sale: "s1", total: 100 },
   });
-  await expect(nested).rejects.toBe("sacada");
+  await expect(nested).resolves.toMatchObject({ status: "interrupted", reason: "sacada" });
   expect(rig.state().tools.sales.has("s1")).toBe(false);
   rig.calls[0]?.done.resolve(saved);
   expect(await settled(pending)).toMatchObject({ status: "interrupted", reason: "sacada" });

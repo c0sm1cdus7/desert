@@ -44,10 +44,13 @@ Qué cambió respecto de Kenon en este paso:
   una identidad sin kit conserva todas; una mente sin kit no tiene ninguna y solo actúa en su propia herramienta.
   Quien administra no tiene recorte; con `identities: true` tiene todas las herramientas sin asignarlas y recibe sus recordatorios. Al recibir la administración pierde todos sus kits; no vuelven al devolverla.
   `null` da todas, `[]` ninguna; al perder la herramienta se pierde el kit.
-  Sacar corta la señal opcional del acto en curso desde el oyente vivo, nunca desde el plegado. Cada uso de sus
+  Cualquier hecho de la casa que retire una acción corta la señal de su acto y de sus hijos en curso,
+  desde el oyente vivo, nunca desde el plegado; los actos independientes conservan su señal. Cada uso de sus
   adaptadores vuelve a comprobar esa señal sin cambiar `holds`. El cierre pregunta el kit antes de escribir;
   lo cortado termina `interrupted · sacada`. Un lote ya iniciado o un éxito que salió al mundo se conserva con
-  `sacada` al lado. Un anidado ya escrito permanece; un padre cortado no inicia más anidados.
+  `sacada` al lado. Un anidado ya escrito permanece; un padre cortado no inicia más anidados y recibe
+  `interrupted · sacada` como resultado del contrato. Un defecto independiente conserva su diagnóstico;
+  el motivo de la señal y el rechazo del adaptador por el corte no son defectos.
 - La escena está en la casa: última por autor, general y partes por identidad, todas leídas por todos.
   `Need.to` elige una identidad presente que tenga al menos una acción de la herramienta; si no cumple esa condición,
   la necesidad llega a quienes tienen al menos una acción. Sigue calculada por código.

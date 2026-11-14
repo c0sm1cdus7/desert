@@ -42,7 +42,7 @@ it("holds: mente propia y existente; identidad con herramienta aunque su kit est
   ]).toEqual([false, true, false, false, false, true, false, false]);
 });
 
-function opened(pauseAt: "act" | "adapter" = "act") {
+function opened(pauseAt: "act" | "adapter" | "output" = "act") {
   const gate = deferred<undefined>();
   const used = vi.fn();
   const empty = Type.Object({});
@@ -93,7 +93,12 @@ function opened(pauseAt: "act" | "adapter" = "act") {
             ...methods,
             inspect: async input => {
               if (pauseAt === "adapter") await gate.promise;
-              return methods.inspect?.(input);
+              const result = await methods.inspect?.(input);
+              if (pauseAt === "output") {
+                await gate.promise;
+                return { valid: "inválida" };
+              }
+              return result;
             },
           };
         },
@@ -151,6 +156,22 @@ it.each(["beto", "mind:vault"])("%s pierde la acción con el adaptador pendiente
   house.bus.emit(effect("kit-set", { holder: by, tool: "vault", acts: [] }, "ana"));
   house.bus.emit(effect("kit-set", { holder: by, tool: "vault", acts: null }, "ana"));
   gate.resolve(undefined);
-  expect(await settled(pending)).toMatchObject({ status: "interrupted", reason: "sacada" });
+  const result = await settled(pending);
+  expect(result).toMatchObject({ status: "interrupted", reason: "sacada" });
+  expect(result.defect).toBeUndefined();
+  expect(house.tools.state().entries.some(entry => entry.data.diagnostic)).toBe(false);
   expect(used).not.toHaveBeenCalled();
+});
+
+it.each([false, true])("el rechazo de salida del adaptador conserva defecto solo sin corte: corte=%s", async cut => {
+  const { house, act, gate, used } = opened("output");
+  await settled(act("beto", "sign"));
+  const pending = act("beto", "slowUse");
+  expect(used).toHaveBeenCalledTimes(1);
+  if (cut) house.bus.emit(effect("kit-set", { holder: "beto", tool: "vault", acts: [] }, "ana"));
+  gate.resolve(undefined);
+  const result = await settled(pending);
+  expect(result.status).toBe(cut ? "interrupted" : "rejected");
+  expect(result.defect === true).toBe(!cut);
+  expect(house.tools.state().entries.some(entry => entry.data.diagnostic)).toBe(!cut);
 });

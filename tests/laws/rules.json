@@ -2229,7 +2229,7 @@
     },
     {
       "id": 226,
-      "rule": "Sacar vale al instante, también para lo que corre: los actos de la acción sacada reciben una señal de corte, tanto para identidades como para mentes, sin cortar otras acciones ni resucitarlos al volver a darla. El oyente vivo corta, nunca el plegado. No se entra al cuerpo ni se inicia un anidado desde un acto cortado; cada uso de sus adaptadores y vínculos comprueba el corte. Antes del lote del resultado, finish vuelve a preguntar el kit: lo cortado termina interrupted con sacada y sin escribir sus hechos. Lo que un anidado ya escribió queda. Un lote ya iniciado y el éxito de un acto que salió al mundo se conservan con el motivo al lado, también en pantalla. Un reinicio cierra los actos colgados una sola vez. La fila abierta se apaga y la pregunta pendiente se rechaza al confirmar; la lectura permanece abierta.",
+      "rule": "Sacar vale al instante, también para lo que corre: ante cualquier hecho de la casa que retire una acción, el oyente vivo corta la señal de sus actos y de los hijos que empezaron, también los nietos, para identidades y mentes. No corta actos independientes que conservan su acción ni resucita los cortados al volver a darla. El plegado no corta. No se entra al cuerpo ni se inicia un anidado desde un acto cortado; el anidado devuelve interrupted con sacada, sin lanzar un texto suelto. Cada uso de sus adaptadores y vínculos comprueba el corte. Antes del lote del resultado, finish vuelve a preguntar el kit: lo cortado termina interrupted con sacada, sin escribir sus efectos pendientes ni entregar su recibo privado. Un defecto independiente del corte conserva su diagnóstico y su aviso como sin corte; el motivo de la señal y el rechazo del adaptador por el corte no son defectos. Lo que un hijo ya escribió queda. Un lote ya iniciado y el éxito de un acto que salió al mundo se conservan con sacada al lado, también en pantalla. Un reinicio cierra los actos colgados una sola vez. La fila abierta se apaga y la pregunta pendiente se rechaza al confirmar; quien sigue en la casa conserva la lectura.",
       "from": "14/11 · casa-kit paso 4 · sacar vale al instante",
       "guarantee": "spec",
       "evidence": [
@@ -2239,6 +2239,10 @@
         "src/tools/kit-running.spec.ts",
         "src/tools/kit-races.spec.ts",
         "src/tools/kit-boundaries.spec.ts",
+        "src/tools/kit-defects.spec.ts",
+        "src/tools/kit-handed.spec.ts",
+        "src/tools/kit-descendants.spec.ts",
+        "src/tools/kit-scopes.spec.ts",
         "src/programs/kit-adapters.spec.ts",
         "src/doors/terminal/kit-cut.spec.ts"
       ]

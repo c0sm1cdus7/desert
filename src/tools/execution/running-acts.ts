@@ -1,5 +1,5 @@
 // Live cancellation belongs to the listener, never to a replayed projection.
-import { allowedAct, houseStep, present, type House } from "../../house/house.ts";
+import { allowedAct, houseStep, type House } from "../../house/house.ts";
 import { effect, type Event, type HouseEvent } from "../../journal/events.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import type { Decision, Execution } from "../execute.ts";
@@ -27,16 +27,13 @@ export function runningSignal<X extends Program>(
 }
 function withdrawn<X extends Program>(ports: Execution<X>, active: RunningAct, house = ports.state().house): boolean {
   const { origin, tool } = active;
+  if (active.controller.signal.aborted) return true;
   if (!origin || !tool) return false;
-  return (
-    active.controller.signal.aborted ||
-    !present(ports.registry, house, origin.by) ||
-    !allowedAct(house, origin.by, tool, origin.data.option)
-  );
+  return !allowedAct(house, origin.by, tool, origin.data.option);
 }
 /** Each heard removal sees the current folded house; a later grant cannot unabort this particular act. */
 function cutRunning<X extends Program>(ports: Execution<X>, event: Event, house: House): void {
-  if (event.layer !== "house" || !["kit-set", "granted", "removed"].includes(event.kind)) return;
+  if (event.layer !== "house") return;
   for (const id of ports.state().processing.keys()) {
     const active = ports.running?.get(id);
     if (active && withdrawn(ports, active, house)) active.controller.abort(toolTexts.withdrawn);
@@ -66,7 +63,8 @@ export function cutDecision<X extends Program>(ports: Execution<X>, decision: De
   return {
     status: "interrupted",
     reason: toolTexts.withdrawn,
-    effects: [],
+    effects: decision.defect ? decision.effects : [],
+    ...(decision.defect ? { defect: true } : {}),
     ...(decision.cleanupPending ? { cleanupPending: true } : {}),
     ...(decision.anchorPending ? { anchorPending: true } : {}),
   };
