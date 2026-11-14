@@ -1,4 +1,5 @@
 import "../../tests/support/fixture-vault.ts";
+import { checkedHouse } from "../../tests/support/journal-causes.ts";
 import { afterEach, expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -49,11 +50,11 @@ it("a prior identity named mind:vault leaves its credential to that mind when it
         bound = imported(ports).then(refs => ports.bus.emit(ports.credentials.replace("signing", refs, 0)));
       }),
   };
-  const previous = startHouse(home, { ...options, registry: [...shopRegistry, legacy] });
+  const previous = checkedHouse(startHouse(home, { ...options, registry: [...shopRegistry, legacy] }));
   houses.push(previous);
   await bound;
   previous.close();
-  const current = startHouse(home, options);
+  const current = checkedHouse(startHouse(home, options));
   houses.push(current);
   const facts = () => current.journal.replay<ShopEvent[]>([], (all, event) => [...all, event]);
   expect(facts().some(event => event.kind === "granted" && event.data.identity === "mind:vault")).toBe(true);

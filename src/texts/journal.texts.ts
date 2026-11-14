@@ -1,6 +1,9 @@
 export const journalTexts = {
   leaseLost: "Writer exclusion was lost or another connection wrote; close and reopen this house",
   beginWrite: "begin immediate",
+  savepointWrite: "savepoint journal_write",
+  releaseWrite: "release journal_write",
+  rollbackWrite: "rollback to journal_write; release journal_write",
   checksumFold: "missing or mismatched snapshot checksum",
   leaseUnavailable: "Cannot acquire a writable, regular writer sidecar",
   invalidSqliteFiles: "SQLite files and siblings support only regular files without symbolic or hard links",

@@ -240,3 +240,11 @@ Los plegados se conservan por identidad y versión: alternar personas retoma sus
 `renewKeptJournals`, disponible desde testing, renueva la evidencia manual de una entrega sin nuevos hechos.
 La compuerta resume la lista de comprobaciones en `tests/program/setup.ts` antes de lanzar las partes; cada
 parte coteja su lista. Quien usa la base incorpora ese archivo en `globalSetup` de Vitest.
+
+
+`bus.together` retira de la cola los hechos que agregó una escritura deshecha, antes de continuar la entrega.
+`SqliteJournal.batch` abre un punto de guardado por nivel: restaura hechos, secuencia y plegados del nivel
+fallido, y confirmar uno interno no impide que la escritura externa deshaga todo. Las casas de prueba
+comprueban al cerrar que no hay causas ausentes en todo el registro.
+El reloj registra su restauración en cada escritura abierta con `onRollback`: si una falla, recupera sus fechas
+y rearma la anterior. El bus de arranque sigue exponiendo solo `on`, `emit` y `together`.

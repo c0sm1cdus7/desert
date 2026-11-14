@@ -1,5 +1,6 @@
 import "./fixture-vault.ts";
 import { afterEach } from "vitest";
+import { checkedHouse } from "./journal-causes.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -24,7 +25,7 @@ export function zeroHouse(mind = zeroMind()) {
     registry: [...shopRegistry, mind.tool],
     creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments", mind.tool.id] }] },
   };
-  let house = startHouse(home, options);
+  let house = checkedHouse(startHouse(home, options));
   houses.push(house);
   return {
     mind,
@@ -44,7 +45,7 @@ export function zeroHouse(mind = zeroMind()) {
     facts: () => house.journal.replay<ShopEvent[]>([], (all, event) => [...all, event]),
     restart: () => {
       house.close();
-      house = startHouse(home, options);
+      house = checkedHouse(startHouse(home, options));
       houses.push(house);
     },
   };

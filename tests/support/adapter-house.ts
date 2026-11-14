@@ -1,5 +1,6 @@
 import "./fixture-vault.ts";
 import { afterEach } from "vitest";
+import { checkedHouse } from "./journal-causes.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -22,7 +23,7 @@ export function adapterHouse(
   const path = mkdtempSync(join(tmpdir(), "declared-house-"));
   homes.push(path);
   const options = optionsFor(acts, extra, adapters);
-  let house = startHouse(path, options);
+  let house = checkedHouse(startHouse(path, options));
   houses.push(house);
   const act = async (name: string, target = "vault") => {
     house.tools.act({ act: "attend", input: { target } }, 0, "ana");
@@ -36,7 +37,7 @@ export function adapterHouse(
     facts: () => house.journal.replay<unknown[]>([], (events, event) => [...events, event]),
     restart: () => {
       house.close();
-      house = startHouse(path, options);
+      house = checkedHouse(startHouse(path, options));
       houses.push(house);
     },
     close: () => house.close(),

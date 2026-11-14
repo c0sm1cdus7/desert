@@ -131,6 +131,7 @@ export function vocabulary<C extends Catalog>(program: Own<C>) {
 export type HouseBus = Readonly<{
   emit<K extends HouseKind>(emission: HouseEmission & { kind: K }): HouseEvent<K>;
   on(listener: (event: Event) => void): () => void;
+  onRollback?(restore: () => void): void;
 }>;
 export type Journal<P extends Foreign = Foreign> = {
   watch<S>(name: string, initial: S, reduce: (state: S, event: Event<P>) => S): () => S;

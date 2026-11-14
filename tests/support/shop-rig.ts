@@ -1,5 +1,6 @@
 // A live shop house in memory, with virtualizable time and a real replay restart.
 import { defectReporter } from "../../src/tools/failures/defect-reporter.ts";
+import { checkedHouse } from "./journal-causes.ts";
 import { SqliteJournal } from "../../src/adapters/storage/journal-store.ts";
 import { createHouse, identityView } from "../../src/house/house.ts";
 import { clockStep, startClock, type Deadlines, type TimeSource } from "../../src/journal/clock.ts";
@@ -51,7 +52,7 @@ export function shopRig({ registry = shopRegistry, grants, ...ports }: Options =
   let live = resume(bus, journal, registry, ports);
   const act = (by: string, act: string, input: unknown, target?: string, through = live.tools.state().through) =>
     live.tools.act({ act, input, ...(target === undefined ? {} : { target }) }, through, by);
-  return {
+  return checkedHouse({
     bus,
     journal,
     act,
@@ -82,5 +83,5 @@ export function shopRig({ registry = shopRegistry, grants, ...ports }: Options =
       bus.close();
       journal.close();
     },
-  };
+  });
 }

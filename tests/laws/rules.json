@@ -2208,7 +2208,7 @@
     },
     {
       "id": 256,
-      "rule": "La mente de una herramienta actúa desde su proceso por ToolStartup.act, por la ejecución de todos y con el nombre mind:<herramienta> fijado por la casa. Pide acciones de su herramienta según el kit dado por quien administra, y su propia escena sin kit. Su bus conserva on y together; emit solo admite comandos originales de sus credenciales y pedidos o cancelaciones de despertares propios, a nombre de esa mente. Rechaza a la vista cualquier otro hecho o autor, sin escribirlo. La causa es el hecho que se estaba oyendo cuando nació el pedido, también en una continuación asincrónica; fuera de una escucha no inventa causa. Si se deshace esa escritura o el together donde se pidió, el acto se rechaza sin escribir a nombre de la mente. Cada acto diferido cede una tarea a la casa; una cadena de la misma mente causada por sus actos admite 32 actos y rechaza el siguiente. act siempre resuelve: datos ilegibles o no serializables dan datos inválidos; una falla interna da el texto de falla de la base y se intenta guardar su diagnóstico. Las escrituras del acto y de sus oyentes se confirman juntas o se deshacen. Solo el reloj escribe woke; otra herramienta no cancela ni reemplaza un despertar propio. El reloj conserva fechas pendientes y no repite despertares entregados al reabrir. El programa revisa su estado al arrancar para recuperar trabajo pendiente si el despertar llegó justo al cerrar. El arranque no recibe ejecución, registro de herramientas, custodia ni resolvedor, ni anidados. Cerrar invalida la puerta y reabrir cierra como interrumpido un acto en curso.",
+      "rule": "La mente de una herramienta actúa desde su proceso por ToolStartup.act, por la ejecución de todos y con el nombre mind:<herramienta> fijado por la casa. Pide acciones de su herramienta según el kit dado por quien administra, y su propia escena sin kit. Su bus conserva on y together; emit solo admite comandos originales de sus credenciales y pedidos o cancelaciones de despertares propios, a nombre de esa mente. Rechaza a la vista cualquier otro hecho o autor, sin escribirlo. La causa es el hecho que se estaba oyendo cuando nació el pedido, también en una continuación asincrónica; fuera de una escucha no inventa causa. Si se deshace esa escritura o el together donde se pidió, el acto se rechaza sin escribir a nombre de la mente. Cada acto diferido cede una tarea a la casa; una cadena de la misma mente causada por sus actos admite 32 actos y rechaza el siguiente. act siempre resuelve: datos ilegibles o no serializables dan datos inválidos; una falla interna da el texto de falla de la base y se intenta guardar su diagnóstico. Las escrituras del acto y de sus oyentes se confirman juntas o se deshacen. Solo el reloj escribe woke; otra herramienta no cancela ni reemplaza un despertar propio. El reloj conserva fechas pendientes y no repite despertares entregados al reabrir. El programa revisa su estado al arrancar para recuperar trabajo pendiente si el despertar llegó justo al cerrar. El arranque no recibe ejecución, registro de herramientas, custodia ni resolvedor, ni anidados. Cerrar invalida la puerta y reabrir cierra como interrumpido un acto en curso. Cada escritura conjunta anidada tiene su punto de guardado: si falla, restaura sus hechos, secuencia y plegados sin borrar lo anterior de la externa; si falla la externa, deshace también las internas confirmadas. Lo que una escritura deshecha dejó en la cola se retira antes de seguir entregando, para todos los oyentes y el reloj. Una escritura fallida no invalida una causa confirmada de otra escritura. Al cerrar cada casa de prueba se comprueba sobre todo el registro que cada causa existe. El recibo del registro no presenta la sesión de custodia como una causa: esa referencia permanece en el dato autenticado de custodia. El reloj restaura sus fechas y temporizadores al deshacer un pedido, reemplazo o cancelación ya oídos dentro de una escritura.",
       "from": "14/11 · casa-mente0 · puerta de la mente desde su herramienta",
       "guarantee": "spec",
       "evidence": [
@@ -2232,7 +2232,17 @@
         "tests/laws/startup-emissions.spec.ts",
         "src/tools/execution/open-acts.ts",
         "src/programs/house-wake-upgrade.spec.ts",
-        "src/programs/house-startup-credentials.spec.ts"
+        "src/programs/house-startup-credentials.spec.ts",
+        "src/journal/together.spec.ts",
+        "src/adapters/storage/journal-nested.spec.ts",
+        "src/tools/boundaries/mind-rollback.spec.ts",
+        "src/tools/boundaries/mind-saved-cause.spec.ts",
+        "src/programs/house-rollback-review.spec.ts",
+        "src/programs/house-rollback.spec.ts",
+        "src/journal/causes-check.spec.ts",
+        "tests/support/journal-causes.ts",
+        "src/adapters/declared/credential-causes.spec.ts",
+        "src/journal/clock-rollback.spec.ts"
       ]
     }
   ]

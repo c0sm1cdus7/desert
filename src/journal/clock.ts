@@ -23,9 +23,11 @@ export function clockStep(state: Deadlines, event: Event): Deadlines {
 /** Arm the earliest pending deadline, ordering ties by journal position. */
 export function startClock(bus: HouseBus, time: TimeSource, initial: Deadlines, by: string): () => void {
   let state = initial;
+  let live = true;
   let cancel = () => {};
   const arm = (): void => {
     cancel();
+    if (!live) return;
     const first = [...state].sort(([, a], [, b]) => a.at - b.at || a.seq - b.seq)[0];
     if (!first) return;
     const [id, wake] = first;
@@ -35,9 +37,17 @@ export function startClock(bus: HouseBus, time: TimeSource, initial: Deadlines, 
     });
   };
   const off = bus.on(event => {
+    const before = state;
+    bus.onRollback?.(() => {
+      state = before;
+      arm();
+    });
     state = clockStep(state, event);
     arm();
   });
   arm();
-  return () => [off, cancel].forEach(stop => stop());
+  return () => {
+    live = false;
+    [off, cancel].forEach(stop => stop());
+  };
 }

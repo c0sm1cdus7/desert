@@ -840,8 +840,8 @@ Al actualizar un programa:
 - Una llamada interna directa a `execute` dentro de un oyente de un hecho suelto todavía puede cerrar su escritura
   antes de oír a sus propios oyentes. El puerto `ToolStartup.act` resuelve este caso para la mente: difiere la
   ejecución hasta salir de la entrega del hecho y recién contesta después de escribir con sus oyentes.
-- Un oyente con estado propio (el reloj y sus temporizadores, una pantalla) no se deshace cuando se deshace lo
-  escrito: puede quedar un temporizador de un hecho que no existe.
+- Los efectos externos o la memoria privada que un oyente cambió antes de que falle una escritura no se revierten
+  con el registro. Los hechos que aún esperaban en la cola sí se retiran: nunca se entregan después de deshacerse.
 - Un pliegue tiene que ser puro: si cambia su estado en el lugar (`mapa.set(…)`), deshacer lo escrito no lo deshace.
   La base todavía no lo comprueba.
 - Una devolución de plata sin cosas y un rechazo que deje escrito lo que contestó el fisco: pedidos de Capibara que
@@ -1110,3 +1110,29 @@ de herramientas, custodia ni resolvedor, ni en el resultado de `act`. El bus sol
 de `credentials.replace`/`release` y `wake-at` propio. La casa fija el autor; otro autor o cualquier otro hecho
 —del programa o de la casa, incluida `scene`— lanza «Hecho reservado a la ejecución; usar act en el arranque»
 antes de guardar nada. El tipo impide publicar hechos comunes, fabricar credenciales o elegir autor.
+
+
+### Escrituras conjuntas, también dentro de otras
+
+`bus.together(() => …)` escribe entero o nada: al fallar restaura los hechos, la secuencia y los plegados.
+Cada escritura anidada tiene su propio punto de guardado. Si la interna falla y el programa atrapa el error,
+la externa conserva lo anterior y puede seguir; si falla la externa, también desaparece lo que confirmaron
+las internas. Confirmar la interna todavía no confirma la externa.
+
+Cuando se escribe desde un oyente, los hechos nuevos esperan en la cola. Si esa escritura se deshace,
+sus hechos salen de la cola antes de continuar la entrega: no llegan después al reloj, a los oyentes ni a los
+cálculos que escuchan el bus. Se conserva el orden de lo que sí quedó. Cerrar y reabrir no revive lo deshecho.
+Los pliegues del registro y el estado del reloj se restauran al punto de guardado: deshacer un pedido, un
+reemplazo o una cancelación recupera la fecha anterior, sin dejar un temporizador huérfano. Los oyentes que
+ya participaron de la escritura siguen siendo sincrónicos; sus efectos externos no se deshacen con SQLite.
+
+El pedido diferido de una mente conserva la confirmación de su causa y de todas las escrituras que lo rodean.
+Si alguna se deshace, rechaza sin escribir; si la causa quedó guardada, otra escritura fallida no la invalida.
+La confirmación pertenece a la escritura, no solo al ID: un ID retirado puede reutilizarse al reintentar.
+Las casas de prueba comprueban al cerrar cada instancia que toda causa de todo hecho existe en ese registro.
+No cambia la firma de `together`; un programa que atrapaba un fallo interno ahora ve realmente retirado lo
+que se escribió dentro, tanto en el estado vivo como al reabrir.
+
+La causa interna de un dato de custodia identifica una sesión o un motivo de mantenimiento. Se conserva allí,
+pero el recibo que lo lleva al registro no la repite como si fuera el ID de un hecho. Los registros ya escritos
+no se reescriben ni se inventan hechos para completar referencias antiguas.

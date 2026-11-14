@@ -4,10 +4,11 @@ import type { Emission, Event, Foreign, HouseEmission, HouseEvent, HouseKind, Po
 
 const ofKind = <E extends Readonly<{ kind: string }>, K extends string>(event: E, kind: K): event is E & { kind: K } =>
   event.kind === kind;
+type Write = { committed: boolean; undo: (() => void)[] };
 export class Bus<P extends Foreign = Foreign> {
   private readonly listeners = new Set<(event: Event<P>) => void>();
   private readonly queue: Event<P>[] = [];
-  private readonly writes: { committed: boolean }[] = [];
+  private readonly writes: Write[] = [];
   private delivering = false;
   private closed = false;
   private readonly append: (emission: Emission<P>) => Event<P>;
@@ -20,15 +21,25 @@ export class Bus<P extends Foreign = Foreign> {
   /** What is emitted inside is written whole or not at all. Who listens hears each fact as it is written, as
    * always, and what a listener writes on hearing it is part of the same whole: it stays or goes with it. */
   together<T>(write: () => T): T {
-    const scope = { committed: false };
+    const scope: Write = { committed: false, undo: [] };
+    const queued = this.queue.length;
     this.writes.push(scope);
     try {
       const result = this.batch(write);
       scope.committed = true;
       return result;
+    } catch (error) {
+      this.queue.splice(queued);
+      scope.undo.reverse().forEach(restore => restore());
+      throw error;
     } finally {
+      scope.undo = [];
       this.writes.pop();
     }
+  }
+  /** Internal observers restore their own state for every enclosing write that can still fail. */
+  onRollback(restore: () => void): void {
+    this.writes.forEach(scope => scope.undo.push(restore));
   }
   /** A deferred request keeps the outcome of every enclosing write, including a later outer rollback. */
   confirmation(): () => boolean {
