@@ -89,3 +89,53 @@ it("la vista se fija al empezar aunque su primera consulta llegue después de ot
   resume();
   expect((await pending).status).toBe("accepted");
 });
+
+it("la acción revierte sus hechos si falla el lote de custodia", async () => {
+  const rig = adapterHouse({
+    bind: toolAct(empty, async (_, context) => ({
+      status: "accepted",
+      effects: [context.credentials.replace("signing", await imported(context), 0)],
+    })),
+  });
+  const stop = rig.bus().on("tool-entry", event => {
+    const detail = event.data.detail;
+    if (detail && typeof detail === "object" && "custodyBatch" in detail) throw new Error("oyente roto");
+  });
+  await rig.act("bind");
+  expect(JSON.stringify(rig.facts())).not.toContain("credential-bound");
+  stop();
+  expect((await rig.act("bind")).status).toBe("accepted");
+  rig.restart();
+});
+it("el ancla de una acción se escribe después del commit del diario", async () => {
+  const rig = adapterHouse({
+    bind: toolAct(empty, async (_, context) => ({
+      status: "accepted",
+      effects: [context.credentials.replace("signing", await imported(context), 0)],
+    })),
+  });
+  const journal = rig.journal(),
+    batch = journal.batch.bind(journal),
+    anchor = rig.options.secretKeys.anchor.bind(rig.options.secretKeys);
+  let batching = 0;
+  const during: boolean[] = [];
+  vi.spyOn(journal, "batch").mockImplementation(work => {
+    batching++;
+    try {
+      return batch(work);
+    } finally {
+      batching--;
+    }
+  });
+  vi.spyOn(rig.options.secretKeys, "anchor").mockImplementation((house, head) => {
+    if (head.count) during.push(batching > 0);
+    anchor(house, head);
+  });
+  try {
+    expect((await rig.act("bind")).status).toBe("accepted");
+    expect(during.length).toBeGreaterThan(0);
+    expect(during).not.toContain(true);
+  } finally {
+    vi.restoreAllMocks();
+  }
+});

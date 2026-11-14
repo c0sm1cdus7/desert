@@ -55,9 +55,7 @@ for (const shape of ["empty", "empty-plus-marker", "prefix", "missing", "differe
     if (shape === "missing") vi.spyOn(rig.keys, "head").mockReturnValue(undefined);
     if (shape === "different") rig.keys.anchor(house, { count: 2, authentication: "a".repeat(64) });
     expect(() => rig.open()).toThrow(
-      shape === "missing"
-        ? "E-CUSTODY-KEY"
-        : /E-CUSTODY-ROLLBACK.*quitaron renglones.*copia vieja.*acceptRestoredCopy/u,
+      shape === "missing" ? "E-CUSTODY-KEY" : /E-CUSTODY-ROLLBACK.*ancla espera.*vínculos/u,
     );
   });
 it("aceptar una restauración verifica todo antes de mover el ancla", () => {

@@ -1,3 +1,4 @@
+import { secretTexts } from "../../../texts/secrets/secrets.texts.ts";
 import { randomUUID } from "node:crypto";
 import { CustodyError } from "./house-keys.ts";
 import type { CredentialIngress, SecretRef, SecretRefs } from "./custody-contract.ts";
@@ -17,7 +18,7 @@ export function checkMaterial(state: CustodyState, ref: SecretRef): void {
   const row = state.store.row(ref);
   if (row?.payload === null || row?.payload === undefined) throw new CustodyError("E-CUSTODY-MISSING");
   state.cipher.check(ref, row.payload);
-  if (!state.cipher.present(ref)) throw new CustodyError("E-CUSTODY-KEY");
+  if (!state.cipher.present(ref)) throw new CustodyError("E-CUSTODY-KEY", secretTexts.missingKey);
 }
 export function readMaterial(state: CustodyState, ref: SecretRef): Uint8Array {
   const row = state.store.row(ref);

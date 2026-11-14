@@ -7,6 +7,14 @@ import { privateDatabase } from "../../storage/home.ts";
 import { sqliteFiles } from "../../storage/sqlite-files.ts";
 import { CustodyError } from "./house-keys.ts";
 import type { CredentialFact, CredentialLedger, CustodyRow, SecretRef } from "./custody-contract.ts";
+function write<T>(work: () => T): T {
+  try {
+    return work();
+  } catch (error) {
+    if (error instanceof Error && "errcode" in error) throw new CustodyError("E-CUSTODY-STORAGE");
+    throw error;
+  }
+}
 export class CustodyDatabase implements CredentialLedger {
   readonly db: DatabaseSync;
   constructor(file: string) {
@@ -67,7 +75,7 @@ export class CustodyDatabase implements CredentialLedger {
     if (row || this.keyCheck() || this.rows().some(row => row.payload !== null) || this.facts().length)
       throw new CustodyError("E-CUSTODY-INTEGRITY");
     const id = randomUUID();
-    this.db.prepare("insert into custody_meta values ('house-id', ?)").run(id);
+    write(() => this.db.prepare("insert into custody_meta values ('house-id', ?)").run(id));
     return id;
   }
   keyCheck(): string | undefined {
@@ -75,37 +83,39 @@ export class CustodyDatabase implements CredentialLedger {
     return typeof row?.value === "string" ? row.value : undefined;
   }
   saveKeyCheck(value: string): void {
-    this.db.prepare("insert into custody_meta values ('key-check', ?)").run(value);
+    write(() => this.db.prepare("insert into custody_meta values ('key-check', ?)").run(value));
   }
   hold(ref: SecretRef, purpose: string): void {
-    this.db.prepare("insert or ignore into custody_holds values (?, ?)").run(ref, purpose);
+    write(() => this.db.prepare("insert or ignore into custody_holds values (?, ?)").run(ref, purpose));
   }
   unhold(ref: SecretRef, purpose: string): void {
-    this.db.prepare("delete from custody_holds where ref=? and purpose=?").run(ref, purpose);
+    write(() => this.db.prepare("delete from custody_holds where ref=? and purpose=?").run(ref, purpose));
   }
   held(ref: SecretRef): boolean {
     return !!this.db.prepare("select ref from custody_holds where ref=?").get(ref);
   }
   intent(ref: SecretRef, owner: string | null, retained: boolean): void {
-    this.db.prepare("insert into custody_material values (?, null, ?, ?)").run(ref, owner, Number(retained));
+    write(() =>
+      this.db.prepare("insert into custody_material values (?, null, ?, ?)").run(ref, owner, Number(retained)),
+    );
   }
   put(ref: SecretRef, payload: string): void {
-    this.db.prepare("update custody_material set payload=? where ref=?").run(payload, ref);
+    write(() => this.db.prepare("update custody_material set payload=? where ref=?").run(payload, ref));
   }
   unretain(ref: SecretRef): void {
-    this.db.prepare("update custody_material set retained=0, owner=null where ref=?").run(ref);
+    write(() => this.db.prepare("update custody_material set retained=0, owner=null where ref=?").run(ref));
   }
   remove(ref: SecretRef): void {
-    this.db.prepare("delete from custody_material where ref=?").run(ref);
+    write(() => this.db.prepare("delete from custody_material where ref=?").run(ref));
   }
   append(fact: CredentialFact): void {
-    this.db.prepare("insert into custody_facts (body) values (?)").run(JSON.stringify(fact));
+    write(() => this.db.prepare("insert into custody_facts (body) values (?)").run(JSON.stringify(fact)));
   }
   appendBatch(facts: readonly CredentialFact[]): void {
-    this.db.exec("begin immediate");
+    write(() => this.db.exec("begin immediate"));
     try {
       facts.forEach(fact => this.append(fact));
-      this.db.exec("commit");
+      write(() => this.db.exec("commit"));
     } catch (error) {
       this.db.exec("rollback");
       throw error;
@@ -124,10 +134,12 @@ export class CustodyDatabase implements CredentialLedger {
     if (this.db.isOpen) this.db.close();
   }
   retireLegacy(): void {
-    this.db.exec("delete from secrets;");
+    write(() => this.db.exec("delete from secrets;"));
   }
   compactLegacy(): void {
-    this.db.exec("pragma wal_checkpoint(TRUNCATE); vacuum; pragma wal_checkpoint(TRUNCATE); drop table secrets;");
+    write(() =>
+      this.db.exec("pragma wal_checkpoint(TRUNCATE); vacuum; pragma wal_checkpoint(TRUNCATE); drop table secrets;"),
+    );
   }
 }
 

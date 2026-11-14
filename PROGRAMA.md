@@ -387,11 +387,13 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
 - Al actualizar, quitá las declaraciones sin efecto, mantené las marcas de esquema y aceptá referencias en los
   plegados. Tratá el rechazo histórico sin escribir sobre el registro. Las marcas v1 se revisan otra vez porque
   no incluían los hechos del programa. No se recuperan esquemas desaparecidos ni se certifican datos no declarados.
-- El ingreso de acciones usa la sesión de custodia de la acción: vincular conserva su material; rechazo,
+- El ingreso por acciones llega como texto y esa cadena original no puede ponerse en cero. El ingreso de acciones usa la sesión de custodia de la acción: vincular conserva su material; rechazo,
   borrador o final sin vínculo libera el provisional al cerrar el préstamo. Las escrituras directas antiguas
   por el bus conservan la retención para adopción explícita. No se deduplican posiciones por su valor.
 
 ## Custodia de credenciales · contrato de memoria, disco y cortes
+
+Un programa sin posiciones secretas y una casa sin material abre sin proveedor.
 
 Contrato de la custodia, incluida la aceptación y el mantenimiento con la casa cerrada. `Kregistro` solo autentica el registro y los sobres cifrados;
 `Ksecreto(ref)` cifra exclusivamente ese secreto. Cada llave es un elemento independiente del proveedor externo.
@@ -423,10 +425,10 @@ usuario puede pedirle al llavero lo mismo que la custodia. La custodia no conser
 material o llaves a texto. Los búferes que controla se ponen en cero; no promete borrar copias que cree un adaptador,
 memoria interna del motor criptográfico, páginas del sistema operativo ni texto previo del editor o de un proveedor
 antiguo. El adaptador confiable recibe bytes y es responsable de sus propias copias. Comprometer una Ksecreto no
-permite descifrar otra referencia. Comprometer Kregistro no permite descifrar ninguna.
+permite descifrar otra referencia. Comprometer Kregistro no permite descifrar ninguna. Pero con esa llave y escritura en la carpeta se puede hacer usar cualquier secreto a cualquier herramienta. Kregistro está en la memoria del proceso durante cada verificación. Atar cada vínculo también a la llave del secreto chocaría con abrir sin descifrar y queda pendiente de decisión del dueño.
 
 La identidad aleatoria de la casa persiste al mover, renombrar, cambiar mayúsculas o acceder por enlace. Copiar
-la carpeta conserva esa identidad; en otra máquina hay que trasladar las llaves y el ancla al proveedor. Una casa
+la carpeta conserva esa identidad; solo una copia por máquina puede escribir; en otra máquina hay que trasladar las llaves y el ancla al proveedor. Una casa
 nueva en una ruta reutilizada recibe otra identidad. Una llave ausente nunca se regenera para material ya cifrado.
 El formato experimental anterior con una llave por casa nunca se unió ni guardó datos reales: se rechaza, no se
 convierte. Sí se adopta la bóveda en claro de la base de partida, con una llave por secreto y sin cambiar IDs.
@@ -671,7 +673,7 @@ el ayudante no bloquea la red de código que vos le entregues. Para lotes, vínc
 
 Al actualizar un programa:
 - Quitá `keys` de opciones, contextos y arranques; `KeyStore` solo queda para adopción explícita. Cambiá `Tool.start`
-  a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios.
+  a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios. Un arranque ya no ejecuta acciones ni accede al registro: trasladá esa ejecución a una acción explícita del programa o expresá el cambio como hechos mediante el bus de arranque.
 - Mové lectura, validación del material, firma, I/O y resolución a adaptadores declarados. Las acciones y callbacks
   trabajan con referencias; conservá `secret: true` y quitá `secretInputs` y `secretLimits.minLength` sin efecto.
 - Agregá `secretKeys`, métodos con esquemas cerrados y permisos, y `credentialSlots`. Usá `revision(slot)`, incluso
@@ -684,6 +686,7 @@ Al actualizar un programa:
   expuesta sin sobrescribirla ni declarar limpio lo no revisable. La bóveda en claro se cifra antes de retirarla;
   para proveedores anteriores, adaptá `get` a `Promise<Uint8Array | undefined>`: `importLegacyKeys` verifica destinos antes de borrar orígenes.
 - Prevé recuperación de las llaves y el ancla externas, revisión de pendientes, borrado pendiente y restauraciones de respaldos.
+  La apertura verifica toda la historia y los sobres: su costo crece con ellos; el índice público crece con las cuentas vigentes y tiene un límite de tamaño. Olvidar consulta las cuentas de la historia aunque ya se hayan purgado.
   Las referencias no invalidan snapshots de otra versión ni acreditan autorización de servicios externos.
 
 ## Los registros que se guardan

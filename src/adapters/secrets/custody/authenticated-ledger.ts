@@ -1,3 +1,5 @@
+import { secretTexts } from "../../../texts/secrets/secrets.texts.ts";
+import { latestBindings } from "./custody-restoration.ts";
 import { factBody, VerifiedHistory } from "./ledger-verification.ts";
 import type { CredentialFact, CredentialLedger } from "./custody-contract.ts";
 import type { CustodyCipher } from "./custody-cipher.ts";
@@ -56,7 +58,7 @@ export class AuthenticatedLedger implements CredentialLedger {
       return;
     }
     const head = this.#cipher.head();
-    if (!head) throw new CustodyError("E-CUSTODY-KEY");
+    if (!head) throw new CustodyError("E-CUSTODY-KEY", secretTexts.missingAnchor);
     const prefix = head.count === 0 ? "" : facts[head.count - 1]?.authentication;
     const extra = facts.length - head.count;
     if (
@@ -64,9 +66,23 @@ export class AuthenticatedLedger implements CredentialLedger {
       prefix !== head.authentication ||
       (extra > 0 && (facts[head.count]?.batchIndex !== 0 || facts[head.count]?.batchSize !== extra))
     )
-      throw new CustodyError("E-CUSTODY-ROLLBACK");
+      throw new CustodyError(
+        "E-CUSTODY-ROLLBACK",
+        secretTexts.rollback(
+          head.count,
+          facts.length,
+          extra < 0 ? secretTexts.shorterLedger : this.anchorDifference(prefix !== head.authentication),
+          latestBindings(facts)
+            .map(f => `${f.actor}/${f.tool}/${f.target}/${f.slot}`)
+            .join(", ") || "ninguno",
+        ),
+      );
     if (extra) this.anchor({ count: facts.length, authentication: last });
     else this.#anchorPending = false;
+  }
+  private anchorDifference(different: boolean): string {
+    if (different) return secretTexts.differentAnchor;
+    return secretTexts.incompleteBatch;
   }
   facts(): readonly CredentialFact[] {
     const facts = this.#view ?? this.verified();
@@ -121,11 +137,17 @@ export class AuthenticatedLedger implements CredentialLedger {
         return { ...row, authentication };
       }),
     );
-    if (this.#ledger.appendBatch) this.#ledger.appendBatch(signed);
-    else {
-      if (signed.length !== 1) throw new CustodyError("E-CUSTODY-STORAGE");
-      const row = signed[0];
-      if (row) this.#ledger.append(row);
+    try {
+      if (this.#ledger.appendBatch) this.#ledger.appendBatch(signed);
+      else {
+        if (signed.length !== 1) throw new CustodyError("E-CUSTODY-STORAGE");
+        const row = signed[0];
+        if (row) this.#ledger.append(row);
+      }
+    } catch (error) {
+      if (error instanceof Error && "errcode" in error && error.errcode === 13)
+        throw new CustodyError("E-CUSTODY-STORAGE");
+      throw error;
     }
     this.#view = undefined;
     const committed = [...facts, ...signed];

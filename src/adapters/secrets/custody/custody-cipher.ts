@@ -1,3 +1,4 @@
+import { secretTexts } from "../../../texts/secrets/secrets.texts.ts";
 import { createCipheriv, createDecipheriv, randomBytes, createHmac, timingSafeEqual } from "node:crypto";
 import { CustodyError, type HouseKeyProvider, type LedgerHead } from "./house-keys.ts";
 /** No cached keys. The provider copy is erased on every exit, including malformed input. */
@@ -36,7 +37,20 @@ export class CustodyCipher {
     }
   }
   prepare(create: boolean): void {
-    this.#using(this.#house, create, () => undefined);
+    try {
+      this.#using(this.#house, create, () => undefined);
+    } catch (error) {
+      if (!create && error instanceof CustodyError && error.code === "E-CUSTODY-KEY") {
+        let present = true;
+        try {
+          present = this.#providerOf().has(this.#house);
+        } catch {
+          /* preserve the provider error */
+        }
+        if (!present) throw new CustodyError("E-CUSTODY-KEY", secretTexts.missingCopy);
+      }
+      throw error;
+    }
     if (create && !this.head()) this.anchor({ count: 0, authentication: "" });
   }
   head(): LedgerHead | undefined {
