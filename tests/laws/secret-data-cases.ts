@@ -34,29 +34,32 @@ export const dataCases: Readonly<Record<string, string>> = {
     "const tabla = { a: 'constructor', b: '__proto__', c: 'prototype' };" +
     "const k: keyof typeof tabla = 'a'; return tabla[k];",
 };
-export const rejectedDataCases: Readonly<Record<string, string>> = {
+/** Deliberate changes in step 7b: only the chosen value matters. */
+export const admittedRevisedCases: Readonly<Record<string, string>> = {
   indiceMixto:
     "function leer(tabla: { [k: string]: number | (() => void); a: number }) {" + "const k = 'a'; return tabla[k]; }",
+  interseccion: "function leer(objeto: number[] & { run: () => void }, clave: number) { return objeto[clave]; }",
+  clase: "class Dato { valor = 1; } const objeto = new Dato(); const clave = 'valor'; objeto[clave];",
+  anidado: "const tabla: Record<string, { run: () => number }> = {}; const clave = 'a'; tabla[clave];",
+};
+export const rejectedDataCases: Readonly<Record<string, string>> = {
   i18:
     'const esFabrica = (v: unknown): v is (codigo: string) => () => unknown => typeof v === "function";' +
     'const fabrica: unknown = Reflect.get(Reflect.get([], "filter"), "constr" + "uctor");' +
     'export const lee = (): unknown => (esFabrica(fabrica) ? fabrica("return(process.env.HOME)")() : undefined);',
   genericoFuncion: "function leer<T extends () => void>(objeto: Record<string, T>, k: string) { return objeto[k]; }",
   unionNullable: "function leer(objeto: Record<string, number> | null, clave: string) { return objeto[clave]; }",
-  interseccion: "function leer(objeto: number[] & { run: () => void }, clave: number) { return objeto[clave]; }",
   sintaxisAngular: "const objeto = <Record<string, number>>{}; const clave = 'a'; objeto[clave];",
   aliasClave: "const tabla = { a: 1 }; const k = 'a' as any; const clave = k; tabla[clave];",
   any: "function leer(objeto: any, clave: string) { return objeto[clave]; }",
   unknown: "function leer(objeto: unknown, clave: string) { return objeto[clave]; }",
   funcion: "function leer(objeto: () => void, clave: string) { return objeto[clave]; }",
-  clase: "class Dato { valor = 1; } const objeto = new Dato(); const clave = 'valor'; objeto[clave];",
   claseConstructora: "class Dato { static valor = 1; } const clave = 'valor'; Dato[clave];",
   ambiente: "const objeto = globalThis; const clave = 'process'; objeto[clave];",
   ambienteSinNombre: "const objeto = Math; const clave: keyof Math = 'PI'; objeto[clave];",
   funciones: "const tabla: Record<string, () => number> = {}; const clave = 'a'; tabla[clave];",
   constructores: "const tabla: Record<string, new () => object> = {}; const clave = 'a'; tabla[clave];",
   mezcla: "const tabla: Record<string, number | (() => number)> = {}; const clave = 'a'; tabla[clave];",
-  anidado: "const tabla: Record<string, { run: () => number }> = {}; const clave = 'a'; tabla[clave];",
   valorAny: "const tabla: Record<string, any> = {}; const clave = 'a'; tabla[clave];",
   valorUnknown: "const tabla: Record<string, unknown> = {}; const clave = 'a'; tabla[clave];",
   retornoFuncion: "const lista = [1]; const clave: keyof number[] = 'map'; lista[clave];",

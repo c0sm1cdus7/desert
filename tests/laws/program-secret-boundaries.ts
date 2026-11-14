@@ -9,9 +9,11 @@ import { registryOrigins } from "./registry-origins.ts";
 const production = (directory: string): string[] => filesUnder(directory).filter(file => !file.endsWith(".spec.ts"));
 /** Inspect the composition's import graph and trace registry values, never executing program code.
  * Engine public imports are audited leaves; adapters and composition cannot define registered tools.
- * Variable indices need arrays, tuples, strings or data records; no any/unknown/callable/constructible result.
+ * Every computed read checks the selected value, including binding/assignment/parameter destructuring.
+ * Methods inside a value are fine; callable/constructible and opaque results are not. Each file is inspected once.
  * Converted object/key origins and constructor, __proto__, prototype reads are rejected in tools.
- * Reflect and unknown source/origins fail closed. This catches mistakes/known paths, not JavaScript isolation. */
+ * Reflect/module and unknown source/origins fail closed. Paths through any still need lint over the whole graph
+ * (current base globs omit .mts/.cts). This catches mistakes/known paths, not JavaScript isolation. */
 export function programSecretBoundaries(root: string): string[] {
   const pkg: unknown = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
   const entry = field(field(pkg, "desert"), "program");

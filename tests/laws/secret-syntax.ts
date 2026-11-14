@@ -1,10 +1,10 @@
 import ts from "typescript";
-import { dataElement } from "./secret-data-types.ts";
-import { convertedValue } from "./secret-expression.ts";
+import { selectionEscapes } from "./secret-selection.ts";
 import { forbiddenKeys } from "./secret-keys.ts";
 export interface BoundaryImport {
   specifier: string;
   names: readonly string[];
+  position: string;
 }
 /** Include type queries and reexports; a nonliteral loader never earns a static exemption. */
 export function boundaryImports(source: ts.SourceFile): BoundaryImport[] {
@@ -33,7 +33,12 @@ export function boundaryImports(source: ts.SourceFile): BoundaryImport[] {
     if (ts.isExternalModuleReference(node)) value = node.expression;
     if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) value = node.arguments[0];
     if (ts.isCallExpression(node) && node.expression.getText() === "require") value = node.arguments[0];
-    if (value) found.push({ specifier: ts.isStringLiteralLike(value) ? value.text : "<dynamic>", names });
+    if (value)
+      found.push({
+        specifier: ts.isStringLiteralLike(value) ? value.text : "<dynamic>",
+        names,
+        position: sourcePosition(node),
+      });
     ts.forEachChild(node, visit);
   };
   visit(source);
@@ -53,6 +58,7 @@ const globals = new Set([
   "Function",
   "Reflect",
   "require",
+  "module",
   "Deno",
   "Bun",
   "localStorage",
@@ -67,17 +73,11 @@ export function boundaryEscapes(source: ts.SourceFile, checker: ts.TypeChecker):
     if (ts.isIdentifier(node) && globals.has(node.text) && !ownName(node)) {
       const declarations = checker.getSymbolAtLocation(node)?.declarations ?? [];
       if (!declarations.length || declarations.every(item => item.getSourceFile().isDeclarationFile))
-        found.push(node.text);
+        found.push(`${sourcePosition(node)} → ${node.text}`);
     }
-    found.push(...forbiddenKeys(node, checker));
-    if (ts.isElementAccessExpression(node)) {
-      const key = node.argumentExpression;
-      if (convertedValue(node.expression, checker) || convertedValue(key, checker))
-        found.push("converted element access");
-      if (!ts.isStringLiteralLike(key) && !ts.isNumericLiteral(key) && !dataElement(node, checker))
-        found.push("nonliteral element access outside data");
-    }
-    if (ts.isMetaProperty(node)) found.push(node.getText());
+    const rules = [...forbiddenKeys(node, checker), ...selectionEscapes(node, checker)];
+    if (ts.isMetaProperty(node)) rules.push(node.getText());
+    for (const rule of new Set(rules)) found.push(`${sourcePosition(node)} → ${rule}`);
     ts.forEachChild(node, visit);
   };
   visit(source);
@@ -92,4 +92,9 @@ function ownName(node: ts.Identifier): boolean {
       ts.isMethodDeclaration(parent)) &&
     parent.name === node
   );
+}
+
+export function sourcePosition(node: ts.Node): string {
+  const { line, character } = node.getSourceFile().getLineAndCharacterOfPosition(node.getStart());
+  return `${line + 1}:${character + 1}`;
 }

@@ -662,29 +662,41 @@ composición o a un adaptador, lo rechaza, incluso con claves calculadas, spread
 que no se pueden rastrear estáticamente (incluida una fábrica que devuelve un parámetro) fallan cerrados: usá un arreglo explícito, con referencias a herramientas
 separadas; admite alias y spreads de arreglos rastreables. La ley no ejecuta la composición para descubrir valores.
 Una herramienta no puede importar custodia, fábrica, resolvedor ni composición, ni hacer I/O directo, leer entorno
-o evaluar código. `Reflect` sigue siendo una capacidad del ambiente. Los corchetes de clave variable se admiten
-sobre datos: arreglos, tuplas, texto y registros o mapas de índices cuyos valores sean datos, también anidados.
-La ley usa también las declaraciones de tipos ya instaladas; no habilitan imports ni dependencias nuevas.
-Conserva registros finitos, readonly y genéricos acotados a datos. El comprobador exige un resultado sin `any`,
-`unknown` ni capacidades invocables o construibles. Rechaza objetos
-opacos, funciones, clases y objetos del ambiente; una tabla de funciones tampoco es una tabla de datos.
+o evaluar código por los caminos que esta regla reconoce. `Reflect` y `module` son capacidades del ambiente.
+Toda lectura con clave calculada no literal se juzga igual: corchetes, desestructuración en una declaración,
+asignación o parámetro. Lo que decide es el valor elegido: se rechaza si es invocable o construible, `any`,
+`unknown`, `object`, `{}` o un genérico sin una cota que permita comprobarlo. El objeto del que se lee no puede
+ser `any`, `unknown`, una función, un constructor de clase ni un objeto del ambiente.
+Tener métodos no convierte un objeto en una función: se admiten fechas, mapas, conjuntos, expresiones regulares,
+errores, promesas, bytes, instancias de clase y filas con métodos. También se admiten arreglos, tuplas, texto y
+registros, sin exigir que todas sus propiedades sean datos. Si la clave es una unión de literales, solo cuentan
+las propiedades que puede elegir; `v?.xs[i]` no agrega al tipo de `xs` el `null` del eslabón anterior.
+La ley usa las declaraciones de tipos ya instaladas; no habilitan imports ni dependencias nuevas.
 Siempre rechaza leer `constructor`, `__proto__` o `prototype`: con punto, corchetes, desestructuración o claves
 conocidas por su texto, concatenación, alias o tipo literal. Esas propiedades permiten llegar a evaluar código.
 
 Una conversión dentro de una fuente de herramienta no habilita el acceso: la ley sigue objeto y clave por alias,
 asignaciones, desestructuración y llamadas a auxiliares, también importadas. Rechaza `as any`, `as never`, dobles
 conversiones por `unknown` y otras aserciones de tipo en ese recorrido, incluso con clave literal. Conserva
-`as const` y `satisfies`: no inventan un tipo incompatible. El recorrido es conservador: considera las asignaciones
+`as const` y `satisfies`: no inventan un tipo incompatible. Las coerciones primitivas estándar no heredan
+aserciones de sus argumentos; una aserción que conserva exactamente el tipo de esa coerción también se admite.
+Esto se comprueba por la declaración de la biblioteca, no por el nombre: un homónimo local no obtiene la excepción.
+El recorrido restante es conservador: considera las asignaciones
 y los cuerpos de auxiliares, sin demostrar qué rama se ejecutará. La composición confiable mantiene su frontera.
 El chequeo estricto de tipos ya frena accesos inválidos, exige estrechar `unknown` y contempla índices ausentes;
 el lint y la ley 12 ya prohíben aserciones inseguras y el lint rechaza `any` explícito y sus usos inseguros.
-La ley 212 agrega la clasificación de datos, las claves prohibidas y el rastreo del origen convertido en todas
-las fuentes alcanzadas, aunque estén fuera de las carpetas que cubren tipos y lint. No reemplaza esas compuertas.
+La ley 212 agrega la comprobación del valor elegido, las claves prohibidas y el rastreo del origen convertido
+al grafo alcanzado. Los caminos hacia `Function` que pasan por `any`, como `getOwnPropertyDescriptor` o
+`getPrototypeOf`, quedan al lint: esta ley no los cierra por sí sola. El lint del programa tiene que cubrir
+**todo** lo que la ley recorre, incluidos auxiliares fuera de `src/`, `.mts` y `.cts`. Los globs actuales de la
+base no cubren `.mts` ni `.cts`; esa cobertura no está garantizada hoy. No reemplaza tipos ni lint.
 La base también comprueba que una fábrica no devuelva el resolvedor anidado.
 
 La composición es confiable: puede pasar custodia a una fábrica de herramienta; ese paso es su propio acto y la ley
 no analiza el flujo de capacidades que decide entregar. Importar un `.js` sin tipos ya falla con el chequeo estricto
 de tipos, sin `allowJs`; no se atribuye esa detección a esta ley. Las fuentes sin formato revisable también se rechazan.
+Cada archivo se clasifica una sola vez por corrida. Cada lugar y regla producen un solo mensaje con posición
+y una cadena de imports de ejemplo, aunque varias herramientas lleguen al mismo archivo.
 La compuerta incluye esta ley una vez entre sus ocho partes (`tests/program/registration.ts`). Un paquete nuevo
 requiere revisar su API y agregar una frontera explícita; instalarlo no alcanza. Quedan fuera del análisis el código
 no alcanzado desde la composición, las mutaciones posteriores en ejecución y la intención de los adaptadores.
@@ -741,10 +753,12 @@ Al actualizar un programa:
   no hace falta retirarlas ni inventarles causas `outside`. Un error ajeno a la inspección sigue fallando.
   Renovar sigue comprobando los plegados y no abre custodia.
 - Para la ley 212, separá cada herramienta de composición y adaptadores, declarala en un registro rastreable y
-  revisá también los módulos importados fuera de `src/` o desde pruebas. Quitá `Reflect` de las herramientas.
-  Conservá los índices de arreglos, tuplas, texto y tablas de datos; tipá y estrechá lo desconocido antes de leerlo.
+  revisá también los módulos importados fuera de `src/` o desde pruebas. Quitá `Reflect` y `module` de las herramientas.
+  Conservá las lecturas calculadas cuyo valor elegido no sea invocable ni opaco, incluso al desestructurar;
+  tipá y estrechá lo desconocido. Los métodos de otras propiedades no obligan a reescribir una tabla.
   Separá las tablas de funciones, quitá accesos a `constructor`, `__proto__` y `prototype`, y reemplazá las
-  conversiones de objeto o clave por comprobaciones de tipos. No hace falta reescribir las tablas de datos.
+  conversiones de objeto o clave por comprobaciones de tipos. Cubrí con lint todo el grafo alcanzado, también
+  `.mts`, `.cts` y auxiliares fuera de `src/`: los caminos con `any` hacia `Function` dependen de ese control.
 - Quitá `keys` de opciones, contextos y arranques; `KeyStore` solo queda para adopción explícita. Cambiá `Tool.start`
   a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios. Un arranque ya no ejecuta acciones ni accede al registro: trasladá esa ejecución a una acción explícita del programa o expresá el cambio como hechos mediante el bus de arranque.
 - Mové lectura, validación del material, firma, I/O y resolución a adaptadores declarados. Las acciones y callbacks

@@ -91,16 +91,34 @@ function declarationValues(node: ts.Node): ts.Node[] {
     return node.body ? [node.body] : [];
   return [];
 }
+/** Standard scalar coercions produce their declared primitive regardless of assertions in their input. */
+function scalarCoercion(node: ts.Node, checker: ts.TypeChecker): boolean {
+  if (!ts.isCallExpression(node) || !ts.isIdentifier(node.expression)) return false;
+  if (!["String", "Number", "Boolean", "BigInt"].includes(node.expression.text)) return false;
+  const declarations = checker.getSymbolAtLocation(node.expression)?.declarations ?? [];
+  return (
+    declarations.length > 0 &&
+    declarations.every(declaration => /\/lib\.[^/]+\.d\.ts$/u.test(declaration.getSourceFile().fileName))
+  );
+}
 /** Trace local/imported aliases, assignments and helper bodies; const assertions do not invent another type. */
 export function convertedValue(node: ts.Node, checker: ts.TypeChecker, seen = new Set<ts.Node>()): boolean {
   const context = programs.get(checker);
   if (context && (!context.hasConversions || !context.files.has(node.getSourceFile().fileName))) return false;
   if (seen.has(node) || ts.isTypeNode(node)) return false;
   seen.add(node);
+  if (scalarCoercion(node, checker)) return false;
+  if (
+    (ts.isAsExpression(node) || ts.isTypeAssertionExpression(node)) &&
+    scalarCoercion(node.expression, checker) &&
+    checker.getTypeAtLocation(node) === checker.getTypeAtLocation(node.expression)
+  )
+    return false;
   if (ts.isAsExpression(node) || ts.isTypeAssertionExpression(node)) {
     if (node.type.getText() !== "const") return true;
   }
   const values: ts.Node[] = [];
+  if (ts.isParameter(node)) values.push(...callInputs(node, checker));
   if (ts.isIdentifier(node) || ts.isPropertyAccessExpression(node)) {
     const declarations = valueDeclarations(node, checker);
     values.push(...declarations.flatMap(declarationValues));

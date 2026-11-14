@@ -92,7 +92,7 @@ it("212 vecinos: tener declaraciones instaladas no autoriza un import", () => {
       },
       policy,
     ),
-  ).toContain("tool.ts → @sinclair/typebox");
+  ).toContain("tool.ts:1:1 → @sinclair/typebox");
 });
 it("212 vecinos: desestructurar un arreglo no lee una propiedad con el nombre de la variable", () => {
   expect(secretBoundaryViolations({ "tool.ts": "const [constructor] = [1];" }, policy)).toEqual([]);

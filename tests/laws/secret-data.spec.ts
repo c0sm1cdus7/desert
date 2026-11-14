@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { expect, it } from "vitest";
 import { secretBoundaryViolations } from "./secret-boundaries.ts";
 import { programSecretBoundaries } from "./program-secret-boundaries.ts";
-import { dataCases, rejectedDataCases } from "./secret-data-cases.ts";
+import { dataCases, rejectedDataCases, admittedRevisedCases } from "./secret-data-cases.ts";
 const policy = { composition: [], adapters: [], custody: [], publicTypes: [], tools: ["tool.ts"] };
 for (const [name, code] of Object.entries(dataCases))
   for (const mode of ["directo", "bucle", "importado"])
@@ -20,6 +20,10 @@ for (const [name, code] of Object.entries(dataCases))
           : { "tool.ts": helper };
       expect(secretBoundaryViolations(sources, policy)).toEqual([]);
     });
+for (const [name, code] of Object.entries(admittedRevisedCases))
+  it(`212 datos: admite ahora ${name}`, () => {
+    expect(secretBoundaryViolations({ "tool.ts": code }, policy)).toEqual([]);
+  });
 for (const [name, code] of Object.entries(rejectedDataCases))
   it(`212 datos: rechaza ${name}`, () => {
     expect(secretBoundaryViolations({ "tool.ts": code }, policy).length).toBeGreaterThan(0);
