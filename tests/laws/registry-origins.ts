@@ -1,6 +1,8 @@
 import ts from "typescript";
 function unwrapped(node: ts.Node): ts.Node {
   if (ts.isVariableDeclaration(node) && node.initializer) return unwrapped(node.initializer);
+  if (ts.isPropertyAssignment(node)) return unwrapped(node.initializer);
+  if (ts.isExportAssignment(node)) return unwrapped(node.expression);
   if (
     ts.isParenthesizedExpression(node) ||
     ts.isAsExpression(node) ||
@@ -56,7 +58,11 @@ class RegistryTrace {
     }
     this.fail(node, "cannot trace registered tool");
   }
-  factory(declaration: ts.Node, seen: Set<ts.Node>): void {
+  factory(
+    declaration: ts.Node,
+    seen: Set<ts.Node>,
+    follow = (value: ts.Node, path: Set<ts.Node>) => this.origin(value, path),
+  ): void {
     if (
       !ts.isArrowFunction(declaration) &&
       !ts.isFunctionExpression(declaration) &&
@@ -66,7 +72,7 @@ class RegistryTrace {
       return this.fail(declaration, "cannot trace tool factory");
     const body = declaration.body;
     if (!body) return this.fail(declaration, "missing tool factory body");
-    if (!ts.isBlock(body)) return this.origin(body, new Set(seen));
+    if (!ts.isBlock(body)) return follow(body, new Set(seen));
     const returns: ts.Expression[] = [];
     const visit = (node: ts.Node): void => {
       if (ts.isFunctionLike(node)) return;
@@ -75,7 +81,7 @@ class RegistryTrace {
     };
     visit(body);
     if (!returns.length) this.fail(declaration, "cannot trace tool factory return");
-    returns.forEach(value => this.origin(value, new Set(seen)));
+    returns.forEach(value => follow(value, new Set(seen)));
   }
   registry(input: ts.Node, seen = new Set<ts.Node>()): void {
     const node = unwrapped(input);
@@ -88,6 +94,23 @@ class RegistryTrace {
       );
       return;
     }
+    if (
+      ts.isCallExpression(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      node.expression.name.text === "freeze" &&
+      node.arguments.length === 1
+    ) {
+      const declarations = this.values(node.expression.expression);
+      const standard =
+        declarations.length &&
+        declarations.every(
+          value =>
+            value.getSourceFile().isDeclarationFile &&
+            /(?:^|[\\/])lib\..*\.d\.ts$/u.test(value.getSourceFile().fileName),
+        );
+      const argument = node.arguments[0];
+      if (standard && argument) return this.registry(argument, seen);
+    }
     const values = this.values(node);
     if (values.length) {
       values.forEach(value => this.registry(value, new Set(seen)));
@@ -95,11 +118,27 @@ class RegistryTrace {
     }
     this.fail(node, "cannot trace registry");
   }
-  composition(declaration: ts.Node): void {
-    const node = unwrapped(declaration);
-    const value = this.checker.getTypeAtLocation(node).getProperty("registry");
-    if (!value?.declarations?.length) return this.fail(node, "cannot trace composition registry");
-    value.declarations.forEach(property => this.registry(property));
+  composition(input: ts.Node, seen = new Set<ts.Node>()): void {
+    const node = unwrapped(input);
+    if (seen.has(node)) return this.fail(node, "cannot trace composition registry");
+    seen.add(node);
+    if (ts.isObjectLiteralExpression(node)) {
+      const property = node.properties.find(
+        item => item.name && ts.isIdentifier(item.name) && item.name.text === "registry",
+      );
+      if (property) return this.registry(property);
+      const spread = node.properties.filter(ts.isSpreadAssignment).at(-1);
+      if (spread) return this.composition(spread.expression, seen);
+      return this.fail(node, "cannot trace composition registry");
+    }
+    if (ts.isCallExpression(node)) {
+      const declaration = this.checker.getResolvedSignature(node)?.declaration;
+      if (declaration && !declaration.getSourceFile().isDeclarationFile)
+        return this.factory(declaration, seen, (value, path) => this.composition(value, path));
+    }
+    const values = this.values(node);
+    if (values.length) return values.forEach(value => this.composition(value, new Set(seen)));
+    this.fail(node, "cannot trace composition registry");
   }
   tools(source: ts.SourceFile): void {
     const visit = (node: ts.Node): void => {
@@ -113,7 +152,7 @@ class RegistryTrace {
     visit(source);
   }
 }
-/** Registry membership identifies a tool, independent of spelling, spreads and assertions. No code is executed. */
+/** Trace registry values without executing code; composition is trusted, not protected against later mutation. */
 export function registryOrigins(program: ts.Program, main: string, privileged: ReadonlySet<string>): string[] {
   const trace = new RegistryTrace(program, privileged);
   const source = program.getSourceFile(main);

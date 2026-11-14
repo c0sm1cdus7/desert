@@ -25,6 +25,7 @@ export function programSourceGraph(
   );
   const visit = (file: string): void => {
     if (file in sources) return;
+    if (file.endsWith(".json") && existsSync(file)) return void (sources[file] = "");
     if (!/\.(?:[cm]?ts|tsx)$/u.test(file) || /\.d\.[cm]?ts$/u.test(file) || !existsSync(file)) {
       failures.push(`${file}: source cannot be inspected`);
       return;

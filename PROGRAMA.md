@@ -653,14 +653,18 @@ actuales y cuenta lo no revisable; no certifica toda la historia ni los datos p�
 La ley 212 parte de la composición indicada por `desert.program` y sigue su grafo de imports, reexportaciones,
 alias, imports dinámicos literales y tipos, también fuera de `src/`, en archivos de pruebas y en `.mts`, `.cts`
 o `.tsx`. Todo archivo alcanzado que no sea la composición, un adaptador de `src/adapters/` o la frontera pública
-revisada de la base se revisa como fuente de herramienta. Un archivo o dependencia que no se pueda revisar falla
+revisada de la base se revisa como fuente de herramienta. Un JSON importado es dato; un archivo o dependencia que no se pueda revisar falla
 cerrado; un import no literal también. Los imports públicos son nombrados según `tests/laws/secret-public-api.ts`;
-`testing.ts` no habilita fábricas para herramientas. Los alias vienen de `paths` y la resolución local de TypeScript.
+`testing.ts` no habilita fábricas para herramientas. Un `import type` de un módulo no público se rechaza igual que un import de valor. Los alias vienen de `paths` y la resolución local de TypeScript.
 
-Además rastrea cada elemento del `registry` exportado hasta el valor o fábrica que lo define. Si pertenece a la
-composición o a un adaptador, lo rechaza, incluso con claves calculadas, spreads o `Object.fromEntries`. Los registros
-que no se pueden rastrear estáticamente (incluida una fábrica que devuelve un parámetro) fallan cerrados: usá un arreglo explícito, con referencias a herramientas
-separadas; admite alias y spreads de arreglos rastreables. La ley no ejecuta la composición para descubrir valores.
+Además rastrea el valor de la composición, incluso los retornos de funciones del programa, y cada elemento del
+`registry` hasta el valor o fábrica que lo define. Admite arreglos literales, `as const`, `Object.freeze` de la
+biblioteca y referencias a propiedades de objetos literales o a un `export default` literal de herramientas.
+Rechaza herramientas definidas en la composición o un adaptador y registros calculados que no puede seguir,
+como `Object.entries(...).map(...)` u `Object.fromEntries`. También admite alias y spreads de arreglos rastreables;
+una fábrica que devuelve un parámetro falla cerrada. La ley no ejecuta la composición para descubrir valores.
+La composición es confiable por diseño: si quien compone esconde una herramienta mediante una fábrica aparte que
+devuelve una copia, una reasignación o un agregado posterior, la ley no la ve; es un acto de quien compone.
 Una herramienta no puede importar custodia, fábrica, resolvedor ni composición, ni hacer I/O directo, leer entorno
 o evaluar código por los caminos que esta regla reconoce. `Reflect` y `module` son capacidades del ambiente.
 Toda lectura con clave calculada no literal se juzga igual: corchetes, desestructuración en una declaración,
