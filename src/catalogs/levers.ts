@@ -8,3 +8,6 @@ export type ViewLimits = Readonly<{ recentLines: number }> &
   Readonly<{ now: number }>;
 /** A shorter value is no secret worth hiding: replacing it everywhere would rewrite ordinary words. */
 export const secretLimits = { minLength: 12 } as const;
+
+/** Bump whenever the base changes how its own facts fold. */
+export const baseProjectionVersion = "desert/1";

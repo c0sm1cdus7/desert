@@ -12,6 +12,7 @@ const home = process.argv[2] ?? mkdtempSync(join(tmpdir(), "desert-shop-"));
 const all = shopRegistry.map(tool => tool.id);
 const house = startHouse<Shop>(home, {
   by: "shop",
+  projectionVersion: "shop/1",
   creation: { admin: "ana", assignments: [{ identity: "ana", tools: all }] },
   keys: new MemoryKeys(),
   words: shop,

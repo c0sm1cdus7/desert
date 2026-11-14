@@ -72,8 +72,12 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 - `tests/laws/rules.json` es la lista única de reglas, cada una con cómo se garantiza (tipo, rechazo al componer,
   prueba derivada, prueba de la superficie) y dónde. `pnpm rules` escribe `GARANTIAS.md`. Una ley del gate no deja
   sumar una regla sin garantía ni cambiar la cantidad de deudas sin querer.
-- Las pruebas derivadas de un programa corren solas en su gate (`tests/program/program.checks.ts`): el programa
-  dice dónde se compone (`package.json`, `desert.program`) y no elige cuáles corren.
+- Las pruebas derivadas de un programa corren solas en su gate, exactamente una vez entre ocho archivos
+  (`tests/program/part-*.checks.ts`): el programa dice dónde se compone (`package.json`, `desert.program`) y no
+  elige cuáles corren. Se reparten salteadas por posición, también las de registros guardados, conservando grupos,
+  nombres e informes de caminos recorridos. El patrón de archivos ya las encuentra al subir de base.
+  `tests/program/parts.ts` fija la cantidad; `tests/laws/gate.spec.ts` exige cada archivo y su índice en disco.
+  Una parte vacía registra una comprobación explícita; nunca oculta errores de carga ni de ejecución.
 - Una acción se declara por partes (`tools/promises.ts`): `name` (lo que dice su fila, en minúscula), `enter` (el
   verbo que confirma), `undoable`, `purpose`, `key`, `on`, y cuando hace falta `title`, `under`, `leaves`,
   `changes`, `datum`, `confirms`, `today`, `also`, `offered`, `refuses`. Lo que se rechaza al componer: un nombre
@@ -125,8 +129,8 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
   deja de declarar un tipo que su registro tiene, la casa no abre y dice cuál es y dónde está (HECHO, 10/11); y lo
   guardado entre arranques lleva la forma del programa (los hechos que lee y dónde empieza su estado), así que con
   otra forma se vuelve a recorrer el registro entero (HECHO, 10/11). Falta decidir, antes de la primera casa en
-  producción, cómo sigue leyendo un programa un tipo de hecho que ya no escribe. Y un cambio en cómo se calcula el
-  estado que no cambie su forma todavía no se detecta.
+  producción, cómo sigue leyendo un programa un tipo de hecho que ya no escribe. El cambio de cálculos ya se detecta con `projectionVersion` y la versión de la base (A04);
+  la compuerta compara actualizar desde evidencia de reutilización efectiva en modo manual, o invalidación por cambio de código en modo de huella con reconstruir todo.
 - **Las preferencias son de la casa, no del programa.** Hoy son tres y fijas (lo apagado, lo ajeno, las listas
   vacías). Si un programa quiere las suyas, tiene que poder declararlas.
 
@@ -144,3 +148,37 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 5. La puerta: viaja el estado, por herramienta entera y paginado.
 6. Emparejar dispositivos y herramienta de equipo (permisos y conexiones).
 7. Core de muchas casas.
+
+## Un escritor por almacenamiento (A03)
+
+`SqliteJournal` resuelve el archivo canónico y adquiere una transacción SQLite auxiliar antes de abrir el registro.
+`journalKept` usa la misma exclusión, incluso cuando solo consulta los datos del arranque; `journalReader` abre por
+la misma identidad sin tomar la exclusión de escritor. `startHouse` hereda este contrato sin cambiar su firma.
+La transición desde la versión anterior exige detener todos los procesos. Se retira a propósito el puente
+`journal.lock`: no se crea ni se lee, y el dueño lo limpia solo después de adquirir la exclusión, nunca al cerrar.
+El auxiliar no se elimina: la exclusión termina al cerrar su conexión o morir el proceso. Una eliminación o
+sustitución externa hace que el dueño rechace nuevas escrituras con `WriterLeaseLost` y libere al cerrar sin guardar.
+Todos los descriptores de las bases, incluidas las copias de registros conservados, quedan a cargo de SQLite.
+
+Los hechos anteriores no cambian. Los plegados de formato anterior se descartan juntos y se reconstruyen; los de
+formato 4 llevan una suma SHA-256 del contenido serializado, además de la identidad persistente de su registro y una secuencia segura dentro de él y cada paso exige el siguiente número. El guardado del grupo
+es atómico y una restauración fallida no publica plegados. La decisión de compatibilidad queda concentrada en
+`snapshot-format.ts`, que también exige la identidad de cálculos del programa y de la base (A04).
+Cada descarte deja un aviso con motivo en stderr; al restaurar la casa, también en su registro de diagnósticos.
+La identidad se asigna al abrir registros anteriores. Una alteración manual de archivos queda fuera de la garantía.
+La primera `codeProjectionVersion` de una declaración fija la huella de código y Node durante el proceso;
+`projectionVersion` lee los bytes actuales para las comprobaciones. Una restauración
+fallida impide guardar plegados durante toda la vida de esa instancia, aun si después logra reintentarlo.
+
+La versión de cálculos distingue un string manual de `CodeProjectionVersion`: no se deduce el modo del texto.
+Los avisos de reconstrucción son de la instancia (`storageNotices()`), no hechos. La toma del escritor exige una
+escritura SQLite real, sin cambiar permisos del auxiliar; una carpeta renombrada hace perder la exclusión al dueño.
+
+Si el proceso lee o copia por su cuenta el auxiliar con funciones de archivos, suelta su exclusión POSIX.
+La base nunca lo hace; `copyJournal` es la copia permitida del registro abierto. Un avance ajeno del registro
+o una transacción de escritura ajena hacen fallar con `WriterLeaseLost`, sin escritura parcial ni reintento
+en esa instancia. `WriterAlreadyOpen` distingue la contención al abrir. SQLite crea auxiliares nuevos en modo 600.
+Los plegados se conservan por identidad y versión: alternar personas retoma sus colas, sin recomenzar siempre.
+`renewKeptJournals`, disponible desde testing, renueva la evidencia manual de una entrega sin nuevos hechos.
+La compuerta resume la lista de comprobaciones en `tests/program/setup.ts` antes de lanzar las partes; cada
+parte coteja su lista. Quien usa la base incorpora ese archivo en `globalSetup` de Vitest.

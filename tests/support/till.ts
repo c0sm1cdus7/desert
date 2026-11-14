@@ -91,7 +91,12 @@ const tillTool = (how: Offered): ProgramTool<Till> => ({
   summary: state => `$ ${state.tools.till.float}`,
   acts: { float: floating(how), close },
 });
-const programWith = (how: Offered): Composition<Till> => ({ words: till, registry: [tillTool(how)], slices });
+const programWith = (how: Offered): Composition<Till> => ({
+  projectionVersion: "till/1",
+  words: till,
+  registry: [tillTool(how)],
+  slices,
+});
 export const tillProgram = programWith({ ...offer, changes: "float" });
 /** The same act, named as the datum and never saying it changes it: it would be read twice. */
 export const looseTill = programWith(offer);

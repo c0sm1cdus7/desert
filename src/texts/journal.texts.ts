@@ -1,9 +1,58 @@
 export const journalTexts = {
+  leaseLost: "Writer exclusion was lost or another connection wrote; close and reopen this house",
+  beginWrite: "begin immediate",
+  checksumFold: "missing or mismatched snapshot checksum",
+  leaseUnavailable: "Cannot acquire a writable, regular writer sidecar",
+  invalidSqliteFiles: "SQLite files and siblings support only regular files without symbolic or hard links",
+  invalidCodeFile: "Code supports only a regular file without hard links",
+  calculationMutated: "A calculation mutated its input state",
+  codeUpgradeCheck: "Calculation code changes its fingerprint and rebuilds saved folds",
+  codeRebuildFailed: "Changed calculation code did not rebuild the saved folds",
+  staleCode: "Declared code changed after composition; compose the immutable release again",
+  noCodeEvidence: "No calculation code in the declared trees: no evidence",
+  codeChangeProbe: "\n// changed calculation probe\n",
+  unchangedFingerprint: "Changing calculation code did not change its fingerprint",
+  foldRestoration: (reused: boolean, reasons: readonly string[]) =>
+    reused
+      ? "REUTILIZADO · formato, registro, cálculos y secuencias compatibles"
+      : `RECONSTRUIDO · ${reasons.join("; ") || "sin hechos previamente plegados"}`,
+  upgradeNotProved: (name: string) => `${name}: NO PROBADO · la apertura no completó el plegado`,
+  codeUpgradeProved: (report: string) => `${report}; cambio de código: huella distinta y RECONSTRUIDO`,
+  manualEvidenceCheck: "Manual projectionVersion has reusable kept evidence",
+  noManualEvidence: "No reusable previous folds: no evidence for manual projectionVersion",
+  rebuildCode: "SAVED_FOLD_REBUILT",
+
+  copyJournal: "vacuum into ?",
+  identityTable:
+    "create table if not exists journal_identity (singleton integer primary key check(singleton = 1), id text)",
+  identityInsert: "insert or ignore into journal_identity values (1, ?)",
+  identityRead: "select id from journal_identity where singleton = 1",
+  rebuilt: "Saved state is being rebuilt from the journal",
+  rebuildNotice: (name: string, reason: string) =>
+    `Saved fold ${name} discarded: ${reason}; rebuilding from the journal`,
+  unreadableFold: "truncated or unreadable format",
+  oldFold: "old or unsupported format version",
+  aheadFold: "invalid or ahead sequence",
+  foreignFold: "different journal identity",
+  changedFold: "different calculation version",
+  unwatchedFold: "projection name or calculation version changed",
+  dependentFold: "dependent group is incomplete, incompatible or at different sequences",
+
+  keptBootSql: "select by from events where kind = 'boot' order by seq limit 1",
+  lastInstantSql: "select max(at) as at from events",
+  lastSequenceSql: "select coalesce(max(seq), 0) as seq from events",
+  discardFoldsSql: "delete from snapshots",
+  upgradeMismatch: (name: string) => `${name}: projectionVersion differs from the calculations`,
   invalidEvent: "Invalid event envelope or unknown kind",
   unreadable: (seq: number, kind: string) =>
     `This house's journal holds a fact this program does not read: #${seq} ${kind}`,
   closedBus: "The event bus is closed",
   listenerFailed: "Someone who listens to the house failed on hearing a fact",
+  writerLeaseSql:
+    "pragma busy_timeout = 0; pragma journal_mode = delete; begin immediate; " +
+    "create table if not exists writer (id integer primary key, nonce blob); " +
+    "insert or replace into writer values (1, randomblob(32))",
+  reopenedMismatch: "Reopened state differs from the complete journal fold",
   locked: "This house is already open in a running process",
   kindTaken: (kinds: readonly string[]) => `The house already writes these kinds: ${kinds.join(", ")}`,
 } as const;
