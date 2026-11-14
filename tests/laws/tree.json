@@ -160,7 +160,8 @@
     "adapters/storage/journal-position.ts": "detecta avances ajenos del registro dentro de la transacción e invalida al escritor",
     "programs/code-imports.ts": "comprueba que las dependencias locales del cálculo estén incluidas en la huella declarada",
     "programs/kept-names.ts": "enumera registros guardados regulares en orden, sin confundir auxiliares con registros",
-    "programs/renew-kept.ts": "renueva los plegados de registros de prueba con cálculos comprobados, sin agregar hechos"
+    "programs/renew-kept.ts": "renueva los plegados de registros de prueba con cálculos comprobados, sin agregar hechos",
+    "surface/bridge/tool-index.ts": "toolIndex: lectura completa compartida por estado e instante para nombres, pertenencia y búsquedas."
   },
   "folders": {
     "adapters/secrets": 103,
