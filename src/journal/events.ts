@@ -14,6 +14,7 @@ const actStatus = literals("accepted", "rejected", "draft", "inconclusive", "int
 export const houseCatalog = {
   "house-created": object({}),
   granted: object({ identity: name, tools: names }),
+  named: object({ identity: name, name }),
   /** Someone leaves the house: from then on nothing of it is theirs. Only who administers it says so. */
   removed: object({ identity: name }),
   /** The house passes to another of those who are in it: from then on that one administers it. */

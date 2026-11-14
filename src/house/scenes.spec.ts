@@ -76,7 +76,7 @@ it("8: rejects excess, blank identity keys and another author's scene before a s
 });
 
 it("bumps the base fold version for the new house state", () => {
-  expect(baseProjectionVersion).toBe("desert/4");
+  expect(baseProjectionVersion).toBe("desert/5");
 });
 
 it("A6: the scene schema bounds recipient names independently of current membership", () => {

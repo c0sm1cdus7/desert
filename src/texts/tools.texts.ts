@@ -1,3 +1,12 @@
+export const identityNameTexts = {
+  house: "nombre reservado para la casa",
+  mind: "prefijo reservado para una mente",
+  trim: "nombre no está recortado",
+  control: "carácter de control",
+  format: "carácter de formato",
+  visible: "nombre sin carácter visible",
+} as const;
+
 export const toolTexts = {
   sceneRecipient: (name: string) => `La escena nombra a quien no es una identidad de la casa: ${name}`,
   scene: "Describir lo que está pasando y lo que necesita cada identidad.",

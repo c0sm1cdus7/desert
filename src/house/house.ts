@@ -9,7 +9,8 @@ export type House = Readonly<{ admin: string }> &
   /** What each identity prefers not to see: its own to say, and nobody else's. */
   Readonly<{ hides: ReadonlyMap<string, readonly Hideable[]> }> &
   Readonly<{ kits: ReadonlyMap<string, ReadonlyMap<string, readonly string[] | null>> }> &
-  Readonly<{ scenes: ReadonlyMap<string, HouseEvent<"scene">> }>;
+  Readonly<{ scenes: ReadonlyMap<string, HouseEvent<"scene">> }> &
+  Readonly<{ names: ReadonlyMap<string, string>; removed: ReadonlySet<string> }>;
 export type Attention = Readonly<{ delay: number; wake: string }>;
 /** What a house knows of each identity: what it keeps in view, what asks for its attention, what it may read. */
 export type HouseView = Readonly<{ by: string; house: House; entries: readonly HouseEvent<"tool-entry">[] }> &
@@ -25,6 +26,8 @@ export const emptyHouse: House = {
   hides: new Map(),
   kits: new Map(),
   scenes: new Map(),
+  names: new Map(),
+  removed: new Set(),
 };
 export function houseStep(state: House, event: Event): House {
   if (event.layer !== "house" || namesMind(event)) return state;
@@ -38,15 +41,22 @@ export function houseStep(state: House, event: Event): House {
     return { ...state, hides: new Map(state.hides).set(event.by, event.data.on ? [...rest, event.data.hide] : rest) };
   }
   if (event.kind === "granted" && event.by === state.admin) {
-    const grants = new Map(state.grants).set(event.data.identity, event.data.tools);
-    return { ...state, grants };
+    const tools = event.data.tools.filter(tool => tool !== "identities");
+    const grants = new Map(state.grants).set(event.data.identity, tools);
+    const removed = new Set(state.removed);
+    removed.delete(event.data.identity);
+    return { ...state, grants, removed };
   }
   /** Who administers the house takes someone out of it, never itself: what they wrote stays, their access goes. */
   if (event.kind === "removed" && event.by === state.admin && event.data.identity !== state.admin) {
     const grants = new Map(state.grants);
     grants.delete(event.data.identity);
-    return { ...state, grants };
+    const removed = new Set(state.removed);
+    if (state.grants.has(event.data.identity)) removed.add(event.data.identity);
+    return { ...state, grants, removed };
   }
+  if (event.kind === "named" && event.by === state.admin)
+    return { ...state, names: new Map(state.names).set(event.data.identity, event.data.name) };
   /** The house passes to someone who is in it, by the word of who administers it: nobody takes it. */
   if (event.kind === "handed" && event.by === state.admin && state.grants.has(event.data.to))
     return {
@@ -84,13 +94,14 @@ export const mindTool = (actor: string): string | undefined =>
 /** A mind is an actor only while its own tool exists; it never becomes an identity through a grant. */
 export const present = (registry: readonly { id: string }[], house: House, by: string): boolean => {
   const own = mindTool(by);
-  return own === undefined ? house.grants.has(by) : registry.some(tool => tool.id === own);
+  return own === undefined ? house.grants.has(by) : own !== "identities" && registry.some(tool => tool.id === own);
 };
 /** Who may use a tool's adapters while acting: an identity holding the tool, or the mind of that very tool. */
 export const holds = (registry: readonly { id: string }[], house: House, by: string, tool: string): boolean =>
   mindTool(by) === undefined ? allowed(house, by, tool) : mindTool(by) === tool && present(registry, house, by);
 /** Identities inherit every act of a granted tool; minds receive only explicit acts of their own tool. */
 export function allowedAct(house: House, by: string, tool: string, act: string): boolean {
+  if (tool === "identities") return house.identities === true && by === house.admin && house.grants.has(by);
   if (house.identities && by === house.admin && house.grants.has(by)) return true;
   const kit = by === house.admin ? undefined : house.kits.get(by)?.get(tool);
   const own = mindTool(by);
