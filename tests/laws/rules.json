@@ -2132,7 +2132,8 @@
         "src/house/kit.spec.ts",
         "src/house/minds.spec.ts",
         "src/house/contract-neighbors.spec.ts",
-        "src/house/adversaria.spec.ts"
+        "src/house/adversaria.spec.ts",
+        "src/house/cleanup-contract.spec.ts"
       ]
     },
     {
@@ -2153,7 +2154,7 @@
     },
     {
       "id": 221,
-      "rule": "Cada identidad presente y cada mente de una herramienta existente puede ejecutar su propia escena: general y, si quiere, partes para identidades presentes en la casa. La ejecución rechaza antes de escribir un destinatario ausente o mente. Nadie escribe la de otro. El esquema limita el general a 4.000 caracteres, cada parte a 1.000, los nombres a 160 y la cantidad de partes a 64; no admite nombres ni textos vacíos o compuestos solo por espacios o U+200B–U+200D, U+2060 y U+FEFF. La casa guarda la última escena de cada autor y todos la leen entera, aun si luego sale su autor o un destinatario.",
+      "rule": "Cada identidad presente y cada mente de una herramienta existente puede ejecutar su propia escena: general y, si quiere, partes para identidades presentes en la casa. La ejecución rechaza antes de escribir un destinatario ausente o mente. Nadie escribe la de otro. El esquema limita el general a 4.000 unidades UTF-16, cada parte a 1.000, los nombres a 160 y la cantidad de partes a 64; nombres y textos deben contener algo visible: no cuentan espacios, controles, formatos, caracteres ignorables por defecto ni los que pintan un blanco. La casa guarda la última escena de cada autor y todos la leen entera, aun si luego sale su autor o un destinatario.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "spec",
       "evidence": [
@@ -2163,7 +2164,8 @@
         "src/tools/scenes.ts",
         "src/house/scenes.spec.ts",
         "src/house/contract-neighbors.spec.ts",
-        "src/house/adversaria.spec.ts"
+        "src/house/adversaria.spec.ts",
+        "src/house/cleanup-contract.spec.ts"
       ]
     },
     {
@@ -2188,7 +2190,7 @@
     },
     {
       "id": 255,
-      "rule": "Un programa lee el mismo importe que confirmó, antes y después de reabrir, y la función que lo muestra rechaza lo que no es un importe.",
+      "rule": "La función de la base que muestra un importe recibe centavos enteros dentro del máximo del campo y rechaza todo lo demás; los programas de prueba de la base muestran sus importes con ella.",
       "from": "14/11 · importe · revisión adversaria",
       "guarantee": "spec",
       "evidence": [
@@ -2200,7 +2202,9 @@
         "src/catalogs/fields/money-field.spec.ts",
         "src/tools/promises.spec.ts",
         "tests/support/window-volume.ts",
-        "src/surface/bridge/window-cost.spec.ts"
+        "src/surface/bridge/window-cost.spec.ts",
+        "src/catalogs/fields/money-cleanup.spec.ts",
+        "src/surface/money-limit-cleanup.spec.ts"
       ]
     }
   ]

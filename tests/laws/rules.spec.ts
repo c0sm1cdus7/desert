@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -44,17 +45,33 @@ describe("law 13: a rule nothing makes hold is a wish", () => {
   });
 });
 
-it("records law 255 for reading confirmed money and rejecting invalid cents", () => {
+it("runs the witnesses for law 255", () => {
   const law = rules.find(rule => rule.id === 255);
   expect(law?.rule).toBe(
-    "Un programa lee el mismo importe que confirmó, antes y después de reabrir, " +
-      "y la función que lo muestra rechaza lo que no es un importe.",
+    "La función de la base que muestra un importe recibe centavos enteros dentro del máximo del campo " +
+      "y rechaza todo lo demás; los programas de prueba de la base muestran sus importes con ella.",
   );
-  expect(law?.evidence).toEqual(
-    expect.arrayContaining([
-      "src/surface/shop-money-terminal.spec.ts",
-      "src/surface/shop-money-neighbors.spec.ts",
-      "src/catalogs/fields/money-field.spec.ts",
-    ]),
+  const witnesses = [
+    "src/surface/shop-money-terminal.spec.ts",
+    "src/surface/shop-money-neighbors.spec.ts",
+    "src/catalogs/fields/money-field.spec.ts",
+    "src/catalogs/fields/money-cleanup.spec.ts",
+    "src/surface/money-limit-cleanup.spec.ts",
+    "src/tools/promises.spec.ts",
+    "src/surface/bridge/window-cost.spec.ts",
+  ];
+  expect(law?.evidence).toEqual(expect.arrayContaining(witnesses));
+  execFileSync(
+    process.execPath,
+    [
+      join(root, "node_modules/vitest/vitest.mjs"),
+      "run",
+      "--configLoader",
+      "runner",
+      "--project",
+      "specs",
+      ...witnesses,
+    ],
+    { cwd: root, timeout: 120000, stdio: "pipe" },
   );
-});
+}, 130000);

@@ -168,3 +168,20 @@ export const brokenShops: readonly Readonly<{
     ],
   },
 ];
+
+/** A declaration with an initial amount outside the declared field schema. */
+export const invalidDefaultShop = (value: number): Composition<Shop> => {
+  const register = salesTool.acts.register;
+  if (!register) throw new Error("missing register");
+  const input = {
+    ...register.input,
+    properties: {
+      ...shopCatalog["sale-registered"].properties,
+      total: { ...shopCatalog["sale-registered"].properties.total, default: value },
+    },
+  };
+  return {
+    ...shopProgram,
+    registry: [{ ...salesTool, acts: { ...salesTool.acts, register: { ...register, input } } }, paymentsTool],
+  };
+};
