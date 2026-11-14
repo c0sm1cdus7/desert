@@ -62,7 +62,7 @@ describe("the record of a thing another thing's act made", () => {
     };
     rig.bus.emit(effect("tool-entry", brought, "beto"));
     /** What beto wrote is news once; then the sale is the first row again. */
-    expect(await press("")).toEqual(expect.arrayContaining(["[1] Traídas · 1 | beto", "[2] s1 | $ 1500"]));
+    expect(await press("")).toEqual(expect.arrayContaining(["[1] Traídas · 1 | beto", "[2] s1 | $ 15,00"]));
     await press("1");
     const record = router.screen({ rows: 30 }).body;
     const done = record.kind === "list" ? record.stacks.at(-1)?.rows.map(row => row.title) : [];

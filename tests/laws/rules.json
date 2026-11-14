@@ -2018,7 +2018,11 @@
         "src/surface/money-menu.spec.ts",
         "src/catalogs/display/column-width.ts",
         "src/doors/terminal/entry.ts",
-        "src/surface/bridge/currency/currency-defect.ts"
+        "src/surface/bridge/currency/currency-defect.ts",
+        "tests/support/shop.ts",
+        "src/surface/shop-money-terminal.spec.ts",
+        "src/surface/shop-money-neighbors.spec.ts",
+        "tests/laws/program-secret-boundaries.spec.ts"
       ]
     },
     {

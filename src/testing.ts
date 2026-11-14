@@ -13,6 +13,7 @@ export {
   padded,
   quantity,
   quantityDecimals,
+  shownMoney,
   someOf,
   text,
   textLimit,

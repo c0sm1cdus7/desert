@@ -1,7 +1,7 @@
 // A program that lives in a house only in tests: a shop whose tools register sales and receive payments.
 import { Type } from "@sinclair/typebox";
 import { object } from "../../src/catalogs/acts.ts";
-import { money, text } from "../../src/catalogs/fields.ts";
+import { money, shownMoney, text } from "../../src/catalogs/fields.ts";
 import { effect, vocabulary, type Emission, type Event, type ProgramFacts } from "../../src/journal/events.ts";
 import { programAct, type ProgramTool } from "../../src/tools/promises.ts";
 import type { Shown, SurfaceWords } from "../../src/surface/bridge/house-ports.ts";
@@ -51,7 +51,8 @@ export const shopSlices: Slices<Shop> = {
   step: { sales: salesStep, payments: paymentsStep },
 };
 const lines = (values: readonly unknown[]): string => values.map(value => JSON.stringify(value)).join("\n");
-const pesos = (amount: number): string => `$ ${amount}`;
+export const shopLocale = { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" };
+export const pesos = (amount: number): string => shownMoney(String(amount), shopLocale);
 /** The list names each sale; one sale reads as its own facts. */
 const salesView = (state: State<Shop>, target: string): string => {
   const one = state.tools.sales.get(target.replace("sales/", ""));
@@ -76,7 +77,7 @@ export const registerCases = [
     then: {
       says: "Registrada · s1",
       facts: [{ kind: "sale-registered", data: first }],
-      reads: { on: "sales/s1", lines: [{ total: "$ 1500", paid: "$ 0", by: "ana" }] },
+      reads: { on: "sales/s1", lines: [{ total: "$ 15,00", paid: "$ 0,00", by: "ana" }] },
     },
   },
   {
@@ -194,5 +195,5 @@ export const shopWords: SurfaceWords = {
 };
 export const shopShown: Shown<Shop> = {
   words: shopWords,
-  locale: { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" },
+  locale: shopLocale,
 };

@@ -34,6 +34,9 @@ it("a real consumer can import public names through testing.ts", () => {
     }),
   ).toEqual([]);
 });
+it("a tool can format cents through the public catalog", () => {
+  expect(fixture({ "src/tools/sales.ts": `import { shownMoney } from '${root}/src/catalogs/fields.ts';` })).toEqual([]);
+});
 for (const name of ["SecretResolver", "AdapterDeclaration", "HouseKeyProvider", "KeyStore", "adapterTest"])
   it(`a real consumer cannot launder ${name} through the testing barrel`, () => {
     expect(

@@ -16,6 +16,7 @@ const modules: Record<string, readonly string[]> = {
     "option",
     "padded",
     "quantityDecimals",
+    "shownMoney",
     "someOf",
     "textLimit",
     "thing",

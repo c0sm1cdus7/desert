@@ -50,10 +50,10 @@ describe("the terminal, looking for things", () => {
     expect(started.some(line => line.includes("Registrar"))).toBe(false);
     expect(started.at(-1)).toContain("esc cerrar");
     const narrowed = await press("CAFÉ");
-    expect(narrowed).toEqual(expect.arrayContaining(["› CAFÉ", "café molido | $ 10", "Cafe en grano | $ 20"]));
+    expect(narrowed).toEqual(expect.arrayContaining(["› CAFÉ", "café molido | $ 0,10", "Cafe en grano | $ 0,20"]));
     expect(narrowed.some(line => line.includes("té |"))).toBe(false);
     expect(await press(" x")).toContain("Sin resultados.");
-    expect(await press("\x7f\x7f grano")).toEqual(expect.arrayContaining(["› CAFÉ grano", "Cafe en grano | $ 20"]));
+    expect(await press("\x7f\x7f grano")).toEqual(expect.arrayContaining(["› CAFÉ grano", "Cafe en grano | $ 0,20"]));
     expect((await press("\r"))[0]).toContain("Cafe en grano");
     const closed = await press(escape);
     expect(closed).toEqual(expect.arrayContaining(["Registradas", "Acciones"]));
@@ -71,7 +71,7 @@ describe("the terminal, looking for things", () => {
       rig.act("ana", "register", { sale, total }, "sales", rig.state().through);
     await press("v ");
     const narrowed = await press("\x1b[200~café\r\n\x1b[201~");
-    expect(narrowed).toEqual(expect.arrayContaining(["Buscar", "› café", "café molido | $ 10"]));
+    expect(narrowed).toEqual(expect.arrayContaining(["Buscar", "› café", "café molido | $ 0,10"]));
     expect(narrowed.some(line => line.includes("té |"))).toBe(false);
   });
 
@@ -80,7 +80,7 @@ describe("the terminal, looking for things", () => {
     rig.attend("ana", "sales");
     rig.act("ana", "register", { sale: "s1", total: 10 }, "sales", rig.state().through);
     const found = await press(" s1");
-    expect(found).toEqual(expect.arrayContaining(["Buscar", "› s1", "Ventas", "s1 | $ 10"]));
+    expect(found).toEqual(expect.arrayContaining(["Buscar", "› s1", "Ventas", "s1 | $ 0,10"]));
     expect(found.some(line => line.includes("pagos"))).toBe(false);
     expect((await press("\r"))[0]).toContain("s1");
     expect((await press(escape))[0]).toContain("Menú");

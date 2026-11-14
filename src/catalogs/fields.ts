@@ -12,7 +12,7 @@ export const textLimit = 120;
 /** Free text: the question, and a placeholder that shows what goes there. It says something, not only spaces. */
 export const text = (ask: string, placeholder: string) =>
   Type.String({ minLength: 1, maxLength: textLimit, pattern: "\\S", plain: true, title: ask, placeholder });
-export { money } from "./fields/money-field.ts";
+export { money, shownMoney } from "./fields/money-field.ts";
 /** How many decimals a quantity carries: what its mask lets be written, and what every door is held to. */
 export const quantityDecimals = 3;
 /** How many of something; `initial` is what the field already says when it opens. */
