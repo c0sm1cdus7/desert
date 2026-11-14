@@ -38,6 +38,21 @@ it("a live upper limit disappears with the amount, while discarded keys survive"
   expect(h.reasons()).toEqual(["solo números", "cambió la moneda"]);
 });
 
+it("Q7: confirming an emptied amount keeps its missing reason through another currency change", () => {
+  let currency = "$";
+  const h = fieldSeat(money("Importe", 1, () => currency));
+  h.send({ kind: "type", text: "500" });
+  expect(h.screen().body).toMatchObject({ entry: { typed: "$ 5,00" } });
+  currency = "US$";
+  expect(h.screen().body).toMatchObject({ entry: { typed: "", placeholder: "US$ 0,00" } });
+  expect(h.reasons()).toEqual(["cambió la moneda"]);
+  expect(h.send({ kind: "confirm" })).toBeUndefined();
+  expect(h.reasons()).toEqual(["cambió la moneda", "falta completar"]);
+  currency = "€";
+  expect(h.screen().body).toMatchObject({ entry: { typed: "", placeholder: "€ 0,00" } });
+  expect(h.reasons()).toEqual(["falta completar", "cambió la moneda"]);
+});
+
 it("changing currency while answering a later question recalculates at the emptied question", () => {
   let currency = "$";
   const h = fieldSeat(

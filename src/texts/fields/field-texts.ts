@@ -2,6 +2,7 @@
 export const fieldTexts = {
   invalidCurrency: (source: string, symbol: string) => `Símbolo de moneda inválido para ${source}: ${symbol}`,
   countryCurrency: "el país",
+  /** Why what is written cannot be sent yet: said where it is written, as a datum. */
   lacks: {
     missing: "falta completar",
     day: "día incompleto",
