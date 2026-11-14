@@ -9,6 +9,8 @@ function reopened<X extends Program>(file: string, folds: HouseFolds<X>) {
   const journal = new SqliteJournal(file, folds.words);
   try {
     const { state, clock } = houseProjections(journal, folds);
+    if (journal.restoration().warnings.some(warning => warning.reason === journalTexts.divergentFold))
+      throw new Error(journalTexts.reopenedMismatch);
     deepStrictEqual(checkCalculations(journal, folds), state(), journalTexts.reopenedMismatch);
     return { state: state(), clock: clock() };
   } finally {

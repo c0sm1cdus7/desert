@@ -18,12 +18,15 @@ export function upgradeComparison<X extends Program>(
     const folds = { ...program, by: runner };
     const { state, clock } = houseProjections<X>(journal, folds);
     const status = journal.restoration();
-    const compare = () =>
+    const compare = () => {
+      if (status.warnings.some(warning => warning.reason === journalTexts.divergentFold))
+        throw new Error(journalTexts.upgradeMismatch(name));
       deepStrictEqual(
         { state: state(), clock: clock() },
         { state: checkCalculations(journal, folds), clock: journal.replay<Deadlines>(new Map(), clockStep) },
         journalTexts.upgradeMismatch(name),
       );
+    };
     // Keep status visible even when comparison fails; report before asserting in the caller.
     return { status, compare, close: () => journal.close() };
   } catch (error) {

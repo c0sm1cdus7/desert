@@ -32,6 +32,6 @@ export function houseProjections<X extends Program>(journal: SqliteJournal<X["fa
     (state, event) => toolsStep<X>(state, event, slices),
     identity,
   );
-  journal.restore(prefix);
+  journal.restore(prefix, true);
   return { state, clock };
 }

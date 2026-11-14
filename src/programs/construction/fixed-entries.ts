@@ -1,3 +1,4 @@
+import { stateResult } from "../../journal/readonly-state.ts";
 // Construction is positive evidence from every reachable entry, never an inference from a failed walk.
 import { deepStrictEqual, ok } from "node:assert/strict";
 import { findable } from "../../surface/finding.ts";
@@ -61,7 +62,7 @@ export async function directRefusal<X extends Program>(house: House<X>, { aim, k
   ok(!result.defect, result.reason);
   deepStrictEqual([result.status, result.reason], ["rejected", kase.then.refused], said.refusalMismatch);
   deepStrictEqual(wroteSince(house, before.through), []);
-  deepStrictEqual(house.tools.state().tools, before.tools);
+  deepStrictEqual(stateResult(house.tools.state().tools), stateResult(before.tools));
 }
 
 /** Diagnose the entry that prevented a positive proof, retaining the original missing question. */

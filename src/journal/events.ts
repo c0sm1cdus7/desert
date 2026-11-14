@@ -1,3 +1,4 @@
+import { stateResult, type DeepReadonly } from "./readonly-state.ts";
 // One journal for the house's facts and a program's: the house reads its own and carries the program's unread.
 import { Type, type Static, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -60,7 +61,7 @@ type Provenance = Readonly<{ by: string; cause: readonly string[]; process?: str
 type Fact<L extends Layer, K extends string, D> = Provenance & Readonly<{ layer: L; kind: K; data: D }>;
 /** Every fact a catalog declares, each tagged with the layer that owns it. */
 export type Facts<C extends Catalog, L extends Layer> = {
-  [K in keyof C & string]: Fact<L, K, Readonly<Static<C[K]>>>;
+  [K in keyof C & string]: Fact<L, K, DeepReadonly<Static<C[K]>>>;
 }[keyof C & string];
 export type HouseKind = keyof typeof houseCatalog;
 export type HouseEmission<K extends HouseKind = HouseKind> = Extract<Facts<typeof houseCatalog, "house">, { kind: K }>;
@@ -114,7 +115,7 @@ export function vocabulary<C extends Catalog>(program: Own<C>) {
     emission: Type.Unsafe<Emission<ProgramFacts<C>>>(all(provenance)),
     read: (value: unknown) => {
       if (!Value.Check(event, value)) throw new Error(journalTexts.invalidEvent);
-      const read = structuredClone(value);
+      const read = structuredClone(stateResult(value));
       freeze(read);
       return read;
     },

@@ -1,3 +1,4 @@
+import { verifiedAfter, restorationOf } from "./verify-saved.ts";
 // Append-only facts; replay folds the complete journal without publishing effects.
 import { ProjectionGroup } from "../../journal/projections.ts";
 import { snapshotEvery } from "../../catalogs/levers.ts";
@@ -78,10 +79,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
     }
   }
   restoration() {
-    return {
-      reused: [...this.projections.caches.values()].every(cache => cache.reused),
-      warnings: [...this.warnings],
-    };
+    return restorationOf(this.projections, this.warnings);
   }
   /** Each batch restores its own rows, position and folds on failure, including nested batches. */
   batch<T>(write: () => T): T {
@@ -153,7 +151,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
     );
   }
   /** Restores watched folds; drops names outside them and the explicitly retained calculation family. */
-  restore(retainPrefix = ""): void {
+  restore(retainPrefix = "", verify = false): void {
     this.restored = false;
     try {
       this.batch(() => {
@@ -166,7 +164,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
         const names = watched.map(() => "?").join(", ");
         this.lease.check();
         this.db.prepare(`delete from snapshots where name not in (${names})`).run(...watched);
-        this.replay(null, (_, event) => this.projections.fold(event), this.projections.after());
+        this.replay(null, (_, event) => this.projections.fold(event), verifiedAfter(this.projections, this, verify));
       });
     } catch (error) {
       this.restoreFailed = true;

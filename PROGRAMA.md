@@ -680,6 +680,12 @@ el ayudante no bloquea la red de código que vos le entregues. Para lotes, vínc
 `MemoryHouseKeys`, o los casos de `programChecks`; el ayudante no simula esos lotes.
 
 Al actualizar un programa:
+- El estado recibido, incluido el de cada cálculo, es de solo lectura hasta el fondo. No lo uses como memoria del
+  proceso ni cambies mapas, listas, conjuntos u objetos recibidos. Para calcular, devolvé valores nuevos; para
+  cambiar la casa, pedí una acción autorizada. Las conversiones de tipo y `Object.assign` también fallan al correr.
+- Las vistas usan proxies: `structuredClone` o serializadores nativos sobre la vista recibida no son una copia
+  pública del estado. Armá los datos propios que necesitás con sus campos, listas y mapas. La base sí convierte
+  internamente las partes de estado devueltas como datos de un resultado antes de guardarlas.
 - Quitá `keys` de opciones, contextos y arranques; `KeyStore` solo queda para adopción explícita. Cambiá `Tool.start`
   a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios. El arranque no accede al registro ni recibe `Execution`: pide acciones con `act`, siempre como la mente de su
   propia herramienta. Expresá los cambios del programa como efectos de una acción de su kit pedida por `act`;
@@ -971,8 +977,13 @@ toda la escritura; el grupo se guarda en una transacción después de restaurars
 la versión del programa y de la base, además del vocabulario y los iniciales. Un plegado sin esas identidades se
 reconstruye una vez. El sobre lleva SHA-256 de los bytes serializados del plegado completo: si falta o no coincide,
 se descarta, se reconstruye y se avisa. Los plegados de formato 3 sin suma se reconstruyen una vez.
-Una suma de control detecta daño, no autentica archivos: alterar el estado y recalcular también su suma a propósito
-sigue fuera de lo garantizado en ejecución; la comparación de la compuerta contra el registro sí lo detecta.
+Una suma de control detecta daño, no prueba que el estado corresponda al registro. Antes de usar una instantánea
+al abrir la casa, la base vuelve a plegar el prefijo desde cero y compara estado completo y reloj. Si difieren,
+la descarta, lo dice por `SAVED_FOLD_REBUILT` y reconstruye el grupo antes del arranque del programa y de la cola
+posterior. Esto incluye instantáneas de versiones anteriores con suma válida y autoridad cambiada sin hechos.
+La comprobación ocurre también si la instantánea declara secuencia cero. Abrir tiene el costo de ese plegado;
+una instantánea válida ya no evita verificar el prefijo. Las pruebas de actualización siguen rechazando una
+instantánea divergente como evidencia de un cálculo correcto, aunque la casa pueda repararla al abrir.
 
 Cada descarte dice el nombre del plegado y el motivo: formato anterior o desconocido, bytes ilegibles, secuencia
 inválida o adelantada, otro registro, cálculos distintos, nombre retirado o un grupo dependiente incompleto.
@@ -982,7 +993,7 @@ no escriben `tool-entry` ni agregan historia por reconstruir. Diez aperturas del
 identidades, dejan exactamente los mismos hechos. El arranque de `startHouse` conserva su hecho de ciclo de vida
 `boot`, independiente de los avisos; también siguen siendo hechos los resultados reales de las herramientas.
 Los pares de estado y reloj se conservan por identidad dentro de la misma versión de cálculos: cada identidad
-reconstruye la primera vez y después retoma desde su último hecho, aunque otras hayan abierto en el medio.
+reconstruye la primera vez y después verifica su prefijo y procesa la cola, aunque otras hayan abierto en el medio.
 No se comparten estados calculados para personas distintas. Un cambio de versión retira los pares anteriores.
 Una apertura sin descartes no repite el aviso. Quien usa `SqliteJournal` directamente recibe stderr o pasa un
 receptor de diagnósticos como tercer argumento.
@@ -1136,3 +1147,24 @@ que se escribió dentro, tanto en el estado vivo como al reabrir.
 La causa interna de un dato de custodia identifica una sesión o un motivo de mantenimiento. Se conserva allí,
 pero el recibo que lo lleva al registro no la repite como si fuera el ID de un hecho. Los registros ya escritos
 no se reescriben ni se inventan hechos para completar referencias antiguas.
+
+
+## El estado que lee un programa
+
+`State<X>` es de solo lectura hasta el fondo: objetos, listas, mapas, conjuntos y valores dentro de ellos.
+Esto vale para `start().state()`, vistas y pantallas propias, resúmenes, necesidades, ofertas, actos y sus
+validadores, efectos y los argumentos de `Slices.step`. Cambiar una referencia recibida lanza `TypeError`,
+incluidos los accesos por iteradores, `forEach`, descriptores o métodos nativos de colección. La autoridad
+sigue siendo la del registro: una mente no se da un kit ni cambia la administración desde una lectura.
+Los errores del programa conservan el diagnóstico habitual de la puerta que los recibió.
+
+La base mantiene vistas por referencia y protege cada parte al leerla. No copia ni recorre la casa en cada
+`state()`: releer una misma parte reutiliza su vista. Una lectura anterior sigue mostrando su pliegue anterior;
+para ver un acto posterior, volvé a pedir el estado. Un cálculo puede reutilizar partes de su entrada o crear
+mapas y objetos nuevos; la base se queda con sus datos nuevos, sin dejar que una referencia mutable retenida
+por el cálculo cambie después lo guardado. Los callbacks deben seguir siendo puros: la verificación al abrir
+puede llamarlos otra vez. Un cambio válido siempre nace de los hechos, no de modificar la lectura.
+
+Los iniciales, el plegado interno y las instantáneas quedan bajo control de la base. Al deshacer una escritura
+se restauran esos datos, y la siguiente lectura recibe la vista de ese pliegue. Al cerrar y reabrir se verifica
+el estado guardado contra el registro antes de entregarlo a cualquier arranque.

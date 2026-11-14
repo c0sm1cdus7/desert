@@ -1,3 +1,4 @@
+import { readonlyState } from "../journal/readonly-state.ts";
 // A house: tool grants, action kits, shared scenes, preferences and channels.
 import type { Hideable } from "../catalogs/acts.ts";
 import { ids } from "../catalogs/ids.ts";
@@ -88,13 +89,14 @@ export function visible(house: House, event: Event, by: string): boolean {
     return (!event.data.recipient || event.data.recipient === by) && inChannel(house, event.data.object, by);
   return true;
 }
-export const identityView = <S extends HouseView>(state: S, by: string): S => ({
-  ...state,
-  by,
-  attends: by === state.by ? state.attends : (state.attendance.get(by) ?? []),
-  attention: state.attentionBy.get(by) ?? noAttention,
-  entries: state.entries.filter(entry => visible(state.house, entry, by)),
-});
+export const identityView = <S extends HouseView>(state: S, by: string): S =>
+  readonlyState({
+    ...state,
+    by,
+    attends: by === state.by ? state.attends : (state.attendance.get(by) ?? []),
+    attention: state.attentionBy.get(by) ?? noAttention,
+    entries: state.entries.filter(entry => visible(state.house, entry, by)),
+  });
 export function createHouse(bus: HouseBus, { admin: by, assignments }: Creation): void {
   bus.emit(effect("house-created", {}, by));
   for (const { identity, tools } of assignments) bus.emit(effect("granted", { identity, tools: [...tools] }, by));

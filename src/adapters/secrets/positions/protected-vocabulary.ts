@@ -1,3 +1,4 @@
+import { stateResult } from "../../../journal/readonly-state.ts";
 // Disk reads admit references only in declared secret positions; incoming facts keep their original check.
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -15,7 +16,7 @@ export function protectedVocabulary<P extends Foreign>(words: Vocabulary<P>): Vo
     event,
     read: (value: unknown) => {
       if (!Value.Check(event, value)) throw new Error("Invalid protected event");
-      const kept = structuredClone(value);
+      const kept = structuredClone(stateResult(value));
       freeze(kept);
       return kept;
     },

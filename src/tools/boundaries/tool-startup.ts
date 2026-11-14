@@ -1,3 +1,4 @@
+import { readonlyPorts } from "./readonly-ports.ts";
 import { ids } from "../../catalogs/ids.ts";
 import { mindOf } from "../../house/house.ts";
 import { OutsideDefect } from "../outside.ts";
@@ -50,7 +51,7 @@ export function startProgram<X extends Program>(tool: Tool<X>, ports: Execution<
   const mind = startupMind(tool.id, ports);
   const bus = programBus(ports.bus, { tool: tool.id, owner: id => ports.state().wakeOwners.get(id) }, mind.hear, lease);
   const running: ToolStartup<X> = {
-    ...baseFunctions({ state: ports.state, now: ports.now, live: ports.live }),
+    ...baseFunctions(readonlyPorts({ state: ports.state, now: ports.now, live: ports.live })),
     bus: { on: bus.on.bind(bus), emit: bus.emit.bind(bus), together: bus.together.bind(bus) },
     ports: publicPorts,
     credentials,

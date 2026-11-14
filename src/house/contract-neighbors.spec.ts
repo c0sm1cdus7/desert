@@ -1,3 +1,4 @@
+import { stateResult } from "../journal/readonly-state.ts";
 import "../../tests/support/upgrade-vault.ts";
 import { afterEach, expect, it } from "vitest";
 import { object } from "../catalogs/acts.ts";
@@ -45,7 +46,7 @@ it("does not let identity-only facts admit a mind, even from an old manually sup
 it("folds kits and scenes without mutating previous states, including removal and replacement", () => {
   const rig = contractRig();
   rigs.push(rig);
-  let state = rig.state().house;
+  let state = stateResult(rig.state().house);
   const facts = [
     effect("kit-set", { holder: "beto", tool: "desk", acts: ["say"] }, "ana"),
     effect("scene", { general: "Antes" }, "beto"),
