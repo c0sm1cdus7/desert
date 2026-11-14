@@ -1,5 +1,6 @@
 import type { CalculationVersion } from "./calculation-version.ts";
 import { houseResources } from "./house-resources.ts";
+import { cancelInheritedWake } from "./inherited-wake.ts";
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
 import { defectReporter } from "../tools/failures/defect-reporter.ts";
 import type { HouseKeyProvider } from "../adapters/secrets/custody/house-keys.ts";
@@ -53,7 +54,10 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     if (!state().house.admin) createHouse(bus, creation);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
-    return { bus, journal, tools, registry, close, storageNotices: notices.read, now: () => time.now() };
+    const running = { bus, journal, tools, registry, close, storageNotices: notices.read, now: () => time.now() };
+    return Object.assign(running, {
+      cancelInheritedWake: (by: string, id: string) => cancelInheritedWake(state, bus, by, id),
+    });
   } catch (error) {
     report(error, "program", "program", "start");
     close();

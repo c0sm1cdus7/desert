@@ -84,16 +84,33 @@ function startupEmission<P extends Foreign>(
   const refuse = (): never => {
     throw new OutsideDefect(new Error(journalTexts.executionOnly));
   };
+  const wakeRefuse = (): never => {
+    throw new OutsideDefect(
+      new Error("Despertar inválido o ajeno: pedí un despertar propio por el bus; para hechos usá act"),
+    );
+  };
+  const isWake = entry.layer === "house" && entry.kind === "wake-at";
   const by: unknown = Reflect.get(entry, "by");
-  if (by !== undefined && by !== mindOf(tool)) return refuse();
+  if (by !== undefined && by !== mindOf(tool)) return isWake ? wakeRefuse() : refuse();
   if (entry.layer === "house" && entry.kind === "tool-entry" && lease?.apply(entry, true))
     return bus.emit(
       effect("tool-entry", { tool, target: tool, author: mindOf(tool), text: "", silent: true }, mindOf(tool)),
     );
   if (entry.layer !== "house" || entry.kind !== "wake-at") return refuse();
-  const { id, at } = entry.data;
-  if (typeof id !== "string" || id.startsWith(`${ids.attention}[`)) return refuse();
+  if (Reflect.ownKeys(entry).some(key => !["layer", "kind", "data", "by"].includes(String(key)))) return wakeRefuse();
+  const data: unknown = entry.data;
+  if (data === null || typeof data !== "object") return wakeRefuse();
+  const id: unknown = Reflect.get(data, "id");
+  const at: unknown = Reflect.get(data, "at");
+  if (Reflect.ownKeys(data).some(key => key !== "id" && key !== "at")) return wakeRefuse();
+  if (
+    typeof id !== "string" ||
+    !id ||
+    id.startsWith(`${ids.attention}[`) ||
+    !(at === null || (typeof at === "number" && Number.isSafeInteger(at) && at >= 0))
+  )
+    return wakeRefuse();
   const held = owner(id);
-  if (held !== undefined ? held !== mindOf(tool) : !id.startsWith(`${encodeURIComponent(tool)}:`)) return refuse();
+  if (held !== undefined ? held !== mindOf(tool) : !id.startsWith(`${encodeURIComponent(tool)}:`)) return wakeRefuse();
   return bus.emit(effect("wake-at", { id, at }, mindOf(tool)));
 }

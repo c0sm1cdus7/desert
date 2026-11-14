@@ -1,6 +1,6 @@
 // The mind keeps its listener's cause and write outcome, even across asynchronous continuations.
-import { Value } from "@sinclair/typebox/value";
-import { actEnvelope } from "../../catalogs/acts.ts";
+import { mindInput } from "./mind-input.ts";
+import { effect } from "../../journal/events.ts";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { mindOf } from "../../house/house.ts";
 import { journalTexts } from "../../texts/journal.texts.ts";
@@ -32,7 +32,7 @@ export function startupMind<X extends Program>(tool: string, ports: Execution<X>
       if (!live) return { status: "rejected", reason: toolTexts.interrupted };
       if (!confirmed() || (heard && !heard.confirmed()))
         return { status: "rejected", reason: journalTexts.mindRolledBack };
-      if (depth >= 32) return { status: "rejected", reason: journalTexts.mindChain };
+      if (depth >= 32) return cutoff(tool, ports);
       return await chain.run(depth + 1, async () => {
         const started = execute(ports, input, through, mindOf(tool), cause === undefined ? [] : [cause]);
         const done = started.status === "processing" ? await started.completion : started;
@@ -61,25 +61,18 @@ function failedMind<X extends Program>(tool: string, ports: Execution<X>, error:
     );
     report(error, tool, tool, "act");
   } catch {
-    /* Even a broken diagnostic sink cannot reject the public promise. */
+    try {
+      console.error(toolTexts.baseFailure);
+    } catch {
+      /* The public promise still resolves. */
+    }
   }
   return { status: "rejected" as const, reason: toolTexts.baseFailure };
 }
 
-function mindInput(value: unknown): unknown {
-  if (!Value.Check(actEnvelope, value)) throw new Error(toolTexts.invalid);
-  return JSON.parse(
-    JSON.stringify(value, (_key, item: unknown) => {
-      if (
-        item === undefined ||
-        typeof item === "function" ||
-        typeof item === "symbol" ||
-        typeof item === "bigint" ||
-        (typeof item === "number" && !Number.isFinite(item)) ||
-        (item !== null && typeof item === "object" && Object.getOwnPropertySymbols(item).length > 0)
-      )
-        throw new Error(toolTexts.invalid);
-      return item;
-    }),
+function cutoff<X extends Program>(tool: string, ports: Execution<X>) {
+  ports.bus.emit(
+    effect("tool-entry", { tool, target: tool, author: mindOf(tool), text: journalTexts.mindChain }, mindOf(tool)),
   );
+  return { status: "rejected" as const, reason: journalTexts.mindChain };
 }

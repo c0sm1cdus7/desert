@@ -1091,9 +1091,13 @@ start({ bus, act, now }) {
 
 El reloj persiste `wake-at`; al reabrir programa lo pendiente, aunque ya venció, y un `woke` entregado no se repite.
 Un ID nuevo empieza por `encodeURIComponent(idDeHerramienta) + ":"`. El primer pedido fija su dueño en el
-registro, incluso después de cancelarlo o reabrir. Los IDs anteriores conservan ese primer autor: su mente
-puede reprogramarlos aunque no usaran el prefijo nuevo. El espacio `attention:[…]` de las personas está reservado.
-Otra herramienta no lo puede reemplazar ni cancelar, ni escribir `woke`; eso lo hace el reloj.
+registro, incluso después de cancelarlo o reabrir. Los IDs anteriores conservan ese primer autor. Si fue una mente,
+esa mente puede reprogramarlos aunque no usaran
+el prefijo nuevo. Si fue una identidad, quien administra puede cancelarlos mediante
+`house.cancelInheritedWake(identidadAutenticada, id)`; ninguna mente puede hacerlo. La identidad debe provenir de
+la puerta autenticada, igual que en las demás operaciones de la casa. La mente sigue con un ID propio. El espacio
+`attention:[…]` de las personas está reservado. Por el bus del arranque otra herramienta no puede reemplazar ni
+cancelar ese despertar ni escribir `woke`. El carril del kit cierra la autoridad de los efectos de las acciones.
 Volver a escribir el ID propio reemplaza su fecha; `at: null` lo cancela. El ejemplo
 programa una fecha nueva cada vez que arranca; para mantener una fecha de negocio entre arranques, el programa la
 pide sólo cuando corresponde según su estado plegado. No hay reintento automático del acto.
@@ -1103,14 +1107,18 @@ acción que lo marca cumplido junto con su resultado. `tests/support/zero-mind.t
 con una reapertura en la misma tarea del despertar, y una segunda reapertura que no repite el trabajo.
 
 `act` siempre resuelve su promesa con estado y motivo opcional; nunca la rechaza. Una entrada cíclica, con
-`BigInt` o ilegible por un getter devuelve «datos inválidos». Una falla interna devuelve «E-BASE-1 · Falló la base»
+`BigInt`, accesores, conversiones propias, instancias, `Map`, `Set`, fechas o `-0` devuelve «datos inválidos».
+La entrada admite hasta 1.000.000 de bytes JSON; se rechazan los datos que exceden ese límite. Una falla interna
+devuelve «E-BASE-1 · Falló la base»
 y deja un diagnóstico; si el registro también falla, se intenta informar esa pérdida por la salida de diagnóstico.
 La petición se ejecuta en otra tarea, después de terminar la entrega del hecho y su transacción, por `execute`
 como primer nivel. Conserva la causa del hecho que se estaba oyendo cuando nació el pedido, también si una
 continuación termina más tarde o la libera otro hecho. Fuera de una escucha no inventa causa. Si esa escritura
 o el `together` del pedido se deshacen, rechaza sin escribir nada a nombre de la mente. Cada acto cede una tarea
 para intercalar personas y reloj. Una cadena de actos de la misma mente causada por sus propios actos llega
-a 32; el siguiente se rechaza con el motivo de límite de cadena, sin ejecutarse. Al ejecutar consulta el kit
+a 32; el siguiente se rechaza con el motivo de límite de cadena, sin ejecutarse, y deja un diagnóstico a nombre
+de la mente. El tope solo cuenta cadenas causadas por actos propios: un proceso que actúa por su propio reloj no
+tiene ese tope y recibe el turno que le da la casa. Al ejecutar consulta el kit
 vigente. Lo escrito por la acción y por sus oyentes se confirma junto o se deshace junto; la mente recibe el
 rechazo si un oyente falla. Quedan el intento y su resultado/diagnóstico como para una persona. Los efectos sobre
 el mundo o la memoria privada de un oyente no son una transacción del registro.
@@ -1119,8 +1127,9 @@ Cerrar el proceso invalida su puerto, incluidas peticiones todavía diferidas. U
 registro; si la casa se reinicia a mitad, el arranque lo cierra como interrumpido. No se entrega `Execution`, registro
 de herramientas, custodia ni resolvedor, ni en el resultado de `act`. El bus solo admite los comandos originales
 de `credentials.replace`/`release` y `wake-at` propio. La casa fija el autor; otro autor o cualquier otro hecho
-—del programa o de la casa, incluida `scene`— lanza «Hecho reservado a la ejecución; usar act en el arranque»
-antes de guardar nada. El tipo impide publicar hechos comunes, fabricar credenciales o elegir autor.
+—del programa o de la casa, incluida `scene`— se rechaza antes de guardar nada. El rechazo de un hecho
+indica usar `act`; el de un despertar inválido o ajeno indica pedir un despertar propio por el bus. El tipo impide
+publicar hechos comunes, fabricar credenciales o elegir autor.
 
 
 ### Escrituras conjuntas, también dentro de otras

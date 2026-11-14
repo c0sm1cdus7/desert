@@ -37,11 +37,12 @@ plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, mar
   La casa fija `mind:<id de esa herramienta>` y pasa por `execute`, con su kit, su escena y sus adaptadores.
   La promesa siempre resuelve: difiere a otra tarea, conserva la causa de la escucha original incluso en
   continuaciones, y rechaza si esa escritura o el `together` del pedido se deshicieron. Sus escrituras y las de
-  sus oyentes quedan juntas o se deshacen. La cadena propia admite 32 actos; el siguiente recibe rechazo.
+  sus oyentes quedan juntas o se deshacen. La cadena propia admite 32 actos; el siguiente recibe rechazo y deja un diagnóstico visible. El proceso con
+  reloj propio no cuenta como cadena. Los efectos de los actos quedan sujetos al cierre de autoridad del kit.
   El bus solo escribe credenciales originales y `wake-at` propio, con autor fijado por la casa; rechaza todo
   otro hecho o autor. Un ID nuevo empieza por `encodeURIComponent(herramienta) + ":"`; conserva el primer dueño,
   aun cancelado o anterior a esta versión. El espacio `attention:[…]` queda reservado a la casa.
-  Solo el reloj escribe `woke`. Las fechas pendientes sobreviven al reinicio; al arrancar, el programa revisa
+  El bus del arranque no escribe `woke`. Las fechas pendientes sobreviven al reinicio; al arrancar, el programa revisa
   su estado para recuperar trabajo de un despertar consumido justo al cerrar, sin repetir lo cumplido.
   No se publica el motor, registro de herramientas, custodia ni resolvedor; cerrar invalida el puerto.
 - Las acciones y los arranques reciben métodos públicos de adaptadores declarados y operaciones de vínculos.
