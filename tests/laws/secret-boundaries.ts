@@ -11,7 +11,7 @@ export interface SecretBoundaryPolicy {
   aliases?: Readonly<Record<string, string>>;
   tools?: readonly string[];
 }
-function virtualProgram(sources: Readonly<Record<string, string>>, aliases: Readonly<Record<string, string>>) {
+export function virtualProgram(sources: Readonly<Record<string, string>>, aliases: Readonly<Record<string, string>>) {
   const options: ts.CompilerOptions = {
     target: ts.ScriptTarget.ES2023,
     noResolve: false,
@@ -52,13 +52,21 @@ function targetOf(
   sources: Readonly<Record<string, string>>,
   aliases: Readonly<Record<string, string>>,
 ): string | undefined {
-  let path = aliases[specifier];
+  let path = aliases[`${file}\0${specifier}`] ?? aliases[specifier];
   for (const [alias, target] of Object.entries(aliases)) {
     const prefix = alias.replace(/\*$/, "");
     if (alias.endsWith("*") && specifier.startsWith(prefix)) path = target.replace("*", specifier.slice(prefix.length));
   }
   path ??= specifier.startsWith(".") ? posix.join(posix.dirname(file), specifier) : specifier;
-  return [path, path.replace(/\.js$/, ".ts"), `${path}.ts`, `${path}/index.ts`].find(candidate => candidate in sources);
+  return [
+    path,
+    path.replace(/\.js$/, ".ts"),
+    `${path}.ts`,
+    `${path}.mts`,
+    `${path}.cts`,
+    `${path}.tsx`,
+    `${path}/index.ts`,
+  ].find(candidate => candidate in sources);
 }
 /** Closed module graph: unknown packages and nonliteral imports fail, rather than becoming uninspected leaves. */
 export function secretBoundaryViolations(

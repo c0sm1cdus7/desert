@@ -13,6 +13,7 @@ const exempt: Readonly<Record<string, string>> = {
   "src/adapters/secrets/custody/custody-database.ts": "the encrypted custody store SQL, separate from the journal",
   "src/adapters/secrets/custody/custody-migration.ts": "the legacy secret store SQL read during custody adoption",
   "src/adapters/storage/journal-store.ts": "the journal's SQL",
+  "src/adapters/storage/journal-reader.ts": "the read-only journal's SQL, extracted from journal-store",
 };
 
 const isCatalog = (file: string): boolean => fromRoot(file).startsWith("src/texts/");

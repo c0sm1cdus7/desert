@@ -7,6 +7,7 @@ export function houseJournal<P extends Foreign>(
   file: string,
   words: Vocabulary<P>,
   warn?: (warning: FoldWarning) => void,
+  folds: "restore" | "preserve" = "restore",
 ) {
-  return new SqliteJournal(file, protectedVocabulary(words), warn);
+  return new SqliteJournal(file, protectedVocabulary(words), warn, folds);
 }

@@ -1826,7 +1826,7 @@
     },
     {
       "id": 208,
-      "rule": "Cada secreto se cifra con AES-256-GCM, nonce de 12 bytes y etiqueta de 16, con una llave propia en un elemento del llavero. La casa tiene otra llave que solo autentica registro y sobres: no descifra secretos. Abrir el formato cifrado verifica primero cadena y ancla, después integridad y presencia sin descifrar ni pedir llaves de secretos; la adopción inicial del legado en claro compara cada fila antes de retirarla. El uso recibe búferes prestados; sus bytes y las copias de llaves se ponen en cero en éxito, falla y cierre, sin caché ni conversión a texto en la custodia. Durante un uso, el secreto en uso y su llave están en la memoria del proceso; un programa de la misma cuenta de usuario puede pedirle al llavero lo mismo que la custodia. El comando usa búferes por entrada y salida, nunca llaves como argumentos, y tiene tiempo límite. La adopción del legado en claro conserva IDs y asigna una llave por fila, compara antes de retirar y compacta; sin proveedor falla antes de escribir. El formato experimental por casa no se convierte. Olvidar exige advertir que también quedan ilegibles otras copias de esa casa en la misma máquina. Autentica versión, identidad aleatoria persistida de casa y referencia; mover o renombrar conserva identidad, reutilizar ruta crea otra. JSON e inspección no exponen llave ni material. La composición y los ingresos tardíos exigen proveedor. Tras retirar el legado tampoco queda texto en auxiliares, aun con un corte antes de compactar. El llavero v3 separa el ancla fija del índice público de cuentas, que se escribe fuera de la entrada interactiva y se poda después de borrar la llave. Los tamaños fuera de límite fallan antes de escribir; ninguna llave viaja por argumentos. El llavero v2 experimental no se convierte. Olvidar combina cuentas propias del índice con filas e historia de la carpeta y nunca borra cuentas ajenas; índice perdido o dañado no impide ese recorrido. La llave del registro se pide una sola vez por pasada de verificación y se pone en cero al terminar, incluso ante una fila inválida. Cerrar durante un uso borra los búferes inmediatamente y el uso rechaza con E-CUSTODY-DENIED aunque el adaptador entregue un resultado. La primera apertura de una bóveda anterior en claro sí descifra para comparar antes de retirarla. La llave del registro está en memoria durante cada verificación: comprometerla no descifra secretos, pero con escritura en la carpeta permite hacer usar cualquier secreto a cualquier herramienta; atar vínculos a cada llave de secreto queda pendiente de decisión del dueño por chocar con abrir sin descifrar.",
+      "rule": "Cada secreto se cifra con AES-256-GCM, nonce de 12 bytes y etiqueta de 16, con una llave propia en un elemento del llavero. La casa tiene otra llave que solo autentica registro y sobres: no descifra secretos. Abrir el formato cifrado verifica primero cadena y ancla, después integridad y presencia sin descifrar ni pedir llaves de secretos; la adopción inicial del legado en claro compara cada fila antes de retirarla. El uso recibe búferes prestados; sus bytes y las copias de llaves se ponen en cero en éxito, falla y cierre, sin caché ni conversión a texto en la custodia. Durante un uso, el secreto en uso y su llave están en la memoria del proceso; un programa de la misma cuenta de usuario puede pedirle al llavero lo mismo que la custodia. El comando usa búferes por entrada y salida, nunca llaves como argumentos, y tiene tiempo límite. La adopción del legado en claro conserva IDs y asigna una llave por fila, compara antes de retirar y compacta; sin proveedor falla antes de escribir. El formato experimental por casa no se convierte. Olvidar exige advertir que también quedan ilegibles otras copias de esa casa en la misma máquina. Autentica versión, identidad aleatoria persistida de casa y referencia; mover o renombrar conserva identidad, reutilizar ruta crea otra. JSON e inspección no exponen llave ni material. La composición y los ingresos tardíos exigen proveedor. Tras retirar el legado tampoco queda texto en auxiliares, aun con un corte antes de compactar. El llavero v3 separa el ancla fija del índice público de cuentas, que se escribe fuera de la entrada interactiva y se poda después de borrar la llave. Los tamaños fuera de límite fallan antes de escribir; ninguna llave viaja por argumentos. El llavero v2 experimental no se convierte. Olvidar combina cuentas propias del índice con filas e historia de la carpeta y nunca borra cuentas ajenas; índice perdido o dañado no impide ese recorrido. La llave del registro se pide una sola vez por pasada de verificación y se pone en cero al terminar, incluso ante una fila inválida. Cerrar durante un uso borra los búferes inmediatamente y el uso rechaza con E-CUSTODY-DENIED aunque el adaptador entregue un resultado. La primera apertura de una bóveda anterior en claro sí descifra para comparar antes de retirarla. La llave del registro está en memoria durante cada verificación: comprometerla no descifra secretos, pero con escritura en la carpeta permite hacer usar cualquier secreto a cualquier herramienta; atar vínculos a cada llave de secreto queda pendiente de decisión del dueño por chocar con abrir sin descifrar. En una casa abierta por startHouse, el cierre prevalece sobre la exclusión ya liberada: rechaza con E-CUSTODY-DENIED; perder el escritor sin cerrar conserva su error de exclusión.",
       "from": "13/11 · A01, segunda parte, paso 1: custodia",
       "guarantee": "spec",
       "evidence": [
@@ -1855,7 +1855,8 @@
         "src/adapters/secrets/custody-incremental.spec.ts",
         "src/adapters/secrets/custody-close-neighbors.spec.ts",
         "src/adapters/secrets/custody-messages.spec.ts",
-        "tests/laws/custody-text.spec.ts"
+        "tests/laws/custody-text.spec.ts",
+        "src/programs/house-custody-close.spec.ts"
       ]
     },
     {
@@ -1923,7 +1924,7 @@
     },
     {
       "id": 212,
-      "rule": "La compuerta recorre las fuentes del programa y las dependencias transitivas de herramientas, alias, reexportaciones, imports dinámicos y tipos. Rechaza importar custodia, fábrica, resolvedor, composición, I/O directo, entorno y evaluación; una dependencia desconocida falla cerrada. La API pública se importa por nombres aprobados. Los contratos públicos y las fábricas se prueban también rotos con capacidades renombradas o anidadas. La marca entrega referencias antes de callbacks y solo el adaptador declarado resuelve; no demuestra corrección del adaptador, aislamiento de JavaScript ni borrado de copias externas. testing.ts ofrece custodia sintética y controles reales para probar métodos sin credenciales reales.",
+      "rule": "La compuerta recorre el grafo desde desert.program, incluyendo módulos fuera de src, pruebas y extensiones TypeScript revisables. Revisa cada fuente alcanzada salvo composición, adaptadores y frontera pública revisada de la base; lo no revisable falla cerrado. Rastrea los elementos del registry a sus valores o fábricas: rechaza herramientas definidas en composición o adaptadores, sin depender de claves literales, spreads o Object.fromEntries; un registro no rastreable falla. En herramientas rechaza custodia, fábrica, resolvedor, composición, I/O directo, entorno, evaluación y Reflect ambiente; los corchetes exigen clave literal. Sigue alias, reexportaciones, imports dinámicos y tipos; dependencias desconocidas e imports no literales fallan. La API pública exige nombres aprobados. La composición es confiable y puede entregar capacidades; no se analiza ese flujo ni las mutaciones posteriores. El chequeo estricto de tipos ya rechaza imports .js sin tipos. Los contratos y fábricas se prueban rotos con capacidades renombradas o anidadas. La marca entrega referencias antes de callbacks y solo el adaptador declarado resuelve; no demuestra corrección del adaptador, aislamiento de JavaScript ni borrado externo. testing.ts ofrece custodia sintética y controles reales sin credenciales reales.",
       "from": "13/11 · A01, segunda parte, paso 4: leyes",
       "guarantee": "spec",
       "evidence": [
@@ -1935,7 +1936,8 @@
         "tests/laws/testing-api.spec.ts",
         "PROGRAMA.md",
         "LEYES.md",
-        "COSTURAS.md"
+        "COSTURAS.md",
+        "tests/laws/program-secret-graph.spec.ts"
       ]
     },
     {
@@ -2064,7 +2066,7 @@
     },
     {
       "id": 198,
-      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato 4 exige suma SHA-256 del contenido serializado, identidad del registro, versión de cálculos y continuidad de secuencia; un grupo incompatible se reconstruye entero. Cada descarte explica su motivo por diagnósticos y queda visible en la instancia, nunca como hecho del registro: reconstruir no agrega historia. Un grupo se guarda entero y solo después de restaurarse correctamente. Un daño o una suma ausente descarta el plegado y avisa; el formato anterior se reconstruye una vez. Recalcular deliberadamente la suma de un estado falso queda fuera de la garantía en ejecución. Cada identidad conserva su par de estado y reloj dentro de la misma versión: al alternar aperturas se procesa la cola pendiente, sin reconstruir siempre todo. La casa vigila y restaura los plegados antes de que limpiar custodia huérfana agregue hechos; conserva los de otras identidades y no inventa un cambio de cálculo.",
+      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato 4 exige suma SHA-256 del contenido serializado, identidad del registro, versión de cálculos y continuidad de secuencia; un grupo incompatible se reconstruye entero. Cada descarte explica su motivo por diagnósticos y queda visible en la instancia, nunca como hecho del registro: reconstruir no agrega historia. Un grupo se guarda entero y solo después de restaurarse correctamente. Un daño o una suma ausente descarta el plegado y avisa; el formato anterior se reconstruye una vez. Recalcular deliberadamente la suma de un estado falso queda fuera de la garantía en ejecución. Cada identidad conserva su par de estado y reloj dentro de la misma versión: al alternar aperturas se procesa la cola pendiente, sin reconstruir siempre todo. La casa vigila y restaura los plegados antes de que limpiar custodia huérfana agregue hechos; conserva los de otras identidades y no inventa un cambio de cálculo. El mantenimiento con la casa cerrada agrega sin restaurar ni tocar plegados de ninguna identidad: aceptar, reintentar, adoptar y descartar no avisan reconstrucción; la siguiente apertura reutiliza y pliega la cola. Los conservados se abren y recorren como evidencia en inspección sobre una copia desechable, sin proveedor ni archivo de secretos: los lotes conservan referencias sin autenticarse con la llave original; no habilita casas vivas ni usos de material.",
       "from": "13/11 · auditoría A03; recuperación de los plegados incompletos anteriores",
       "guarantee": "derived",
       "evidence": [
@@ -2082,7 +2084,10 @@
         "src/programs/storage-notices.spec.ts",
         "src/adapters/storage/snapshot-checksum.spec.ts",
         "src/programs/alternating-runners.spec.ts",
-        "src/programs/house-custody-union.spec.ts"
+        "src/programs/house-custody-union.spec.ts",
+        "src/programs/house-custody-folds.spec.ts",
+        "src/programs/kept-custody.spec.ts",
+        "src/programs/kept-inspection.ts"
       ]
     },
     {

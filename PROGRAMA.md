@@ -374,10 +374,13 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   contenido, hacelo en un adaptador declarado. Antes de ejecutar, las referencias de preguntas son provisionales
   en memoria y no resuelven custodia. Cancelar o cerrar no deja material en disco. Solo `submit` arma un
   traspaso privado de un uso al motor; `input`, condiciones y confirmaciones nunca llevan ese traspaso.
-- Conservados con secretos (H6): leer y comparar referencias ya respeta el esquema protegido, pero abrir la casa
-  conservada para sus recorridos sigue sin proveedor ni material de custodia. Sigue fallando con
-  `E-CUSTODY-PROVIDER`; pasar llaves sintéticas no reconstruye los lotes firmados originales. El modo de inspección
-  o el traslado de custodia sintética sigue pendiente de la decisión de quien dirige la obra; este paso no lo cambia.
+- Un registro conservado con credenciales abre y se recorre en **modo de inspección**, como evidencia de prueba.
+  Se copia solo el registro a una carpeta temporal; no se abre el archivo de secretos, ningún proveedor de llaves
+  ni el llavero. Los lotes se leen como hechos con referencias y se comprueba su forma, **no su autenticación
+  contra la llave del registro original**: esa llave no forma parte de la evidencia conservada.
+  Este modo no abre una casa viva: no es una opción de `startHouse`, trabaja únicamente sobre una copia desechable
+  y no habilita material. Pedir un uso, ingreso, reemplazo o liberación se rechaza con `E-CUSTODY-DENIED`;
+  las fábricas de adaptadores no se abren. La casa viva sigue exigiendo proveedor, material, autenticación y ancla.
 - `programChecks` deriva una comprobación por acción secreta, ejecuta todos sus casos y observa la frontera
   real. Cada posición, opcional, elemento de lista y rama necesita al menos un caso ejecutado con referencia;
   una posición sin cobertura falla. Retirar la sustitución hace fallar el centinela de la compuerta.
@@ -385,6 +388,8 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   versiones anteriores depende de la versión de su formato, fuera de esta protección. Al abrir, la vigilancia y
   restauración de los plegados preceden a cualquier limpieza de la custodia: recuperar material huérfano conserva
   los pares de estado y reloj de otras identidades de la misma versión y no avisa un cambio de cálculo inexistente.
+  El mantenimiento con la casa cerrada agrega sin restaurar: aceptar, reintentar, adoptar y descartar dejan todos
+  los plegados guardados intactos y no emiten avisos. La próxima apertura los reutiliza y pliega la cola pendiente.
 - Al abrir sin marca, o con una marca válida de versión 1, la base revisa acciones **y hechos del programa** con
   los esquemas actuales, antes de abrir la bóveda, restaurar plegados o agregar un arranque. Un valor en una posición
   secreta impide abrir: `E-SECRET-HISTORY` nombra acción o tipo de hecho, posición y número de hecho, nunca el valor.
@@ -531,6 +536,7 @@ no cambia vínculos; la recolección espera al commit. Ni la custodia ni la bóv
 - Con una casa de `startHouse`, usá `maintainHouseCustody(home, options, request)` desde la composición, con
   la casa cerrada. Toma la exclusión del registro del motor, conecta sus hechos de custodia y cierra ambos recursos
   al terminar. No ejecuta herramientas, adaptadores, arranques, proyecciones ni reloj. No es un puerto de herramientas.
+  Agrega sin restaurar ni borrar plegados guardados y sin avisos de reconstrucción.
   `request.operation` permite `review`, `accept`, `status`, `retry`, `adopt`, `discard` y `forget`.
   `review` verifica sin cambiar el ancla y devuelve `head`, vínculos, referencias sin llave y vínculos inutilizables;
   `accept` exige esa `head` con cantidad y autenticador. Una cabeza distinta da `E-CUSTODY-CONFLICT` sin escribir.
@@ -638,18 +644,28 @@ que la composición declara puede cambiarlas por material. El ingreso, el editor
 procesan el material. La marca de revisión histórica v2 tiene otro alcance: registra lo revisado con los esquemas
 actuales y cuenta lo no revisable; no certifica toda la historia ni los datos públicos.
 
-La ley 212 recorre dependencias transitivas, alias, reexportaciones, importaciones dinámicas y tipos. Una herramienta
-no puede importar custodia, fábrica, resolvedor ni la composición para recuperarlos. Tampoco puede leer archivos,
-entorno, base de datos, red o procesos por su cuenta, ni recurrir a evaluación de código. Una dependencia desconocida
-o un import no literal se rechaza: no se supone seguro por no poder inspeccionarlo. Los imports públicos de la base
-son nombrados, según `tests/laws/secret-public-api.ts`; `testing.ts` no habilita sus fábricas para una herramienta.
+La ley 212 parte de la composición indicada por `desert.program` y sigue su grafo de imports, reexportaciones,
+alias, imports dinámicos literales y tipos, también fuera de `src/`, en archivos de pruebas y en `.mts`, `.cts`
+o `.tsx`. Todo archivo alcanzado que no sea la composición, un adaptador de `src/adapters/` o la frontera pública
+revisada de la base se revisa como fuente de herramienta. Un archivo o dependencia que no se pueda revisar falla
+cerrado; un import no literal también. Los imports públicos son nombrados según `tests/laws/secret-public-api.ts`;
+`testing.ts` no habilita fábricas para herramientas. Los alias vienen de `paths` y la resolución local de TypeScript.
 
-La compuerta de cada programa incluye una comprobación más entre sus ocho partes (`tests/program/registration.ts`,
-«tools cannot import secret custody, factories or direct I/O»), que corre una sola vez: revisa las fuentes `.ts` de `src`,
-excepto specs; `desert.program` nombra la composición y `src/adapters/` contiene los adaptadores confiables. Las
-herramientas y sus funciones viven separadas de ambos. Los alias vienen de `paths` de `tsconfig.json`. La base prueba
-además que un alias no agrega un resolvedor a los contratos públicos y que una fábrica no lo devuelve anidado.
-Un paquete externo nuevo requiere revisar su API y agregar una frontera explícita; no alcanza instalarlo.
+Además rastrea cada elemento del `registry` exportado hasta el valor o fábrica que lo define. Si pertenece a la
+composición o a un adaptador, lo rechaza, incluso con claves calculadas, spreads o `Object.fromEntries`. Los registros
+que no se pueden rastrear estáticamente (incluida una fábrica que devuelve un parámetro) fallan cerrados: usá un arreglo explícito, con referencias a herramientas
+separadas; admite alias y spreads de arreglos rastreables. La ley no ejecuta la composición para descubrir valores.
+Una herramienta no puede importar custodia, fábrica, resolvedor ni composición, ni hacer I/O directo, leer entorno
+o evaluar código. `Reflect` es una capacidad del ambiente; los accesos con corchetes solo admiten claves literales
+(de texto o número), incluso para tablas públicas. Para claves variables, usá una representación con operaciones
+explícitas, por ejemplo `Map.get`. La base también comprueba que una fábrica no devuelva el resolvedor anidado.
+
+La composición es confiable: puede pasar custodia a una fábrica de herramienta; ese paso es su propio acto y la ley
+no analiza el flujo de capacidades que decide entregar. Importar un `.js` sin tipos ya falla con el chequeo estricto
+de tipos, sin `allowJs`; no se atribuye esa detección a esta ley. Las fuentes sin formato revisable también se rechazan.
+La compuerta incluye esta ley una vez entre sus ocho partes (`tests/program/registration.ts`). Un paquete nuevo
+requiere revisar su API y agregar una frontera explícita; instalarlo no alcanza. Quedan fuera del análisis el código
+no alcanzado desde la composición, las mutaciones posteriores en ejecución y la intención de los adaptadores.
 
 Esto es una regla de fuentes y contratos, no un aislamiento de JavaScript frente a código hostil o dependencias
 alteradas. No demuestra que el adaptador firme bien, autorice bien al destinatario ni que un string público no
@@ -696,6 +712,11 @@ el ayudante no bloquea la red de código que vos le entregues. Para lotes, vínc
 `MemoryHouseKeys`, o los casos de `programChecks`; el ayudante no simula esos lotes.
 
 Al actualizar un programa:
+- Los conservados con credenciales se inspeccionan sin proveedor ni archivo de secretos; no copies llaves ni material.
+  Sus lotes no se autentican contra la llave original. Renovar sigue comprobando los plegados y no abre custodia.
+- Para la ley 212, separá cada herramienta de composición y adaptadores, declarala en un registro rastreable y
+  revisá también los módulos importados fuera de `src/` o desde pruebas. Cambiá `Reflect` y los corchetes con
+  claves variables por operaciones explícitas; las claves literales siguen admitidas.
 - Quitá `keys` de opciones, contextos y arranques; `KeyStore` solo queda para adopción explícita. Cambiá `Tool.start`
   a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios. Un arranque ya no ejecuta acciones ni accede al registro: trasladá esa ejecución a una acción explícita del programa o expresá el cambio como hechos mediante el bus de arranque.
 - Mové lectura, validación del material, firma, I/O y resolución a adaptadores declarados. Las acciones y callbacks
@@ -719,7 +740,7 @@ Al actualizar un programa:
   `journal.sqlite` (nunca `secrets.sqlite`). La protección actual sustituye las posiciones declaradas antes de que el programa las reciba.
   Un histórico no revisado o un dato no declarado puede conservar material sensible; además están los datos de la
   organización: no guardes el de una organización real en un repositorio público.
-- La compuerta abre cada copia con el programa de hoy, sin lo que traía plegado: cada hecho se lee y se pliega desde
+- La compuerta abre cada copia en inspección con el programa de hoy, también con credenciales, sin lo que traía plegado: cada hecho se lee y se pliega desde
   el primero, y cada cosa se lee como la lee quien administra. Un cambio que no los lea frena ahí.
 - Además recorre lo ofrecido en anchura: cada camino vuelve a una copia limpia del registro, con el reloj quieto.
   Los dos primeros niveles se recorren enteros: cada fila del Menú y cada fila de lo que abre, sean las que sean (un

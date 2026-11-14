@@ -48,6 +48,7 @@ const globals = new Set([
   "EventSource",
   "eval",
   "Function",
+  "Reflect",
   "require",
   "Deno",
   "Bun",
@@ -69,6 +70,7 @@ export function boundaryEscapes(source: ts.SourceFile, checker: ts.TypeChecker):
     if (ts.isElementAccessExpression(node)) {
       const key = node.argumentExpression;
       if (ts.isStringLiteralLike(key) && key.text === "constructor") found.push("constructor");
+      if (!ts.isStringLiteralLike(key) && !ts.isNumericLiteral(key)) found.push("nonliteral element access");
     }
     if (ts.isMetaProperty(node)) found.push(node.getText());
     ts.forEachChild(node, visit);

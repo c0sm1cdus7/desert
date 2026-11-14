@@ -1,7 +1,7 @@
 // Append-only facts; replay folds the complete journal without publishing effects.
 import { ProjectionGroup } from "../../journal/projections.ts";
 import { snapshotEvery } from "../../catalogs/levers.ts";
-import { factOf, derivedId, stored, readFact } from "./journal-record.ts";
+import { derivedId, stored, readFact } from "./journal-record.ts";
 export { derivedId } from "./journal-record.ts";
 import { storageIdentity } from "./storage-identity.ts";
 import { journalIdentity } from "./journal-identity.ts";
@@ -25,20 +25,7 @@ const schema = `
   create trigger if not exists events_no_delete before delete on events begin select raise(abort, 'append-only'); end;
 `;
 
-/** A journal another process may be writing, read without its lock: the events after a sequence, oldest first. */
-export function journalReader<P extends Foreign>(file: string, words: Vocabulary<P>) {
-  const db = new DatabaseSync(storageIdentity(file), { readOnly: true });
-  try {
-    const after = db.prepare("select * from events where seq > ? order by seq");
-    return {
-      since: (seq: number): Event<P>[] => after.all(seq).map(row => words.read(factOf(row))),
-      close: () => db.close(),
-    };
-  } catch (error) {
-    db.close();
-    throw error;
-  }
-}
+export { journalReader } from "./journal-reader.ts";
 export { journalKept } from "./kept-journal.ts";
 export class SqliteJournal<P extends Foreign = Foreign> {
   private readonly db: DatabaseSync;
@@ -49,10 +36,17 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   private readonly identity: string;
   private readonly warn: (warning: FoldWarning) => void;
   private readonly warnings: FoldWarning[] = [];
+  private readonly folds: "restore" | "preserve";
   private restored = false;
   private restoreFailed = false;
   private batching = false;
-  constructor(file: string, words: Vocabulary<P>, warn: (warning: FoldWarning) => void = snapshotWarning) {
+  constructor(
+    file: string,
+    words: Vocabulary<P>,
+    warn: (warning: FoldWarning) => void = snapshotWarning,
+    folds: "restore" | "preserve" = "restore",
+  ) {
+    this.folds = folds;
     this.warn = warning => {
       this.warnings.push(warning);
       warn(warning);
@@ -115,7 +109,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
     }
   }
   append(emission: Emission<P>, at: number): Event<P> {
-    if (!this.restored) this.restore();
+    if (!this.restored && this.folds === "restore") this.restore();
     return this.batch(() => {
       const position = this.db.prepare("select coalesce(max(seq), 0) + 1 as seq from events").get();
       const count = this.db
@@ -143,6 +137,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
     return state;
   }
   watch<S>(name: string, initial: S, reduce: (state: S, event: Event<P>) => S, identity = ""): () => S {
+    if (this.folds === "preserve") throw new Error("Maintenance cannot watch folds");
     const row = this.db.prepare("select state from snapshots where name = ?").get(name);
     this.restored = false;
     const last = this.db.prepare("select coalesce(max(seq), 0) as seq from events").get();
@@ -152,6 +147,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   }
   /** Restores watched folds; drops names outside them and the explicitly retained calculation family. */
   restore(retainPrefix = ""): void {
+    if (this.folds === "preserve") throw new Error("Maintenance cannot restore folds");
     this.restored = false;
     try {
       this.batch(() => {

@@ -72,19 +72,34 @@ it("H1: el chequeo de código sin hechos secretos también pasa", async () => {
     codeUpgradeCheck<P>({ ...composition(rig.options), projectionVersion: codeProjectionVersion([source]) }).run(),
   ).resolves.toBeUndefined();
 });
-it("H6: abrir el conservado aún exige un proveedor; este paso no decide su custodia", async () => {
+it("B3: el conservado con posiciones secretas abre en inspección sin proveedor", async () => {
   const rig = fixture();
   rig.close();
   const folder = home();
   copyFileSync(join(rig.path, "journal.sqlite"), join(folder, "kept.sqlite"));
   const { secretKeys: _keys, ...program } = rig.options;
   const check = keptChecks<P>(
-    composition(program),
-    { words: {}, locale: { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" } },
+    composition({ ...program, registry: program.registry.map(tool => ({ ...tool, view: () => "{}" })) }),
+    {
+      words: Object.fromEntries(
+        program.registry.map(tool => [
+          tool.id,
+          {
+            name: tool.id,
+            key: tool.id.slice(0, 1),
+            empty: "Sin datos.",
+            listed: "Datos",
+            reads: {},
+            presents: [{ title: "Datos", empty: "Sin datos.", reads: {} }],
+          },
+        ]),
+      ),
+      locale: { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" },
+    },
     folder,
   )[0];
   expect(check).toBeDefined();
-  await expect(check?.run()).rejects.toMatchObject({ code: "E-CUSTODY-PROVIDER" });
+  await expect(check?.run()).resolves.toBeUndefined();
 });
 
 it("H1: ambas aperturas del chequeo de código admiten un hecho protegido", async () => {

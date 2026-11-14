@@ -46,9 +46,9 @@ export class CustodyState {
     }
   }
   check(session?: CredentialIngress): void {
-    this.checkWriter?.();
     if (this.closed || (session && this.sessions.get(session.id) !== session))
       throw new CustodyError("E-CUSTODY-DENIED");
+    this.checkWriter?.();
   }
   prepareKey(): void {
     if (this.store.keyCheck()) return;

@@ -27,7 +27,7 @@ export function maintainHouseCustody<X extends Program>(
 ): Result {
   if (!options.secretKeys) throw new CustodyError("E-CUSTODY-PROVIDER");
   if (!existsSync(join(home, "journal.sqlite"))) throw new CustodyError("E-CUSTODY-MISSING");
-  const journal = houseJournal(join(home, "journal.sqlite"), options.words);
+  const journal = houseJournal(join(home, "journal.sqlite"), options.words, undefined, "preserve");
   try {
     const credentials = credentialJournal(
       (after = 0) =>
