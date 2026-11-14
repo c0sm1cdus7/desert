@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { CustodyError } from "./house-keys.ts";
 import type { CredentialIngress, SecretRef, SecretRefs } from "./custody-contract.ts";
 import type { CustodyState } from "./custody-state.ts";
@@ -30,7 +31,7 @@ export async function useMaterial<T>(
   refs: SecretRefs,
   body: (material: Readonly<Record<string, Uint8Array>>) => T | Promise<T>,
 ): Promise<T> {
-  authorizeRefs(state, session, refs, slots);
+  state.ledger.read(() => authorizeRefs(state, session, refs, slots));
   const held = [...new Set(Object.values(refs))],
     buffers = new Map<SecretRef, Uint8Array>();
   held.forEach(ref => state.uses.set(ref, (state.uses.get(ref) ?? 0) + 1));
@@ -43,11 +44,7 @@ export async function useMaterial<T>(
     const material = Object.fromEntries(Object.entries(refs).map(([key, ref]) => [key, buffers.get(ref)]));
     const definite: Record<string, Uint8Array> = {};
     for (const [key, buffer] of Object.entries(material)) if (buffer) definite[key] = buffer;
-    try {
-      return await body(Object.freeze(definite));
-    } catch {
-      throw new CustodyError("E-CUSTODY-ADAPTER");
-    }
+    return await adapterResult(state, () => body(Object.freeze(definite)));
   } finally {
     for (const buffer of buffers.values()) {
       buffer.fill(0);
@@ -58,6 +55,33 @@ export async function useMaterial<T>(
       if (count) state.uses.set(ref, count);
       else state.uses.delete(ref);
     }
-    if (!state.closed) retryCleanup(state);
+    if (!state.closed && state.cleanupNeeded) retryCleanup(state);
+  }
+}
+
+async function adapterResult<T>(state: CustodyState, body: () => T | Promise<T>): Promise<T> {
+  let result: T;
+  try {
+    result = await body();
+  } catch {
+    state.check();
+    throw new CustodyError("E-CUSTODY-ADAPTER");
+  }
+  state.check();
+  return result;
+}
+
+export function captureMaterial(state: CustodyState, session: CredentialIngress, value: Uint8Array): SecretRef {
+  try {
+    state.check(session);
+    const ref: SecretRef = `secret:${randomUUID()}`;
+    state.prepareKey();
+    state.cleanupNeeded = true;
+    state.touched.add(session.id);
+    state.store.intent(ref, session.id, false);
+    state.store.put(ref, state.cipher.seal(ref, value, true));
+    return ref;
+  } finally {
+    value.fill(0);
   }
 }

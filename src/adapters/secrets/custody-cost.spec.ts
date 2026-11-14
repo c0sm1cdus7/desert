@@ -3,7 +3,7 @@ import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts"
 import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
 import { MacOSHouseKeys } from "./custody/macos-house-keys.ts";
 import { SecretCustody } from "./custody/secret-custody.ts";
-it("un uso de una referencia con un vínculo cuesta diez consultas al llavero y ninguna escritura", async () => {
+it("un uso de una referencia con un vínculo cuesta tres consultas al llavero y ninguna escritura", async () => {
   const rig = custodyRig(),
     fake = fakeKeychain();
   const store = new SecretCustody(rig.file, rig.home, new MacOSHouseKeys(fake.command));
@@ -13,11 +13,11 @@ it("un uso de una referencia con un vínculo cuesta diez consultas al llavero y 
     session.replace("signing", refs, 0);
     fake.calls.length = 0;
     await store.adapter(session, ["signing"]).use(refs, () => "acuse");
-    expect(fake.calls).toHaveLength(10);
+    expect(fake.calls).toHaveLength(3);
     expect(fake.calls.every(call => call.args[0] === "find-generic-password")).toBe(true);
     const accounts = fake.calls.map(call => call.args[call.args.indexOf("-a") + 1]);
     expect(accounts.filter(account => account?.includes("-secret-"))).toHaveLength(1);
-    expect(fake.calls.filter(call => call.args.includes("desert.custody-anchor.v3"))).toHaveLength(4);
+    expect(fake.calls.filter(call => call.args.includes("desert.custody-anchor.v3"))).toHaveLength(1);
   } finally {
     store.close();
   }
@@ -51,9 +51,9 @@ it("cuenta abrir, usar, aceptar y olvidar con historia y con el índice independ
     store.forgetHouse(store.forgetWarning());
     const forgetting = fake.calls.length;
     expect({ opening, using, accepting, forgetting }).toEqual({
-      opening: 3 * facts.length + 6,
-      using: 4 * facts.length + 6,
-      accepting: 7 * facts.length + 10,
+      opening: 5,
+      using: 3,
+      accepting: 8,
       forgetting: rotations + 4,
     });
     console.log(

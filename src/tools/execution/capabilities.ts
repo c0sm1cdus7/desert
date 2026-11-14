@@ -6,6 +6,7 @@ export type CapabilityLease = ToolCapabilities &
     capture(value: string): string;
     close(): void;
     cleanupPending?(): boolean;
+    anchorPending?(): boolean;
     together<T>(work: () => T): T;
     apply(emission: Emission, accepted: boolean): boolean;
   }>;

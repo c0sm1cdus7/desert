@@ -17,8 +17,13 @@ export function usingCapabilities<X extends Program>(
     const scoped = lease ? { ...ports, credentialEffects: lease } : ports;
     const result = work(scoped, lease ?? noCapabilities);
     const finish = (decision: Decision<X>): Decision<X> => {
+      const anchorPending = lease?.anchorPending?.();
       lease?.close();
-      return lease?.cleanupPending?.() ? { ...decision, cleanupPending: true } : decision;
+      return {
+        ...decision,
+        ...(lease?.cleanupPending?.() ? { cleanupPending: true } : {}),
+        ...(anchorPending || lease?.anchorPending?.() ? { anchorPending: true } : {}),
+      };
     };
     if (result.status === "processing")
       return {

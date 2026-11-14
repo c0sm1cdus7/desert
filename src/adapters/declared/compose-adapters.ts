@@ -2,7 +2,7 @@ import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { credentialEffects } from "./credential-effects.ts";
 import type { CapabilityFactory } from "../../tools/execution/capabilities.ts";
-import type { Credential, CredentialScope } from "../../tools/capabilities-contract.ts";
+import type { CredentialScope } from "../../tools/capabilities-contract.ts";
 import type { SecretCustody } from "../secrets/custody/secret-custody.ts";
 import { AdapterFailure, type AdapterComposition, type AdapterDeclaration } from "./adapter-contract.ts";
 import { adapterPorts } from "./adapter-ports.ts";
@@ -72,8 +72,9 @@ function leaseFor(
   declared: Readonly<Record<string, AdapterDeclaration>>,
 ) {
   const session = custody.begin(scope);
-  const snapshot = new Map<string, Credential | undefined>(owned.map(slot => [slot, session.current(slot)]));
-  const revisions = new Map(owned.map(slot => [slot, session.revision(slot)]));
+  const initial = custody.snapshot(session, owned);
+  let snapshot: ReturnType<typeof initial> | undefined;
+  const bindings = () => (snapshot ??= initial());
   let live = true;
   const check = () => {
     if (!live || !allowed(scope)) throw new AdapterFailure("E-ADAPTER-DENIED");
@@ -88,7 +89,8 @@ function leaseFor(
     apply: changes.apply,
     together: <T>(work: () => T) => custody.deferCleanup(work),
     ports: adapterPorts(declared, { custody, session, check }),
-    credentials: bindingPort(snapshot, revisions, slotCheck, changes),
+    credentials: bindingPort(bindings, slotCheck, changes),
+    anchorPending: () => changes.changed() && custody.anchorPending(),
     cleanupPending: () => changes.changed() && custody.cleanupPending(),
     close: () => {
       if (live) {
@@ -99,19 +101,18 @@ function leaseFor(
   };
 }
 function bindingPort(
-  snapshot: ReadonlyMap<string, Credential | undefined>,
-  revisions: ReadonlyMap<string, number>,
+  bindings: ReturnType<SecretCustody["snapshot"]>,
   slotCheck: (slot: string) => void,
   changes: ReturnType<typeof credentialEffects>,
 ) {
   return Object.freeze({
     current: (slot: string) => {
       slotCheck(slot);
-      return structuredClone(snapshot.get(slot));
+      return structuredClone(bindings().get(slot)?.current);
     },
     revision: (slot: string) => {
       slotCheck(slot);
-      return revisions.get(slot) ?? 0;
+      return bindings().get(slot)?.revision ?? 0;
     },
     replace: changes.replace,
     release: changes.release,

@@ -12,7 +12,7 @@ import type {
 } from "./custody-contract.ts";
 import { CustodyState } from "./custody-state.ts";
 import { collectCustody, retryCleanup } from "./custody-cleanup.ts";
-import { authorizeRefs, checkMaterial, useMaterial } from "./custody-access.ts";
+import { authorizeRefs, checkMaterial, useMaterial, captureMaterial } from "./custody-access.ts";
 import { retainMaterial, adoptMaterial } from "./retained-material.ts";
 export type CredentialSession = CredentialIngress &
   Readonly<{
@@ -29,7 +29,7 @@ export class SecretCustody {
   constructor(file: string, house: string, keys?: HouseKeyProvider, ledger?: CredentialLedger) {
     this.#state = new CustodyState(file, house, keys, ledger);
     try {
-      openCustody(this.#state);
+      this.#state.ledger.read(() => openCustody(this.#state));
     } catch (error) {
       this.#state.close();
       throw error instanceof CustodyError ? error : new CustodyError("E-CUSTODY-STORAGE");
@@ -40,7 +40,7 @@ export class SecretCustody {
     const session: CredentialSession = Object.freeze({
       id: randomUUID(),
       scope: Object.freeze({ ...scope }),
-      capture: (value: Uint8Array) => this.capture(session, value),
+      capture: (value: Uint8Array) => captureMaterial(this.#state, session, value),
       current: (slot: string) => {
         this.#state.check(session);
         return this.#state.current(session.scope, slot);
@@ -49,30 +49,19 @@ export class SecretCustody {
         this.#state.check(session);
         return this.#state.latest(session.scope, slot)?.revision ?? 0;
       },
-      replace: (slot: string, refs: SecretRefs, expected: number) => this.replace(session, slot, refs, expected),
-      release: (slot: string, expected: number) => this.release(session, slot, expected),
+      replace: (slot: string, refs: SecretRefs, expected: number) =>
+        this.#state.ledger.read(() => this.replace(session, slot, refs, expected)),
+      release: (slot: string, expected: number) => this.#state.ledger.read(() => this.release(session, slot, expected)),
       cancel: () => {
         if (this.#state.closed) return;
         this.#state.sessions.delete(session.id);
+        this.#state.touched.delete(session.id);
         collectCustody(this.#state);
       },
     });
     this.#state.sessions.set(session.id, session);
     return session;
   }
-  private capture(session: CredentialIngress, value: Uint8Array): SecretRef {
-    try {
-      this.#state.check(session);
-      const ref: SecretRef = `secret:${randomUUID()}`;
-      this.#state.prepareKey();
-      this.#state.store.intent(ref, session.id, false);
-      this.#state.store.put(ref, this.#state.cipher.seal(ref, value, true));
-      return ref;
-    } finally {
-      value.fill(0);
-    }
-  }
-
   private replace(session: CredentialIngress, slot: string, refs: SecretRefs, expected: number): void {
     this.#state.check(session);
     const revision = this.#state.revision(session.scope, slot, expected);
@@ -80,14 +69,14 @@ export class SecretCustody {
     Object.values(refs).forEach(ref => checkMaterial(this.#state, ref));
     this.#state.fact("credential-bound", session.scope, slot, revision, refs, session.id);
     Object.values(refs).forEach(ref => this.#state.store.unretain(ref));
-    collectCustody(this.#state);
+    if (!this.anchorPending()) collectCustody(this.#state);
   }
   private release(session: CredentialIngress, slot: string, expected: number): void {
     this.#state.check(session);
     const revision = this.#state.revision(session.scope, slot, expected);
     const refs = this.#state.current(session.scope, slot)?.refs ?? {};
     this.#state.fact("credential-released", session.scope, slot, revision, refs, session.id);
-    collectCustody(this.#state);
+    if (!this.anchorPending()) collectCustody(this.#state);
   }
   /** Append inside the action's journal batch; cleanup waits until its lease closes after commit. */
   confirm(session: CredentialSession, slot: string, expected: number, refs?: SecretRefs): void {
@@ -97,6 +86,7 @@ export class SecretCustody {
       authorizeRefs(this.#state, session, refs);
       Object.values(refs).forEach(ref => checkMaterial(this.#state, ref));
     }
+    this.#state.touched.add(session.id);
     this.#state.fact(
       refs ? "credential-bound" : "credential-released",
       session.scope,
@@ -110,7 +100,7 @@ export class SecretCustody {
     this.#state.check(session);
     const slots = [...allowedSlots];
     return Object.freeze({
-      capture: (value: Uint8Array) => this.capture(session, value),
+      capture: (value: Uint8Array) => captureMaterial(this.#state, session, value),
       use: <T>(refs: SecretRefs, body: (material: Readonly<Record<string, Uint8Array>>) => T | Promise<T>) =>
         useMaterial(this.#state, session, slots, refs, body),
     });
@@ -126,7 +116,7 @@ export class SecretCustody {
   deferCleanup<T>(work: () => T): T {
     this.#state.cleanupDepth++;
     try {
-      return this.#state.ledger.batch(work);
+      return this.#state.ledger.read(() => this.#state.ledger.batch(work));
     } finally {
       this.#state.cleanupDepth--;
     }
@@ -134,7 +124,13 @@ export class SecretCustody {
   finish(session: CredentialSession): void {
     if (this.#state.closed) return;
     this.#state.sessions.delete(session.id);
-    retryCleanup(this.#state);
+    if (this.#state.touched.delete(session.id)) retryCleanup(this.#state);
+  }
+  anchorPending(): boolean {
+    return this.#state.ledger.anchorPending();
+  }
+  snapshot(session: CredentialSession, slots: readonly string[]) {
+    return this.#state.snapshot(session, slots);
   }
   cleanupPending(): boolean {
     return this.#state.cleanupFailed;
@@ -166,7 +162,7 @@ export class SecretCustody {
   ): void {
     const state = new CustodyState(file, house, keys, ledger);
     try {
-      openCustody(state, true, head);
+      state.ledger.read(() => openCustody(state, true, head));
     } finally {
       state.close();
     }
@@ -194,6 +190,6 @@ export class SecretCustody {
     checkMaterial(this.#state, ref);
   }
   adopt(scope: CredentialScope, slot: string, refs: SecretRefs, expected = 0): void {
-    adoptMaterial(this.#state, scope, slot, refs, expected);
+    this.#state.ledger.read(() => adoptMaterial(this.#state, scope, slot, refs, expected));
   }
 }

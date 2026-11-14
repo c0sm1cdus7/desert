@@ -11,7 +11,10 @@ export function decisionOf<X extends Program>(
   tool: string | undefined,
   option: string,
 ): Decision<X> {
-  const notice = result.cleanupPending ? { cleanupPending: true as const } : {};
+  const notice = {
+    ...(result.cleanupPending ? { cleanupPending: true as const } : {}),
+    ...(result.anchorPending ? { anchorPending: true as const } : {}),
+  };
   if ("reason" in result)
     return { status: result.status, reason: result.reason, effects: result.effects ?? [], ...notice };
   if (result.status === "inconclusive") return { status: "inconclusive", effects: result.effects ?? [], ...notice };
@@ -26,6 +29,7 @@ export function decisionOf<X extends Program>(
     effects = [],
     private: receipt,
     cleanupPending,
+    anchorPending,
     ...data
   } = result;
   const done = effect("act-done", { object: target, act: option, text, ...privateTo(data.recipient) }, by);
@@ -35,5 +39,6 @@ export function decisionOf<X extends Program>(
     effects: [...effects, done, entry],
     private: receipt,
     ...(cleanupPending ? { cleanupPending } : {}),
+    ...(anchorPending ? { anchorPending } : {}),
   };
 }

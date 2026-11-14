@@ -22,7 +22,7 @@ import { usingCapabilities } from "./execution/action-capabilities.ts";
 type Origin = HouseEvent<"act">;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
   Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &
-  Readonly<{ private?: string | undefined; output?: boolean; cleanupPending?: true }>;
+  Readonly<{ private?: string | undefined; output?: boolean; cleanupPending?: true; anchorPending?: true }>;
 type Processing<X extends Program> = Readonly<{ status: "processing"; effects: readonly []; reason?: string }> &
   Readonly<{ completion: Promise<Decision<X>> }>;
 export type ExecutionResult<X extends Program> = Decision<X> | Processing<X>;
@@ -109,7 +109,11 @@ async function executeNested<X extends Program>(
     result.status === "accepted"
       ? { status: "accepted" }
       : { status: "rejected", reason: result.reason ?? toolTexts.invalid };
-  return result.cleanupPending ? { ...done, cleanupPending: true } : done;
+  return {
+    ...done,
+    ...(result.cleanupPending ? { cleanupPending: true } : {}),
+    ...(result.anchorPending ? { anchorPending: true } : {}),
+  };
 }
 export function execute<X extends Program>(
   ports: Execution<X>,

@@ -1,4 +1,5 @@
 export const secretTexts = {
+  transaction: "La transacción ya tiene un agregado de custodia; reuní los cambios en un solo lote antes de confirmar",
   key:
     "Falta una llave válida o el llavero no respondió a tiempo; desbloquealo y reintentá. " +
     "Si copiaste la casa, trasladá sus llaves y ancla al proveedor",

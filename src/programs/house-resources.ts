@@ -75,11 +75,15 @@ function houseCustody<X extends Program>(
 ) {
   const { words, secretKeys } = options;
   const credentials = credentialJournal(
-    () =>
-      journal.replay<ReturnType<typeof journal.append>[]>([], (all, event) => {
-        all.push(event);
-        return all;
-      }),
+    (after = 0) =>
+      journal.replay<ReturnType<typeof journal.append>[]>(
+        [],
+        (all, event) => {
+          all.push(event);
+          return all;
+        },
+        after,
+      ),
     entry => journal.append(entry, time.now()),
   );
   const secrets = openSecretVault<X>(

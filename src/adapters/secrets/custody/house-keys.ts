@@ -11,6 +11,7 @@ export interface HouseKeyProvider {
   forgetHouse(house: string, known?: readonly string[]): void;
 }
 export type CustodyCode =
+  | "E-CUSTODY-TRANSACTION"
   | "E-CUSTODY-KEY"
   | "E-CUSTODY-PROVIDER"
   | "E-CUSTODY-CLEANUP"
@@ -29,6 +30,7 @@ export class CustodyError extends Error {
   readonly code: CustodyCode;
   constructor(code: CustodyCode) {
     const detail: Partial<Record<CustodyCode, string>> = {
+      "E-CUSTODY-TRANSACTION": secretTexts.transaction,
       "E-CUSTODY-KEY": secretTexts.key,
       "E-CUSTODY-PROVIDER": secretTexts.provider,
       "E-CUSTODY-ROLLBACK": secretTexts.rollback,

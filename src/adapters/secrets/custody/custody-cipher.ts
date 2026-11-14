@@ -115,20 +115,32 @@ export class CustodyCipher {
       }
     });
   }
-  sign(body: string): string {
+  signing<T>(work: (sign: (body: string) => string) => T): T {
     return this.#using(this.#house, false, key =>
-      createHmac("sha256", key)
-        .update(JSON.stringify(["custody-fact-v2", this.#house, body]))
-        .digest("hex"),
+      work(body =>
+        createHmac("sha256", key)
+          .update(JSON.stringify(["custody-fact-v2", this.#house, body]))
+          .digest("hex"),
+      ),
+    );
+  }
+  sign(body: string): string {
+    return this.signing(sign => sign(body));
+  }
+  verifying<T>(work: (verify: (body: string, signature: string | undefined) => void) => T): T {
+    return this.signing(sign =>
+      work((body, signature) => {
+        if (
+          !signature ||
+          !/^[a-f0-9]{64}$/u.test(signature) ||
+          !timingSafeEqual(Buffer.from(sign(body), "hex"), Buffer.from(signature, "hex"))
+        )
+          throw new CustodyError("E-CUSTODY-INTEGRITY");
+      }),
     );
   }
   verify(body: string, signature: string | undefined): void {
-    if (
-      !signature ||
-      !/^[a-f0-9]{64}$/u.test(signature) ||
-      !timingSafeEqual(Buffer.from(this.sign(body), "hex"), Buffer.from(signature, "hex"))
-    )
-      throw new CustodyError("E-CUSTODY-INTEGRITY");
+    this.verifying(verify => verify(body, signature));
   }
   close(): void {
     for (const key of this.#active) key.fill(0);

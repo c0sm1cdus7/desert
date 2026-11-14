@@ -55,6 +55,7 @@ function status(state: CustodyState, reviewing = false) {
     unusable: [...report.unusable, ...latestCredentials(facts).filter(fact => fact.kind === "credential-unusable")],
     pending,
     pendingRefs,
+    anchorPending: state.ledger.anchorPending(),
     cleanupPending: state.cleanupFailed || pendingRefs.length > 0,
     forgetWarning: secretTexts.forget,
   };

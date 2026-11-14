@@ -21,16 +21,18 @@ function programBus<P extends Foreign>(bus: Bus<P>, lease?: CapabilityLease) {
     });
   }
   const safe = baseFunctions(bus);
+  const together = <T>(work: () => T): T => safe.together(() => (lease ? lease.together(work) : work()));
   const emit = (entry: Emission<P>) => {
     const write = () => {
       lease?.apply(entry, true);
       return safe.emit(entry);
     };
-    return lease ? lease.together(() => safe.together(write)) : write();
+    return together(write);
   };
   return new Proxy(safe, {
     get: (target, key): unknown => {
       if (key === "on") return on;
+      if (key === "together") return together;
       return key === "emit" ? emit : Reflect.get(target, key);
     },
   });

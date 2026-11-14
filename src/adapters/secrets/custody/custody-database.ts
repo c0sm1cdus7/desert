@@ -112,9 +112,12 @@ export class CustodyDatabase implements CredentialLedger {
     }
   }
   facts(): readonly CredentialFact[] {
+    return this.factsAfter(0);
+  }
+  factsAfter(count: number): readonly CredentialFact[] {
     return this.db
-      .prepare("select body from custody_facts order by seq")
-      .all()
+      .prepare("select body from custody_facts where seq > ? order by seq")
+      .all(count)
       .map(row => factFrom(row.body));
   }
   close(): void {

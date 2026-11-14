@@ -23,6 +23,8 @@ export type CredentialFact = Readonly<{
 export interface CredentialLedger {
   append(fact: CredentialFact): void;
   facts(): readonly CredentialFact[];
+  /** Only an exclusively held, append-only source may offer an incremental tail. */
+  factsAfter?(count: number): readonly CredentialFact[];
   appendBatch?(facts: readonly CredentialFact[]): void;
   pending?(): boolean;
   afterCommit?(work: () => void): void;
