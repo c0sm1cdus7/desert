@@ -4,9 +4,10 @@ import { journalTexts } from "../../texts/journal.texts.ts";
 import { deepStrictEqual } from "node:assert/strict";
 import { houseProjections, type HouseFolds } from "../../programs/house-projections.ts";
 import type { Program } from "../../tools/tool-contract.ts";
-import { journalKept, SqliteJournal } from "./journal-store.ts";
+import { journalKept } from "./journal-store.ts";
+import { houseJournal } from "./house-journal.ts";
 function reopened<X extends Program>(file: string, folds: HouseFolds<X>) {
-  const journal = new SqliteJournal(file, folds.words);
+  const journal = houseJournal(file, folds.words);
   try {
     const { state, clock } = houseProjections(journal, folds);
     if (journal.restoration().warnings.some(warning => warning.reason === journalTexts.divergentFold))

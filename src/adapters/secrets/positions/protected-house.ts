@@ -6,7 +6,6 @@ import type { Redactor } from "../redact.ts";
 import { declaredInput } from "./declared-input.ts";
 import { CustodyError } from "../custody/house-keys.ts";
 import { checkSecrets, marked } from "./secret-positions.ts";
-import { protectedVocabulary } from "./protected-vocabulary.ts";
 import { protectHistory } from "../history/secret-history.ts";
 export function protectedHouse<X extends Program>(home: string, options: HouseOptions<X>) {
   checkSecrets(options.words.event);
@@ -20,5 +19,5 @@ export function protectedHouse<X extends Program>(home: string, options: HouseOp
     throw new CustodyError("E-CUSTODY-PROVIDER");
   const attach = (secrets: Redactor<X>, read: () => State<X>) =>
     secrets.actions(value => declaredInput(options, read(), value));
-  return { attach, words: protectedVocabulary(options.words), mark: protectHistory(home, options) };
+  return { attach, mark: protectHistory(home, options) };
 }

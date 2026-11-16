@@ -25,7 +25,6 @@ export const journalTexts = {
   manualEvidenceCheck: "Manual projectionVersion has reusable kept evidence",
   noManualEvidence: "No reusable previous folds: no evidence for manual projectionVersion",
   rebuildCode: "SAVED_FOLD_REBUILT",
-
   copyJournal: "vacuum into ?",
   identityTable:
     "create table if not exists journal_identity (singleton integer primary key check(singleton = 1), id text)",
@@ -41,7 +40,6 @@ export const journalTexts = {
   changedFold: "different calculation version",
   unwatchedFold: "projection name or calculation version changed",
   dependentFold: "dependent group is incomplete, incompatible or at different sequences",
-
   keptBootSql: "select by from events where kind = 'boot' order by seq limit 1",
   lastInstantSql: "select max(at) as at from events",
   lastSequenceSql: "select coalesce(max(seq), 0) as seq from events",

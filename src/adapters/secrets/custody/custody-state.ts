@@ -15,6 +15,7 @@ import {
   type SecretRefs,
 } from "./custody-contract.ts";
 export class CustodyState {
+  private readonly checkWriter: (() => void) | undefined;
   readonly store: CustodyDatabase;
   readonly cipher: CustodyCipher;
   readonly ledger: AuthenticatedLedger;
@@ -27,6 +28,8 @@ export class CustodyState {
   cleanupFailed = false;
   cleanupNeeded = false;
   constructor(file: string, _house: string, keys?: HouseKeyProvider, ledger?: CredentialLedger) {
+    this.checkWriter = ledger?.check?.bind(ledger);
+    this.checkWriter?.();
     custodyPreflight(file, !!keys);
     this.store = new CustodyDatabase(file);
     try {
@@ -45,6 +48,7 @@ export class CustodyState {
   check(session?: CredentialIngress): void {
     if (this.closed || (session && this.sessions.get(session.id) !== session))
       throw new CustodyError("E-CUSTODY-DENIED");
+    this.checkWriter?.();
   }
   prepareKey(): void {
     if (this.store.keyCheck()) return;

@@ -1,5 +1,6 @@
 // What asking an act and reading its answers share: how a declared field says its question, its options and its value.
 import { moneyQuestion, type MoneyContext } from "./currency/money-question.ts";
+import { secretReason } from "./secret-reason.ts";
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { addresses } from "../../catalogs/addressing.ts";
@@ -138,8 +139,9 @@ const secretField = (schema: TSchema, ctx: Ctx): Field => ({
   ask: titleOf(schema, ctx),
   kind: "secret",
   valid: typed => (ctx.optional && typed === "") || Value.Check(schema, typed),
-  wrong: typed => {
-    if (!Value.Check(schema, typed)) return undefined;
+  wrong: (typed, submitted = false) => {
+    if (ctx.optional && typed === "") return undefined;
+    if (!Value.Check(schema, typed)) return submitted ? secretReason(schema, typed) : undefined;
     const reason = wrongIn(schema, valueOf(schema, ctx, typed), ctx.now());
     return ctx.cause ? ctx.cause(reason) : reason;
   },

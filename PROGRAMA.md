@@ -397,7 +397,9 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
 - `secret: true` en un campo string garantiza la posición declarada por estructura: al escribir una acción o
   un hecho, esa posición lleva una referencia `secret:<UUID>`. Vale para vacío, una letra, cualquier largo,
   vocabulario y multilínea. La entrada original se valida antes de escribir hechos; al leer se admiten referencias
-  aunque excedan el largo o patrón original. Dos escrituras del mismo valor reciben referencias distintas, también
+  aunque excedan el largo o patrón original. La apertura común `houseJournal` se usa en la casa viva,
+  la comparación final de casos, la lectura de conservados, su renovación, las subidas y el mantenimiento.
+  Dos escrituras del mismo valor reciben referencias distintas, también
   dentro de una acción y después de reiniciar. Las referencias ya escritas se conservan al releer.
 - No hay búsqueda ni reemplazo de repeticiones literales. Un secreto «a» no altera «banana», «ana», los nombres
   del vocabulario ni los mensajes de la base. Una acción solo puede copiar o transformar la referencia recibida,
@@ -413,20 +415,48 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   Los esquemas de ejecución validan referencias en esas posiciones; largo y patrón originales se aplican al
   material en el ingreso. Un texto escrito que parece `secret:<UUID>` es material nuevo, nunca autorización.
 - La pregunta secreta pertenece a la base: oculta teclas y pegados con marcas, conserva espacios y varios
-  renglones y muestra puntos al volver o confirmar. `holding` recibe la referencia; si necesitás comprobar
+  renglones y muestra puntos al volver o confirmar. Al Enter, un secreto inválido dice «falta completar»,
+  «mínimo N caracteres», «máximo N caracteres» o «formato inválido», calculado por largo y esquema sin generar
+  referencias ni repetir el material. Un opcional vacío avanza. El editor secreto no tiene tope de ingreso:
+  conserva entero lo pegado para no cortar una credencial en silencio; el máximo del esquema impide avanzar y
+  se explica al Enter. Se puede borrar y corregir sin volver a pegar.
+  `holding` recibe la referencia; si necesitás comprobar
   contenido, hacelo en un adaptador declarado. Antes de ejecutar, las referencias de preguntas son provisionales
   en memoria y no resuelven custodia. Cancelar o cerrar no deja material en disco. Solo `submit` arma un
   traspaso privado de un uso al motor; `input`, condiciones y confirmaciones nunca llevan ese traspaso.
+- Un registro conservado con credenciales abre en **modo de inspección**, como evidencia de prueba.
+  Se recorre lo que no usa credenciales ni adaptadores. Si una acción ofrecida llega a un adaptador o intenta usar,
+  capturar, reemplazar o liberar una credencial, se corta esa rama y se cuenta como «no recorrible en inspección».
+  El informe da la cantidad de ramas cortadas, con acción y motivo, aunque ninguna acción pueda completarse.
+  Se copia solo la evidencia cerrada del registro a una carpeta temporal; no se abre el archivo de secretos, ningún proveedor de llaves
+  ni el llavero. Los lotes se leen como hechos con referencias y se comprueba su forma, **no su autenticación
+  contra la llave del registro original**: esa llave no forma parte de la evidencia conservada.
+  Este modo no abre una casa viva: no es una opción de `startHouse`, trabaja únicamente sobre una copia desechable
+  y no habilita material. Esos intentos lanzan `InspectionUnavailable`, con código `E-CUSTODY-DENIED` y motivo;
+  el recorrido reconoce la identidad del error, nunca su texto. Cualquier otra falla de una acción sigue haciendo
+  fallar la comprobación. Las fábricas de adaptadores no se abren. Leer referencias vigentes y su revisión sí se permite.
+  La casa viva sigue exigiendo proveedor, material, autenticación y ancla. La copia temporal se borra al terminar,
+  también si falla la apertura o el recorrido; no se crean auxiliares junto a la evidencia original.
 - `programChecks` deriva una comprobación por acción secreta, ejecuta todos sus casos y observa la frontera
   real. Cada posición, opcional, elemento de lista y rama necesita al menos un caso ejecutado con referencia;
   una posición sin cobertura falla. Retirar la sustitución hace fallar el centinela de la compuerta.
 - Los plegados en memoria y guardados conservan las referencias de los hechos. La invalidación de plegados de
-  versiones anteriores depende de la versión de su formato, fuera de esta protección.
+  versiones anteriores depende de la versión de su formato, fuera de esta protección. Al abrir, la vigilancia y
+  restauración de los plegados preceden a cualquier limpieza de la custodia: recuperar material huérfano conserva
+  los pares de estado y reloj de otras identidades de la misma versión y no avisa un cambio de cálculo inexistente.
+  El mantenimiento con la casa cerrada agrega sin restaurar: aceptar, reintentar, adoptar y descartar dejan todos
+  los plegados guardados intactos y no emiten avisos. La próxima apertura los reutiliza y pliega la cola pendiente.
 - Al abrir sin marca, o con una marca válida de versión 1, la base revisa acciones **y hechos del programa** con
   los esquemas actuales, antes de abrir la bóveda, restaurar plegados o agregar un arranque. Un valor en una posición
   secreta impide abrir: `E-SECRET-HISTORY` nombra acción o tipo de hecho, posición y número de hecho, nunca el valor.
   No modifica los bytes del registro ni de la bóveda. La conexión de lectura SQLite puede crear los auxiliares
   `journal.sqlite-shm` (índice compartido) y `journal.sqlite-wal` vacío; eso no agrega hechos ni cambia la bóveda.
+- Ventana pendiente de la revisión histórica (H4): hoy se revisa con un lector antes de tomar la exclusión de
+  escritor. Si una versión anterior escribe material en claro y cierra justo entre esa revisión y la adquisición,
+  la nueva puede marcar versión 2 sin haber visto ese último hecho; las aperturas siguientes omiten la revisión.
+  La exclusión posterior no hace segura esa ventana. Hasta cerrar este punto, detener la versión anterior antes de
+  abrir la nueva sobre la misma casa. Falta mover la revisión bajo la exclusión o volver a verificar antes de marcar,
+  conservando el rechazo sin modificaciones de la historia. Este paso documenta la ventana; no la corrige.
 - Si no encuentra valores deja una marca versión 2: `reviewed` cuenta acciones revisadas, `reviewedFacts` hechos
   del programa revisados y `unreviewable` acciones sin declaración disponible. Lo no revisable no frena la apertura
   ni se certifica limpio. Una casa nueva empieza con las tres cuentas en cero. Una marca ilegible o de formato
@@ -545,6 +575,11 @@ no cambia vínculos; la recolección espera al commit. Ni la custodia ni la bóv
   El ancla tiene 81 bytes constantes (contador hexadecimal de 16 dígitos, separador y autenticador de 64).
   El ejecutor recibe `{ timeout: 5000 }`, entrada y salida en búferes. `systemKeychainCommand` es optativo;
   nunca se elige solo. `-U` se usa únicamente para metadata pública, nunca para sobrescribir llaves.
+- La casa comprueba su exclusión antes de pasar una emisión a custodia y antes de cada operación de una sesión
+  de custodia, incluidos los adaptadores ya abiertos. Si el auxiliar fue borrado o reemplazado, falla con
+  `WRITER_LEASE_LOST` antes de retener material o crear su llave; cerrar sigue liberando los recursos.
+  Un `CredentialLedger` propio puede ofrecer `check()` para imponer la exclusión de su registro antes de operar.
+  `startHouse` y `maintainHouseCustody` lo conectan; la custodia independiente conserva su contrato anterior.
 - Los `CredentialLedger` propios deben implementar `appendBatch` atómico. Si participan de una transacción externa,
   `pending()` dice que todavía no confirmó y `afterCommit` se ejecuta solo tras el commit, nunca tras rollback.
   `startHouse` ya lo conecta. Tanto acciones como `bus.together` de un arranque reúnen los vínculos en un solo
@@ -557,6 +592,7 @@ no cambia vínculos; la recolección espera al commit. Ni la custodia ni la bóv
 - Con una casa de `startHouse`, usá `maintainHouseCustody(home, options, request)` desde la composición, con
   la casa cerrada. Toma la exclusión del registro del motor, conecta sus hechos de custodia y cierra ambos recursos
   al terminar. No ejecuta herramientas, adaptadores, arranques, proyecciones ni reloj. No es un puerto de herramientas.
+  Agrega sin restaurar ni borrar plegados guardados y sin avisos de reconstrucción.
   `request.operation` permite `review`, `accept`, `status`, `retry`, `adopt`, `discard` y `forget`.
   `review` verifica sin cambiar el ancla y devuelve `head`, vínculos, referencias sin llave y vínculos inutilizables;
   `accept` exige esa `head` con cantidad y autenticador. Una cabeza distinta da `E-CUSTODY-CONFLICT` sin escribir.
@@ -667,22 +703,65 @@ que la composición declara puede cambiarlas por material. El ingreso, el editor
 procesan el material. La marca de revisión histórica v2 tiene otro alcance: registra lo revisado con los esquemas
 actuales y cuenta lo no revisable; no certifica toda la historia ni los datos públicos.
 
-La ley 212 recorre dependencias transitivas, alias, reexportaciones, importaciones dinámicas y tipos. Una herramienta
-no puede importar custodia, fábrica, resolvedor ni la composición para recuperarlos. Tampoco puede leer archivos,
-entorno, base de datos, red o procesos por su cuenta, ni recurrir a evaluación de código. Una dependencia desconocida
-o un import no literal se rechaza: no se supone seguro por no poder inspeccionarlo. Los imports públicos de la base
-son nombrados, según `tests/laws/secret-public-api.ts`; `testing.ts` no habilita sus fábricas para una herramienta.
+La ley 212 parte de la composición indicada por `desert.program` y sigue su grafo de imports, reexportaciones,
+alias, imports dinámicos literales y tipos, también fuera de `src/`, en archivos de pruebas y en `.mts`, `.cts`
+o `.tsx`. Todo archivo alcanzado que no sea la composición, un adaptador de `src/adapters/` o la frontera pública
+revisada de la base se revisa como fuente de herramienta. Un JSON importado es dato; un archivo o dependencia que no se pueda revisar falla
+cerrado; un import no literal también. Los imports públicos son nombrados según `tests/laws/secret-public-api.ts`;
+`testing.ts` no habilita fábricas para herramientas. Un `import type` de un módulo no público se rechaza igual que un import de valor. Los alias vienen de `paths` y la resolución local de TypeScript.
 
-La compuerta de cada programa incluye una comprobación más entre sus ocho partes (`tests/program/registration.ts`,
-«tools cannot import secret custody, factories or direct I/O»), que corre una sola vez: revisa las fuentes `.ts` de `src`,
-excepto specs; `desert.program` nombra la composición y `src/adapters/` contiene los adaptadores confiables. Las
-herramientas y sus funciones viven separadas de ambos. Los alias vienen de `paths` de `tsconfig.json`. La base prueba
-además que un alias no agrega un resolvedor a los contratos públicos y que una fábrica no lo devuelve anidado.
-Un paquete externo nuevo requiere revisar su API y agregar una frontera explícita; no alcanza instalarlo.
+Además rastrea el valor de la composición, incluso los retornos de funciones del programa, y cada elemento del
+`registry` hasta el valor o fábrica que lo define. Admite arreglos literales, `as const`, `Object.freeze` de la
+biblioteca y referencias a propiedades de objetos literales o a un `export default` literal de herramientas.
+Rechaza herramientas definidas en la composición o un adaptador y registros calculados que no puede seguir,
+como `Object.entries(...).map(...)` u `Object.fromEntries`. También admite alias y spreads de arreglos rastreables;
+una fábrica que devuelve un parámetro falla cerrada. La ley no ejecuta la composición para descubrir valores.
+La composición es confiable por diseño: si quien compone esconde una herramienta mediante una fábrica aparte que
+devuelve una copia, una reasignación o un agregado posterior, la ley no la ve; es un acto de quien compone.
+Una herramienta no puede importar custodia, fábrica, resolvedor ni composición, ni hacer I/O directo, leer entorno
+o evaluar código por los caminos que esta regla reconoce. `Reflect` y `module` son capacidades del ambiente.
+Toda lectura con clave calculada no literal se juzga igual: corchetes, desestructuración en una declaración,
+asignación o parámetro. Lo que decide es el valor elegido: se rechaza si es invocable o construible, `any`,
+`unknown`, `object`, `{}` o un genérico sin una cota que permita comprobarlo. El objeto del que se lee no puede
+ser `any`, `unknown`, una función, un constructor de clase ni un objeto del ambiente.
+Tener métodos no convierte un objeto en una función: se admiten fechas, mapas, conjuntos, expresiones regulares,
+errores, promesas, bytes, instancias de clase y filas con métodos. También se admiten arreglos, tuplas, texto y
+registros, sin exigir que todas sus propiedades sean datos. Si la clave es una unión de literales, solo cuentan
+las propiedades que puede elegir; `v?.xs[i]` no agrega al tipo de `xs` el `null` del eslabón anterior.
+La ley usa las declaraciones de tipos ya instaladas; no habilitan imports ni dependencias nuevas.
+Siempre rechaza leer `constructor`, `__proto__` o `prototype`: con punto, corchetes, desestructuración o claves
+conocidas por su texto, concatenación, alias o tipo literal. Esas propiedades permiten llegar a evaluar código.
 
-Esto es una regla de fuentes y contratos, no un aislamiento de JavaScript frente a código hostil o dependencias
-alteradas. No demuestra que el adaptador firme bien, autorice bien al destinatario ni que un string público no
-codifique material privado. No borra copias externas, respaldos, memoria del proveedor ni páginas históricas del
+Una conversión dentro de una fuente de herramienta no habilita el acceso: la ley sigue objeto y clave por alias,
+asignaciones, desestructuración y llamadas a auxiliares, también importadas. Rechaza `as any`, `as never`, dobles
+conversiones por `unknown` y otras aserciones de tipo en ese recorrido, incluso con clave literal. Conserva
+`as const` y `satisfies`: no inventan un tipo incompatible. Las coerciones primitivas estándar no heredan
+aserciones de sus argumentos; una aserción que conserva exactamente el tipo de esa coerción también se admite.
+Esto se comprueba por la declaración de la biblioteca, no por el nombre: un homónimo local no obtiene la excepción.
+El recorrido restante es conservador: considera las asignaciones
+y los cuerpos de auxiliares, sin demostrar qué rama se ejecutará. La composición confiable mantiene su frontera.
+El chequeo estricto de tipos ya frena accesos inválidos, exige estrechar `unknown` y contempla índices ausentes;
+el lint y la ley 12 ya prohíben aserciones inseguras y el lint rechaza `any` explícito y sus usos inseguros.
+La ley 212 agrega la comprobación del valor elegido, las claves prohibidas y el rastreo del origen convertido
+al grafo alcanzado. Los caminos hacia `Function` que pasan por `any`, como `getOwnPropertyDescriptor` o
+`getPrototypeOf`, quedan al lint: esta ley no los cierra por sí sola. El lint del programa tiene que cubrir
+**todo** lo que la ley recorre, incluidos auxiliares fuera de `src/`, `.mts` y `.cts`. Los globs actuales de la
+base no cubren `.mts` ni `.cts`; esa cobertura no está garantizada hoy. No reemplaza tipos ni lint.
+La base también comprueba que una fábrica no devuelva el resolvedor anidado.
+
+La composición es confiable: puede pasar custodia a una fábrica de herramienta; ese paso es su propio acto y la ley
+no analiza el flujo de capacidades que decide entregar. Importar un `.js` sin tipos ya falla con el chequeo estricto
+de tipos, sin `allowJs`; no se atribuye esa detección a esta ley. Las fuentes sin formato revisable también se rechazan.
+Cada archivo se clasifica una sola vez por corrida. Cada lugar y regla producen un solo mensaje con posición
+y una cadena de imports de ejemplo, aunque varias herramientas lleguen al mismo archivo.
+La compuerta incluye esta ley una vez entre sus ocho partes (`tests/program/registration.ts`). Un paquete nuevo
+requiere revisar su API y agregar una frontera explícita; instalarlo no alcanza. Quedan fuera del análisis el código
+no alcanzado desde la composición, las mutaciones posteriores en ejecución y la intención de los adaptadores.
+
+Esta ley frena el descuido y los caminos conocidos: es una regla de fuentes y contratos, no aislamiento de
+JavaScript frente a código hostil o dependencias alteradas. No ejecuta claves arbitrarias ni prueba que los tipos
+sean honestos en ejecución. No demuestra que el adaptador firme bien, autorice bien al destinatario ni que un string
+público no codifique material privado. No borra copias externas, respaldos, memoria del proveedor ni páginas históricas del
 disco. Restaurar una copia completa anterior puede revivir material revocado. Estas limitaciones siguen vigentes.
 
 ### Una llave de firma, de ingreso a desconexión
@@ -731,6 +810,19 @@ Al actualizar un programa:
 - Las vistas usan proxies: `structuredClone` o serializadores nativos sobre la vista recibida no son una copia
   pública del estado. Armá los datos propios que necesitás con sus campos, listas y mapas. La base sí convierte
   internamente las partes de estado devueltas como datos de un resultado antes de guardarlas.
+
+- Los conservados con credenciales se inspeccionan sin proveedor ni archivo de secretos; no copies llaves ni material.
+  Sus lotes no se autentican contra la llave original. Se recorre lo que no usa credenciales ni adaptadores;
+  las demás ramas se cortan y el informe las cuenta con acción y motivo. Conservá las acciones del programa:
+  no hace falta retirarlas ni inventarles causas `outside`. Un error ajeno a la inspección sigue fallando.
+  Renovar sigue comprobando los plegados y no abre custodia.
+- Para la ley 212, separá cada herramienta de composición y adaptadores, declarala en un registro rastreable y
+  revisá también los módulos importados fuera de `src/` o desde pruebas. Quitá `Reflect` y `module` de las herramientas.
+  Conservá las lecturas calculadas cuyo valor elegido no sea invocable ni opaco, incluso al desestructurar;
+  tipá y estrechá lo desconocido. Los métodos de otras propiedades no obligan a reescribir una tabla.
+  Separá las tablas de funciones, quitá accesos a `constructor`, `__proto__` y `prototype`, y reemplazá las
+  conversiones de objeto o clave por comprobaciones de tipos. Cubrí con lint todo el grafo alcanzado, también
+  `.mts`, `.cts` y auxiliares fuera de `src/`: los caminos con `any` hacia `Function` dependen de ese control.
 - Quitá `keys` de opciones, contextos y arranques; `KeyStore` solo queda para adopción explícita. Cambiá `Tool.start`
   a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios. El arranque no accede al registro ni recibe `Execution`: pide acciones con `act`, siempre como la mente de su
   propia herramienta. Expresá los cambios del programa como efectos de una acción de su kit pedida por `act`;
@@ -757,7 +849,7 @@ Al actualizar un programa:
   `journal.sqlite` (nunca `secrets.sqlite`). La protección actual sustituye las posiciones declaradas antes de que el programa las reciba.
   Un histórico no revisado o un dato no declarado puede conservar material sensible; además están los datos de la
   organización: no guardes el de una organización real en un repositorio público.
-- La compuerta abre cada copia con el programa de hoy, sin lo que traía plegado: cada hecho se lee y se pliega desde
+- La compuerta abre cada copia en inspección con el programa de hoy, también con credenciales, sin lo que traía plegado: cada hecho se lee y se pliega desde
   el primero, y cada cosa se lee como la lee quien administra. Un cambio que no los lea frena ahí.
 - Además recorre lo ofrecido en anchura: cada camino vuelve a una copia limpia del registro, con el reloj quieto.
   Los dos primeros niveles se recorren enteros: cada fila del Menú y cada fila de lo que abre, sean las que sean (un
@@ -765,7 +857,9 @@ Al actualizar un programa:
   niveles de decisiones y 16 alternativas por estado. Acepta opciones, marcas y texto que ya se ofrece y puede
   enviarse; no inventa texto ni escribe secretos, y no recorre conversaciones. Un error interno, una pregunta de
   opciones sin respuesta elegible o una fila apagada sin motivo hacen fallar la compuerta. Las fallas declaradas en
-  `outside` pueden terminar en `Error` con su causa.
+  `outside` pueden terminar en `Error` con su causa. Un `InspectionUnavailable` al ejecutar una acción corta
+  solamente esa rama: el informe cuenta las ramas no recorribles con acción y motivo, separadas de los cortes
+  por los topes del recorrido. No equivale a haber ejecutado esas acciones, aunque la comprobación termine bien.
 - Lo que el recorrido cubrió se lee en la salida de la compuerta, una línea por registro: cuántos caminos, cuántos
   lugares y cuántas respuestas ofrecidas quedaron sin recorrer. Es una muestra acotada, no una prueba de todos los
   estados posibles: las garantías derivadas de los casos siguen siendo obligatorias.
@@ -1045,8 +1139,11 @@ No se comparten estados calculados para personas distintas. Un cambio de versió
 Una apertura sin descartes no repite el aviso. Quien usa `SqliteJournal` directamente recibe stderr o pasa un
 receptor de diagnósticos como tercer argumento.
 
-Solo SQLite abre y cierra los archivos del auxiliar, del registro y de la bóveda. Las comprobaciones de registros
-conservados también copian mediante SQLite, incluyendo WAL, sin abrir descriptores propios sobre el registro.
+En una casa viva, solo SQLite abre y cierra los archivos del auxiliar, del registro y de la bóveda.
+`copyJournal` sigue copiando el registro vivo mediante SQLite, incluyendo WAL, sin descriptores propios que
+liberen sus bloqueos. La inspección y la comparación de conservados reciben evidencia cerrada e inmóvil:
+copian su archivo y, si fue conservado, su WAL a una carpeta privada antes de abrir SQLite allí. El índice `-shm`
+se reconstruye solo en esa copia. Ese copiado de evidencia no se usa para sacar respaldos de una casa abierta.
 
 Las pruebas derivadas de cada caso y recorrido comparan estado completo y reloj tras cerrar y abrir con otra
 apertura después de borrar los plegados guardados. Los registros conservados hacen esa comparación antes de

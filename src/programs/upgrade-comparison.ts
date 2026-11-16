@@ -1,6 +1,6 @@
 // The runtime's single saved-fold decision supplies the upgrade evidence, not a second decoder.
 import { deepStrictEqual } from "node:assert/strict";
-import { SqliteJournal } from "../adapters/storage/journal-store.ts";
+import { houseJournal } from "../adapters/storage/house-journal.ts";
 import { clockStep, type Deadlines } from "../journal/clock.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 import type { Composition } from "../tools/promises.ts";
@@ -13,7 +13,7 @@ export function upgradeComparison<X extends Program>(
   runner: string,
   name = file,
 ) {
-  const journal = new SqliteJournal(file, program.words);
+  const journal = houseJournal(file, program.words);
   try {
     const folds = { ...program, by: runner };
     const { state, clock } = houseProjections<X>(journal, folds);

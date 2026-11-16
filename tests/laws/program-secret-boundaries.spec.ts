@@ -12,7 +12,11 @@ function fixture(files: Readonly<Record<string, string>>) {
   const sources = {
     "package.json": JSON.stringify({ desert: { program: "src/main.ts" } }),
     "tsconfig.json": JSON.stringify({ compilerOptions: { paths: { "@shared/*": ["./src/shared/*"] } } }),
-    "src/main.ts": "export const program = {};",
+    "src/main.ts":
+      Object.keys(files)
+        .filter(file => file.startsWith("src/") && file !== "src/main.ts")
+        .map(file => `import "./${file.slice(4)}";`)
+        .join("\n") + "\nexport const program = { registry: [] };",
     ...files,
   };
   try {
@@ -60,10 +64,19 @@ it("composition and adapters cannot be used as a hiding place for tools", () => 
 it("rejects indirect imports of composition and its factory", () => {
   expect(
     fixture({
-      "src/main.ts": "export const factory = () => {};",
+      "src/main.ts":
+        "import './tools/fiscal.ts'; export const factory = () => {}; export const program = { registry: [] };",
       "src/tools/fiscal.ts": "import { factory } from '../main.ts';",
-    }).length,
-  ).toBeGreaterThan(0);
+    }).some(message => message.includes("../main.ts")),
+  ).toBe(true);
+});
+it("rejects imports of adapters by tools", () => {
+  expect(
+    fixture({
+      "src/adapters/port.ts": "export const port = {};",
+      "src/tools/fiscal.ts": "import { port } from '../adapters/port.ts';",
+    }).some(message => message.includes("adapters/port")),
+  ).toBe(true);
 });
 
 it("also inspects a composition entry outside src", () => {

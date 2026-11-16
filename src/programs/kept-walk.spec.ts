@@ -103,7 +103,7 @@ describe("breadth-first exploration of saved journals", () => {
     const two: readonly Path[] = [[{ kind: "confirm" }], [{ kind: "cancel" }]];
     const coverage = await breadthFirst(offering(two, order), { whole: 0, paths: 4, depth: 2, choices: 2 });
     expect(order).toEqual([0, 1, 1, 2, 2]);
-    expect(coverage).toEqual({ whole: 1, paths: 4, states: 5, clipped: 6 });
+    expect(coverage).toEqual({ whole: 1, paths: 4, states: 5, clipped: 6, unavailable: [] });
   });
   it("takes every answer offered in its first levels, however many, and bounds only what comes after", async () => {
     const order: number[] = [];
@@ -112,13 +112,13 @@ describe("breadth-first exploration of saved journals", () => {
     expect(order).toEqual([0, ...Array<number>(5).fill(1), ...Array<number>(25).fill(2), 3, 3, 3]);
     /** Cut: four of five answers at each of the 25 places of the second level and at each of the 3 past it, and
      * the 22 + 3 paths that were waiting when the paths ran out. */
-    expect(coverage).toEqual({ whole: 31, paths: 3, states: 34, clipped: 25 * 4 + 3 * 4 + 22 + 3 });
+    expect(coverage).toEqual({ whole: 31, paths: 3, states: 34, clipped: 25 * 4 + 3 * 4 + 22 + 3, unavailable: [] });
   });
   it("leaves nothing unwalked where the bounds cut nothing, and enters the same place once", async () => {
     const two: readonly Path[] = [[{ kind: "confirm" }], [{ kind: "cancel" }]];
     const ends = (path: Path) =>
       Promise.resolve({ fingerprint: String(path.length), branches: path.length ? [] : two });
-    expect(await breadthFirst(ends)).toEqual({ whole: 3, paths: 0, states: 2, clipped: 0 });
+    expect(await breadthFirst(ends)).toEqual({ whole: 3, paths: 0, states: 2, clipped: 0, unavailable: [] });
   });
   it("checks outside errors and fails internal errors without cases, preserving the original", async () => {
     const folder = saved();

@@ -1,7 +1,8 @@
 // Explicit release maintenance for kept test journals: no boot, service, credential or new fact.
 import { deepStrictEqual } from "node:assert/strict";
 import { join } from "node:path";
-import { journalKept, SqliteJournal } from "../adapters/storage/journal-store.ts";
+import { journalKept } from "../adapters/storage/journal-store.ts";
+import { houseJournal } from "../adapters/storage/house-journal.ts";
 import type { Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { checkCalculations } from "./check-calculations.ts";
@@ -14,7 +15,7 @@ export function renewKeptJournals<X extends Program>(program: Composition<X>, fo
     const file = join(folder, name);
     const { runner } = journalKept(file);
     if (!runner) throw new Error(`${name} has no boot identity`);
-    const journal = new SqliteJournal(file, program.words);
+    const journal = houseJournal(file, program.words);
     try {
       journal.batch(() => {
         const folds = { ...program, by: runner };

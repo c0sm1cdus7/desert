@@ -1,3 +1,4 @@
+import { requireAvailable } from "../failures/inspection-unavailable.ts";
 import { failureOrigin } from "../boundaries/failure-origin.ts";
 // Failures of program rules and effects use the same diagnostic as a failed body, before any public result.
 import type { HouseEvent } from "../../journal/events.ts";
@@ -13,6 +14,7 @@ export function executionFailure<X extends Program>(
   act: HouseEvent<"act">,
   error: unknown,
 ) {
+  requireAvailable(error);
   error = failureOrigin(error);
   const { object, option } = act.data;
   const tool = targetTool(registry, state, object);

@@ -56,7 +56,8 @@ describe("the journals a program keeps", () => {
     await walk?.run();
     const walked =
       /^the journal kept as shop\.sqlite: \d+ paths walked its first levels whole and \d+ went past them, /u;
-    const left = /, through \d+ places; (\d+ offered answers were|no offered answer was) left unwalked$/u;
+    const left =
+      /, through \d+ places; \d+ offered answers were left unwalked by limits; 0 ramas no recorribles en inspección$/u;
     expect(walk?.report?.()).toMatch(walked);
     expect(walk?.report?.()).toMatch(left);
   });

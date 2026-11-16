@@ -2,7 +2,7 @@ import { verifiedAfter, restorationOf } from "./verify-saved.ts";
 // Append-only facts; replay folds the complete journal without publishing effects.
 import { ProjectionGroup } from "../../journal/projections.ts";
 import { snapshotEvery } from "../../catalogs/levers.ts";
-import { factOf, derivedId, stored } from "./journal-record.ts";
+import { derivedId, stored, readFact } from "./journal-record.ts";
 export { derivedId } from "./journal-record.ts";
 import { storageIdentity } from "./storage-identity.ts";
 import { journalIdentity } from "./journal-identity.ts";
@@ -15,6 +15,7 @@ import { privateDatabase } from "./home.ts";
 import { DatabaseSync } from "node:sqlite";
 import type { Emission, Event, Foreign, Vocabulary } from "../../journal/events.ts";
 import { journalTexts } from "../../texts/journal.texts.ts";
+/** The storage layout belongs to the same envelope decoded by journal-record. */
 const schema = `
   create table if not exists events (
     seq integer primary key, id text not null unique, at integer not null,
@@ -25,20 +26,8 @@ const schema = `
   create trigger if not exists events_no_update before update on events begin select raise(abort, 'append-only'); end;
   create trigger if not exists events_no_delete before delete on events begin select raise(abort, 'append-only'); end;
 `;
-/** A journal another process may be writing, read without its lock: the events after a sequence, oldest first. */
-export function journalReader<P extends Foreign>(file: string, words: Vocabulary<P>) {
-  const db = new DatabaseSync(storageIdentity(file), { readOnly: true });
-  try {
-    const after = db.prepare("select * from events where seq > ? order by seq");
-    return {
-      since: (seq: number): Event<P>[] => after.all(seq).map(row => words.read(factOf(row))),
-      close: () => db.close(),
-    };
-  } catch (error) {
-    db.close();
-    throw error;
-  }
-}
+
+export { journalReader } from "./journal-reader.ts";
 export { journalKept } from "./kept-journal.ts";
 export class SqliteJournal<P extends Foreign = Foreign> {
   private readonly db: DatabaseSync;
@@ -49,10 +38,17 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   private readonly identity: string;
   private readonly warn: (warning: FoldWarning) => void;
   private readonly warnings: FoldWarning[] = [];
+  private readonly folds: "restore" | "preserve";
   private restored = false;
   private restoreFailed = false;
   private batching = false;
-  constructor(file: string, words: Vocabulary<P>, warn: (warning: FoldWarning) => void = snapshotWarning) {
+  constructor(
+    file: string,
+    words: Vocabulary<P>,
+    warn: (warning: FoldWarning) => void = snapshotWarning,
+    folds: "restore" | "preserve" = "restore",
+  ) {
+    this.folds = folds;
     this.warn = warning => {
       this.warnings.push(warning);
       warn(warning);
@@ -77,6 +73,10 @@ export class SqliteJournal<P extends Foreign = Foreign> {
       }
       throw error;
     }
+  }
+  /** Check ownership before another house store starts a write. */
+  check(): void {
+    this.lease.check();
   }
   restoration() {
     return restorationOf(this.projections, this.warnings);
@@ -108,7 +108,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
     }
   }
   append(emission: Emission<P>, at: number): Event<P> {
-    if (!this.restored) this.restore();
+    if (!this.restored && this.folds === "restore") this.restore();
     return this.batch(() => {
       const position = this.db.prepare("select coalesce(max(seq), 0) + 1 as seq from events").get();
       const count = this.db
@@ -132,18 +132,11 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   replay<S>(initial: S, reduce: (state: S, event: Event<P>) => S, after = 0): S {
     let state = initial;
     for (const row of this.db.prepare("select * from events where seq > ? order by seq").iterate(after))
-      state = reduce(state, this.readRow(row));
+      state = reduce(state, readFact(this.words, row));
     return state;
   }
-  /** A fact this program does not read stops the house where it is found, named: it is never skipped. */
-  private readRow(row: Readonly<Record<string, unknown>>): Event<P> {
-    try {
-      return this.words.read(factOf(row));
-    } catch {
-      throw new Error(journalTexts.unreadable(Number(row.seq), String(row.kind)));
-    }
-  }
   watch<S>(name: string, initial: S, reduce: (state: S, event: Event<P>) => S, identity = ""): () => S {
+    if (this.folds === "preserve") throw new Error("Maintenance cannot watch folds");
     const row = this.db.prepare("select state from snapshots where name = ?").get(name);
     this.restored = false;
     const last = this.db.prepare("select coalesce(max(seq), 0) as seq from events").get();
@@ -153,6 +146,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   }
   /** Restores watched folds; drops names outside them and the explicitly retained calculation family. */
   restore(retainPrefix = "", verify = false): void {
+    if (this.folds === "preserve") throw new Error("Maintenance cannot restore folds");
     this.restored = false;
     try {
       this.batch(() => {

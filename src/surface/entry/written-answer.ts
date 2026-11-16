@@ -18,10 +18,10 @@ function plainReason(walk: Asking, field: Field, char: string): string | undefin
     : undefined;
 }
 /** Secret material goes in whole at the caret, spaces and line breaks included: it is never trimmed, cut or
- * advised on by its characters. A full field takes no more keys. */
-function secretAnswer(walk: Asking, field: Field, text: string): Asking | undefined {
+ * advised on by its characters. Schema bounds are explained on Enter, without truncating a credential. */
+function secretAnswer(walk: Asking, text: string): Asking | undefined {
   const chars = Array.from(walk.typed);
-  if (text === "" || ("max" in field && chars.length >= (field.max ?? Infinity))) return undefined;
+  if (text === "") return undefined;
   const typed = chars.toSpliced(walk.caret, 0, text).join("");
   return { ...rewritten(walk), typed, caret: walk.caret + Array.from(text).length };
 }
@@ -35,7 +35,7 @@ export function writtenAnswer(walk: Asking, field: Field, key: Intent): Asking |
       "mask" in field ? { ...walk, typed: Array.from(walk.typed).slice(0, -1).join("") } : edited(walk, key);
     return changed && key.kind === "erase" && changed.typed !== walk.typed ? rewritten(changed) : changed;
   }
-  if (field.kind === "secret") return secretAnswer(walk, field, key.text);
+  if (field.kind === "secret") return secretAnswer(walk, key.text);
   let changed = walk;
   let reason: string | undefined;
   for (const char of Array.from(key.text)) {

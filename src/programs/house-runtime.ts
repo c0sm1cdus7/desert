@@ -10,7 +10,7 @@ import { type ViewLimits } from "../catalogs/levers.ts";
 import { checkCreation, InvalidCreation, createHouse, houseStep, identityView, type Creation } from "../house/house.ts";
 import { startClock, systemTime, type TimeSource } from "../journal/clock.ts";
 import { effect, type Vocabulary } from "../journal/events.ts";
-import { houseProjections, requireProjectionVersion } from "./house-projections.ts";
+import { requireProjectionVersion } from "./house-projections.ts";
 import type { HousePorts } from "../surface/bridge/house-ports.ts";
 import type { Execution } from "../tools/execute.ts";
 import type { Program, Slices, ToolRegistry } from "../tools/tool-contract.ts";
@@ -63,13 +63,9 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     ...(options.own ? { own: options.own } : {}),
     ...(options.process ? { process: options.process } : {}),
   };
-  const { capabilities, protection, journal, secrets, bus, stops, report, close, notices } = houseResources(
-    home,
-    options,
-    time,
-  );
+  const { capabilities, protection, journal, secrets, bus, stops, report, close, notices, state, clock } =
+    houseResources(home, options, time);
   try {
-    const { state, clock } = houseProjections(journal, options);
     if (!state().house.admin) checkCreation(creation, by);
     protection.mark();
     protection.attach(secrets, state);

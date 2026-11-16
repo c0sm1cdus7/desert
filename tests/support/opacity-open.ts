@@ -20,7 +20,11 @@ const { houseRouter } = await import("../../src/surface/bridge/house-router.ts")
 const { startTerminal } = await import("../../src/doors/terminal/boot.ts");
 const home = process.argv[2];
 if (!home) throw new Error("Falta carpeta temporal");
-const program = opacityProgram();
+const { Type } = await import("@sinclair/typebox");
+const bounded = Type.Object({
+  first: Type.String({ secret: true, title: "Primer material", minLength: 8, maxLength: 13, pattern: "^x+$" }),
+});
+const program = opacityProgram(process.argv[3] === "bounded" ? bounded : undefined);
 const house = startHouse(home, {
   ...program,
   by: "shop",

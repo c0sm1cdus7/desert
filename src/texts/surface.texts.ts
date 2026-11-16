@@ -14,8 +14,7 @@ export const surfaceTexts = {
   sections: { tools: "Herramientas", system: "Sistema" },
   back: "volver",
   unchanged: "",
-  /** What the option that the datum already is says to its right. */
-  current: "actual",
+  current: "actual", // What the option that the datum already is says to its right.
   ok: "Listo",
   error: "Error",
   gone: "E-NAV-1 · Destino inexistente",

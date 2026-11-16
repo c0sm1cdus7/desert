@@ -3,7 +3,7 @@ import { deepStrictEqual, ok } from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { SqliteJournal } from "../adapters/storage/journal-store.ts";
+import { houseJournal } from "../adapters/storage/house-journal.ts";
 import { effect } from "../journal/events.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 import type { Composition } from "../tools/promises.ts";
@@ -24,14 +24,14 @@ export function codeUpgradeCheck<X extends Program>(program: Composition<X>): Ch
         const folds = { ...program, by: "code-check" };
         try {
           const file = join(home, "journal.sqlite");
-          const before = new SqliteJournal(file, program.words);
+          const before = houseJournal(file, program.words);
           try {
             houseProjections<X>(before, folds);
             before.append(effect("boot", {}, folds.by), 0);
           } finally {
             before.close();
           }
-          const after = new SqliteJournal(file, program.words);
+          const after = houseJournal(file, program.words);
           try {
             const { state } = houseProjections<X>(after, { ...folds, projectionVersion });
             ok(!after.restoration().reused, journalTexts.codeRebuildFailed);

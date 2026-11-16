@@ -1950,7 +1950,7 @@
     },
     {
       "id": 204,
-      "rule": "Los plegados en memoria y guardados conservan referencias en las posiciones declaradas porque pliegan hechos ya protegidos; se conservan al cerrar y reabrir, también para vacío, uno, once, doce y trece caracteres, vocabulario y multilínea.",
+      "rule": "Los plegados en memoria y guardados conservan referencias en las posiciones declaradas porque pliegan hechos ya protegidos; se conservan al cerrar y reabrir, también para vacío, uno, once, doce y trece caracteres, vocabulario y multilínea. Una apertura común usa vocabulario protegido también al comprobar casos y conservados, renovar y comparar subidas, aunque el material declare máximo, mínimo o patrón incompatibles con el largo de una referencia.",
       "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
       "guarantee": "spec",
       "evidence": [
@@ -1958,7 +1958,9 @@
         "tests/support/secret-snapshots.ts",
         "src/adapters/secrets/secret-vault.spec.ts",
         "src/adapters/secrets/secret-rig.spec.ts",
-        "src/adapters/secrets/secret-crash.spec.ts"
+        "src/adapters/secrets/secret-crash.spec.ts",
+        "src/adapters/storage/house-journal.ts",
+        "src/programs/secret-reopen.spec.ts"
       ]
     },
     {
@@ -1979,7 +1981,7 @@
     },
     {
       "id": 208,
-      "rule": "Cada secreto se cifra con AES-256-GCM, nonce de 12 bytes y etiqueta de 16, con una llave propia en un elemento del llavero. La casa tiene otra llave que solo autentica registro y sobres: no descifra secretos. Abrir el formato cifrado verifica primero cadena y ancla, después integridad y presencia sin descifrar ni pedir llaves de secretos; la adopción inicial del legado en claro compara cada fila antes de retirarla. El uso recibe búferes prestados; sus bytes y las copias de llaves se ponen en cero en éxito, falla y cierre, sin caché ni conversión a texto en la custodia. Durante un uso, el secreto en uso y su llave están en la memoria del proceso; un programa de la misma cuenta de usuario puede pedirle al llavero lo mismo que la custodia. El comando usa búferes por entrada y salida, nunca llaves como argumentos, y tiene tiempo límite. La adopción del legado en claro conserva IDs y asigna una llave por fila, compara antes de retirar y compacta; sin proveedor falla antes de escribir. El formato experimental por casa no se convierte. Olvidar exige advertir que también quedan ilegibles otras copias de esa casa en la misma máquina. Autentica versión, identidad aleatoria persistida de casa y referencia; mover o renombrar conserva identidad, reutilizar ruta crea otra. JSON e inspección no exponen llave ni material. La composición y los ingresos tardíos exigen proveedor. Tras retirar el legado tampoco queda texto en auxiliares, aun con un corte antes de compactar. El llavero v3 separa el ancla fija del índice público de cuentas, que se escribe fuera de la entrada interactiva y se poda después de borrar la llave. Los tamaños fuera de límite fallan antes de escribir; ninguna llave viaja por argumentos. El llavero v2 experimental no se convierte. Olvidar combina cuentas propias del índice con filas e historia de la carpeta y nunca borra cuentas ajenas; índice perdido o dañado no impide ese recorrido. La llave del registro se pide una sola vez por pasada de verificación y se pone en cero al terminar, incluso ante una fila inválida. Cerrar durante un uso borra los búferes inmediatamente y el uso rechaza con E-CUSTODY-DENIED aunque el adaptador entregue un resultado. La primera apertura de una bóveda anterior en claro sí descifra para comparar antes de retirarla. La llave del registro está en memoria durante cada verificación: comprometerla no descifra secretos, pero con escritura en la carpeta permite hacer usar cualquier secreto a cualquier herramienta; atar vínculos a cada llave de secreto queda pendiente de decisión del dueño por chocar con abrir sin descifrar.",
+      "rule": "Cada secreto se cifra con AES-256-GCM, nonce de 12 bytes y etiqueta de 16, con una llave propia en un elemento del llavero. La casa tiene otra llave que solo autentica registro y sobres: no descifra secretos. Abrir el formato cifrado verifica primero cadena y ancla, después integridad y presencia sin descifrar ni pedir llaves de secretos; la adopción inicial del legado en claro compara cada fila antes de retirarla. El uso recibe búferes prestados; sus bytes y las copias de llaves se ponen en cero en éxito, falla y cierre, sin caché ni conversión a texto en la custodia. Durante un uso, el secreto en uso y su llave están en la memoria del proceso; un programa de la misma cuenta de usuario puede pedirle al llavero lo mismo que la custodia. El comando usa búferes por entrada y salida, nunca llaves como argumentos, y tiene tiempo límite. La adopción del legado en claro conserva IDs y asigna una llave por fila, compara antes de retirar y compacta; sin proveedor falla antes de escribir. El formato experimental por casa no se convierte. Olvidar exige advertir que también quedan ilegibles otras copias de esa casa en la misma máquina. Autentica versión, identidad aleatoria persistida de casa y referencia; mover o renombrar conserva identidad, reutilizar ruta crea otra. JSON e inspección no exponen llave ni material. La composición y los ingresos tardíos exigen proveedor. Tras retirar el legado tampoco queda texto en auxiliares, aun con un corte antes de compactar. El llavero v3 separa el ancla fija del índice público de cuentas, que se escribe fuera de la entrada interactiva y se poda después de borrar la llave. Los tamaños fuera de límite fallan antes de escribir; ninguna llave viaja por argumentos. El llavero v2 experimental no se convierte. Olvidar combina cuentas propias del índice con filas e historia de la carpeta y nunca borra cuentas ajenas; índice perdido o dañado no impide ese recorrido. La llave del registro se pide una sola vez por pasada de verificación y se pone en cero al terminar, incluso ante una fila inválida. Cerrar durante un uso borra los búferes inmediatamente y el uso rechaza con E-CUSTODY-DENIED aunque el adaptador entregue un resultado. La primera apertura de una bóveda anterior en claro sí descifra para comparar antes de retirarla. La llave del registro está en memoria durante cada verificación: comprometerla no descifra secretos, pero con escritura en la carpeta permite hacer usar cualquier secreto a cualquier herramienta; atar vínculos a cada llave de secreto queda pendiente de decisión del dueño por chocar con abrir sin descifrar. En una casa abierta por startHouse, el cierre prevalece sobre la exclusión ya liberada: rechaza con E-CUSTODY-DENIED; perder el escritor sin cerrar conserva su error de exclusión.",
       "from": "13/11 · A01, segunda parte, paso 1: custodia",
       "guarantee": "spec",
       "evidence": [
@@ -2008,7 +2010,8 @@
         "src/adapters/secrets/custody-incremental.spec.ts",
         "src/adapters/secrets/custody-close-neighbors.spec.ts",
         "src/adapters/secrets/custody-messages.spec.ts",
-        "tests/laws/custody-text.spec.ts"
+        "tests/laws/custody-text.spec.ts",
+        "src/programs/house-custody-close.spec.ts"
       ]
     },
     {
@@ -2077,7 +2080,7 @@
     },
     {
       "id": 212,
-      "rule": "La compuerta recorre las fuentes del programa y las dependencias transitivas de herramientas, alias, reexportaciones, imports dinámicos y tipos. Rechaza importar custodia, fábrica, resolvedor, composición, I/O directo, entorno y evaluación; una dependencia desconocida falla cerrada. La API pública se importa por nombres aprobados. Los contratos públicos y las fábricas se prueban también rotos con capacidades renombradas o anidadas. La marca entrega referencias antes de callbacks y solo el adaptador declarado resuelve; no demuestra corrección del adaptador, aislamiento de JavaScript ni borrado de copias externas. testing.ts ofrece custodia sintética y controles reales para probar métodos sin credenciales reales.",
+      "rule": "La compuerta recorre el grafo desde desert.program, incluyendo módulos fuera de src, pruebas y extensiones TypeScript revisables. Revisa cada fuente alcanzada salvo composición, adaptadores y frontera pública revisada de la base; JSON importado es dato; lo no revisable falla cerrado. Sigue el valor de la composición y los retornos de sus funciones; rastrea los elementos del registry a sus valores o fábricas. Admite arreglos literales, as const, Object.freeze de la biblioteca, propiedades de objetos literales y export default literal. Rechaza herramientas definidas en composición o adaptadores y registros calculados no rastreables, como Object.entries(...).map(...) u Object.fromEntries. En herramientas rechaza custodia, fábrica, resolvedor, composición, I/O directo, entorno, evaluación conocida y Reflect o module ambiente. Toda lectura calculada no literal (corchetes, declaración, asignación o parámetro desestructurado) se admite según el valor elegido: no puede ser invocable, construible, any, unknown, object, {} ni un genérico sin cota comprobable. El objeto no puede ser any, unknown, función, constructor de clase ni objeto del ambiente. Tener métodos no impide leer fechas, mapas, conjuntos, expresiones, errores, promesas, bytes, instancias ni filas. Una clave de literales solo elige esas propiedades; la cadena opcional quita el null del eslabón anterior. Rechaza claves constructor, __proto__ y prototype (también por texto, alias y concatenación), y conversiones del objeto o clave; sigue alias, asignaciones, desestructuración y llamadas locales o importadas. as const y satisfies se conservan. Las coerciones primitivas de la biblioteca no heredan aserciones de sus argumentos; se admite una aserción que conserva exactamente el tipo de esa coerción, sin eximir homónimos locales. Cada archivo se clasifica una vez y cada lugar y regla tienen un mensaje con posición y una cadena de ejemplo. Tipos frenan accesos inválidos; los caminos hacia Function por any quedan al lint, que debe cubrir todo el grafo, incluidos .mts, .cts y auxiliares fuera de src. Los globs actuales de la base no cubren .mts ni .cts. La ley no reemplaza esas compuertas ni es aislamiento de JavaScript. Frena descuidos y caminos conocidos, sin ejecutar claves arbitrarias ni probar honestidad de tipos en ejecución. Sigue alias, reexportaciones, imports dinámicos y tipos; dependencias desconocidas e imports no literales fallan. La API pública exige nombres aprobados; import type de un módulo no público se rechaza igual que un valor. La composición es confiable por diseño y puede entregar capacidades; no se analiza ese flujo. Una herramienta escondida a propósito mediante una fábrica que devuelve una copia, reasignación o agregado posterior no se ve: es el acto de quien compone. El chequeo estricto de tipos ya rechaza imports .js sin tipos. Los contratos y fábricas se prueban rotos con capacidades renombradas o anidadas. La marca entrega referencias antes de callbacks y solo el adaptador declarado resuelve; no demuestra corrección del adaptador, aislamiento de JavaScript ni borrado externo. testing.ts ofrece custodia sintética y controles reales sin credenciales reales.",
       "from": "13/11 · A01, segunda parte, paso 4: leyes",
       "guarantee": "spec",
       "evidence": [
@@ -2090,7 +2093,15 @@
         "PROGRAMA.md",
         "LEYES.md",
         "COSTURAS.md",
-        "tests/laws/startup-port.spec.ts"
+        "tests/laws/startup-port.spec.ts",
+        "tests/laws/program-secret-graph.spec.ts",
+        "tests/laws/secret-data.spec.ts",
+        "tests/laws/secret-data-neighbors.spec.ts",
+        "tests/laws/secret-selection.spec.ts",
+        "tests/laws/secret-selection-forms.spec.ts",
+        "tests/laws/secret-selection-capibara.spec.ts",
+        "tests/laws/secret-selection-cost.spec.ts",
+        "tests/laws/secret-selection-neighbors.spec.ts"
       ]
     },
     {
@@ -2102,7 +2113,7 @@
     },
     {
       "id": 213,
-      "rule": "Al Enter, todo valor inválido dice por qué no avanza: obligatorio vacío, día o dígitos incompletos, texto corto y número bajo el mínimo. Mientras se escribe un prefijo que puede completarse no molesta; un opcional vacío sigue valiendo nada.",
+      "rule": "Al Enter, todo valor inválido dice por qué no avanza: obligatorio vacío, día o dígitos incompletos, texto corto y número bajo el mínimo. Mientras se escribe un prefijo que puede completarse no molesta; un opcional vacío sigue valiendo nada. Un secreto inválido explica vacío, mínimo, máximo o forma a partir del esquema sin crear referencia ni mostrar material. El pegado secreto se conserva entero y el máximo se explica al Enter, sin truncar credenciales.",
       "from": "13/11 · campos · H05 y H18",
       "guarantee": "spec",
       "evidence": [
@@ -2112,7 +2123,9 @@
         "src/surface/field-reasons.spec.ts",
         "src/surface/field-confirmation.spec.ts",
         "src/surface/field-rejections.spec.ts",
-        "src/surface/entry-status.spec.ts"
+        "src/surface/entry-status.spec.ts",
+        "src/surface/secret-entry-status.spec.ts",
+        "src/doors/terminal/secret-reasons.spec.ts"
       ]
     },
     {
@@ -2188,7 +2201,7 @@
     },
     {
       "id": 197,
-      "rule": "Un almacenamiento tiene un solo escritor por ruta canónica, también por alias, entre hilos y procesos. Adquirir exige una escritura SQLite real en un auxiliar regular sin enlaces: solo lectura, carpeta no escribible, falta de espacio o archivo inválido fallan con WriterLeaseUnavailable, sin cambiar sus permisos. Un rechazo local no suelta al dueño; en la base solo SQLite abre y cierra los archivos de almacenamiento, y se rechazan enlaces en sus vecinos journal/WAL/SHM antes de abrirlos. Antes de escribir y confirmar se verifica el auxiliar: borrar, reemplazar o renombrar la carpeta hace que WriterLeaseLost impida escribir y guardar plegados durante esa instancia. Al morir el dueño otro abre sin intervención. journal.lock no se crea ni se lee: se limpia al adquirir. Los enlaces duros y simbólicos colgantes del registro se rechazan. Un proceso que abre por su cuenta el archivo de la exclusión (leerlo o copiar la carpeta de una organización abierta con funciones de archivos) suelta su propia exclusión; la base nunca lo hace. Para copiar el registro de una organización abierta se usa copyJournal. Si otro escribe, el dueño detecta el avance o una transacción ajena al escribir: falla con WriterLeaseLost, esa escritura no deja nada y la instancia no escribe más. El auxiliar nuevo se crea solo para su dueño, con modo 600. Un vecino que se está borrando cuenta como ausente; el contendiente pierde con WriterAlreadyOpen y código WRITER_ALREADY_OPEN.",
+      "rule": "Un almacenamiento tiene un solo escritor por ruta canónica, también por alias, entre hilos y procesos. Adquirir exige una escritura SQLite real en un auxiliar regular sin enlaces: solo lectura, carpeta no escribible, falta de espacio o archivo inválido fallan con WriterLeaseUnavailable, sin cambiar sus permisos. Un rechazo local no suelta al dueño; en la base solo SQLite abre y cierra los archivos de almacenamiento, y se rechazan enlaces en sus vecinos journal/WAL/SHM antes de abrirlos. Antes de escribir y confirmar se verifica el auxiliar: borrar, reemplazar o renombrar la carpeta hace que WriterLeaseLost impida escribir y guardar plegados durante esa instancia. Al morir el dueño otro abre sin intervención. journal.lock no se crea ni se lee: se limpia al adquirir. Los enlaces duros y simbólicos colgantes del registro se rechazan. Un proceso que abre por su cuenta el archivo de la exclusión (leerlo o copiar la carpeta de una organización abierta con funciones de archivos) suelta su propia exclusión; la base nunca lo hace. Para copiar el registro de una organización abierta se usa copyJournal. Si otro escribe, el dueño detecta el avance o una transacción ajena al escribir: falla con WriterLeaseLost, esa escritura no deja nada y la instancia no escribe más. El auxiliar nuevo se crea solo para su dueño, con modo 600. Un vecino que se está borrando cuenta como ausente; el contendiente pierde con WriterAlreadyOpen y código WRITER_ALREADY_OPEN. Antes de retener material o capturarlo desde un adaptador ya abierto, la custodia de la casa comprueba también la exclusión del registro y rechaza su pérdida antes de crear filas o llaves.",
       "from": "13/11 · auditoría A03 y carrera entre procesos; tercer diseño decidido",
       "guarantee": "spec",
       "evidence": [
@@ -2211,12 +2224,13 @@
         "src/adapters/storage/journal-position.ts",
         "src/adapters/storage/writer-foreign-close.spec.ts",
         "src/adapters/storage/writer-guards.spec.ts",
-        "src/adapters/storage/writer-race.spec.ts"
+        "src/adapters/storage/writer-race.spec.ts",
+        "src/programs/house-custody-union.spec.ts"
       ]
     },
     {
       "id": 198,
-      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato 4 exige suma SHA-256 del contenido serializado, identidad del registro, versión de cálculos y continuidad de secuencia; un grupo incompatible se reconstruye entero. Cada descarte explica su motivo por diagnósticos y queda visible en la instancia, nunca como hecho del registro: reconstruir no agrega historia. Un grupo se guarda entero y solo después de restaurarse correctamente. Un daño o una suma ausente descarta el plegado y avisa; el formato anterior se reconstruye una vez. Antes de usar un plegado guardado al abrir la casa, se compara con el prefijo del registro plegado desde cero, incluso en secuencia cero y con suma válida; si difiere se descarta y se reconstruye antes de ejecutar el programa. Cada identidad conserva su par de estado y reloj dentro de la misma versión: al alternar aperturas se verifica el prefijo antes de procesar la cola pendiente.",
+      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato 4 exige suma SHA-256 del contenido serializado, identidad del registro, versión de cálculos y continuidad de secuencia; un grupo incompatible se reconstruye entero. Cada descarte explica su motivo por diagnósticos y queda visible en la instancia, nunca como hecho del registro: reconstruir no agrega historia. Un grupo se guarda entero y solo después de restaurarse correctamente. Un daño o una suma ausente descarta el plegado y avisa; el formato anterior se reconstruye una vez. Antes de usar un plegado guardado al abrir la casa, se compara con el prefijo del registro plegado desde cero, incluso en secuencia cero y con suma válida; si difiere se descarta y se reconstruye antes de ejecutar el programa. Cada identidad conserva su par de estado y reloj dentro de la misma versión: al alternar aperturas se verifica el prefijo antes de procesar la cola pendiente. La casa vigila y restaura los plegados antes de que limpiar custodia huérfana agregue hechos; conserva los de otras identidades y no inventa un cambio de cálculo. El mantenimiento con la casa cerrada agrega sin restaurar ni tocar plegados de ninguna identidad: aceptar, reintentar, adoptar y descartar no avisan reconstrucción; la siguiente apertura reutiliza y pliega la cola. Los conservados se abren como evidencia en inspección sobre una copia desechable, sin proveedor ni archivo de secretos: los lotes conservan referencias sin autenticarse con la llave original; no habilita casas vivas ni usos de material. Se recorre lo que no usa credenciales ni adaptadores: InspectionUnavailable corta solo esa rama, reconocida por su identidad y no por el texto. El informe cuenta las ramas no recorribles en inspección con acción y motivo, aunque ninguna acción pueda completarse, separado de los cortes por topes; cualquier otra falla sigue haciendo fallar la comprobación. La copia temporal se borra también ante una falla y la evidencia original no recibe auxiliares nuevos.",
       "from": "13/11 · auditoría A03; recuperación de los plegados incompletos anteriores",
       "guarantee": "derived",
       "evidence": [
@@ -2237,7 +2251,18 @@
         "src/journal/verify-projections.ts",
         "src/adapters/storage/verify-saved.ts",
         "src/programs/house-readonly.spec.ts",
-        "src/programs/snapshot-readonly-neighbors.spec.ts"
+        "src/programs/snapshot-readonly-neighbors.spec.ts",
+        "src/programs/house-custody-union.spec.ts",
+        "src/programs/house-custody-folds.spec.ts",
+        "src/programs/kept-custody.spec.ts",
+        "src/programs/kept-inspection.ts",
+        "src/programs/q-b3-recorrer-con-actos.spec.ts",
+        "src/programs/q-orden-adaptador-antes.spec.ts",
+        "src/programs/kept-capabilities.spec.ts",
+        "src/programs/kept-inspection.spec.ts",
+        "src/programs/kept-coverage.spec.ts",
+        "src/adapters/storage/copy-kept-journal.spec.ts",
+        "src/programs/kept-inspection-secrets.spec.ts"
       ]
     },
     {

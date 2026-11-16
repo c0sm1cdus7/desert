@@ -1,6 +1,5 @@
 import { identityTexts } from "./identities/identities.texts.ts";
 export { identityNameTexts } from "./identities/identity-name.texts.ts";
-
 export const effectRefusalTexts = {
   absentHolder: "titular fuera de la casa",
   unassignedTool: "herramienta no dada",
@@ -12,7 +11,6 @@ export const effectRefusalTexts = {
   houseFact: "hecho de la casa",
   adminRequired: "requiere administración",
 } as const;
-
 export const toolTexts = {
   effectRefused: (kind: string, why: string) => `Efecto no permitido · ${kind} · ${why}`,
   sceneRecipient: (name: string) => `La escena nombra a quien no es una identidad de la casa: ${name}`,
@@ -33,10 +31,7 @@ export const toolTexts = {
   unavailable: "acción fallida",
   interrupted: "acción interrumpida",
   withdrawn: "sacada",
-  /** What an act answers when it would leave the thing exactly as it is. */
-  unchanged: "sin cambios",
-  /** A thing an act picks and does not take, given the rest of what it was told: it was never on its list. */
-  draft: "cambió mientras se escribía",
-  /** A day written in the shape of one that the calendar does not have: the 30th of February. */
-  noSuchDay: "día inexistente",
+  unchanged: "sin cambios", // What an act answers when it would leave the thing exactly as it is.
+  draft: "cambió mientras se escribía", // A thing an act picks and does not take: it was never on its list.
+  noSuchDay: "día inexistente", // A day in the shape of one that the calendar does not have: the 30th of February.
 } as const;
