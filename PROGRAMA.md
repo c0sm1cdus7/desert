@@ -1136,7 +1136,8 @@ la regla al crearla, dar herramientas, readmitir y pasar la administración ante
 La regla no se aplica al plegar historia: un `granted` anterior a `Ana​` conserva exactamente esa identidad y sus
 herramientas, y un `handed` anterior puede dejarla como administradora. Los hechos que antes ignoraban a una mente
 siguen ignorándose. Para escribir nuevos hechos de esas puertas se exige la regla actual incluso a identidades antiguas.
-`named` guarda un nombre libre con texto visible de hasta 160 unidades; solo quien administra lo establece y
+`named` guarda un nombre libre con texto visible de hasta 160 unidades; lo establece quien administra o, sobre sí,
+la propia identidad (6c), y
 `identityDisplayName` devuelve el identificador cuando falta el nombre. Sacar conserva el nombre y la identidad en
 `removed`; readmitir con herramientas vacías la devuelve sin herramientas ni kit.
 

@@ -1,7 +1,7 @@
 // The union of Identities (5a–5d) with the kit repairs (6a–6c), on the real core piece through startHouse.
 import { expect, it } from "vitest";
 import { perform, staged } from "../../../programs/promised-stage.ts";
-import { seated } from "../../../programs/promised-keys.ts";
+import { keysTo, seated, type } from "../../../programs/promised-keys.ts";
 import { identityTexts as words } from "../../../texts/identities/identities.texts.ts";
 import { toolTexts } from "../../../texts/tools.texts.ts";
 import { kitAct } from "./kit-catalog.ts";
@@ -70,8 +70,11 @@ it("who was removed reads nothing, Identities included, and sends no act; who st
     expect(core()?.off?.()).toBe(toolTexts.unassigned);
     for (const tool of before.tools.filter(each => each.id !== "preferences"))
       expect([tool.id, tool.notices?.().news ?? []]).toEqual([tool.id, []]);
-    core()?.rendered?.();
-    expect(before.requests).toEqual([]);
+    const acts = () =>
+      house().journal.replay(0, (n, event) => n + Number(event.kind === "act" && event.by === "carla"));
+    const written = acts();
+    type(before.router, keysTo(kitShown, "identities"));
+    expect(acts()).toBe(written);
     before.router.stop();
     const beto = seated(house(), "beto", kitShown);
     expect(beto.tools.find(tool => tool.id === "identities")?.off?.()).toBeUndefined();
