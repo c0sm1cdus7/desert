@@ -1,6 +1,6 @@
 // Time-dependent refusals belong to input rules; cases straddle a UTC boundary in the program's local day.
-import { object } from "../../src/catalogs/acts.ts";
-import { day, holding, thing } from "../../src/catalogs/fields.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { day, holding, thing } from "../../src/fields/fields.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import { paymentsTool, registerOffer, salesTool, shopProgram, shopShown, type Shop } from "./shop.ts";
 

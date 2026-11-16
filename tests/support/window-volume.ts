@@ -1,9 +1,9 @@
 // Seeded in-memory shop state isolates rendering costs from writing thousands of facts.
-import { must } from "../../src/surface/window.ts";
-import { houseRouter } from "../../src/surface/bridge/house-router.ts";
-import { houseTools } from "../../src/surface/bridge/house-tools.ts";
-import { resolve } from "../../src/surface/resolve.ts";
-import { start } from "../../src/surface/screen.ts";
+import { must } from "../../src/surface/session/window.ts";
+import { houseRouter } from "../../src/surface/bridge/assembly/house-router.ts";
+import { houseTools } from "../../src/surface/bridge/assembly/house-tools.ts";
+import { resolve } from "../../src/surface/router/resolve.ts";
+import { start } from "../../src/surface/session/screen.ts";
 import { pesos, shopShown } from "./shop.ts";
 import { windowShop } from "./window-shop.ts";
 

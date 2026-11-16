@@ -1,6 +1,6 @@
 import { Value } from "@sinclair/typebox/value";
 import { expect, it } from "vitest";
-import { handle, text } from "../../src/catalogs/fields.ts";
+import { handle, text } from "../../src/fields/fields.ts";
 import { rules } from "./rules.ts";
 
 it("states law 126 for free text and for short identifiers separately", () => {

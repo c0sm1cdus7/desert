@@ -1,6 +1,6 @@
 // The real launcher and drain, with fixture credentials and a house-side act held until shutdown's deadline.
 import { writeFileSync } from "node:fs";
-import { snapshotWarning } from "../../src/adapters/storage/storage-notices.ts";
+import { snapshotWarning } from "../../src/storage/storage-notices.ts";
 import { lostDiagnostic } from "../../src/tools/failures/base-failure.ts";
 import { socketHouse } from "./socket-house.ts";
 const home = process.argv[2];

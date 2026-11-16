@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert/strict";
-import { startHouse } from "../../src/programs/house-runtime.ts";
+import { startHouse } from "../../src/runtime/house-runtime.ts";
 import { shopProgram, shopSlices } from "./shop.ts";
-import { startState, toolsStep } from "../../src/tools/tools.ts";
+import { startState, toolsStep } from "../../src/house/state.ts";
 import { stateResult } from "../../src/journal/readonly-state.ts";
 
 const mode = process.argv[2];

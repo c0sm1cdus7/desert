@@ -1,8 +1,8 @@
 // The adversarial replay generator, with its digest pinned against the base's current fold.
 import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
-import { effect, type HouseEmission } from "../journal/events.ts";
-import { emptyHouse, houseStep } from "./house.ts";
+import { effect, type HouseEmission } from "./facts.ts";
+import { emptyHouse, houseStep } from "./members.ts";
 
 it("preserves 5000 legacy house histories without mind names", () => {
   let seed = 7;

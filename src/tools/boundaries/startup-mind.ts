@@ -1,8 +1,8 @@
 // The mind keeps its listener's cause and write outcome, even across asynchronous continuations.
 import { mindInput } from "./mind-input.ts";
-import { effect } from "../../journal/events.ts";
+import { effect } from "../../house/facts.ts";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { mindOf } from "../../house/house.ts";
+import { mindOf } from "../../house/kit.ts";
 import { journalTexts } from "../../texts/journal.texts.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import { execute, type Execution } from "../execute.ts";

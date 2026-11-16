@@ -1,9 +1,9 @@
 // Each tool keeps its own part of the state, moved by the program's facts; the house keeps only what is its own.
 import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
-import { identityView } from "../house/house.ts";
+import { identityView } from "../house/members.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import type { Slices, State } from "./tool-contract.ts";
-import { emptyHouseState, startState, toolsStep } from "./tools.ts";
+import { emptyHouseState, startState, toolsStep } from "../house/state.ts";
 import { runner, shopRig } from "../../tests/support/shop-rig.ts";
 import { shopSlices, type Sales, type Shop, type ShopEvent } from "../../tests/support/shop.ts";
 

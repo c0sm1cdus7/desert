@@ -1,8 +1,8 @@
 import { afterEach, expect, it } from "vitest";
-import { effect } from "../journal/events.ts";
-import { programResult } from "../surface/bridge/execution/program-result.ts";
+import { effect } from "../house/facts.ts";
+import { programResult } from "../surface/bridge/acts/program-result.ts";
 import { runningRig, saved, settled } from "../../tests/support/kit-running.ts";
-import { startState, toolsStep } from "./tools.ts";
+import { startState, toolsStep } from "../house/state.ts";
 import { shopSlices, type Shop } from "../../tests/support/shop.ts";
 
 const rigs: ReturnType<typeof runningRig>[] = [];

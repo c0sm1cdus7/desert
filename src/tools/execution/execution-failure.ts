@@ -1,13 +1,12 @@
+// Failures of program rules and effects use the same diagnostic as a failed body, before any public result.
 import { requireAvailable } from "../failures/inspection-unavailable.ts";
 import { failureOrigin } from "../boundaries/failure-origin.ts";
-// Failures of program rules and effects use the same diagnostic as a failed body, before any public result.
-import type { HouseEvent } from "../../journal/events.ts";
+import type { HouseEvent } from "../../house/facts.ts";
 import { baseEntry } from "../failures/base-failure.ts";
-import { targetTool } from "../attendance.ts";
-import { OutsideDefect } from "../outside.ts";
+import { targetTool } from "../../house/attendance.ts";
+import { OutsideDefect } from "../../fields/program-call.ts";
 import { programDefect } from "../program-defect.ts";
 import type { Program, State, ToolRegistry } from "../tool-contract.ts";
-
 export function executionFailure<X extends Program>(
   registry: ToolRegistry<X>,
   state: State<X>,

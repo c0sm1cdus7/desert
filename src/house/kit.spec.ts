@@ -1,10 +1,10 @@
 import { afterEach, expect, it } from "vitest";
-import { object } from "../catalogs/acts.ts";
+import { object } from "../fields/visible-text.ts";
 import { toolAct } from "../tools/act-definition.ts";
-import { settle } from "../surface/bridge/house-ports.ts";
+import { settle } from "../surface/bridge/ports/house-ports.ts";
 import type { Shop } from "../../tests/support/shop.ts";
-import { allowed, allowedAct } from "./house.ts";
-import { effect } from "../journal/events.ts";
+import { allowed, allowedAct } from "./kit.ts";
+import { effect } from "./facts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { contractRig, desk, grant, kit, type ContractRig } from "../../tests/support/contract-rig.ts";
 const rigs: ContractRig[] = [];

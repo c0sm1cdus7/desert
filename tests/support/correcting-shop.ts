@@ -1,10 +1,10 @@
 // The test shop with a menu on its sales: what a sale says is corrected from there, opening on what it is today.
-import { object } from "../../src/catalogs/acts.ts";
-import { money } from "../../src/catalogs/fields.ts";
-import { anyToolScreen } from "../../src/surface/bridge/any-tool.ts";
-import { section, type ProgramScreen, type Shown, type Start } from "../../src/surface/bridge/house-ports.ts";
-import { menuTarget } from "../../src/surface/bridge/program-acts.ts";
-import type { ViewRow } from "../../src/surface/shown-tool.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { money } from "../../src/fields/fields.ts";
+import { anyToolScreen } from "../../src/surface/bridge/views/any-tool.ts";
+import { section, type ProgramScreen, type Shown, type Start } from "../../src/surface/bridge/ports/house-ports.ts";
+import { menuTarget } from "../../src/surface/bridge/acts/program-acts.ts";
+import type { ViewRow } from "../../src/surface/contract/shown-tool.ts";
 import { toolTexts } from "../../src/texts/tools.texts.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";

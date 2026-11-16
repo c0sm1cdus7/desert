@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import { effect } from "../../src/journal/events.ts";
+import { effect } from "../../src/house/facts.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
 import type { ActContext, ActResult, Reach, Tool } from "../../src/tools/tool-contract.ts";
 import type { ExecutionResult } from "../../src/tools/execute.ts";

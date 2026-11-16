@@ -1,11 +1,12 @@
 // Fixed adversarial cases: each observation has an assertion, without providers or external services.
 import { afterEach, expect, it } from "vitest";
-import { object } from "../catalogs/acts.ts";
-import { effect } from "../journal/events.ts";
-import { allowedAct, emptyHouse, houseStep } from "./house.ts";
+import { object } from "../fields/visible-text.ts";
+import { effect } from "./facts.ts";
+import { allowedAct } from "./kit.ts";
+import { emptyHouse, houseStep } from "./members.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { accepted, ownAct, toolAct } from "../tools/act-definition.ts";
-import { settle } from "../surface/bridge/house-ports.ts";
+import { settle } from "../surface/bridge/ports/house-ports.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
 import { shopRegistry, type Shop } from "../../tests/support/shop.ts";
 import { contractRig, desk, grant, kit } from "../../tests/support/contract-rig.ts";

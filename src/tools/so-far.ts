@@ -1,10 +1,9 @@
-import { executionSchema } from "./inputs/secret-input.ts";
-import { programCall } from "./boundaries/program-call.ts";
 // What an act says of what was answered so far, before it runs: why it cannot go on, and which things it takes.
+import { executionSchema } from "./inputs/secret-input.ts";
+import { programCall } from "../fields/program-call.ts";
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import type { Program, State } from "./tool-contract.ts";
-
 type Answered = Readonly<Record<string, unknown>>;
 /** For each tool an act narrows, why it does not take a thing, or nothing when it does. */
 export type Among = Readonly<Record<string, (thing: string) => string | undefined>>;

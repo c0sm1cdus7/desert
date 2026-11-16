@@ -1,9 +1,9 @@
 import { processKeys } from "./custody-provider.ts";
 // Child process uses only synthetic material and a fixed in-memory test key; never a real provider.
-import type { SecretRef } from "../../src/adapters/secrets/custody/custody-contract.ts";
+import type { SecretRef } from "../../src/keychain/custody/custody-contract.ts";
 import { mock } from "node:test";
-import { SecretCustody } from "../../src/adapters/secrets/custody/secret-custody.ts";
-import { CustodyDatabase } from "../../src/adapters/secrets/custody/custody-database.ts";
+import { SecretCustody } from "../../src/keychain/custody/secret-custody.ts";
+import { CustodyDatabase } from "../../src/keychain/custody/custody-database.ts";
 const [file, home, point] = process.argv.slice(2);
 if (!file || !home) throw new Error("fixture");
 const stop = () => process.kill(process.pid, "SIGKILL");

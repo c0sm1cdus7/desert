@@ -6,16 +6,16 @@ import rules from "./rules.json" with { type: "json" };
 it("field descriptions keep the responsibilities that preceded the new guarantees", () => {
   for (const [file, before] of Object.entries(fieldTree)) expect(tree[file]).toContain(before);
   for (const file of [
-    "catalogs/fields.ts",
-    "surface/bridge/asking-parts.ts",
-    "surface/screen.ts",
-    "surface/walk.ts",
-    "surface/masks.ts",
-    "surface/bridge/asking.ts",
-    "surface/kept-answers.ts",
-    "surface/current-field.ts",
-    "surface/step.ts",
-    "surface/walking.ts",
+    "fields/fields.ts",
+    "surface/bridge/questions/asking-parts.ts",
+    "surface/session/screen.ts",
+    "surface/acts/walk.ts",
+    "surface/formats/masks.ts",
+    "surface/bridge/questions/asking.ts",
+    "surface/session/kept-answers.ts",
+    "surface/session/current-field.ts",
+    "surface/router/step.ts",
+    "surface/acts/walking.ts",
   ] as const)
     expect(tree[file]).not.toBe(fieldTree[file]);
 });
@@ -35,16 +35,16 @@ it("one currency rule records the base, with current and carried amounts as evid
   expect(currency[0]?.rule).not.toContain("confirmación");
   expect(currency[0]?.evidence).toEqual(
     expect.arrayContaining([
-      "src/surface/kept-answers.ts",
-      "src/surface/current-field.ts",
-      "src/programs/promised-money.spec.ts",
+      "src/surface/session/kept-answers.ts",
+      "src/surface/session/current-field.ts",
+      "src/checks/promises/cases/promised-money.spec.ts",
     ]),
   );
 });
 
 it("field descriptions say their current responsibilities once", () => {
-  expect(tree["surface/step.ts"]?.match(/step:/gu)).toHaveLength(1);
-  expect(tree["surface/step.ts"]).toContain("any written paste");
-  expect(tree["surface/bridge/actions/asked-act.ts"]?.match(/Compone/gu)).toHaveLength(1);
-  expect(tree["surface/bridge/actions/asked-act.ts"]).toContain("estado y destino");
+  expect(tree["surface/router/step.ts"]?.match(/step:/gu)).toHaveLength(1);
+  expect(tree["surface/router/step.ts"]).toContain("any written paste");
+  expect(tree["surface/bridge/acts/asked-act.ts"]?.match(/Compone/gu)).toHaveLength(1);
+  expect(tree["surface/bridge/acts/asked-act.ts"]).toContain("estado y destino");
 });

@@ -1,6 +1,6 @@
 // The shop's explicit reasons win even when its first remaining reference has no eligible sale.
-import { object } from "../../src/catalogs/acts.ts";
-import { money, thing } from "../../src/catalogs/fields.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { money, thing } from "../../src/fields/fields.ts";
 import type { Composition, ProgramAct, ProgramTool } from "../../src/tools/promises.ts";
 import { narrowShop } from "./charging-shop.ts";
 import type { Shop } from "./shop.ts";

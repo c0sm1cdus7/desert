@@ -1,10 +1,9 @@
 // A thread, and what opened beside it, in cells. Which part is turned down comes from the screen.
 import { drawEntry, drawWritten } from "./entry.ts";
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
-import type { Body, Panel, Row, Span, ThreadEvent } from "../../surface/contract.ts";
-import type { Tone } from "../../surface/tones.ts";
+import type { Body, Panel, Row, Span, ThreadEvent } from "../../surface/contract/contract.ts";
+import type { Tone } from "../../surface/contract/tones.ts";
 import { edge, fit, light, put, putRight, width, type Grid } from "./cells.ts";
-
 /** A drawn line is cut where the block ends, never with an ellipsis: it is a picture, not a sentence. */
 function drawLine(grid: Grid, r: number, left: number, block: number, spans: readonly Span[]): void {
   let col = left + 1;

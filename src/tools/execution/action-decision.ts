@@ -1,5 +1,5 @@
-import { programCall } from "../boundaries/program-call.ts";
-import { effect } from "../../journal/events.ts";
+import { programCall } from "../../fields/program-call.ts";
+import { effect } from "../../house/facts.ts";
 import { effectRefusal } from "./effect-authority.ts";
 import type { Execution } from "../execution-contract.ts";
 import type { Decision } from "../execute.ts";

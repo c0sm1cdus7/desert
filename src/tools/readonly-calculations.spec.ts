@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
-import { effect } from "../journal/events.ts";
-import { startState, toolsStep } from "./tools.ts";
+import { effect } from "../house/facts.ts";
+import { startState, toolsStep } from "../house/state.ts";
 import { shop, shopSlices, type Shop } from "../../tests/support/shop.ts";
 import { mutate } from "../../tests/support/state-mutations.ts";
 const event = shop.read({ ...effect("boot", {}, "shop"), id: "one", at: 0, seq: 1 });

@@ -1,11 +1,11 @@
 // The existing shop with a real recent window, references, a nested picker and observable list reads.
-import { object } from "../../src/catalogs/acts.ts";
-import { money, thing } from "../../src/catalogs/fields.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { money, thing } from "../../src/fields/fields.ts";
 import { programAct } from "../../src/tools/promises.ts";
-import type { Shown } from "../../src/surface/bridge/house-ports.ts";
-import { houseRouter } from "../../src/surface/bridge/house-router.ts";
-import { houseTools } from "../../src/surface/bridge/house-tools.ts";
-import { must } from "../../src/surface/window.ts";
+import type { Shown } from "../../src/surface/bridge/ports/house-ports.ts";
+import { houseRouter } from "../../src/surface/bridge/assembly/house-router.ts";
+import { houseTools } from "../../src/surface/bridge/assembly/house-tools.ts";
+import { must } from "../../src/surface/session/window.ts";
 import { shopRig } from "./shop-rig.ts";
 import { correctingShop } from "./correcting-shop.ts";
 import { makingRegistry } from "./charging-shop.ts";

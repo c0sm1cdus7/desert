@@ -1,6 +1,6 @@
 // A sabotage names both the guarantee it breaks and the diagnostic it must produce.
 import { expect } from "vitest";
-import type { Check } from "../../src/programs/promised-stage.ts";
+import type { Check } from "../../src/checks/promises/promised-stage.ts";
 
 type Reasons = string | readonly string[];
 export async function failing(checks: readonly Check[], why: Reasons | ((name: string) => Reasons)): Promise<string[]> {

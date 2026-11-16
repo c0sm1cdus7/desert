@@ -1,10 +1,9 @@
 // A failed initial journal write has no act id; keep its diagnostic directly, or report the lost record.
-import type { HouseEmission } from "../../journal/events.ts";
+import type { HouseEmission } from "../../house/facts.ts";
 import type { Execution } from "../execute.ts";
 import type { Program } from "../tool-contract.ts";
 import { failureEntry } from "../boundaries/failure-entry.ts";
 import { baseEntry, lostDiagnostic } from "./base-failure.ts";
-
 export function startAct<X extends Program>(ports: Execution<X>, emission: HouseEmission<"act">) {
   try {
     return { act: ports.bus.emit(emission) };

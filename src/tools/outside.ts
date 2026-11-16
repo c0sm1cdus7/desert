@@ -1,17 +1,9 @@
 // A program's run only succeeds or reports a cause declared as coming from the world.
 import type { ActResult, Program } from "./tool-contract.ts";
-
+import { OutsideDefect } from "../fields/program-call.ts";
 export type RunResult<X extends Program, O extends readonly string[]> =
   | Extract<ActResult<X>, { status: "accepted" }>
   | Readonly<{ status: "rejected"; reason: O[number] | `${O[number]} · ${string}` }>;
-/** A programmer defect must survive the house's conversion of ordinary failures into action results. */
-export class OutsideDefect extends Error {
-  readonly detail: unknown;
-  constructor(detail: unknown) {
-    super(`OutsideDefect${detail instanceof Error ? `: ${detail.message}` : ""}`, { cause: detail });
-    this.detail = detail;
-  }
-}
 export const outsideCause = (outside: readonly string[], reason: string): string | undefined =>
   outside.find(cause => reason === cause || reason.startsWith(`${cause} · `));
 

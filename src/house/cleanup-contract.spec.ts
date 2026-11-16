@@ -1,8 +1,8 @@
 import { expect, it } from "vitest";
 import { Value } from "@sinclair/typebox/value";
-import { scene } from "../catalogs/acts.ts";
-import { houseStep } from "./house.ts";
-import { effect } from "../journal/events.ts";
+import { scene } from "./own-acts.ts";
+import { houseStep } from "./members.ts";
+import { effect } from "./facts.ts";
 import { contractRig, kit } from "../../tests/support/contract-rig.ts";
 
 it("preserves both other kits when administration passes, even after reopening", () => {

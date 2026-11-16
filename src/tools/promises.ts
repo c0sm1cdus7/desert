@@ -1,13 +1,16 @@
-import { executionSchema } from "./inputs/secret-input.ts";
 // What a program promises of each act: the causes it may refuse with, and cases that say what happens. Specs derive.
-import { declaredCause, programRule } from "./execution/program-causes.ts";
-export { ofTheBase } from "./execution/program-causes.ts";
+import { executionSchema } from "./inputs/secret-input.ts";
+import { declaredCause } from "./execution/program-causes.ts";
+import { programRule, OutsideDefect } from "../fields/program-call.ts";
 import { aid, short, worded } from "./act-words.ts";
 import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { OutsideDefect, type RunResult } from "./outside.ts";
+
+import type { RunResult } from "./outside.ts";
 import { soFar } from "./so-far.ts";
 import type { ActContext, Program, State, ToolAct } from "./tool-contract.ts";
+import type { Declared, Offered, ProgramAct } from "./promises-contract.ts";
+export { ofTheBase } from "./execution/program-causes.ts";
 
 export type {
   Did,
@@ -24,7 +27,6 @@ export type {
   ProgramTool,
   Composition,
 } from "./promises-contract.ts";
-import type { Declared, Offered, ProgramAct } from "./promises-contract.ts";
 
 /** Whether an act takes anything at all: an object with a field, or one of several shapes. */
 const asksSomething = (input: TSchema): boolean => {

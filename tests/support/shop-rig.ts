@@ -1,15 +1,16 @@
 // A live shop house in memory, with virtualizable time and a real replay restart.
 import { defectReporter } from "../../src/tools/failures/defect-reporter.ts";
 import { checkedHouse } from "./journal-causes.ts";
-import { SqliteJournal } from "../../src/adapters/storage/journal-store.ts";
-import { createHouse, identityView } from "../../src/house/house.ts";
+import { SqliteJournal } from "../../src/storage/journal-store.ts";
+import { createHouse, identityView } from "../../src/house/members.ts";
 import { clockStep, startClock, type Deadlines, type TimeSource } from "../../src/journal/clock.ts";
 import { Bus } from "../../src/journal/bus.ts";
-import { effect } from "../../src/journal/events.ts";
-import type { HousePorts } from "../../src/surface/bridge/house-ports.ts";
+import { effect } from "../../src/house/facts.ts";
+import type { HousePorts } from "../../src/surface/bridge/ports/house-ports.ts";
 import type { Execution } from "../../src/tools/execute.ts";
 import type { ToolRegistry } from "../../src/tools/tool-contract.ts";
-import { startState, startTools, toolsStep } from "../../src/tools/tools.ts";
+import { startState, toolsStep } from "../../src/house/state.ts";
+import { startTools } from "../../src/tools/start.ts";
 import { shop, shopRegistry, shopSlices, type Shop, type ShopEvent, type ShopFact } from "./shop.ts";
 
 export const testTime: TimeSource = {

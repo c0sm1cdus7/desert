@@ -1,11 +1,10 @@
-import { startProgram } from "./tool-startup.ts";
 // A program's startup, returned cleanup, and event reactions remain its code after registration.
-import type { Emission, Event } from "../../journal/events.ts";
+import { startProgram } from "./tool-startup.ts";
+import type { Emission, Event } from "../../journal/facts.ts";
 import type { Execution } from "../execute.ts";
 import type { Program, State, ToolRegistry } from "../tool-contract.ts";
-import { programRule } from "../execution/program-causes.ts";
+import { programRule } from "../../fields/program-call.ts";
 import { closeResources } from "./close-resources.ts";
-
 export function startPrograms<X extends Program>(registry: ToolRegistry<X>, ports: Execution<X>) {
   const shutdown: (() => void)[] = [];
 

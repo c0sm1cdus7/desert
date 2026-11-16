@@ -1,12 +1,12 @@
 // The gate partitions occurrences, never names: repetitions still belong to exactly one part.
 import { describe, expect, it, vi } from "vitest";
 import { program, shown } from "../support/shop-program.ts";
-import { keptChecks } from "../../src/programs/kept-journals.ts";
-import { programChecks } from "../../src/programs/program-checks.ts";
+import { keptChecks } from "../../src/checks/kept/kept-journals.ts";
+import { programChecks } from "../../src/checks/program-checks.ts";
 import { checksInPart, programPartCount } from "../program/parts.ts";
 import { summarize } from "../program/manifest.ts";
 import { programGroups, registerPart, type Group } from "../program/registration.ts";
-import type { Check } from "../../src/programs/promised-stage.ts";
+import type { Check } from "../../src/checks/promises/promised-stage.ts";
 
 const parts = () => Array.from({ length: programPartCount }, (_, part) => part);
 const collect = (groups: readonly Group[], part: number) => {

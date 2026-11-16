@@ -2,9 +2,9 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, vi } from "vitest";
-import { SecretCustody } from "../../src/adapters/secrets/custody/secret-custody.ts";
-import { MemoryHouseKeys } from "../../src/adapters/secrets/custody/house-keys.ts";
-import type { CredentialFact, CredentialLedger } from "../../src/adapters/secrets/custody/custody-contract.ts";
+import { SecretCustody } from "../../src/keychain/custody/secret-custody.ts";
+import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
+import type { CredentialFact, CredentialLedger } from "../../src/keychain/custody/custody-contract.ts";
 const homes: string[] = [];
 const opened: SecretCustody[] = [];
 afterEach(() => {

@@ -1,13 +1,12 @@
-import type { AdapterComposition } from "../adapters/declared/adapter-contract.ts";
-import type { CalculationVersion } from "../programs/calculation-version.ts";
 // The declarations a program supplies once, shared by execution, surfaces and derived checks.
+import type { AdapterComposition } from "./adapter-contract.ts";
+import type { CalculationVersion } from "./calculation-contract.ts";
 import type { Static, TSchema } from "@sinclair/typebox";
-import type { Vocabulary } from "../journal/events.ts";
+import type { Vocabulary } from "../journal/facts.ts";
 import type { SoFar } from "./so-far.ts";
 import type { ProgramOutside, ProgramRun } from "./promises.ts";
 import type { RunResult } from "./outside.ts";
 import type { ActContext, Program, Reach, Slices, State, Tool, ToolAct } from "./tool-contract.ts";
-
 /** Something that already happened before a case: an act of the program, by one of the house's identities. */
 export type Did = Readonly<{ act: string; input: unknown; on?: string; by?: string }>;
 /** What a case says came before it: each thing someone did and, when the case is about what time does, the whole

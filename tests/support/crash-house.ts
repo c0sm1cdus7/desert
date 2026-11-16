@@ -1,8 +1,8 @@
 // IPC carries the ordinary socket frames so crash/SQLite boundaries can be checked without a Unix listener.
 import { duplexPair } from "node:stream";
-import { startHouse } from "../../src/programs/house-runtime.ts";
-import { houseDoor } from "../../src/doors/socket/house-door.ts";
-import { MemoryHouseKeys } from "../../src/adapters/secrets/custody/house-keys.ts";
+import { startHouse } from "../../src/runtime/house-runtime.ts";
+import { houseDoor } from "../../src/doors/socket/server/house-door.ts";
+import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
 import { shopProgram } from "./shop.ts";
 const [home, mode] = process.argv.slice(2);
 if (!home) throw new Error("Missing home");

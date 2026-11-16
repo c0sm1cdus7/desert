@@ -1,8 +1,8 @@
 // Keep the old group and check names while registering independent, interleaved parts of both lists.
-import { keptNames } from "../../src/programs/kept-names.ts";
-import { keptChecks } from "../../src/programs/kept-journals.ts";
-import { programChecks } from "../../src/programs/program-checks.ts";
-import type { Check } from "../../src/programs/promised-stage.ts";
+import { keptNames } from "../../src/checks/kept/kept-names.ts";
+import { keptChecks } from "../../src/checks/kept/kept-journals.ts";
+import { programChecks } from "../../src/checks/program-checks.ts";
+import type { Check } from "../../src/checks/promises/promised-stage.ts";
 import type { Program } from "../../src/tools/tool-contract.ts";
 import type { Composed } from "./load.ts";
 import { checksInPart } from "./parts.ts";

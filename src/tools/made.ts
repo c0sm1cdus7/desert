@@ -1,8 +1,8 @@
-import { programCall } from "./boundaries/program-call.ts";
 // What an act made: the things that were not there before it and are there once its facts are in.
-import type { Emission, HouseEmission } from "../journal/events.ts";
+import { programCall } from "../fields/program-call.ts";
+import type { Emission } from "../journal/facts.ts";
+import type { HouseEmission } from "../house/facts.ts";
 import type { Program, State, ToolRegistry } from "./tool-contract.ts";
-
 type Having<X extends Program> = Readonly<{ registry: ToolRegistry<X>; state: () => State<X> }>;
 const isEntry = (each: Emission): each is HouseEmission<"tool-entry"> =>
   each.layer === "house" && each.kind === "tool-entry";

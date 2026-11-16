@@ -1,4 +1,4 @@
-import type { KeychainCommand } from "../../src/adapters/secrets/custody/macos-house-keys.ts";
+import type { KeychainCommand } from "../../src/keychain/macos/macos-house-keys.ts";
 /** Synthetic data only. This fake deliberately also accepts argv writes so leak assertions can catch them. */
 export function fakeKeychain() {
   const saved = new Map<string, Uint8Array>();

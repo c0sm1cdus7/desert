@@ -2,7 +2,7 @@ import { afterEach } from "vitest";
 import { copyFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { object } from "../../src/catalogs/acts.ts";
+import { object } from "../../src/fields/visible-text.ts";
 import { programAct, type ProgramAct } from "../../src/tools/promises.ts";
 import { adapterHouse } from "./adapter-house.ts";
 import { imported, call } from "./declared-adapters.ts";

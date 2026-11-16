@@ -30,7 +30,11 @@ function exposed(addition = "", startup = false) {
     symbol = source && checker.getSymbolAtLocation(source);
   const context = symbol && checker.getExportsOfModule(symbol).find(item => item.name === name);
   if (!context) throw new Error("Missing context");
-  const custody = new Set(sourceFiles().filter(path => path.includes("/adapters/")));
+  const custody = new Set(
+    sourceFiles().filter(
+      path => path.includes("/adapters/") || path.includes("/keychain/") || path.endsWith("/tools/adapter-contract.ts"),
+    ),
+  );
   return contains(checker.getDeclaredTypeOfSymbol(context), checker, custody);
 }
 for (const startup of [false, true])
@@ -41,7 +45,7 @@ for (const startup of [false, true])
   it(`detects a renamed resolver in the ${startup ? "startup" : "action"} context`, () => {
     expect(
       exposed(
-        `import type { SecretResolver as Renamed } from '../adapters/declared/adapter-contract.ts';
+        `import type { SecretResolver as Renamed } from './adapter-contract.ts';
     type Alias = Renamed; type Borrowed = { unrelated: Alias };`,
         startup,
       ),

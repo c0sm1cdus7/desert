@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { realTerminal } from "../../src/programs/real-terminal.ts";
+import { realTerminal } from "../../src/checks/real-terminal.ts";
 export function kitTerminal(home = mkdtempSync(join(tmpdir(), "kit-terminal-")), by = "ana") {
   const term = realTerminal([process.execPath, join(import.meta.dirname, "kit-terminal-open.ts"), home, by], {
     cols: 106,

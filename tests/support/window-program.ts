@@ -1,7 +1,7 @@
 // A declared program case with 101 existing sales crosses the derived walks' 100-row window.
 import { chargingRegistry } from "./charging-shop.ts";
 import { salesTool, shopProgram, shopShown, type Shop } from "./shop.ts";
-import { must } from "../../src/surface/window.ts";
+import { must } from "../../src/surface/session/window.ts";
 import type { Composition } from "../../src/tools/promises.ts";
 const payments = must(chargingRegistry.find(tool => tool.id === "payments"));
 const charge = must(payments.acts.charge);

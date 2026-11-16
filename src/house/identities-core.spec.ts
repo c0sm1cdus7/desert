@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
-import { emptyHouse, houseStep, present, allowedAct, type House } from "./house.ts";
-import { effect, type HouseEmission } from "../journal/events.ts";
+import { emptyHouse, houseStep, type House } from "./members.ts";
+import { present, allowedAct } from "./kit.ts";
+import { effect, type HouseEmission } from "./facts.ts";
 
 const fold = (events: HouseEmission[]) =>
   events.reduce<House>(
@@ -30,7 +31,7 @@ it("reserves the core and keeps removed identities without a kit upon readmissio
 });
 
 it("keeps free display names, falls back to the identifier, takes only the admin's or its own word", async () => {
-  const { identityDisplayName } = await import("./house.ts");
+  const { identityDisplayName } = await import("./members.ts");
   const house = fold([
     effect("house-created", {}, "ana"),
     effect("granted", { identity: "beto", tools: [] }, "ana"),

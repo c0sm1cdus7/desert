@@ -1,9 +1,9 @@
 // A program that is one tool with nothing but its settings: a till that says its float, changed where it is read.
 import { pesos, shopLocale } from "./shop.ts";
-import { object } from "../../src/catalogs/acts.ts";
-import { money } from "../../src/catalogs/fields.ts";
-import { vocabulary, type Event, type ProgramFacts } from "../../src/journal/events.ts";
-import type { Shown } from "../../src/surface/bridge/house-ports.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { money } from "../../src/fields/fields.ts";
+import { vocabulary, type Event, type ProgramFacts } from "../../src/journal/facts.ts";
+import type { Shown } from "../../src/surface/bridge/ports/house-ports.ts";
 import { programAct, type Composition, type Offered, type ProgramTool } from "../../src/tools/promises.ts";
 import type { Slices, State } from "../../src/tools/tool-contract.ts";
 

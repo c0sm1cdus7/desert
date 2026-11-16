@@ -6,14 +6,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 export { has } from "./secret-search.ts";
 import { afterEach, vi } from "vitest";
-import { Redactor } from "../../src/adapters/secrets/redact.ts";
-import { startHouse, localPorts, type HouseOptions } from "../../src/programs/house-runtime.ts";
-import { vocabulary, type Event, type ProgramFacts } from "../../src/journal/events.ts";
+import { Redactor } from "../../src/keychain/redact.ts";
+import { startHouse, localPorts } from "../../src/runtime/house-runtime.ts";
+import type { HouseOptions } from "../../src/house/state.ts";
+import { vocabulary, type Event, type ProgramFacts } from "../../src/journal/facts.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
 import type { ToolAct, Slices } from "../../src/tools/tool-contract.ts";
-import { MemoryHouseKeys } from "../../src/adapters/secrets/custody/house-keys.ts";
-vi.mock("../../src/adapters/secrets/secret-vault.ts", async () => {
-  const { Redactor } = await import("../../src/adapters/secrets/redact.ts");
+import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
+vi.mock("../../src/keychain/secret-vault.ts", async () => {
+  const { Redactor } = await import("../../src/keychain/redact.ts");
   return {
     SecretVault: class extends Redactor<P> {
       constructor(_file: string, schema: TSchema) {

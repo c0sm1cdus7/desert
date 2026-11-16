@@ -1,6 +1,6 @@
-import { object } from "../../src/catalogs/acts.ts";
+import { object } from "../../src/fields/visible-text.ts";
 import { programAct } from "../../src/tools/promises.ts";
-import { identitiesTool } from "../../src/tools/core/identities/identities.ts";
+import { identitiesTool } from "../../src/tools/identities/identities.ts";
 import { salesTool, shopProgram, shopShown, type Shop } from "./shop.ts";
 const input = object({});
 const wait = programAct<Shop, typeof input>({

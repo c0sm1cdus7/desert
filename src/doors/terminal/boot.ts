@@ -1,11 +1,10 @@
 // The terminal on a tty: keys in, frames out. Everything it shows comes from the router; nothing here decides.
 import { StringDecoder } from "node:string_decoder";
-import type { Intent } from "../../surface/contract.ts";
-import type { Router } from "../../surface/router.ts";
+import type { Intent } from "../../surface/contract/contract.ts";
+import type { Router } from "../../surface/router/router.ts";
 import { bytesOf, type Grid } from "./cells.ts";
 import { keyReader, pasteBrackets } from "./input.ts";
 import { contentRows, paint } from "./paint.ts";
-
 export interface Tty {
   readonly columns: number;
   readonly rows: number;

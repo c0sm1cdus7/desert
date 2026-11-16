@@ -1,10 +1,10 @@
 // A program's result writes atomically; a broken fold or listener remains a diagnostic, never a refusal string.
 import { failureOrigin } from "../boundaries/failure-origin.ts";
-import type { Emission, HouseEvent } from "../../journal/events.ts";
+import type { Emission } from "../../journal/facts.ts";
+import type { HouseEvent } from "../../house/facts.ts";
 import type { Execution } from "../execute.ts";
 import { making } from "../made.ts";
 import type { Program } from "../tool-contract.ts";
-
 export function writtenEffects<X extends Program>(
   ports: Execution<X>,
   act: HouseEvent<"act">,

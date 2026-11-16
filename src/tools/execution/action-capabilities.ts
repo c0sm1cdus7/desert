@@ -1,8 +1,8 @@
-import type { HouseEvent } from "../../journal/events.ts";
+import type { HouseEvent } from "../../house/facts.ts";
 import type { Decision, Execution, ExecutionResult } from "../execute.ts";
 import type { Program } from "../tool-contract.ts";
 import type { ToolCapabilities } from "../capabilities-contract.ts";
-import { targetTool } from "../attendance.ts";
+import { targetTool } from "../../house/attendance.ts";
 import { noCapabilities } from "./capabilities.ts";
 import type { RunningAct } from "./running-acts.ts";
 type CapabilityOrigin = Pick<HouseEvent<"act">, "by"> & { data: { object: string } };

@@ -1,5 +1,5 @@
-import { identityTexts } from "./identities/identities.texts.ts";
-export { identityNameTexts } from "./identities/identity-name.texts.ts";
+import { identityTexts } from "./identities.texts.ts";
+export { identityNameTexts } from "./identity-name.texts.ts";
 export const effectRefusalTexts = {
   absentHolder: "titular fuera de la casa",
   unassignedTool: "herramienta no dada",

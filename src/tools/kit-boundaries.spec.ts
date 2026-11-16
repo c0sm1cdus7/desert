@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
 import { afterEach, expect, it } from "vitest";
-import { effect } from "../journal/events.ts";
+import { effect } from "../house/facts.ts";
 import { ownAct } from "./act-definition.ts";
 import { deferred, runningRig, saved, settled } from "../../tests/support/kit-running.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";

@@ -1,6 +1,5 @@
 // Closing one resource must not hide its diagnostic or prevent the remaining resources from closing.
-import { OutsideDefect } from "../outside.ts";
-import { BaseFailure } from "../failures/base-failure.ts";
+import { OutsideDefect, BaseFailure } from "../../fields/program-call.ts";
 
 export function closeResources(
   stops: readonly (() => void)[],

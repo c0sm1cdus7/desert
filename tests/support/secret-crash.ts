@@ -3,12 +3,12 @@ import { processKeys } from "./custody-provider.ts";
 import { registerHooks } from "node:module";
 import { readFileSync } from "node:fs";
 import { Type } from "@sinclair/typebox";
-import { vocabulary } from "../../src/journal/events.ts";
+import { vocabulary } from "../../src/journal/facts.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
 import type { Program } from "../../src/tools/tool-contract.ts";
 registerHooks({
   load(url, context, next) {
-    if (url.endsWith("/src/programs/house-resources.ts"))
+    if (url.endsWith("/src/runtime/house-resources.ts"))
       return {
         format: "module-typescript",
         shortCircuit: true,
@@ -17,7 +17,7 @@ registerHooks({
     return next(url, context);
   },
 });
-const { startHouse, localPorts } = await import("../../src/programs/house-runtime.ts");
+const { startHouse, localPorts } = await import("../../src/runtime/house-runtime.ts");
 const schema = Type.Object({ value: Type.String({ secret: true }) });
 const [home, mode] = process.argv.slice(2);
 if (!home || !mode) throw new Error("Falta carpeta temporal");

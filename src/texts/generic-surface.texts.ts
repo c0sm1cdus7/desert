@@ -1,4 +1,4 @@
-import { fieldTexts } from "./fields/field-texts.ts";
+import { fieldTexts } from "./field-texts.ts";
 // What the bridge to the surface says to a person, whatever the program; each program brings its own words.
 export const genericTexts = {
   optional: " · opcional",

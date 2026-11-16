@@ -1,7 +1,7 @@
-import { promiseTexts as said } from "../../texts/promises.texts.ts";
 // An unavailable inspection capability is neither a program failure nor an external refusal.
-import { OutsideDefect } from "../outside.ts";
-import { BaseFailure } from "./base-failure.ts";
+import { promiseTexts as said } from "../../texts/promises.texts.ts";
+import { OutsideDefect, BaseFailure } from "../../fields/program-call.ts";
+
 export class InspectionUnavailable extends Error {
   readonly code = "E-CUSTODY-DENIED";
   readonly reason: string;

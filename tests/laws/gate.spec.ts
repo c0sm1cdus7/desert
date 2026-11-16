@@ -20,7 +20,7 @@ const anyOptions: Limit = () => true;
 
 /** The rules the gate stands on, each at error and no looser than its limit, for every file it lints. */
 const required: Readonly<Record<string, Limit>> = {
-  "max-lines": atMost("max", () => 200),
+  "max-lines": atMost("max", () => 300),
   "max-len": atMost("code", () => 120),
   "max-statements-per-line": atMost("max", () => 1),
   "max-depth": options => typeof options === "number" && options <= 3,

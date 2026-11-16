@@ -1,6 +1,6 @@
 // A synchronous race in independent OS processes, including close/unlink against the next open/lstat.
-import { SqliteJournal } from "../../src/adapters/storage/journal-store.ts";
-import { WriterAlreadyOpen } from "../../src/adapters/storage/writer-lease.ts";
+import { SqliteJournal } from "../../src/storage/journal-store.ts";
+import { WriterAlreadyOpen } from "../../src/storage/writer-lease.ts";
 import { shop } from "./shop.ts";
 const [file, count] = process.argv.slice(2);
 if (!file || !count) throw new Error("Missing race arguments");

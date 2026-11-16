@@ -1,10 +1,10 @@
 // A local test shop: dollars belong to an existing sale; no provider or network is involved.
-import { object } from "../../src/catalogs/acts.ts";
-import { money, oneOf, option, thing } from "../../src/catalogs/fields.ts";
-import { must } from "../../src/surface/window.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { money, oneOf, option, thing } from "../../src/fields/fields.ts";
+import { must } from "../../src/surface/session/window.ts";
 import { programAct, type ProgramTool } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
-import { formats } from "../../src/surface/masks.ts";
+import { formats } from "../../src/surface/formats/masks.ts";
 import { salesTool, paymentsTool, shop, shopShown, type Shop } from "./shop.ts";
 
 export const symbol = (answered: Readonly<Record<string, unknown>>) => (answered.currency === "USD" ? "US$" : "$");

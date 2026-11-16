@@ -1,8 +1,8 @@
-import { wide, width } from "../../catalogs/display/column-width.ts";
-export { wide, width } from "../../catalogs/display/column-width.ts";
 // Cells and the bytes that draw them: a terminal knows nothing else.
-import type { Span, Theme } from "../../surface/contract.ts";
-import type { Tone } from "../../surface/tones.ts";
+import { wide, width } from "../../fields/column-width.ts";
+import type { Span, Theme } from "../../surface/contract/contract.ts";
+import type { Tone } from "../../surface/contract/tones.ts";
+export { wide, width } from "../../fields/column-width.ts";
 
 type Palette = Readonly<Record<Tone | "focus", number>>;
 // The hex values of the UI rules, at their nearest 256 colors.

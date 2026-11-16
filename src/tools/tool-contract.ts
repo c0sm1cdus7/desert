@@ -1,10 +1,14 @@
-import type { DeepReadonly } from "../journal/readonly-state.ts";
 // What a tool is to the house: its acts, what it shows, and what it keeps, whatever program it belongs to.
+/** How much of a tool's text view a reader takes at once. */
+export type ViewLimits = Readonly<{ recentLines: number }> &
+  /** The instant of the reading, for what a tool reads by the day: what is due today. */
+  Readonly<{ now: number }>;
+import type { DeepReadonly } from "../journal/readonly-state.ts";
 import type { TSchema } from "@sinclair/typebox";
-import type { Act } from "../catalogs/acts.ts";
-import type { ViewLimits } from "../catalogs/levers.ts";
-import type { HouseView } from "../house/house.ts";
-import type { Emission, Event, Foreign, HouseEvent } from "../journal/events.ts";
+import type { Act } from "../house/own-acts.ts";
+import type { HouseView } from "../house/members.ts";
+import type { Emission, Event, Foreign } from "../journal/facts.ts";
+import type { HouseEvent } from "../house/facts.ts";
 import type { ToolStartup } from "./startup-contract.ts";
 import type { ToolCapabilities } from "./capabilities-contract.ts";
 /** What a program brings to a house: its facts, and what each of its tools keeps, under the tool's id. */

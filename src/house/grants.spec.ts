@@ -1,7 +1,8 @@
 // Whole tools are the only assignment unit, the admin alone assigns them, and identities read the house.
 import { afterEach, describe, expect, it } from "vitest";
-import { allowed, assigned, hides } from "./house.ts";
-import { effect } from "../journal/events.ts";
+import { allowed, assigned } from "./kit.ts";
+import { hides } from "./members.ts";
+import { effect } from "./facts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
 

@@ -1,7 +1,7 @@
 // The bus of a house: every fact is written through it, and everyone who listens hears each one once it is written.
 import { journalTexts } from "../texts/journal.texts.ts";
-import type { Emission, Event, Foreign, HouseEmission, HouseEvent, HouseKind, Position } from "./events.ts";
-
+import type { Emission, Event, Foreign, Position } from "./facts.ts";
+import type { HouseEmission, HouseEvent, HouseKind } from "../house/facts.ts";
 const ofKind = <E extends Readonly<{ kind: string }>, K extends string>(event: E, kind: K): event is E & { kind: K } =>
   event.kind === kind;
 type Write = { committed: boolean; undo: (() => void)[] };

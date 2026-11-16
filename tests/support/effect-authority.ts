@@ -1,6 +1,7 @@
 // Effects returned by a real action, with the same house and journal used by the shop.
-import { object } from "../../src/catalogs/acts.ts";
-import { effect, type Emission, type HouseKind } from "../../src/journal/events.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { effect, type HouseKind } from "../../src/house/facts.ts";
+import type { Emission } from "../../src/journal/facts.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
 import type { ActContext, ActResult, Tool } from "../../src/tools/tool-contract.ts";
 import { shopRig } from "./shop-rig.ts";

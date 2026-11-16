@@ -1,9 +1,9 @@
 // Walks a surface by its own intents, from a fresh set of tools each time, so no path has to be written by hand.
-import type { Hint, Intent, Screen, Span, ThreadEvent } from "../../src/surface/contract.ts";
-import type { Tool } from "../../src/surface/shown-tool.ts";
-import { resolve } from "../../src/surface/resolve.ts";
-import { actOf, start, type Session } from "../../src/surface/screen.ts";
-import { finished, settled, step } from "../../src/surface/step.ts";
+import type { Hint, Intent, Screen, Span, ThreadEvent } from "../../src/surface/contract/contract.ts";
+import type { Tool } from "../../src/surface/contract/shown-tool.ts";
+import { resolve } from "../../src/surface/router/resolve.ts";
+import { actOf, start, type Session } from "../../src/surface/session/screen.ts";
+import { finished, settled, step } from "../../src/surface/router/step.ts";
 
 const bar = { state: "connected", clock: "14:32", now: 5_000 } as const;
 const tries: readonly Intent[] = [

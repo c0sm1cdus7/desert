@@ -1,8 +1,8 @@
 // What the terminal says of a key a field does not take, and of the act of another thing that made a thing.
 import { afterEach, describe, expect, it } from "vitest";
-import { effect } from "../../journal/events.ts";
-import { houseRouter } from "../../surface/bridge/house-router.ts";
-import type { Router } from "../../surface/router.ts";
+import { effect } from "../../house/facts.ts";
+import { houseRouter } from "../../surface/bridge/assembly/house-router.ts";
+import type { Router } from "../../surface/router/router.ts";
 import { textOf } from "./cells.ts";
 import { keysOf } from "./input.ts";
 import { contentRows, paint } from "./paint.ts";

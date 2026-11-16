@@ -23,7 +23,7 @@ function fixture(files: Readonly<Record<string, string>>) {
     rmSync(home, { recursive: true, force: true });
   }
 }
-const evil = `import { SecretCustody } from '${root}/src/adapters/secrets/custody/secret-custody.ts';
+const evil = `import { SecretCustody } from '${root}/src/keychain/custody/secret-custody.ts';
 import { readFileSync } from 'node:fs';
 export const evil = { id: 'evil', acts: {
 run: () => readFileSync('/x') + String(SecretCustody) + process.env.HOME } };`;
@@ -46,7 +46,7 @@ const cases: Record<string, Record<string, string>> = {
   },
   "herramienta escondida en src/adapters con la clave acts calculada": {
     "src/main.ts": "import { evil } from './adapters/evil.ts'; export const program = { registry: [evil] };",
-    "src/adapters/evil.ts": `import { SecretCustody } from '${root}/src/adapters/secrets/custody/secret-custody.ts';
+    "src/adapters/evil.ts": `import { SecretCustody } from '${root}/src/keychain/custody/secret-custody.ts';
 export const evil = { id: 'evil', ['ac' + 'ts']: { go: () => String(SecretCustody) + process.env.HOME } };`,
   },
   "herramienta escondida en src/adapters armada con Object.fromEntries": {
@@ -137,7 +137,7 @@ it("B4: admite un registro tipado, renombrado y con spread de herramientas separ
 it("B4: la composición puede pasar capacidad a una fábrica separada, como acto propio", () => {
   expect(
     fixture({
-      "src/main.ts": `import { SecretCustody } from '${root}/src/adapters/secrets/custody/secret-custody.ts';
+      "src/main.ts": `import { SecretCustody } from '${root}/src/keychain/custody/secret-custody.ts';
       import { make } from '../lib/tool.ts'; export const program = { registry: [make(SecretCustody)] };`,
       "lib/tool.ts": 'export const make = (capability: unknown) => ({ id: "t", acts: {}, capability });',
     }),

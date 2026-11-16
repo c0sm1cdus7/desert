@@ -1,8 +1,8 @@
 // A test composition, not a terminal entry point; all keys exist only in this test's memory.
-import { startHouse } from "../../src/programs/house-runtime.ts";
-import { serveHouse } from "../../src/doors/socket/serve.ts";
-import { WriterAlreadyOpen } from "../../src/adapters/storage/writer-lease.ts";
-import { MemoryHouseKeys } from "../../src/adapters/secrets/custody/house-keys.ts";
+import { startHouse } from "../../src/runtime/house-runtime.ts";
+import { serveHouse } from "../../src/doors/socket/server/serve.ts";
+import { WriterAlreadyOpen } from "../../src/storage/writer-lease.ts";
+import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
 import { shopProgram } from "./shop.ts";
 const home = process.argv[2];
 if (!home) throw new Error("Missing house path");

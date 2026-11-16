@@ -1,7 +1,6 @@
 // Copy only ordinary JSON data, without invoking accessors or conversion hooks.
 import { Value } from "@sinclair/typebox/value";
-import { actEnvelope } from "../../catalogs/acts.ts";
-import { actLimits } from "../../catalogs/levers.ts";
+import { actEnvelope, actLimits } from "../../house/own-acts.ts";
 
 const maxBytes = actLimits.inputBytes;
 class Copier {

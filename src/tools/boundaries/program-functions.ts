@@ -1,7 +1,6 @@
-import { failureOrigin } from "./failure-origin.ts";
 // A custom surface returns callbacks too; keep their origin when they run after composition.
-import { OutsideDefect } from "../outside.ts";
-import { BaseFailure } from "../failures/base-failure.ts";
+import { failureOrigin } from "./failure-origin.ts";
+import { OutsideDefect, BaseFailure } from "../../fields/program-call.ts";
 
 const callable = (value: unknown): value is (...args: unknown[]) => unknown => typeof value === "function";
 const failed = (error: unknown): never => {

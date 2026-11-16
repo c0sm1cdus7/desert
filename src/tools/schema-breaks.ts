@@ -1,8 +1,7 @@
 // What an act's schema does not admit, made from an input it does: nobody writes these, the schema says them.
 import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { fine } from "../catalogs/fields.ts";
-
+import { fine } from "../fields/fields.ts";
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 const isList = (value: unknown): value is readonly unknown[] => Array.isArray(value);

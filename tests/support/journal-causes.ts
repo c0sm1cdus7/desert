@@ -1,5 +1,5 @@
-import type { Event } from "../../src/journal/events.ts";
-import { requestCauses } from "../../src/doors/socket/request-book.ts";
+import type { Event } from "../../src/journal/facts.ts";
+import { requestCauses } from "../../src/doors/socket/requests/request-book.ts";
 import { expect } from "vitest";
 /** A socket act keeps its request key and content hash as causes (law 244): references to a request, not facts. */
 const request = (cause: string): boolean => requestCauses.some(prefix => cause.startsWith(prefix));

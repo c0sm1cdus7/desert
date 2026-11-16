@@ -1,7 +1,7 @@
 import { mock } from "node:test";
 import { writeFileSync } from "node:fs";
-import { SecretCustody } from "../../src/adapters/secrets/custody/secret-custody.ts";
-import { CustodyDatabase } from "../../src/adapters/secrets/custody/custody-database.ts";
+import { SecretCustody } from "../../src/keychain/custody/secret-custody.ts";
+import { CustodyDatabase } from "../../src/keychain/custody/custody-database.ts";
 import { processKeys } from "./custody-provider.ts";
 const [file, home, ordinal, phase, output] = process.argv.slice(2);
 if (!file || !home) throw new Error("fixture");

@@ -1,9 +1,9 @@
 // s06: independent V8 heaps, using exactly the production transfer and receiver.
 import { readFileSync } from "node:fs";
-import { stateTransfer } from "../../src/doors/socket/state-transfer.ts";
-import { stateReceiver } from "../../src/doors/socket/state-receiver.ts";
-import { frameReader } from "../../src/doors/socket/frame.ts";
-import { readServer } from "../../src/doors/socket/protocol.ts";
+import { stateTransfer } from "../../src/doors/socket/state/state-transfer.ts";
+import { stateReceiver } from "../../src/doors/socket/state/state-receiver.ts";
+import { frameReader } from "../../src/doors/socket/wire/frame.ts";
+import { readServer } from "../../src/doors/socket/wire/protocol.ts";
 function sequenced(value: unknown): value is { through: number } {
   return value !== null && typeof value === "object" && "through" in value && typeof value.through === "number";
 }

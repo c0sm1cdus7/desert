@@ -1,6 +1,6 @@
 // Choices that cannot be taken are declared before the action runs, including after an earlier answer.
-import { object } from "../../src/catalogs/acts.ts";
-import { oneOf, option } from "../../src/catalogs/fields.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { oneOf, option } from "../../src/fields/fields.ts";
 import { programAct } from "../../src/tools/promises.ts";
 import { shopProgram, type Shop } from "./shop.ts";
 

@@ -1,7 +1,7 @@
 // One correction can be called with both answers, but its rows ask only one part at a time.
 import { correctingShop, partsShown, registered } from "./correcting-shop.ts";
-import { anyToolScreen } from "../../src/surface/bridge/any-tool.ts";
-import { section, type Shown } from "../../src/surface/bridge/house-ports.ts";
+import { anyToolScreen } from "../../src/surface/bridge/views/any-tool.ts";
+import { section, type Shown } from "../../src/surface/bridge/ports/house-ports.ts";
 import type { Shop } from "./shop.ts";
 
 export const constructionShop = (accepted = false, lies = false) => ({

@@ -1,6 +1,6 @@
 import { writeHeapSnapshot } from "node:v8";
 import { join } from "node:path";
-import { SecretCustody } from "../../src/adapters/secrets/custody/secret-custody.ts";
+import { SecretCustody } from "../../src/keychain/custody/secret-custody.ts";
 import { processKeys } from "./custody-provider.ts";
 const [file, home, mode] = process.argv.slice(2);
 if (!file || !home) throw new Error("fixture");

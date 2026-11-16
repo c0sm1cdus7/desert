@@ -2,9 +2,10 @@
 import { Type } from "@sinclair/typebox";
 import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
 import { Bus } from "./bus.ts";
-import { effect, layerOf, vocabulary, type Catalog, type Event } from "./events.ts";
+import { effect, layerOf } from "../house/facts.ts";
+import { vocabulary, type Catalog, type Event } from "./facts.ts";
 import { clockStep } from "./clock.ts";
-import { SqliteJournal } from "../adapters/storage/journal-store.ts";
+import { SqliteJournal } from "../storage/journal-store.ts";
 import { shop, type ShopEvent, type ShopFact } from "../../tests/support/shop.ts";
 
 const journals: SqliteJournal<ShopFact>[] = [];

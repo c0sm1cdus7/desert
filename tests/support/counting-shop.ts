@@ -1,6 +1,6 @@
 // Numeric cases exercise leading zeros as well as the canonical numbers supplied by another door.
-import { object } from "../../src/catalogs/acts.ts";
-import { money, padded, quantity } from "../../src/catalogs/fields.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { money, padded, quantity } from "../../src/fields/fields.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import { paymentsTool, salesTool, shopProgram, type Shop } from "./shop.ts";
 

@@ -1,11 +1,12 @@
 import { salesStep, paymentsStep } from "./shop-folds.ts";
 // A program that lives in a house only in tests: a shop whose tools register sales and receive payments.
 import { Type } from "@sinclair/typebox";
-import { object } from "../../src/catalogs/acts.ts";
-import { money, shownMoney, text } from "../../src/catalogs/fields.ts";
-import { effect, vocabulary, type Emission, type Event, type ProgramFacts } from "../../src/journal/events.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { money, shownMoney, text } from "../../src/fields/fields.ts";
+import { effect } from "../../src/house/facts.ts";
+import { vocabulary, type Emission, type Event, type ProgramFacts } from "../../src/journal/facts.ts";
 import { programAct, type ProgramTool } from "../../src/tools/promises.ts";
-import type { Shown, SurfaceWords } from "../../src/surface/bridge/house-ports.ts";
+import type { Shown, SurfaceWords } from "../../src/surface/bridge/ports/house-ports.ts";
 import type { Slices, State, ToolRegistry } from "../../src/tools/tool-contract.ts";
 /** What the shop takes is declared with how it is asked: the question, and a mask or a placeholder. */
 const sale = text("Venta", "Nombre de la venta");

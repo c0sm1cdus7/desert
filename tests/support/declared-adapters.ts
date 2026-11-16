@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import type { AdapterComposition, AdapterDeclaration } from "../../src/adapters/declared/adapter-contract.ts";
+import type { AdapterComposition, AdapterDeclaration } from "../../src/tools/adapter-contract.ts";
 import type { ToolCapabilities } from "../../src/tools/capabilities-contract.ts";
 export const references = Type.Object({ key: Type.TemplateLiteral("secret:${string}") });
 export const validity = Type.Object({ valid: Type.Boolean() });

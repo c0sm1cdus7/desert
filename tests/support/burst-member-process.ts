@@ -1,7 +1,7 @@
 // A second process sends a packed burst over the same framed transport and checks every payment receipt.
 import { Duplex } from "node:stream";
 import { probe } from "./socket-probe.ts";
-import { clientFrame } from "../../src/doors/socket/frame.ts";
+import { clientFrame } from "../../src/doors/socket/wire/frame.ts";
 const path = process.argv[2];
 const transport = path ?? Duplex.from({ readable: process.stdin, writable: process.stdout });
 const client = await probe(transport);

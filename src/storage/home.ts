@@ -1,0 +1,18 @@
+// Only SQLite opens and closes database files: a foreign close would release POSIX locks on the same inode.
+import { sqliteFiles } from "./sqlite-files.ts";
+import { chmodSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
+export function privateDatabase(file: string): DatabaseSync {
+  sqliteFiles(file);
+  const db = new DatabaseSync(file);
+  try {
+    if (file !== ":memory:") chmodSync(file, privateFileMode);
+    return db;
+  } catch (error) {
+    db.close();
+    throw error;
+  }
+}
+
+export const privateFileMode = 0o600;
+export const privateDirectoryMode = 0o700;

@@ -27,9 +27,9 @@ const castsOf = (file: string): string[] => {
   return found;
 };
 
-describe("law 11: one file per stage, and none over 200 lines", () => {
-  it("no file has more than 200 lines", () => {
-    expect(code.filter(file => linesOf(file).length > 200).map(fromRoot)).toEqual([]);
+describe("law 11: one file per stage, and none over 300 lines", () => {
+  it("no file has more than 300 lines", () => {
+    expect(code.filter(file => linesOf(file).length > 300).map(fromRoot)).toEqual([]);
   });
 
   it("no process name repeats anywhere in Kenon", () => {

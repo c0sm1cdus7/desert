@@ -1,7 +1,7 @@
 // The terminal on a tty, fed the way a tty feeds it: bytes in chunks that cut keys and characters anywhere.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Intent, Screen } from "../../surface/contract.ts";
-import type { Router } from "../../surface/router.ts";
+import type { Intent, Screen } from "../../surface/contract/contract.ts";
+import type { Router } from "../../surface/router/router.ts";
 import { keyWaits, startTerminal } from "./boot.ts";
 
 const screen: Screen = {

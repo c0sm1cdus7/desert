@@ -4,7 +4,7 @@ import { clockStep, startClock } from "./clock.ts";
 import { open } from "../../tests/support/storage-rig.ts";
 import { afterEach, expect, it, vi } from "vitest";
 import { shopRig } from "../../tests/support/shop-rig.ts";
-import { effect } from "./events.ts";
+import { effect } from "../house/facts.ts";
 const rigs: ReturnType<typeof shopRig>[] = [];
 afterEach(() => {
   rigs.splice(0).forEach(rig => rig.close());

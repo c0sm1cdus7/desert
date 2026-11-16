@@ -1,10 +1,10 @@
 // The literal world causes close run's result type; a compiling dishonest implementation still fails at runtime.
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { object } from "../catalogs/acts.ts";
+import { object } from "../fields/visible-text.ts";
 import { programAct, type ProgramAct } from "./promises.ts";
-import { type RunResult } from "./outside.ts";
+import type { RunResult } from "./outside.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
-import { cast, perform, staged } from "../programs/promised-stage.ts";
+import { cast, perform, staged } from "../checks/promises/promised-stage.ts";
 import { registerOffer, salesTool, paymentsTool, shopProgram, type Shop } from "../../tests/support/shop.ts";
 
 const input = object({});

@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import type { Shown } from "../../src/surface/bridge/house-ports.ts";
+import type { Shown } from "../../src/surface/bridge/ports/house-ports.ts";
 import type { Composition } from "../../src/tools/promises.ts";
 import type { Program } from "../../src/tools/tool-contract.ts";
 import { field } from "../contract/json.ts";

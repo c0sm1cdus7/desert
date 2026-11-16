@@ -1,11 +1,11 @@
-import type { CalculationVersion } from "../../src/programs/calculation-version.ts";
+import type { CalculationVersion } from "../../src/tools/calculation-contract.ts";
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect } from "vitest";
-import { startHouse } from "../../src/programs/house-runtime.ts";
-import { perform } from "../../src/programs/promised-stage.ts";
-import { startState, toolsStep } from "../../src/tools/tools.ts";
+import { startHouse } from "../../src/runtime/house-runtime.ts";
+import { perform } from "../../src/checks/promises/promised-stage.ts";
+import { startState, toolsStep } from "../../src/house/state.ts";
 import { shopProgram, shopSlices, type Shop } from "./shop.ts";
 
 const homes: string[] = [];

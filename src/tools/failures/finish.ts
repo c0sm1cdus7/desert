@@ -1,13 +1,13 @@
 // Writing a result and its diagnostic cannot turn a storage failure into a program defect or silence it.
-import { OutsideDefect } from "../outside.ts";
-import { effect, type HouseEvent } from "../../journal/events.ts";
+import { OutsideDefect, BaseFailure } from "../../fields/program-call.ts";
+import { effect, type HouseEvent } from "../../house/facts.ts";
 import type { Decision, Execution } from "../execute.ts";
 import type { Program } from "../tool-contract.ts";
 import { executionFailure } from "../execution/execution-failure.ts";
 import { writtenEffects } from "../execution/written-effects.ts";
-import { BaseFailure, baseEntry, lostDiagnostic } from "./base-failure.ts";
-import { cutDecision } from "../execution/running-acts.ts";
 
+import { baseEntry, lostDiagnostic } from "./base-failure.ts";
+import { cutDecision } from "../execution/running-acts.ts";
 const reportLost = <X extends Program>(ports: Execution<X>, act: HouseEvent<"act">, entry: unknown, error: unknown) =>
   lostDiagnostic(
     entry,

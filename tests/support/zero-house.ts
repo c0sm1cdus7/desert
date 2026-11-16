@@ -4,10 +4,10 @@ import { checkedHouse } from "./journal-causes.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { startHouse } from "../../src/programs/house-runtime.ts";
+import { startHouse } from "../../src/runtime/house-runtime.ts";
 import { shop, shopRegistry, type ShopEvent } from "./shop.ts";
 import { zeroMind, zeroSlices } from "./zero-mind.ts";
-import { effect } from "../../src/journal/events.ts";
+import { effect } from "../../src/house/facts.ts";
 const homes: string[] = [],
   houses: { close(): void }[] = [];
 afterEach(() => {

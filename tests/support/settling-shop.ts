@@ -1,9 +1,15 @@
 // The test shop with an act on one of its things, and screens that list those things deeper, or not at all.
-import { object } from "../../src/catalogs/acts.ts";
-import { anyToolScreen } from "../../src/surface/bridge/any-tool.ts";
-import { listsOf, section } from "../../src/surface/bridge/house-ports.ts";
-import type { ProgramScreen, Shown, ToolWords } from "../../src/surface/bridge/house-ports.ts";
-import type { ViewRow } from "../../src/surface/shown-tool.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { anyToolScreen } from "../../src/surface/bridge/views/any-tool.ts";
+import {
+  listsOf,
+  section,
+  type ProgramScreen,
+  type Shown,
+  type ToolWords,
+} from "../../src/surface/bridge/ports/house-ports.ts";
+
+import type { ViewRow } from "../../src/surface/contract/shown-tool.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
 import { paymentsTool, pesos, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";

@@ -1,8 +1,8 @@
 // Larger shop examples exercise the promises at the scale of an actual program.
-import { object } from "../../src/catalogs/acts.ts";
-import { money, thing, when } from "../../src/catalogs/fields.ts";
-import { anyToolScreen } from "../../src/surface/bridge/any-tool.ts";
-import { section, type Shown } from "../../src/surface/bridge/house-ports.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { money, thing, when } from "../../src/fields/fields.ts";
+import { anyToolScreen } from "../../src/surface/bridge/views/any-tool.ts";
+import { section, type Shown } from "../../src/surface/bridge/ports/house-ports.ts";
 import { toolTexts } from "../../src/texts/tools.texts.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import { shopProgram, shopShown, salesTool, paymentsTool, type Shop } from "./shop.ts";

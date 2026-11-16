@@ -1,6 +1,7 @@
 // Validate the complete returned batch before the engine adds its own execution facts.
-import { allowed, houseStep, mindTool, present } from "../../house/house.ts";
-import { layerOf, type HouseEmission } from "../../journal/events.ts";
+import { allowed, mindTool, present } from "../../house/kit.ts";
+import { houseStep } from "../../house/members.ts";
+import { layerOf, type HouseEmission } from "../../house/facts.ts";
 import { effectRefusalTexts, toolTexts } from "../../texts/tools.texts.ts";
 import type { Execution } from "../execute.ts";
 import type { ActContext, ActResult, Program, Tool } from "../tool-contract.ts";

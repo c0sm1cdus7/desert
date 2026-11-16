@@ -1,7 +1,7 @@
 // Attention is a tool-wide stimulus with a perpetual, replayable ladder, the same for every identity of the house.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { identityView } from "../house/house.ts";
-import { effect } from "../journal/events.ts";
+import { identityView } from "../house/members.ts";
+import { effect } from "../house/facts.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
 
 let rig: ReturnType<typeof shopRig>;

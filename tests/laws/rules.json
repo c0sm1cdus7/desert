@@ -13,7 +13,11 @@
       "rule": "Solo regular y negrita",
       "from": "REGLAS §2",
       "guarantee": "type",
-      "evidence": ["src/doors/terminal/cells.ts", "src/surface/contract.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/cells.ts",
+        "src/surface/contract/contract.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 3,
@@ -22,8 +26,8 @@
       "guarantee": "surface",
       "evidence": [
         "src/doors/terminal/cells.ts",
-        "src/doors/terminal/destinations.spec.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/session/destinations.spec.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -31,28 +35,41 @@
       "rule": "Mínimo 40×16; por debajo solo «Ventana muy chica»",
       "from": "REGLAS §2, §14",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/texts/surface.texts.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/texts/surface.texts.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 5,
       "rule": "Tres zonas que nunca se mueven (Barra, Contenido, Toolbar)",
       "from": "REGLAS §3",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 6,
       "rule": "Barra y Toolbar de lado a lado con borde; Toolbar un solo riel",
       "from": "REGLAS §3",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 7,
       "rule": "Contenido en columna de 76 centrada",
       "from": "REGLAS §3",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 8,
@@ -60,9 +77,9 @@
       "from": "REGLAS §3",
       "guarantee": "surface",
       "evidence": [
-        "src/doors/terminal/terminal.spec.ts",
+        "src/surface/session/terminal.spec.ts",
         "src/doors/terminal/thread.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -70,7 +87,11 @@
       "rule": "Barra: icono y hora, igual en toda pantalla (también la inicial)",
       "from": "REGLAS §4",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/surface/resolve.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/surface/router/resolve.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 10,
@@ -86,10 +107,10 @@
       "guarantee": "type",
       "evidence": [
         "src/doors/terminal/paint.ts",
-        "src/surface/contract.ts",
-        "src/doors/socket/socket-ports.spec.ts",
-        "src/programs/socket-terminal.spec.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/contract/contract.ts",
+        "src/doors/socket/client/socket-ports.spec.ts",
+        "src/checks/socket-terminal.spec.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -111,14 +132,20 @@
       "rule": "El punto nunca late",
       "from": "REGLAS §4, §11",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 15,
       "rule": "Enviar no es un estado",
       "from": "REGLAS §4",
       "guarantee": "type",
-      "evidence": ["src/surface/contract.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/contract/contract.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 16,
@@ -132,21 +159,31 @@
       "rule": "La Barra muestra el nombre de la acción",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/resolve.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/router/resolve.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 18,
       "rule": "Barra: elipsis en el título; icono y hora siempre se ven",
       "from": "REGLAS §14",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 19,
       "rule": "Toolbar izquierda fija ctrl o menú ctrl c salir; sin ctrl o en acciones; en el Menú ni ctrl o ni esc",
       "from": "REGLAS §5",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/surface/resolve.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/surface/router/resolve.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 20,
@@ -154,12 +191,12 @@
       "from": "REGLAS §5",
       "guarantee": "surface",
       "evidence": [
-        "src/surface/contract.ts",
-        "src/surface/resolve.ts",
-        "src/surface/shown-tool.ts",
-        "src/surface/talk.ts",
-        "src/surface/walk.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/contract/contract.ts",
+        "src/surface/router/resolve.ts",
+        "src/surface/contract/shown-tool.ts",
+        "src/surface/session/talk.ts",
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -170,8 +207,8 @@
       "evidence": [
         "src/doors/terminal/input.ts",
         "src/doors/terminal/renderers.spec.ts",
-        "src/surface/step.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/router/step.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -179,14 +216,22 @@
       "rule": "En una Entrada con texto, ← → solo mueven el cursor",
       "from": "REGLAS §5",
       "guarantee": "surface",
-      "evidence": ["src/surface/step.ts", "src/surface/talk.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/router/step.ts",
+        "src/surface/session/talk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 23,
       "rule": "enter dice lo que hace: continuar, el verbo, o lo elegido",
       "from": "REGLAS §5",
       "guarantee": "surface",
-      "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/bridge/acts/program-acts.ts",
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 24,
@@ -194,10 +239,10 @@
       "from": "REGLAS §5, §9",
       "guarantee": "surface",
       "evidence": [
-        "src/doors/terminal/terminal.spec.ts",
-        "src/surface/step.ts",
-        "src/surface/talk.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/session/terminal.spec.ts",
+        "src/surface/router/step.ts",
+        "src/surface/session/talk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -205,7 +250,11 @@
       "rule": "Todo lo que tiene atajo también se alcanza navegando; la letra no se repite en la Toolbar",
       "from": "REGLAS §5",
       "guarantee": "surface",
-      "evidence": ["src/surface/resolve.ts", "src/surface/step.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/router/resolve.ts",
+        "src/surface/router/step.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 26,
@@ -215,7 +264,7 @@
       "evidence": [
         "src/doors/terminal/paint.ts",
         "src/doors/terminal/thread.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -223,14 +272,21 @@
       "rule": "Debajo de 60 columnas la izquierda queda ctrl o  ctrl c y caen los aids del primero al último",
       "from": "REGLAS §5, §14",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 28,
       "rule": "El menú es siempre el punto de entrada",
       "from": "REGLAS §6",
       "guarantee": "surface",
-      "evidence": ["src/surface/screen.ts", "src/surface/step.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/session/screen.ts",
+        "src/surface/router/step.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 29,
@@ -238,10 +294,10 @@
       "from": "REGLAS §6",
       "guarantee": "surface",
       "evidence": [
-        "src/doors/terminal/terminal.spec.ts",
-        "src/surface/lists.ts",
-        "src/surface/shown-tool.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/session/terminal.spec.ts",
+        "src/surface/menus/lists.ts",
+        "src/surface/contract/shown-tool.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -250,10 +306,10 @@
       "from": "REGLAS §6",
       "guarantee": "compose",
       "evidence": [
-        "src/surface/bridge/house-ports.ts",
-        "src/surface/bridge/house-tools.spec.ts",
-        "src/surface/bridge/house-tools.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/bridge/ports/house-ports.ts",
+        "src/surface/bridge/assembly/house-tools.spec.ts",
+        "src/surface/bridge/assembly/house-tools.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -269,10 +325,10 @@
       "from": "REGLAS §7, §9",
       "guarantee": "surface",
       "evidence": [
-        "src/doors/terminal/terminal.spec.ts",
-        "src/surface/talk.ts",
-        "src/surface/walk.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/session/terminal.spec.ts",
+        "src/surface/session/talk.ts",
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -308,7 +364,11 @@
       "rule": "Responder: fila ↳ Nora · comienzo en texto 3, con elipsis",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts", "src/surface/talk.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/thread.ts",
+        "src/surface/session/talk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 38,
@@ -318,7 +378,7 @@
       "evidence": [
         "src/doors/terminal/paint.ts",
         "src/doors/terminal/thread.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -326,14 +386,20 @@
       "rule": "Evento con cabecera; debajo todo con 1 celda de indent; sin cabecera sin indent; una fila en blanco entre eventos",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/thread.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 40,
       "rule": "El Hilo arranca en la columna del chevron",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/thread.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 41,
@@ -347,7 +413,10 @@
       "rule": "El ser pregunta con opciones y otra respuesta al final; esc después",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": ["src/surface/talk.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/session/talk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 43,
@@ -355,10 +424,10 @@
       "from": "REGLAS §7",
       "guarantee": "surface",
       "evidence": [
-        "src/doors/terminal/destinations.spec.ts",
+        "src/surface/session/destinations.spec.ts",
         "src/doors/terminal/thread.ts",
-        "src/surface/talk.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/session/talk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -367,10 +436,10 @@
       "from": "REGLAS §9",
       "guarantee": "type",
       "evidence": [
-        "src/surface/contract.ts",
-        "src/surface/resolve.ts",
-        "src/surface/shown-tool.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/contract/contract.ts",
+        "src/surface/router/resolve.ts",
+        "src/surface/contract/shown-tool.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -379,10 +448,10 @@
       "from": "REGLAS §9, §17",
       "guarantee": "surface",
       "evidence": [
-        "src/doors/terminal/terminal.spec.ts",
-        "src/surface/lists.ts",
-        "src/surface/shown-tool.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/session/terminal.spec.ts",
+        "src/surface/menus/lists.ts",
+        "src/surface/contract/shown-tool.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -390,7 +459,11 @@
       "rule": "Sin columnas: título a la izquierda; propósito y dato a la derecha",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts", "src/surface/lists.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/thread.ts",
+        "src/surface/menus/lists.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 47,
@@ -398,13 +471,13 @@
       "from": "REGLAS §9",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/bridge/program-acts.ts",
-        "src/surface/lists.ts",
+        "src/surface/bridge/acts/program-acts.ts",
+        "src/surface/menus/lists.ts",
         "src/tools/promises.ts",
-        "src/programs/promised-walk.ts",
+        "src/checks/promises/walk/promised-walk.ts",
         "src/tools/promises.spec.ts",
         "src/doors/terminal/house-screens.spec.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -421,10 +494,10 @@
       "guarantee": "surface",
       "evidence": [
         "src/doors/terminal/paint.ts",
-        "src/doors/terminal/terminal.spec.ts",
-        "src/surface/window.spec.ts",
-        "src/surface/window.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/session/terminal.spec.ts",
+        "src/surface/session/window.spec.ts",
+        "src/surface/session/window.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -432,7 +505,10 @@
       "rule": "…en el Hilo",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/thread.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 51,
@@ -440,12 +516,12 @@
       "from": "REGLAS §9",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/window.ts",
-        "src/surface/resolve.ts",
+        "src/surface/session/window.ts",
+        "src/surface/router/resolve.ts",
         "src/doors/terminal/thread.ts",
-        "src/programs/promised-keys.ts",
-        "src/programs/promised-walk.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/checks/promises/promised-keys.ts",
+        "src/checks/promises/walk/promised-walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -455,8 +531,8 @@
       "guarantee": "surface",
       "evidence": [
         "src/doors/terminal/paint.ts",
-        "src/surface/bridge/house-ports.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/bridge/ports/house-ports.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -465,10 +541,10 @@
       "from": "REGLAS §9",
       "guarantee": "surface",
       "evidence": [
-        "src/surface/resolve.ts",
-        "src/surface/screen.ts",
-        "src/surface/walk.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/router/resolve.ts",
+        "src/surface/session/screen.ts",
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -477,9 +553,9 @@
       "from": "REGLAS §9, §12",
       "guarantee": "compose",
       "evidence": [
-        "src/surface/bridge/asking-parts.ts",
-        "src/surface/bridge/asking-back.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/bridge/questions/asking-parts.ts",
+        "src/surface/bridge/questions/asking-back.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -487,7 +563,10 @@
       "rule": "La pregunta pasa de texto 1 a texto 2 al responderse; la respuesta queda agregada, en texto 1, sin autor",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 56,
@@ -495,9 +574,9 @@
       "from": "REGLAS §9",
       "guarantee": "spec",
       "evidence": [
-        "src/surface/bridge/questions/opacity-surface.spec.ts",
-        "src/doors/terminal/opacity-terminal.spec.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/fields/opacity-surface.spec.ts",
+        "src/checks/opacity-terminal.spec.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -505,7 +584,11 @@
       "rule": "Seis tipos de input cerrados",
       "from": "REGLAS §9",
       "guarantee": "type",
-      "evidence": ["src/surface/bridge/asking.ts", "src/surface/contract.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/bridge/questions/asking.ts",
+        "src/surface/contract/contract.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 58,
@@ -513,10 +596,10 @@
       "from": "REGLAS §9",
       "guarantee": "type",
       "evidence": [
-        "src/catalogs/fields.ts",
-        "src/surface/contract.ts",
-        "src/surface/masks.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/fields/fields.ts",
+        "src/surface/contract/contract.ts",
+        "src/surface/formats/masks.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -524,7 +607,10 @@
       "rule": "Opción única: lista con ↑↓ y enter",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/step.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/router/step.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 60,
@@ -532,11 +618,11 @@
       "from": "REGLAS §9",
       "guarantee": "surface",
       "evidence": [
-        "src/surface/step.ts",
-        "src/surface/walk.ts",
-        "src/catalogs/fields.ts",
-        "src/surface/bridge/asking.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/router/step.ts",
+        "src/surface/acts/walk.ts",
+        "src/fields/fields.ts",
+        "src/surface/bridge/questions/asking.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -545,12 +631,12 @@
       "from": "REGLAS §9",
       "guarantee": "surface",
       "evidence": [
-        "src/surface/step.ts",
-        "src/surface/walk.ts",
-        "src/surface/bridge/asking-parts.ts",
-        "src/surface/bridge/house-tools.ts",
-        "src/programs/promised-walk.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/router/step.ts",
+        "src/surface/acts/walk.ts",
+        "src/surface/bridge/questions/asking-parts.ts",
+        "src/surface/bridge/assembly/house-tools.ts",
+        "src/checks/promises/walk/promised-walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -559,9 +645,9 @@
       "from": "REGLAS §9",
       "guarantee": "surface",
       "evidence": [
-        "src/surface/bridge/program-acts.ts",
-        "src/surface/screen.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/bridge/acts/program-acts.ts",
+        "src/surface/session/screen.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -570,9 +656,9 @@
       "from": "REGLAS §9",
       "guarantee": "surface",
       "evidence": [
-        "src/surface/bridge/program-acts.ts",
+        "src/surface/bridge/acts/program-acts.ts",
         "src/tools/promises.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -580,7 +666,10 @@
       "rule": "Nada se ejecuta hasta el último input; durante los inputs solo se lee",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/step.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/router/step.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 66,
@@ -589,8 +678,8 @@
       "guarantee": "type",
       "evidence": [
         "src/tools/promises.ts",
-        "src/surface/bridge/program-acts.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/bridge/acts/program-acts.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -599,10 +688,10 @@
       "from": "REGLAS §9",
       "guarantee": "surface",
       "evidence": [
-        "src/surface/router.spec.ts",
-        "src/surface/walk.ts",
+        "src/surface/router/router.spec.ts",
+        "src/surface/acts/walk.ts",
         "src/texts/surface.texts.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -610,14 +699,21 @@
       "rule": "Cuando no hace falta, la Entrada se va (no se deshabilita ni se reserva)",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts", "src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/thread.ts",
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 69,
       "rule": "El resultado se dice Verbo · Objeto · Detalle",
       "from": "REGLAS §9",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/checks/promises/cases/promised.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 70,
@@ -625,10 +721,10 @@
       "from": "REGLAS §9",
       "guarantee": "surface",
       "evidence": [
-        "src/surface/screen.ts",
-        "src/surface/step.ts",
-        "src/surface/walk.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/session/screen.ts",
+        "src/surface/router/step.ts",
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -637,10 +733,10 @@
       "from": "REGLAS §9",
       "guarantee": "surface",
       "evidence": [
-        "src/doors/terminal/terminal.spec.ts",
-        "src/surface/step.ts",
-        "src/surface/walk.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/session/terminal.spec.ts",
+        "src/surface/router/step.ts",
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -648,7 +744,11 @@
       "rule": "esc vuelve, cancela o cierra según la fase",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/step.ts", "src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/router/step.ts",
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 73,
@@ -656,10 +756,10 @@
       "from": "REGLAS §9d",
       "guarantee": "derived",
       "evidence": [
-        "src/doors/terminal/destinations.spec.ts",
-        "src/programs/promised-walk.ts",
-        "src/surface/step.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/session/destinations.spec.ts",
+        "src/checks/promises/walk/promised-walk.ts",
+        "src/surface/router/step.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -668,10 +768,10 @@
       "from": "REGLAS §9d",
       "guarantee": "type",
       "evidence": [
-        "src/doors/terminal/destinations.spec.ts",
-        "src/programs/promised-laws.ts",
-        "src/surface/shown-tool.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/session/destinations.spec.ts",
+        "src/checks/promises/cases/promised-laws.ts",
+        "src/surface/contract/shown-tool.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -680,11 +780,11 @@
       "from": "REGLAS §9d",
       "guarantee": "surface",
       "evidence": [
-        "src/doors/terminal/destinations.spec.ts",
-        "src/surface/lists.ts",
-        "src/surface/resolve.ts",
+        "src/surface/session/destinations.spec.ts",
+        "src/surface/menus/lists.ts",
+        "src/surface/router/resolve.ts",
         "src/texts/surface.texts.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -693,10 +793,10 @@
       "from": "REGLAS §9d",
       "guarantee": "type",
       "evidence": [
-        "src/surface/contract.ts",
-        "src/surface/resolve.ts",
-        "src/surface/shown-tool.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/contract/contract.ts",
+        "src/surface/router/resolve.ts",
+        "src/surface/contract/shown-tool.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -704,14 +804,21 @@
       "rule": "La herramienta da su tecla y sección (place) y el dato de su fila (summary)",
       "from": "REGLAS §9d",
       "guarantee": "type",
-      "evidence": ["src/surface/lists.ts", "src/surface/shown-tool.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/menus/lists.ts",
+        "src/surface/contract/shown-tool.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 78,
       "rule": "Procesando, Barra y Toolbar los pone el contrato de superficie",
       "from": "REGLAS §9d",
       "guarantee": "surface",
-      "evidence": ["src/surface/resolve.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/router/resolve.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 80,
@@ -719,11 +826,11 @@
       "from": "REGLAS §9d",
       "guarantee": "compose",
       "evidence": [
-        "src/surface/bridge/house-tools.ts",
-        "src/surface/bridge/any-tool.ts",
+        "src/surface/bridge/assembly/house-tools.ts",
+        "src/surface/bridge/views/any-tool.ts",
         "src/tools/promises.ts",
-        "src/programs/promised-data.spec.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/checks/promises/cases/promised-data.spec.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -731,14 +838,20 @@
       "rule": "Todo color de la UI sale de la tabla de tokens",
       "from": "REGLAS §10, §17",
       "guarantee": "type",
-      "evidence": ["src/surface/tones.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/contract/tones.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 82,
       "rule": "Valores hex y ANSI de la tabla",
       "from": "REGLAS §10",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/cells.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/cells.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 83,
@@ -752,7 +865,11 @@
       "rule": "Jerarquía por brillo: tres textos y negrita",
       "from": "REGLAS §10",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts", "src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/thread.ts",
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 85,
@@ -760,11 +877,11 @@
       "from": "REGLAS §11",
       "guarantee": "surface",
       "evidence": [
-        "src/catalogs/time.ts",
-        "src/surface/router.spec.ts",
-        "src/surface/router.ts",
-        "src/surface/walk.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/journal/clock.ts",
+        "src/surface/router/router.spec.ts",
+        "src/surface/router/router.ts",
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -772,7 +889,10 @@
       "rule": "Los títulos nunca laten",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 87,
@@ -793,21 +913,30 @@
       "rule": "Cambiar de lugar es un corte seco",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/boot.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/boot.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 90,
       "rule": "La actividad se muestra con su propio dato (contador)",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": ["src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 91,
       "rule": "Late la palabra: fundido de 1,6 s, por pasos de color en la terminal",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": ["src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/acts/walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 92,
@@ -822,12 +951,12 @@
       "from": "REGLAS §12",
       "guarantee": "compose",
       "evidence": [
-        "src/catalogs/addressing.ts",
+        "src/texts/addressing.ts",
         "src/tools/promises.ts",
-        "src/surface/bridge/asking-parts.ts",
-        "src/programs/promised.ts",
-        "src/programs/own-words.spec.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/surface/bridge/questions/asking-parts.ts",
+        "src/checks/promises/cases/promised.ts",
+        "src/tools/own-words.spec.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -849,7 +978,10 @@
       "rule": "Las acciones destructivas piden confirmación",
       "from": "REGLAS §12",
       "guarantee": "compose",
-      "evidence": ["src/tools/promises.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/tools/promises.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 97,
@@ -859,7 +991,7 @@
       "evidence": [
         "src/doors/terminal/cells.ts",
         "src/doors/terminal/paint.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -867,14 +999,20 @@
       "rule": "Terminal: contenido hasta 76, en angosto todo el ancho",
       "from": "REGLAS §14",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 99,
       "rule": "Filas y menú: elipsis en dato o descripción; el nombre manda",
       "from": "REGLAS §14",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/thread.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 100,
@@ -888,7 +1026,11 @@
       "rule": "LEYES 1: toda acción lleva propósito",
       "from": "LEYES 1",
       "guarantee": "type",
-      "evidence": ["src/surface/lists.ts", "src/tools/promises.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/menus/lists.ts",
+        "src/tools/promises.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 102,
@@ -896,14 +1038,14 @@
       "from": "LEYES 2",
       "guarantee": "compose",
       "evidence": [
-        "src/programs/promised-keys.ts",
-        "src/surface/bridge/asking-back.ts",
-        "src/surface/bridge/asking-parts.ts",
-        "src/surface/bridge/house-tools.ts",
-        "src/surface/contract.ts",
-        "src/surface/lists.ts",
+        "src/checks/promises/promised-keys.ts",
+        "src/surface/bridge/questions/asking-back.ts",
+        "src/surface/bridge/questions/asking-parts.ts",
+        "src/surface/bridge/assembly/house-tools.ts",
+        "src/surface/contract/contract.ts",
+        "src/surface/menus/lists.ts",
         "src/tools/promises.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -911,7 +1053,10 @@
       "rule": "LEYES 3: las acciones viven en un catálogo único",
       "from": "LEYES 3",
       "guarantee": "compose",
-      "evidence": ["src/surface/bridge/house-tools.ts", "src/doors/socket/same-screens.spec.ts"]
+      "evidence": [
+        "src/surface/bridge/assembly/house-tools.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
+      ]
     },
     {
       "id": 104,
@@ -919,12 +1064,12 @@
       "from": "LEYES 4",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/promised-off.ts",
-        "src/surface/availability/action-off.ts",
+        "src/checks/promises/off/promised-off.ts",
+        "src/surface/bridge/acts/action-off.ts",
         "src/tools/execute.ts",
-        "src/programs/promised-walk.ts",
+        "src/checks/promises/walk/promised-walk.ts",
         "src/tools/promises.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -933,10 +1078,10 @@
       "from": "LEYES 5",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/promised-off.ts",
-        "src/programs/promised-notices.ts",
-        "src/surface/bridge/program-acts.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/checks/promises/off/promised-off.ts",
+        "src/checks/promises/menu/promised-notices.ts",
+        "src/surface/bridge/acts/program-acts.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -945,9 +1090,9 @@
       "from": "LEYES 6",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/promised-keys.ts",
-        "src/programs/promised-walk.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/checks/promises/promised-keys.ts",
+        "src/checks/promises/walk/promised-walk.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -955,28 +1100,42 @@
       "rule": "LEYES 7: ninguna spec a mano, se derivan de los casos",
       "from": "LEYES 7",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-walk.ts", "src/programs/promised.ts", "src/tools/promises.ts"]
+      "evidence": [
+        "src/checks/promises/walk/promised-walk.ts",
+        "src/checks/promises/cases/promised.ts",
+        "src/tools/promises.ts"
+      ]
     },
     {
       "id": 108,
       "rule": "LEYES 8: Atención para quienes tienen al menos una acción de la herramienta y Actividad de toda la casa salvo la propia, en los dos menús",
       "from": "LEYES 8",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-notices.ts", "src/surface/bridge/notices.ts", "src/surface/lists.ts"]
+      "evidence": [
+        "src/checks/promises/menu/promised-notices.ts",
+        "src/surface/bridge/views/notices.ts",
+        "src/surface/menus/lists.ts"
+      ]
     },
     {
       "id": 109,
       "rule": "LEYES 9: viaja el estado; un router único para todos los renderers",
       "from": "LEYES 9",
       "guarantee": "spec",
-      "evidence": ["src/surface/router.spec.ts", "src/surface/router.ts"]
+      "evidence": [
+        "src/surface/router/router.spec.ts",
+        "src/surface/router/router.ts"
+      ]
     },
     {
       "id": 110,
       "rule": "LEYES 10: un registro escrito solo para constancia no pide atención",
       "from": "LEYES 10",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised.ts", "src/tools/tools.ts"]
+      "evidence": [
+        "src/checks/promises/cases/promised.ts",
+        "src/tools/start.ts"
+      ]
     },
     {
       "id": 111,
@@ -984,10 +1143,10 @@
       "from": "LEYES 11",
       "guarantee": "compose",
       "evidence": [
-        "src/surface/bridge/asking-back.ts",
-        "src/surface/bridge/asking-parts.ts",
-        "src/surface/bridge/asking.spec.ts",
-        "src/surface/contract.ts"
+        "src/surface/bridge/questions/asking-back.ts",
+        "src/surface/bridge/questions/asking-parts.ts",
+        "src/surface/bridge/questions/asking.spec.ts",
+        "src/surface/contract/contract.ts"
       ]
     },
     {
@@ -1002,7 +1161,11 @@
       "rule": "LEYES 13: buscar es un modo de los menús",
       "from": "LEYES 13",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-find.ts", "src/surface/finding.ts", "src/surface/step.ts"]
+      "evidence": [
+        "src/checks/promises/menu/promised-find.ts",
+        "src/surface/menus/finding.ts",
+        "src/surface/router/step.ts"
+      ]
     },
     {
       "id": 114,
@@ -1010,7 +1173,7 @@
       "from": "LEYES 7",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/program-checks.ts",
+        "src/checks/program-checks.ts",
         "tests/program/run.ts",
         "tests/program/registration.ts",
         "tests/program/parts.ts",
@@ -1031,21 +1194,30 @@
       "rule": "El nombre de una acción es corto y en minúscula: un verbo sobre su cosa, y lo que confirma es un solo verbo",
       "from": "Franco 11/11",
       "guarantee": "compose",
-      "evidence": ["src/tools/promises.ts"]
+      "evidence": [
+        "src/tools/promises.ts"
+      ]
     },
     {
       "id": 117,
       "rule": "Un dato con forma solo acepta lo que entra en ella: declararlo como texto libre hace que el programa no arranque",
       "from": "LEYES 11 · Franco 11/11",
       "guarantee": "compose",
-      "evidence": ["src/surface/bridge/asking-parts.ts", "src/surface/masks.ts", "src/catalogs/fields.ts"]
+      "evidence": [
+        "src/surface/bridge/questions/asking-parts.ts",
+        "src/surface/formats/masks.ts",
+        "src/fields/fields.ts"
+      ]
     },
     {
       "id": 118,
       "rule": "Lo que se escribió con forma (CUIT, DNI) se lee siempre con esa forma",
       "from": "Franco 11/11",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-shapes.ts", "src/programs/promised.ts"]
+      "evidence": [
+        "src/checks/promises/cases/promised-shapes.ts",
+        "src/checks/promises/cases/promised.ts"
+      ]
     },
     {
       "id": 119,
@@ -1053,10 +1225,10 @@
       "from": "11/11 · consecuencia de «una fila que se puede cambiar abre su acción» y de LEYES 5",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/promised-off.ts",
-        "src/programs/promised-walk.ts",
-        "src/surface/lists.ts",
-        "src/programs/promised-data.spec.ts"
+        "src/checks/promises/off/promised-off.ts",
+        "src/checks/promises/walk/promised-walk.ts",
+        "src/surface/menus/lists.ts",
+        "src/checks/promises/cases/promised-data.spec.ts"
       ]
     },
     {
@@ -1065,10 +1237,10 @@
       "from": "11/11 · visto al unir un pago sin ventas",
       "guarantee": "surface",
       "evidence": [
-        "src/surface/walk.ts",
-        "src/surface/step.ts",
-        "src/surface/bridge/house-tools.ts",
-        "src/programs/promised-also.spec.ts"
+        "src/surface/acts/walk.ts",
+        "src/surface/router/step.ts",
+        "src/surface/bridge/assembly/house-tools.ts",
+        "src/checks/promises/cases/promised-also.spec.ts"
       ]
     },
     {
@@ -1085,11 +1257,11 @@
       "from": "11/11 · CUIT de un cliente con dígito verificador equivocado",
       "guarantee": "derived",
       "evidence": [
-        "src/catalogs/fields.ts",
+        "src/fields/fields.ts",
         "src/tools/promises.ts",
-        "src/surface/step.ts",
-        "src/programs/promised-walk.ts",
-        "src/programs/promised-fields.spec.ts"
+        "src/surface/router/step.ts",
+        "src/checks/promises/walk/promised-walk.ts",
+        "src/checks/promises/cases/promised-fields.spec.ts"
       ]
     },
     {
@@ -1097,14 +1269,21 @@
       "rule": "Una fila que ya lleva todo lo que su acción toma, y que la acción va a rechazar, está apagada diciendo por qué: a nadie se le ofrece lo que ya se sabe que no se puede",
       "from": "LEYES 4 · 11/11, sabotaje que sobrevivía en Equipo",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-walk.ts", "src/programs/promised-known.spec.ts"]
+      "evidence": [
+        "src/checks/promises/walk/promised-walk.ts",
+        "src/checks/promises/cases/promised-known.spec.ts"
+      ]
     },
     {
       "id": 124,
       "rule": "Toda fila que arranca una acción se nombra como una acción: en minúscula, sin puntuación y corta, también la que una pantalla propia nombra a mano",
       "from": "11/11 · decisión de Franco «minúscula»; visto en Editar una venta",
       "guarantee": "derived",
-      "evidence": ["src/surface/bridge/program-acts.ts", "src/tools/promises.ts", "src/programs/promised-menus.spec.ts"]
+      "evidence": [
+        "src/surface/bridge/acts/program-acts.ts",
+        "src/tools/promises.ts",
+        "src/checks/promises/cases/promised-menus.spec.ts"
+      ]
     },
     {
       "id": 125,
@@ -1112,15 +1291,15 @@
       "from": "11/11 · Franco: «si estoy cambiando algo, tengo que ver el valor actual… lo seleccionado se deshabilita. Es un comportamiento del componente»; 12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/screen.ts",
-        "src/surface/step.ts",
-        "src/surface/walk.ts",
-        "src/programs/promised-menus.spec.ts",
+        "src/surface/session/screen.ts",
+        "src/surface/router/step.ts",
+        "src/surface/acts/walk.ts",
+        "src/checks/promises/cases/promised-menus.spec.ts",
         "src/doors/terminal/house-screens.spec.ts",
-        "src/surface/current-field.ts",
-        "src/programs/answers/current.ts",
-        "src/programs/promised-current.spec.ts",
-        "src/programs/promised-current-shapes.spec.ts"
+        "src/surface/session/current-field.ts",
+        "src/checks/promises/answers/current.ts",
+        "src/checks/promises/cases/promised-current.spec.ts",
+        "src/checks/promises/cases/promised-current-shapes.spec.ts"
       ]
     },
     {
@@ -1129,19 +1308,19 @@
       "from": "11/11 · revisión de lógica: importes de 10^17, cantidad 1e300, nombres de 100.000 letras",
       "guarantee": "derived",
       "evidence": [
-        "src/catalogs/fields.ts",
-        "src/surface/bridge/asking-parts.ts",
+        "src/fields/fields.ts",
+        "src/surface/bridge/questions/asking-parts.ts",
         "src/tools/schema-breaks.ts",
-        "src/programs/promised-laws.ts",
-        "src/surface/bridge/asking.spec.ts",
-        "src/catalogs/cleanup-three.spec.ts",
-        "src/catalogs/field-validity.spec.ts",
-        "src/programs/shared-field-validation.spec.ts",
-        "src/programs/opening-availability.spec.ts",
-        "src/programs/opening-kit.spec.ts",
-        "src/programs/opening-context.spec.ts",
-        "src/journal/legacy-visible.spec.ts",
-        "src/journal/legacy-reopen.spec.ts",
+        "src/checks/promises/cases/promised-laws.ts",
+        "src/surface/bridge/questions/asking.spec.ts",
+        "src/fields/cleanup-three.spec.ts",
+        "src/fields/field-validity.spec.ts",
+        "src/checks/promises/shared-field-validation.spec.ts",
+        "src/fields/opening-availability.spec.ts",
+        "src/checks/promises/opening-kit.spec.ts",
+        "src/fields/opening-context.spec.ts",
+        "src/house/legacy-visible.spec.ts",
+        "src/house/legacy-reopen.spec.ts",
         "tests/laws/cleanup-four.spec.ts"
       ]
     },
@@ -1150,21 +1329,31 @@
       "rule": "Por las otras puertas, la base rechaza lo igual a today antes de correr: no se escribe un hecho que no cambia nada.",
       "from": "11/11 · revisión de lógica: editar con los mismos valores dejaba marca de edición",
       "guarantee": "derived",
-      "evidence": ["src/tools/promises.ts", "src/programs/promised-laws.ts"]
+      "evidence": [
+        "src/tools/promises.ts",
+        "src/checks/promises/cases/promised-laws.ts"
+      ]
     },
     {
       "id": 128,
       "rule": "Lo que una acción pone a confirmar lo promete uno de sus casos, palabra por palabra, y el recorrido derivado lo compara",
       "from": "11/11 · revisión de lógica: la confirmación de «unir» nombraba otro pago",
       "guarantee": "derived",
-      "evidence": ["src/tools/promises.ts", "src/programs/promised-laws.ts", "src/programs/promised-walk.ts"]
+      "evidence": [
+        "src/tools/promises.ts",
+        "src/checks/promises/cases/promised-laws.ts",
+        "src/checks/promises/walk/promised-walk.ts"
+      ]
     },
     {
       "id": 129,
       "rule": "Un objeto abierto se lee siempre en los grupos que declaró su herramienta, en el mismo orden; un grupo sin nada lo dice. Un dato que ningún grupo tiene hace fallar la lectura",
       "from": "LEYES 14 · 11/11 · objetos: presentación y navegación",
       "guarantee": "spec",
-      "evidence": ["src/surface/bridge/presented.ts", "src/surface/bridge/presented.spec.ts"]
+      "evidence": [
+        "src/surface/bridge/views/presented.ts",
+        "src/surface/bridge/views/presented.spec.ts"
+      ]
     },
     {
       "id": 130,
@@ -1172,9 +1361,9 @@
       "from": "11/11 · objetos: presentación y navegación",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/promised-off.ts",
-        "src/surface/lists.ts",
-        "src/surface/bridge/window-neighbors.spec.ts"
+        "src/checks/promises/off/promised-off.ts",
+        "src/surface/menus/lists.ts",
+        "src/journal/window-neighbors.spec.ts"
       ]
     },
     {
@@ -1182,7 +1371,10 @@
       "rule": "Ninguna pantalla propia de un programa dibuja un objeto: lo dibuja la base con lo que la herramienta declaró",
       "from": "11/11 · objetos: presentación y navegación",
       "guarantee": "surface",
-      "evidence": ["src/surface/bridge/house-tools.ts", "src/surface/bridge/presented.ts"]
+      "evidence": [
+        "src/surface/bridge/assembly/house-tools.ts",
+        "src/surface/bridge/views/presented.ts"
+      ]
     },
     {
       "id": 132,
@@ -1190,9 +1382,9 @@
       "from": "LEYES 15 · 11/11 · plan de Capibara: el valor sugerido",
       "guarantee": "spec",
       "evidence": [
-        "src/surface/walking.ts",
-        "src/programs/promised-data.spec.ts",
-        "src/doors/terminal/terminal.spec.ts"
+        "src/surface/acts/walking.ts",
+        "src/checks/promises/cases/promised-data.spec.ts",
+        "src/surface/session/terminal.spec.ts"
       ]
     },
     {
@@ -1201,10 +1393,10 @@
       "from": "LEYES 16 · 11/11 · obra de Capibara: canales en Ventas, publicaciones en Productos, documentos en Identidades",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/lists.ts",
-        "src/surface/bridge/house-tools.ts",
-        "src/surface/bridge/house-tools.spec.ts",
-        "src/programs/promised-inside.spec.ts"
+        "src/surface/menus/lists.ts",
+        "src/surface/bridge/assembly/house-tools.ts",
+        "src/surface/bridge/assembly/house-tools.spec.ts",
+        "src/checks/promises/cases/promised-inside.spec.ts"
       ]
     },
     {
@@ -1212,7 +1404,10 @@
       "rule": "Un objeto nunca se elige para lo que se le hace a él mismo: no figura en la lista de la que elige una acción sobre ese objeto",
       "from": "11/11 · obra de Capibara: «unir» ofrecía a la misma identidad",
       "guarantee": "spec",
-      "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/bridge/program-acts.spec.ts"]
+      "evidence": [
+        "src/surface/bridge/acts/program-acts.ts",
+        "src/surface/bridge/acts/program-acts.spec.ts"
+      ]
     },
     {
       "id": 135,
@@ -1220,10 +1415,10 @@
       "from": "11/11 · obra de Capibara: en una terminal chica los grupos de un objeto quedaban fuera de alcance",
       "guarantee": "spec",
       "evidence": [
-        "src/surface/step.ts",
-        "src/surface/window.ts",
+        "src/surface/router/step.ts",
+        "src/surface/session/window.ts",
         "src/doors/terminal/house-screens.spec.ts",
-        "src/surface/reading.spec.ts"
+        "src/surface/menus/reading.spec.ts"
       ]
     },
     {
@@ -1232,10 +1427,10 @@
       "from": "11/11 · obra de Capibara: crear la identidad desde la pregunta «Cliente» de una venta",
       "guarantee": "spec",
       "evidence": [
-        "src/catalogs/fields.ts",
-        "src/surface/walking.ts",
-        "src/surface/bridge/house-tools.ts",
-        "src/programs/promised-also.spec.ts"
+        "src/fields/fields.ts",
+        "src/surface/acts/walking.ts",
+        "src/surface/bridge/assembly/house-tools.ts",
+        "src/checks/promises/cases/promised-also.spec.ts"
       ]
     },
     {
@@ -1244,12 +1439,12 @@
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/guards/answer-status.ts",
-        "src/surface/walking.ts",
-        "src/surface/walk.ts",
-        "src/programs/promised-entry.ts",
-        "src/programs/promised-entry.spec.ts",
-        "src/surface/entry-status.spec.ts"
+        "src/surface/session/answer-status.ts",
+        "src/surface/acts/walking.ts",
+        "src/surface/acts/walk.ts",
+        "src/checks/promises/answers/promised-entry.ts",
+        "src/checks/promises/answers/promised-entry.spec.ts",
+        "src/fields/entry-status.spec.ts"
       ]
     },
     {
@@ -1259,9 +1454,9 @@
       "guarantee": "spec",
       "evidence": [
         "src/tools/promises.ts",
-        "src/surface/bridge/asking.ts",
-        "src/surface/walking.ts",
-        "src/programs/promised-also.spec.ts"
+        "src/surface/bridge/questions/asking.ts",
+        "src/surface/acts/walking.ts",
+        "src/checks/promises/cases/promised-also.spec.ts"
       ]
     },
     {
@@ -1269,7 +1464,10 @@
       "rule": "Todo objeto cierra con su Registro: todo lo que se le hizo, lo último primero, con quién y cuándo, leído del registro mismo. Nada de lo hecho sobre un objeto queda fuera de la vista",
       "from": "11/11 · ronda 1 de escépticos, pantallas M19: «Archivó» se perdía al volver a activar",
       "guarantee": "spec",
-      "evidence": ["src/surface/bridge/house-tools.ts", "src/doors/terminal/house-screens.spec.ts"]
+      "evidence": [
+        "src/surface/bridge/assembly/house-tools.ts",
+        "src/doors/terminal/house-screens.spec.ts"
+      ]
     },
     {
       "id": 140,
@@ -1277,9 +1475,9 @@
       "from": "11/11 · ronda 1 de escépticos, pantallas B14; 13/11 · auditoría A12: la venta de mostrador decía «sin emitir» y debajo «facturada en el acto»",
       "guarantee": "spec",
       "evidence": [
-        "src/surface/bridge/actions/asked-act.ts",
-        "src/surface/walk.ts",
-        "src/programs/promised-sure.spec.ts"
+        "src/surface/bridge/acts/asked-act.ts",
+        "src/surface/acts/walk.ts",
+        "src/checks/promises/cases/promised-sure.spec.ts"
       ]
     },
     {
@@ -1288,10 +1486,10 @@
       "from": "11/11 · obra de Capibara: el tipo de documento solo cuando el número tiene once dígitos",
       "guarantee": "spec",
       "evidence": [
-        "src/catalogs/fields.ts",
-        "src/surface/bridge/asking.ts",
-        "src/surface/bridge/asking-back.ts",
-        "src/surface/bridge/asking.spec.ts"
+        "src/fields/fields.ts",
+        "src/surface/bridge/questions/asking.ts",
+        "src/surface/bridge/questions/asking-back.ts",
+        "src/surface/bridge/questions/asking.spec.ts"
       ]
     },
     {
@@ -1299,14 +1497,22 @@
       "rule": "Un día que casi siempre es hoy abre sugiriendo hoy, como lo cuenta el país del programa: Enter lo acepta y escribir lo reemplaza",
       "from": "11/11 · obra de Capibara: las fechas de una venta y de una compra se pedían vacías",
       "guarantee": "spec",
-      "evidence": ["src/catalogs/fields.ts", "src/surface/bridge/asking-parts.ts", "src/surface/bridge/asking.spec.ts"]
+      "evidence": [
+        "src/fields/fields.ts",
+        "src/surface/bridge/questions/asking-parts.ts",
+        "src/surface/bridge/questions/asking.spec.ts"
+      ]
     },
     {
       "id": 143,
       "rule": "Quien administra una casa puede sacar a alguien de ella (nunca a sí mismo): lo que escribió queda y su acceso se va; y puede pasarle la administración a otro de los que están. Nadie más puede hacer ninguna de las dos cosas",
       "from": "11/11 · obra de Capibara: «sacar» un usuario solo le quitaba las herramientas",
       "guarantee": "spec",
-      "evidence": ["src/house/house.ts", "src/journal/events.ts", "src/house/grants.spec.ts"]
+      "evidence": [
+        "src/house/members.ts",
+        "src/journal/facts.ts",
+        "src/house/grants.spec.ts"
+      ]
     },
     {
       "id": 144,
@@ -1314,10 +1520,10 @@
       "from": "11/11 · obra de Capibara: Fiscal y Organización traían cada una su pantalla, copiada, para repartir sus datos en grupos",
       "guarantee": "spec",
       "evidence": [
-        "src/surface/bridge/house-ports.ts",
-        "src/surface/bridge/any-tool.ts",
-        "src/surface/bridge/presented.ts",
-        "src/programs/promised-data.spec.ts"
+        "src/surface/bridge/ports/house-ports.ts",
+        "src/surface/bridge/views/any-tool.ts",
+        "src/surface/bridge/views/presented.ts",
+        "src/checks/promises/cases/promised-data.spec.ts"
       ]
     },
     {
@@ -1327,8 +1533,8 @@
       "guarantee": "spec",
       "evidence": [
         "src/doors/terminal/thread.ts",
-        "src/surface/bridge/notices.ts",
-        "src/doors/terminal/destinations.spec.ts",
+        "src/surface/bridge/views/notices.ts",
+        "src/surface/session/destinations.spec.ts",
         "src/doors/terminal/house-screens.spec.ts"
       ]
     },
@@ -1337,7 +1543,10 @@
       "rule": "Lo que una acción pone a confirmar sabe qué día es: recibe el instante en que se pregunta",
       "from": "11/11 · obra de Capibara: la vista previa decía «Fecha de emisión hoy»",
       "guarantee": "type",
-      "evidence": ["src/tools/promises.ts", "src/surface/bridge/program-acts.ts"]
+      "evidence": [
+        "src/tools/promises.ts",
+        "src/surface/bridge/acts/program-acts.ts"
+      ]
     },
     {
       "id": 147,
@@ -1346,8 +1555,8 @@
       "guarantee": "spec",
       "evidence": [
         "src/tools/execute.ts",
-        "src/journal/events.ts",
-        "src/surface/bridge/house-tools.ts",
+        "src/journal/facts.ts",
+        "src/surface/bridge/assembly/house-tools.ts",
         "src/tools/execute.spec.ts",
         "src/doors/terminal/house-screens.spec.ts"
       ]
@@ -1357,7 +1566,10 @@
       "rule": "Lo que una herramienta lee de sí misma se lee en el instante de quien mira, igual que una cosa: ninguna herramienta tiene reloj propio",
       "from": "11/11 · obra de Capibara: Resumen no sabía qué día era «hoy»",
       "guarantee": "spec",
-      "evidence": ["src/surface/bridge/any-tool.ts", "src/surface/bridge/any-tool.spec.ts"]
+      "evidence": [
+        "src/surface/bridge/views/any-tool.ts",
+        "src/surface/bridge/views/any-tool.spec.ts"
+      ]
     },
     {
       "id": 149,
@@ -1365,9 +1577,9 @@
       "from": "11/11 · obra de Capibara: el día de un cobro o de una entrega futuros se rechazaba recién al guardar",
       "guarantee": "spec",
       "evidence": [
-        "src/catalogs/fields.ts",
-        "src/surface/bridge/asking-parts.ts",
-        "src/surface/bridge/asking-days.spec.ts"
+        "src/fields/fields.ts",
+        "src/surface/bridge/questions/asking-parts.ts",
+        "src/surface/bridge/questions/asking-days.spec.ts"
       ]
     },
     {
@@ -1375,7 +1587,10 @@
       "rule": "La barra de una acción sobre una cosa dice qué se hace y a cuál: «Corregir · s1»",
       "from": "11/11 · ronda 1 de escépticos: «Productos» en la barra no decía a quién se le daba",
       "guarantee": "spec",
-      "evidence": ["src/surface/bridge/program-acts.ts", "src/programs/promised-menus.spec.ts"]
+      "evidence": [
+        "src/surface/bridge/acts/program-acts.ts",
+        "src/checks/promises/cases/promised-menus.spec.ts"
+      ]
     },
     {
       "id": 151,
@@ -1383,12 +1598,12 @@
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/guards/answer-status.ts",
-        "src/surface/walking.ts",
-        "src/surface/walk.ts",
-        "src/programs/promised-entry.ts",
-        "src/programs/promised-entry.spec.ts",
-        "src/surface/entry-status.spec.ts"
+        "src/surface/session/answer-status.ts",
+        "src/surface/acts/walking.ts",
+        "src/surface/acts/walk.ts",
+        "src/checks/promises/answers/promised-entry.ts",
+        "src/checks/promises/answers/promised-entry.spec.ts",
+        "src/fields/entry-status.spec.ts"
       ]
     },
     {
@@ -1396,14 +1611,20 @@
       "rule": "Lo que una acción rechaza en una pregunta queda en esa pregunta también en el recorrido derivado de cada caso: no se pregunta ni se confirma nada más",
       "from": "11/11 · obra de Capibara: un rechazo a mitad de camino seguía escribiendo en la misma pregunta",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-walk.ts", "tests/support/charging-shop.ts"]
+      "evidence": [
+        "src/checks/promises/walk/promised-walk.ts",
+        "tests/support/charging-shop.ts"
+      ]
     },
     {
       "id": 153,
       "rule": "Una acción que no pregunta nada se confirma diciendo para qué es (y que no se deshace, si no se deshace): lo que se hace y a qué cosa ya lo dice la barra, y no se repite",
       "from": "12/11 · obra de Capibara: «Deshacer entrega · Envío 1» se leía dos veces, en la barra y en la confirmación",
       "guarantee": "spec",
-      "evidence": ["src/surface/bridge/actions/asked-act.ts", "src/programs/promised-sure.spec.ts"]
+      "evidence": [
+        "src/surface/bridge/acts/asked-act.ts",
+        "src/checks/promises/cases/promised-sure.spec.ts"
+      ]
     },
     {
       "id": 154,
@@ -1411,14 +1632,14 @@
       "from": "12/11 · ronda 2 de escépticos de Capibara: dos acciones a la vez escribían el mismo número, el pliegue fallaba después de guardar y la organización no volvía a abrir",
       "guarantee": "spec",
       "evidence": [
-        "src/adapters/storage/journal-store.ts",
+        "src/storage/journal-store.ts",
         "src/journal/bus.ts",
         "src/journal/projections.ts",
         "src/tools/execute.ts",
-        "src/adapters/storage/journal-whole.spec.ts",
+        "src/storage/journal-whole.spec.ts",
         "src/tools/made.spec.ts",
-        "src/programs/house-runtime.ts",
-        "src/programs/house-runtime.spec.ts"
+        "src/runtime/house-runtime.ts",
+        "src/runtime/house-runtime.spec.ts"
       ]
     },
     {
@@ -1426,14 +1647,21 @@
       "rule": "Un día es un día del calendario: uno que no existe (el 30 de febrero) se rechaza donde se escribe y por cualquier otra puerta antes de que la acción corra",
       "from": "12/11 · ronda 2 de escépticos de Capibara: un cobro del «45/13/2025» se guardaba y las reglas lo ignoraban",
       "guarantee": "spec",
-      "evidence": ["src/catalogs/fields.ts", "src/surface/bridge/asking-days.spec.ts"]
+      "evidence": [
+        "src/fields/fields.ts",
+        "src/surface/bridge/questions/asking-days.spec.ts"
+      ]
     },
     {
       "id": 156,
       "rule": "Lo que una pregunta dice y no entra arriba de sus opciones se lee con la misma tecla que sube desde la primera opción, una ventana por vez, diciendo cuánto queda arriba y abajo; cualquier tecla que baja vuelve a las opciones. Nadie confirma lo que no pudo leer",
       "from": "12/11 · ronda 2 de escépticos de Capibara: la vista previa de una factura perdía su encabezado en una terminal de 16 filas",
       "guarantee": "spec",
-      "evidence": ["src/surface/walking.ts", "src/doors/terminal/thread.ts", "src/doors/terminal/house-keys.spec.ts"]
+      "evidence": [
+        "src/surface/acts/walking.ts",
+        "src/doors/terminal/thread.ts",
+        "src/doors/terminal/house-keys.spec.ts"
+      ]
     },
     {
       "id": 157,
@@ -1441,10 +1669,10 @@
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/current-field.ts",
-        "src/surface/screen.ts",
-        "src/programs/answers/current.ts",
-        "src/programs/promised-current.spec.ts"
+        "src/surface/session/current-field.ts",
+        "src/surface/session/screen.ts",
+        "src/checks/promises/answers/current.ts",
+        "src/checks/promises/cases/promised-current.spec.ts"
       ]
     },
     {
@@ -1453,12 +1681,12 @@
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/guards/answer-status.ts",
-        "src/surface/walking.ts",
-        "src/surface/walk.ts",
-        "src/programs/promised-entry.ts",
-        "src/programs/promised-entry.spec.ts",
-        "src/surface/entry-status.spec.ts"
+        "src/surface/session/answer-status.ts",
+        "src/surface/acts/walking.ts",
+        "src/surface/acts/walk.ts",
+        "src/checks/promises/answers/promised-entry.ts",
+        "src/checks/promises/answers/promised-entry.spec.ts",
+        "src/fields/entry-status.spec.ts"
       ]
     },
     {
@@ -1466,14 +1694,20 @@
       "rule": "Desde el Menú, buscar encuentra también las herramientas por su nombre, vivan donde vivan, antes de lo que cada una encuentra",
       "from": "12/11 · ronda 2 de escépticos de Capibara: buscar «fis» no encontraba Fiscal",
       "guarantee": "spec",
-      "evidence": ["src/surface/finding.ts", "src/doors/terminal/house-keys.spec.ts"]
+      "evidence": [
+        "src/surface/menus/finding.ts",
+        "src/doors/terminal/house-keys.spec.ts"
+      ]
     },
     {
       "id": 160,
       "rule": "Lo que una acción contesta en varias líneas dice qué hizo en la primera («Verbo · Objeto · Detalle»); lo demás es lo que muestra y se lee como se escribió: también se promete en los casos",
       "from": "12/11 · lanes de Capibara: un impreso y un catálogo importado no se podían prometer en un caso porque la respuesta tenía más de una línea",
       "guarantee": "spec",
-      "evidence": ["src/programs/promised.ts", "src/programs/own-words.spec.ts"]
+      "evidence": [
+        "src/checks/promises/cases/promised.ts",
+        "src/tools/own-words.spec.ts"
+      ]
     },
     {
       "id": 161,
@@ -1483,7 +1717,7 @@
       "evidence": [
         "src/tools/tool-contract.ts",
         "src/tools/execute.ts",
-        "src/surface/bridge/program-acts.ts",
+        "src/surface/bridge/acts/program-acts.ts",
         "src/tools/made.spec.ts"
       ]
     },
@@ -1492,7 +1726,10 @@
       "rule": "Lo que se contestó se lee al lado de lo que se preguntó; debajo, cuando lo preguntado es un bloque de varias líneas: la respuesta nunca se lee como el final del último renglón del bloque",
       "from": "12/11 · caminando Capibara: después de emitir, la vista previa terminaba en «fisco de prueba emitir»",
       "guarantee": "spec",
-      "evidence": ["src/surface/walk.ts", "src/surface/walk.spec.ts"]
+      "evidence": [
+        "src/surface/acts/walk.ts",
+        "src/surface/acts/walk.spec.ts"
+      ]
     },
     {
       "id": 163,
@@ -1501,9 +1738,9 @@
       "guarantee": "derived",
       "evidence": [
         "src/tools/so-far.ts",
-        "src/surface/bridge/picked.ts",
-        "src/programs/promised-choices.ts",
-        "src/programs/promised-choices.spec.ts"
+        "src/surface/bridge/picking/picked.ts",
+        "src/checks/promises/choices/promised-choices.ts",
+        "src/checks/promises/choices/promised-choices.spec.ts"
       ]
     },
     {
@@ -1511,7 +1748,11 @@
       "rule": "Lo que una herramienta dice junto a su nombre nunca es un número suelto: una cuenta dice qué cuenta («3 ventas»)",
       "from": "12/11 · ronda 2 de escépticos de Capibara (M42) y caminata: «cobros 1», «normas 13», «usuarios 1» en el Menú",
       "guarantee": "spec",
-      "evidence": ["src/programs/promised.ts", "tests/support/shop.ts", "src/programs/promised.spec.ts"]
+      "evidence": [
+        "src/checks/promises/cases/promised.ts",
+        "tests/support/shop.ts",
+        "src/checks/promises/cases/promised.spec.ts"
+      ]
     },
     {
       "id": 165,
@@ -1519,22 +1760,22 @@
       "from": "12/11 · obra de Capibara: en una noche cambiaron decenas de hechos; el día que haya datos reales, un cambio que no los lea tiene que frenar en la compuerta, no en la organización",
       "guarantee": "spec",
       "evidence": [
-        "src/programs/kept-journals.ts",
-        "src/programs/kept-journals.spec.ts",
+        "src/checks/kept/kept-journals.ts",
+        "src/checks/kept/kept-journals.spec.ts",
         "tests/program/run.ts",
         "tests/program/registration.ts",
         "tests/program/parts.ts",
         "tests/laws/program-parts.spec.ts",
         "tests/laws/program-loading.spec.ts",
-        "src/programs/kept-upgrade.ts",
-        "src/programs/upgrade-kept.spec.ts",
-        "src/programs/upgrade-evidence.spec.ts",
-        "src/programs/code-upgrade.spec.ts",
-        "src/programs/code-upgrade-check.ts",
-        "src/programs/upgrade-comparison.ts",
-        "src/programs/kept-names.ts",
-        "src/programs/renew-kept.ts",
-        "src/programs/renew-kept.spec.ts",
+        "src/checks/kept/kept-upgrade.ts",
+        "src/checks/kept/upgrade-kept.spec.ts",
+        "src/storage/upgrade-evidence.spec.ts",
+        "src/runtime/code-upgrade.spec.ts",
+        "src/checks/code/code-upgrade-check.ts",
+        "src/checks/kept/upgrade-comparison.ts",
+        "src/checks/kept/kept-names.ts",
+        "src/checks/kept/renew-kept.ts",
+        "src/checks/kept/renew-kept.spec.ts",
         "tests/program/manifest.ts",
         "tests/program/setup.ts",
         "tests/laws/program-manifest.spec.ts",
@@ -1550,7 +1791,7 @@
         "src/tools/so-far.ts",
         "src/tools/promises.ts",
         "src/tools/promises.spec.ts",
-        "src/programs/promised-also.spec.ts"
+        "src/checks/promises/cases/promised-also.spec.ts"
       ]
     },
     {
@@ -1558,14 +1799,21 @@
       "rule": "Lo que se contestó después de una respuesta que cambia queda debajo de la pregunta que contestó: una respuesta puede decidir si un campo posterior se pregunta, y lo que contestaba una pregunta que ya no se hace se va",
       "from": "12/11 · escéptico de la base, ronda 3: al editar un documento de 11 a 8 dígitos el nombre recibía la respuesta del tipo",
       "guarantee": "spec",
-      "evidence": ["src/surface/kept-answers.ts", "src/surface/walking.ts", "src/surface/kept-answers.spec.ts"]
+      "evidence": [
+        "src/surface/session/kept-answers.ts",
+        "src/surface/acts/walking.ts",
+        "src/surface/session/kept-answers.spec.ts"
+      ]
     },
     {
       "id": 168,
       "rule": "En una fila que se elige el nombre se lee entero y lo que se corta es lo de al lado; en una fila que se lee, el dato se lee entero y lo que se corta es su nombre",
       "from": "12/11 · tres lanes de Capibara lo resolvieron por separado contando columnas (el número de un comprobante, el nombre de una norma, un pedido de canal se cortaban a doce letras)",
       "guarantee": "spec",
-      "evidence": ["src/doors/terminal/thread.ts", "src/surface/resolve.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/thread.ts",
+        "src/surface/router/resolve.spec.ts"
+      ]
     },
     {
       "id": 169,
@@ -1573,10 +1821,10 @@
       "from": "12/11 · escéptico de la base, ronda 3: Enter abría una fila fuera de la vista; en 40×16 con ocho opciones no quedaba ni un renglón de la vista previa",
       "guarantee": "spec",
       "evidence": [
-        "src/surface/step.ts",
-        "src/surface/resolve.ts",
+        "src/surface/router/step.ts",
+        "src/surface/router/resolve.ts",
         "src/doors/terminal/thread.ts",
-        "src/surface/resolve.spec.ts"
+        "src/surface/router/resolve.spec.ts"
       ]
     },
     {
@@ -1585,16 +1833,16 @@
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/guards/answer-status.ts",
-        "src/surface/walking.ts",
-        "src/surface/walk.ts",
-        "src/programs/promised-entry.ts",
-        "src/programs/promised-entry.spec.ts",
-        "src/surface/entry-status.spec.ts",
-        "src/surface/bridge/asking-parts.ts",
-        "src/surface/bridge/asking-numbers.spec.ts",
+        "src/surface/session/answer-status.ts",
+        "src/surface/acts/walking.ts",
+        "src/surface/acts/walk.ts",
+        "src/checks/promises/answers/promised-entry.ts",
+        "src/checks/promises/answers/promised-entry.spec.ts",
+        "src/fields/entry-status.spec.ts",
+        "src/surface/bridge/questions/asking-parts.ts",
+        "src/surface/bridge/questions/asking-numbers.spec.ts",
         "tests/support/counting-shop.ts",
-        "src/surface/masks.ts",
+        "src/surface/formats/masks.ts",
         "src/doors/terminal/entry.ts"
       ]
     },
@@ -1603,7 +1851,10 @@
       "rule": "Buscar encuentra lo que empieza una palabra, y un número por como se lee («15» encuentra 00000015): lo escrito en el medio de una palabra no encuentra nada",
       "from": "12/11 · escéptico de pantallas, ronda 3: buscar «Ana» traía primero «canales» y «persona humana»",
       "guarantee": "spec",
-      "evidence": ["src/surface/finding.ts", "src/doors/terminal/house-search.spec.ts"]
+      "evidence": [
+        "src/surface/menus/finding.ts",
+        "src/doors/terminal/house-search.spec.ts"
+      ]
     },
     {
       "id": 172,
@@ -1611,10 +1862,10 @@
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/screen.ts",
-        "src/surface/bridge/program-acts.ts",
-        "src/programs/promised-walk.ts",
-        "src/programs/promised-current.spec.ts"
+        "src/surface/session/screen.ts",
+        "src/surface/bridge/acts/program-acts.ts",
+        "src/checks/promises/walk/promised-walk.ts",
+        "src/checks/promises/cases/promised-current.spec.ts"
       ]
     },
     {
@@ -1623,10 +1874,10 @@
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/current-field.ts",
-        "src/surface/walking.ts",
-        "src/programs/answers/current.ts",
-        "src/programs/promised-current.spec.ts"
+        "src/surface/session/current-field.ts",
+        "src/surface/acts/walking.ts",
+        "src/checks/promises/answers/current.ts",
+        "src/checks/promises/cases/promised-current.spec.ts"
       ]
     },
     {
@@ -1635,11 +1886,11 @@
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/guards/answer-status.ts",
-        "src/surface/step.ts",
-        "src/programs/promised-entry.ts",
-        "src/programs/promised-entry.spec.ts",
-        "src/surface/entry-status.spec.ts"
+        "src/surface/session/answer-status.ts",
+        "src/surface/router/step.ts",
+        "src/checks/promises/answers/promised-entry.ts",
+        "src/checks/promises/answers/promised-entry.spec.ts",
+        "src/fields/entry-status.spec.ts"
       ]
     },
     {
@@ -1648,12 +1899,12 @@
       "guarantee": "derived",
       "evidence": [
         "src/tools/so-far.ts",
-        "src/surface/bridge/picked.ts",
-        "src/programs/promised-choices.ts",
-        "src/programs/promised-choices.spec.ts",
-        "src/surface/guards/answer-status.ts",
-        "src/surface/screen.ts",
-        "src/surface/entry-status.spec.ts"
+        "src/surface/bridge/picking/picked.ts",
+        "src/checks/promises/choices/promised-choices.ts",
+        "src/checks/promises/choices/promised-choices.spec.ts",
+        "src/surface/session/answer-status.ts",
+        "src/surface/session/screen.ts",
+        "src/fields/entry-status.spec.ts"
       ],
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios"
     },
@@ -1662,9 +1913,9 @@
       "rule": "Un campo que elige una cosa, sin makes, declara en empty el motivo de no tener cosas elegibles; sin un motivo usable, el programa se rechaza al componer. none sigue siendo la opción de no elegir.",
       "guarantee": "compose",
       "evidence": [
-        "src/catalogs/fields.ts",
-        "src/surface/bridge/audit-fields.ts",
-        "src/programs/promised-availability.spec.ts"
+        "src/fields/fields.ts",
+        "src/surface/bridge/assembly/audit-fields.ts",
+        "src/checks/promises/off/promised-availability.spec.ts"
       ],
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios"
     },
@@ -1673,10 +1924,10 @@
       "rule": "Si la primera pregunta de una acción no tiene ninguna cosa elegible ni una fila disponible para crear, la acción queda apagada en el menú con el motivo del campo; la preferencia oculta la acción apagada.",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/bridge/picked.ts",
-        "src/surface/bridge/program-acts.ts",
-        "src/programs/promised-availability.ts",
-        "src/programs/promised-availability.spec.ts"
+        "src/surface/bridge/picking/picked.ts",
+        "src/surface/bridge/acts/program-acts.ts",
+        "src/checks/promises/off/promised-availability.ts",
+        "src/checks/promises/off/promised-availability.spec.ts"
       ],
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios"
     },
@@ -1685,7 +1936,12 @@
       "rule": "El código de run solo termina hecho o rechazado por una causa literal de outside, con un dato opcional tras punto medio. Una causa interna no compila; si llega en ejecución, la base lanza un defecto visible. Los rechazos previos siguen en refuses.",
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "type",
-      "evidence": ["src/tools/outside.ts", "src/tools/promises.ts", "src/tools/execute.ts", "src/tools/outside.spec.ts"]
+      "evidence": [
+        "src/tools/outside.ts",
+        "src/tools/promises.ts",
+        "src/tools/execute.ts",
+        "src/tools/outside.spec.ts"
+      ]
     },
     {
       "id": 179,
@@ -1693,14 +1949,14 @@
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/promised-walk.ts",
-        "src/programs/promised-route.ts",
-        "src/programs/promised-result.ts",
-        "src/programs/promised-rejections.spec.ts",
-        "src/programs/promised-current.spec.ts",
-        "src/programs/promised-entry.spec.ts",
-        "src/programs/promised-choices.spec.ts",
-        "src/programs/promised-availability.spec.ts",
+        "src/checks/promises/walk/promised-walk.ts",
+        "src/checks/promises/walk/promised-route.ts",
+        "src/checks/promises/walk/promised-result.ts",
+        "src/checks/promises/cases/promised-rejections.spec.ts",
+        "src/checks/promises/cases/promised-current.spec.ts",
+        "src/checks/promises/answers/promised-entry.spec.ts",
+        "src/checks/promises/choices/promised-choices.spec.ts",
+        "src/checks/promises/off/promised-availability.spec.ts",
         "src/tools/outside.spec.ts"
       ]
     },
@@ -1710,10 +1966,10 @@
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "spec",
       "evidence": [
-        "src/programs/promised-stage.ts",
-        "src/programs/promised-stage.spec.ts",
-        "src/programs/promise-temporaries.ts",
-        "src/programs/promise-temporaries.spec.ts",
+        "src/checks/promises/promised-stage.ts",
+        "src/checks/promises/promised-stage.spec.ts",
+        "src/checks/promise-temporaries.ts",
+        "src/checks/promise-temporaries.spec.ts",
         "tests/support/promise-cleanup.ts",
         "vitest.config.ts"
       ]
@@ -1724,11 +1980,11 @@
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/kept-journals.ts",
-        "src/programs/kept-path.ts",
-        "src/programs/kept-walk.ts",
-        "src/programs/kept-walk.spec.ts",
-        "src/programs/kept-journals.spec.ts"
+        "src/checks/kept/kept-journals.ts",
+        "src/checks/kept/kept-path.ts",
+        "src/checks/kept/kept-walk.ts",
+        "src/checks/kept/kept-walk.spec.ts",
+        "src/checks/kept/kept-journals.spec.ts"
       ]
     },
     {
@@ -1740,8 +1996,8 @@
         "src/tools/outside.ts",
         "src/tools/program-defect.ts",
         "src/tools/execute.ts",
-        "src/programs/promised.ts",
-        "src/programs/promised-defects.spec.ts"
+        "src/checks/promises/cases/promised.ts",
+        "src/checks/promises/cases/promised-defects.spec.ts"
       ]
     },
     {
@@ -1754,7 +2010,7 @@
         "src/tools/promises.ts",
         "src/tools/program-run.ts",
         "src/tools/outside.spec.ts",
-        "src/programs/promised-rejections.spec.ts"
+        "src/checks/promises/cases/promised-rejections.spec.ts"
       ]
     },
     {
@@ -1764,13 +2020,13 @@
       "guarantee": "derived",
       "evidence": [
         "src/tools/so-far.ts",
-        "src/catalogs/fields.ts",
+        "src/fields/fields.ts",
         "src/tools/program-run.ts",
-        "src/surface/bridge/program-acts.ts",
-        "src/surface/bridge/asking-parts.ts",
-        "src/surface/bridge/picked.ts",
-        "src/programs/promised-stage.ts",
-        "src/programs/promised-time.spec.ts",
+        "src/surface/bridge/acts/program-acts.ts",
+        "src/surface/bridge/questions/asking-parts.ts",
+        "src/surface/bridge/picking/picked.ts",
+        "src/checks/promises/promised-stage.ts",
+        "src/checks/promises/cases/promised-time.spec.ts",
         "tests/support/dated-shop.ts"
       ]
     },
@@ -1780,10 +2036,10 @@
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/promised-answer.ts",
-        "src/programs/promised-route.ts",
-        "src/programs/promised-result.ts",
-        "src/programs/promised-missing.spec.ts",
+        "src/checks/promises/answers/promised-answer.ts",
+        "src/checks/promises/walk/promised-route.ts",
+        "src/checks/promises/walk/promised-result.ts",
+        "src/checks/promises/cases/promised-missing.spec.ts",
         "tests/support/charging-shop.ts"
       ]
     },
@@ -1793,14 +2049,14 @@
       "from": "13/11 · pedidos de la migración",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/bridge/questions/picked-options.ts",
-        "src/surface/guards/answer-status.ts",
-        "src/programs/promised-choices.ts",
-        "src/programs/promised-unchanged.spec.ts",
-        "src/tools/answers/answer-change.ts",
-        "src/programs/review/many.spec.ts",
-        "src/programs/review/contracts.spec.ts",
-        "src/programs/review/current-unique.spec.ts"
+        "src/surface/bridge/picking/picked-options.ts",
+        "src/surface/session/answer-status.ts",
+        "src/checks/promises/choices/promised-choices.ts",
+        "src/checks/promises/cases/promised-unchanged.spec.ts",
+        "src/tools/inputs/answer-change.ts",
+        "src/checks/promises/many.spec.ts",
+        "src/checks/promises/contracts.spec.ts",
+        "src/checks/promises/current-unique.spec.ts"
       ]
     },
     {
@@ -1809,9 +2065,9 @@
       "from": "13/11 · pedidos de la migración",
       "guarantee": "surface",
       "evidence": [
-        "src/surface/walking.ts",
-        "src/surface/bridge/questions/picked-options.ts",
-        "src/programs/promised-made.spec.ts",
+        "src/surface/acts/walking.ts",
+        "src/surface/bridge/picking/picked-options.ts",
+        "src/checks/promises/cases/promised-made.spec.ts",
         "tests/laws/migration.spec.ts"
       ]
     },
@@ -1822,10 +2078,10 @@
       "guarantee": "spec",
       "evidence": [
         "src/tools/promises-contract.ts",
-        "src/catalogs/fields.ts",
+        "src/fields/fields.ts",
         "src/tools/tool-contract.ts",
-        "src/programs/promised-clock-offers.spec.ts",
-        "src/programs/promised-availability.ts"
+        "src/checks/promises/cases/promised-clock-offers.spec.ts",
+        "src/checks/promises/off/promised-availability.ts"
       ]
     },
     {
@@ -1836,12 +2092,12 @@
       "evidence": [
         "src/tools/execution/program-causes.ts",
         "src/tools/execution/execution-failure.ts",
-        "src/surface/guards/router-defect.ts",
-        "src/programs/promised-causes.spec.ts",
-        "src/programs/review/contracts.spec.ts",
+        "src/surface/router/router-defect.ts",
+        "src/checks/promises/cases/promised-causes.spec.ts",
+        "src/checks/promises/contracts.spec.ts",
         "src/tools/boundaries/tool-listeners.ts",
-        "src/programs/review/callbacks.spec.ts",
-        "src/programs/review/lifecycle.spec.ts"
+        "src/checks/promises/callbacks.spec.ts",
+        "src/storage/lifecycle.spec.ts"
       ]
     },
     {
@@ -1850,10 +2106,10 @@
       "from": "13/11 · pedidos de la migración",
       "guarantee": "type",
       "evidence": [
-        "src/surface/bridge/asking-parts.ts",
+        "src/surface/bridge/questions/asking-parts.ts",
         "src/surface/bridge/questions/asking-clock.spec.ts",
-        "src/programs/house-runtime.ts",
-        "src/adapters/storage/journal-store.ts"
+        "src/runtime/house-runtime.ts",
+        "src/storage/journal-store.ts"
       ]
     },
     {
@@ -1863,8 +2119,8 @@
       "guarantee": "spec",
       "evidence": [
         "src/tools/failures/finish.ts",
-        "src/surface/bridge/execution/program-result.ts",
-        "src/programs/review/failures.spec.ts",
+        "src/surface/bridge/acts/program-result.ts",
+        "src/checks/promises/failures.spec.ts",
         "src/tools/boundaries/failure-entry.ts",
         "src/tools/failures/port-failure.ts"
       ]
@@ -1877,7 +2133,7 @@
       "evidence": [
         "src/tools/failures/finish.ts",
         "src/tools/failures/defect-reporter.ts",
-        "src/programs/review/failures.spec.ts"
+        "src/checks/promises/failures.spec.ts"
       ]
     },
     {
@@ -1886,11 +2142,11 @@
       "from": "13/11 · revisión de los pedidos de la migración",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/bridge/audit-fields.ts",
-        "src/catalogs/levers.ts",
-        "src/surface/router.ts",
+        "src/surface/bridge/assembly/audit-fields.ts",
+        "src/house/own-acts.ts",
+        "src/surface/router/router.ts",
         "src/tools/execute.ts",
-        "src/programs/review/contracts.spec.ts"
+        "src/checks/promises/contracts.spec.ts"
       ]
     },
     {
@@ -1899,9 +2155,9 @@
       "from": "13/11 · revisión de los pedidos de la migración",
       "guarantee": "derived",
       "evidence": [
-        "src/surface/bridge/house-tools.ts",
-        "src/programs/choices/closed-choices.ts",
-        "src/programs/review/contracts.spec.ts"
+        "src/surface/bridge/assembly/house-tools.ts",
+        "src/checks/promises/choices/closed-choices.ts",
+        "src/checks/promises/contracts.spec.ts"
       ]
     },
     {
@@ -1913,8 +2169,8 @@
         "src/doors/terminal/input.ts",
         "src/doors/terminal/input.spec.ts",
         "src/doors/terminal/boot.spec.ts",
-        "src/doors/terminal/real-terminal.spec.ts",
-        "src/surface/pasted.spec.ts"
+        "src/checks/real-terminal-door.spec.ts",
+        "src/surface/session/pasted.spec.ts"
       ]
     },
     {
@@ -1926,7 +2182,7 @@
         "src/doors/terminal/boot.ts",
         "src/doors/terminal/boot.spec.ts",
         "src/doors/terminal/input.spec.ts",
-        "src/doors/terminal/real-terminal.spec.ts"
+        "src/checks/real-terminal-door.spec.ts"
       ]
     },
     {
@@ -1935,13 +2191,13 @@
       "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
       "guarantee": "spec",
       "evidence": [
-        "src/adapters/secrets/positions/secret-positions.ts",
-        "src/adapters/secrets/action-secrets.spec.ts",
-        "src/adapters/secrets/secret-boundaries.spec.ts",
-        "src/adapters/secrets/secret-review-probes.spec.ts",
-        "src/adapters/secrets/secret-write-references.spec.ts",
-        "src/adapters/secrets/secret-contract.spec.ts",
-        "src/adapters/secrets/secret-malformed.spec.ts"
+        "src/keychain/positions/secret-positions.ts",
+        "src/journal/action-secrets.spec.ts",
+        "src/journal/secret-boundaries.spec.ts",
+        "src/runtime/secret-review-probes.spec.ts",
+        "src/journal/secret-write-references.spec.ts",
+        "src/tools/secret-contract.spec.ts",
+        "src/keychain/custody/secret-malformed.spec.ts"
       ]
     },
     {
@@ -1950,11 +2206,11 @@
       "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
       "guarantee": "spec",
       "evidence": [
-        "src/adapters/secrets/secret-neighbors.spec.ts",
-        "src/adapters/secrets/action-secrets.spec.ts",
+        "src/journal/secret-neighbors.spec.ts",
+        "src/journal/action-secrets.spec.ts",
         "PROGRAMA.md",
-        "src/adapters/secrets/secret-known-limits.spec.ts",
-        "src/adapters/secrets/secret-output-limits.spec.ts"
+        "src/journal/secret-known-limits.spec.ts",
+        "src/journal/secret-output-limits.spec.ts"
       ]
     },
     {
@@ -1963,13 +2219,13 @@
       "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
       "guarantee": "spec",
       "evidence": [
-        "src/adapters/secrets/action-secrets.spec.ts",
+        "src/journal/action-secrets.spec.ts",
         "tests/support/secret-snapshots.ts",
-        "src/adapters/secrets/secret-vault.spec.ts",
-        "src/adapters/secrets/secret-rig.spec.ts",
-        "src/adapters/secrets/secret-crash.spec.ts",
-        "src/adapters/storage/house-journal.ts",
-        "src/programs/secret-reopen.spec.ts"
+        "src/keychain/secret-vault.spec.ts",
+        "src/keychain/custody/secret-rig.spec.ts",
+        "src/keychain/custody/secret-crash.spec.ts",
+        "src/runtime/house-journal.ts",
+        "src/journal/secret-reopen.spec.ts"
       ]
     },
     {
@@ -1978,14 +2234,14 @@
       "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
       "guarantee": "spec",
       "evidence": [
-        "src/adapters/secrets/history/secret-history.ts",
-        "src/adapters/secrets/secret-history.spec.ts",
+        "src/keychain/history/secret-history.ts",
+        "src/runtime/secret-history.spec.ts",
         "tests/support/a01-history.json",
-        "src/adapters/secrets/secret-previous-house.spec.ts",
+        "src/keychain/custody/secret-previous-house.spec.ts",
         "tests/support/a01-previous-house.json",
-        "src/adapters/secrets/secret-fact-history.spec.ts",
-        "src/adapters/secrets/secret-review-cost.spec.ts",
-        "src/adapters/secrets/secret-mark.spec.ts"
+        "src/keychain/history/secret-fact-history.spec.ts",
+        "src/keychain/positions/secret-review-cost.spec.ts",
+        "src/runtime/secret-mark.spec.ts"
       ]
     },
     {
@@ -1994,33 +2250,33 @@
       "from": "13/11 · A01, segunda parte, paso 1: custodia",
       "guarantee": "spec",
       "evidence": [
-        "src/adapters/secrets/custody-encryption.spec.ts",
-        "src/adapters/secrets/custody-migration.spec.ts",
-        "src/adapters/secrets/custody-previous-house.spec.ts",
-        "src/adapters/secrets/custody/custody-cipher.ts",
+        "src/keychain/custody/custody-encryption.spec.ts",
+        "src/keychain/custody/custody-migration.spec.ts",
+        "src/keychain/custody/custody-previous-house.spec.ts",
+        "src/keychain/custody/custody-cipher.ts",
         "PROGRAMA.md",
-        "src/adapters/secrets/custody-adversarial.spec.ts",
-        "src/adapters/secrets/custody-keychain.spec.ts",
-        "src/adapters/secrets/custody-identity.spec.ts",
-        "src/adapters/secrets/custody-disk.spec.ts",
-        "src/programs/house-runtime.spec.ts",
-        "src/adapters/secrets/custody-isolation.spec.ts",
-        "src/adapters/secrets/custody-heap.spec.ts",
-        "src/adapters/secrets/custody-keychain-bytes.spec.ts",
-        "src/adapters/secrets/custody-command.spec.ts",
-        "src/adapters/secrets/custody-retention.spec.ts",
-        "src/adapters/secrets/custody-buffer-lifetime.spec.ts",
-        "src/adapters/secrets/custody-cipher-edges.spec.ts",
-        "src/adapters/secrets/custody-provider-lifecycle.spec.ts",
-        "src/adapters/secrets/custody-keychain-status.spec.ts",
-        "src/adapters/secrets/custody-keychain-cuts.spec.ts",
-        "src/adapters/secrets/custody-retained-lifetime.spec.ts",
-        "src/adapters/secrets/custody-index.spec.ts",
-        "src/adapters/secrets/custody-incremental.spec.ts",
-        "src/adapters/secrets/custody-close-neighbors.spec.ts",
-        "src/adapters/secrets/custody-messages.spec.ts",
+        "src/keychain/custody/custody-adversarial.spec.ts",
+        "src/keychain/custody/custody-keychain.spec.ts",
+        "src/keychain/custody/custody-identity.spec.ts",
+        "src/keychain/custody/custody-disk.spec.ts",
+        "src/runtime/house-runtime.spec.ts",
+        "src/keychain/custody/custody-isolation.spec.ts",
+        "src/keychain/custody/custody-heap.spec.ts",
+        "src/keychain/macos/custody-keychain-bytes.spec.ts",
+        "src/keychain/macos/custody-command.spec.ts",
+        "src/keychain/custody/custody-retention.spec.ts",
+        "src/keychain/custody/custody-buffer-lifetime.spec.ts",
+        "src/keychain/custody/custody-cipher-edges.spec.ts",
+        "src/keychain/custody/custody-provider-lifecycle.spec.ts",
+        "src/keychain/macos/custody-keychain-status.spec.ts",
+        "src/keychain/macos/custody-keychain-cuts.spec.ts",
+        "src/keychain/custody/custody-retained-lifetime.spec.ts",
+        "src/keychain/macos/custody-index.spec.ts",
+        "src/keychain/custody/custody-incremental.spec.ts",
+        "src/keychain/custody/custody-close-neighbors.spec.ts",
+        "src/keychain/custody/custody-messages.spec.ts",
         "tests/laws/custody-text.spec.ts",
-        "src/programs/house-custody-close.spec.ts"
+        "src/tools/house-custody-close.spec.ts"
       ]
     },
     {
@@ -2029,29 +2285,29 @@
       "from": "13/11 · A01, segunda parte, paso 1: custodia",
       "guarantee": "spec",
       "evidence": [
-        "src/adapters/secrets/custody.spec.ts",
-        "src/adapters/secrets/custody-recovery.spec.ts",
-        "src/adapters/secrets/custody-neighbors.spec.ts",
-        "src/adapters/secrets/custody-process.spec.ts",
+        "src/keychain/custody/custody.spec.ts",
+        "src/keychain/custody/custody-recovery.spec.ts",
+        "src/keychain/custody/custody-neighbors.spec.ts",
+        "src/keychain/custody/custody-process.spec.ts",
         "PROGRAMA.md",
-        "src/adapters/secrets/custody-ledger.spec.ts",
-        "src/adapters/secrets/custody-adversarial.spec.ts",
-        "src/adapters/secrets/custody-disk.spec.ts",
-        "src/adapters/secrets/custody-third-review.spec.ts",
-        "src/adapters/secrets/custody-chain.spec.ts",
-        "src/adapters/secrets/custody-anchor.spec.ts",
-        "src/adapters/secrets/custody-all-cuts.spec.ts",
-        "src/adapters/secrets/custody-retention.spec.ts",
-        "src/programs/house-custody-anchor.spec.ts",
-        "src/adapters/secrets/custody-transaction-edges.spec.ts",
-        "src/adapters/secrets/custody-cost.spec.ts",
-        "src/adapters/secrets/custody-restoration.spec.ts",
-        "src/adapters/secrets/custody-restoration-cuts.spec.ts",
-        "src/programs/house-custody-maintenance.spec.ts",
-        "src/adapters/secrets/custody-transactions.spec.ts",
-        "src/programs/house-custody-transactions.spec.ts",
-        "src/programs/house-custody-neighbors.spec.ts",
-        "src/programs/house-custody-cost.spec.ts"
+        "src/keychain/custody/custody-ledger.spec.ts",
+        "src/keychain/custody/custody-adversarial.spec.ts",
+        "src/keychain/custody/custody-disk.spec.ts",
+        "src/keychain/custody/custody-third-review.spec.ts",
+        "src/keychain/custody/custody-chain.spec.ts",
+        "src/keychain/custody/custody-anchor.spec.ts",
+        "src/keychain/custody/custody-all-cuts.spec.ts",
+        "src/keychain/custody/custody-retention.spec.ts",
+        "src/keychain/custody/house-custody-anchor.spec.ts",
+        "src/keychain/custody/custody-transaction-edges.spec.ts",
+        "src/keychain/macos/custody-cost.spec.ts",
+        "src/keychain/custody/custody-restoration.spec.ts",
+        "src/keychain/custody/custody-restoration-cuts.spec.ts",
+        "src/runtime/house-custody-maintenance.spec.ts",
+        "src/adapters/custody-transactions.spec.ts",
+        "src/keychain/custody/house-custody-transactions.spec.ts",
+        "src/tools/house-custody-neighbors.spec.ts",
+        "src/keychain/custody/house-custody-cost.spec.ts"
       ]
     },
     {
@@ -2061,16 +2317,16 @@
       "guarantee": "spec",
       "evidence": [
         "src/tools/opacity-contract.spec.ts",
-        "src/adapters/declared/composition.spec.ts",
-        "src/adapters/declared/adapter-errors.spec.ts",
-        "src/programs/house-adapters.spec.ts",
-        "src/programs/house-bindings.spec.ts",
+        "src/adapters/composition.spec.ts",
+        "src/tools/adapter-errors.spec.ts",
+        "src/journal/house-adapters.spec.ts",
+        "src/journal/house-bindings.spec.ts",
         "src/tools/capabilities-contract.ts",
         "src/tools/startup-contract.ts",
-        "src/adapters/declared/credential-journal.ts",
+        "src/adapters/credential-journal.ts",
         "PROGRAMA.md",
-        "src/adapters/declared/credential-journal.spec.ts",
-        "src/programs/house-union-contract.spec.ts"
+        "src/adapters/credential-journal.spec.ts",
+        "src/runtime/house-union-contract.spec.ts"
       ]
     },
     {
@@ -2079,12 +2335,12 @@
       "from": "13/11 · A01, segunda parte, paso 3: ingreso y pantalla",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/program-checks.ts",
-        "src/programs/opacity/opacity-derived.spec.ts",
-        "src/programs/opacity/opacity-ingress.spec.ts",
-        "src/adapters/secrets/opacity-now.spec.ts",
-        "src/surface/bridge/questions/opacity-surface.spec.ts",
-        "src/doors/terminal/opacity-terminal.spec.ts"
+        "src/checks/program-checks.ts",
+        "src/checks/opacity/opacity-derived.spec.ts",
+        "src/checks/promises/opacity-ingress.spec.ts",
+        "src/keychain/positions/opacity-now.spec.ts",
+        "src/fields/opacity-surface.spec.ts",
+        "src/checks/opacity-terminal.spec.ts"
       ]
     },
     {
@@ -2097,7 +2353,7 @@
         "tests/laws/secret-context.spec.ts",
         "tests/laws/program-secret-boundaries.spec.ts",
         "tests/program/registration.ts",
-        "src/programs/testing/adapter-test.spec.ts",
+        "src/checks/adapter-test.spec.ts",
         "tests/laws/testing-api.spec.ts",
         "PROGRAMA.md",
         "LEYES.md",
@@ -2118,7 +2374,11 @@
       "rule": "Sumar un motivo con holding conserva los que el campo ya tenía: primero se comprueba el campo, después la regla agregada. Un día inexistente se rechaza en la pregunta y al validar el dato, aunque el programa le agregue otra regla. Un día inexistente se explica antes de comprobar si es futuro.",
       "from": "13/11 · campos · H01",
       "guarantee": "spec",
-      "evidence": ["src/catalogs/fields.ts", "src/catalogs/fields.spec.ts", "src/surface/bridge/asking-days.spec.ts"]
+      "evidence": [
+        "src/fields/fields.ts",
+        "src/fields/fields.spec.ts",
+        "src/surface/bridge/questions/asking-days.spec.ts"
+      ]
     },
     {
       "id": 213,
@@ -2126,15 +2386,17 @@
       "from": "13/11 · campos · H05 y H18",
       "guarantee": "spec",
       "evidence": [
-        "src/surface/bridge/asking-parts.ts",
-        "src/surface/walking.ts",
-        "src/surface/guards/answer-status.ts",
-        "src/surface/field-reasons.spec.ts",
-        "src/surface/field-confirmation.spec.ts",
-        "src/surface/field-rejections.spec.ts",
-        "src/surface/entry-status.spec.ts",
-        "src/surface/secret-entry-status.spec.ts",
-        "src/doors/terminal/secret-reasons.spec.ts", "src/surface/visible-reason.spec.ts", "src/doors/terminal/identity-scene-terminal.spec.ts"
+        "src/surface/bridge/questions/asking-parts.ts",
+        "src/surface/acts/walking.ts",
+        "src/surface/session/answer-status.ts",
+        "src/fields/field-reasons.spec.ts",
+        "src/fields/field-confirmation.spec.ts",
+        "src/fields/field-rejections.spec.ts",
+        "src/fields/entry-status.spec.ts",
+        "src/surface/contract/secret-entry-status.spec.ts",
+        "src/checks/secret-reasons.spec.ts",
+        "src/fields/visible-reason.spec.ts",
+        "src/checks/identity-scene-terminal.spec.ts"
       ]
     },
     {
@@ -2143,24 +2405,24 @@
       "from": "13/11 · campos · teclas descartadas",
       "guarantee": "spec",
       "evidence": [
-        "src/surface/masks.ts",
-        "src/surface/mask-keys.ts",
-        "src/surface/walking.ts",
-        "src/surface/step.ts",
-        "src/surface/field-reasons.spec.ts",
-        "src/surface/field-confirmation.spec.ts",
-        "src/surface/field-rejections.spec.ts",
-        "src/surface/entry-status.spec.ts",
-        "src/surface/entry/written-answer.ts",
-        "src/surface/field-advice.spec.ts",
-        "src/surface/walk.ts",
-        "src/programs/entry/checked-reason.ts",
-        "src/texts/entry/entry-advice.ts",
-        "src/surface/money-observed.spec.ts",
-        "src/surface/money-matrix.spec.ts",
-        "src/surface/money-derived.spec.ts",
-        "src/surface/fields/money-memory.ts",
-        "src/surface/money-reasons.spec.ts"
+        "src/surface/formats/masks.ts",
+        "src/surface/formats/mask-keys.ts",
+        "src/surface/acts/walking.ts",
+        "src/surface/router/step.ts",
+        "src/fields/field-reasons.spec.ts",
+        "src/fields/field-confirmation.spec.ts",
+        "src/fields/field-rejections.spec.ts",
+        "src/fields/entry-status.spec.ts",
+        "src/surface/acts/written-answer.ts",
+        "src/fields/field-advice.spec.ts",
+        "src/surface/acts/walk.ts",
+        "src/checks/promises/answers/checked-reason.ts",
+        "src/texts/entry-advice.ts",
+        "src/fields/money-observed.spec.ts",
+        "src/doors/terminal/money-matrix.spec.ts",
+        "src/fields/money-derived.spec.ts",
+        "src/surface/acts/money-memory.ts",
+        "src/fields/money-reasons.spec.ts"
       ]
     },
     {
@@ -2169,43 +2431,43 @@
       "from": "13/11 · campos · H03, H11, H17, H23 y H34; número reservado para moneda",
       "guarantee": "spec",
       "evidence": [
-        "src/catalogs/fields/money-field.ts",
-        "src/surface/bridge/questions/money.spec.ts",
-        "src/surface/money-walk.spec.ts",
-        "src/surface/money-terminal.spec.ts",
-        "src/surface/bridge/currency/money-question.ts",
-        "src/surface/fields/money-memory.ts",
-        "src/surface/money-state.spec.ts",
-        "src/catalogs/fields/money-currency.ts",
-        "src/surface/bridge/program-acts.ts",
-        "src/surface/kept-answers.ts",
-        "src/surface/current-field.ts",
-        "src/programs/promised-keys.ts",
-        "src/programs/promised-choices.ts",
-        "src/programs/promised-route.ts",
-        "src/programs/promised-money.spec.ts",
-        "src/surface/money-row.spec.ts",
-        "src/surface/bridge/asking.ts",
-        "src/surface/bridge/asking-parts.ts",
-        "src/surface/bridge/actions/asked-act.ts",
-        "src/surface/bridge/picked.ts",
-        "src/surface/fields/money-format.ts",
-        "src/surface/screen.ts",
-        "src/surface/resolve.ts",
-        "src/surface/step.ts",
-        "src/surface/walking.ts",
-        "src/surface/money-neighbors.spec.ts",
-        "src/texts/entry/entry-advice.ts",
+        "src/fields/money-field.ts",
+        "src/fields/money.spec.ts",
+        "src/surface/session/money-walk.spec.ts",
+        "src/checks/money-terminal.spec.ts",
+        "src/surface/bridge/questions/money-question.ts",
+        "src/surface/acts/money-memory.ts",
+        "src/fields/money-state.spec.ts",
+        "src/fields/money-currency.ts",
+        "src/surface/bridge/acts/program-acts.ts",
+        "src/surface/session/kept-answers.ts",
+        "src/surface/session/current-field.ts",
+        "src/checks/promises/promised-keys.ts",
+        "src/checks/promises/choices/promised-choices.ts",
+        "src/checks/promises/walk/promised-route.ts",
+        "src/checks/promises/cases/promised-money.spec.ts",
+        "src/surface/bridge/views/money-row.spec.ts",
+        "src/surface/bridge/questions/asking.ts",
+        "src/surface/bridge/questions/asking-parts.ts",
+        "src/surface/bridge/acts/asked-act.ts",
+        "src/surface/bridge/picking/picked.ts",
+        "src/surface/formats/money-format.ts",
+        "src/surface/session/screen.ts",
+        "src/surface/router/resolve.ts",
+        "src/surface/router/step.ts",
+        "src/surface/acts/walking.ts",
+        "src/fields/money-neighbors.spec.ts",
+        "src/texts/entry-advice.ts",
         "tests/support/money-program.ts",
         "tests/laws/field-contract.spec.ts",
-        "src/catalogs/currency/currency-symbol.ts",
-        "src/surface/money-boundary.spec.ts",
-        "src/surface/money-context.spec.ts",
-        "src/surface/money-matrix.spec.ts",
-        "src/surface/money-menu.spec.ts",
-        "src/catalogs/display/column-width.ts",
+        "src/fields/currency-symbol.ts",
+        "src/doors/terminal/money-boundary.spec.ts",
+        "src/fields/money-context.spec.ts",
+        "src/doors/terminal/money-matrix.spec.ts",
+        "src/doors/terminal/money-menu.spec.ts",
+        "src/fields/column-width.ts",
         "src/doors/terminal/entry.ts",
-        "src/surface/bridge/currency/currency-defect.ts"
+        "src/surface/bridge/questions/currency-defect.ts"
       ]
     },
     {
@@ -2214,27 +2476,27 @@
       "from": "13/11 · auditoría A03 y carrera entre procesos; tercer diseño decidido",
       "guarantee": "spec",
       "evidence": [
-        "src/adapters/storage/storage-identity.ts",
-        "src/adapters/storage/writer-lease.ts",
-        "src/adapters/storage/writer-audit.spec.ts",
-        "src/adapters/storage/writer-identity.spec.ts",
-        "src/adapters/storage/writer-workers.spec.ts",
-        "src/adapters/storage/writer-processes.spec.ts",
-        "src/adapters/storage/writer-failures.spec.ts",
-        "src/adapters/storage/writer-rejection.spec.ts",
-        "src/adapters/storage/writer-loss.spec.ts",
-        "src/adapters/storage/database-locks.spec.ts",
-        "src/adapters/storage/copy-journal.spec.ts",
-        "src/adapters/storage/writer-acquisition.spec.ts",
-        "src/adapters/storage/writer-acquisition-neighbors.spec.ts",
-        "src/programs/code-files.ts",
-        "src/adapters/storage/sqlite-files.ts",
-        "src/adapters/storage/writer-auxiliary.spec.ts",
-        "src/adapters/storage/journal-position.ts",
-        "src/adapters/storage/writer-foreign-close.spec.ts",
-        "src/adapters/storage/writer-guards.spec.ts",
-        "src/adapters/storage/writer-race.spec.ts",
-        "src/programs/house-custody-union.spec.ts"
+        "src/storage/storage-identity.ts",
+        "src/storage/writer-lease.ts",
+        "src/runtime/writer-audit.spec.ts",
+        "src/storage/writer-identity.spec.ts",
+        "src/tools/writer-workers.spec.ts",
+        "src/storage/writer-processes.spec.ts",
+        "src/storage/writer-failures.spec.ts",
+        "src/storage/writer-rejection.spec.ts",
+        "src/storage/writer-loss.spec.ts",
+        "src/storage/database-locks.spec.ts",
+        "src/storage/copy-journal.spec.ts",
+        "src/runtime/writer-acquisition.spec.ts",
+        "src/storage/writer-acquisition-neighbors.spec.ts",
+        "src/runtime/code-files.ts",
+        "src/storage/sqlite-files.ts",
+        "src/storage/writer-auxiliary.spec.ts",
+        "src/storage/journal-position.ts",
+        "src/storage/writer-foreign-close.spec.ts",
+        "src/storage/writer-guards.spec.ts",
+        "src/storage/writer-race.spec.ts",
+        "src/keychain/custody/house-custody-union.spec.ts"
       ]
     },
     {
@@ -2245,34 +2507,34 @@
       "evidence": [
         "src/journal/snapshot-format.ts",
         "src/journal/projections.ts",
-        "src/adapters/storage/reopened-state.ts",
-        "src/adapters/storage/reopened-state.spec.ts",
-        "src/adapters/storage/writer-recovery.spec.ts",
-        "src/adapters/storage/writer-failures.spec.ts",
-        "src/programs/promised-stage.ts",
-        "src/programs/kept-journals.ts",
-        "src/adapters/storage/journal-identity.ts",
-        "src/adapters/storage/snapshot-origin.spec.ts",
-        "src/adapters/storage/snapshot-neighbors.spec.ts",
-        "src/programs/storage-notices.spec.ts",
-        "src/adapters/storage/snapshot-checksum.spec.ts",
-        "src/programs/alternating-runners.spec.ts",
+        "src/checks/calculations/reopened-state.ts",
+        "src/checks/calculations/reopened-state.spec.ts",
+        "src/house/writer-recovery.spec.ts",
+        "src/storage/writer-failures.spec.ts",
+        "src/checks/promises/promised-stage.ts",
+        "src/checks/kept/kept-journals.ts",
+        "src/storage/journal-identity.ts",
+        "src/tools/snapshot-origin.spec.ts",
+        "src/storage/snapshot-neighbors.spec.ts",
+        "src/storage/storage-notices.spec.ts",
+        "src/tools/snapshot-checksum.spec.ts",
+        "src/tools/alternating-runners.spec.ts",
         "src/journal/verify-projections.ts",
-        "src/adapters/storage/verify-saved.ts",
-        "src/programs/house-readonly.spec.ts",
-        "src/programs/snapshot-readonly-neighbors.spec.ts",
-        "src/programs/house-custody-union.spec.ts",
-        "src/programs/house-custody-folds.spec.ts",
-        "src/programs/kept-custody.spec.ts",
-        "src/programs/kept-inspection.ts",
-        "src/programs/q-b3-recorrer-con-actos.spec.ts",
-        "src/programs/q-orden-adaptador-antes.spec.ts",
-        "src/programs/kept-capabilities.spec.ts",
-        "src/programs/kept-inspection.spec.ts",
-        "src/programs/kept-coverage.spec.ts",
-        "src/adapters/storage/copy-kept-journal.spec.ts",
-        "src/programs/kept-inspection-secrets.spec.ts",
-        "src/programs/kept-identities.spec.ts"
+        "src/storage/verify-saved.ts",
+        "src/tools/house-readonly.spec.ts",
+        "src/journal/snapshot-readonly-neighbors.spec.ts",
+        "src/keychain/custody/house-custody-union.spec.ts",
+        "src/runtime/house-custody-folds.spec.ts",
+        "src/keychain/custody/kept-custody.spec.ts",
+        "src/checks/kept/kept-inspection.ts",
+        "src/keychain/custody/q-b3-recorrer-con-actos.spec.ts",
+        "src/keychain/custody/q-orden-adaptador-antes.spec.ts",
+        "src/checks/kept/kept-capabilities.spec.ts",
+        "src/checks/kept/kept-inspection.spec.ts",
+        "src/checks/kept/kept-coverage.spec.ts",
+        "src/storage/copy-kept-journal.spec.ts",
+        "src/checks/kept/kept-inspection-secrets.spec.ts",
+        "src/keychain/custody/kept-identities.spec.ts"
       ]
     },
     {
@@ -2282,24 +2544,24 @@
       "guarantee": "spec",
       "evidence": [
         "src/journal/snapshot-format.ts",
-        "src/programs/house-projections.ts",
-        "src/programs/projection-version.ts",
-        "src/programs/upgrade-runtime.spec.ts",
-        "src/programs/upgrade-recovery.spec.ts",
-        "src/programs/upgrade-process.spec.ts",
-        "src/programs/projection-version.spec.ts",
-        "src/adapters/storage/failed-rebuild.spec.ts",
+        "src/runtime/house-projections.ts",
+        "src/runtime/projection-version.ts",
+        "src/runtime/upgrade-runtime.spec.ts",
+        "src/house/upgrade-recovery.spec.ts",
+        "src/tools/upgrade-process.spec.ts",
+        "src/runtime/projection-version.spec.ts",
+        "src/tools/failed-rebuild.spec.ts",
         "src/journal/snapshot-identity.spec.ts",
-        "src/programs/house-projections.spec.ts",
-        "src/programs/calculation-version.ts",
-        "src/programs/calculation-purity.spec.ts",
+        "src/runtime/house-projections.spec.ts",
+        "src/runtime/calculation-version.ts",
+        "src/checks/promises/calculation-purity.spec.ts",
         "src/journal/frozen-state.ts",
-        "src/adapters/storage/retry-mutation.spec.ts",
-        "src/programs/process-version.spec.ts",
-        "src/programs/code-imports.ts",
-        "src/programs/code-version-check.ts",
+        "src/tools/retry-mutation.spec.ts",
+        "src/runtime/process-version.spec.ts",
+        "src/checks/code/code-imports.ts",
+        "src/checks/code/code-version-check.ts",
         "src/tools/readonly-calculations.spec.ts",
-        "src/programs/check-state-input.ts"
+        "src/checks/calculations/check-state-input.ts"
       ]
     },
     {
@@ -2308,13 +2570,13 @@
       "from": "13/11 · tanda 13b · la ventana de filas recientes no define qué objetos existen",
       "guarantee": "spec",
       "evidence": [
-        "src/surface/bridge/tool-index.ts",
-        "src/surface/bridge/any-tool.ts",
-        "src/surface/bridge/house-router.ts",
-        "src/surface/bridge/outside-window.spec.ts",
-        "src/surface/bridge/window-neighbors.spec.ts",
-        "src/surface/bridge/window-cost.spec.ts",
-        "src/surface/bridge/window-derived.spec.ts",
+        "src/surface/bridge/views/tool-index.ts",
+        "src/surface/bridge/views/any-tool.ts",
+        "src/surface/bridge/assembly/house-router.ts",
+        "src/surface/session/outside-window.spec.ts",
+        "src/journal/window-neighbors.spec.ts",
+        "src/house/window-cost.spec.ts",
+        "src/checks/promises/walk/window-derived.spec.ts",
         "tests/support/window-program.ts"
       ]
     },
@@ -2324,7 +2586,7 @@
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "spec",
       "evidence": [
-        "src/house/house.ts",
+        "src/house/members.ts",
         "src/tools/execute.ts",
         "src/house/kit.spec.ts",
         "src/house/minds.spec.ts",
@@ -2333,14 +2595,14 @@
         "src/house/cleanup-contract.spec.ts",
         "src/tools/execution/effect-authority.ts",
         "src/tools/execution/composed-authority.ts",
-        "src/tools/effect-authority.spec.ts",
-        "src/tools/core-effects.spec.ts",
-        "src/tools/effect-neighbors.spec.ts",
-        "src/tools/own-collision.spec.ts",
-        "src/tools/effect-late.spec.ts",
-        "src/programs/own-composition.spec.ts",
-        "src/tools/core/identities/identities-union.spec.ts",
-        "src/tools/boundaries/mind-effect-authority.spec.ts"
+        "src/journal/effect-authority.spec.ts",
+        "src/journal/core-effects.spec.ts",
+        "src/journal/effect-neighbors.spec.ts",
+        "src/journal/own-collision.spec.ts",
+        "src/journal/effect-late.spec.ts",
+        "src/runtime/own-composition.spec.ts",
+        "src/tools/identities/identities-union.spec.ts",
+        "src/journal/mind-effect-authority.spec.ts"
       ]
     },
     {
@@ -2349,16 +2611,16 @@
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "spec",
       "evidence": [
-        "src/house/house.ts",
+        "src/house/members.ts",
         "src/tools/execute.ts",
-        "src/tools/scenes.ts",
+        "src/house/scenes.ts",
         "src/house/minds.spec.ts",
         "src/house/contract-neighbors.spec.ts",
         "src/house/adversaria.spec.ts",
-        "src/tools/tools.ts",
-        "src/programs/house-union-contract.spec.ts",
+        "src/tools/start.ts",
+        "src/runtime/house-union-contract.spec.ts",
         "src/house/holds.spec.ts",
-        "src/programs/house-mind-legacy.spec.ts"
+        "src/keychain/custody/house-mind-legacy.spec.ts"
       ]
     },
     {
@@ -2367,11 +2629,11 @@
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "spec",
       "evidence": [
-        "src/catalogs/acts.ts",
-        "src/catalogs/levers.ts",
-        "src/journal/events.ts",
-        "src/tools/scenes.ts",
-        "src/house/scenes.spec.ts",
+        "src/house/own-acts.ts",
+        "src/house/own-acts.ts",
+        "src/journal/facts.ts",
+        "src/house/scenes.ts",
+        "src/journal/scenes.spec.ts",
         "src/house/contract-neighbors.spec.ts",
         "src/house/adversaria.spec.ts",
         "src/house/cleanup-contract.spec.ts"
@@ -2384,10 +2646,10 @@
       "guarantee": "derived",
       "evidence": [
         "src/tools/promises-contract.ts",
-        "src/surface/bridge/notices.ts",
-        "src/programs/promised-notices.ts",
-        "src/programs/directed-notices.spec.ts",
-        "src/surface/bridge/notices.spec.ts"
+        "src/surface/bridge/views/notices.ts",
+        "src/checks/promises/menu/promised-notices.ts",
+        "src/checks/promises/menu/directed-notices.spec.ts",
+        "src/surface/bridge/views/notices.spec.ts"
       ]
     },
     {
@@ -2396,9 +2658,9 @@
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/promised-off.ts",
-        "src/surface/availability/action-off.ts",
-        "src/house/kit-core.spec.ts"
+        "src/checks/promises/off/promised-off.ts",
+        "src/surface/bridge/acts/action-off.ts",
+        "src/checks/promises/kit-core.spec.ts"
       ]
     },
     {
@@ -2407,10 +2669,10 @@
       "from": "14/11 · lectura en la superficie",
       "guarantee": "derived",
       "evidence": [
-        "src/programs/promised-off.ts",
-        "src/surface/bridge/window-neighbors.spec.ts",
+        "src/checks/promises/off/promised-off.ts",
+        "src/journal/window-neighbors.spec.ts",
         "src/tools/slices.spec.ts",
-        "src/surface/finding.ts"
+        "src/surface/menus/finding.ts"
       ]
     },
     {
@@ -2420,21 +2682,21 @@
       "guarantee": "spec",
       "evidence": [
         "tests/support/shop.ts",
-        "src/surface/shop-money-terminal.spec.ts",
-        "src/surface/shop-money-neighbors.spec.ts",
+        "src/checks/shop-money-terminal.spec.ts",
+        "src/journal/shop-money-neighbors.spec.ts",
         "tests/laws/program-secret-boundaries.spec.ts",
-        "src/catalogs/fields/money-field.ts",
-        "src/catalogs/fields/money-field.spec.ts",
+        "src/fields/money-field.ts",
+        "src/fields/money-field.spec.ts",
         "src/tools/promises.spec.ts",
         "tests/support/window-volume.ts",
-        "src/surface/bridge/window-cost.spec.ts",
-        "src/catalogs/fields/money-cleanup.spec.ts",
-        "src/surface/money-limit-cleanup.spec.ts",
-        "src/programs/promised-data.spec.ts",
-        "src/programs/promised-money.spec.ts",
-        "src/programs/directed-notices.spec.ts",
-        "src/programs/promised-known.spec.ts",
-        "src/catalogs/cleanup-three.spec.ts"
+        "src/house/window-cost.spec.ts",
+        "src/fields/money-cleanup.spec.ts",
+        "src/fields/money-limit-cleanup.spec.ts",
+        "src/checks/promises/cases/promised-data.spec.ts",
+        "src/checks/promises/cases/promised-money.spec.ts",
+        "src/checks/promises/menu/directed-notices.spec.ts",
+        "src/checks/promises/cases/promised-known.spec.ts",
+        "src/fields/cleanup-three.spec.ts"
       ]
     },
     {
@@ -2445,48 +2707,48 @@
       "evidence": [
         "src/tools/startup-contract.ts",
         "src/tools/boundaries/startup-mind.ts",
-        "src/tools/boundaries/third-review.spec.ts",
-        "src/tools/boundaries/mind-effect-authority.spec.ts",
-        "src/programs/inherited-wake.spec.ts",
+        "src/house/third-review.spec.ts",
+        "src/journal/mind-effect-authority.spec.ts",
+        "src/house/inherited-wake.spec.ts",
         "src/tools/boundaries/tool-startup.ts",
-        "src/tools/boundaries/mind-startup.spec.ts",
-        "src/tools/boundaries/startup-forgery.spec.ts",
-        "src/tools/boundaries/mind-neighbors.spec.ts",
-        "src/programs/house-zero-mind.spec.ts",
-        "src/programs/house-mind-adapters.spec.ts",
-        "src/programs/house-mind-legacy.spec.ts",
+        "src/journal/mind-startup.spec.ts",
+        "src/journal/startup-forgery.spec.ts",
+        "src/journal/mind-neighbors.spec.ts",
+        "src/house/house-zero-mind.spec.ts",
+        "src/house/house-mind-adapters.spec.ts",
+        "src/keychain/custody/house-mind-legacy.spec.ts",
         "src/house/holds.spec.ts",
         "tests/laws/startup-port.spec.ts",
-        "src/tools/boundaries/startup-authority.spec.ts",
-        "src/tools/boundaries/startup-wakes.spec.ts",
-        "src/tools/boundaries/mind-atomic.spec.ts",
-        "src/tools/boundaries/mind-errors.spec.ts",
-        "src/tools/boundaries/mind-fairness.spec.ts",
-        "src/programs/house-holds-door.spec.ts",
+        "src/journal/startup-authority.spec.ts",
+        "src/journal/startup-wakes.spec.ts",
+        "src/journal/mind-atomic.spec.ts",
+        "src/texts/mind-errors.spec.ts",
+        "src/journal/mind-fairness.spec.ts",
+        "src/house/house-holds-door.spec.ts",
         "tests/laws/startup-emissions.spec.ts",
         "src/tools/execution/open-acts.ts",
-        "src/programs/house-wake-upgrade.spec.ts",
-        "src/programs/house-startup-credentials.spec.ts",
+        "src/house/house-wake-upgrade.spec.ts",
+        "src/tools/house-startup-credentials.spec.ts",
         "src/journal/together.spec.ts",
-        "src/adapters/storage/journal-nested.spec.ts",
-        "src/tools/boundaries/mind-rollback.spec.ts",
-        "src/tools/boundaries/mind-saved-cause.spec.ts",
-        "src/programs/house-rollback-review.spec.ts",
-        "src/programs/house-rollback.spec.ts",
-        "src/journal/causes-check.spec.ts",
+        "src/journal/journal-nested.spec.ts",
+        "src/journal/mind-rollback.spec.ts",
+        "src/journal/mind-saved-cause.spec.ts",
+        "src/journal/house-rollback-review.spec.ts",
+        "src/house/house-rollback.spec.ts",
+        "src/doors/socket/requests/causes-check.spec.ts",
         "tests/support/journal-causes.ts",
-        "src/adapters/declared/credential-causes.spec.ts",
+        "src/journal/credential-causes.spec.ts",
         "src/journal/clock-rollback.spec.ts",
         "src/journal/readonly-state.ts",
         "src/journal/readonly-state.spec.ts",
         "src/tools/boundaries/readonly-ports.ts",
-        "src/tools/boundaries/readonly-state.spec.ts",
-        "src/tools/boundaries/readonly-neighbors.spec.ts",
-        "src/programs/readonly-result.spec.ts",
+        "src/house/readonly-state.spec.ts",
+        "src/house/readonly-neighbors.spec.ts",
+        "src/house/readonly-result.spec.ts",
         "tests/laws/readonly-state.spec.ts",
-        "src/doors/socket/act-limit.spec.ts",
-        "src/adapters/storage/batch-marks.spec.ts",
-        "src/doors/socket/socket-readonly.spec.ts"
+        "src/house/act-limit.spec.ts",
+        "src/journal/batch-marks.spec.ts",
+        "src/doors/socket/client/socket-readonly.spec.ts"
       ]
     },
     {
@@ -2497,15 +2759,15 @@
       "evidence": [
         "src/tools/execution/running-acts.ts",
         "src/tools/failures/finish.ts",
-        "src/adapters/declared/compose-adapters.ts",
-        "src/tools/kit-running.spec.ts",
+        "src/adapters/compose-adapters.ts",
+        "src/journal/kit-running.spec.ts",
         "src/tools/kit-races.spec.ts",
         "src/tools/kit-boundaries.spec.ts",
-        "src/tools/kit-defects.spec.ts",
+        "src/journal/kit-defects.spec.ts",
         "src/tools/kit-handed.spec.ts",
-        "src/tools/kit-descendants.spec.ts",
+        "src/journal/kit-descendants.spec.ts",
         "src/tools/kit-scopes.spec.ts",
-        "src/programs/kit-adapters.spec.ts",
+        "src/house/kit-adapters.spec.ts",
         "src/doors/terminal/kit-cut.spec.ts"
       ]
     },
@@ -2515,9 +2777,9 @@
       "from": "14/11 · casa-servidor · paso 1",
       "guarantee": "spec",
       "evidence": [
-        "src/doors/socket/socket-server.spec.ts",
-        "src/doors/socket/socket-start.spec.ts",
-        "src/doors/socket/socket-process.spec.ts"
+        "src/house/identities/socket-server.spec.ts",
+        "src/doors/socket/server/socket-start.spec.ts",
+        "src/tools/socket-process.spec.ts"
       ]
     },
     {
@@ -2526,11 +2788,11 @@
       "from": "14/11 · casa-servidor · paso 1",
       "guarantee": "spec",
       "evidence": [
-        "src/doors/socket/socket-protocol.spec.ts",
-        "src/doors/socket/socket-neighbors.spec.ts",
-        "src/doors/socket/socket-adversarial.spec.ts",
-        "src/doors/socket/socket-server.spec.ts",
-        "src/doors/socket/socket-integrity.spec.ts"
+        "src/house/socket-protocol.spec.ts",
+        "src/house/socket-neighbors.spec.ts",
+        "src/journal/socket-adversarial.spec.ts",
+        "src/house/identities/socket-server.spec.ts",
+        "src/doors/socket/wire/socket-integrity.spec.ts"
       ]
     },
     {
@@ -2539,13 +2801,13 @@
       "from": "14/11 · casa-servidor · paso 1",
       "guarantee": "spec",
       "evidence": [
-        "src/doors/socket/socket-frame.spec.ts",
-        "src/doors/socket/socket-protocol.spec.ts",
-        "src/doors/socket/socket-pressure.spec.ts",
-        "src/doors/socket/socket-state.spec.ts",
-        "src/doors/socket/socket-revision.spec.ts",
-        "src/doors/socket/socket-waits.spec.ts",
-        "src/doors/socket/act-limit.spec.ts"
+        "src/doors/socket/wire/socket-frame.spec.ts",
+        "src/house/socket-protocol.spec.ts",
+        "src/doors/socket/wire/socket-pressure.spec.ts",
+        "src/doors/socket/client/socket-state.spec.ts",
+        "src/house/socket-revision.spec.ts",
+        "src/doors/socket/wire/socket-waits.spec.ts",
+        "src/house/act-limit.spec.ts"
       ]
     },
     {
@@ -2554,15 +2816,15 @@
       "from": "14/11 · casa-servidor · paso 1",
       "guarantee": "spec",
       "evidence": [
-        "src/doors/socket/socket-server.spec.ts",
-        "src/doors/socket/socket-requests.spec.ts",
-        "src/doors/socket/socket-cost.spec.ts",
-        "src/doors/socket/socket-integrity.spec.ts",
-        "src/doors/socket/socket-state.spec.ts",
-        "src/doors/socket/peer-writer.spec.ts",
-        "src/doors/socket/socket-burst.spec.ts",
-        "src/doors/socket/socket-pressure.spec.ts",
-        "src/doors/socket/state-transfer.ts"
+        "src/house/identities/socket-server.spec.ts",
+        "src/journal/socket-requests.spec.ts",
+        "src/doors/socket/client/socket-cost.spec.ts",
+        "src/doors/socket/wire/socket-integrity.spec.ts",
+        "src/doors/socket/client/socket-state.spec.ts",
+        "src/doors/socket/peers/peer-writer.spec.ts",
+        "src/doors/socket/state/socket-burst.spec.ts",
+        "src/doors/socket/wire/socket-pressure.spec.ts",
+        "src/doors/socket/state/state-transfer.ts"
       ]
     },
     {
@@ -2571,10 +2833,10 @@
       "from": "14/11 · casa-servidor · paso 1",
       "guarantee": "spec",
       "evidence": [
-        "src/doors/socket/socket-server.spec.ts",
-        "src/doors/socket/socket-neighbors.spec.ts",
-        "src/doors/socket/socket-adversarial.spec.ts",
-        "src/doors/socket/socket-crash.spec.ts"
+        "src/house/identities/socket-server.spec.ts",
+        "src/house/socket-neighbors.spec.ts",
+        "src/journal/socket-adversarial.spec.ts",
+        "src/house/socket-crash.spec.ts"
       ]
     },
     {
@@ -2583,13 +2845,13 @@
       "from": "14/11 · casa-servidor · paso 1",
       "guarantee": "spec",
       "evidence": [
-        "src/doors/socket/socket-neighbors.spec.ts",
-        "src/doors/socket/socket-drain.spec.ts",
-        "src/doors/socket/socket-process.spec.ts",
-        "src/programs/private-output.spec.ts",
-        "src/doors/socket/socket-start.spec.ts",
-        "src/programs/output-boundaries.spec.ts",
-        "src/programs/bounded-output.spec.ts"
+        "src/house/socket-neighbors.spec.ts",
+        "src/tools/socket-drain.spec.ts",
+        "src/tools/socket-process.spec.ts",
+        "src/doors/terminal/private-output.spec.ts",
+        "src/doors/socket/server/socket-start.spec.ts",
+        "src/doors/terminal/output-boundaries.spec.ts",
+        "src/doors/terminal/bounded-output.spec.ts"
       ]
     },
     {
@@ -2598,13 +2860,13 @@
       "from": "14/11 · casa-servidor · paso 2",
       "guarantee": "spec",
       "evidence": [
-        "src/doors/socket/same-screens.spec.ts",
-        "src/doors/socket/socket-ports.spec.ts",
-        "src/doors/socket/state-value.spec.ts",
-        "src/doors/socket/socket-json.spec.ts",
-        "src/doors/socket/socket-numbers-process.spec.ts",
-        "src/doors/socket/state-delivery.spec.ts",
-        "src/doors/socket/socket-revision.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/doors/socket/client/socket-ports.spec.ts",
+        "src/doors/socket/state/state-value.spec.ts",
+        "src/doors/socket/requests/socket-json.spec.ts",
+        "src/doors/socket/wire/socket-numbers-process.spec.ts",
+        "src/doors/socket/state/state-delivery.spec.ts",
+        "src/house/socket-revision.spec.ts"
       ]
     },
     {
@@ -2613,10 +2875,10 @@
       "from": "14/11 · casa-servidor · paso 2",
       "guarantee": "spec",
       "evidence": [
-        "src/doors/socket/socket-ports.spec.ts",
-        "src/doors/socket/socket-client-neighbors.spec.ts",
-        "src/doors/socket/socket-integrity.spec.ts",
-        "src/doors/socket/same-screens.spec.ts"
+        "src/doors/socket/client/socket-ports.spec.ts",
+        "src/doors/socket/wire/socket-client-neighbors.spec.ts",
+        "src/doors/socket/wire/socket-integrity.spec.ts",
+        "src/doors/socket/client/same-screens.spec.ts"
       ]
     },
     {
@@ -2625,13 +2887,13 @@
       "from": "14/11 · casa-servidor · paso 2",
       "guarantee": "spec",
       "evidence": [
-        "src/programs/terminal-client.spec.ts",
-        "src/programs/launch-house.spec.ts",
-        "src/programs/socket-terminal.spec.ts",
-        "src/programs/terminal-failures.spec.ts",
-        "src/doors/socket/socket-resync.spec.ts",
-        "src/programs/terminal-state-failure.spec.ts",
-        "src/programs/output-boundaries.spec.ts"
+        "src/doors/terminal/terminal-client.spec.ts",
+        "src/doors/terminal/launch-house.spec.ts",
+        "src/checks/socket-terminal.spec.ts",
+        "src/doors/terminal/terminal-failures.spec.ts",
+        "src/house/socket-resync.spec.ts",
+        "src/house/terminal-state-failure.spec.ts",
+        "src/doors/terminal/output-boundaries.spec.ts"
       ]
     },
     {
@@ -2639,7 +2901,10 @@
       "rule": "La respuesta perdida después de escribir se consulta sin un segundo efecto, también tras matar el proceso. Un corte antes o dentro de la transacción deja ningún efecto; entre efectos y respuesta deja el efecto entero y un resultado consultable o interrumpido con referencia a Actividad. Un pedido registrado sin empezar no queda en curso al reiniciar.",
       "from": "14/11 · casa-servidor · paso 2",
       "guarantee": "spec",
-      "evidence": ["src/doors/socket/socket-crash.spec.ts", "src/doors/socket/socket-client-neighbors.spec.ts"]
+      "evidence": [
+        "src/house/socket-crash.spec.ts",
+        "src/doors/socket/wire/socket-client-neighbors.spec.ts"
+      ]
     },
     {
       "id": 250,
@@ -2647,15 +2912,15 @@
       "from": "14/11 · casa-servidor · paso 2",
       "guarantee": "spec",
       "evidence": [
-        "src/doors/socket/socket-ports.spec.ts",
-        "src/doors/socket/socket-requests.spec.ts",
-        "src/doors/socket/socket-adversarial.spec.ts",
-        "src/doors/socket/socket-revision.spec.ts",
-        "src/doors/socket/request-budget.spec.ts",
-        "src/doors/socket/socket-waits.spec.ts",
-        "src/doors/socket/socket-quota-notice.spec.ts",
-        "src/doors/socket/socket-quota-recovery.spec.ts",
-        "src/doors/socket/defect-kit-reason.spec.ts"
+        "src/doors/socket/client/socket-ports.spec.ts",
+        "src/journal/socket-requests.spec.ts",
+        "src/journal/socket-adversarial.spec.ts",
+        "src/house/socket-revision.spec.ts",
+        "src/doors/socket/peers/request-budget.spec.ts",
+        "src/doors/socket/wire/socket-waits.spec.ts",
+        "src/house/socket-quota-notice.spec.ts",
+        "src/house/socket-quota-recovery.spec.ts",
+        "src/journal/defect-kit-reason.spec.ts"
       ]
     },
     {
@@ -2664,10 +2929,10 @@
       "from": "14/11 · casa-kit paso 5a",
       "guarantee": "spec",
       "evidence": [
-        "src/house/identity-name.ts",
-        "src/programs/house-resources.ts",
-        "src/programs/house-runtime.ts",
-        "src/programs/identity-doors.spec.ts",
+        "src/house/identities/identity-name.ts",
+        "src/runtime/house-resources.ts",
+        "src/runtime/house-runtime.ts",
+        "src/keychain/custody/identity-doors.spec.ts",
         "src/house/identities-core.spec.ts"
       ]
     },
@@ -2677,17 +2942,17 @@
       "from": "14/11 · casa-kit pasos 5b y 5d2",
       "guarantee": "spec",
       "evidence": [
-        "src/tools/core/identities/identities.ts",
-        "src/tools/core/identities/identities.spec.ts",
-        "src/tools/core/identities/identities-neighbors.spec.ts",
-        "src/tools/core/identities/identities-derived.spec.ts",
-        "src/tools/core/identities/identities-legacy.spec.ts",
-        "src/doors/terminal/identities-terminal.spec.ts",
-        "src/tools/core/identities/identity-scene.ts",
-        "src/tools/core/identities/identity-scene.spec.ts",
-        "src/doors/terminal/identity-scene-terminal.spec.ts",
-        "src/doors/terminal/scene-reading-terminal.spec.ts",
-        "src/tools/core/identities/identities-union.spec.ts"
+        "src/tools/identities/identities.ts",
+        "src/tools/identities/identities.spec.ts",
+        "src/tools/identities/identities-neighbors.spec.ts",
+        "src/tools/identities/identities-derived.spec.ts",
+        "src/tools/identities/identities-legacy.spec.ts",
+        "src/checks/identities-terminal.spec.ts",
+        "src/tools/identities/identity-scene.ts",
+        "src/tools/identities/identity-scene.spec.ts",
+        "src/checks/identity-scene-terminal.spec.ts",
+        "src/house/scene-reading-terminal.spec.ts",
+        "src/tools/identities/identities-union.spec.ts"
       ]
     },
     {
@@ -2696,18 +2961,18 @@
       "from": "14/11 · casa-kit paso 5c",
       "guarantee": "spec",
       "evidence": [
-        "src/tools/core/identities/kit-actions.ts",
-        "src/tools/core/identities/kit-effects.ts",
-        "src/tools/core/identities/kit-cases.ts",
-        "src/tools/core/identities/kit-screen.ts",
-        "src/tools/core/identities/kit-views.ts",
-        "src/tools/core/identities/identity-kit.spec.ts",
-        "src/tools/core/identities/identity-kit-neighbors.spec.ts",
-        "src/tools/core/identities/identity-kit-readers.spec.ts",
-        "src/tools/core/identities/identity-kit-limit-derived.spec.ts",
-        "src/tools/core/identities/identities-derived.spec.ts",
-        "src/doors/terminal/identity-kit-terminal.spec.ts",
-        "src/programs/core/kit-checks.ts"
+        "src/tools/identities/kit-actions.ts",
+        "src/tools/identities/kit-effects.ts",
+        "src/tools/identities/kit-cases.ts",
+        "src/tools/identities/kit-screen.ts",
+        "src/tools/identities/kit-views.ts",
+        "src/checks/promises/identity-kit.spec.ts",
+        "src/checks/promises/identity-kit-neighbors.spec.ts",
+        "src/checks/promises/identity-kit-readers.spec.ts",
+        "src/checks/identity-kit-limit-derived.spec.ts",
+        "src/tools/identities/identities-derived.spec.ts",
+        "src/checks/identity-kit-terminal.spec.ts",
+        "src/checks/promises/identities/kit-checks.ts"
       ]
     },
     {
@@ -2716,6 +2981,35 @@
       "from": "LEYES 2 · casa-kit paso 5c",
       "guarantee": "debt",
       "debt": "Caso: sales con nueve acciones action0…action8 requiere diez filas para una identidad, contando la herramienta entera; ese menú y sus ediciones para identidades no se ofrecen. La mente puede editar sus nueve acciones. Con diez acciones no se construye ningún menú. La fila pendiente dice menú pendiente · más de nueve acciones. Aprobar una composición y teclas para superar ese límite. Bordes en identity-kit-neighbors.spec.ts e identity-kit-readers.spec.ts; derivadas en identity-kit-limit-derived.spec.ts."
+    },
+    {
+      "id": 257,
+      "rule": "Cada archivo tiene como máximo 300 renglones y los textos suman como máximo 519; cada archivo de producción tiene una descripción en el árbol.",
+      "from": "16/11 · reorden 1, mapa firmado",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/core-size.spec.ts",
+        "tests/laws/tree.json"
+      ]
+    },
+    {
+      "id": 258,
+      "rule": "Cada carpeta de src agrupa al menos dos archivos de código; solo la raíz espera su index.ts.",
+      "from": "16/11 · reorden 1, mapa firmado",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/core-size.spec.ts",
+        "tests/laws/tree.json"
+      ]
+    },
+    {
+      "id": 259,
+      "rule": "Cada dependencia de producción va a su capa o a una inferior; las excepciones ascendentes se nombran por archivo y destino y no se admiten nuevas ni obsoletas.",
+      "from": "16/11 · reorden 1, mapa firmado",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/layers.spec.ts"
+      ]
     }
   ]
 }

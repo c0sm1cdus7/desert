@@ -1,8 +1,8 @@
 // An own act cannot take a tool action's place, and each program fact has at most one declared owner.
-import { layerOf } from "../../journal/events.ts";
-import { identityView } from "../../house/house.ts";
+import { layerOf } from "../../house/facts.ts";
+import { identityView } from "../../house/members.ts";
 import type { OwnAct, Program, State, ToolRegistry } from "../tool-contract.ts";
-import { targetTool } from "../attendance.ts";
+import { targetTool } from "../../house/attendance.ts";
 export function checkOwn<X extends Program>(registry: ToolRegistry<X>, state: State<X>, acts: readonly OwnAct<X>[]) {
   for (const act of acts) {
     const tool = targetTool(registry, state, act.object);

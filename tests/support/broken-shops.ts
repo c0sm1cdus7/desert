@@ -1,11 +1,20 @@
 // Shops that break a promise, each in one way: the derived checks have to catch exactly what each one broke.
-import { emptyHouse } from "../../src/house/house.ts";
+import { emptyHouse } from "../../src/house/members.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { RunResult } from "../../src/tools/outside.ts";
 import type { ActContext } from "../../src/tools/tool-contract.ts";
-import { paymentsTool, registerCases, registerOffer, salesTool, shop, shopCatalog } from "./shop.ts";
-import { shopProgram, shopSlices } from "./shop.ts";
-import type { Sales, Shop } from "./shop.ts";
+import {
+  paymentsTool,
+  registerCases,
+  registerOffer,
+  salesTool,
+  shop,
+  shopCatalog,
+  shopProgram,
+  shopSlices,
+  type Sales,
+  type Shop,
+} from "./shop.ts";
 
 type Told = { sale: string; total: number };
 type Run = (input: Told, context: ActContext<Shop>) => RunResult<Shop, readonly []>;

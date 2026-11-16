@@ -1,11 +1,12 @@
-import { coreSelf } from "./effect-authority.ts";
 // Live cancellation belongs to the listener, never to a replayed projection.
-import { allowedAct, houseStep, present, type House } from "../../house/house.ts";
-import { effect, type Event, type HouseEvent } from "../../journal/events.ts";
+import { coreSelf } from "./effect-authority.ts";
+import { allowedAct, present } from "../../house/kit.ts";
+import { houseStep, type House } from "../../house/members.ts";
+import { effect, type HouseEvent } from "../../house/facts.ts";
+import type { Event } from "../../journal/facts.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import type { Decision, Execution } from "../execute.ts";
 import type { Program, Reach, State } from "../tool-contract.ts";
-
 export type RunningAct = {
   controller: AbortController;
   origin?: HouseEvent<"act">;

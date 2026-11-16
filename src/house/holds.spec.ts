@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
-import { emptyHouse, holds } from "./house.ts";
+import { emptyHouse } from "./members.ts";
+import { holds } from "./kit.ts";
 const registry = [{ id: "vault" }, { id: "sales" }];
 const house = {
   ...emptyHouse,

@@ -1,8 +1,8 @@
 // A real terminal in a separate heap. Its only job is reading; IPC asks for a verified sequence, never acts.
 import { Duplex } from "node:stream";
 import { connect } from "node:net";
-import { socketConnection } from "../../src/doors/socket/socket-connection.ts";
-import { stateHash } from "../../src/doors/socket/state-hash.ts";
+import { socketConnection } from "../../src/doors/socket/client/socket-connection.ts";
+import { stateHash } from "../../src/doors/socket/state/state-hash.ts";
 const connection = socketConnection("ana-terminal");
 const path = process.argv[2];
 const stream = path ? connect(path) : Duplex.from({ readable: process.stdin, writable: process.stdout });

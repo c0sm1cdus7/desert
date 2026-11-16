@@ -1,24 +1,26 @@
+// One way to act in a house: every act is written, checked against the house, run, and its result written.
 import { hasSecretInput } from "./inputs/secret-input.ts";
 import { runningSignal } from "./execution/running-acts.ts";
 import { checkedDecision } from "./execution/action-decision.ts";
-import { programCall } from "./boundaries/program-call.ts";
-// One way to act in a house: every act is written, checked against the house, run, and its result written.
+import { programCall } from "../fields/program-call.ts";
 import { Value } from "@sinclair/typebox/value";
-import { actEnvelope, type Act } from "../catalogs/acts.ts";
-import { ids } from "../catalogs/ids.ts";
-import { allowedAct, identityView, mindTool, present } from "../house/house.ts";
-import { effect, type Emission, type HouseEvent } from "../journal/events.ts";
+import { actEnvelope, type Act } from "../house/own-acts.ts";
+import { ids } from "../house/ids.ts";
+import { allowedAct, mindTool, present } from "../house/kit.ts";
+import { identityView } from "../house/members.ts";
+import { effect, type HouseEvent } from "../house/facts.ts";
+import type { Emission } from "../journal/facts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
-import { isAttended, targetTool } from "./attendance.ts";
+import { isAttended, targetTool } from "../house/attendance.ts";
 import { programOffered, runProgram } from "./program-run.ts";
 import { performAct } from "./execution/perform-act.ts";
 import { startAct } from "./failures/start-act.ts";
 import { finish } from "./failures/finish.ts";
-import { type ActContext, type ActResult, type Program, type Tool, type ToolAct } from "./tool-contract.ts";
+import type { ActContext, ActResult, Program, Tool, ToolAct } from "./tool-contract.ts";
 import type { Execution } from "./execution-contract.ts";
-export type { Execution } from "./execution-contract.ts";
 import type { ToolCapabilities } from "./capabilities-contract.ts";
 import { usingCapabilities } from "./execution/action-capabilities.ts";
+export type { Execution } from "./execution-contract.ts";
 type Origin = HouseEvent<"act">;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
   Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &

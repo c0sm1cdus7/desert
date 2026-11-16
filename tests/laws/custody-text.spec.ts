@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import ts from "typescript";
 import { expect, it } from "vitest";
-import { filesUnder, parsed, src } from "../support/sources.ts";
+import { filesUnder, isSpec, parsed, src } from "../support/sources.ts";
 
 function conversions(source: ts.SourceFile): string[] {
   const found: string[] = [];
@@ -35,7 +35,9 @@ function conversions(source: ts.SourceFile): string[] {
   return found;
 }
 it("la custodia no convierte material ni llaves a texto", () => {
-  const files = filesUnder(join(src, "adapters/secrets/custody")).filter(file => file.endsWith(".ts"));
+  const files = [...filesUnder(join(src, "keychain/custody")), ...filesUnder(join(src, "keychain/macos"))].filter(
+    file => !isSpec(file),
+  );
   expect(files.flatMap(file => conversions(parsed(file)).map(value => `${file}: ${value}`))).toEqual([]);
 });
 it("la ley rechaza conversiones directas y calculadas del material", () => {

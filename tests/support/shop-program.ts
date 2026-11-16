@@ -1,6 +1,6 @@
 // The gate's shop derives its version from its calculations, including the base, with no manual evidence exemption.
 import { join } from "node:path";
-import { codeProjectionVersion } from "../../src/programs/calculation-version.ts";
+import { codeProjectionVersion } from "../../src/runtime/calculation-version.ts";
 import { shopProgram, shopShown } from "./shop.ts";
 export const program = {
   ...shopProgram,
@@ -14,8 +14,8 @@ export const program = {
 export const shown = shopShown;
 
 // Step 1 test credentials and custody remain entirely in memory; production pairing belongs to step 3.
-import { MemoryHouseKeys } from "../../src/adapters/secrets/custody/house-keys.ts";
-import type { DoorKey } from "../../src/doors/socket/socket-peer.ts";
+import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
+import type { DoorKey } from "../../src/doors/socket/peers/socket-peer.ts";
 export const server = {
   by: "house",
   creation: {
@@ -29,7 +29,7 @@ export const server = {
   secretKeys: new MemoryHouseKeys(),
 };
 
-import { runProgramServer } from "../../src/programs/server-process.ts";
+import { runProgramServer } from "../../src/doors/socket/server/server-process.ts";
 if (import.meta.main) {
   const home = process.argv[2];
   if (!home) throw new Error("Missing house path");

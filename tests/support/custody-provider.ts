@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { MemoryHouseKeys, type HouseKeyProvider } from "../../src/adapters/secrets/custody/house-keys.ts";
+import { MemoryHouseKeys, type HouseKeyProvider } from "../../src/keychain/custody/house-keys.ts";
 const metadata = new MemoryHouseKeys();
 /** Test-only wrapper for hostile key suppliers; metadata remains shared across reopening wrappers. */
 export function stubKeys(overrides: Partial<HouseKeyProvider>): HouseKeyProvider {

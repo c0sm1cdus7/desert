@@ -1,7 +1,7 @@
 // A tool whose zero mind is ordinary code: on its wake it asks the house to perform its declared act.
 // Since the kit, a tool writes only the program facts it declares, and each fact has one owner: the zero mind
 // owns `mind-noted` unless a second mind in the same house is given no facts (it then notes nothing of its own).
-import { object } from "../../src/catalogs/acts.ts";
+import { object } from "../../src/fields/visible-text.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
 import type { ToolStartup } from "../../src/tools/startup-contract.ts";
 import type { Tool, Slices } from "../../src/tools/tool-contract.ts";

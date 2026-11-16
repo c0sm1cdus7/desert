@@ -1,7 +1,7 @@
 // What a declaration refuses beyond its schema: a quantity carries no more decimals than a person can write.
 import { describe, expect, it } from "vitest";
-import { object } from "../catalogs/acts.ts";
-import { fine, quantity } from "../catalogs/fields.ts";
+import { object } from "../fields/visible-text.ts";
+import { fine, quantity } from "../fields/fields.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
 import { shopRegistry, type Shop } from "../../tests/support/shop.ts";

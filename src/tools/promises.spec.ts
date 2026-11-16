@@ -1,7 +1,7 @@
 // What an act cannot be declared with: its words are checked when the program is composed, before anyone reads them.
 import { describe, expect, it } from "vitest";
-import { object } from "../catalogs/acts.ts";
-import { day } from "../catalogs/fields.ts";
+import { object } from "../fields/visible-text.ts";
+import { day } from "../fields/fields.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { programAct, type Offered } from "./promises.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";

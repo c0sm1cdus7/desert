@@ -4,12 +4,12 @@ import { DatabaseSync } from "node:sqlite";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { SqliteJournal } from "../adapters/storage/journal-store.ts";
-import { emptyHouse, houseStep, identityView } from "./house.ts";
-import { effect, type HouseEmission, type HouseKind } from "../journal/events.ts";
+import { SqliteJournal } from "../storage/journal-store.ts";
+import { emptyHouse, houseStep, identityView } from "./members.ts";
+import { effect, type HouseEmission, type HouseKind } from "./facts.ts";
 import { shop, shopSlices, type Shop, type ShopFact } from "../../tests/support/shop.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
-import { startState, toolsStep } from "../tools/tools.ts";
+import { startState, toolsStep } from "./state.ts";
 import type { ActResult } from "../tools/tool-contract.ts";
 
 it("reads old channel and recipient facts, then folds the channel as no-op", () => {

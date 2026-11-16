@@ -1,12 +1,13 @@
 import { stateResult } from "../journal/readonly-state.ts";
 import "../../tests/support/upgrade-vault.ts";
 import { afterEach, expect, it } from "vitest";
-import { object } from "../catalogs/acts.ts";
-import { effect, type HouseEmission, type HouseEvent } from "../journal/events.ts";
+import { object } from "../fields/visible-text.ts";
+import { effect, type HouseEmission, type HouseEvent } from "./facts.ts";
 import { frozenState } from "../journal/frozen-state.ts";
-import { houseStep, emptyHouse, allowedAct, present } from "./house.ts";
+import { houseStep, emptyHouse } from "./members.ts";
+import { allowedAct, present } from "./kit.ts";
 import { toolAct } from "../tools/act-definition.ts";
-import { settle } from "../surface/bridge/house-ports.ts";
+import { settle } from "../surface/bridge/ports/house-ports.ts";
 import { contractRig, desk, kit, type ContractRig } from "../../tests/support/contract-rig.ts";
 import { home, open, legacy, matches } from "../../tests/support/upgrade-support.ts";
 import { shopProgram, type Shop } from "../../tests/support/shop.ts";

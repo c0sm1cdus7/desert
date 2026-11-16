@@ -7,13 +7,13 @@ programa (Kenon). Lo que una regla hace cumplir está en `GARANTIAS.md`; las ley
 
 | Qué | Con qué | Dónde mirarlo |
 |---|---|---|
-| Sus hechos | `vocabulary(catálogo)`: cada hecho con su forma (TypeBox). La base suma los suyos. | `src/journal/events.ts` |
+| Sus hechos | `vocabulary(catálogo)`: cada hecho con su forma (TypeBox). La base suma los suyos. | `src/journal/facts.ts` |
 | Lo que guarda cada herramienta | `Slices`: un valor inicial y un paso por herramienta (hecho → nuevo estado). | `src/tools/tool-contract.ts` |
 | Cada herramienta | `ProgramTool`: `id`, `purpose`, `facts`, `targets`, `view`, `summary`, `acts`, y si hace falta `menus`, `closed`, `needs`, `words`, `start`. | `src/tools/promises.ts` |
 | Cada acción | `programAct({ name, enter, undoable, purpose, key, on, input, run, cases, … })`. | `src/tools/promises.ts` |
 | Lo que promete | `cases`: dado esto, al hacer esto, pasa esto (dice, escribe, se lee, pide atención) o se rechaza con un motivo. | `src/tools/promises.ts` |
-| Sus palabras | `Shown.words[herramienta]`: `name`, `key`, y `system` o `inside`; si lista cosas, `empty`, `listed`, `reads` y `presents`; si lee datos propios, `itself`. | `src/surface/bridge/house-ports.ts` |
-| Su país | `Shown.locale`: cómo se escribe la plata y el día. `Shown.day` (qué día es un instante, como lo cuenta su país) y `Shown.moment`: obligatorio `day` si hay alguna pregunta de fecha, aunque no sugiera hoy ni limite el futuro (no compone sin él). | `src/surface/masks.ts` |
+| Sus palabras | `Shown.words[herramienta]`: `name`, `key`, y `system` o `inside`; si lista cosas, `empty`, `listed`, `reads` y `presents`; si lee datos propios, `itself`. | `src/surface/bridge/ports/house-ports.ts` |
+| Su país | `Shown.locale`: cómo se escribe la plata y el día. `Shown.day` (qué día es un instante, como lo cuenta su país) y `Shown.moment`: obligatorio `day` si hay alguna pregunta de fecha, aunque no sugiera hoy ni limite el futuro (no compone sin él). | `src/surface/formats/masks.ts` |
 
 El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`) y `shown`, y dice en su
 `package.json` dónde están (`"desert": { "program": "src/…" }`). Con eso la base lo corre y lo comprueba.
@@ -338,7 +338,7 @@ La persona solo puede terminar en `Listo` o en `Error` por una causa de afuera. 
    o conservar el literal en el helper. `ProgramAct<X, typeof outside>` conserva ese resultado literal; el registro
    conserva una marca opaca para que un spread no pueda sustituir `run` o `outside` por partes sin comprobar.
    Para cambiar el cuerpo o las causas, declarar la acción con `programAct` otra vez.
-   Una rama imposible del cuerpo lanza `new OutsideDefect(detalle)`, importado de `tools/outside.ts`: el
+   Una rama imposible del cuerpo lanza `new OutsideDefect(detalle)`, importado de `fields/program-call.ts`: el
    defecto queda a la vista y la compuerta falla. No devolver un rechazo interno ni un éxito vacío.
    Si el helper es compartido con un canal, conservar su resultado de dominio y convertir el motivo residual
    en defecto en el cuerpo de la acción, después de compartir su predicado puro con las reglas previas. La casa valida las reglas
@@ -870,7 +870,7 @@ Al actualizar un programa:
 - El único remedio que la base tiene hoy es no romper la lectura: un hecho que cambia de forma es un hecho nuevo, con
   otro nombre, y el viejo se sigue leyendo y plegando. No hay lectura versionada de un hecho viejo.
 - Cada composición y apertura declara `projectionVersion`. Hay dos modos explícitos: un string no vacío es una
-  versión **manual**; `codeProjectionVersion(rutas, extensiones)` de `src/programs/calculation-version.ts` devuelve
+  versión **manual**; `codeProjectionVersion(rutas, extensiones)` de `src/runtime/calculation-version.ts` devuelve
   una versión **de código**, con su declaración y huella calculadas por la base. No se elige el modo por el texto
   del string. `projectionVersion(rutas, extensiones)` sigue disponible como huella string; usar ese string solo
   constituye modo manual y conserva sus exigencias de evidencia.
@@ -1050,7 +1050,7 @@ al migrar el import de `currentCloses` a esta entrada.
 
 Los callbacks declarados como métodos conservan su objeto como `this`, tanto al leer una herramienta como al
 preguntar o ejecutar una acción. Si una lectura falla, la base conserva su diagnóstico como defecto del programa;
-solo una ausencia explícita (`MissingView`, también exportada por `surface/shown-tool.ts`) se presenta como
+solo una ausencia explícita (`MissingView`, también exportada por `surface/contract/shown-tool.ts`) se presenta como
 una cosa que ya no está. Una pantalla propia que detecta esa ausencia lanza `new MissingView(tool, target)`;
 un `Error` común conserva su condición de defecto.
 
@@ -1111,7 +1111,7 @@ no autoriza a modificar archivos mientras la organización está abierta ni sinc
 
 Un proceso que abre por su cuenta el archivo de la exclusión con funciones de archivos (leerlo o copiar la
 carpeta de una organización abierta) suelta su propia exclusión POSIX. La base nunca lo hace. Para copiar el
-registro de una organización abierta usá `copyJournal(origen, destino)` de `src/adapters/storage/copy-journal.ts`:
+registro de una organización abierta usá `copyJournal(origen, destino)` de `src/storage/copy-journal.ts`:
 la copia de SQLite incluye lo confirmado en WAL. No uses `readFile`, `copyFile` ni `cp` sobre el auxiliar.
 Si igual ocurre y otro escribe, el dueño detecta el avance del registro dentro de su próxima transacción:
 lanza `WriterLeaseLost`, esa escritura no deja nada y la instancia no vuelve a escribir ni guarda plegados.
@@ -1165,7 +1165,7 @@ recorrerlos; el archivo auxiliar del escritor no se toma como un registro conser
 ## La casa como servidor local (paso 1)
 
 Un programa puede abrir una sola casa con `startHouse(home, opciones)` y pasar ese resultado a
-`serveHouse(casa, home, llaves)` (`src/doors/socket/serve.ts`). La tabla de prueba es un `ReadonlyMap` de llave a
+`serveHouse(casa, home, llaves)` (`src/doors/socket/server/serve.ts`). La tabla de prueba es un `ReadonlyMap` de llave a
 `{ identity, door: "terminal" | "agente" }`; no es el almacenamiento definitivo de llaves. La identidad debe seguir
 perteneciendo a la casa. La llave decide identidad y puerta: el cliente no puede declararlas en su saludo. Una llave que nombra
 una mente (`mind:…`) se rechaza siempre: las mentes no entran por la puerta.
@@ -1186,8 +1186,8 @@ El marco lleva largo uint32 big-endian (cuenta el byte de tipo y el cuerpo), un 
 Tipo 0: JSON UTF-8 válido, hasta `actLimits.inputBytes` (1 MiB, el tope de los datos de un acto) más 64 KiB para el
 sobre, validado con TypeBox de ambos lados. Tipo 1: tramos de 64 KiB de un
 mensaje `node:v8`, solo de la casa al cliente terminal; cada marco sigue limitado a 16 MiB, el estado completo no. Un cliente nunca puede enviar tipo 1. `hola` autentica primero y recién después exige igualdad de protocolo y
-versión completa de Node; quien no entró no recibe esas versiones. El protocolo actual es 3; los límites y la versión están en `src/catalogs/levers.ts`. Los esquemas exactos están en
-`src/doors/socket/protocol.ts`. Todos los objetos JSON llevan `tipo` y rechazan propiedades adicionales:
+versión completa de Node; quien no entró no recibe esas versiones. El protocolo actual es 3; los límites y la versión están en `src/doors/socket/wire/protocol.ts`. Los esquemas exactos están en
+`src/doors/socket/wire/protocol.ts`. Todos los objetos JSON llevan `tipo` y rechazan propiedades adicionales:
 
 | Dirección | `tipo` | Campos además de `tipo` |
 |---|---|---|
@@ -1270,7 +1270,7 @@ nunca se persiste ni se vuelve a emitir una credencial para reconstruir un recib
 ## Terminal cliente de la casa (paso 2)
 
 El programa puede abrir `openProgramTerminal(raízDelPrograma, carpetaDeCasa, llave, program, shown)` desde
-`src/programs/open-terminal.ts`. `program` y `shown` son imports estáticos de su composición. La llave se entrega
+`src/doors/terminal/open-terminal.ts`. `program` y `shown` son imports estáticos de su composición. La llave se entrega
 en memoria; nunca se pasa en argumentos del proceso servidor. Su provisión definitiva corresponde al paso 3.
 Los programas locales existentes y `shop-open.ts` siguen compilando y funcionando. `HousePorts` suma
 `observe?`, opcional, para los actos del dibujo; sin ese puerto se usa el mismo `act` local de siempre.
@@ -1278,7 +1278,7 @@ Los programas locales existentes y `shop-open.ts` siguen compilando y funcionand
 La función prueba `<carpetaDeCasa>/casa.sock`. Si falta, ejecuta con Node el archivo declarado en
 `package.json → desert.program`, pasándole únicamente la carpeta de la casa. Ese archivo sigue exportando
 `program` y `shown` y, cuando `import.meta.main`, llama `runProgramServer(program, opciones, carpeta)` de
-`src/programs/server-process.ts`. Las opciones son `by`, `creation`, `keys` (tabla del paso 1) y, si corresponde,
+`src/doors/socket/server/server-process.ts`. Las opciones son `by`, `creation`, `keys` (tabla del paso 1) y, si corresponde,
 `secretKeys`. Ver `tests/support/shop-program.ts` para una composición completa con custodia solo de prueba.
 El programa usa sus proveedores de custodia reales en su composición; la terminal no abre el almacenamiento.
 
@@ -1335,7 +1335,7 @@ Al sacar una herramienta se borra su kit; al devolverla llega entera. Al salir d
 Al recibir la administración se borran todos los kits de quien la recibe. Si después la devuelve, sus herramientas
 siguen enteras hasta que quien administra le dé otro kit.
 
-`mindOf(tool)` y `mindTool(actor)`, en `house/house.ts`, nombran a la mente como `mind:<herramienta>`.
+`mindOf(tool)` y `mindTool(actor)`, en `house/kit.ts`, nombran a la mente como `mind:<herramienta>`.
 No es una identidad: no recibe `granted` ni administración. Solo puede actuar si su herramienta existe
 en el registro, sobre ella o sus cosas y con las acciones que le dio quien administra. Sin kit no puede actuar;
 `null` le da todas las de su herramienta. No necesita atenderla ni tiene preferencias o actos de atender.
@@ -1344,7 +1344,7 @@ Los actos que el programa ofrece por `own` son solo para identidades; a la mente
 por ese control con el estado vigente. Sacar una acción corta también sus actos en curso, de identidad o mente;
 volver a darla habilita actos nuevos, sin resucitar los cortados. El resultado y la entrada quedan a nombre de la mente.
 Con la custodia, la mente usa los adaptadores declarados de su propia herramienta como una identidad que la tiene
-(`holds` en `house/house.ts`). Los vínculos de credenciales son por actor, herramienta y destino: la mente solo ve
+(`holds` en `house/kit.ts`). Los vínculos de credenciales son por actor, herramienta y destino: la mente solo ve
 los que ella misma vinculó, y una identidad, los suyos (salvo la colisión de nombres anteriores que se explica abajo).
 
 El contexto ofrece `signal?: AbortSignal`: los contextos existentes siguen compilando. Una acción larga puede
@@ -1420,7 +1420,7 @@ La composición puede pedir `identities: true`: quien administra tiene todas las
 ### Identificadores y nombres de identidades
 
 Al subir, usá `identityNameProblem(identificador, nombreDeLaCasa)` de
-`src/house/identity-name.ts` para validar a quien abre: devuelve `undefined` si es válido o un motivo sin repetir el valor.
+`src/house/identities/identity-name.ts` para validar a quien abre: devuelve `undefined` si es válido o un motivo sin repetir el valor.
 El identificador empieza con una letra minúscula ASCII, tiene entre 1 y 64 caracteres, y solo admite letras
 minúsculas ASCII, dígitos, puntos y guiones; debe ser distinto del nombre con que corre la casa. La casa aplica
 la regla al crearla, dar herramientas, readmitir y pasar la administración antes de escribir.
@@ -1451,7 +1451,7 @@ que cada identidad presente puede ejecutar solo sobre su propia fila, incluso qu
 El nombre conserva el tope del campo de texto corto (120); los nombres históricos de hasta 160 se siguen leyendo.
 
 Las pruebas de una composición que pide la pieza pueden incluir `identitiesTool(registry, nombreDeLaCasa)` de
-`src/tools/core/identities/identities.ts` en su registro y `identityWords` de `identity-reading.ts` en `shown.words`.
+`src/tools/identities/identities.ts` en su registro y `identityWords` de `identity-reading.ts` en `shown.words`.
 Eso hace que `programChecks` derive también sus casos. La ejecución recompone esa declaración con el nombre real
 con que corre la casa. `tests/support/identities-program.ts` muestra ese programa adicional; el programa original
 `tests/support/shop-program.ts` sigue sin pedir Identidades. No se vuelve a subir la versión del cálculo de 5a.

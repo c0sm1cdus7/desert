@@ -23,7 +23,7 @@ if (mode === "lease") {
     Reflect.apply(exec, this, [sql]);
   };
 }
-const { SqliteJournal } = await import("../../src/adapters/storage/journal-store.ts");
+const { SqliteJournal } = await import("../../src/storage/journal-store.ts");
 let transaction: DatabaseSync | undefined;
 let journal: InstanceType<typeof SqliteJournal> | undefined;
 process.on("message", message => {

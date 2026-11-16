@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach } from "vitest";
-import { SqliteJournal } from "../../src/adapters/storage/journal-store.ts";
+import { SqliteJournal } from "../../src/storage/journal-store.ts";
 import { shop, type ShopEvent } from "./shop.ts";
 
 const homes: string[] = [];

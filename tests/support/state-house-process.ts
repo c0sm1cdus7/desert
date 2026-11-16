@@ -1,8 +1,8 @@
 // A separate house heap with two framed streams over IPC; no external socket or model provider.
 import { duplexPair } from "node:stream";
 import { socketHouse } from "./socket-house.ts";
-import { identityView } from "../../src/house/house.ts";
-import { stateHash } from "../../src/doors/socket/state-hash.ts";
+import { identityView } from "../../src/house/members.ts";
+import { stateHash } from "../../src/doors/socket/state/state-hash.ts";
 import { shop } from "./shop.ts";
 const f = await socketHouse("stream");
 const streams = [duplexPair(), duplexPair()];

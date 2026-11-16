@@ -1,9 +1,9 @@
 import { join } from "node:path";
 /** Named public imports stop at the audited engine boundary. Internal composition and storage never do. */
 const modules: Record<string, readonly string[]> = {
-  "house/identity-name.ts": ["identityNameProblem"],
-  "catalogs/acts.ts": ["object"],
-  "catalogs/fields.ts": [
+  "house/identities/identity-name.ts": ["identityNameProblem"],
+  "fields/visible-text.ts": ["object"],
+  "fields/fields.ts": [
     "text",
     "money",
     "quantity",
@@ -25,12 +25,13 @@ const modules: Record<string, readonly string[]> = {
     "when",
     "wrongIn",
   ],
-  "catalogs/levers.ts": ["ViewLimits"],
-  "catalogs/time.ts": ["caseInstant"],
-  "catalogs/ids.ts": ["ids"],
-  "journal/events.ts": ["effect", "vocabulary", "Emission", "Event", "ProgramFacts", "Catalog", "HouseEvent"],
+  "journal/clock.ts": ["caseInstant"],
+  "house/ids.ts": ["ids"],
+  "journal/facts.ts": ["vocabulary", "Emission", "Event", "ProgramFacts", "Catalog"],
+  "house/facts.ts": ["effect", "HouseEvent"],
   "tools/act-definition.ts": ["toolAct"],
   "tools/tool-contract.ts": [
+    "ViewLimits",
     "ActContext",
     "ActResult",
     "Program",
@@ -46,9 +47,17 @@ const modules: Record<string, readonly string[]> = {
   "tools/startup-contract.ts": ["ToolStartup"],
   "tools/capabilities-contract.ts": ["SecretRef", "SecretRefs", "Credential", "CredentialOperations", "PublicPorts"],
   "tools/execution/capabilities.ts": ["noCapabilities"],
-  "tools/outside.ts": ["OutsideDefect", "outsideCause", "RunResult"],
+  "fields/program-call.ts": ["OutsideDefect"],
+  "tools/outside.ts": ["outsideCause", "RunResult"],
   "tools/failures/port-failure.ts": ["PortFailure"],
-  "surface/bridge/house-ports.ts": ["Shown", "SurfaceWords", "ProgramScreen", "SurfacePorts", "ScreenActs", "Start"],
+  "surface/bridge/ports/house-ports.ts": [
+    "Shown",
+    "SurfaceWords",
+    "ProgramScreen",
+    "SurfacePorts",
+    "ScreenActs",
+    "Start",
+  ],
 };
 export function secretPublicApi(base: string): Readonly<Record<string, readonly string[]>> {
   const safe = [...new Set(Object.values(modules).flat())];

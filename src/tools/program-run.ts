@@ -1,16 +1,15 @@
-import { executionSchema } from "./inputs/secret-input.ts";
-import { programCall } from "./boundaries/program-call.ts";
 // Every execution of a program act checks its current declaration before entering its body.
-import { answerChange } from "./answers/answer-change.ts";
+import { executionSchema } from "./inputs/secret-input.ts";
+import { programCall } from "../fields/program-call.ts";
+import { answerChange } from "./inputs/answer-change.ts";
 import { Value } from "@sinclair/typebox/value";
-import { fieldValidity } from "../catalogs/fields.ts";
+import { fieldValidity } from "../fields/fields.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { outsideRun } from "./outside.ts";
 import { declaredCause, isProgram } from "./execution/program-causes.ts";
 import type { ProgramAct } from "./promises-contract.ts";
 import { refusedWhole } from "./so-far.ts";
 import type { ActContext, ActResult, Program, State, ToolAct } from "./tool-contract.ts";
-
 export function programOffered<X extends Program>(act: ToolAct<X>, state: State<X>, target: string, at: number) {
   return isProgram(act)
     ? declaredCause(act.refuses, programCall(act.offered?.bind(act), state, target, at))

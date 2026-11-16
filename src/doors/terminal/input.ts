@@ -1,6 +1,5 @@
 // A terminal's keys, in the words of the surface; anything else does nothing.
-import type { Intent } from "../../surface/contract.ts";
-
+import type { Intent } from "../../surface/contract/contract.ts";
 type Pressed = Exclude<Intent["kind"], "type" | "paste">;
 const sequences: Readonly<Record<string, Pressed>> = {
   "\x1b[A": "up",

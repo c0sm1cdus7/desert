@@ -49,11 +49,26 @@ const networkGlobalsIn = (source: ts.SourceFile): string[] => {
   return found;
 };
 
-/** Only adapters, tools and the programs that compose them may reach external services. */
+/** Storage, custody, adapters and composition keep the same outside access after relocation. */
+const composedDoors = [
+  "src/doors/socket/server/serve-program.ts",
+  "src/doors/socket/server/server-process.ts",
+  "src/doors/socket/server/socket-listener.ts",
+  "src/doors/terminal/bounded-output.ts",
+  "src/doors/terminal/house-output-process.ts",
+  "src/doors/terminal/house-output.ts",
+  "src/doors/terminal/launch-house.ts",
+  "src/doors/terminal/open-terminal.ts",
+  "src/doors/terminal/terminal-client.ts",
+  "src/doors/terminal/terminal-error.ts",
+  "src/doors/terminal/terminal-program.ts",
+];
 const mayTalkOutside = (file: string): boolean =>
-  ["src/adapters/", "src/tools/", "src/programs/"].some(folder => fromRoot(file).startsWith(folder));
+  ["src/adapters/", "src/tools/", "src/storage/", "src/keychain/", "src/runtime/", "src/checks/"].some(folder =>
+    fromRoot(file).startsWith(folder),
+  ) || composedDoors.includes(fromRoot(file));
 
-describe("law 10: what talks to the outside lives in adapters/, tools/ or programs/", () => {
+describe("law 10: what talks to the outside lives in infrastructure and composition", () => {
   it("no file outside an adapter imports the network, processes, the file system, the system or a database", () => {
     const offending = sourceFiles()
       .filter(file => !mayTalkOutside(file))

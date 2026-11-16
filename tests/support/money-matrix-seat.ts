@@ -1,12 +1,12 @@
-import { object } from "../../src/catalogs/acts.ts";
-import { money, text } from "../../src/catalogs/fields.ts";
-import { asking } from "../../src/surface/bridge/asking.ts";
-import type { Field, Intent } from "../../src/surface/contract.ts";
-import { formats } from "../../src/surface/masks.ts";
-import { resolve } from "../../src/surface/resolve.ts";
-import { begin, type Running, type Session } from "../../src/surface/screen.ts";
-import type { Tool } from "../../src/surface/shown-tool.ts";
-import { finished, step } from "../../src/surface/step.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { money, text } from "../../src/fields/fields.ts";
+import { asking } from "../../src/surface/bridge/questions/asking.ts";
+import type { Field, Intent } from "../../src/surface/contract/contract.ts";
+import { formats } from "../../src/surface/formats/masks.ts";
+import { resolve } from "../../src/surface/router/resolve.ts";
+import { begin, type Running, type Session } from "../../src/surface/session/screen.ts";
+import type { Tool } from "../../src/surface/contract/shown-tool.ts";
+import { finished, step } from "../../src/surface/router/step.ts";
 
 export const matrixStates = [
   "vacío",

@@ -2,9 +2,9 @@
 import { readFileSync, writeFileSync, renameSync, watchFile, unwatchFile } from "node:fs";
 import { join } from "node:path";
 import { startTerminal } from "../../src/doors/terminal/boot.ts";
-import { MemoryHouseKeys } from "../../src/adapters/secrets/custody/house-keys.ts";
-import { localPorts, startHouse } from "../../src/programs/house-runtime.ts";
-import { houseRouter } from "../../src/surface/bridge/house-router.ts";
+import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
+import { localPorts, startHouse } from "../../src/runtime/house-runtime.ts";
+import { houseRouter } from "../../src/surface/bridge/assembly/house-router.ts";
 import { paint } from "../../src/doors/terminal/paint.ts";
 import { textOf } from "../../src/doors/terminal/cells.ts";
 import { keysOf } from "../../src/doors/terminal/input.ts";

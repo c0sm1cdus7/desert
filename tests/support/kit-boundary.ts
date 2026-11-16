@@ -1,7 +1,7 @@
-import { object } from "../../src/catalogs/acts.ts";
+import { object } from "../../src/fields/visible-text.ts";
 import { programAct } from "../../src/tools/promises.ts";
-import { identitiesTool } from "../../src/tools/core/identities/identities.ts";
-import { identityWords } from "../../src/tools/core/identities/identity-reading.ts";
+import { identitiesTool } from "../../src/tools/identities/identities.ts";
+import { identityWords } from "../../src/tools/identities/identity-reading.ts";
 import { shopProgram, shopShown, type ShopFact } from "./shop.ts";
 type Empty = { fact: ShopFact; tools: Record<string, never> };
 const input = object({});

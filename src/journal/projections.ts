@@ -1,6 +1,6 @@
+// A local projection cache preserves Maps and Sets; the journal remains the source of truth.
 import { isDeepStrictEqual } from "node:util";
 import { verifyProjections, type FoldAudit } from "./verify-projections.ts";
-// A local projection cache preserves Maps and Sets; the journal remains the source of truth.
 import { journalTexts } from "../texts/journal.texts.ts";
 import { createHash } from "node:crypto";
 import { serialize } from "node:v8";

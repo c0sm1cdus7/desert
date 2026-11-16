@@ -4,11 +4,11 @@ import { checkedHouse } from "./journal-causes.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { MemoryHouseKeys } from "../../src/adapters/secrets/custody/house-keys.ts";
+import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
 import { adapterProgram } from "./declared-adapters.ts";
 import { shop, shopRegistry, shopSlices, type Shop } from "./shop.ts";
 import type { Tool } from "../../src/tools/tool-contract.ts";
-import { startHouse } from "../../src/programs/house-runtime.ts";
+import { startHouse } from "../../src/runtime/house-runtime.ts";
 const homes: string[] = [],
   houses: { close(): void }[] = [];
 afterEach(() => {

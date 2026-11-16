@@ -1,11 +1,12 @@
 // Reminders follow the actions a person can actually perform.
-import { ids } from "../catalogs/ids.ts";
-import { toolReminderLadder } from "../catalogs/time.ts";
-import { holdsAny, houseStep } from "../house/house.ts";
-import { effect, type Event, type HouseEmission } from "../journal/events.ts";
-import { targetTool } from "./attendance.ts";
+import { toolReminderLadder } from "../journal/clock.ts";
+import { holdsAny } from "../house/kit.ts";
+import { houseStep } from "../house/members.ts";
+import { effect, type HouseEmission } from "../house/facts.ts";
+import type { Event } from "../journal/facts.ts";
+import { targetTool } from "../house/attendance.ts";
 import type { Program, State, ToolRegistry } from "./tool-contract.ts";
-export const reminderId = (by: string, tool: string): string => `${ids.attention}${JSON.stringify([by, tool])}`;
+import { reminderId } from "../house/attention.ts";
 const reminder = (by: string, tool: string, delay: number | null, event: Event): HouseEmission[] => [
   effect("attention", { tool, delay }, by, [event.id]),
   effect("wake-at", { id: reminderId(by, tool), at: delay === null ? null : event.at + delay }, by, [event.id]),

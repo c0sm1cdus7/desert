@@ -1,8 +1,8 @@
 import { afterEach, expect, it } from "vitest";
-import { mindOf, mindTool, allowedAct } from "./house.ts";
-import { effect } from "../journal/events.ts";
+import { mindOf, mindTool, allowedAct } from "./kit.ts";
+import { effect } from "./facts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
-import { settle } from "../surface/bridge/house-ports.ts";
+import { settle } from "../surface/bridge/ports/house-ports.ts";
 import { contractRig, grant, kit, type ContractRig } from "../../tests/support/contract-rig.ts";
 const rigs: ContractRig[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));

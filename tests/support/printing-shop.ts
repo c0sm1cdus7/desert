@@ -1,6 +1,6 @@
 // A deterministic stand-in for an outside printer: no provider, network or credentials are involved.
-import { object } from "../../src/catalogs/acts.ts";
-import { text } from "../../src/catalogs/fields.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { text } from "../../src/fields/fields.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import { registerOffer, paymentsTool, salesTool, shopProgram, type Shop } from "./shop.ts";
 

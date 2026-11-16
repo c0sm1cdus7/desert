@@ -1,10 +1,10 @@
 // The maker is an alternative way to answer, so every program must meet the same question on its return.
 import { describe, expect, it } from "vitest";
-import type { Field } from "../../src/surface/contract.ts";
-import type { Tool } from "../../src/surface/shown-tool.ts";
-import { begin, fieldOf, type Done } from "../../src/surface/screen.ts";
-import { walking } from "../../src/surface/walking.ts";
-import { narrowed } from "../../src/surface/bridge/questions/picked-options.ts";
+import type { Field } from "../../src/surface/contract/contract.ts";
+import type { Tool } from "../../src/surface/contract/shown-tool.ts";
+import { begin, fieldOf, type Done } from "../../src/surface/session/screen.ts";
+import { walking } from "../../src/surface/acts/walking.ts";
+import { narrowed } from "../../src/surface/bridge/picking/picked-options.ts";
 
 type Gate = "among" | "valid" | "stops";
 function toolsFor(gate: Gate, reason = true): readonly Tool[] {

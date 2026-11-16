@@ -1,9 +1,8 @@
 // A failed program has one public result; Activity keeps its technical detail for support.
 import { inspect } from "node:util";
-import { effect, type HouseEvent } from "../journal/events.ts";
+import { effect, type HouseEvent } from "../house/facts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
-import { OutsideDefect } from "./outside.ts";
-
+import { OutsideDefect } from "../fields/program-call.ts";
 export function defectEntry(
   error: unknown,
   by: string,

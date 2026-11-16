@@ -1,10 +1,9 @@
-import { requireAvailable } from "./inspection-unavailable.ts";
 // Surface failures leave the same scrubbed support entry as failures of an action body.
+import { requireAvailable } from "./inspection-unavailable.ts";
 import { baseEntry, lostDiagnostic } from "./base-failure.ts";
 import { failureEntry } from "../boundaries/failure-entry.ts";
 import { defectEntry } from "../program-defect.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";
-
 type Entry = ReturnType<typeof defectEntry>;
 export const defectReporter =
   <X extends Program>(

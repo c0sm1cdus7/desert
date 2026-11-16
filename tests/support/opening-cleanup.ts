@@ -1,5 +1,5 @@
-import { object } from "../../src/catalogs/acts.ts";
-import { money, thing } from "../../src/catalogs/fields.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { money, thing } from "../../src/fields/fields.ts";
 import type { ProgramAct } from "../../src/tools/promises.ts";
 import { chargingShop } from "./charging-shop.ts";
 import type { Shop } from "./shop.ts";

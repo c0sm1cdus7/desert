@@ -1,6 +1,6 @@
 // An indexed edit cannot name one whole current input: its stops rule recognizes today's answer for each item.
-import { object } from "../../src/catalogs/acts.ts";
-import { oneOf, option, text, thing } from "../../src/catalogs/fields.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { oneOf, option, text, thing } from "../../src/fields/fields.ts";
 import { toolTexts } from "../../src/texts/tools.texts.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import { paymentsTool, registerOffer, salesTool, shopProgram, type Shop } from "./shop.ts";

@@ -1,6 +1,6 @@
 // Two deterministic acts and nested calls, with no provider or external service.
-import { object } from "../../src/catalogs/acts.ts";
-import { effect } from "../../src/journal/events.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { effect } from "../../src/house/facts.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
 import type { Tool, ToolAct } from "../../src/tools/tool-contract.ts";
 import { shopRig } from "./shop-rig.ts";

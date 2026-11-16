@@ -6,7 +6,7 @@ import { root } from "../support/sources.ts";
 it("256: startup emit accepts only issued credential commands and authorless wake requests", () => {
   const file = join(root, "tests/support/startup-type-probe.ts");
   const code = `
-import { effect } from "../../src/journal/events.ts";
+import { effect } from "../../src/house/facts.ts";
 import type { ToolStartup } from "../../src/tools/startup-contract.ts";
 import { shop, type Shop } from "./shop.ts";
 export function probe(s: ToolStartup<Shop>) {

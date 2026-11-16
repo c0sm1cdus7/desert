@@ -1,7 +1,7 @@
 // Long acts stay visible while they run; completion, failure and a restart never repeat or lose an execution.
 import { Type } from "@sinclair/typebox";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { identityView } from "../house/house.ts";
+import { identityView } from "../house/members.ts";
 import { reading, toolAct } from "./act-definition.ts";
 import type { ActResult, Tool, ToolAct } from "./tool-contract.ts";
 import { toolTexts } from "../texts/tools.texts.ts";

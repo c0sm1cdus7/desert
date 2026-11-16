@@ -1,7 +1,7 @@
 import { registerHooks } from "node:module";
 registerHooks({
   load(url, context, nextLoad) {
-    if (url === new URL("../../src/adapters/secrets/secret-vault.ts", import.meta.url).href) {
+    if (url === new URL("../../src/keychain/secret-vault.ts", import.meta.url).href) {
       return {
         format: "module",
         shortCircuit: true,

@@ -1,7 +1,7 @@
-import { effect, type HouseEvent } from "../../journal/events.ts";
+import { effect, type HouseEvent } from "../../house/facts.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
-import { identityView } from "../../house/house.ts";
-import { targetTool } from "../attendance.ts";
+import { identityView } from "../../house/members.ts";
+import { targetTool } from "../../house/attendance.ts";
 import { finish } from "../failures/finish.ts";
 import { actNews, type Program } from "../tool-contract.ts";
 import type { Decision, Execution, ExecutionResult } from "../execute.ts";

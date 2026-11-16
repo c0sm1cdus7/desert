@@ -1,9 +1,9 @@
 // A real Node process must survive an unobserved invalid act promise.
 import { shopRig } from "./shop-rig.ts";
-import { shopRegistry } from "./shop.ts";
-import { effect } from "../../src/journal/events.ts";
+import { shopRegistry, type Shop } from "./shop.ts";
+import { effect } from "../../src/house/facts.ts";
 import type { ToolStartup } from "../../src/tools/startup-contract.ts";
-import type { Shop } from "./shop.ts";
+
 const cyclic: Record<string, unknown> = {};
 cyclic.self = cyclic;
 const rig = shopRig({

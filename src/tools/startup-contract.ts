@@ -1,4 +1,4 @@
-import type { HouseEvent } from "../journal/events.ts";
+import type { HouseEvent } from "../house/facts.ts";
 import type { Bus } from "../journal/bus.ts";
 import type { ActResult, Program, State } from "./tool-contract.ts";
 import type { ToolCapabilities, CredentialOperations } from "./capabilities-contract.ts";

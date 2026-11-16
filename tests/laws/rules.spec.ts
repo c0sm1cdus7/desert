@@ -52,17 +52,17 @@ it("runs the witnesses for law 255", () => {
       "y rechaza todo lo demás; los programas de prueba de la base muestran sus importes con ella.",
   );
   const witnesses = [
-    "src/surface/shop-money-terminal.spec.ts",
-    "src/surface/shop-money-neighbors.spec.ts",
-    "src/catalogs/fields/money-field.spec.ts",
-    "src/catalogs/fields/money-cleanup.spec.ts",
-    "src/surface/money-limit-cleanup.spec.ts",
+    "src/checks/shop-money-terminal.spec.ts",
+    "src/journal/shop-money-neighbors.spec.ts",
+    "src/fields/money-field.spec.ts",
+    "src/fields/money-cleanup.spec.ts",
+    "src/fields/money-limit-cleanup.spec.ts",
     "src/tools/promises.spec.ts",
-    "src/programs/promised-data.spec.ts",
-    "src/programs/promised-money.spec.ts",
-    "src/programs/directed-notices.spec.ts",
-    "src/programs/promised-known.spec.ts",
-    "src/surface/bridge/window-cost.spec.ts",
+    "src/checks/promises/cases/promised-data.spec.ts",
+    "src/checks/promises/cases/promised-money.spec.ts",
+    "src/checks/promises/menu/directed-notices.spec.ts",
+    "src/checks/promises/cases/promised-known.spec.ts",
+    "src/house/window-cost.spec.ts",
   ];
   expect(law?.evidence).toEqual(expect.arrayContaining(witnesses));
   execFileSync(

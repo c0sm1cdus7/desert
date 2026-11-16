@@ -34,6 +34,8 @@ function portExposed(addition = "") {
     sourceFiles().filter(
       path =>
         path.includes("/adapters/") ||
+        path.includes("/keychain/") ||
+        path.endsWith("/tools/adapter-contract.ts") ||
         path.endsWith("/tools/execution-contract.ts") ||
         path.endsWith("/tools/tool-contract.ts"),
     ),
@@ -46,8 +48,8 @@ it("212: the mind port returns no execution, registry, custody or resolver, even
 for (const [type, from] of [
   ["Execution<X>", "./execution-contract.ts"],
   ["ToolRegistry<X>", "./tool-contract.ts"],
-  ["SecretResolver", "../adapters/declared/adapter-contract.ts"],
-  ["SecretVault<X>", "../adapters/secrets/secret-vault.ts"],
+  ["SecretResolver", "./adapter-contract.ts"],
+  ["SecretVault<X>", "../keychain/secret-vault.ts"],
 ])
   it(`212: detects a nested ${type} returned by the mind port`, () => {
     const name = type?.split("<")[0];

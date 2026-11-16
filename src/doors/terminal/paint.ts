@@ -1,9 +1,8 @@
 // A resolved screen into cells: each piece of the UI rules is drawn once, here, and decides nothing.
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
-import type { Body, HintKey, Screen, Span } from "../../surface/contract.ts";
+import type { Body, HintKey, Screen, Span } from "../../surface/contract/contract.ts";
 import { blankCell, fit, put, putRight, width, type Grid } from "./cells.ts";
 import { drawFocus, drawPanel, drawRow, drawThread, keysOf } from "./thread.ts";
-
 export interface Size {
   readonly cols: number;
   readonly rows: number;

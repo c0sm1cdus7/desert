@@ -1,9 +1,9 @@
 // What a key does where it could have done nothing: enter on what a datum already is, a key with no room left, the
 // Menu looking for a tool by its name, and what is said read back from its options.
 import { afterEach, describe, expect, it } from "vitest";
-import { houseRouter } from "../../surface/bridge/house-router.ts";
-import type { Screen } from "../../surface/contract.ts";
-import type { Router } from "../../surface/router.ts";
+import { houseRouter } from "../../surface/bridge/assembly/house-router.ts";
+import type { Screen } from "../../surface/contract/contract.ts";
+import type { Router } from "../../surface/router/router.ts";
 import { textOf } from "./cells.ts";
 import { keysOf } from "./input.ts";
 import { contentRows, paint } from "./paint.ts";

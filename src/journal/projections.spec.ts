@@ -4,10 +4,10 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SqliteJournal } from "../adapters/storage/journal-store.ts";
-import { effect } from "./events.ts";
+import { SqliteJournal, snapshotEvery } from "../storage/journal-store.ts";
+import { effect } from "../house/facts.ts";
 import { clockStep, type Deadlines } from "./clock.ts";
-import { snapshotEvery } from "../catalogs/levers.ts";
+
 import { shop, type ShopEvent, type ShopFact } from "../../tests/support/shop.ts";
 
 type ShopJournal = SqliteJournal<ShopFact>;

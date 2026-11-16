@@ -1,11 +1,16 @@
 // Wire-only test peer: TypeBox checks server JSON; only this client deserializes received v8 state.
 import type { Duplex } from "node:stream";
 import { connect } from "node:net";
-import { connectionState } from "../../src/doors/socket/connection-state.ts";
-import { houseProtocolVersion } from "../../src/catalogs/levers.ts";
+import { connectionState } from "../../src/doors/socket/client/connection-state.ts";
+import {
+  houseProtocolVersion,
+  readClient,
+  readServer,
+  type ServerMessage,
+} from "../../src/doors/socket/wire/protocol.ts";
 import { setTimeout as delay } from "node:timers/promises";
-import { frameReader, clientFrame } from "../../src/doors/socket/frame.ts";
-import { readClient, readServer, type ServerMessage } from "../../src/doors/socket/protocol.ts";
+import { frameReader, clientFrame } from "../../src/doors/socket/wire/frame.ts";
+
 export const wire = (value: unknown, type = 0): Buffer => {
   const body = type === 0 ? Buffer.from(JSON.stringify(value)) : Buffer.from([255]);
   const header = Buffer.alloc(5);

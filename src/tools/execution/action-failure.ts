@@ -1,10 +1,9 @@
-import type { HouseEvent } from "../../journal/events.ts";
+import type { HouseEvent } from "../../house/facts.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import type { Decision, Execution } from "../execute.ts";
-import { OutsideDefect } from "../outside.ts";
+import { OutsideDefect } from "../../fields/program-call.ts";
 import type { Program } from "../tool-contract.ts";
 import { executionFailure } from "./execution-failure.ts";
-
 /** Classify the signal's own rejection before scrubbing; unrelated defects keep their normal diagnostic. */
 export function actionFailure<X extends Program>(
   ports: Execution<X>,

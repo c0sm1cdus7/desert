@@ -4,7 +4,7 @@ En Kenon el núcleo está cosido a sus herramientas y a su mente en dos lugares.
 
 ## 1. Los hechos: la casa escribe los suyos, el programa suma los propios (HECHO)
 
-- `src/journal/events.ts` declara `houseCatalog`: lo que escribe toda casa, viva en ella el programa que viva
+- `src/house/facts.ts` declara `houseCatalog`: lo que escribe toda casa, viva en ella el programa que viva
   (crear la casa, permisos, kits, escenas, actos y sus resultados, entradas, atender, avisos, reloj).
 - Cada programa declara su catálogo y lo junta con `vocabulary(catalogo)`. De ahí salen el lector que valida,
   los esquemas para viajar por la puerta y `fact(...)` para escribir sus hechos.
@@ -89,15 +89,15 @@ Qué cambió respecto de Kenon en este paso:
   filas y actos trae su propia pantalla (`Screens`).
 - Las palabras las pone el programa (`SurfaceWords`): nombre y tecla de cada herramienta, cada acto y cada campo.
   Si falta una palabra, es un defecto del programa y se dice cuál falta; nunca se muestra un código en su lugar.
-- `src/programs/house-runtime.ts`: `startHouse` arranca la casa de un programa (registro, secretos aparte,
+- `src/runtime/house-runtime.ts`: `startHouse` arranca la casa de un programa (registro, secretos aparte,
   herramientas, reloj) y `localPorts` le da la casa a una superficie en el mismo proceso, como un integrante.
-- `src/adapters/secrets/`: protege posiciones por estructura antes de que una acción reciba su entrada,
+- `src/keychain/`: protege posiciones por estructura antes de que una acción reciba su entrada,
   y al escribir hechos directos. No limpia repeticiones de texto. `positions/` mantiene el alcance de referencias;
   `history/` revisa acciones y hechos anteriores. Los valores quedan en custodia y los plegados reciben referencias.
 - `src/tools/inputs/`: separa restricciones de material y esquema de referencias; guarda el traspaso privado,
   de un uso, del editor de preguntas. `asking-parts.ts` pregunta como secreto y preserva su material multilínea.
-  `src/programs/opacity/` exige casos ejecutados para cada posición secreta y observa qué recibe cada acción.
-- `src/adapters/secrets/custody/`: una custodia cifrada con una llave externa por secreto y otra de autenticación por casa, ingreso
+  `src/checks/opacity/` exige casos ejecutados para cada posición secreta y observa qué recibe cada acción.
+- `src/keychain/custody/`: una custodia cifrada con una llave externa por secreto y otra de autenticación por casa, ingreso
   provisional, vínculos autenticados con revisión, reservas de uso y recuperación. La identidad aleatoria persiste
   al mover la casa; el proveedor recibe esa identidad y transporta llaves en búferes por entrada estándar. La composición
   exige proveedor si hay posiciones secretas; las fallas de purga llegan con tipo y quedan pendientes.
@@ -105,7 +105,7 @@ Qué cambió respecto de Kenon en este paso:
   después de la revisión histórica y antes del arranque. `secretKeys` se queda en la composición, fuera de los
   puertos de herramientas. `CredentialLedger` comparte el lote del motor mediante entradas silenciosas
   autenticadas; limpiar material espera al cierre del lote.
-- `src/adapters/declared/`: compone métodos con entrada, salida y permisos explícitos. Solo la fábrica recibe
+- `src/adapters/`: compone métodos con entrada, salida y permisos explícitos. Solo la fábrica recibe
   resolución; la acción recibe proxies revocables y efectos de vínculos. Los errores cruzan como códigos cerrados.
   `src/tools/startup-contract.ts` separa el arranque público de `Execution`. Ver «Adaptadores declarados»
   en `PROGRAMA.md`; las leyes transitivas quedan para el paso 4.
@@ -116,10 +116,10 @@ Qué cambió respecto de Kenon en este paso:
 Decisión de Franco (10/11): viaja el estado, y hay un router compartido por todos los renderers, para que la
 interacción con la casa sea la misma en todas las superficies.
 
-- `src/surface/router.ts`: `startRouter`. Tiene la sesión del dispositivo (dónde está parado), recibe
+- `src/surface/router/router.ts`: `startRouter`. Tiene la sesión del dispositivo (dónde está parado), recibe
   intenciones, entrega la pantalla, corre los actos y avisa cada vez que la pantalla pudo cambiar: cambió la casa,
   terminó un acto o pasó el tiempo.
-- `src/surface/bridge/house-router.ts`: `houseRouter(ports, palabras)`. Es lo único que un renderer recibe de un
+- `src/surface/bridge/assembly/house-router.ts`: `houseRouter(ports, palabras)`. Es lo único que un renderer recibe de un
   programa: las herramientas con sus palabras, la barra (conexión y hora) y los cambios de la casa.
 - La superficie abre y busca también herramientas fuera del kit; sus acciones quedan apagadas con su motivo.
   Actividad muestra lo escrito por otras personas en toda la casa; Atención solo llega a quien tiene al menos una acción de la herramienta.
@@ -145,12 +145,12 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
   que es una oración, lo que confirma que no es un verbo, una causa larga o con punto, la segunda persona, una
   pregunta con signos, un dato con forma sin máscara, una acción que no se deshace y no dice qué confirma, una
   acción nombrada como un dato que su herramienta lee y que no declara cambiarlo.
-- Campos (`catalogs/fields.ts`): `digits` (números con forma), `padded`, `handle`, `thing` (elige una cosa de una
+- Campos (`fields/fields.ts`): `digits` (números con forma), `padded`, `handle`, `thing` (elige una cosa de una
   herramienta, con el nombre de su ausencia), `someOf` (varias de un conjunto, con casillas), `holding` (el dato
   sabe por qué no vale).
 - Lo que se cambia, se cambia donde se lee: la fila de un dato que una acción cambia lleva su tecla, lo que vale
   hoy y abre esa acción.
-- Los textos propios de DESERT pasan por las mismas guardias (`programs/own-words.spec.ts`).
+- Los textos propios de DESERT pasan por las mismas guardias (`tools/own-words.spec.ts`).
 
 ## Abierto
 - **La puerta.** El servidor local y la terminal externa ya llevan `identityView`, con el router del lado de la
@@ -176,7 +176,7 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 - **Una fila que lleva a la cosa de otra herramienta.** La venta muestra sus pagos, envíos y documentos como
   renglones quietos; deberían abrir esa cosa en su herramienta.
 - **Un campo completo que no avanza no dice por qué.** CERRADA EN PARTE (11/11): un campo puede declarar por qué
-  un dato completo no vale (`holding`, en `catalogs/fields.ts`): la pregunta lo dice ahí mismo y ninguna acción
+  un dato completo no vale (`holding`, en `fields/fields.ts`): la pregunta lo dice ahí mismo y ninguna acción
   corre con ese dato. Falta usarlo en las máscaras de la casa: un día que no existe («30/02/2026») todavía entra
   y enter no hace nada.
 - **Después de un rechazo no se ve la pregunta.** El motivo ocupa el lugar de la pregunta que se estaba
@@ -225,7 +225,7 @@ correcto y de no codificar material en una respuesta pública. Las leyes no cons
 no certifican lo no revisable en la historia ni borran copias externas. El ancla de la custodia detecta restauraciones
 anteriores y exige aceptación explícita; no recrea llaves purgadas.
 
-`src/programs/testing/adapter-test.ts`, exportado por `testing.ts`, prueba métodos con referencias provisionales,
+`src/checks/adapter-test.ts`, exportado por `testing.ts`, prueba métodos con referencias provisionales,
 custodia temporal cifrada, proveedor en memoria y controles reales. No llama al llavero ni elige un transporte:
 el test inyecta uno falso. Para lotes y reinicios se usa la casa real con `MemoryHouseKeys`.
 El recorrido de firma y todos los cambios de migración están en `PROGRAMA.md`, «Una llave de firma» y «Probar el
@@ -300,8 +300,8 @@ y rearma la anterior. El bus de arranque sigue exponiendo solo `on`, `emit` y `t
 
 ## Servidor local de la casa (paso 1)
 
-`src/doors/socket/serve.ts` compone una casa ya abierta con el protocolo local. El acceso a `node:net` y al sistema
-de archivos está en `src/programs/socket-listener.ts`, respetando la separación del sistema operativo de la ley 10.
+`src/doors/socket/server/serve.ts` compone una casa ya abierta con el protocolo local. El acceso a `node:net` y al sistema
+de archivos está en `src/doors/socket/server/socket-listener.ts`, respetando la separación del sistema operativo de la ley 10.
 La puerta usa `tools.state`, `tools.act`, `tools.prepare`, el bus y el diario que `startHouse` ya devuelve. El único agregado a
 `house-runtime.ts` es devolver `home`, para verificar que la carpeta del socket pertenece a ese escritor. Ningún cliente importa almacenamiento para conectarse. El índice de pedidos se reconstruye del
 registro existente, sin tabla adicional ni nueva versión de cálculo: el identificador viaja como causa del acto.
@@ -313,7 +313,7 @@ de agentes aún se debe: autenticar esa puerta no habilita el camino de terminal
 ## Terminal externa (paso 2)
 
 La conexión y `socketPorts` están en `src/doors/socket/`; el sistema operativo, el arranque independiente y la
-reconexión están en `src/programs/`. El router y todos los archivos del dibujante conservan su código.
+reconexión acompañan a sus archivos en `src/doors/`. El router y todos los archivos del dibujante conservan su código.
 La composición del programa es estática: el manifiesto elige un ejecutable, no un import dinámico. El ejecutable
 coopera con el handshake de `runProgramServer`; `openProgramTerminal` recibe la composición ya importada.
 No se cambia la huella de cálculos ni se exceptúan imports de sus leyes.

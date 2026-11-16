@@ -1,4 +1,4 @@
-import type { Emission } from "../../journal/events.ts";
+import type { Emission } from "../../journal/facts.ts";
 import type { CredentialScope, ToolCapabilities } from "../capabilities-contract.ts";
 /** Internal lifetime of the public methods lent to one action or startup. */
 export type CapabilityLease = ToolCapabilities &

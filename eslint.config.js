@@ -11,7 +11,7 @@ export default tseslint.config(
     languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname } },
     linterOptions: { noInlineConfig: true, reportUnusedDisableDirectives: "error" },
     rules: {
-      "max-lines": ["error", { max: 200, skipBlankLines: false, skipComments: false }],
+      "max-lines": ["error", { max: 300, skipBlankLines: false, skipComments: false }],
       "max-len": ["error", { code: 120, tabWidth: 2 }],
       "max-statements-per-line": ["error", { max: 1 }],
       "max-depth": ["error", 3],

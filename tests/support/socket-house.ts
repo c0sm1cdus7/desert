@@ -1,9 +1,9 @@
 import { duplexPair } from "node:stream";
-import { houseDoor } from "../../src/doors/socket/house-door.ts";
+import { houseDoor } from "../../src/doors/socket/server/house-door.ts";
 import { mkdtempSync, rmSync } from "node:fs";
-import { MemoryHouseKeys } from "../../src/adapters/secrets/custody/house-keys.ts";
-import { startHouse } from "../../src/programs/house-runtime.ts";
-import { serveHouse, type DoorKey } from "../../src/doors/socket/serve.ts";
+import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
+import { startHouse } from "../../src/runtime/house-runtime.ts";
+import { serveHouse, type DoorKey } from "../../src/doors/socket/server/serve.ts";
 import { shopProgram, paymentsTool } from "./shop.ts";
 import { probe } from "./socket-probe.ts";
 export const doorKeys: ReadonlyMap<string, DoorKey> = new Map([

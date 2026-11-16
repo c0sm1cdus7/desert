@@ -3,8 +3,8 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { startTerminal } from "../../src/doors/terminal/boot.ts";
-import { localPorts, startHouse } from "../../src/programs/house-runtime.ts";
-import { houseRouter } from "../../src/surface/bridge/house-router.ts";
+import { localPorts, startHouse } from "../../src/runtime/house-runtime.ts";
+import { houseRouter } from "../../src/surface/bridge/assembly/house-router.ts";
 import { shop, shopRegistry, shopShown, shopSlices, type Shop } from "./shop.ts";
 
 const home = process.argv[2] ?? mkdtempSync(join(tmpdir(), "desert-shop-"));

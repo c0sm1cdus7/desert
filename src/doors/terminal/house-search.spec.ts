@@ -1,8 +1,8 @@
 // Looking for things on the terminal: what a person reads from the moment space is pressed on a menu.
 import { afterEach, describe, expect, it } from "vitest";
-import { matches } from "../../surface/finding.ts";
-import { houseRouter } from "../../surface/bridge/house-router.ts";
-import type { Router } from "../../surface/router.ts";
+import { matches } from "../../surface/menus/finding.ts";
+import { houseRouter } from "../../surface/bridge/assembly/house-router.ts";
+import type { Router } from "../../surface/router/router.ts";
 import { textOf } from "./cells.ts";
 import { keysOf } from "./input.ts";
 import { contentRows, paint } from "./paint.ts";

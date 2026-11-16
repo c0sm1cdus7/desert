@@ -1,7 +1,7 @@
 // The test shop whose payments tool charges a sale: the sale is picked by its name, or the act is taken from the sale.
 import { Type, type Static } from "@sinclair/typebox";
-import { object } from "../../src/catalogs/acts.ts";
-import { money, thing } from "../../src/catalogs/fields.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { money, thing } from "../../src/fields/fields.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import { paymentsTool, salesTool, shop, shopProgram, type Shop } from "./shop.ts";
 

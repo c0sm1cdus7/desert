@@ -1,7 +1,6 @@
 // Written entries in threads and rows: text, the unfilled shape, and the cursor.
-import type { Body, Row } from "../../surface/contract.ts";
+import type { Body, Row } from "../../surface/contract/contract.ts";
 import { put, width, type Grid } from "./cells.ts";
-
 /** A row that is written in: its name when it has one, and what is typed with the caret where it stands. */
 export function drawWritten(grid: Grid, r: number, x: number, row: Row & { entry: NonNullable<Row["entry"]> }): void {
   const col = row.title ? put(grid, x, r, { text: row.title, tone: "t2" }) + 2 : x;

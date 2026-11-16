@@ -3,8 +3,8 @@ import type { TSchema } from "@sinclair/typebox";
 import type { Program } from "../../src/tools/tool-contract.ts";
 import { vi } from "vitest";
 
-vi.mock("../../src/adapters/secrets/secret-vault.ts", async () => {
-  const { Redactor } = await import("../../src/adapters/secrets/redact.ts");
+vi.mock("../../src/keychain/secret-vault.ts", async () => {
+  const { Redactor } = await import("../../src/keychain/redact.ts");
   return {
     SecretVault: class extends Redactor<Program> {
       constructor(_file: string, schema: TSchema) {

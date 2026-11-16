@@ -1,10 +1,10 @@
 // No missing-clock default can turn a future day into an allowed one or evaluate a rule at epoch zero.
 import { expect, expectTypeOf, it } from "vitest";
 import { askingClock, questionWords } from "./asking-clock.ts";
-import type { AskWords } from "../asking.ts";
-import { asking } from "../asking.ts";
-import { object } from "../../../catalogs/acts.ts";
-import { day, holding, text } from "../../../catalogs/fields.ts";
+import { type AskWords, asking } from "./asking.ts";
+
+import { object } from "../../../fields/visible-text.ts";
+import { day, holding, text } from "../../../fields/fields.ts";
 import { shopShown } from "../../../../tests/support/shop.ts";
 import { instant, localDay } from "../../../../tests/support/dated-shop.ts";
 

@@ -9,8 +9,8 @@ import { programGroups, registerPart } from "../program/registration.ts";
 import { programPartCount } from "../program/parts.ts";
 import { program, shown } from "../support/shop-program.ts";
 import { root } from "../support/sources.ts";
-import * as journals from "../../src/programs/kept-journals.ts";
-import type { Check } from "../../src/programs/promised-stage.ts";
+import * as journals from "../../src/checks/kept/kept-journals.ts";
+import type { Check } from "../../src/checks/promises/promised-stage.ts";
 
 const temporary = mkdtempSync(join(tmpdir(), "desert-parts-spec-"));
 afterAll(() => rmSync(temporary, { recursive: true, force: true }));

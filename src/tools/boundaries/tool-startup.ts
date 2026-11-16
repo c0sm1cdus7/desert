@@ -1,16 +1,17 @@
 import { readonlyPorts } from "./readonly-ports.ts";
-import { ids } from "../../catalogs/ids.ts";
-import { mindOf } from "../../house/house.ts";
-import { OutsideDefect } from "../outside.ts";
+import { ids } from "../../house/ids.ts";
+import { mindOf } from "../../house/kit.ts";
+import { OutsideDefect, programCall } from "../../fields/program-call.ts";
 import { startupMind } from "./startup-mind.ts";
 import { journalTexts } from "../../texts/journal.texts.ts";
 import type { Bus } from "../../journal/bus.ts";
-import { effect, type Emission, type Event, type Foreign } from "../../journal/events.ts";
+import { effect } from "../../house/facts.ts";
+import type { Emission, Event, Foreign } from "../../journal/facts.ts";
 import type { Execution } from "../execute.ts";
 import type { Program, Tool } from "../tool-contract.ts";
 import type { ToolStartup } from "../startup-contract.ts";
 import { noCapabilities, type CapabilityLease } from "../execution/capabilities.ts";
-import { programCall } from "./program-call.ts";
+
 import { baseFunctions } from "./program-functions.ts";
 const ofKind = <E extends { kind: string }, K extends string>(event: E, kind: K): event is E & { kind: K } =>
   event.kind === kind;

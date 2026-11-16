@@ -1,12 +1,12 @@
 import type { TSchema } from "@sinclair/typebox";
-import { object } from "../../src/catalogs/acts.ts";
-import { asking } from "../../src/surface/bridge/asking.ts";
-import { formats } from "../../src/surface/masks.ts";
-import { begin, start, type Session } from "../../src/surface/screen.ts";
-import { step, finished } from "../../src/surface/step.ts";
-import { resolve } from "../../src/surface/resolve.ts";
-import type { Intent } from "../../src/surface/contract.ts";
-import type { Tool } from "../../src/surface/shown-tool.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { asking } from "../../src/surface/bridge/questions/asking.ts";
+import { formats } from "../../src/surface/formats/masks.ts";
+import { begin, start, type Session } from "../../src/surface/session/screen.ts";
+import { step, finished } from "../../src/surface/router/step.ts";
+import { resolve } from "../../src/surface/router/resolve.ts";
+import type { Intent } from "../../src/surface/contract/contract.ts";
+import type { Tool } from "../../src/surface/contract/shown-tool.ts";
 
 function fieldTool(field: TSchema, after?: TSchema, stops?: (answers: readonly string[]) => string | undefined): Tool {
   const ask = asking(object({ value: field, ...(after ? { after } : {}) }), {

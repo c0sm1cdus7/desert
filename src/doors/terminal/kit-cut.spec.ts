@@ -1,6 +1,6 @@
 import { afterEach, expect, it } from "vitest";
-import { effect } from "../../journal/events.ts";
-import { houseRouter } from "../../surface/bridge/house-router.ts";
+import { effect } from "../../house/facts.ts";
+import { houseRouter } from "../../surface/bridge/assembly/house-router.ts";
 import { shopRig } from "../../../tests/support/shop-rig.ts";
 import { shopShown } from "../../../tests/support/shop.ts";
 import { keysOf } from "./input.ts";

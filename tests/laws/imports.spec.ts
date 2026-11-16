@@ -4,7 +4,24 @@ import { describe, expect, it } from "vitest";
 import { filesUnder, fromRoot, isSpec, parsed, root, src } from "../support/sources.ts";
 const files = filesUnder(src);
 /** Who may reach an adapter: the programs that compose a house, adapters, tools and the surface bridges. */
-const adapterUsers = ["programs", "adapters", "tools", join("surface", "bridge")].map(folder => join(src, folder));
+const adapterUsers = ["runtime", "checks", "storage", "keychain", "adapters", "tools", join("surface", "bridge")].map(
+  folder => join(src, folder),
+);
+const relocatedUsers = [
+  "src/doors/socket/server/serve-program.ts",
+  "src/doors/socket/server/server-process.ts",
+  "src/doors/socket/server/socket-listener.ts",
+  "src/doors/terminal/bounded-output.ts",
+  "src/doors/terminal/house-output-process.ts",
+  "src/doors/terminal/house-output.ts",
+  "src/doors/terminal/launch-house.ts",
+  "src/doors/terminal/open-terminal.ts",
+  "src/doors/terminal/terminal-client.ts",
+  "src/doors/terminal/terminal-error.ts",
+  "src/doors/terminal/terminal-program.ts",
+  "src/house/state.ts",
+].map(file => join(root, file));
+const adapterRoots = ["adapters", "storage", "keychain"].map(folder => join(src, folder));
 const within = (folder: string, file: string): boolean => file.startsWith(`${folder}${sep}`);
 const importsIn = (source: ts.SourceFile): string[] => {
   const found: string[] = [];
@@ -41,7 +58,10 @@ const forbidden = (file: string, specifier: string): boolean => {
     (!within(src, target) &&
       !/[\\/]node_modules[\\/]/.test(target) &&
       !(isSpec(file) && within(join(root, "tests", "support"), target))) ||
-    (within(join(src, "adapters"), target) && !isSpec(file) && !adapterUsers.some(folder => within(folder, file)))
+    (adapterRoots.some(folder => within(folder, target)) &&
+      !isSpec(file) &&
+      !adapterUsers.some(folder => within(folder, file)) &&
+      !relocatedUsers.includes(file))
   );
 };
 describe("law 2: explicit dependencies and isolated adapters", () => {
@@ -67,15 +87,15 @@ describe("law 2: explicit dependencies and isolated adapters", () => {
     const imports = importsIn(ts.createSourceFile(file, code, ts.ScriptTarget.Latest, true));
     expect(imports).toHaveLength(7);
     expect(imports.every(specifier => forbidden(file, specifier))).toBe(true);
-    expect(forbidden(file, "./events.ts")).toBe(false);
+    expect(forbidden(file, "./facts.ts")).toBe(false);
     expect(forbidden(file, "node:sqlite")).toBe(false);
     expect(forbidden(file, "../adapters/providers/providers.ts")).toBe(true);
-    expect(forbidden(join(src, "programs", "house-runtime.ts"), "../adapters/providers/providers.ts")).toBe(false);
+    expect(forbidden(join(src, "runtime", "house-runtime.ts"), "../adapters/providers/providers.ts")).toBe(false);
     expect(forbidden(join(src, "tools", "web", "search.ts"), "../../adapters/providers/reply.ts")).toBe(false);
-    expect(forbidden(join(src, "surface", "bridge", "start.ts"), "../../adapters/storage/home.ts")).toBe(false);
-    expect(forbidden(join(src, "surface", "screen.ts"), "../adapters/storage/home.ts")).toBe(true);
+    expect(forbidden(join(src, "surface", "bridge", "start.ts"), "../../storage/home.ts")).toBe(false);
+    expect(forbidden(join(src, "surface", "screen.ts"), "../storage/home.ts")).toBe(true);
     expect(forbidden(join(src, "mind", "turn.ts"), "../adapters/providers/reply.ts")).toBe(true);
-    expect(forbidden(join(src, "cli.ts"), "./adapters/storage/home.ts")).toBe(true);
+    expect(forbidden(join(src, "cli.ts"), "./storage/home.ts")).toBe(true);
     expect(forbidden(file, "@sinclair/typebox")).toBe(false);
     expect(forbidden(file, "../../../tests/support/next-tools.ts")).toBe(true);
     expect(

@@ -1,6 +1,6 @@
 // The test shop whose payments are named by a rule: a name that is complete and wrong is said so where it is written.
-import { object } from "../../src/catalogs/acts.ts";
-import { holding, money, text } from "../../src/catalogs/fields.ts";
+import { object } from "../../src/fields/visible-text.ts";
+import { holding, money, text } from "../../src/fields/fields.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import { paymentsTool, salesTool, shop, shopProgram, type Shop } from "./shop.ts";
 

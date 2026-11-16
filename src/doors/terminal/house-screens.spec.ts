@@ -1,7 +1,7 @@
 // A program's house walked by keys on the terminal, through the same router every renderer uses.
 import { afterEach, describe, expect, it } from "vitest";
-import { houseRouter } from "../../surface/bridge/house-router.ts";
-import type { Router } from "../../surface/router.ts";
+import { houseRouter } from "../../surface/bridge/assembly/house-router.ts";
+import type { Router } from "../../surface/router/router.ts";
 import { textOf } from "./cells.ts";
 import { keysOf } from "./input.ts";
 import { contentRows, paint } from "./paint.ts";
