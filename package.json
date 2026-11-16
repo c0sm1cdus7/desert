@@ -29,6 +29,77 @@
     "@sinclair/typebox": "0.34.52"
   },
   "desert": {
-    "program": "tests/support/shop-program.ts"
+    "program": "tests/support/shop-program.ts",
+    "laws": {
+      "code": [
+        "src"
+      ],
+      "base": null,
+      "adapters": [
+        "src/adapters",
+        "src/storage",
+        "src/keychain"
+      ],
+      "adapterUsers": {
+        "src/runtime/": "Composition and infrastructure can use adapters.",
+        "src/checks/": "Composition and infrastructure can use adapters.",
+        "src/storage/": "Composition and infrastructure can use adapters.",
+        "src/keychain/": "Composition and infrastructure can use adapters.",
+        "src/adapters/": "Composition and infrastructure can use adapters.",
+        "src/tools/": "Composition and infrastructure can use adapters.",
+        "src/surface/bridge/": "Composition and infrastructure can use adapters.",
+        "src/doors/socket/server/serve-program.ts": "Relocated composition keeps its adapter access.",
+        "src/doors/socket/server/server-process.ts": "Relocated composition keeps its adapter access.",
+        "src/doors/socket/server/socket-listener.ts": "Relocated composition keeps its adapter access.",
+        "src/doors/terminal/bounded-output.ts": "Relocated composition keeps its adapter access.",
+        "src/doors/terminal/house-output-process.ts": "Relocated composition keeps its adapter access.",
+        "src/doors/terminal/house-output.ts": "Relocated composition keeps its adapter access.",
+        "src/doors/terminal/launch-house.ts": "Relocated composition keeps its adapter access.",
+        "src/doors/terminal/open-terminal.ts": "Relocated composition keeps its adapter access.",
+        "src/doors/terminal/terminal-client.ts": "Relocated composition keeps its adapter access.",
+        "src/doors/terminal/terminal-error.ts": "Relocated composition keeps its adapter access.",
+        "src/doors/terminal/terminal-program.ts": "Relocated composition keeps its adapter access.",
+        "src/house/state.ts": "Relocated composition keeps its adapter access."
+      },
+      "mayTalkOutside": {
+        "src/adapters/": "Infrastructure owns external I/O.",
+        "src/tools/": "Infrastructure owns external I/O.",
+        "src/storage/": "Infrastructure owns external I/O.",
+        "src/keychain/": "Infrastructure owns external I/O.",
+        "src/runtime/": "Infrastructure owns external I/O.",
+        "src/checks/": "Infrastructure owns external I/O.",
+        "src/doors/socket/server/serve-program.ts": "Relocated door owns its external I/O.",
+        "src/doors/socket/server/server-process.ts": "Relocated door owns its external I/O.",
+        "src/doors/socket/server/socket-listener.ts": "Relocated door owns its external I/O.",
+        "src/doors/terminal/bounded-output.ts": "Relocated door owns its external I/O.",
+        "src/doors/terminal/house-output-process.ts": "Relocated door owns its external I/O.",
+        "src/doors/terminal/house-output.ts": "Relocated door owns its external I/O.",
+        "src/doors/terminal/launch-house.ts": "Relocated door owns its external I/O.",
+        "src/doors/terminal/open-terminal.ts": "Relocated door owns its external I/O.",
+        "src/doors/terminal/terminal-client.ts": "Relocated door owns its external I/O.",
+        "src/doors/terminal/terminal-error.ts": "Relocated door owns its external I/O.",
+        "src/doors/terminal/terminal-program.ts": "Relocated door owns its external I/O."
+      },
+      "catalog": [
+        "src/texts/"
+      ],
+      "exemptWords": {
+        "src/keychain/custody/custody-database.ts": "the encrypted custody store SQL, separate from the journal",
+        "src/keychain/custody/custody-migration.ts": "the legacy secret store SQL read during custody adoption",
+        "src/storage/journal-store.ts": "the journal's SQL",
+        "src/storage/journal-reader.ts": "the read-only journal's SQL, extracted from journal-store",
+        "src/checks/laws/gate.ts": "Literal script contracts and lint diagnostics are inspected by the gate, not addressed to a person or model."
+      },
+      "exemptRules": {
+        "src/checks/laws/gate.ts": {
+          "reason": "The exact assertionStyle enum enforces the ban on unsafe assertions.",
+          "texts": [
+            "never"
+          ]
+        }
+      },
+      "data": {},
+      "maxLines": 300
+    }
   }
 }

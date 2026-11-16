@@ -1646,3 +1646,44 @@ puede llamarlos otra vez. Un cambio válido siempre nace de los hechos, no de mo
 Los iniciales, el plegado interno y las instantáneas quedan bajo control de la base. Al deshacer una escritura
 se restauran esos datos, y la siguiente lectura recibe la vista de ese pliegue. Al cerrar y reabrir se verifica
 el estado guardado contra el registro antes de entregarlo a cualquier arranque.
+
+## Las leyes del repositorio
+
+Al adoptar esta versión, la compuerta de la base corre también las siete leyes de repositorio desde
+`tests/program/registration.ts`. Las opciones se declaran en `package.json`, en `desert.laws`:
+
+```json
+{
+  "code": ["src", "arranque"],
+  "base": "desert",
+  "adapters": [],
+  "adapterUsers": {},
+  "mayTalkOutside": {},
+  "catalog": ["src/palabras.ts"],
+  "exemptWords": {},
+  "exemptRules": {},
+  "data": {},
+  "maxLines": null
+}
+```
+
+Todos esos campos son obligatorios, también los vacíos. Una opción ausente o inválida falla nombrando el campo.
+`code` enumera carpetas reales con TypeScript; una ausente o vacía falla. El código que compila el programa debe
+estar cubierto por esas carpetas. `base` es la ruta relativa de la base, o `null` para la base misma. Las raíces
+`adapters`, `storage` y `keychain` de esa base siempre se reconocen como adaptadores. `adapters` agrega las raíces
+propias del programa. `catalog` admite carpetas terminadas en `/` o archivos de palabras.
+
+`adapterUsers`, `mayTalkOutside`, `exemptWords` y `data` son objetos de ruta a motivo. Los dos primeros admiten
+carpetas terminadas en `/`; `exemptWords` y `data` nombran archivos. `exemptRules` nombra cada archivo y declara
+`{ "reason": "motivo técnico", "texts": ["token exacto"] }`. Una exención sin motivo, ausente o cuyo texto dejó de
+existir falla. Los textos de instrucciones fuera de esos tokens siguen fallando. `maxLines` es un entero positivo
+o `null`, que desactiva únicamente ese tope; la base declara 300. Las otras reglas de tamaño y lint siguen activas.
+
+El runner declara inclusiones literales, en orden: los patrones `<carpeta>/**/*.spec.ts` de `code`, seguidos de
+`desert/tests/program/**/*.checks.ts` en el proyecto de specs; `tests/laws/**/*.spec.ts` en el proyecto de leyes.
+La ruta de las partes sigue el valor de `base`. El chequeo de archivos de partes de la base sigue siendo propio.
+
+La entrada `#desert/laws.ts` permite usar las mismas funciones en pruebas propias; las funciones devuelven una
+lista vacía cuando se cumple la ley. `readLint(repo)` obtiene la lectura asíncrona completa de ESLint que reciben
+`ignoredFiles` y `looseRules`. `programLaws(root)` lee las opciones y corre todo. `#desert/testing.ts` conserva su
+entrada separada. Los programas que fijan una versión anterior recién reciben esto al actualizar su base.

@@ -18,6 +18,7 @@ const layers: Readonly<Record<string, number>> = {
   doors: 9,
   checks: 10,
   "testing.ts": 11,
+  "laws.ts": 11,
 };
 // Exact file-to-file debts, including types. The signed partitions preserve the existing house-specific contracts.
 const upward = [

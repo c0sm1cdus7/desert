@@ -98,3 +98,14 @@ it("writes paths walked to stdout after the walk, and preserves its failure on a
   expect(report).toHaveBeenCalledTimes(3);
   expect(output).toHaveBeenCalledTimes(3);
 });
+
+it("registers repository laws automatically and runs them against the adopting program", async () => {
+  const folder = fixture({ name: "fixture", desert: { program: "program.mjs" } });
+  vi.spyOn(process, "cwd").mockReturnValue(folder);
+  const checks = programGroups(source).flatMap(group => group.checks);
+  const law = checks.find(
+    check => check.name === "obeys every repository law with the options declared by the program",
+  );
+  expect(law).toBeDefined();
+  await expect(law?.run()).rejects.toThrow("desert.laws.code");
+});

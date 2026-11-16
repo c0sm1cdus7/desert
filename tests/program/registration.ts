@@ -6,6 +6,7 @@ import type { Check } from "../../src/checks/promises/promised-stage.ts";
 import type { Program } from "../../src/tools/tool-contract.ts";
 import type { Composed } from "./load.ts";
 import { checksInPart } from "./parts.ts";
+import { programLaws } from "../../src/checks/laws/program-laws.ts";
 import { programSecretBoundaries } from "../laws/program-secret-boundaries.ts";
 
 export type Group = Readonly<{ name: string; checks: readonly Check[] }>;
@@ -46,6 +47,18 @@ export function programGroups<X extends Program>({ program, shown, where, journa
     { name: `what the program composed in ${where} promises`, checks: programChecks(program, shown) },
     { name: "the journals the program keeps", checks: [folder, ...kept.map(reported)] },
     { name: "the secret boundaries of the program", checks: [boundaries] },
+    {
+      name: "the repository laws of the program",
+      checks: [
+        {
+          name: "obeys every repository law with the options declared by the program",
+          run: async () => {
+            const found = await programLaws(process.cwd());
+            if (found.length) throw new Error(found.join("\n"));
+          },
+        },
+      ],
+    },
   ];
 }
 

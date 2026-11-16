@@ -1179,7 +1179,9 @@
         "tests/program/parts.ts",
         "tests/laws/program-parts.spec.ts",
         "tests/laws/program-loading.spec.ts",
-        "tests/laws/gate.spec.ts"
+        "tests/laws/gate.spec.ts",
+        "src/checks/laws/gate.ts",
+        "src/checks/laws/gate.spec.ts"
       ]
     },
     {
@@ -3009,6 +3011,104 @@
       "guarantee": "spec",
       "evidence": [
         "tests/laws/layers.spec.ts"
+      ]
+    },
+    {
+      "id": 260,
+      "rule": "Ningún archivo de producción se carga de vuelta por un ciclo de importaciones de valores.",
+      "from": "Leyes del repositorio 21 · limpiar 3",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/laws/cycles.ts",
+        "src/checks/laws/cycles.spec.ts",
+        "tests/laws/cycles.spec.ts",
+        "src/checks/laws/program-laws.ts",
+        "src/checks/laws/program-laws.spec.ts",
+        "tests/program/registration.ts"
+      ]
+    },
+    {
+      "id": 261,
+      "rule": "Las dependencias son explícitas y los adaptadores solo son usados desde composición e infraestructura declaradas.",
+      "from": "Leyes del repositorio 2 · limpiar 3",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/laws/imports.ts",
+        "src/checks/laws/imports.spec.ts",
+        "tests/laws/imports.spec.ts",
+        "src/checks/laws/program-laws.ts",
+        "src/checks/laws/program-laws.spec.ts",
+        "tests/program/registration.ts"
+      ]
+    },
+    {
+      "id": 262,
+      "rule": "Solo la infraestructura y composición declaradas importan I/O externo o alcanzan globales de red.",
+      "from": "Leyes del repositorio 10 · limpiar 3",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/laws/adapters.ts",
+        "src/checks/laws/adapters.spec.ts",
+        "tests/laws/adapters.spec.ts",
+        "src/checks/laws/program-laws.ts",
+        "src/checks/laws/program-laws.spec.ts",
+        "tests/program/registration.ts"
+      ]
+    },
+    {
+      "id": 263,
+      "rule": "No se repiten nombres de clase; el tope de renglones es una opción explícita. Se conservan líneas legibles, tipos estrictos y chequeos encendidos.",
+      "from": "Leyes del repositorio 11 · limpiar 3",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/laws/size.ts",
+        "src/checks/laws/size.spec.ts",
+        "tests/laws/size.spec.ts",
+        "src/checks/laws/program-laws.ts",
+        "src/checks/laws/program-laws.spec.ts",
+        "tests/program/registration.ts"
+      ]
+    },
+    {
+      "id": 264,
+      "rule": "La compuerta incluye las specs y las pruebas derivadas, no ignora fuentes ni saltea pruebas y mantiene sus reglas y scripts.",
+      "from": "Leyes del repositorio 12 · limpiar 3",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/laws/gate.ts",
+        "src/checks/laws/gate.spec.ts",
+        "tests/laws/gate.spec.ts",
+        "src/checks/laws/program-laws.ts",
+        "src/checks/laws/program-laws.spec.ts",
+        "tests/program/registration.ts"
+      ]
+    },
+    {
+      "id": 265,
+      "rule": "Los textos en palabras viven en el catálogo; cada exención técnica tiene motivo y sigue vigente.",
+      "from": "Leyes del repositorio 20 · limpiar 3",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/laws/biases.ts",
+        "src/checks/laws/biases.spec.ts",
+        "tests/laws/biases.spec.ts",
+        "src/checks/laws/program-laws.ts",
+        "src/checks/laws/program-laws.spec.ts",
+        "tests/program/registration.ts"
+      ]
+    },
+    {
+      "id": 266,
+      "rule": "El código no guarda instrucciones de conducta ni archivos de instrucciones; cada exención nombra datos o tokens exactos presentes y su motivo.",
+      "from": "Leyes del repositorio 15 · limpiar 3",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/laws/prompts.ts",
+        "src/checks/laws/prompts.spec.ts",
+        "tests/laws/prompts.spec.ts",
+        "src/checks/laws/program-laws.ts",
+        "src/checks/laws/program-laws.spec.ts",
+        "tests/program/registration.ts"
       ]
     }
   ]

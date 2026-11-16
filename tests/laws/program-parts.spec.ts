@@ -71,6 +71,10 @@ describe("every derived check belongs to one part", () => {
       /** Law 212 joined the parts: the same check that had its own file, run once. */
       "the secret boundaries of the program > tools cannot import secret custody, factories or direct I/O",
     );
+    // Repository laws join once; the exact comparison still includes every original name and occurrence.
+    original.push(
+      "the repository laws of the program > obeys every repository law with the options declared by the program",
+    );
     expect(registered.sort()).toEqual(original.sort());
   });
 
