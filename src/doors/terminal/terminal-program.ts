@@ -1,8 +1,8 @@
 // Resolve the declared executable composition without dynamically importing undeclared calculation code.
+import { field } from "../../fields/json-values.ts";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-const field = (value: unknown, key: string): unknown =>
-  value !== null && typeof value === "object" ? Reflect.get(value, key) : undefined;
+
 export function terminalProgram(root: string): string {
   const manifest: unknown = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
   const entry = field(field(manifest, "desert"), "program");

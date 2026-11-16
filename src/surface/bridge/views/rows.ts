@@ -1,8 +1,7 @@
 // A tool's text view read as rows: what has an id opens; the rest is a label, in the program's words, and its value.
+import { plain, field } from "../../../fields/json-values.ts";
 import type { ViewRow } from "../../contract/shown-tool.ts";
-export const field = (value: unknown, key: string): unknown =>
-  value !== null && typeof value === "object" ? Reflect.get(value, key) : undefined;
-export const list = (value: unknown): readonly unknown[] => (Array.isArray(value) ? value : []);
+
 const parse = (line: string): unknown => {
   try {
     return JSON.parse(line);
@@ -10,7 +9,7 @@ const parse = (line: string): unknown => {
     return null;
   }
 };
-const text = (value: unknown): string => (typeof value === "string" ? value : JSON.stringify(value));
+
 export type Labels = (key: string) => string;
 /** The row of a datum that an act changes, when there is one: asked with the datum's name and what it reads. */
 export type Changing = (key: string, shown: string) => ViewRow | undefined;
@@ -23,15 +22,15 @@ const rowsOf = (value: unknown, label: Labels, changing?: Changing, key = ""): V
       .map((row, i) => (i && row.still ? { ...row, title: "" } : row));
   if (value === null || value === undefined || value === "") return [];
   if (typeof value !== "object") {
-    if (!key) return [{ title: text(value) }];
-    return [changing?.(key, text(value)) ?? { title: label(key), detail: text(value), still: true }];
+    if (!key) return [{ title: plain(value) }];
+    return [changing?.(key, plain(value)) ?? { title: label(key), detail: plain(value), still: true }];
   }
   const id = field(value, "id");
   if (typeof id !== "string")
     return Object.entries(value).flatMap(([name, item]) => rowsOf(item, label, changing, name));
   const detail = field(value, "detail") ?? field(value, "by") ?? field(value, "author");
-  const title = text(field(value, "text") ?? field(value, "name") ?? id);
-  return [{ title, ...(detail === undefined ? {} : { detail: text(detail) }), opens: id }];
+  const title = plain(field(value, "text") ?? field(value, "name") ?? id);
+  return [{ title, ...(detail === undefined ? {} : { detail: plain(detail) }), opens: id }];
 };
 /** A summary that is structured says, on a Menu row, only how many. */
 export const briefOf = (summary: string): string => {

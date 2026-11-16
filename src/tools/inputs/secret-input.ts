@@ -1,35 +1,38 @@
 // Two schemas: material belongs to the base; the program sees references and public fields.
+import { isRecord } from "../../fields/json-values.ts";
 import { Type, type TSchema, type Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-const referencePattern = "^secret:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
-const record = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
+/** The complete spelling of an opaque secret reference. */
+export const referencePattern = "^secret:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
+
 export function executionSchema<S extends TSchema>(schema: S) {
   const walk = (value: unknown): unknown => {
     if (Array.isArray(value)) return value.map(walk);
-    if (!record(value)) return value;
+    if (!isRecord(value)) return value;
     if (value.secret === true) return Type.String({ secret: true, pattern: referencePattern, wrong: value.wrong });
     return Object.fromEntries(Reflect.ownKeys(value).map(key => [key, walk(Reflect.get(value, key))]));
   };
   const result = walk(schema);
-  return Type.Unsafe<Static<S>>(record(result) ? result : {});
+  return Type.Unsafe<Static<S>>(isRecord(result) ? result : {});
 }
+/** Whether an object schema contains a field marked as secret. */
 export const hasSecretInput = (schema: unknown): boolean =>
-  record(schema) &&
+  isRecord(schema) &&
   (schema.secret === true ||
     Object.values(schema).some(child => (Array.isArray(child) ? child.some(hasSecretInput) : hasSecretInput(child))));
 export function validMaterial(schema: unknown, value: unknown, refs: ReadonlySet<string> = new Set()): boolean {
-  if (!record(schema) || !hasSecretInput(schema)) return true;
+  if (!isRecord(schema) || !hasSecretInput(schema)) return true;
   if (schema.secret === true)
     return (typeof value === "string" && refs.has(value)) || Value.Check(Type.Unsafe(schema), value);
   if (Array.isArray(schema.anyOf)) {
     const matches = schema.anyOf.filter(
       arm =>
-        record(arm) && (Value.Check(Type.Unsafe(arm), value) || Value.Check(executionSchema(Type.Unsafe(arm)), value)),
+        isRecord(arm) &&
+        (Value.Check(Type.Unsafe(arm), value) || Value.Check(executionSchema(Type.Unsafe(arm)), value)),
     );
     return matches.length > 0 && matches.every(arm => validMaterial(arm, value, refs));
   }
-  if (record(schema.properties) && record(value))
+  if (isRecord(schema.properties) && isRecord(value))
     return Object.entries(schema.properties).every(
       ([key, child]) => !Object.hasOwn(value, key) || validMaterial(child, value[key], refs),
     );
@@ -50,17 +53,17 @@ export function incomingMaterial(input: unknown, schema: unknown): unknown {
   if (!material) return input;
   if (input && typeof input === "object") answered.delete(input);
   const walk = (shape: unknown, value: unknown): unknown => {
-    if (!record(shape)) return value;
+    if (!isRecord(shape)) return value;
     if (shape.secret === true && typeof value === "string") return material.get(value) ?? value;
     if (Array.isArray(shape.anyOf)) {
       const arm: unknown = shape.anyOf.find(
-        arm => record(arm) && Value.Check(executionSchema(Type.Unsafe(arm)), value),
+        arm => isRecord(arm) && Value.Check(executionSchema(Type.Unsafe(arm)), value),
       );
       return walk(arm, value);
     }
     if (Array.isArray(value) && shape.items)
       return value.map((item, index) => walk(Array.isArray(shape.items) ? shape.items[index] : shape.items, item));
-    if (record(value) && record(shape.properties)) {
+    if (isRecord(value) && isRecord(shape.properties)) {
       const result = { ...value };
       for (const [key, child] of Object.entries(shape.properties))
         if (Object.hasOwn(value, key)) result[key] = walk(child, value[key]);

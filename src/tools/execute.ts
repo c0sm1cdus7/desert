@@ -1,5 +1,6 @@
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
 import { hasSecretInput } from "./inputs/secret-input.ts";
+import { rejected, performAct } from "./execution/perform-act.ts";
 import { runningSignal } from "./execution/running-acts.ts";
 import { checkedDecision } from "./execution/action-decision.ts";
 import { programCall } from "../fields/program-call.ts";
@@ -13,7 +14,6 @@ import type { Emission } from "../journal/vocabulary.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "../house/attendance.ts";
 import { programOffered, runProgram } from "./program-run.ts";
-import { performAct } from "./execution/perform-act.ts";
 import { startAct } from "./failures/start-act.ts";
 import { finish } from "./failures/finish.ts";
 import type { ActContext, ActResult, Program, Tool, ToolAct } from "./tool-contract.ts";
@@ -29,7 +29,7 @@ type Processing<X extends Program> = Readonly<{ status: "processing"; effects: r
   Readonly<{ completion: Promise<Decision<X>> }>;
 export type ExecutionResult<X extends Program> = Decision<X> | Processing<X>;
 type Perform<X extends Program> = () => Decision<X> | Promise<Decision<X>>;
-const rejected = (reason: string) => ({ status: "rejected" as const, reason, effects: [] });
+
 type Resolving<X extends Program> = Pick<Execution<X>, "state" | "own" | "registry">;
 /** The act an identity's act resolves to: one the house offers it directly first, then the target's tool act. */
 const resolve = <X extends Program>(ports: Resolving<X>, by: string, target: string, option: string) => {

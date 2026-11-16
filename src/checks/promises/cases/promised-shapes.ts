@@ -1,8 +1,7 @@
 // What was written in a shape is read in that shape: found in what a case says, and looked for in what is read.
+import { isRecord, list } from "../../../fields/json-values.ts";
 import { shaped } from "../../../surface/formats/masks.ts";
-const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
-const list = (value: unknown): readonly unknown[] => (Array.isArray(value) ? value : []);
+
 const shapesOf = (schema: unknown): string[] =>
   isRecord(schema) && schema.mask === "digits"
     ? list(schema.shapes).flatMap(shape => (typeof shape === "string" ? [shape] : []))

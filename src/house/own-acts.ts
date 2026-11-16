@@ -9,7 +9,8 @@ import { Type, type Static } from "@sinclair/typebox";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { object, visibleText } from "../fields/visible-text.ts";
 
-const name = Type.String({ minLength: toolLimits.minText });
+/** The schema of a nonempty house name. */
+export const name = Type.String({ minLength: toolLimits.minText });
 const target = object({ target: Type.String({ ...name, description: toolTexts.target }) });
 /** What a person may prefer not to see: what cannot be done now, the tools that are not theirs, and the lists
  * every menu opens with while they have nothing. */

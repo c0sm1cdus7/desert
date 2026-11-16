@@ -1,4 +1,5 @@
 // The laws every act of every program keeps: nobody promises them case by case, and every act is checked on them.
+import { isRecord } from "../../../fields/json-values.ts";
 import type { Shown } from "../../../surface/bridge/ports/house-ports.ts";
 import { inspect } from "node:util";
 import { Type } from "@sinclair/typebox";
@@ -90,8 +91,7 @@ export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X
     ...unchangedCheck(program, aim, kase),
   ];
 }
-const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
+
 /** Check defaults wherever a declaration nests fields, variants, or items. */
 export function defaultsIn(schema: unknown, path = "$"): void {
   if (!isRecord(schema)) return;

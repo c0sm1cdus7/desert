@@ -1,8 +1,8 @@
 // A program's tool on a surface when it brings no screen of its own: its rows come from what its view reads.
+import { capital } from "../../../texts/capital.ts";
 import { toolIndex } from "./tool-index.ts";
 import { MissingView } from "../../contract/missing-view.ts";
 import { OutsideDefect, programCall } from "../../../fields/program-call.ts";
-
 import type { ProgramTool } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import type { Tool, ViewRow } from "../../contract/shown-tool.ts";
@@ -18,8 +18,6 @@ import {
   type SurfacePorts,
   type ToolWords,
 } from "../ports/house-ports.ts";
-
-import { capital } from "../acts/program-acts.ts";
 import { ownView, thingView } from "./presented.ts";
 import { briefOf, listedIn, rowsIn, type Changing } from "./rows.ts";
 /** A label the program did not give is a defect of the program: it is named, never replaced by a code. */

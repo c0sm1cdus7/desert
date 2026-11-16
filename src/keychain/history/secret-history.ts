@@ -1,4 +1,5 @@
 // A read-only WAL connection can create SQLite sidecars; journal and vault bytes stay intact on refusal.
+import { isRecord } from "../../fields/json-values.ts";
 import { protectedAlready } from "./protection-mark.ts";
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { journalReader } from "../../storage/journal-store.ts";
@@ -7,9 +8,8 @@ import { join } from "node:path";
 import { privateFileMode } from "../../storage/home.ts";
 import { declaredInput } from "../positions/declared-input.ts";
 import { type HouseOptions, startState, toolsStep } from "../../house/state.ts";
-
 import type { Program, State } from "../../tools/tool-contract.ts";
-import { isReference, record, secretPositions, storedSchema } from "../positions/secret-positions.ts";
+import { isReference, secretPositions, storedSchema } from "../positions/secret-positions.ts";
 import { inspectionVocabulary } from "./inspection-vocabulary.ts";
 type Finding = Readonly<{ action: string; position: string; seq: number }>;
 type Review = { version: number; reviewed: number; reviewedFacts: number; unreviewable: number };
@@ -29,7 +29,7 @@ function inspectAct<X extends Program>(
   positions: Finding[],
 ): void {
   const data = row.data;
-  if (row.kind !== "act" || !record(data)) return;
+  if (row.kind !== "act" || !isRecord(data)) return;
   const input = declaredInput(options, state, row);
   if (input) result.reviewed++;
   else result.unreviewable++;

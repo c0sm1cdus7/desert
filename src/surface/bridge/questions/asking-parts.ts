@@ -1,4 +1,5 @@
 // What asking an act and reading its answers share: how a declared field says its question, its options and its value.
+import { at, isList, plain } from "../../../fields/json-values.ts";
 import { moneyQuestion, type MoneyContext } from "./money-question.ts";
 import { secretReason } from "./secret-reason.ts";
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
@@ -32,11 +33,7 @@ export type AskWords = MoneyContext &
   Readonly<{ today: () => string; now: () => number }>;
 export type Got = Readonly<{ value: unknown; at: number }> | Readonly<{ ask: Field }>;
 export type Ctx = AskWords & Readonly<{ answers: readonly string[]; n: number; optional: boolean; position?: number }>;
-export const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
-export const isList = (value: unknown): value is readonly unknown[] => Array.isArray(value);
-export const at = (schema: unknown, key: string): unknown => (isRecord(schema) ? schema[key] : undefined);
-export const plain = (value: unknown): string => (typeof value === "string" ? value : JSON.stringify(value));
+
 export const word = (schema: unknown, key: string): string => {
   const found = at(schema, key);
   if (typeof found !== "string" || found === "") throw new Error(`A field does not say its ${key}`);

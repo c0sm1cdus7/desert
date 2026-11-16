@@ -1,3 +1,4 @@
+import { wholeNumber } from "../../../fields/json-values.ts";
 import { actLimits } from "../../../house/own-acts.ts";
 /** Local house wire: equality includes the complete Node version because state uses v8 serialization. */
 export const houseProtocolVersion = 3;
@@ -23,14 +24,21 @@ import { Value } from "@sinclair/typebox/value";
 import { object } from "../../../fields/visible-text.ts";
 const name = Type.String({ minLength: 1, maxLength: 256 });
 const text = Type.String();
-const number = Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER });
+
 const id = { id: name };
 const tag = <T extends string>(tipo: T) => ({ tipo: Type.Literal(tipo) });
 export const clientProtocol = Type.Union([
-  object({ ...tag("hola"), protocolo: number, node: name, token: name }),
-  object({ ...tag("acto"), ...id, act: name, target: Type.Optional(name), input: Type.Unknown(), through: number }),
-  object({ ...tag("leer"), ...id, qué: name, desde: Type.Optional(number) }),
-  object({ ...tag("esperar"), ...id, hasta: number }),
+  object({ ...tag("hola"), protocolo: wholeNumber, node: name, token: name }),
+  object({
+    ...tag("acto"),
+    ...id,
+    act: name,
+    target: Type.Optional(name),
+    input: Type.Unknown(),
+    through: wholeNumber,
+  }),
+  object({ ...tag("leer"), ...id, qué: name, desde: Type.Optional(wholeNumber) }),
+  object({ ...tag("esperar"), ...id, hasta: wholeNumber }),
   object({ ...tag("defecto"), tool: name, target: name, option: name }),
   object(tag("sincronizar")),
   object(tag("apagar")),
@@ -58,19 +66,19 @@ const done = object({
 export const serverProtocol = Type.Union([
   object({
     ...tag("bienvenida"),
-    protocolo: number,
+    protocolo: wholeNumber,
     identidad: name,
     admin: Type.Boolean(),
-    ahora: number,
-    seq: number,
+    ahora: wholeNumber,
+    seq: wholeNumber,
   }),
   object({
     ...tag("estado"),
-    seq: number,
-    ahora: number,
-    base: Type.Union([number, Type.Null()]),
+    seq: wholeNumber,
+    ahora: wholeNumber,
+    base: Type.Union([wholeNumber, Type.Null()]),
     huella: Type.String({ pattern: "^[a-f0-9]{64}$" }),
-    bytes: number,
+    bytes: wholeNumber,
   }),
   object({
     ...tag("resultado"),
@@ -80,7 +88,7 @@ export const serverProtocol = Type.Union([
     private: Type.Optional(text),
     efectos: Type.Array(Type.Union([notice, done])),
   }),
-  object({ ...tag("respuesta"), ...id, seq: number, datos: Type.Unknown() }),
+  object({ ...tag("respuesta"), ...id, seq: wholeNumber, datos: Type.Unknown() }),
   object({ ...tag("rechazo"), id: Type.Optional(name), motivo: text }),
   object({ ...tag("cortado"), motivo: text }),
   object(tag("cerrando")),

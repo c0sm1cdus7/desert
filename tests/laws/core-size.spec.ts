@@ -25,10 +25,11 @@ describe("the tree of src/", () => {
   });
   // The signed move changes file size, but preserves the complete 519-line text budget.
   // 518 since the first step; 519 after union 1. Reorder: +14, addressing.ts (code that reads texts) lives in texts/.
-  it("keeps every file within 300 lines and the texts within 533", () => {
+  // Cleanup 1: +2 lines for texts/capital.ts, the shared initial-capital definition and its purpose.
+  it("keeps every file within 300 lines and the texts within 535", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(533);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(535);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

@@ -1,4 +1,5 @@
 // A declared action as questions and confirmation, preserving the receiver of each program method.
+import { capital } from "../../../texts/capital.ts";
 import { currencyQuestions } from "../questions/currency-defect.ts";
 import { programCall } from "../../../fields/program-call.ts";
 import { declaredCause } from "../../../tools/execution/program-causes.ts";
@@ -14,8 +15,7 @@ import { questionWords } from "../questions/asking-clock.ts";
 import { asking, type Asking, type AskWords } from "../questions/asking.ts";
 import { programResult } from "./program-result.ts";
 import type { SurfacePorts } from "../ports/house-ports.ts";
-/** A name as the bar says it: with a capital. */
-export const capital = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
+
 /** Confirmation tells what will happen and who confirms it, after the declared questions end. */
 function confirmation<X extends Program>(ports: SurfacePorts<X>, act: ProgramAct<X>, ask: Asking, tool: string) {
   /** Who confirms is the act's own verb, taken by its initial; what can be undone comes with that verb chosen. */

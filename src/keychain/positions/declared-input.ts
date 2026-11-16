@@ -1,4 +1,5 @@
 // The same exact declaration is used for direct journal writes and read-only historical inspection.
+import { isRecord } from "../../fields/json-values.ts";
 import { readonlyState } from "../../journal/readonly-state.ts";
 import { actCatalog } from "../../house/own-acts.ts";
 import { ids } from "../../house/ids.ts";
@@ -6,13 +7,13 @@ import { identityView } from "../../house/members.ts";
 import type { HouseOptions } from "../../house/state.ts";
 import { targetTool } from "../../house/attendance.ts";
 import type { Program, State } from "../../tools/tool-contract.ts";
-import { record } from "./secret-positions.ts";
+
 export function declaredInput<X extends Program>(
   options: HouseOptions<X>,
   state: State<X>,
   event: Record<string, unknown>,
 ) {
-  if (!record(event.data)) return undefined;
+  if (!isRecord(event.data)) return undefined;
   const { object, option } = event.data;
   if (object === ids.self) {
     const builtin = Object.entries(actCatalog).find(([name]) => name === option);

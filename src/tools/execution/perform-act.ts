@@ -6,7 +6,8 @@ import { finish } from "../failures/finish.ts";
 import { actNews, type Program } from "../tool-contract.ts";
 import type { Decision, Execution, ExecutionResult } from "../execute.ts";
 import { actionFailure } from "./action-failure.ts";
-const rejected = (reason: string) => ({ status: "rejected" as const, reason, effects: [] });
+/** A rejected decision that carries its reason and no effects. */
+export const rejected = (reason: string) => ({ status: "rejected" as const, reason, effects: [] });
 export const performAct = <X extends Program>(
   ports: Execution<X>,
   act: HouseEvent<"act">,

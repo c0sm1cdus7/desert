@@ -1,24 +1,24 @@
 // same order; one with nothing in it says so. A program gives the reading; it never draws the thing.
 // A thing on a surface: what it is and what it has, in the stacks its tool declared. Always the same stacks, in the
+import { field, plain } from "../../../fields/json-values.ts";
 import { OutsideDefect, programCall } from "../../../fields/program-call.ts";
-
 import type { ProgramTool } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import type { Tool, ViewRow } from "../../contract/shown-tool.ts";
 import type { Presented, SurfacePorts } from "../ports/house-ports.ts";
-import { field, type Changing } from "./rows.ts";
+import type { Changing } from "./rows.ts";
 type Reading = Readonly<Record<string, unknown>>;
 const isReading = (value: unknown): value is Reading =>
   value !== null && typeof value === "object" && !Array.isArray(value);
-const text = (value: unknown): string => (typeof value === "string" ? value : JSON.stringify(value));
+
 /** Something the reading names by its id is another thing: its row opens it, whatever tool it is of. */
 const named = (value: unknown): ViewRow | undefined => {
   const id = field(value, "id");
   if (typeof id !== "string") return undefined;
   const detail = field(value, "detail");
   return {
-    title: text(field(value, "text") ?? id),
-    ...(detail === undefined ? {} : { detail: text(detail) }),
+    title: plain(field(value, "text") ?? id),
+    ...(detail === undefined ? {} : { detail: plain(detail) }),
     opens: id,
   };
 };
@@ -31,7 +31,7 @@ function rowsOf(value: unknown, label: string, where: string, changed?: (shown: 
     const thing = named(each);
     if (thing) return [thing];
     if (typeof each === "object") throw new OutsideDefect(new Error(`${where} is read as neither a datum nor a thing`));
-    return [changed?.(text(each)) ?? { title: said, detail: text(each), still: true }];
+    return [changed?.(plain(each)) ?? { title: said, detail: plain(each), still: true }];
   };
   return rows(value, label);
 }

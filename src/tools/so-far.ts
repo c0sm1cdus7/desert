@@ -1,4 +1,5 @@
 // What an act says of what was answered so far, before it runs: why it cannot go on, and which things it takes.
+import { isRecord } from "../fields/json-values.ts";
 import { executionSchema } from "./inputs/secret-input.ts";
 import { programCall } from "../fields/program-call.ts";
 import { Type, type TSchema } from "@sinclair/typebox";
@@ -27,8 +28,7 @@ export function soFar<X extends Program>(input: TSchema, said: SoFar<X>): SoFar<
     Value.Check(partial, answered) ? (among?.call(said, answered, state, target, at) ?? {}) : {};
   return { ...(stops ? { stops: asked } : {}), ...(among ? { among: narrowed } : {}) };
 }
-const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
+
 type Picked = readonly [tool: string, thing: string];
 /** Every thing of another tool that an input picks, with the tool it is of: wherever in the input it stands. */
 function picksIn(schema: unknown, value: unknown): readonly Picked[] {

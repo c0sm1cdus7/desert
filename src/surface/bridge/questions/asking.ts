@@ -1,4 +1,5 @@
 // The questions of an act come from the declaration of what it takes; so do its answers, read back as data.
+import { at, isList, isRecord } from "../../../fields/json-values.ts";
 import { checkMoneyScreen } from "../../formats/invalid-money.ts";
 import { questionMaterial } from "../../../tools/inputs/question-material.ts";
 import { answeredInput } from "../../../tools/inputs/secret-input.ts";
@@ -8,10 +9,7 @@ import type { Field, Option } from "../../contract/contract.ts";
 import { audit, leading, markedOf, write } from "./asking-back.ts";
 import {
   armsOf,
-  at,
   choiceOf,
-  isList,
-  isRecord,
   tellingOf,
   titleOf,
   valueOf,

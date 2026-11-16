@@ -1,14 +1,14 @@
 // One journal for the house's facts and a program's: the house reads its own and carries the program's unread.
+import { wholeNumber } from "../fields/json-values.ts";
 import { stateResult, type DeepReadonly } from "./readonly-state.ts";
 import { Type, TypeGuard, type Static, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { object, visibleText } from "../fields/visible-text.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 import {
-  type HouseEmission,
   name,
+  type HouseEmission,
   names,
-  instant,
   legacyHouseCatalog,
   type HouseKind,
   layerOf,
@@ -32,7 +32,7 @@ export type Position = Readonly<{ seq: number; id: string; at: number }>;
 export type Emission<P extends Foreign = Foreign> = HouseEmission | P;
 export type Event<P extends Foreign = Foreign> = Emission<P> & Position;
 const provenance = { by: name, cause: names, process: Type.Optional(name) };
-const position = { id: name, at: instant, seq: Type.Integer({ minimum: 1, maximum: Number.MAX_SAFE_INTEGER }) };
+const position = { id: name, at: wholeNumber, seq: Type.Integer({ minimum: 1, maximum: Number.MAX_SAFE_INTEGER }) };
 const arms = (layer: Layer, catalog: Catalog, fields: Readonly<Record<string, TSchema>>) =>
   Object.entries(catalog).map(([kind, data]) =>
     object({ ...fields, layer: Type.Literal(layer), kind: Type.Literal(kind), data }),
@@ -52,10 +52,11 @@ const historicalSchema = (schema: TSchema): TSchema => {
   if (!TypeGuard.IsSchema(result)) throw new Error("Invalid historical schema");
   return result;
 };
-const freeze = (value: unknown): void => {
+/** Freeze an object and its enumerable values recursively, stopping at already frozen objects. */
+export const deepFreeze = (value: unknown): void => {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return;
   Object.freeze(value);
-  Object.values(value).forEach(freeze);
+  Object.values(value).forEach(deepFreeze);
 };
 /** How a journal reads and checks its facts: the house's kinds and one program's, each in its layer. */
 export type Vocabulary<P extends Foreign> = Readonly<{
@@ -88,7 +89,7 @@ export function vocabulary<C extends Catalog>(program: Own<C>) {
     read: (value: unknown) => {
       if (!Value.Check(event, value)) throw new Error(journalTexts.invalidEvent);
       const read = structuredClone(stateResult(value));
-      freeze(read);
+      deepFreeze(read);
       return read;
     },
     fact: <K extends keyof C & string>(

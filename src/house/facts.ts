@@ -1,14 +1,14 @@
+import { name, preference, scene, t, toolLimits } from "./own-acts.ts";
+import { wholeNumber } from "../fields/json-values.ts";
 import { Type } from "@sinclair/typebox";
 import { object } from "../fields/visible-text.ts";
-import { preference, scene, t, toolLimits } from "./own-acts.ts";
-
 import type { Facts, Position, Catalog, Layer } from "../journal/vocabulary.ts";
 
 const literals = <T extends string>(...values: T[]) => Type.Union(values.map(value => Type.Literal(value)));
 const text = Type.String();
-export const name = Type.String({ minLength: toolLimits.minText });
+
 export const names = Type.Array(name);
-export const instant = Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER });
+
 const actStatus = literals("accepted", "rejected", "draft", "inconclusive", "interrupted");
 /** What every house writes, whatever program lives in it. */
 export const houseCatalog = {
@@ -23,7 +23,7 @@ export const houseCatalog = {
   scene,
   "kit-set": object({ holder: name, tool: name, acts: Type.Union([names, Type.Null()]) }),
   boot: object({}),
-  act: object({ object: name, option: name, input: Type.Unknown(), through: Type.Optional(instant) }),
+  act: object({ object: name, option: name, input: Type.Unknown(), through: Type.Optional(wholeNumber) }),
   "act-started": object({ act: name, object: name, option: name }),
   "act-result": object({
     act: name,
@@ -48,9 +48,9 @@ export const houseCatalog = {
   "act-done": object({ object: name, act: name, text }),
   attended: object({ target: name }),
   unattended: object({ target: name }),
-  attention: object({ tool: name, delay: Type.Union([instant, Type.Null()]) }),
+  attention: object({ tool: name, delay: Type.Union([wholeNumber, Type.Null()]) }),
   stimulus: object({ tool: name }),
-  "wake-at": object({ id: name, at: Type.Union([instant, Type.Null()]) }),
+  "wake-at": object({ id: name, at: Type.Union([wholeNumber, Type.Null()]) }),
   woke: object({ id: name }),
 };
 export type HouseKind = keyof typeof houseCatalog;
@@ -88,3 +88,5 @@ export const legacyHouseCatalog = {
 } satisfies Catalog;
 export const layerOf = (kind: string): Layer =>
   Object.hasOwn(houseCatalog, kind) || Object.hasOwn(legacyHouseCatalog, kind) ? "house" : "program";
+
+export { name } from "./own-acts.ts";

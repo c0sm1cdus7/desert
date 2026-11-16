@@ -1,11 +1,9 @@
 // What an act's schema does not admit, made from an input it does: nobody writes these, the schema says them.
+import { at, isList, isRecord } from "../fields/json-values.ts";
 import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { fine } from "../fields/fields.ts";
-const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
-const isList = (value: unknown): value is readonly unknown[] => Array.isArray(value);
-const at = (schema: unknown, key: string): unknown => (isRecord(schema) ? schema[key] : undefined);
+
 /** A value of the same kind that the schema's own limits leave out: below its minimum and above its maximum,
  * shorter and longer than it allows, and only spaces where it has to say something. */
 function beyond(schema: unknown, value: unknown): unknown[] {

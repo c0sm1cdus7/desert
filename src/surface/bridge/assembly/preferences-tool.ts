@@ -1,4 +1,5 @@
 // Preferences on a surface: a menu of what a person may prefer not to see, each with how it is now, each its own act.
+import { capital } from "../../../texts/capital.ts";
 import { hideable, type Hideable } from "../../../house/own-acts.ts";
 import { hides } from "../../../house/members.ts";
 import { genericTexts } from "../../../texts/generic-surface.texts.ts";
@@ -8,7 +9,7 @@ import { asked } from "../questions/asking-parts.ts";
 import { section, settle, type SurfacePorts } from "../ports/house-ports.ts";
 const said = genericTexts.preferences;
 const options = [said.show, said.hide];
-const capital = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
+
 /** Where Preferences stands on every Menu: no tool of a program may take its name or its key. */
 export const preferencesPlace = { id: "preferences", key: said.key } as const;
 export function preferencesTool<X extends Program>(ports: SurfacePorts<X>): Tool {

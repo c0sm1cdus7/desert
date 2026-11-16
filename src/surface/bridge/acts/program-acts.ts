@@ -1,7 +1,6 @@
 // The acts of a program's tool as a surface offers them: each asked from its declaration, where it stands.
 import { walked, type Asked } from "./asked-act.ts";
 import { OutsideDefect, programCall } from "../../../fields/program-call.ts";
-
 import { hides } from "../../../house/members.ts";
 import { genericTexts as generic } from "../../../texts/generic-surface.texts.ts";
 import { aid, worded } from "../../../tools/act-words.ts";
@@ -14,7 +13,7 @@ import type { Asking } from "../questions/asking.ts";
 import type { ScreenActs, Start, SurfacePorts } from "../ports/house-ports.ts";
 /** Where a menu of a thing is read: a destination of its tool that is not a thing of it. */
 export const menuTarget = (target: string, menu: string): string => `${target}#${menu}`;
-export { capital } from "./asked-act.ts";
+
 type Walked<X extends Program> = ReturnType<typeof walked<X>>;
 /** What a thing has today as its row shows it: each answer in the shape of its field. */
 const shownOf = (ask: Asking, answers: readonly string[], from: number, until: number, target: string): string =>

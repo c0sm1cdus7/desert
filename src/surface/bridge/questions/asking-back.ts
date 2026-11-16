@@ -1,16 +1,13 @@
 // The walk of an act's questions backwards: the answers that say a datum; and that every field of it can be asked.
+import { at, isList, isRecord, plain } from "../../../fields/json-values.ts";
 import { TypeGuard } from "@sinclair/typebox";
 import { isAsked } from "../../../fields/fields.ts";
 import type { Option } from "../../contract/contract.ts";
 import {
   armsOf,
   asked,
-  at,
   choiceOf,
   formatOf,
-  isList,
-  isRecord,
-  plain,
   tellingOf,
   titleOf,
   word,

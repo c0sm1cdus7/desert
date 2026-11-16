@@ -1,16 +1,18 @@
 // Resolve marked containers before capturing or writing any part of an input.
+import { hasSecretInput } from "../tools/inputs/secret-input.ts";
+import { isRecord } from "../fields/json-values.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { marked, record } from "./positions/secret-positions.ts";
+
 export function secretShape(schema: unknown, value: unknown): boolean {
-  if (!record(schema) || !marked(schema)) return true;
+  if (!isRecord(schema) || !hasSecretInput(schema)) return true;
   if (schema.secret === true) return typeof value === "string";
   if (Array.isArray(schema.anyOf)) {
-    const matches = schema.anyOf.filter(arm => record(arm) && Value.Check(Type.Unsafe(arm), value));
+    const matches = schema.anyOf.filter(arm => isRecord(arm) && Value.Check(Type.Unsafe(arm), value));
     return matches.length > 0 && matches.every(arm => secretShape(arm, value));
   }
-  if (record(schema.properties)) {
-    if (!record(value)) return false;
+  if (isRecord(schema.properties)) {
+    if (!isRecord(value)) return false;
     return Object.entries(schema.properties).every(
       ([key, child]) => !Object.hasOwn(value, key) || secretShape(child, value[key]),
     );
