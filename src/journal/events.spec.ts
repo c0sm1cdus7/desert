@@ -3,7 +3,7 @@ import { Type } from "@sinclair/typebox";
 import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
 import { Bus } from "./bus.ts";
 import { effect, layerOf } from "../house/facts.ts";
-import { vocabulary, type Catalog, type Event } from "./facts.ts";
+import { vocabulary, type Catalog, type Event } from "./vocabulary.ts";
 import { clockStep } from "./clock.ts";
 import { SqliteJournal } from "../storage/journal-store.ts";
 import { shop, type ShopEvent, type ShopFact } from "../../tests/support/shop.ts";

@@ -1,4 +1,4 @@
-import type { Emission, Foreign } from "../../journal/facts.ts";
+import type { Emission, Foreign } from "../../journal/vocabulary.ts";
 import type { HouseEmission } from "../facts.ts";
 import { identityNameProblem } from "./identity-name.ts";
 import { identityTexts } from "../../texts/identities.texts.ts";

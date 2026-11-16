@@ -4,7 +4,7 @@ import { jsonData } from "./json-data.ts";
 import { ids } from "../../../house/ids.ts";
 import { toolTexts } from "../../../texts/tools.texts.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
-import type { Event } from "../../../journal/facts.ts";
+import type { Event } from "../../../journal/vocabulary.ts";
 import type { RunningHouse } from "../../../runtime/house-runtime.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import type { RequestAct, ResultMessage, ServerMessage } from "../wire/protocol.ts";

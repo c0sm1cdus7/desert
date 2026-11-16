@@ -31,7 +31,7 @@ export { createHouse, identityView, houseStep, type House as HouseState } from "
 export { Bus } from "./journal/bus.ts";
 export type { TimeSource } from "./journal/clock.ts";
 export { effect, houseCatalog } from "./house/facts.ts";
-export { vocabulary, type Emission, type Catalog, type Event, type ProgramFacts } from "./journal/facts.ts";
+export { vocabulary, type Emission, type Catalog, type Event, type ProgramFacts } from "./journal/vocabulary.ts";
 export {
   localPorts,
   startHouse,

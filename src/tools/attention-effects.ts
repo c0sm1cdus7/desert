@@ -3,7 +3,7 @@ import { toolReminderLadder } from "../journal/clock.ts";
 import { holdsAny } from "../house/kit.ts";
 import { houseStep } from "../house/members.ts";
 import { effect, type HouseEmission } from "../house/facts.ts";
-import type { Event } from "../journal/facts.ts";
+import type { Event } from "../journal/vocabulary.ts";
 import { targetTool } from "../house/attendance.ts";
 import type { Program, State, ToolRegistry } from "./tool-contract.ts";
 import { reminderId } from "../house/attention.ts";

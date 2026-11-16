@@ -121,7 +121,7 @@
     "house/state.ts": "Starts and folds the house with its program slices; declares the options passed when opening it.",
     "journal/bus.ts": "Entrega hechos y conserva la confirmación de cada escritura; retira de la cola solo lo agregado por una escritura deshecha.",
     "journal/clock.ts": "delays: the reminder ladder, the longest timer, how often a screen is drawn again; the instant of every case Pliega fechas y arma el próximo despertar; restaura fechas y temporizadores al deshacer cualquier escritura que ya oyó.",
-    "journal/facts.ts": "Generic facts, positions, journal and bus types; composes and reads the vocabulary with historical compatibility.",
+    "journal/vocabulary.ts": "Generic facts, positions, journal and bus types; composes and reads the vocabulary with historical compatibility.",
     "journal/frozen-state.ts": "Freezes nested objects and collection mutators for derived calculation checks.",
     "journal/projections.ts": "projection caches that fold together and survive as snapshots",
     "journal/readonly-state.ts": "Vista recursiva de solo lectura, memorizada por objeto; convierte resultados propios sin copiar el estado al leer.",

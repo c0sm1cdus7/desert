@@ -11,7 +11,7 @@ import { journalTransaction } from "./journal-transaction.ts";
 import { writerLease } from "./writer-lease.ts";
 import { privateDatabase } from "./home.ts";
 import { DatabaseSync } from "node:sqlite";
-import type { Emission, Event, Foreign, Vocabulary } from "../journal/facts.ts";
+import type { Emission, Event, Foreign, Vocabulary } from "../journal/vocabulary.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 export { derivedId } from "./journal-record.ts";
 /** The storage layout belongs to the same envelope decoded by journal-record. */

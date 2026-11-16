@@ -7,7 +7,7 @@ it("256: program state is deeply read-only in startup, views, acts and calculati
   const code = `
 import type { ToolStartup } from "../../src/tools/startup-contract.ts";
 import type { State, Tool, Slices, ActContext } from "../../src/tools/tool-contract.ts";
-import type { Foreign } from "../../src/journal/facts.ts";
+import type { Foreign } from "../../src/journal/vocabulary.ts";
 type Demo = { fact: Foreign; tools: { nested: { map: Map<string, { n: number }>; set: Set<{ n: number }>;
   list: { n: number }[]; date: Date } } };
 export function probe(start: ToolStartup<Demo>, state: State<Demo>, act: ActContext<Demo>,

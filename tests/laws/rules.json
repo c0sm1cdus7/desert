@@ -1510,7 +1510,7 @@
       "guarantee": "spec",
       "evidence": [
         "src/house/members.ts",
-        "src/journal/facts.ts",
+        "src/journal/vocabulary.ts",
         "src/house/grants.spec.ts"
       ]
     },
@@ -1555,7 +1555,7 @@
       "guarantee": "spec",
       "evidence": [
         "src/tools/execute.ts",
-        "src/journal/facts.ts",
+        "src/journal/vocabulary.ts",
         "src/surface/bridge/assembly/house-tools.ts",
         "src/tools/execute.spec.ts",
         "src/doors/terminal/house-screens.spec.ts"
@@ -2631,7 +2631,7 @@
       "evidence": [
         "src/house/own-acts.ts",
         "src/house/own-acts.ts",
-        "src/journal/facts.ts",
+        "src/journal/vocabulary.ts",
         "src/house/scenes.ts",
         "src/journal/scenes.spec.ts",
         "src/house/contract-neighbors.spec.ts",
@@ -2984,7 +2984,7 @@
     },
     {
       "id": 257,
-      "rule": "Cada archivo tiene como máximo 300 renglones y los textos suman como máximo 519; cada archivo de producción tiene una descripción en el árbol.",
+      "rule": "Cada archivo tiene como máximo 300 renglones y los textos suman como máximo 533 (incluye addressing.ts, código que lee textos); cada archivo de producción tiene una descripción en el árbol.",
       "from": "16/11 · reorden 1, mapa firmado",
       "guarantee": "spec",
       "evidence": [

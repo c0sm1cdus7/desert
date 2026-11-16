@@ -2,7 +2,7 @@
 import { stateResult } from "../../journal/readonly-state.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import type { Event, Foreign, Vocabulary } from "../../journal/facts.ts";
+import type { Event, Foreign, Vocabulary } from "../../journal/vocabulary.ts";
 import { storedSchema } from "./secret-positions.ts";
 const freeze = (value: unknown): void => {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return;

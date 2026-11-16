@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { text } from "../fields/fields.ts";
 import { object } from "../fields/visible-text.ts";
-import { vocabulary } from "../journal/facts.ts";
+import { vocabulary } from "../journal/vocabulary.ts";
 import { Value } from "@sinclair/typebox/value";
 import { Type } from "@sinclair/typebox";
 it.each(["⠀", "\u200b", "ㅤ"])("reads a previously valid text while rejecting new emissions: %s", name => {

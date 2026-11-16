@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { custodyRig, custodyScope } from "../../tests/support/custody-rig.ts";
 import { credentialJournal } from "./credential-journal.ts";
 import { SqliteJournal } from "../storage/journal-store.ts";
-import { vocabulary } from "../journal/facts.ts";
+import { vocabulary } from "../journal/vocabulary.ts";
 import { fakeKeychain } from "../../tests/support/fake-keychain.ts";
 import { MacOSHouseKeys } from "../keychain/macos/macos-house-keys.ts";
 import { SecretCustody } from "../keychain/custody/secret-custody.ts";

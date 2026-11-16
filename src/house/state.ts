@@ -1,7 +1,7 @@
 import type { CalculationVersion } from "../tools/calculation-contract.ts";
 import type { HouseKeyProvider } from "../keychain/custody/house-keys.ts";
 import { type Creation, emptyHouse, houseStep, type Attention } from "./members.ts";
-import { type Vocabulary, processOf, type Event } from "../journal/facts.ts";
+import { type Vocabulary, processOf, type Event } from "../journal/vocabulary.ts";
 import type { Execution } from "../tools/execute.ts";
 import type { Program, Slices, ToolRegistry, HouseState, State } from "../tools/tool-contract.ts";
 import type { AdapterComposition } from "../tools/adapter-contract.ts";

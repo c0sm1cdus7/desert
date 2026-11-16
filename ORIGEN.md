@@ -54,7 +54,7 @@ Diseño en `COSTURAS.md`. Las tablas señalan las rutas actuales; ya no son copi
 
 | Ruta | Qué cambia respecto de Kenon |
 |---|---|
-| src/journal/facts.ts y src/house/facts.ts | `eventCatalog` se parte: la casa conserva `houseCatalog` (15 hechos de la casa); el programa suma los suyos con `vocabulary()`. Cada hecho lleva `layer`. `Bus`, `Journal` y `Event` son genéricos sobre los hechos del programa. `readEvent` pasa a `vocabulary().read`. `act` sin `evidence`. |
+| src/journal/vocabulary.ts y src/house/facts.ts | `eventCatalog` se parte: la casa conserva `houseCatalog` (15 hechos de la casa); el programa suma los suyos con `vocabulary()`. Cada hecho lleva `layer`. `Bus`, `Journal` y `Event` son genéricos sobre los hechos del programa. `readEvent` pasa a `vocabulary().read`. `act` sin `evidence`. |
 | src/journal/projections.ts | Genérico sobre el tipo de evento; el resto igual. |
 | src/journal/clock.ts | Lee solo hechos de la casa (`layer`); recibe `HouseBus`. |
 | src/storage/journal-store.ts | Recibe el vocabulario; la fila no guarda `layer` (se deriva del nombre). SQL igual. |

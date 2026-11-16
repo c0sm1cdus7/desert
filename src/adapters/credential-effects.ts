@@ -1,5 +1,5 @@
 import { effect } from "../house/facts.ts";
-import type { Emission } from "../journal/facts.ts";
+import type { Emission } from "../journal/vocabulary.ts";
 import { credentialCommand, type CredentialOperations, type SecretRefs } from "../tools/capabilities-contract.ts";
 import type { CredentialSession, SecretCustody } from "../keychain/custody/secret-custody.ts";
 /** A command is usable only by the lease that issued it; copies and bus writes carry no authority. */

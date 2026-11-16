@@ -4,7 +4,7 @@ import { custodyRig } from "../../tests/support/custody-rig.ts";
 import { credentialJournal } from "./credential-journal.ts";
 import { SqliteJournal } from "../storage/journal-store.ts";
 import { effect } from "../house/facts.ts";
-import { vocabulary } from "../journal/facts.ts";
+import { vocabulary } from "../journal/vocabulary.ts";
 import { CustodyCipher } from "../keychain/custody/custody-cipher.ts";
 import { AuthenticatedLedger } from "../keychain/custody/authenticated-ledger.ts";
 import type { CredentialFact } from "../keychain/custody/custody-contract.ts";

@@ -1,7 +1,7 @@
 import { allowedAct, mindTool } from "../../house/kit.ts";
 import type { House } from "../../house/members.ts";
 import { effect } from "../../house/facts.ts";
-import type { Emission } from "../../journal/facts.ts";
+import type { Emission } from "../../journal/vocabulary.ts";
 import type { Program, Tool } from "../tool-contract.ts";
 // One batch, computed at execution time: another open editor's changes remain in the current kit.
 export function kitEffects<X extends Program>(

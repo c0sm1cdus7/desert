@@ -1,6 +1,6 @@
 // The public result of a program action: its words and destination, without technical diagnostics.
 import type { Decision } from "../../../tools/execute.ts";
-import type { Emission } from "../../../journal/facts.ts";
+import type { Emission } from "../../../journal/vocabulary.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import { surfaceTexts as said } from "../../../texts/surface.texts.ts";
 import type { Result } from "../../contract/shown-tool.ts";

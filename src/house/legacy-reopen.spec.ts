@@ -10,7 +10,7 @@ import { MemoryHouseKeys } from "../keychain/custody/house-keys.ts";
 import { startHouse } from "../runtime/house-runtime.ts";
 import { perform } from "../checks/promises/promised-stage.ts";
 import { shop, shopCatalog, shopProgram, type Shop } from "../../tests/support/shop.ts";
-import { vocabulary } from "../journal/facts.ts";
+import { vocabulary } from "../journal/vocabulary.ts";
 
 it("reopens and refolds all three historical names while rejecting new writes", async () => {
   const home = mkdtempSync(join(tmpdir(), "legacy-reopen-"));

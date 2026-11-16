@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { object } from "../fields/visible-text.ts";
 import { money, text } from "../fields/fields.ts";
-import { vocabulary } from "../journal/facts.ts";
+import { vocabulary } from "../journal/vocabulary.ts";
 import { localPorts, startHouse } from "./house-runtime.ts";
 import type { HouseOptions } from "../house/state.ts";
 import { shop, shopCatalog, shopRegistry, shopSlices, type Shop } from "../../tests/support/shop.ts";

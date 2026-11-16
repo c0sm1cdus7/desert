@@ -7,7 +7,7 @@ programa (Kenon). Lo que una regla hace cumplir está en `GARANTIAS.md`; las ley
 
 | Qué | Con qué | Dónde mirarlo |
 |---|---|---|
-| Sus hechos | `vocabulary(catálogo)`: cada hecho con su forma (TypeBox). La base suma los suyos. | `src/journal/facts.ts` |
+| Sus hechos | `vocabulary(catálogo)`: cada hecho con su forma (TypeBox). La base suma los suyos. | `src/journal/vocabulary.ts` |
 | Lo que guarda cada herramienta | `Slices`: un valor inicial y un paso por herramienta (hecho → nuevo estado). | `src/tools/tool-contract.ts` |
 | Cada herramienta | `ProgramTool`: `id`, `purpose`, `facts`, `targets`, `view`, `summary`, `acts`, y si hace falta `menus`, `closed`, `needs`, `words`, `start`. | `src/tools/promises.ts` |
 | Cada acción | `programAct({ name, enter, undoable, purpose, key, on, input, run, cases, … })`. | `src/tools/promises.ts` |

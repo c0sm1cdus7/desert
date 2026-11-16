@@ -1,7 +1,7 @@
 // SQLite rows preserve the vocabulary envelope and deterministic causal identity.
 import { createHash } from "node:crypto";
 import { layerOf } from "../house/facts.ts";
-import type { Emission, Event, Foreign, Vocabulary } from "../journal/facts.ts";
+import type { Emission, Event, Foreign, Vocabulary } from "../journal/vocabulary.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 const parse = (value: unknown): unknown => {
   if (typeof value !== "string") throw new Error(journalTexts.invalidEvent);

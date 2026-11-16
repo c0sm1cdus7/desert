@@ -1,7 +1,7 @@
 // Validate saved house folds before their tail can use any cached authority.
 import type { FoldWarning } from "../journal/snapshot-format.ts";
 import type { ProjectionGroup } from "../journal/projections.ts";
-import type { Event, Foreign } from "../journal/facts.ts";
+import type { Event, Foreign } from "../journal/vocabulary.ts";
 import type { SqliteJournal } from "./journal-store.ts";
 export function verifiedAfter<P extends Foreign>(
   projections: ProjectionGroup<Event<P>>,

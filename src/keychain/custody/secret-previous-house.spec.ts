@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type } from "@sinclair/typebox";
-import { vocabulary } from "../../journal/facts.ts";
+import { vocabulary } from "../../journal/vocabulary.ts";
 import { toolAct } from "../../tools/act-definition.ts";
 import { startHouse } from "../../runtime/house-runtime.ts";
 import { fixture, home, time, has, secret } from "../../../tests/support/secret-rig.ts";

@@ -3,7 +3,7 @@ import { processKeys } from "./custody-provider.ts";
 import { registerHooks } from "node:module";
 import { readFileSync } from "node:fs";
 import { Type } from "@sinclair/typebox";
-import { vocabulary } from "../../src/journal/facts.ts";
+import { vocabulary } from "../../src/journal/vocabulary.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
 import type { Program } from "../../src/tools/tool-contract.ts";
 registerHooks({

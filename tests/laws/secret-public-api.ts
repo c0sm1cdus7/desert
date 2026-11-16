@@ -27,7 +27,7 @@ const modules: Record<string, readonly string[]> = {
   ],
   "journal/clock.ts": ["caseInstant"],
   "house/ids.ts": ["ids"],
-  "journal/facts.ts": ["vocabulary", "Emission", "Event", "ProgramFacts", "Catalog"],
+  "journal/vocabulary.ts": ["vocabulary", "Emission", "Event", "ProgramFacts", "Catalog"],
   "house/facts.ts": ["effect", "HouseEvent"],
   "tools/act-definition.ts": ["toolAct"],
   "tools/tool-contract.ts": [

@@ -1,6 +1,6 @@
 // A program's result writes atomically; a broken fold or listener remains a diagnostic, never a refusal string.
 import { failureOrigin } from "../boundaries/failure-origin.ts";
-import type { Emission } from "../../journal/facts.ts";
+import type { Emission } from "../../journal/vocabulary.ts";
 import type { HouseEvent } from "../../house/facts.ts";
 import type { Execution } from "../execute.ts";
 import { making } from "../made.ts";

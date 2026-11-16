@@ -2,7 +2,7 @@ import { Type } from "@sinclair/typebox";
 import { object } from "../fields/visible-text.ts";
 import { preference, scene, t, toolLimits } from "./own-acts.ts";
 
-import type { Facts, Position, Catalog, Layer } from "../journal/facts.ts";
+import type { Facts, Position, Catalog, Layer } from "../journal/vocabulary.ts";
 
 const literals = <T extends string>(...values: T[]) => Type.Union(values.map(value => Type.Literal(value)));
 const text = Type.String();

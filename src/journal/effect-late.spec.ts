@@ -1,6 +1,6 @@
 import { afterEach, expect, it } from "vitest";
 import { effect } from "../house/facts.ts";
-import type { Emission } from "./facts.ts";
+import type { Emission } from "./vocabulary.ts";
 import { settle } from "../surface/bridge/ports/house-ports.ts";
 import { toolAct } from "../tools/act-definition.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";

@@ -9,7 +9,7 @@ import { afterEach, vi } from "vitest";
 import { Redactor } from "../../src/keychain/redact.ts";
 import { startHouse, localPorts } from "../../src/runtime/house-runtime.ts";
 import type { HouseOptions } from "../../src/house/state.ts";
-import { vocabulary, type Event, type ProgramFacts } from "../../src/journal/facts.ts";
+import { vocabulary, type Event, type ProgramFacts } from "../../src/journal/vocabulary.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
 import type { ToolAct, Slices } from "../../src/tools/tool-contract.ts";
 import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";

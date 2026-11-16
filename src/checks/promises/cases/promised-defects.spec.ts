@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { object } from "../../../fields/visible-text.ts";
 import { text } from "../../../fields/fields.ts";
 import { effect } from "../../../house/facts.ts";
-import type { Event } from "../../../journal/facts.ts";
+import type { Event } from "../../../journal/vocabulary.ts";
 import { toolTexts } from "../../../texts/tools.texts.ts";
 import { programAct } from "../../../tools/promises.ts";
 import {

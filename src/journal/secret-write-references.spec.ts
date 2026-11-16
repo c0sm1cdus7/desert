@@ -7,7 +7,7 @@ import { SecretCustody } from "../keychain/custody/secret-custody.ts";
 import { secretRef } from "../keychain/custody/custody-database.ts";
 import { custodyRig, custodyScope } from "../../tests/support/custody-rig.ts";
 import { effect } from "../house/facts.ts";
-import { vocabulary } from "./facts.ts";
+import { vocabulary } from "./vocabulary.ts";
 import type { Program } from "../tools/tool-contract.ts";
 const field = Type.String({ secret: true });
 const schema = Type.Object({ first: field, second: field });

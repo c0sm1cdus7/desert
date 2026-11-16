@@ -2,7 +2,7 @@
 import { ActionSecrets, type Scope } from "./positions/action-scope.ts";
 import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import type { Emission } from "../journal/facts.ts";
+import type { Emission } from "../journal/vocabulary.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { checkSecrets, secretPositions, record, storedSchema } from "./positions/secret-positions.ts";
 import { executionSchema, replaced } from "../tools/inputs/secret-input.ts";

@@ -6,7 +6,7 @@ import { startupMind } from "./startup-mind.ts";
 import { journalTexts } from "../../texts/journal.texts.ts";
 import type { Bus } from "../../journal/bus.ts";
 import { effect } from "../../house/facts.ts";
-import type { Emission, Event, Foreign } from "../../journal/facts.ts";
+import type { Emission, Event, Foreign } from "../../journal/vocabulary.ts";
 import type { Execution } from "../execute.ts";
 import type { Program, Tool } from "../tool-contract.ts";
 import type { ToolStartup } from "../startup-contract.ts";

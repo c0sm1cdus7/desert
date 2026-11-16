@@ -4,7 +4,7 @@ import { Type } from "@sinclair/typebox";
 import { object } from "../../src/fields/visible-text.ts";
 import { money, shownMoney, text } from "../../src/fields/fields.ts";
 import { effect } from "../../src/house/facts.ts";
-import { vocabulary, type Emission, type Event, type ProgramFacts } from "../../src/journal/facts.ts";
+import { vocabulary, type Emission, type Event, type ProgramFacts } from "../../src/journal/vocabulary.ts";
 import { programAct, type ProgramTool } from "../../src/tools/promises.ts";
 import type { Shown, SurfaceWords } from "../../src/surface/bridge/ports/house-ports.ts";
 import type { Slices, State, ToolRegistry } from "../../src/tools/tool-contract.ts";

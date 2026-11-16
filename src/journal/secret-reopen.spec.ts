@@ -6,7 +6,7 @@ import { fixture, home, words, type P } from "../../tests/support/secret-rig.ts"
 import { SqliteJournal } from "../storage/journal-store.ts";
 import type { HouseOptions } from "../house/state.ts";
 import type { Composition } from "../tools/promises.ts";
-import { vocabulary, type Emission } from "./facts.ts";
+import { vocabulary, type Emission } from "./vocabulary.ts";
 import { checkReopenedState } from "../checks/calculations/reopened-state.ts";
 import { renewKeptJournals } from "../checks/kept/renew-kept.ts";
 import { upgradeComparison } from "../checks/kept/upgrade-comparison.ts";

@@ -1,3 +1,4 @@
+// Advice that keeps a change of currency or a discarded space visible.
 export const entryAdvice = {
   invalidCurrency: (question: string, symbol: string) => `${question} · símbolo de moneda inválido: ${symbol}`,
   redundantZero: "cero inicial descartado",

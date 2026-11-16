@@ -2,7 +2,7 @@
 import type { AdapterComposition } from "./adapter-contract.ts";
 import type { CalculationVersion } from "./calculation-contract.ts";
 import type { Static, TSchema } from "@sinclair/typebox";
-import type { Vocabulary } from "../journal/facts.ts";
+import type { Vocabulary } from "../journal/vocabulary.ts";
 import type { SoFar } from "./so-far.ts";
 import type { ProgramOutside, ProgramRun } from "./promises.ts";
 import type { RunResult } from "./outside.ts";

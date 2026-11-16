@@ -3,7 +3,7 @@ export const reminderId = (by: string, tool: string): string => `${ids.attention
 import { actCatalog } from "./own-acts.ts";
 import type { Attention } from "./members.ts";
 import { effect } from "./facts.ts";
-import type { Event } from "../journal/facts.ts";
+import type { Event } from "../journal/vocabulary.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { accepted, ownAct, reading, rejected } from "../tools/act-definition.ts";
 import { targetTool } from "./attendance.ts";

@@ -4,7 +4,7 @@ import type { CalculationVersion } from "../tools/calculation-contract.ts";
 import type { SqliteJournal } from "../storage/journal-store.ts";
 import { baseProjectionVersion } from "./projection-version.ts";
 import { clockStep, type Deadlines } from "../journal/clock.ts";
-import type { Vocabulary } from "../journal/facts.ts";
+import type { Vocabulary } from "../journal/vocabulary.ts";
 import { shapeOf } from "../journal/projections.ts";
 import type { Program, Slices } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../house/state.ts";

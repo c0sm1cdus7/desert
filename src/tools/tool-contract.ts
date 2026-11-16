@@ -7,7 +7,7 @@ import type { DeepReadonly } from "../journal/readonly-state.ts";
 import type { TSchema } from "@sinclair/typebox";
 import type { Act } from "../house/own-acts.ts";
 import type { HouseView } from "../house/members.ts";
-import type { Emission, Event, Foreign } from "../journal/facts.ts";
+import type { Emission, Event, Foreign } from "../journal/vocabulary.ts";
 import type { HouseEvent } from "../house/facts.ts";
 import type { ToolStartup } from "./startup-contract.ts";
 import type { ToolCapabilities } from "./capabilities-contract.ts";

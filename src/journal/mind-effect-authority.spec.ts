@@ -2,7 +2,7 @@
 // the whole batch in view and writes nothing; the mind's own declared fact is written under its name.
 import { afterEach, expect, it } from "vitest";
 import { effect } from "../house/facts.ts";
-import type { Emission } from "./facts.ts";
+import type { Emission } from "./vocabulary.ts";
 import { object } from "../fields/visible-text.ts";
 import { effectRefusalTexts as why, toolTexts } from "../texts/tools.texts.ts";
 import { toolAct } from "../tools/act-definition.ts";

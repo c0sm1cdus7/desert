@@ -5,7 +5,7 @@ export const redrawMs = 400;
 /** Every case of a program happens at this one instant, so what it promises to read does not depend on the day. */
 export const caseInstant = Date.UTC(2026, 0, 15, 15, 0);
 import { effect } from "../house/facts.ts";
-import type { Event, HouseBus } from "./facts.ts";
+import type { Event, HouseBus } from "./vocabulary.ts";
 export const systemTime: TimeSource = {
   now: () => Date.now(),
   wait: (at, fire) => {

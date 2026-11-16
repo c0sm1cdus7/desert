@@ -13,7 +13,7 @@ import type { SqliteJournal } from "../storage/journal-store.ts";
 import { storageNotices } from "../storage/storage-notices.ts";
 import { privateDirectoryMode } from "../storage/home.ts";
 import { Bus } from "../journal/bus.ts";
-import type { Emission } from "../journal/facts.ts";
+import type { Emission } from "../journal/vocabulary.ts";
 import type { TimeSource } from "../journal/clock.ts";
 import { holds } from "../house/kit.ts";
 import { checkIdentity, guardJournal } from "../house/members.ts";

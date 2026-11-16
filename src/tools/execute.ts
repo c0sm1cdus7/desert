@@ -9,7 +9,7 @@ import { ids } from "../house/ids.ts";
 import { allowedAct, mindTool, present } from "../house/kit.ts";
 import { identityView } from "../house/members.ts";
 import { effect, type HouseEvent } from "../house/facts.ts";
-import type { Emission } from "../journal/facts.ts";
+import type { Emission } from "../journal/vocabulary.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "../house/attendance.ts";
 import { programOffered, runProgram } from "./program-run.ts";

@@ -1,6 +1,6 @@
 // A program's startup, returned cleanup, and event reactions remain its code after registration.
 import { startProgram } from "./tool-startup.ts";
-import type { Emission, Event } from "../../journal/facts.ts";
+import type { Emission, Event } from "../../journal/vocabulary.ts";
 import type { Execution } from "../execute.ts";
 import type { Program, State, ToolRegistry } from "../tool-contract.ts";
 import { programRule } from "../../fields/program-call.ts";

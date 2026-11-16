@@ -24,21 +24,14 @@ describe("the tree of src/", () => {
     expect([...folders].filter(([folder, files]) => (folder !== "." || indexed) && files.length === 1)).toEqual([]);
   });
   // The signed move changes file size, but preserves the complete 519-line text budget.
-  it("keeps every file within 300 lines and the texts within 519", () => {
+  // 518 since the first step; 519 after union 1. Reorder: +14, addressing.ts (code that reads texts) lives in texts/.
+  it("keeps every file within 300 lines and the texts within 533", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(519);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(533);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));
-    const repeated = names.filter((name, index) => names.indexOf(name) !== index);
-    // The signed partition names both catalogs facts.ts; every other concern keeps its unique filename.
-    expect(repeated).toEqual(["facts"]);
-    expect(
-      production
-        .filter(file => basename(file) === "facts.ts")
-        .map(nameOf)
-        .sort(),
-    ).toEqual(["house/facts.ts", "journal/facts.ts"]);
+    expect(names.filter((name, index) => names.indexOf(name) !== index)).toEqual([]);
   });
 });

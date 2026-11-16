@@ -36,7 +36,7 @@ const upward = [
   "house/state.ts → tools/tool-contract.ts",
   "journal/bus.ts → house/facts.ts",
   "journal/clock.ts → house/facts.ts",
-  "journal/facts.ts → house/facts.ts",
+  "journal/vocabulary.ts → house/facts.ts",
   "tools/identities/identity-reading.ts → surface/bridge/ports/house-ports.ts",
   "tools/identities/kit-screen.ts → surface/bridge/acts/program-acts.ts",
   "tools/identities/kit-screen.ts → surface/bridge/ports/house-ports.ts",

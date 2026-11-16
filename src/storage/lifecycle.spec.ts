@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { shopProgram, shop } from "../../tests/support/shop.ts";
 import { startHouse } from "../runtime/house-runtime.ts";
 import { SqliteJournal } from "./journal-store.ts";
-import type { Event } from "../journal/facts.ts";
+import type { Event } from "../journal/vocabulary.ts";
 
 for (const mode of ["start", "stop"] as const) {
   it(`${mode}: writes the program defect before closing resources`, () => {

@@ -7,7 +7,7 @@ import { afterEach, expect, it } from "vitest";
 import { baseProjectionVersion } from "../runtime/projection-version.ts";
 
 import { effect, layerOf } from "../house/facts.ts";
-import { vocabulary } from "./facts.ts";
+import { vocabulary } from "./vocabulary.ts";
 import { identityView } from "../house/members.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { contractRig, type ContractRig } from "../../tests/support/contract-rig.ts";

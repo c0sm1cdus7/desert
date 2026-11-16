@@ -3,7 +3,7 @@ import type { Static, TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { fine } from "../fields/fields.ts";
 import type { ActContext, ActResult, OwnAct, Program, Reach, ToolAct } from "./tool-contract.ts";
-import type { Emission } from "../journal/facts.ts";
+import type { Emission } from "../journal/vocabulary.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 type Perform<X extends Program, S extends TSchema> = (
   value: Static<S>,

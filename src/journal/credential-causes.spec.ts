@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { credentialJournal } from "../adapters/credential-journal.ts";
 import { SqliteJournal } from "../storage/journal-store.ts";
-import { vocabulary, type Event } from "./facts.ts";
+import { vocabulary, type Event } from "./vocabulary.ts";
 import { journalCauses } from "../../tests/support/journal-causes.ts";
 
 it("a custody session stays in the custody fact and is never a nonexistent journal cause", () => {

@@ -2,7 +2,7 @@
 import { pesos, shopLocale } from "./shop.ts";
 import { object } from "../../src/fields/visible-text.ts";
 import { money } from "../../src/fields/fields.ts";
-import { vocabulary, type Event, type ProgramFacts } from "../../src/journal/facts.ts";
+import { vocabulary, type Event, type ProgramFacts } from "../../src/journal/vocabulary.ts";
 import type { Shown } from "../../src/surface/bridge/ports/house-ports.ts";
 import { programAct, type Composition, type Offered, type ProgramTool } from "../../src/tools/promises.ts";
 import type { Slices, State } from "../../src/tools/tool-contract.ts";

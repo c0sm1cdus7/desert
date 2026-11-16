@@ -3,7 +3,7 @@ import { Type } from "@sinclair/typebox";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fixture, home } from "../../../tests/support/secret-rig.ts";
-import { vocabulary } from "../../journal/facts.ts";
+import { vocabulary } from "../../journal/vocabulary.ts";
 import { SqliteJournal } from "../../storage/journal-store.ts";
 import { protectHistory } from "./secret-history.ts";
 import { protectedVocabulary } from "../positions/protected-vocabulary.ts";

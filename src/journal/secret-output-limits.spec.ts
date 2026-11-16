@@ -1,4 +1,4 @@
-import { vocabulary } from "./facts.ts";
+import { vocabulary } from "./vocabulary.ts";
 // Sondas adversarias P1–P11 con datos inventados, convertidas en afirmaciones ejecutables.
 import { Type } from "@sinclair/typebox";
 import { expect, it } from "vitest";

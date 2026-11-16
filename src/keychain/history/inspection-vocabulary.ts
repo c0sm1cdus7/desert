@@ -1,6 +1,6 @@
 // Inspect old values even when a current marked field has a stricter length or type.
 import { Type } from "@sinclair/typebox";
-import type { Event, Foreign, Vocabulary } from "../../journal/facts.ts";
+import type { Event, Foreign, Vocabulary } from "../../journal/vocabulary.ts";
 import { record } from "../positions/secret-positions.ts";
 import { protectedVocabulary } from "../positions/protected-vocabulary.ts";
 export function inspectionVocabulary<P extends Foreign>(words: Vocabulary<P>): Vocabulary<P> {

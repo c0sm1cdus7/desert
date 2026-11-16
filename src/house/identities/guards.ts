@@ -1,6 +1,6 @@
 import { identityTexts } from "../../texts/identities.texts.ts";
 import { checkIdentity } from "./emission-identity.ts";
-import type { Emission, Event, Foreign } from "../../journal/facts.ts";
+import type { Emission, Event, Foreign } from "../../journal/vocabulary.ts";
 import type { Creation } from "../members.ts";
 import { identityNameProblem } from "./identity-name.ts";
 export { checkIdentity } from "./emission-identity.ts";

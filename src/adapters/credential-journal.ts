@@ -1,6 +1,6 @@
 import { Value } from "@sinclair/typebox/value";
 import { effect } from "../house/facts.ts";
-import type { Emission, Event, Foreign } from "../journal/facts.ts";
+import type { Emission, Event, Foreign } from "../journal/vocabulary.ts";
 import type { CredentialFact, CredentialLedger } from "../keychain/custody/custody-contract.ts";
 import { factSchema } from "../keychain/custody/custody-database.ts";
 import { CustodyError } from "../keychain/custody/house-keys.ts";

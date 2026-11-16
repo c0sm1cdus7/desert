@@ -1,6 +1,8 @@
+// Reasons shown beside a field, whether its value or one discarded key needs an explanation.
 export const fieldTexts = {
   invalidCurrency: (source: string, symbol: string) => `Símbolo de moneda inválido para ${source}: ${symbol}`,
   countryCurrency: "el país",
+  /** Why what is written cannot be sent yet: said where it is written, as a datum. */
   lacks: {
     missing: "falta completar",
     day: "día incompleto",
@@ -22,5 +24,6 @@ export const fieldTexts = {
     decimals: (max: number) => `máximo ${max} decimales`,
     decimal: "un separador decimal, después del número",
   },
+  /** A day that already happened, written after today. */
   future: "día futuro",
 } as const;

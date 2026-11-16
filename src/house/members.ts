@@ -3,7 +3,7 @@ import { sceneStep } from "./scenes.ts";
 import { readonlyState } from "../journal/readonly-state.ts";
 import type { Hideable } from "./own-acts.ts";
 import { effect, type HouseEvent } from "./facts.ts";
-import type { Event, HouseBus } from "../journal/facts.ts";
+import type { Event, HouseBus } from "../journal/vocabulary.ts";
 import { kitStep, mindTool } from "./kit.ts";
 
 export { checkCreation, checkIdentity, guardJournal, InvalidCreation } from "./identities/guards.ts";

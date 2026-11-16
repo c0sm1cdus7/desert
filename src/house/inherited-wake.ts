@@ -1,7 +1,7 @@
 // A legacy wake belongs to its historical identity; only the current administrator may retire it.
 import { ids } from "./ids.ts";
 import { effect } from "./facts.ts";
-import type { Foreign } from "../journal/facts.ts";
+import type { Foreign } from "../journal/vocabulary.ts";
 import type { Bus } from "../journal/bus.ts";
 export function cancelInheritedWake<P extends Foreign>(
   state: () => { house: { admin: string }; wakeOwners: ReadonlyMap<string, string> },

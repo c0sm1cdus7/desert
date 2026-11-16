@@ -1,5 +1,5 @@
 // Every house journal reads stored references with the same vocabulary, including offline checks.
-import type { Foreign, Vocabulary } from "../journal/facts.ts";
+import type { Foreign, Vocabulary } from "../journal/vocabulary.ts";
 import type { FoldWarning } from "../journal/snapshot-format.ts";
 import { protectedVocabulary } from "../keychain/positions/protected-vocabulary.ts";
 import { SqliteJournal } from "../storage/journal-store.ts";

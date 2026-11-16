@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { SecretVault } from "./secret-vault.ts";
 import { MemoryHouseKeys } from "./custody/house-keys.ts";
-import { vocabulary } from "../journal/facts.ts";
+import { vocabulary } from "../journal/vocabulary.ts";
 import { effect } from "../house/facts.ts";
 import type { Program } from "../tools/tool-contract.ts";
 const schema = Type.Object({ value: Type.String({ secret: true }) });

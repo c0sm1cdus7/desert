@@ -3,7 +3,7 @@ import { coreSelf } from "./effect-authority.ts";
 import { allowedAct, present } from "../../house/kit.ts";
 import { houseStep, type House } from "../../house/members.ts";
 import { effect, type HouseEvent } from "../../house/facts.ts";
-import type { Event } from "../../journal/facts.ts";
+import type { Event } from "../../journal/vocabulary.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import type { Decision, Execution } from "../execute.ts";
 import type { Program, Reach, State } from "../tool-contract.ts";

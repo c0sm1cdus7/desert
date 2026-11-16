@@ -1,3 +1,4 @@
+// How a case closes, or the positive evidence its screen failed to supply.
 export const closureTexts = {
   externalResult: "Declared external cause after execution",
   constructed: "Closed by construction: every entry fixes an incompatible answer; direct refusal verified",

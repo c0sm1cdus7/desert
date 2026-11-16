@@ -1,4 +1,4 @@
-import type { Event } from "../../journal/facts.ts";
+import type { Event } from "../../journal/vocabulary.ts";
 import type { HouseState } from "../tool-contract.ts";
 /** The acts still open: an act stays until its result, so what it caused can be traced to it. */
 export function openActs(state: HouseState, event: Event): Pick<HouseState, "acts" | "processing" | "wakeOwners"> {
