@@ -4,7 +4,7 @@ import type { RunningHouse } from "../../../runtime/house-runtime.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import { socketTexts as said } from "../../../texts/socket.texts.ts";
 import type { Peer } from "../peers/socket-peer.ts";
-export async function drainHouse<X extends Program>(
+async function drainHouse<X extends Program>(
   house: RunningHouse<X>,
   peers: Set<Peer>,
   pending: Set<Promise<void>>,

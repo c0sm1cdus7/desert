@@ -5,20 +5,20 @@ import type { Router } from "../../surface/router/router.ts";
 import { bytesOf, type Grid } from "./cells.ts";
 import { keyReader, pasteBrackets } from "./input.ts";
 import { contentRows, paint } from "./paint.ts";
-export interface Tty {
+interface Tty {
   readonly columns: number;
   readonly rows: number;
   write(bytes: string): unknown;
   on(event: "resize", listener: () => void): unknown;
 }
-export interface Keyboard {
+interface Keyboard {
   setRawMode(on: boolean): unknown;
   on(event: "data", listener: (chunk: Buffer) => void): unknown;
   resume(): unknown;
   pause(): unknown;
 }
 const enter = `\x1b[?1049h\x1b[?25l\x1b[2J${pasteBrackets.on}`;
-export const leaveScreen = `${pasteBrackets.off}\x1b[0m\x1b[?25h\x1b[?1049l`;
+const leaveScreen = `${pasteBrackets.off}\x1b[0m\x1b[?25h\x1b[?1049l`;
 /** How long what waits is given, in ms. The pieces of one key come together: an escape that is still alone after
  * this is the escape key. What is pasted comes together too: a paste whose end has not come after a second goes on
  * waiting for it, never read as keys, and from then on ctrl c leaves. */

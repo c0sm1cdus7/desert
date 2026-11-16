@@ -10,7 +10,7 @@ export interface HouseKeyProvider {
   forget(account: string): void;
   forgetHouse(house: string, known?: readonly string[]): void;
 }
-export type CustodyCode =
+type CustodyCode =
   | "E-CUSTODY-TRANSACTION"
   | "E-CUSTODY-KEY"
   | "E-CUSTODY-PROVIDER"

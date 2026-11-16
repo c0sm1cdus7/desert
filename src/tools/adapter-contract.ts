@@ -18,7 +18,7 @@ export type AdapterComposition = Readonly<{
   adapters?: Readonly<Record<string, AdapterDeclaration>>;
   credentialSlots?: Readonly<Record<string, readonly string[]>>;
 }>;
-export type AdapterCode =
+type AdapterCode =
   "E-ADAPTER-DECLARATION" | "E-ADAPTER-DENIED" | "E-ADAPTER-INPUT" | "E-ADAPTER-OUTPUT" | "E-ADAPTER-FAILED";
 export class AdapterFailure extends Error {
   readonly code: AdapterCode;

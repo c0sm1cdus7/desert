@@ -23,7 +23,7 @@ function actsOf<A extends unknown[], T extends { next: (...args: A) => Field | n
     }),
   );
 }
-export function programScreen(screen: Tool): Tool {
+function programScreen(screen: Tool): Tool {
   const guarded = programFunctions(screen);
   return {
     ...guarded,

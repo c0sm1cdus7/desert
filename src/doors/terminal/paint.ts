@@ -3,7 +3,7 @@ import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import type { Body, HintKey, Screen, Span } from "../../surface/contract/contract.ts";
 import { blankCell, fit, put, putRight, width, type Grid } from "./cells.ts";
 import { drawFocus, drawPanel, drawRow, drawThread, keysOf } from "./thread.ts";
-export interface Size {
+interface Size {
   readonly cols: number;
   readonly rows: number;
 }
@@ -20,8 +20,6 @@ export const keyNames: Readonly<Record<HintKey, string>> = {
 export const contentRows = (rows: number): number => rows - 8;
 const edgeOf = (cols: number): number => (cols >= 60 ? 2 : 1);
 const blockOf = (cols: number): number => Math.min(76, cols - 2 * edgeOf(cols));
-/** What a list's own lines get on a terminal this size: its block past the margin, and its content rows. */
-export const listRoom = ({ cols, rows }: Size): Size => ({ cols: blockOf(cols) - 1, rows: contentRows(rows) });
 
 const barIcons = {
   connected: ["●", "ok"],

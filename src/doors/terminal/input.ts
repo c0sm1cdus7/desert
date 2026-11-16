@@ -36,7 +36,7 @@ const pieces = /\x1b\[[0-9;]*[A-Za-z~]|\x1bO[A-Za-z]|\x1b[^\x1b[O]|[\s\S]/gu;
 /** An escape sequence the chunk left unfinished: its rest may come in the next one. */
 const unfinished = /\x1b(?:\[[0-9;]*|O)?$/u;
 
-export interface KeyReader {
+interface KeyReader {
   /** The keys a chunk brings; what may be the start of a longer key waits for the next chunk. */
   read(chunk: string): readonly Intent[];
   /** What is still given time: an escape that is alone so far, or a paste whose end has not come. */

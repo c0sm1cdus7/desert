@@ -13,7 +13,7 @@ import { isReference, secretPositions, storedSchema } from "../positions/secret-
 import { inspectionVocabulary } from "./inspection-vocabulary.ts";
 type Finding = Readonly<{ action: string; position: string; seq: number }>;
 type Review = { version: number; reviewed: number; reviewedFacts: number; unreviewable: number };
-export class SecretHistoryError extends Error {
+class SecretHistoryError extends Error {
   readonly code = "E-SECRET-HISTORY";
   readonly positions: readonly Finding[];
   constructor(positions: readonly Finding[]) {

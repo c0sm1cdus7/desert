@@ -7,7 +7,7 @@ import { kitCatalog, kitDatum } from "./kit-catalog.ts";
 export const identityTarget = (identity: string) => `identities/${identity}`;
 export const targetIdentity = (target: string) => target.slice("identities/".length);
 export const members = (house: House) => [...new Set([...house.grants.keys(), ...house.removed])];
-export function identityDatum(house: House, identity: string): string {
+function identityDatum(house: House, identity: string): string {
   if (house.removed.has(identity)) return words.removed;
   return identity === house.admin ? words.admin : words.count(house.grants.get(identity)?.length ?? 0);
 }

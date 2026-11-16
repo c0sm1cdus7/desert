@@ -4,7 +4,7 @@ import type { Program } from "../../../tools/tool-contract.ts";
 import { startHouse } from "../../../runtime/house-runtime.ts";
 import type { HouseOptions } from "../../../house/state.ts";
 import { serveHouse, type DoorKey } from "./serve.ts";
-export type ServerOptions<X extends Program> = Pick<HouseOptions<X>, "by" | "creation" | "secretKeys"> & {
+type ServerOptions<X extends Program> = Pick<HouseOptions<X>, "by" | "creation" | "secretKeys"> & {
   readonly keys: ReadonlyMap<string, DoorKey>;
 };
 export async function serveProgram<X extends Program>(

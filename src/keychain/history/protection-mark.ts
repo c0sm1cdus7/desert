@@ -2,7 +2,7 @@ import { isRecord } from "../../fields/json-values.ts";
 import { existsSync, readFileSync } from "node:fs";
 import { secretTexts } from "../../texts/secrets.texts.ts";
 
-export class SecretProtectionError extends Error {
+class SecretProtectionError extends Error {
   readonly code = "E-SECRET-PROTECTION";
   readonly file: string;
   constructor(file: string) {

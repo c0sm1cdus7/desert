@@ -36,10 +36,10 @@ export type SurfacePorts<X extends Program> = Omit<HousePorts<X>, "act" | "obser
 type Called = Readonly<{ name: string; key: string; system?: true; inside?: string }>;
 /** A tool of things: what it says with none, what heads their list, the label of each datum read on that list,
  * and how one of its things is presented: its stacks, in order. */
-export type Lists = Readonly<{ empty: string; listed: string }> &
+type Lists = Readonly<{ empty: string; listed: string }> &
   Readonly<{ reads: Readonly<Record<string, string>>; presents: readonly Presented[] }>;
 /** A tool that reads data of its own: the stacks that data goes in, in order, as the stacks of a thing. */
-export type Itself = Readonly<{ itself: readonly Presented[] }>;
+type Itself = Readonly<{ itself: readonly Presented[] }>;
 /** A tool lists things, reads data of its own, or both: its data first, then its things. */
 export type ToolWords = Called & (Lists | Itself);
 /** One stack of a thing: its title, what it says with nothing in it, and each datum of the reading that goes in

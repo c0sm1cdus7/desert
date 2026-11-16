@@ -6,7 +6,7 @@ import { effectRefusalTexts, toolTexts } from "../../texts/tools.texts.ts";
 import type { Execution } from "../execute.ts";
 import type { ActContext, ActResult, Program, Tool } from "../tool-contract.ts";
 /** A reserved identifier, never a flag supplied by a program, identifies a core piece. */
-export const corePiece = (id: string | undefined): boolean => id === "identities";
+const corePiece = (id: string | undefined): boolean => id === "identities";
 export const coreSelf = (tool: string | undefined, by: string, target: string): boolean =>
   corePiece(tool) && mindTool(by) === undefined && target === `identities/${by}`;
 function invalidKit<X extends Program>(ports: Execution<X>, event: HouseEmission<"kit-set">) {

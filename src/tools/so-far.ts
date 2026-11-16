@@ -7,7 +7,7 @@ import { Value } from "@sinclair/typebox/value";
 import type { Program, State } from "./tool-contract.ts";
 type Answered = Readonly<Record<string, unknown>>;
 /** For each tool an act narrows, why it does not take a thing, or nothing when it does. */
-export type Among = Readonly<Record<string, (thing: string) => string | undefined>>;
+type Among = Readonly<Record<string, (thing: string) => string | undefined>>;
 /** Asked after each answer, with the fields answered whole until then. A surface says it early; the act still
  * refuses when run. */
 export type SoFar<X extends Program> = Readonly<{

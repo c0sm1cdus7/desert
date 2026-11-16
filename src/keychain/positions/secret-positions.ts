@@ -10,7 +10,7 @@ export const isReference = (value: unknown): boolean =>
 
 const schemaOf = (value: unknown): TSchema => Type.Unsafe(isRecord(value) ? value : {});
 
-export class SecretSchemaError extends Error {
+class SecretSchemaError extends Error {
   readonly code = "E-SECRET-SCHEMA";
   constructor() {
     super(secretTexts.schema);

@@ -1,7 +1,7 @@
 // A breadth-first walk of offered answers, whole in its first levels and bounded past them, on a copy for each path.
 import type { Path, KeptPath, InspectionCut } from "./kept-path.ts";
 export const keptWalkLimits = { whole: 2, paths: 64, depth: 24, choices: 16 } as const;
-export type WalkLimits = Readonly<{ whole: number; paths: number; depth: number; choices: number }>;
+type WalkLimits = Readonly<{ whole: number; paths: number; depth: number; choices: number }>;
 /** The paths that walked the whole levels, those that went past, the places reached, the answers nobody took. */
 export type WalkCoverage = Readonly<{
   whole: number;

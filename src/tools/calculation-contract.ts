@@ -1,5 +1,5 @@
 /** The public shape of a version calculated from code; construction belongs to runtime. */
-export interface CodeProjectionDeclaration {
+interface CodeProjectionDeclaration {
   readonly kind: "code";
   readonly trees: readonly string[];
   readonly extensions: readonly string[];

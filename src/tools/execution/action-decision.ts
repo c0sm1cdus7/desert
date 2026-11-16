@@ -27,7 +27,7 @@ function entryEffect<X extends Program>(
     by,
   );
 }
-export function decisionOf<X extends Program>(
+function decisionOf<X extends Program>(
   result: ActResult<X>,
   act: ToolAct<X>,
   context: ActContext<X>,

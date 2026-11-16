@@ -135,9 +135,3 @@ export function walk<X extends Program>(
   if (sure) type(router, aim.act.enter.charAt(0));
   return true;
 }
-
-/** Preserve the established entry helper's return shape for programs that still import its internal path. */
-export function taken<X extends Program>(seat: Seat<X>, told: Told<X>): Choice | undefined {
-  const row = takenOrConstructed(seat, told);
-  return row === "construction" ? undefined : row;
-}

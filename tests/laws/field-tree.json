@@ -7,7 +7,7 @@
   "checks/promises/answers/promised-entry.ts": "Derived checks of intermediate question screens and unavailable Enter",
   "checks/promises/promised-keys.ts": "seated, goTo, actRow: how a derived check moves by keys from the Menu to an act's row",
   "checks/promises/walk/promised-result.ts": "currentInState, assertOutcome: every case closes internal refusals before sending and shows external errors after running",
-  "checks/promises/walk/promised-route.ts": "taken, walk: navigate the case to its action and answer by keys",
+  "checks/promises/walk/promised-route.ts": "takenOrConstructed, walk: navigate the case to its action and answer by keys",
   "surface/bridge/acts/asked-act.ts": "Compone preguntas y confirmación de una acción conservando el dueño de sus métodos.",
   "surface/bridge/questions/asking-parts.ts": "how a declared field says its question, options, value and mask; the field that picks a thing of a tool",
   "surface/bridge/questions/asking.ts": "asking: the questions of an act from the declaration of what it takes, and its answers read back as data",

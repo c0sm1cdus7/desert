@@ -27,7 +27,7 @@ const text = Type.String();
 
 const id = { id: name };
 const tag = <T extends string>(tipo: T) => ({ tipo: Type.Literal(tipo) });
-export const clientProtocol = Type.Union([
+const clientProtocol = Type.Union([
   object({ ...tag("hola"), protocolo: wholeNumber, node: name, token: name }),
   object({
     ...tag("acto"),
@@ -63,7 +63,7 @@ const done = object({
   by: text,
   cause: Type.Array(text),
 });
-export const serverProtocol = Type.Union([
+const serverProtocol = Type.Union([
   object({
     ...tag("bienvenida"),
     protocolo: wholeNumber,
