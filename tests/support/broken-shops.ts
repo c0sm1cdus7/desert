@@ -128,15 +128,6 @@ export const brokenShops: readonly Readonly<{
     because: ["what the act says speaks to who reads it: Registraste · s1"],
   },
   {
-    name: "a shop that tells of a sale only who registered it",
-    program: registering((input, context) => {
-      const done = honest(input, context);
-      return done.status === "accepted" ? { ...done, recipient: context.by } : done;
-    }),
-    fails: [told],
-    because: ["what the act says is for one identity alone exactly when its case promises that"],
-  },
-  {
     name: "a shop that keeps another total than the one its sale reads",
     program: { ...shopProgram, slices: { ...shopSlices, step: { ...shopSlices.step, sales: doubling } } },
     fails: [told],
@@ -150,6 +141,7 @@ export const brokenShops: readonly Readonly<{
       again,
       "sales · register · is refused anywhere but where it stands: on its tool, or on one of its things",
       paid,
+      "payments · receive · is refused when its action is outside the kit",
       ...Array.from({ length: 11 }, (_, n) => `payments · receive · refuses what it does not ask for (${n + 1})`),
       "payments · receive · is refused to who does not hold its tool",
       "payments · receive · is refused without its target in view",
@@ -157,7 +149,11 @@ export const brokenShops: readonly Readonly<{
       ...[told, again, paid].map(keys),
       ...[again, paid].map(check => `${check}, blocked choices`),
       ...[again, paid].map(check => `${check}, no empty first choice`),
+      "payments · receive · shows an action outside a partial kit",
       `${again}, hidden for who prefers not to see what cannot be done`,
+      "sales · register · referencias legibles",
+      "payments · receive · referencias legibles",
+      "payments · is read by who does not hold it, with actions off; hidden from the Menu by preference",
       ...[told, paid].map(check => `${check}, in Activity for the others until they open it`),
       ...[told, paid].map(check => `${check}, and what it leaves is found by its name from any menu`),
     ],

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { offShop, offWords, type OffMode } from "../../tests/support/off-shop.ts";
 import type { ProgramTool } from "../tools/promises.ts";
 import { shopShown, type Shop } from "../../tests/support/shop.ts";
-import { genericTexts } from "../texts/generic-surface.texts.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
 import { withoutChoices } from "../surface/bridge/picked.ts";
 import { actionOff } from "../surface/availability/action-off.ts";
 import { actRow, seated } from "./promised-keys.ts";
@@ -36,10 +36,10 @@ for (const mode of ["offered", "also"] satisfies readonly OffMode[]) {
             throw new Error("Lower priority question must not be read");
           };
           const state = seat.state();
-          expect(actionOff(act, state, tool.id, tool.id, seat.now(), first, "sales/s2")).toBe(offWords[mode]);
-          expect(actionOff(act, { ...state, by: cast.outsider }, tool.id, tool.id, seat.now(), first)).toBe(
-            genericTexts.notHeld,
-          );
+          expect(actionOff(act, state, tool.id, tool.id, seat.now(), first, "sales/s2", "charge")).toBe(offWords[mode]);
+          expect(
+            actionOff(act, { ...state, by: cast.outsider }, tool.id, tool.id, seat.now(), first, undefined, "charge"),
+          ).toBe(toolTexts.outsideKit);
         } finally {
           seat.router.stop();
         }

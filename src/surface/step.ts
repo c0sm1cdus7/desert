@@ -46,7 +46,8 @@ function pasted(session: Session, text: string, tools: Tools, now: number): Step
   const place = must(session.at(-1));
   const field = place.kind === "act" && place.phase === "asking" ? fieldOf(tools, place) : undefined;
   /** Secret material is typed whole, line breaks and spaces included: a paste never trims or joins it. */
-  if (place.kind === "act" && field?.kind === "secret") return step(session, { kind: "type", text }, tools, now);
+  if (place.kind === "act" && field && (field.kind === "secret" || ("verbatim" in field && field.verbatim)))
+    return step(session, { kind: "type", text }, tools, now);
   const chars = Array.from(text.trim().replace(/[\r\n\t]+/gu, " ")).filter(char => !/\p{Cc}/u.test(char));
   /** A written paste is one edit: later accepted characters cannot hide an earlier rejection. */
   if (place.kind === "act" && field && (field.kind === "text" || field.kind === "secret")) {

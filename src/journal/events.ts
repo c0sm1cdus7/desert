@@ -1,7 +1,7 @@
 // One journal for the house's facts and a program's: the house reads its own and carries the program's unread.
 import { Type, type Static, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { object, preference, scene } from "../catalogs/acts.ts";
+import { object, preference, scene, t as visibleText } from "../catalogs/acts.ts";
 import { toolLimits } from "../catalogs/levers.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 const literals = <T extends string>(...values: T[]) => Type.Union(values.map(value => Type.Literal(value)));
@@ -14,6 +14,7 @@ const actStatus = literals("accepted", "rejected", "draft", "inconclusive", "int
 export const houseCatalog = {
   "house-created": object({}),
   granted: object({ identity: name, tools: names }),
+  named: object({ identity: name, name: visibleText(toolLimits.text) }),
   /** Someone leaves the house: from then on nothing of it is theirs. Only who administers it says so. */
   removed: object({ identity: name }),
   /** The house passes to another of those who are in it: from then on that one administers it. */
@@ -21,7 +22,6 @@ export const houseCatalog = {
   preferred: preference,
   scene,
   "kit-set": object({ holder: name, tool: name, acts: Type.Union([names, Type.Null()]) }),
-  "channel-created": object({ channel: name, members: names }),
   boot: object({}),
   act: object({ object: name, option: name, input: Type.Unknown(), through: Type.Optional(instant) }),
   "act-started": object({ act: name, object: name, option: name }),
@@ -40,13 +40,12 @@ export const houseCatalog = {
     draft: Type.Optional(Type.Boolean()),
     attention: Type.Optional(Type.Boolean()),
     silent: Type.Optional(Type.Boolean()),
-    recipient: Type.Optional(name),
     detail: Type.Optional(Type.Unknown()),
     diagnostic: Type.Optional(text),
     /** The things that were not there before the act and are there after it: what it made, besides its target. */
     made: Type.Optional(Type.Array(name)),
   }),
-  "act-done": object({ object: name, act: name, text, recipient: Type.Optional(name) }),
+  "act-done": object({ object: name, act: name, text }),
   attended: object({ target: name }),
   unattended: object({ target: name }),
   attention: object({ tool: name, delay: Type.Union([instant, Type.Null()]) }),
@@ -89,12 +88,32 @@ const arms = (layer: Layer, catalog: Catalog, fields: Readonly<Record<string, TS
   Object.entries(catalog).map(([kind, data]) =>
     object({ ...fields, layer: Type.Literal(layer), kind: Type.Literal(kind), data }),
   );
+/** The one compatibility boundary for records written before shared house reading. */
+const legacyHouseCatalog = {
+  "channel-created": object({ channel: name, members: names }),
+  "tool-entry": object({
+    tool: name,
+    target: name,
+    author: name,
+    text,
+    draft: Type.Optional(Type.Boolean()),
+    attention: Type.Optional(Type.Boolean()),
+    silent: Type.Optional(Type.Boolean()),
+    recipient: Type.Optional(name),
+    detail: Type.Optional(Type.Unknown()),
+    diagnostic: Type.Optional(text),
+    made: Type.Optional(Type.Array(name)),
+  }),
+  "act-done": object({ object: name, act: name, text, recipient: Type.Optional(name) }),
+} satisfies Catalog;
+const legacyArms = arms("house", legacyHouseCatalog, {});
 const freeze = (value: unknown): void => {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return;
   Object.freeze(value);
   Object.values(value).forEach(freeze);
 };
-export const layerOf = (kind: string): Layer => (Object.hasOwn(houseCatalog, kind) ? "house" : "program");
+export const layerOf = (kind: string): Layer =>
+  Object.hasOwn(houseCatalog, kind) || Object.hasOwn(legacyHouseCatalog, kind) ? "house" : "program";
 /** How a journal reads and checks its facts: the house's kinds and one program's, each in its layer. */
 export type Vocabulary<P extends Foreign> = Readonly<{
   event: TSchema;
@@ -106,9 +125,13 @@ type Own<C extends Catalog> = C & Readonly<Partial<Record<HouseKind, never>>>;
 export function vocabulary<C extends Catalog>(program: Own<C>) {
   const taken = Object.keys(program).filter(kind => layerOf(kind) === "house");
   if (taken.length) throw new Error(journalTexts.kindTaken(taken));
-  const all = (fields: Readonly<Record<string, TSchema>>) =>
-    Type.Union([...arms("house", houseCatalog, fields), ...arms("program", program, fields)]);
-  const event = Type.Unsafe<Event<ProgramFacts<C>>>(all({ ...provenance, ...position }));
+  const all = (fields: Readonly<Record<string, TSchema>>, legacy = false) =>
+    Type.Union([
+      ...arms("house", houseCatalog, fields),
+      ...arms("program", program, fields),
+      ...(legacy ? legacyArms.map(arm => Type.Composite([arm, object(fields)])) : []),
+    ]);
+  const event = Type.Unsafe<Event<ProgramFacts<C>>>(all({ ...provenance, ...position }, true));
   return {
     event,
     emission: Type.Unsafe<Emission<ProgramFacts<C>>>(all(provenance)),

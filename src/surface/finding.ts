@@ -17,9 +17,9 @@ export const matches = (text: string, sought: string): boolean => {
   const within = wordsOf(text).flatMap(word => [word, read(word)]);
   return wordsOf(sought).every(word => within.some(each => each.startsWith(word)));
 };
-/** The tools a person looks into from the Menu: the ones they hold that say how their things are found. */
+/** The tools a person looks into from the Menu: all that say how their things are found. */
 const seekers = (tools: readonly Tool[]): readonly Tool[] =>
-  tools.filter(tool => tool.find !== undefined && tool.listed?.() !== false && tool.off?.() === undefined);
+  tools.filter(tool => tool.find !== undefined && tool.off?.() === undefined);
 /** Whether a person can look for things from here: over every tool on the Menu, over one tool on its own menu. */
 export const findable = (place: Picture, tools: readonly Tool[]): boolean => {
   if (place.kind === "menu") return seekers(tools).length > 0;
@@ -31,10 +31,10 @@ const found = (tool: Tool, sought: string): Choice[] =>
     const open: Place = { kind: "view", tool: tool.id, target: row.opens, at: 0 };
     return [{ ...row, open }];
   });
-/** The tools a person holds whose name is what they look for, wherever they are opened from: each row opens it. */
+/** The tools whose name is what they look for, wherever they are opened from: each row opens it. */
 const named = (tools: readonly Tool[], sought: string): Choice[] =>
   tools
-    .filter(tool => tool.listed?.() !== false && tool.off?.() === undefined && matches(tool.name, sought))
+    .filter(tool => tool.off?.() === undefined && matches(tool.name, sought))
     .map(tool => {
       const talks = tool.conversation && !tool.conversationAt;
       const open: Place = talks ? startTalk(tool.id) : { kind: "view", tool: tool.id, at: 0 };

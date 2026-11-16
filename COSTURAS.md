@@ -5,7 +5,7 @@ En Kenon el núcleo está cosido a sus herramientas y a su mente en dos lugares.
 ## 1. Los hechos: la casa escribe los suyos, el programa suma los propios (HECHO)
 
 - `src/journal/events.ts` declara `houseCatalog`: lo que escribe toda casa, viva en ella el programa que viva
-  (crear la casa, permisos, kits, escenas, canales, actos y sus resultados, entradas, atender, avisos, reloj).
+  (crear la casa, permisos, kits, escenas, actos y sus resultados, entradas, atender, avisos, reloj).
 - Cada programa declara su catálogo y lo junta con `vocabulary(catalogo)`. De ahí salen el lector que valida,
   los esquemas para viajar por la puerta y `fact(...)` para escribir sus hechos.
 - Cada hecho lleva `layer`: `"house"` o `"program"`. El código de la casa recibe `Event` y, para leer un hecho,
@@ -19,9 +19,23 @@ Qué quedó fuera de `houseCatalog` respecto de Kenon (es de su mente o de sus h
 plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, marcas, memoria, percepción.
 `act` ya no lleva `evidence` (es de la mente).
 
+| Origen del efecto de un acto | Hechos permitidos | Autor |
+|---|---|---|
+| Herramienta del programa, identidad o mente | Solo los de su `Tool.facts`; cada tipo tiene un único dueño. | Quien actúa. |
+| Puerto `own` del programa | Los de la herramienta de su objeto; no puede tapar una acción declarada. | Quien actúa. |
+| Core reservado `identities` | Casa, administrando; sobre `identities/<actor>`, solo su escena y nombre propios. | Quien actúa. |
+| Actos propios de la casa y motor | Hechos que ya ofrecen y hechos internos de ejecución, avisos y reloj. | El actor correspondiente. |
+
+`effect-authority.ts` valida el lote antes de agregar los hechos de ejecución. Rechaza todo el lote indicando el
+primer efecto no permitido. `composed-authority.ts` rechaza dueños de hechos repetidos y colisiones de `own` al
+componer. El préstamo reconoce sus comandos opacos de credenciales sin ejecutarlos durante la validación.
+`kit-set` valida presencia, herramienta dada y acciones existentes sin repetir, considerando el orden del lote.
+La escritura directa del bus confiable y la lectura histórica conservan su contrato; esta costura cierra los
+resultados de acciones. El bus público de arranque se cierra en el carril de la mente.
+
 ## 2. El estado: cada herramienta guarda lo suyo (HECHO)
 
-- El estado de la casa (`HouseState`) queda con lo que es de toda casa: permisos, kits, última escena de cada autor, canales, quién tiene qué a la
+- El estado de la casa (`HouseState`) queda con lo que es de toda casa: permisos, kits, última escena de cada autor, quién tiene qué a la
   vista, actos en curso, entradas, avisos de atención. Ninguna parte de ninguna herramienta.
 - Un programa se describe con un solo tipo: `{ fact: SusHechos; tools: { ventas: ...; pagos: ... } }`.
   El estado completo es `State<Programa>`: el de la casa más `tools`, con la parte de cada herramienta bajo su nombre.
@@ -39,14 +53,21 @@ plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, mar
 Qué cambió respecto de Kenon en este paso:
 - `acts` ya no es la lista de todos los actos desde el principio: son los actos abiertos (sin resultado todavía).
   `results` (lista de todos los resultados) no está: era de la mente.
-- `visible` decide por canal, no por el nombre de la herramienta `communicator`.
+- `identityView` adapta actividad y atención a quien mira; las entradas de actividad son comunes a todas las identidades.
 - `granted` sigue dando la herramienta entera. `kit-set` permite a quien administra recortar sus acciones:
   una identidad sin kit conserva todas; una mente sin kit no tiene ninguna y solo actúa en su propia herramienta.
-  Quien administra no tiene recorte. Al recibir la administración pierde todos sus kits; no vuelven al devolverla.
+  Quien administra no tiene recorte; con `identities: true` tiene todas las herramientas sin asignarlas y recibe sus recordatorios. Al recibir la administración pierde todos sus kits; no vuelven al devolverla.
   `null` da todas, `[]` ninguna; al perder la herramienta se pierde el kit.
+  Cualquier hecho de la casa que retire una acción corta la señal de su acto y de sus hijos en curso,
+  desde el oyente vivo, nunca desde el plegado; los actos independientes conservan su señal. Cada uso de sus
+  adaptadores vuelve a comprobar esa señal sin cambiar `holds`. El cierre pregunta el kit antes de escribir;
+  lo cortado termina `interrupted · sacada`. Un lote ya iniciado o un éxito que salió al mundo se conserva con
+  `sacada` al lado. Un anidado ya escrito permanece; un padre cortado no inicia más anidados y recibe
+  `interrupted · sacada` como resultado del contrato. Un defecto independiente conserva su diagnóstico;
+  el motivo de la señal y el rechazo del adaptador por el corte no son defectos.
 - La escena está en la casa: última por autor, general y partes por identidad, todas leídas por todos.
-  `Need.to` elige una identidad que tenga la herramienta; si no la tiene o no es una identidad presente,
-  la necesidad llega a quienes la tienen. Sigue calculada por código.
+  `Need.to` elige una identidad presente que tenga al menos una acción de la herramienta; si no cumple esa condición,
+  la necesidad llega a quienes tienen al menos una acción. Sigue calculada por código.
 - Los textos con que la casa rechaza un acto están en español, como los de la superficie.
 
 ## 3. La superficie sobre la casa (HECHO)
@@ -88,6 +109,8 @@ interacción con la casa sea la misma en todas las superficies.
   terminó un acto o pasó el tiempo.
 - `src/surface/bridge/house-router.ts`: `houseRouter(ports, palabras)`. Es lo único que un renderer recibe de un
   programa: las herramientas con sus palabras, la barra (conexión y hora) y los cambios de la casa.
+- La superficie abre y busca también herramientas fuera del kit; sus acciones quedan apagadas con su motivo.
+  Actividad muestra lo escrito por otras personas en toda la casa; Atención solo llega a quien tiene al menos una acción de la herramienta.
 - Un renderer hace dos cosas: dibuja `router.screen()` y traduce lo suyo a `router.send(intención)`.
   La terminal (`doors/terminal/boot.ts`) ya es eso. Web, iPhone y Android usan el mismo router.
 
@@ -136,8 +159,8 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 - **Una herramienta que el programa suma después no es de nadie.** Quien crea la casa recibe las herramientas que
   el programa tiene ese día. Si el programa suma una después, no la tiene nadie, tampoco quien administra, y sin
   Equipo no hay cómo dársela. Hay que decidir: o quien administra tiene siempre todas, o la casa se las da al abrir.
-- **Un programa escribe hechos de la casa.** Equipo, en Capibara, escribe `granted` desde sus acciones. Un caso
-  hoy promete hechos del programa y lo que se lee después; no puede prometer un hecho de la casa.
+- **Un programa escribe hechos de la casa.** CERRADA (14/11, kit 6c): sus actos ya no pueden hacerlo.
+  Usuarios, en Capibara, deberá usar los actos del core al adoptar esta versión.
 - **Una fila que lleva a la cosa de otra herramienta.** La venta muestra sus pagos, envíos y documentos como
   renglones quietos; deberían abrir esa cosa en su herramienta.
 - **Un campo completo que no avanza no dice por qué.** CERRADA EN PARTE (11/11): un campo puede declarar por qué
@@ -229,3 +252,28 @@ Los plegados se conservan por identidad y versión: alternar personas retoma sus
 `renewKeptJournals`, disponible desde testing, renueva la evidencia manual de una entrega sin nuevos hechos.
 La compuerta resume la lista de comprobaciones en `tests/program/setup.ts` antes de lanzar las partes; cada
 parte coteja su lista. Quien usa la base incorpora ese archivo en `globalSetup` de Vitest.
+
+- Identidades del core vive en `src/tools/core/identities/`: usa el contrato declarado para la Lista y los Hilos,
+  sin slice ni proceso. `startHouse` la compone solo con `identities: true`; `houseTools` incorpora sus palabras.
+  El estado sigue en `House`, y sus acciones producen hechos de casa mediante el lote habitual.
+  El límite de escritura reserva `identities` fuera de `granted` y `kit-set`; las derivadas comprueban ese rechazo
+  además del permiso de quien administra. La preferencia de lo ajeno no oculta esta pieza del Sistema.
+
+- El kit de Identidades se declara en `kit-actions.ts` y `kit-cases.ts`; el catálogo excluye el core y limita el
+  menú a nueve filas de edición, contando la herramienta entera cuando el destinatario es una identidad. `kit-screen.ts` y `kit-views.ts` componen Lista, filas y Hilos existentes desde esas
+  declaraciones, incluidos menús que se pueden leer aunque sus acciones estén apagadas. No dibuja celdas ni crea
+  otro router. `houseTools` aplica esa composición únicamente a Identidades.
+  La edición vuelve a leer el kit al ejecutar; `kit-effects.ts` emite los hechos existentes en un lote: una acción conserva las
+  demás; dar todo elimina el recorte de esa herramienta, y sacar todo elimina herramienta y recorte.
+  Las mentes son destinatarios distintos de las identidades: `kit-checks.ts` deriva su dominio permitido y comprueba
+  tanto la ausencia de opciones ajenas como el rechazo sin cambios de una llamada directa.
+
+- La escena de Identidades se declara en `identity-scene.ts`: reutiliza el límite y la validación de General del
+  contrato de casa y escribe `scene` a nombre del actor. `allowedAct` admite esa acción para miembros presentes;
+  el `offered` declarado compara una sola vez la fila con el actor, tanto para pintar como para ejecutar.
+  Las otras acciones conservan el permiso de administrar. Las derivadas comprueban la excepción sin dar kit al core.
+  `identity-reading.ts` lee la última general y selecciona solo `to[by]` para el objeto; `scene-reading.ts` compone
+  renglones del tipo existente y `kit-views.ts` los integra también en Mentes. No cambia el contrato compartido de
+  escenas ni su plegado. La terminal escribe General; las partes dirigidas permanecen en el acto de casa.
+  Al adoptar `identities: true`, un programa reserva el id del core, usa la regla pública del identificador y distingue
+  `names`, `removed` y `grants`: el nombre y la fila sobreviven a sacar, mientras la readmisión no restaura herramientas.

@@ -40,10 +40,9 @@ describe("the terminal, on a program's house", () => {
       expect.arrayContaining(["[v] ventas | 0 ventas", "[p] pagos | 0 sin venta"]),
     );
     const { router, press } = open("beto");
-    expect(shown(router)).toEqual(expect.arrayContaining(["[v] ventas | 0 ventas", "[p] pagos | sin acceso"]));
+    expect(shown(router)).toEqual(expect.arrayContaining(["[v] ventas | 0 ventas", "[p] pagos | 0 sin venta"]));
     expect(shown(router)[0]).toContain(clock);
-    expect((await press("p"))[0]).toContain("Menú");
-    expect((await press("\r"))[0]).toContain("Ventas");
+    expect((await press("p"))[0]).toContain("Pagos");
   });
 
   it("lets each person say what they prefer not to see, from Preferences on the Menu", async () => {

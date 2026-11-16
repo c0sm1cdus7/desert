@@ -21,7 +21,7 @@ const settled = (state: State<Shop>, target: string): string | undefined => {
   return sale && sale.paid >= sale.total ? "settled" : undefined;
 };
 export const registered = { act: "register", input: { sale: "s1", total: 1500 } };
-const whole = { payment: "full-s1", amount: 1500, sale: "s1" };
+const whole = { amount: 1500, sale: "s1" };
 export const settles = "sales · settle · a sale is settled for what it still owes";
 export const settledTwice = "sales · settle · a settled sale is not settled again";
 export const stillOwing = "sales · settle · a sale that still owes keeps asking for attention when another is settled";
@@ -39,7 +39,7 @@ const settle = programAct<Shop, typeof taken>({
   run: (_input, { by, state, target }) => {
     const amount = owed(state, target);
     const sale = nameOf(target);
-    const fact = shop.fact("payment-received", { payment: `full-${sale}`, amount, sale }, by);
+    const fact = shop.fact("sale-settled", { amount, sale }, by);
     return { status: "accepted", text: `Saldada · ${sale}`, effects: [fact] };
   },
   cases: [
@@ -50,7 +50,7 @@ const settle = programAct<Shop, typeof taken>({
       input: {},
       then: {
         says: "Saldada · s1",
-        facts: [{ kind: "payment-received", data: whole }],
+        facts: [{ kind: "sale-settled", data: whole }],
         reads: { lines: [{ total: "$ 15,00", paid: "$ 15,00", by: "ana" }] },
         needs: [],
       },
@@ -62,7 +62,7 @@ const settle = programAct<Shop, typeof taken>({
       input: {},
       then: {
         says: "Saldada · s1",
-        facts: [{ kind: "payment-received", data: whole }],
+        facts: [{ kind: "sale-settled", data: whole }],
         needs: [{ target: "sales/s2", why: "Debe $ 0,90" }],
       },
     },

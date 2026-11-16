@@ -12,6 +12,8 @@ import {
   shop,
   shopCatalog,
   shopRegistry,
+  salesTool,
+  paymentsTool,
   type Shop,
 } from "../../tests/support/shop.ts";
 
@@ -129,14 +131,14 @@ describe("what an act says cannot go on, given to it whole", () => {
       { promise: "a large one is not", input: { sale: "s1", total: 9500 }, then: { refused: "total de más" } },
     ],
   });
-  const capping = { id: "capping", purpose: "Caps.", targets: () => [], view: () => "", summary: () => "" };
+  const capping = { ...salesTool, acts: { register: capped } };
 
   it("is refused through whatever door it came, before the act runs: a surface only says it earlier", () => {
-    const rig = shopRig({ registry: [...shopRegistry, { ...capping, acts: { register: capped } }] });
-    rig.attend("ana", "capping");
-    const refused = rig.act("ana", "register", { sale: "s8", total: 9500 }, "capping");
-    const taken = rig.act("ana", "register", { sale: "s9", total: 9000 }, "capping");
-    expect(capped.stops?.({ sale: "s8", total: 9500 }, rig.state(), "capping", 1)).toBe("total de más · $ 5,00");
+    const rig = shopRig({ registry: [capping, paymentsTool] });
+    rig.attend("ana", "sales");
+    const refused = rig.act("ana", "register", { sale: "s8", total: 9500 }, "sales");
+    const taken = rig.act("ana", "register", { sale: "s9", total: 9000 }, "sales");
+    expect(capped.stops?.({ sale: "s8", total: 9500 }, rig.state(), "sales", 1)).toBe("total de más · $ 5,00");
     const kept = [...rig.state().tools.sales.keys()];
     rig.close();
     expect(refused).toMatchObject({ status: "rejected", reason: "total de más" });

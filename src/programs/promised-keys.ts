@@ -17,6 +17,7 @@ import type { Aim, House } from "./promised-stage.ts";
 export const view = { rows: 40 };
 /** The room a list has on the smallest terminal there is, 40×16. */
 const smallest = { rows: 8 };
+const recentLines = 100;
 const noted = (count?: number): number => Number((count ?? 0) > 0);
 /** Whatever a person has in front fits the smallest terminal: a question keeps its own line and its options say
  * how many are left out; a list is cut around the chosen row. Nothing is left to be drawn over the bars. */
@@ -46,7 +47,7 @@ function recordResult<X extends Program>(result: ExecutionResult<X>, defects: st
 }
 /** A program as one identity has it in front: its tools as that identity sees them, and a router on the Menu. */
 export function seated<X extends Program>(house: House<X>, by: string, shown: Shown<X>) {
-  const ports = localPorts(house, by, { recentLines: 100 }, house.now);
+  const ports = localPorts(house, by, { recentLines }, house.now);
   const requests: Act[] = [];
   const defects: string[] = [];
   const act = (value: Act, through: number) => {
@@ -113,8 +114,20 @@ export function goTo<X extends Program>({ router, tools, shown }: Seat<X>, tool:
   strictEqual(router.screen(view).title, words?.name);
   if (on === tool) return;
   const rows = pathTo(tools, tool, on);
-  ok(rows, said.notListed(on));
-  openRows(router, rows);
+  if (rows) openRows(router, rows);
+  else findOld(router, tools, tool, on);
+}
+/** A thing outside the recent list is still reached by the tool's search. */
+function findOld(router: Router, tools: readonly Tool[], tool: string, on: string): void {
+  const listed = choices({ kind: "view", tool, at: 0 }, tools).filter(row => row.opens && row.open?.kind === "view");
+  ok(listed.length >= recentLines, said.notListed(on));
+  const name = tools.find(item => item.id === tool)?.titleOf?.(on) ?? on;
+  const place = { kind: "view", tool, at: 0, find: name } as const;
+  const rows = choices(place, tools);
+  const at = rows.findIndex(row => row.opens === on && row.open?.kind === "view" && row.open.tool === tool);
+  ok(at >= 0, said.notListed(on));
+  type(router, ` ${name}`);
+  openRows(router, [at]);
 }
 /** Every row of a place, the ones that cannot be chosen too; two of them taking one key is a defect of the screen. */
 function rowsAt(tools: readonly Tool[], tool: string, target?: string): readonly Choice[] {

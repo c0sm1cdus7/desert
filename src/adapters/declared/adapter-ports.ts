@@ -39,6 +39,7 @@ async function invoke(
     if (!Object.hasOwn(methods, name) || !call) throw new AdapterFailure("E-ADAPTER-FAILED");
     return await call(value);
   } catch {
+    access.check();
     throw new AdapterFailure("E-ADAPTER-FAILED");
   } finally {
     active = false;
@@ -61,6 +62,7 @@ function operation(declaration: AdapterDeclaration, name: string, method: Adapte
       if (!Value.Check(method.output, output)) throw new AdapterFailure("E-ADAPTER-OUTPUT");
       return output;
     } catch {
+      access.check();
       throw new AdapterFailure("E-ADAPTER-OUTPUT");
     }
   };

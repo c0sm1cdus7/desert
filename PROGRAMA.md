@@ -9,7 +9,7 @@ programa (Kenon). Lo que una regla hace cumplir está en `GARANTIAS.md`; las ley
 |---|---|---|
 | Sus hechos | `vocabulary(catálogo)`: cada hecho con su forma (TypeBox). La base suma los suyos. | `src/journal/events.ts` |
 | Lo que guarda cada herramienta | `Slices`: un valor inicial y un paso por herramienta (hecho → nuevo estado). | `src/tools/tool-contract.ts` |
-| Cada herramienta | `ProgramTool`: `id`, `purpose`, `targets`, `view`, `summary`, `acts`, y si hace falta `menus`, `closed`, `needs`, `words`, `start`. | `src/tools/promises.ts` |
+| Cada herramienta | `ProgramTool`: `id`, `purpose`, `facts`, `targets`, `view`, `summary`, `acts`, y si hace falta `menus`, `closed`, `needs`, `words`, `start`. | `src/tools/promises.ts` |
 | Cada acción | `programAct({ name, enter, undoable, purpose, key, on, input, run, cases, … })`. | `src/tools/promises.ts` |
 | Lo que promete | `cases`: dado esto, al hacer esto, pasa esto (dice, escribe, se lee, pide atención) o se rechaza con un motivo. | `src/tools/promises.ts` |
 | Sus palabras | `Shown.words[herramienta]`: `name`, `key`, y `system` o `inside`; si lista cosas, `empty`, `listed`, `reads` y `presents`; si lee datos propios, `itself`. | `src/surface/bridge/house-ports.ts` |
@@ -22,11 +22,13 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 
 - **La organización** (`house`): quién administra, qué herramientas enteras tiene cada usuario, sus preferencias. Quien
   administra da y quita herramientas (`granted`), saca a alguien (`removed`) y pasa la administración (`handed`):
-  la base pliega esos hechos y cuida sus reglas; la acción que los escribe (y su pantalla) es del programa.
+  la base pliega esos hechos y cuida sus reglas; los escriben sus actos propios y sus piezas del core.
   `kit-set` suma el recorte de acciones; `scene` guarda la última descripción de cada identidad o mente.
 - **El registro**: solo se agrega; cada hecho con autor e instante; el estado es el registro plegado.
 - **La superficie**: Menú, lista de cada herramienta, objeto abierto y pregunta; un router único para cualquier
-  dibujante (hoy la terminal). Atención y Actividad en cada menú; buscar con espacio; Preferencias.
+  dibujante (hoy la terminal). Cada identidad puede leer y buscar todas las herramientas y sus objetos; las acciones
+  fuera del kit quedan apagadas. Atención se limita a las herramientas de las que tiene al menos una acción, y Actividad muestra lo de las demás
+  personas; buscar con espacio; Preferencias. La superficie comprueba cada acción del kit.
 - **Las pruebas**: de cada caso sale la prueba sobre la organización y el recorrido con teclas desde el Menú; de
   cada acción, que rechace lo que su forma no admite, que su fila apagada diga su motivo, que lo que deja se
   encuentre buscando. Las garantías bajan por listas y menús hasta leer la fila, también en la ventana mínima;
@@ -41,6 +43,49 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   compará los nombres completos como multiconjunto, sin la ruta del archivo ni el orden. Deben ser los mismos;
   una parte sin comprobaciones agrega solamente «this part has no derived checks» bajo «derived checks».
   El armado de la lista se repite en cada parte; no ejecuta las comprobaciones.
+
+## Quién escribe los hechos de un acto
+
+| Quién actúa y por dónde | Qué puede devolver en `effects` | Autor |
+|---|---|---|
+| Identidad, en una herramienta de programa | Solo hechos de programa declarados en `Tool.facts` de esa herramienta. | La identidad que actúa. |
+| Mente, en su herramienta | Los mismos hechos propios, con una acción dada en su kit. | `mind:<herramienta>`. |
+| Acto propio del programa (`own`) | Solo hechos de la herramienta de su objeto; sin herramienta, ningún hecho. | Quien actúa. |
+| Pieza del core `identities`, con administración | Hechos de la casa; `kit-set` se valida antes de escribir. | Quien actúa. |
+| Pieza del core sobre `identities/<actor>` | Su propia `scene` o `named`, también sin administrar. | Quien actúa; `named.identity` coincide con él. |
+| Actos que ofrece la casa y motor | Sus hechos de escena, preferencias, lectura, ejecución, avisos y reloj. | El autor que corresponde a cada acto de la casa. |
+
+`facts` enumera los nombres del catálogo de programa que pertenecen a la herramienta. Omitirlo equivale a `[]`.
+Dos herramientas no pueden declarar el mismo hecho, ni una declarar un nombre reservado para la casa.
+La composición rechaza esos casos. Una pieza del core se reconoce por el identificador reservado `identities`,
+con `identities: true`; no existe una marca pública que convierta otra herramienta en core.
+La pieza se agrega al registro de herramientas de la casa. Sus objetos propios usan `identities/<actor>`.
+No necesita un escritor alternativo: sus acciones devuelven efectos y pasan por la misma ejecución.
+Empezar un acto de `identities` lo decide solo `allowedAct`, igual para la ejecución y para la fila apagada: quien
+no administra puede únicamente `scene`, y sobre su propia fila. La autoridad de efectos admite además `named` propio
+sobre sí, pero hoy ninguna acción de la pieza lo ofrece a quien no administra.
+
+El lote devuelto se comprueba entero antes de escribir, también si el resultado dice rechazo, interrupción o
+inconcluso. Un efecto de casa, ajeno a la herramienta o con otro autor rechaza el lote con
+`Efecto no permitido · <tipo> · <motivo>`; no se escriben sus hechos ni su entrada de éxito.
+El registro conserva el pedido, el inicio y el rechazo de la ejecución. Un acto anidado que ya terminó conserva
+lo escrito; no se deshace el mundo exterior. Los comandos opacos que devuelve `context.credentials` siguen siendo
+pedidos a la custodia: solo su préstamo original los reconoce; una copia de una entrada no tiene esa autoridad.
+
+Un `kit-set` exige titular presente (o mente de herramienta existente), herramienta dada, acciones declaradas
+sin repeticiones. La mente solo recibe el kit de su herramienta; administración no recibe recortes.
+Se admiten `null`, `[]` y subconjuntos válidos. Si un lote primero da la herramienta, puede después darle el kit;
+si primero la saca, el kit posterior rechaza todo. La autoridad se vuelve a leer al terminar un acto pendiente.
+Los registros anteriores se siguen leyendo: esta validación no reescribe hechos ni agrega un filtro al plegado de kits.
+
+Un acto `own` no puede tener el mismo objeto y nombre que una acción declarada de una herramienta: falla al
+componer, con ambos nombres. Se comprueba el puerto para cada identidad presente y también cada oferta que produce
+al cambiar el estado; no hay una resolución por prioridad que habilite tapar una acción.
+
+Al actualizar, cada herramienta que escribe hechos declara `facts`. Los actos de programa que daban herramientas,
+kit o administración pasan a las acciones del core; una acción que necesita otra herramienta la ejecuta por
+`context.execute`, con el mismo actor y sus permisos, o deja un hecho propio que las otras partes pueden leer.
+La tienda de prueba declara los hechos de Ventas y Pagos; saldar escribe `sale-settled`, que ambas partes leen.
 
 ## Una acción
 
@@ -890,6 +935,8 @@ al migrar el import de `currentCloses` a esta entrada.
 | Recorrer | `seated`, `goTo`, `actRow`, `openRows`, `type`, `view`, `fitsSmallest`, `keysTo` |
 | Por una terminal de verdad | `realTerminal` (el programa corriendo con su propia entrada en una pseudo-terminal: `press` manda bytes, `until` espera un texto en pantalla, `screen` la lee), `screenOf`, `RealTerminal` |
 | Superficie | `asking`, `questionWords`, `offeredOn`, `houseRouter`, `houseTools`, `startRouter`, `begin`, `fieldOf`, `walkBody`, `walking` |
+| Validar identidades | `identityNameProblem`: comparte con el programa la regla aplicada a identificadores nuevos. |
+| Probar Identidades | `identitiesTool` e `identityWords`: incorporan la pieza optativa a los casos derivados de una composición. |
 | Estado y hechos | `createHouse`, `identityView`, `houseStep`, `Bus`, `effect`, `vocabulary`, `houseCatalog`, `startState`, `startTools`, `toolsStep` |
 | Declarar datos y comprobar causas | `object`, `text`, `ids`, `caseInstant`, `programAct`, `OutsideDefect`, `outsideCause`, `MissingView`, `toolTexts`, `genericTexts` |
 | Tipos | `Aim`, `Check`, `Decided`, `Doing`, `House`, `Seat`, `Body`, `Screen`, `Choice`, `Session`, `Walk`, `Router`, `Shown`, `Tool`, `Emission`, `Case`, `Composition`, `ProgramAct`, `ProgramTool`, `Step`, `KeyStore`, `Program`, `State` |
@@ -1003,16 +1050,40 @@ Al recibir la administración se borran todos los kits de quien la recibe. Si de
 siguen enteras hasta que quien administra le dé otro kit.
 
 `mindOf(tool)` y `mindTool(actor)`, en `house/house.ts`, nombran a la mente como `mind:<herramienta>`.
-No es una identidad: no recibe `granted`, canales ni administración. Solo puede actuar si su herramienta existe
+No es una identidad: no recibe `granted` ni administración. Solo puede actuar si su herramienta existe
 en el registro, sobre ella o sus cosas y con las acciones que le dio quien administra. Sin kit no puede actuar;
 `null` le da todas las de su herramienta. No necesita atenderla ni tiene preferencias o actos de atender.
 Los actos que el programa ofrece por `own` son solo para identidades; a la mente la casa le ofrece únicamente `scene`.
 `allowedAct(house, by, tool, act)` comprueba ambos niveles; toda acción anidada conserva autor y pasa de nuevo
-por ese control con el estado vigente. Un acto ya iniciado puede terminar si cambia el kit; una ejecución anidada
-que todavía no empezó vuelve a comprobarlo. El resultado y la entrada quedan a nombre de la mente.
+por ese control con el estado vigente. Sacar una acción corta también sus actos en curso, de identidad o mente;
+volver a darla habilita actos nuevos, sin resucitar los cortados. El resultado y la entrada quedan a nombre de la mente.
 Con la custodia, la mente usa los adaptadores declarados de su propia herramienta como una identidad que la tiene
 (`holds` en `house/house.ts`). Los vínculos de credenciales son por actor, herramienta y destino: la mente solo ve
 los que ella misma vinculó, y una identidad, los suyos.
+
+El contexto ofrece `signal?: AbortSignal`: los contextos existentes siguen compilando. Una acción larga puede
+escucharla o pasarla a operaciones que admitan corte. El oyente vivo reevalúa cada hecho de la casa, sin lista de
+tipos: también corta cuando pasar la administración retira una acción. Reconstruir el estado no emite cortes.
+El corte alcanza a los hijos que el acto inició y a sus descendientes, aunque conserven su propia acción.
+Dos actos independientes del mismo actor no se cortan entre sí si el otro conserva su acción.
+La base impide entrar al cuerpo si el corte llegó al anunciar el inicio, iniciar anidados desde el acto cortado,
+y usar sus adaptadores o vínculos después del corte, también si el método quedó guardado antes.
+`context.execute` devuelve `{ status: "interrupted", reason: "sacada" }` si el padre ya estaba cortado, sin
+iniciar nada, o si el anidado en curso fue interrumpido: no rechaza la promesa con un texto suelto. El control llega
+hasta un adaptador pendiente que todavía no empezó a usar material. `holds` conserva su significado para los actos
+que siguen habilitados: el kit recorta acciones, no métodos.
+
+El punto de cierre es antes de empezar a escribir el lote del resultado: `finish` vuelve a comprobar el kit.
+Si la acción fue sacada, termina `interrupted`, dice `sacada` y no escribe sus hechos ni entrega su recibo privado.
+Si el programa además falló por su cuenta, su diagnóstico se escribe y genera los mismos avisos que sin corte,
+según quién conserve acciones; el resultado sigue siendo `interrupted · sacada`, con la marca de defecto.
+El motivo de la señal y el rechazo de un adaptador por el corte no dejan un defecto.
+Lo que un anidado ya escribió queda. Si el recorte llega con el lote ya en escritura, el lote termina entero y
+el cierre dice `sacada`. Si un acto `reach: "world"` devuelve éxito porque ya hizo lo suyo afuera, su resultado
+se conserva con `sacada` al lado, también en pantalla. La base no deshace efectos externos: el programa debe atender
+la señal antes de un efecto directo que aún no hizo; JavaScript en curso no se detiene por la fuerza.
+Un reinicio cierra una sola vez los actos colgados como `acción interrumpida`; no reconstruye señales ni los repite.
+La fila abierta se apaga al viajar el estado; una pregunta pendiente se rechaza al confirmar con `fuera del kit`.
 
 La acción propia `scene`, sin destino explícito, toma `{ general, to? }`; `to` es un mapa de identidad a texto.
 El autor lo fija la ejecución. Cada identidad o mente escribe solo la suya, aun sin kit de acciones.
@@ -1025,15 +1096,21 @@ con instante y secuencia; `identityView` lo comparte entero, incluidas las parte
 en el registro. La última escena de quien sale queda guardada. El pliegue no conoce el registro de herramientas:
 un escritor directo puede guardar la escena de `mind:ausente`; la ejecución la rechaza.
 
-`Need` gana `to?: string`. Sin él Atención sigue llegando a quienes tienen la herramienta; con él solo a esa
-identidad, si está en la casa y tiene la herramienta. Si no cumple esas condiciones, la necesidad se muestra a
-quienes tienen la herramienta, igual que una sin destinatario. Cada caso que promete necesidades debe incluir ese
+`Need` gana `to?: string`. Sin él Atención sigue llegando a quienes tienen al menos una acción de la herramienta; con él solo a esa
+identidad, si está en la casa y tiene al menos una acción de la herramienta. Si no cumple esas condiciones, la necesidad se muestra a
+quienes tienen al menos una acción de la herramienta, igual que una sin destinatario. Cada caso que promete necesidades debe incluir ese
 mismo destinatario; la garantía de la casa compara el dato completo y la de Atención mira desde quien hace el caso
 y desde cada destinatario prometido. Si este no puede verla, falla diciendo a quién iba. La escena explica: no crea
-necesidades ni cambia quién puede leer entradas privadas o canales. No hay pantallas nuevas; apagar las acciones
-fuera del kit con su motivo queda como deuda 224 para lectura y kit.
+necesidades ni cambia quién puede actuar. Las identidades leen todas las entradas de actividad, incluso las que una
+versión anterior dirigía a otra. `private` sigue devolviendo un recibo solo al actor y no se escribe en el registro.
+`identityView` deja pasar esos hechos históricos; el catálogo actual ya no permite escribir canales ni destinatarios
+en `tool-entry` o `act-done`. Ninguna acción ni efecto nuevo produce esos datos. Al subir, un programa que usaba
+`channel-created` o campos `recipient` debe dejar de producirlos y asumir que todas las identidades leen cada entrada,
+incluidas las que un registro viejo dirigía a otra. `private` conserva el recibo efímero que solo recibe quien actuó;
+los secretos siguen fuera de la actividad mediante la custodia estructural. No hay pantallas nuevas; apagar las acciones
+fuera del kit con su motivo cumple la garantía 224 para lectura y kit.
 
-Un programa que no usa estas adiciones no tiene que cambiar sus herramientas ni casos. Quedan reservados los
+Además de declarar `facts`, un programa que no usa estas adiciones no necesita cambiar sus casos. Quedan reservados los
 nombres de hechos `scene` y `kit-set`, y el prefijo de actor `mind:`; si los usaba, necesita resolver la colisión
 antes de subir. `mind:` es un nombre reservado: ninguna identidad puede llamarse con ese prefijo. Un registro
 anterior que tenga una identidad `mind:…` se pliega distinto; no se corrige ni renombra en el plegado. En particular,
@@ -1041,6 +1118,119 @@ si `mind:jefe` creó la casa, ese `house-created` se ignora y un siguiente `hous
 administradora. Los `granted` para `mind:…` quedan en el registro pero no incorporan esa identidad a la casa.
 No se agrega `message`. Quien construye `House` a mano agrega `kits` y `scenes` vacíos o parte de
 `emptyHouse`. `Need.to` es opcional y la entrada `testing.ts` no suma exportaciones.
-La versión de cálculos de la base pasa a `desert/3`: al actualizar se reconstruyen los plegados, también los de
-la primera vuelta (`desert/2`), para borrar los kits al recibir la administración. En versión manual,
+La versión de cálculos de la base pasa a `desert/6`: al actualizar se reconstruyen los plegados, también los de
+la primera vuelta (`desert/2`), para borrar los kits al recibir la administración y reconocer el nombre que una identidad escribe sobre sí. En versión manual,
 la evidencia guardada debe renovarse con la entrega comprobada, conservando la anterior durante su control.
+
+La composición puede pedir `identities: true`: quien administra tiene todas las acciones de cada herramienta, sin asignación; también recibe sus recordatorios. Sin esa opción, la asignación de herramientas conserva su comportamiento anterior. Un recorte sin acciones apaga los recordatorios y excluye la herramienta de Atención, aunque siga en el kit para la preferencia de lo ajeno. La superficie y la ejecución consultan el mismo permiso por acción.
+
+
+### Identificadores y nombres de identidades
+
+Al subir, usá `identityNameProblem(identificador, nombreDeLaCasa)` de
+`src/house/identity-name.ts` para validar a quien abre: devuelve `undefined` si es válido o un motivo sin repetir el valor.
+El identificador empieza con una letra minúscula ASCII, tiene entre 1 y 64 caracteres, y solo admite letras
+minúsculas ASCII, dígitos, puntos y guiones; debe ser distinto del nombre con que corre la casa. La casa aplica
+la regla al crearla, dar herramientas, readmitir y pasar la administración antes de escribir.
+
+La regla no se aplica al plegar historia: un `granted` anterior a `Ana​` conserva exactamente esa identidad y sus
+herramientas, y un `handed` anterior puede dejarla como administradora. Los hechos que antes ignoraban a una mente
+siguen ignorándose. Para escribir nuevos hechos de esas puertas se exige la regla actual incluso a identidades antiguas.
+`named` guarda un nombre libre con texto visible de hasta 160 unidades; lo establece quien administra o, sobre sí,
+la propia identidad (6c), y
+`identityDisplayName` devuelve el identificador cuando falta el nombre. Sacar conserva el nombre y la identidad en
+`removed`; readmitir con herramientas vacías la devuelve sin herramientas ni kit.
+
+### Identidades del core (pasos 5b y 5d)
+
+`identities: true` en la composición incorpora `identities` al registro de ejecución. Sin ese pedido no existe.
+La superficie recibe automáticamente sus palabras y la ofrece en Sistema con `i`, sin pantalla personalizada.
+El id queda reservado: un programa no puede declararlo por su cuenta. No tiene slice, `start` ni mente;
+`mind:identities` no es un actor. `granted` y `kit-set` rechazan ese id antes de escribir, y `assigned` lo excluye
+incluso para quien administra. Los programas que calculan «todas» desde su registro deben excluir `identities`.
+
+La lista conserva presentes y sacados. La ficha muestra identificador, nombre, estado, kit y escena.
+`new` pide Identificador, Nombre opcional y Herramientas; escribe `granted` y, si hay nombre, `named`, en el mismo
+lote. El identificador se valida con `identityNameProblem`, también en la pregunta, sin recortar lo escrito.
+`remove` conserva la fila y borra herramientas; `readmit` escribe `granted` vacío; `hand` escribe `handed`.
+Sacar y pasar confirman con `volver` elegido. Ninguna acción depende del kit: crear, sacar, readmitir, pasar y editar el kit exigen administrar;
+las demás identidades leen esas acciones apagadas con `solo quien administra`. La excepción es `scene`,
+que cada identidad presente puede ejecutar solo sobre su propia fila, incluso quien administra. El cambio de administración se consulta de nuevo al ejecutar una pregunta abierta.
+El nombre conserva el tope del campo de texto corto (120); los nombres históricos de hasta 160 se siguen leyendo.
+
+Las pruebas de una composición que pide la pieza pueden incluir `identitiesTool(registry, nombreDeLaCasa)` de
+`src/tools/core/identities/identities.ts` en su registro y `identityWords` de `identity-reading.ts` en `shown.words`.
+Eso hace que `programChecks` derive también sus casos. La ejecución recompone esa declaración con el nombre real
+con que corre la casa. `tests/support/identities-program.ts` muestra ese programa adicional; el programa original
+`tests/support/shop-program.ts` sigue sin pedir Identidades. No se vuelve a subir la versión del cálculo de 5a.
+
+El campo declarado `verbatim: true` conserva espacios y saltos al escribir, pegar y convertir la respuesta.
+Identificador lo usa para rechazar el valor completo con la regla compartida; los campos comunes conservan su
+normalización anterior. No es una composición ni un control nuevos.
+
+### Herramientas y acciones de identidades y mentes (paso 5c)
+
+En Identidades, la ficha de una identidad abre `herramientas`: una fila por herramienta del catálogo con `todas`,
+`n de total` o `no`. Cada herramienta abre su fila entera (`t`) y una por acción. El menú admite nueve filas de edición en total. Cada fila abre su propio
+Hilo con `sí` y `no`; el valor actual queda apagado como `actual`. Dar la herramienta entera escribe `granted` y
+`kit-set` con `acts: null`; sacarla escribe `granted` sin ella. Una acción usa `kit-set`; si la identidad no tenía
+la herramienta, primero la recibe en el mismo lote. El resto de las herramientas y sus recortes se conserva.
+`kit-effects.ts` arma ese lote. No cambian el significado de los hechos, la ejecución ni la versión del cálculo.
+
+Una herramienta parcialmente dada no equivale ni a darla entera ni a sacarla: su fila entera dice `n de total`
+y permite elegir ambos extremos, también con `0 de total` si conserva la herramienta sin acciones. En ese caso
+ninguno dice `actual`; las filas de cada acción sí tienen su valor
+actual. Así se puede quitar la herramienta parcial o completarla sin tocar las acciones una por una.
+
+El stack Mentes es provisorio y abre directamente las acciones propias de `mind:<herramienta>`, sin fila para dar
+la herramienta entera. La base ya reconoce ese actor para cada herramienta del catálogo; Identidades queda afuera.
+Una mente parte sin acciones; si la herramienta no declara ninguna, dice `Sin acciones.`. Su lectura como objeto
+también dice el kit actual; no recibe `granted`, ni se saca,
+readmite o recibe administración. El lugar puede moverse sin cambiar los hechos ni las acciones de edición.
+
+Todos los miembros leen los menús; las ediciones ajenas quedan apagadas con `solo quien administra`. La fila de
+quien administra dice `todas` y sus acciones `administra · todas`. Se consulta el permiso otra vez al confirmar.
+Los menús abiertos leen el estado actual: una acción revocada queda `fuera del kit` y lo que corre se corta mediante
+la garantía del paso 4. Dos ediciones de acciones distintas conservan lo que la otra ya escribió.
+
+Los actos del core se generan como `kit:<herramienta>` y `kit:<herramienta>:<acción>` y toman `{ value: "yes" | "no" }`.
+Nunca se ofrece un `kit-set` libre ni nombres fuera del catálogo. `programChecks` deriva los casos de esas filas,
+y además prueba los destinos de mente que no corresponden: deben faltar de la pantalla y rechazarse sin efectos.
+`tests/support/kit-program.ts` agrega una acción pendiente solo para comprobar el corte, sin proveedores reales.
+
+Deuda de la ley 2: para una identidad, una herramienta con nueve acciones requeriría diez filas contando la
+herramienta entera. Ese menú no se construye; la fila dice `menú pendiente · más de nueve acciones`.
+Para su mente, las nueve acciones sí caben, porque no recibe una fila de herramienta; con diez no se construye
+ninguno de los dos menús. Los bordes de ocho, nueve y diez acciones están en `identity-kit-neighbors.spec.ts` y
+`identity-kit-readers.spec.ts`; las derivadas del caso de nueve, en `identity-kit-limit-derived.spec.ts`.
+La herramienta entera tiene `t`; las acciones usan números. Los actos que solo caben para la mente rechazan
+una llamada sobre una identidad, además de no ofrecerse allí.
+No hay cambio exigido al programa original que no pide Identidades (`tests/support/shop-program.ts`); una composición
+que ya la pide recibe estos menús automáticamente. No se inspeccionaron programas externos a esta copia.
+
+### Escena propia desde Identidades (paso 5d)
+
+La composición sigue pidiendo únicamente `identities: true`; no incorpora otro proceso, estado ni herramienta.
+La acción declarada `scene` sobre `identities/<autor>` pregunta General y escribe el hecho de casa `scene`
+a nombre de quien actúa. `allowedAct` exceptúa únicamente esa acción del permiso de administrar; su declaración
+comprueba la fila propia una sola vez para la superficie y la ejecución. Una identidad sacada no puede escribir;
+quien administra tampoco escribe por otra. La fila ajena conserva la acción apagada con `solo la escena propia`.
+
+General tiene el tope del contrato (4.000 caracteres) y exige texto con algo visible; un texto invisible se queda
+en la pregunta con su motivo. Escribir reemplaza la escena completa anterior, incluidas sus partes dirigidas.
+El acto propio de casa sigue aceptando `to` por las otras puertas: hasta 64 identidades presentes, nombres de hasta
+160 y textos de hasta 1.000. La terminal no pregunta esas partes en este paso: el conjunto dinámico de identidades
+y un texto por cada elegida quedan pendientes del dueño, sin otro tipo de pregunta ni pantalla inventados.
+
+La lista usa la última escena general como dato; sin escena mantiene el estado o dato del kit anterior. En el
+objeto se lee entera y solo la parte dirigida a quien mira. En Mentes se lee igual, junto a sus acciones del kit.
+La lectura usa renglones existentes de hasta 36 columnas y el scroll común, también en terminal de 40×16.
+Las partes dirigidas siguen siendo datos compartidos del contrato; esta selección es la presentación del objeto,
+no una promesa de confidencialidad ni un cambio del frame o del acceso a los hechos.
+
+Al subir, no hay migración ni nueva versión del cálculo: los hechos `scene` anteriores se leen igual. El programa
+que adopta Identidades reserva su id fuera de sus kits, valida identificadores nuevos con `identityNameProblem`,
+usa `names` para el nombre mostrado y conserva los sacados desde `removed`; la reapertura no renombra la historia.
+Los programas sin el pedido conservan su composición. No se exige trasladar Usuarios de otro programa en este paso.
+El lugar de escritura de escenas, el stack Mentes, más de nueve filas de edición, la llave mostrada una sola vez
+y la ubicación de la puerta siguen pendientes del dueño o del carril correspondiente.

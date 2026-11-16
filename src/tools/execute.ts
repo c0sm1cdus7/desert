@@ -1,5 +1,6 @@
 import { hasSecretInput } from "./inputs/secret-input.ts";
-import { decisionOf } from "./execution/action-decision.ts";
+import { runningSignal } from "./execution/running-acts.ts";
+import { checkedDecision } from "./execution/action-decision.ts";
 import { programCall } from "./boundaries/program-call.ts";
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
 import { Value } from "@sinclair/typebox/value";
@@ -10,11 +11,10 @@ import { effect, type Emission, type HouseEvent } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "./attendance.ts";
 import { programOffered, runProgram } from "./program-run.ts";
-import { executionFailure } from "./execution/execution-failure.ts";
+import { performAct } from "./execution/perform-act.ts";
 import { startAct } from "./failures/start-act.ts";
 import { finish } from "./failures/finish.ts";
-import { actNews, type ActContext, type ActResult } from "./tool-contract.ts";
-import type { Program, Tool, ToolAct } from "./tool-contract.ts";
+import { type ActContext, type ActResult, type Program, type Tool, type ToolAct } from "./tool-contract.ts";
 import type { Execution } from "./execution-contract.ts";
 export type { Execution } from "./execution-contract.ts";
 import type { ToolCapabilities } from "./capabilities-contract.ts";
@@ -49,7 +49,8 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   if (!present(ports.registry, state.house, by) || (process && !ports.process(process, by)))
     return toolTexts.unassigned;
   if (!act) return toolTexts.unknown;
-  if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option))) return toolTexts.unassigned;
+  if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option)))
+    return toolTexts.kitRefusal(tool?.id ?? "");
   if (!offered && tool && elsewhere(act, tool, target)) return toolTexts.unknown;
   if (!offered && mindTool(by) !== tool?.id && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
   return programOffered(act, state, target, ports.now());
@@ -66,10 +67,10 @@ const decide = <X extends Program>(
   const { state, offered, tool, act } = found;
   const refused = refusal(ports, origin, found);
   if (refused !== undefined || !act) return rejected(refused ?? toolTexts.unknown);
-  const execute = (nested: Act) => executeNested(ports, origin, nested);
   const { ports: publicPorts, credentials } = capabilities;
   const context: ActContext<X> = {
     state,
+    signal: runningSignal(ports, origin, offered ? undefined : tool?.id, act.reach),
     by,
     target,
     at: ports.now(),
@@ -77,7 +78,7 @@ const decide = <X extends Program>(
     ports: publicPorts,
     credentials,
     id,
-    execute,
+    execute: nested => executeNested(ports, origin, nested),
   };
   const draft = !offered && programCall(tool?.draft?.bind(tool), state, through, value.input, target, context.at);
   if (draft) {
@@ -87,10 +88,8 @@ const decide = <X extends Program>(
   }
   return () => {
     const result = runProgram(act, value.input, context);
-    const finish = (result: ActResult<X>): Decision<X> => ({
-      ...decisionOf(result, act, context, offered ? undefined : tool?.id, value.act),
-      ...(act.output ? { output: true } : {}),
-    });
+    const finish = (result: ActResult<X>): Decision<X> =>
+      checkedDecision(ports, result, act, context, tool, offered, value.act);
     return result instanceof Promise ? result.then(finish) : finish(result);
   };
 };
@@ -99,6 +98,7 @@ async function executeNested<X extends Program>(
   origin: Origin,
   nested: Act,
 ): Promise<ActResult<X>> {
+  if (ports.active?.controller.signal.aborted) return { status: "interrupted", reason: toolTexts.withdrawn };
   const { by, id, process } = origin;
   const tool = targetTool(ports.registry, identityView(ports.state(), by), nested.target ?? "");
   const unknown: ActResult<X> = { status: "rejected", reason: toolTexts.unknown };
@@ -109,7 +109,10 @@ async function executeNested<X extends Program>(
   const done: ActResult<X> =
     result.status === "accepted"
       ? { status: "accepted" }
-      : { status: "rejected", reason: result.reason ?? toolTexts.invalid };
+      : {
+          status: result.status === "interrupted" ? "interrupted" : "rejected",
+          reason: result.reason ?? toolTexts.invalid,
+        };
   return {
     ...done,
     ...(result.cleanupPending ? { cleanupPending: true } : {}),
@@ -163,37 +166,10 @@ function executeScoped<X extends Program>(
     try {
       decision = decide(ports, value, act, capabilities);
     } catch (error) {
-      return run(ports, act, () => {
+      return performAct(ports, act, () => {
         throw error;
       });
     }
-    return typeof decision === "function" ? run(ports, act, decision) : finish(ports, act, decision);
+    return typeof decision === "function" ? performAct(ports, act, decision) : finish(ports, act, decision);
   }
 }
-const run = <X extends Program>(ports: Execution<X>, act: Origin, perform: Perform<X>): ExecutionResult<X> => {
-  const { object, option } = act.data;
-  const tool = targetTool(ports.registry, identityView(ports.state(), act.by), object)?.id ?? object;
-  try {
-    ports.bus.emit(effect("act-started", { act: act.id, object, option }, act.by, [act.id], act.process));
-  } catch (error) {
-    return finish(ports, act, executionFailure(ports.registry, ports.state(), act, ports.secrets.scrub(error)));
-  }
-  /** Program failures have one public message and a separate support record. */
-  const failed = (error: unknown): Decision<X> =>
-    executionFailure(ports.registry, ports.state(), act, ports.secrets.scrub(error));
-  let result: Decision<X> | Promise<Decision<X>>;
-  try {
-    result = perform();
-  } catch (error) {
-    return finish(ports, act, failed(error));
-  }
-  if (!(result instanceof Promise)) return finish(ports, act, result);
-  const completion = result.catch(failed).then(decision => {
-    if (!ports.live()) return rejected(toolTexts.interrupted);
-    const done = finish(ports, act, decision);
-    if (actNews({ ...done, output: done.status === "accepted" && done.output }))
-      ports.bus.emit(effect("stimulus", { tool }, act.by, [act.id], act.process));
-    return done;
-  });
-  return { status: "processing", effects: [], completion };
-};

@@ -24,6 +24,7 @@ export function houseRouter<X extends Program>(ports: HousePorts<X>, shown: Show
     changes: ports.watch,
     redrawMs,
     defect: ports.defect,
+    before: () => !ports.state().house.grants.has(ports.me),
   });
   return {
     ...router,

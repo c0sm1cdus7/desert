@@ -8,15 +8,22 @@ import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { keysTo, seated, type, view, type Seat } from "./promised-keys.ts";
+import { prefer } from "./promised-off.ts";
 import { cast, given, label, perform, staged, type Aim, type Check } from "./promised-stage.ts";
 
 type Sought = Readonly<{ tool: string; target: string; name: string }>;
 /** From one menu: space, the thing's name, down to its row, enter. It lands on the thing; and going back, the
  * menu is as it was before anyone looked for anything. While looking, no row starts an act. */
-function seek<X extends Program>({ router, tools }: Seat<X>, menu: Picture, { tool, target, name }: Sought): void {
+function seek<X extends Program>(seat: Seat<X>, menu: Picture, { tool, target, name }: Sought): void {
+  const { router, tools, state } = seat;
   type(router, ` ${name}`);
   const rows = stacksOf({ ...menu, find: name }, tools).flatMap(stack => stack.rows.filter(row => row.open));
   const at = rows.findIndex(row => row.opens === target && row.open?.kind === "view" && row.open.tool === tool);
+  /** Who is no longer in the house finds nothing (6a). */
+  if (!state().house.grants.has(state().by)) {
+    strictEqual(at, -1, said.absentReader);
+    return;
+  }
   ok(at >= 0, said.notFound(name));
   ok(!rows.some(row => row.starts), said.actsWhileFinding);
   for (let step = 0; step < at; step++) router.send({ kind: "down" });
@@ -45,6 +52,13 @@ function findCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
         seek(seat, { kind: "menu", at: 0 }, sought);
         type(seat.router, keysTo(shown, aim.tool.id));
         seek(seat, { kind: "view", tool: aim.tool.id, at: 0 }, sought);
+        const outsider = seated(house(), cast.outsider, shown);
+        try {
+          await prefer(outsider, "foreign", true);
+          seek(outsider, { kind: "menu", at: 0 }, sought);
+        } finally {
+          outsider.router.stop();
+        }
       } finally {
         seat.router.stop();
       }

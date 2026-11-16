@@ -50,7 +50,8 @@ it("A1: only identities receive program own acts; a mind receives its scene", as
   });
   expect(rig.state().house.scenes.has("mind:desk")).toBe(false);
   expect(rig.act("mind:desk", "scene", { general: "Mi escena" }).status).toBe("accepted");
-  expect(rig.act("beto", "programa-propio", {}).status).toBe("accepted");
+  expect(rig.act("beto", "programa-propio", {})).toMatchObject({ status: "rejected", effects: [] });
+  expect(rig.state().house.scenes.has("beto")).toBe(false);
 });
 
 it("A2: taking administration clears every old kit, also after handing it back and restarting", () => {
@@ -88,22 +89,6 @@ it("A3: unknown acts grant nothing, premature kits are ignored, and the last kit
     allowedAct(rig.state().house, "beto", "desk", "say"),
     allowedAct(rig.state().house, "beto", "desk", "open"),
   ]).toEqual([false, true]);
-});
-
-it("A4: an already running act finishes after its kit is withdrawn", async () => {
-  let release = () => {};
-  const wait = new Promise<void>(resolve => (release = resolve));
-  const slow = toolAct<Shop, typeof nothing>(nothing, async () => {
-    await wait;
-    return { status: "accepted", text: "Lento · Mesa" };
-  });
-  const rig = open({ ...desk.acts, slow });
-  rig.attend("beto", "desk");
-  const started = rig.act("beto", "slow", {}, "desk");
-  kit(rig, "beto", []);
-  release();
-  expect((await settle(started)).status).toBe("accepted");
-  expect(rig.facts().filter(e => e.kind === "act-done")).toHaveLength(1);
 });
 
 it("A5: direct facts preserve the documented folding boundary", () => {
@@ -160,18 +145,26 @@ it("A8: a mind's effects cannot grant itself identity privileges or escape its t
       effect("granted", { identity: by, tools: ["desk"] }, by),
       effect("handed", { to: by }, by),
       effect("kit-set", { holder: by, tool: "other", acts: null }, by),
-      effect("channel-created", { channel: "communicator/x", members: [by] }, by),
     ],
   }));
   const rig = open({ ...desk.acts, grantsSelf });
   kit(rig, "mind:desk", ["grantsSelf", "away"]);
-  expect((await settle(rig.act("mind:desk", "grantsSelf", {}, "desk"))).status).toBe("accepted");
+  const before = rig.facts().length;
+  expect(await settle(rig.act("mind:desk", "grantsSelf", {}, "desk"))).toMatchObject({
+    status: "rejected",
+    effects: [],
+  });
+  expect(
+    rig
+      .facts()
+      .slice(before)
+      .some(e => ["granted", "handed", "kit-set"].includes(e.kind)),
+  ).toBe(false);
   const h = rig.state().house;
   expect(h.grants.has("mind:desk")).toBe(false);
   expect(h.admin).toBe("ana");
   expect(h.kits.get("mind:desk")?.has("other")).toBe(false);
-  expect(h.channels.has("communicator/x")).toBe(false);
-  expect(await settle(rig.act("mind:desk", "away", {}, "desk"))).toMatchObject({ reason: toolTexts.unassigned });
+  expect(await settle(rig.act("mind:desk", "away", {}, "desk"))).toMatchObject({ reason: toolTexts.outsideKit });
 });
 
 it("A9: a legacy mind:jefe founder is ignored and the next house-created takes administration", () => {

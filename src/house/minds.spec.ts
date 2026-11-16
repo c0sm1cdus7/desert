@@ -1,5 +1,5 @@
 import { afterEach, expect, it } from "vitest";
-import { mindOf, mindTool, houseChannel, channelFor, allowedAct } from "./house.ts";
+import { mindOf, mindTool, allowedAct } from "./house.ts";
 import { effect } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { settle } from "../surface/bridge/house-ports.ts";
@@ -17,10 +17,10 @@ it("4: a tool mind acts and writes under its own name, only with a kit, without 
   const rig = open();
   expect(mindOf("desk")).toBe(mind);
   expect([mindTool(mind), mindTool("ana"), mindTool("mind:")]).toEqual(["desk", undefined, undefined]);
-  expect(rig.act(mind, "say", {}, "desk")).toMatchObject({ reason: toolTexts.unassigned });
+  expect(rig.act(mind, "say", {}, "desk")).toMatchObject({ reason: toolTexts.outsideKit });
   kit(rig, mind, ["say"]);
   expect(rig.act(mind, "say", {}, "desk").status).toBe("accepted");
-  expect(rig.act(mind, "open", {}, "desk")).toMatchObject({ reason: toolTexts.unassigned });
+  expect(rig.act(mind, "open", {}, "desk")).toMatchObject({ reason: toolTexts.outsideKit });
   expect(rig.facts().findLast(event => event.kind === "act-done")).toMatchObject({ by: mind });
   expect(rig.state().entries.at(-1)).toMatchObject({ by: mind, data: { author: mind } });
   expect(
@@ -34,7 +34,7 @@ it("4: a tool mind acts and writes under its own name, only with a kit, without 
   rig.restart();
   expect(rig.act(mind, "open", {}, "desk/page").status).toBe("accepted");
   kit(rig, mind, []);
-  expect(rig.act(mind, "say", {}, "desk")).toMatchObject({ reason: toolTexts.unassigned });
+  expect(rig.act(mind, "say", {}, "desk")).toMatchObject({ reason: toolTexts.outsideKit });
 });
 
 it("5: a mind's nested acts inherit its own tool and narrowed kit", async () => {
@@ -42,9 +42,9 @@ it("5: a mind's nested acts inherit its own tool and narrowed kit", async () => 
   kit(rig, mind, ["nested", "away"]);
   kit(rig, mind, null, "other");
   expect(rig.state().house.kits.get(mind)?.has("other")).toBe(false);
-  expect(rig.act(mind, "say", {}, "other")).toMatchObject({ reason: toolTexts.unassigned });
+  expect(rig.act(mind, "say", {}, "other")).toMatchObject({ reason: toolTexts.outsideKit });
   for (const act of ["nested", "away"])
-    expect(await settle(rig.act(mind, act, {}, "desk"))).toMatchObject({ reason: toolTexts.unassigned });
+    expect(await settle(rig.act(mind, act, {}, "desk"))).toMatchObject({ reason: toolTexts.outsideKit });
   kit(rig, mind, ["nested", "open"]);
   expect((await settle(rig.act(mind, "nested", {}, "desk"))).status).toBe("accepted");
   expect(
@@ -55,16 +55,12 @@ it("5: a mind's nested acts inherit its own tool and narrowed kit", async () => 
   ).toBe(true);
 });
 
-it("6: a mind never joins grants, channels or administration; an unknown mind cannot act", () => {
+it("6: a mind never joins grants or administration; an unknown mind cannot act", () => {
   const rig = open();
   grant(rig, mind, ["desk"]);
   expect(rig.state().house.grants.has(mind)).toBe(false);
-  expect(rig.state().house.channels.get(houseChannel)).not.toContain(mind);
   rig.bus.emit(effect("handed", { to: mind }, "ana"));
   expect(rig.state().house.admin).toBe("ana");
-  expect(channelFor(rig.state().house, "ana", ["ana", mind])).toBeUndefined();
-  rig.bus.emit(effect("channel-created", { channel: "communicator/invalid", members: ["ana", mind] }, "ana"));
-  expect(rig.state().house.channels.size).toBe(1);
   kit(rig, "mind:missing", null, "missing");
   expect(rig.act("mind:missing", "scene", { general: "Nada" })).toMatchObject({ reason: toolTexts.unassigned });
   expect(rig.act("mind:missing", "say", {}, "desk")).toMatchObject({ reason: toolTexts.unassigned });

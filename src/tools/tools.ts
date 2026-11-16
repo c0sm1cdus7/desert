@@ -1,11 +1,13 @@
+import { checkComposition, checkOwn } from "./execution/composed-authority.ts";
+import { attentionEffects, reminderId } from "./attention-effects.ts";
 import { startPrograms, programEffects } from "./boundaries/tool-listeners.ts";
+import { interrupt, watchRunning } from "./execution/running-acts.ts";
 // The house's own state and each tool's, folded together; attention as a perpetual, replayable ladder.
 import { programRule } from "./execution/program-causes.ts";
 import { actCatalog } from "../catalogs/acts.ts";
 import { ids } from "../catalogs/ids.ts";
-import { toolReminderLadder } from "../catalogs/time.ts";
-import { allowed, emptyHouse, houseStep, identityView, mindTool, visible, type Attention } from "../house/house.ts";
-import { effect, processOf, type Event, type HouseEmission } from "../journal/events.ts";
+import { emptyHouse, houseStep, identityView, mindTool, type Attention } from "../house/house.ts";
+import { effect, processOf, type Event } from "../journal/events.ts";
 import { emptyMap, initial, listOf } from "../journal/projections.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { accepted, ownAct, reading, rejected } from "./act-definition.ts";
@@ -27,8 +29,9 @@ export const emptyHouseState: HouseState = initial({
   through: 0,
 });
 /** Where a house starts for one identity: nothing in the house yet, and each tool as it begins. */
-export const startState = <X extends Program>(slices: Slices<X>, by: string): State<X> => ({
+export const startState = <X extends Program>(slices: Slices<X>, by: string, identities = false): State<X> => ({
   ...emptyHouseState,
+  house: identities ? { ...emptyHouse, identities: true } : emptyHouse,
   by,
   tools: slices.initial,
 });
@@ -92,7 +95,6 @@ export const attendanceActs = <X extends Program>(registry: ToolRegistry<X>): Ow
       (input, { state, by }) => {
         const tool = targetTool(registry, state, input.target);
         if (!tool) return rejected(toolTexts.unknown);
-        if (!allowed(state.house, by, tool.id)) return rejected(toolTexts.unassigned);
         return accepted(effect(option === "attend" ? "attended" : "unattended", input, by));
       },
     );
@@ -102,22 +104,37 @@ export const attendanceActs = <X extends Program>(registry: ToolRegistry<X>): Ow
 /** What a program hands the engine; a program without processes or acts of its own leaves those out. */
 type Starting<X extends Program> = Omit<Execution<X>, "live" | "own" | "process"> &
   Partial<Pick<Execution<X>, "own" | "process">>;
+const ownOf = <X extends Program>(ports: Starting<X>) => {
+  const houseOwn = new WeakSet<OwnAct<X>>();
+  const offered = houseActs(attendanceActs(ports.registry));
+  const own = (state: State<X>) => {
+    const builtins = offered(state.by);
+    builtins.forEach(act => houseOwn.add(act));
+    const program = mindTool(state.by) === undefined ? programRule(() => ports.own?.(state) ?? []) : [];
+    checkOwn(ports.registry, state, program);
+    return [...builtins, ...program];
+  };
+  return {
+    own,
+    houseOwn: (act: OwnAct<X>) => houseOwn.has(act),
+  };
+};
 export function startTools<X extends Program>(ports: Starting<X>) {
   const { bus, state: read, registry, secrets } = ports;
   let state = read();
+  checkComposition(registry, state, ports.own);
   let live = true;
-  const offered = houseActs(attendanceActs(registry));
   const running: Execution<X> = {
     ...ports,
+    running: new Map(),
     live: () => live,
     process: ports.process ?? (() => false),
-    own: state => [
-      ...offered(state.by),
-      ...(mindTool(state.by) === undefined ? programRule(() => ports.own?.(state) ?? []) : []),
-    ],
+    ...ownOf(ports),
   };
   const shutdown = startPrograms(registry, running);
+  const cut = watchRunning(running);
   const stop = bus.on(event => {
+    cut(event);
     const effects = programEffects(registry, state, event);
     for (const by of state.house.grants.keys())
       effects.push(...attentionEffects(identityView(state, by), registry, event));
@@ -141,60 +158,4 @@ export function startTools<X extends Program>(ports: Starting<X>) {
       shutdown();
     },
   };
-}
-/** An act that had started when the house stopped never got its result: on boot it is closed as interrupted. */
-function interrupt<X extends Program>({ bus }: Execution<X>, state: State<X>): void {
-  for (const [act, started] of state.processing) {
-    const data = { act, status: "interrupted" as const, reason: toolTexts.interrupted };
-    bus.emit(effect("act-result", data, started.by, [act], started.process));
-  }
-}
-const reminderId = (by: string, tool: string): string => `${ids.attention}${JSON.stringify([by, tool])}`;
-const reminder = (by: string, tool: string, delay: number | null, event: Event): HouseEmission[] => [
-  effect("attention", { tool, delay }, by, [event.id]),
-  effect("wake-at", { id: reminderId(by, tool), at: delay === null ? null : event.at + delay }, by, [event.id]),
-];
-/** A new entry on a tool: who it calls, and whether it starts that identity's reminders. */
-function entryEffects<X extends Program>(
-  state: State<X>,
-  registry: ToolRegistry<X>,
-  event: Extract<Event, { kind: "tool-entry" }>,
-): readonly HouseEmission[] {
-  const { tool, author, attention, draft, recipient, silent } = event.data;
-  /** An entry written for the record calls nobody; the rest call whoever holds the tool and did not write it. */
-  const quiet =
-    silent ||
-    !allowed(state.house, state.by, tool) ||
-    (recipient !== undefined && recipient !== state.by) ||
-    (author === state.by && !attention) ||
-    draft ||
-    !visible(state.house, event, state.by);
-  if (quiet) return [];
-  const stimulus = effect("stimulus", { tool }, state.by, [event.id]);
-  if (state.attends.some(target => targetTool(registry, state, target)?.id === tool) || state.attention.has(tool))
-    return [stimulus];
-  return [...reminder(state.by, tool, toolReminderLadder.firstMs, event), stimulus];
-}
-function attentionEffects<X extends Program>(
-  state: State<X>,
-  registry: ToolRegistry<X>,
-  event: Event,
-): readonly HouseEmission[] {
-  if (event.layer !== "house") return [];
-  if (event.kind === "attended" && event.by === state.by && !event.process) {
-    const tool = targetTool(registry, state, event.data.target);
-    return tool && state.attention.has(tool.id) ? reminder(state.by, tool.id, null, event) : [];
-  }
-  if (event.kind === "granted" && event.by === state.house.admin)
-    return [...state.attention.keys()].flatMap(tool =>
-      allowed(houseStep(state.house, event), state.by, tool) ? [] : reminder(state.by, tool, null, event),
-    );
-  if (event.kind === "tool-entry") return entryEffects(state, registry, event);
-  if (event.kind !== "woke") return [];
-  const current = [...state.attention].find(([tool]) => reminderId(state.by, tool) === event.data.id);
-  if (!current) return [];
-  const [tool, attention] = current;
-  if (!event.cause.includes(attention.wake)) return [];
-  const delay = Math.min(attention.delay * toolReminderLadder.multiplier, toolReminderLadder.maxMs);
-  return [...reminder(state.by, tool, delay, event), effect("stimulus", { tool }, state.by, [event.id])];
 }

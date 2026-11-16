@@ -7,6 +7,7 @@ export const program = {
   projectionVersion: codeProjectionVersion([
     join(import.meta.dirname, "../../src"),
     join(import.meta.dirname, "shop.ts"),
+    join(import.meta.dirname, "shop-folds.ts"),
     join(import.meta.dirname, "shop-program.ts"),
   ]),
 };

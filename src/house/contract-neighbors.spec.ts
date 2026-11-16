@@ -3,7 +3,7 @@ import { afterEach, expect, it } from "vitest";
 import { object } from "../catalogs/acts.ts";
 import { effect, type HouseEmission, type HouseEvent } from "../journal/events.ts";
 import { frozenState } from "../journal/frozen-state.ts";
-import { houseStep, emptyHouse, allowedAct, channelFor, present } from "./house.ts";
+import { houseStep, emptyHouse, allowedAct, present } from "./house.ts";
 import { toolAct } from "../tools/act-definition.ts";
 import { settle } from "../surface/bridge/house-ports.ts";
 import { contractRig, desk, kit, type ContractRig } from "../../tests/support/contract-rig.ts";
@@ -25,20 +25,6 @@ it("does not let identity-only facts admit a mind, even from an old manually sup
   };
   expect(houseStep(emptyHouse, positioned(effect("house-created", {}, mind)))).toBe(emptyHouse);
   expect(houseStep(old, positioned(effect("handed", { to: mind }, "ana")))).toBe(old);
-  expect(channelFor(old, "ana", ["ana", mind])).toBeUndefined();
-  const ordinary = channelFor(
-    {
-      ...old,
-      grants: new Map([
-        ["ana", []],
-        ["beto", []],
-      ]),
-    },
-    "ana",
-    ["ana", "beto"],
-  );
-  const fact = effect("channel-created", { channel: ordinary?.id ?? "", members: ["ana", "beto"] }, mind);
-  expect(houseStep(old, positioned(fact))).toBe(old);
   expect(present([{ id: "other" }], old, mind)).toBe(false);
 });
 
@@ -81,7 +67,7 @@ it("checks a changed kit again when an in-flight mind later starts a nested act"
   expect(started.status).toBe("processing");
   kit(rig, "mind:desk", ["delayed"]);
   release();
-  expect(await settle(started)).toMatchObject({ status: "rejected", reason: "sin acceso" });
+  expect(await settle(started)).toMatchObject({ status: "rejected", reason: "fuera del kit" });
   expect(rig.facts().filter(event => event.kind === "act-done")).toHaveLength(0);
 });
 

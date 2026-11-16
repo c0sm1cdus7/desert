@@ -16,7 +16,16 @@ const textsIn = (words: unknown, path = ""): [string, string][] => {
   if (words === null || typeof words !== "object") return [];
   return Object.entries(words).flatMap(([key, value]) => textsIn(value, path ? `${path}.${key}` : key));
 };
-const causes = ["invalid", "unknown", "unattended", "unassigned", "unavailable", "interrupted", "draft"] as const;
+const causes = [
+  "invalid",
+  "unknown",
+  "unattended",
+  "unassigned",
+  "outsideKit",
+  "unavailable",
+  "interrupted",
+  "draft",
+] as const;
 const preferences = generic.preferences;
 
 describe("what DESERT itself says to a person", () => {

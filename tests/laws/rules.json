@@ -780,17 +780,21 @@
     },
     {
       "id": 104,
-      "rule": "LEYES 4: se muestran todas las acciones, apagadas con motivo, también la ajena",
+      "rule": "LEYES 4: todas las acciones conservan su tecla; cada acción fuera del kit queda apagada con su motivo",
       "from": "LEYES 4",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-off.ts", "src/programs/promised-walk.ts", "src/tools/promises.ts"]
+      "evidence": ["src/programs/promised-off.ts", "src/surface/availability/action-off.ts", "src/tools/execute.ts"]
     },
     {
       "id": 105,
-      "rule": "LEYES 5: ocultar apagadas, ajenas o vacías es preferencia de cada usuario",
+      "rule": "LEYES 5: cada identidad puede ocultar acciones apagadas, herramientas fuera del kit en el Menú o listas vacías",
       "from": "LEYES 5",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-notices.ts", "src/programs/promised-off.ts"]
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/programs/promised-notices.ts",
+        "src/surface/bridge/program-acts.ts"
+      ]
     },
     {
       "id": 106,
@@ -808,10 +812,10 @@
     },
     {
       "id": 108,
-      "rule": "LEYES 8: dos stacks fijos, Atención y Actividad, en todos los menús",
+      "rule": "LEYES 8: Atención para quienes tienen al menos una acción de la herramienta y Actividad de toda la casa salvo la propia, en los dos menús",
       "from": "LEYES 8",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-notices.ts", "src/surface/lists.ts"]
+      "evidence": ["src/programs/promised-notices.ts", "src/surface/bridge/notices.ts", "src/surface/lists.ts"]
     },
     {
       "id": 109,
@@ -898,7 +902,7 @@
     },
     {
       "id": 119,
-      "rule": "Lo que una fila lee se sigue leyendo cuando su acción no se puede hacer: apagada dice el dato y después por qué; oculta por preferencia queda el dato sin tecla",
+      "rule": "Lo que una fila lee queda visible con su dato y, si su acción está apagada, el motivo después; por preferencia queda el dato sin tecla",
       "from": "11/11 · consecuencia de «una fila que se puede cambiar abre su acción» y de LEYES 5",
       "guarantee": "derived",
       "evidence": [
@@ -1008,10 +1012,14 @@
     },
     {
       "id": 130,
-      "rule": "Lo que un objeto nombra se abre, sea de la herramienta que sea, con su número (1 a 9, contados en todo el objeto); lo de una herramienta que la persona no tiene queda nombrado, apagado, diciendo por qué",
+      "rule": "Lo que un objeto nombra se abre, sea de la herramienta que sea, con su número (1 a 9); quien no tiene esa herramienta la lee igual, con sus acciones apagadas diciendo por qué",
       "from": "11/11 · objetos: presentación y navegación",
-      "guarantee": "spec",
-      "evidence": ["src/surface/lists.ts", "src/surface/bridge/presented.spec.ts", "src/surface/router.spec.ts"]
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/surface/lists.ts",
+        "src/surface/bridge/window-neighbors.spec.ts"
+      ]
     },
     {
       "id": 131,
@@ -2123,7 +2131,7 @@
     },
     {
       "id": 219,
-      "rule": "El kit rige las acciones de herramientas: una identidad puede todas las de su herramienta salvo recorte; una mente, solo las dadas de la suya. Solo quien administra da el kit y no recibe recorte. null da todas; [] ninguna sin quitar la herramienta. Al salir o perder una herramienta se pierde su kit. Al recibir la administración se borran todos los kits de quien la recibe; al devolverla conserva sus herramientas enteras hasta un nuevo kit. Cada inicio de ejecución de herramienta, también anidado, comprueba el kit vigente; un acto ya iniciado puede terminar.",
+      "rule": "El kit rige las acciones de herramientas: una identidad puede todas las de su herramienta salvo recorte; una mente, solo las dadas de la suya. Solo quien administra da el kit y no recibe recorte. null da todas; [] ninguna sin quitar la herramienta. Al salir o perder una herramienta se pierde su kit. Al recibir la administración se borran todos los kits de quien la recibe; al devolverla conserva sus herramientas enteras hasta un nuevo kit. Cada inicio de ejecución de herramienta, también anidado, comprueba el kit vigente; sacar una acción corta también el acto iniciado según la garantía 226. Los efectos de cada acto de programa son hechos propios declarados por su herramienta, a nombre de quien actúa (también la mente); cualquier efecto de casa, ajeno o con otro autor rechaza el lote entero a la vista. Solo los actos propios de la casa y el core reservado identities escriben hechos de casa: el core requiere administración salvo escena y nombre propios sobre sí, siempre con el autor del acto. Un kit-set inválido por titular, herramienta, acción o repetición se rechaza antes de escribir. Un acto own que tapa una acción por objeto y nombre falla al componer.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "spec",
       "evidence": [
@@ -2133,12 +2141,21 @@
         "src/house/minds.spec.ts",
         "src/house/contract-neighbors.spec.ts",
         "src/house/adversaria.spec.ts",
-        "src/house/cleanup-contract.spec.ts"
+        "src/house/cleanup-contract.spec.ts",
+        "src/tools/execution/effect-authority.ts",
+        "src/tools/execution/composed-authority.ts",
+        "src/tools/effect-authority.spec.ts",
+        "src/tools/core-effects.spec.ts",
+        "src/tools/effect-neighbors.spec.ts",
+        "src/tools/own-collision.spec.ts",
+        "src/tools/effect-late.spec.ts",
+        "src/programs/own-composition.spec.ts",
+        "src/tools/core/identities/identities-union.spec.ts"
       ]
     },
     {
       "id": 220,
-      "rule": "La mente de una herramienta existente actúa sobre ella o sus cosas a su propio nombre, con el mismo kit dentro de sus actos. No es una identidad: no recibe herramientas, canales, administración, preferencias ni tener a la vista. De los actos propios de la casa solo recibe scene; los actos que el programa ofrece por own son para identidades. Usa los adaptadores declarados de su herramienta como una identidad que la tiene; sus vínculos de credenciales son suyos.",
+      "rule": "La mente de una herramienta existente actúa sobre ella o sus cosas a su propio nombre, con el mismo kit dentro de sus actos. No es una identidad: no recibe herramientas, administración, preferencias ni tener a la vista. De los actos propios de la casa solo recibe scene; los actos que el programa ofrece por own son para identidades. Usa los adaptadores declarados de su herramienta como una identidad que la tiene; sus vínculos de credenciales son suyos.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "spec",
       "evidence": [
@@ -2185,8 +2202,24 @@
       "id": 224,
       "rule": "Una acción fuera del kit de quien mira sale apagada diciendo por qué.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
-      "guarantee": "debt",
-      "debt": "El carril lectura y kit agrega el motivo de kit a las acciones apagadas, por las leyes 4 y 6."
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/surface/availability/action-off.ts",
+        "src/house/kit-core.spec.ts"
+      ]
+    },
+    {
+      "id": 225,
+      "rule": "Cada identidad presente puede abrir y leer las herramientas fuera de su kit, buscar y elegir sus cosas; sus acciones quedan apagadas con el motivo de kit. Mirar no exige tener la herramienta.",
+      "from": "14/11 · lectura en la superficie",
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/surface/bridge/window-neighbors.spec.ts",
+        "src/tools/slices.spec.ts",
+        "src/surface/finding.ts"
+      ]
     },
     {
       "id": 255,
@@ -2206,6 +2239,85 @@
         "src/catalogs/fields/money-cleanup.spec.ts",
         "src/surface/money-limit-cleanup.spec.ts"
       ]
+    },
+    {
+      "id": 226,
+      "rule": "Sacar vale al instante, también para lo que corre: ante cualquier hecho de la casa que retire una acción, el oyente vivo corta la señal de sus actos y de los hijos que empezaron, también los nietos, para identidades y mentes. No corta actos independientes que conservan su acción ni resucita los cortados al volver a darla. El plegado no corta. No se entra al cuerpo ni se inicia un anidado desde un acto cortado; el anidado devuelve interrupted con sacada, sin lanzar un texto suelto. Cada uso de sus adaptadores y vínculos comprueba el corte. Antes del lote del resultado, finish vuelve a preguntar el kit: lo cortado termina interrupted con sacada, sin escribir sus efectos pendientes ni entregar su recibo privado. Un defecto independiente del corte conserva su diagnóstico y su aviso como sin corte; el motivo de la señal y el rechazo del adaptador por el corte no son defectos. Lo que un hijo ya escribió queda. Un lote ya iniciado y el éxito de un acto que salió al mundo se conservan con sacada al lado, también en pantalla. Un reinicio cierra los actos colgados una sola vez. La fila abierta se apaga y la pregunta pendiente se rechaza al confirmar; quien sigue en la casa conserva la lectura.",
+      "from": "14/11 · casa-kit paso 4 · sacar vale al instante",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/execution/running-acts.ts",
+        "src/tools/failures/finish.ts",
+        "src/adapters/declared/compose-adapters.ts",
+        "src/tools/kit-running.spec.ts",
+        "src/tools/kit-races.spec.ts",
+        "src/tools/kit-boundaries.spec.ts",
+        "src/tools/kit-defects.spec.ts",
+        "src/tools/kit-handed.spec.ts",
+        "src/tools/kit-descendants.spec.ts",
+        "src/tools/kit-scopes.spec.ts",
+        "src/programs/kit-adapters.spec.ts",
+        "src/doors/terminal/kit-cut.spec.ts"
+      ]
+    },
+    {
+      "id": 227,
+      "rule": "Cada identidad nueva tiene un identificador ASCII simple, distinto del nombre de la casa; creación, asignación, readmisión y traspaso lo comprueban antes de escribir. La historia anterior conserva su interpretación. Su nombre visible es texto libre acotado y queda al sacar; sin nombre se muestra el identificador.",
+      "from": "14/11 · casa-kit paso 5a",
+      "guarantee": "spec",
+      "evidence": [
+        "src/house/identity-name.ts",
+        "src/programs/house-resources.ts",
+        "src/programs/house-runtime.ts",
+        "src/programs/identity-doors.spec.ts",
+        "src/house/identities-core.spec.ts"
+      ]
+    },
+    {
+      "id": 228,
+      "rule": "Identidades es del core, sin mente, proceso ni kit propio, y entra solo por pedido de la composición. Todas las identidades la leen; solo quien administra crea, saca, readmite sin herramientas y pasa la administración. Sacar conserva la fila y el nombre. Las confirmaciones de sacar y pasar empiezan en volver. Cada identidad presente escribe solo su propia escena, incluso quien administra: es la única acción de Identidades que no exige administrar. La terminal pregunta solo General, con los topes y el texto visible del contrato. Todas leen la última escena general de cada identidad y mente, recortada en la lista y entera en el objeto, donde cada cual ve además la parte dirigida a su identidad.",
+      "from": "14/11 · casa-kit pasos 5b y 5d2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/core/identities/identities.ts",
+        "src/tools/core/identities/identities.spec.ts",
+        "src/tools/core/identities/identities-neighbors.spec.ts",
+        "src/tools/core/identities/identities-derived.spec.ts",
+        "src/tools/core/identities/identities-legacy.spec.ts",
+        "src/doors/terminal/identities-terminal.spec.ts",
+        "src/tools/core/identities/identity-scene.ts",
+        "src/tools/core/identities/identity-scene.spec.ts",
+        "src/doors/terminal/identity-scene-terminal.spec.ts",
+        "src/doors/terminal/scene-reading-terminal.spec.ts",
+        "src/tools/core/identities/identities-union.spec.ts"
+      ]
+    },
+    {
+      "id": 229,
+      "rule": "Desde Identidades, quien administra da o saca herramientas enteras y acciones de cada identidad, y solo acciones propias a cada mente. El catálogo genera los actos: nada inexistente se ofrece. Quien administra tiene todas sin recorte; los demás leen menús con acciones apagadas. Cada cambio conserva los otros recortes, viaja al instante y usa el corte de la casa ya existente.",
+      "from": "14/11 · casa-kit paso 5c",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/core/identities/kit-actions.ts",
+        "src/tools/core/identities/kit-effects.ts",
+        "src/tools/core/identities/kit-cases.ts",
+        "src/tools/core/identities/kit-screen.ts",
+        "src/tools/core/identities/kit-views.ts",
+        "src/tools/core/identities/identity-kit.spec.ts",
+        "src/tools/core/identities/identity-kit-neighbors.spec.ts",
+        "src/tools/core/identities/identity-kit-readers.spec.ts",
+        "src/tools/core/identities/identity-kit-limit-derived.spec.ts",
+        "src/tools/core/identities/identities-derived.spec.ts",
+        "src/doors/terminal/identity-kit-terminal.spec.ts",
+        "src/programs/core/kit-checks.ts"
+      ]
+    },
+    {
+      "id": 230,
+      "rule": "Un menú de kit con más de nueve filas de edición requiere una forma aprobada que cumpla la tecla de cada opción.",
+      "from": "LEYES 2 · casa-kit paso 5c",
+      "guarantee": "debt",
+      "debt": "Caso: sales con nueve acciones action0…action8 requiere diez filas para una identidad, contando la herramienta entera; ese menú y sus ediciones para identidades no se ofrecen. La mente puede editar sus nueve acciones. Con diez acciones no se construye ningún menú. La fila pendiente dice menú pendiente · más de nueve acciones. Aprobar una composición y teclas para superar ese límite. Bordes en identity-kit-neighbors.spec.ts e identity-kit-readers.spec.ts; derivadas en identity-kit-limit-derived.spec.ts."
     }
   ]
 }

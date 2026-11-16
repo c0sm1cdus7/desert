@@ -78,6 +78,7 @@ export function windowShop(count = 41, recentLines = 40, needs = 1) {
   const sale = must(tools.find(tool => tool.id === "sales"));
   return {
     rig,
+    registry: [sales, payments],
     sales,
     shown,
     ports,

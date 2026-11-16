@@ -6,7 +6,7 @@ import { Type } from "@sinclair/typebox";
 import { afterEach, expect, it } from "vitest";
 import { baseProjectionVersion, sceneLimits } from "../catalogs/levers.ts";
 import { effect, vocabulary, layerOf } from "../journal/events.ts";
-import { identityView, visible } from "./house.ts";
+import { identityView } from "./house.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { contractRig, type ContractRig } from "../../tests/support/contract-rig.ts";
 const rigs: ContractRig[] = [];
@@ -44,7 +44,6 @@ it("8: keeps only each author's last scene, readable by everyone and restored on
   expect(scenes.get("ana")?.seq).toBeGreaterThan(scenes.get("beto")?.seq ?? 0);
   for (const by of ["ana", "beto", "mind:desk", "outsider"]) {
     expect(identityView(rig.state(), by).house.scenes).toEqual(scenes);
-    expect([...scenes.values()].every(event => visible(rig.state().house, event, by))).toBe(true);
   }
   rig.restart();
   expect(rig.state().house.scenes).toEqual(scenes);
@@ -77,7 +76,7 @@ it("8: rejects excess, blank identity keys and another author's scene before a s
 });
 
 it("bumps the base fold version for the new house state", () => {
-  expect(baseProjectionVersion).toBe("desert/3");
+  expect(baseProjectionVersion).toBe("desert/6");
 });
 
 it("A6: the scene schema bounds recipient names independently of current membership", () => {

@@ -27,7 +27,7 @@ export function programSecretBoundaries(root: string): string[] {
   const main = resolve(root, entry);
   const files =
     root === base
-      ? [main, join(base, "tests/support/shop.ts")]
+      ? [main, join(base, "tests/support/shop.ts"), join(base, "tests/support/shop-folds.ts")]
       : [...new Set([main, ...production(join(root, "src"))])];
   const sources = Object.fromEntries(
     [...new Set([...production(join(base, "src")), ...files])].map(file => [file, readFileSync(file, "utf8")]),

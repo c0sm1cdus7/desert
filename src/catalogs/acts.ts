@@ -23,14 +23,14 @@ const visibleText = [
   "dc00-\\udfff]|\\udb41[\\udc00-\\udfff]|\\udb42[\\udc00-\\udfff]|\\udb43[\\udc00",
   "-\\udfff]))[\\ud800-\\udbff][\\udc00-\\udfff])",
 ].join("");
-const sceneText = (max: number) => Type.String({ minLength: toolLimits.minText, maxLength: max, pattern: visibleText });
+export const t = (max: number) => Type.String({ minLength: toolLimits.minText, maxLength: max, pattern: visibleText });
 /** What its author says is happening, shared with everyone, including the parts addressed to identities. */
 export const scene = object({
-  general: sceneText(sceneLimits.general),
+  general: t(sceneLimits.general),
   to: Type.Optional(
     Type.Record(
       Type.String({ pattern: `^(?=[\\s\\S]{1,${sceneLimits.name}}$)(?=[\\s\\S]*${visibleText})[\\s\\S]+$` }),
-      sceneText(sceneLimits.each),
+      t(sceneLimits.each),
       {
         maxProperties: sceneLimits.identities,
         additionalProperties: false,

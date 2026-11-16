@@ -23,7 +23,6 @@ export const surfaceTexts = {
   more: "más",
   pasteHere: "secreto",
   talk: {
-    channels: "Canales",
     writing: "mensaje",
     answering: "respuesta",
     message: "mensaje",
@@ -45,7 +44,6 @@ export const surfaceTexts = {
     empty: "sin mensajes",
   },
   house: {
-    communicator: "Comunicador",
     journeys: "Viajes",
     running: "En curso",
     ended: "Terminados",

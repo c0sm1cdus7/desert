@@ -42,18 +42,18 @@ it("una declaración dinámica que sí lee actividad conserva la vista privada d
         tool: "vault",
         target: "vault",
         author: "ana",
-        recipient: "ana",
+        detail: "dato de actividad",
         text: "privado",
       },
       "ana",
     ),
   );
   const state = rig.house.tools.state();
-  expect(state.entries.some(entry => entry.data.recipient === "ana")).toBe(true);
+  expect(state.entries.some(entry => entry.data.detail === "dato de actividad")).toBe(true);
   const own = vi.fn((view: typeof state) => {
     expect(view.by).toBe("bob");
     expect(view.entries).toBe(view.entries);
-    expect(view.entries.every(entry => !entry.data.recipient || entry.data.recipient === "bob")).toBe(true);
+    expect(view.entries).toEqual(state.entries);
     return [
       ownAct<P, typeof secret>("own", "set", { input: secret, purpose: "Propia" }, () => ({ status: "accepted" })),
     ];

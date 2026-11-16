@@ -1,29 +1,53 @@
+import { checkComposition } from "../tools/execution/composed-authority.ts";
+import { coreRegistry } from "../tools/core/identities/identities.ts";
 import type { CalculationVersion } from "./calculation-version.ts";
 import { houseResources } from "./house-resources.ts";
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
 import { defectReporter } from "../tools/failures/defect-reporter.ts";
 import type { HouseKeyProvider } from "../adapters/secrets/custody/house-keys.ts";
 import { type ViewLimits } from "../catalogs/levers.ts";
-import { createHouse, identityView, type Creation } from "../house/house.ts";
+import { checkCreation, InvalidCreation, createHouse, houseStep, identityView, type Creation } from "../house/house.ts";
 import { startClock, systemTime, type TimeSource } from "../journal/clock.ts";
 import { effect, type Vocabulary } from "../journal/events.ts";
 import { houseProjections, requireProjectionVersion } from "./house-projections.ts";
 import type { HousePorts } from "../surface/bridge/house-ports.ts";
 import type { Execution } from "../tools/execute.ts";
 import type { Program, Slices, ToolRegistry } from "../tools/tool-contract.ts";
-import { startTools } from "../tools/tools.ts";
+import { startState, startTools } from "../tools/tools.ts";
 import type { AdapterComposition } from "../adapters/declared/adapter-contract.ts";
 /** What a program hands a house to live in it: its vocabulary, its tools, and what each of them keeps. */
 export type HouseOptions<X extends Program> = AdapterComposition &
   Readonly<{ by: string; projectionVersion: CalculationVersion; creation: Creation }> &
   Readonly<{ words: Vocabulary<X["fact"]>; registry: ToolRegistry<X>; slices: Slices<X> }> &
   Partial<Pick<Execution<X>, "own" | "process">> &
-  Readonly<{ secretKeys?: HouseKeyProvider }>;
+  Readonly<{ secretKeys?: HouseKeyProvider; identities?: boolean }>;
 /** A part is kept under its tool's id: that is how the house gives a whole tool, or none of it, to an identity. */
 function ownerless<X extends Program>({ slices, registry }: HouseOptions<X>): string[] {
   return Object.keys(slices.step).filter(part => !registry.some(tool => tool.id === part));
 }
+function checkComposedCreation<X extends Program>(options: HouseOptions<X>) {
+  const { by, registry, creation } = options;
+  const initial = startState(options.slices, by, options.identities);
+  const creationFacts = [
+    effect("house-created", {}, creation.admin),
+    ...creation.assignments.map(assignment =>
+      effect("granted", { identity: assignment.identity, tools: [...assignment.tools] }, creation.admin),
+    ),
+  ];
+  const preview = creationFacts.reduce(
+    (house, each) =>
+      houseStep(house, {
+        ...each,
+        id: "composition",
+        seq: 0,
+        at: 0,
+      }),
+    initial.house,
+  );
+  checkComposition(registry, { ...initial, house: preview }, options.own);
+}
 export function startHouse<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource = systemTime) {
+  options = { ...options, registry: coreRegistry(options.registry, options.by, options.identities) };
   requireProjectionVersion(options.projectionVersion);
   const { by, registry, creation } = options;
   const ports = {
@@ -32,14 +56,16 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
   };
   if (!by) throw new Error("An explicit identity is required");
   if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
+  checkComposedCreation(options);
   const { capabilities, protection, journal, secrets, bus, stops, report, close, notices } = houseResources(
     home,
     options,
     time,
   );
   try {
-    protection.mark();
     const { state, clock } = houseProjections(journal, options);
+    if (!state().house.admin) checkCreation(creation, by);
+    protection.mark();
     protection.attach(secrets, state);
     const tools = startTools({
       ...ports,
@@ -55,7 +81,7 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     bus.emit(effect("boot", {}, by));
     return { bus, journal, tools, registry, close, storageNotices: notices.read, now: () => time.now() };
   } catch (error) {
-    report(error, "program", "program", "start");
+    if (!(error instanceof InvalidCreation)) report(error, "program", "program", "start");
     close();
     throw error;
   }

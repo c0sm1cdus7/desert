@@ -1,9 +1,10 @@
+import { kitScreen } from "../../tools/core/identities/kit-screen.ts";
+import { withIdentityWords } from "../../tools/core/identities/identity-reading.ts";
 import { programCall } from "../../tools/boundaries/program-call.ts";
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
 import { builtScreen } from "./execution/program-screen.ts";
 import { thingView } from "./presented.ts";
 import { allowed, hides } from "../../house/house.ts";
-import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import type { ProgramTool } from "../../tools/promises.ts";
 import type { Program, Tool as HouseTool } from "../../tools/tool-contract.ts";
 import type { Tool, ViewRow } from "../shown-tool.ts";
@@ -16,6 +17,7 @@ import { makerOptions } from "./makers.ts";
 import { noticesOf } from "./notices.ts";
 import { preferencesPlace, preferencesTool } from "./preferences-tool.ts";
 import { programActs } from "./program-acts.ts";
+import { toolTexts } from "../../texts/tools.texts.ts";
 import { recordOf } from "./record.ts";
 
 /** Only a tool whose acts say how they are offered can be shown: an act without its declaration is a defect. */
@@ -101,16 +103,13 @@ function auditActs<X extends Program>(tool: ProgramTool<X>): void {
 }
 /** A row that leads to a thing, as an option that picks it. */
 const picked = ({ title, detail }: ViewRow, value: string): Option => ({ title, ...(detail ? { detail } : {}), value });
-/** The things of a tool as an answer picks them: only of a tool this identity holds, found the way its menu finds. */
+/** The things of a tool as an answer picks them: found the way its menu finds, whatever the kit. */
 const thingsOf = <X extends Program>(ports: HousePorts<X>, { words }: Shown<X>, shown: () => readonly Tool[]) => {
   const make = makerOptions();
   return (id: string): Things | undefined => {
     const tool = shown().find(known => known.id === id);
     const contract = ports.registry.filter(isProgramTool).find(known => known.id === id);
-    if (!tool?.find || !contract) return undefined;
-    /** The things of a tool this identity does not hold are out of reach: none is found, and it says why. */
-    const why = tool.off?.();
-    if (why !== undefined) return { found: () => [], shown: thing => thing, has: () => false, empty: why };
+    if (!ports.state().house.grants.has(ports.me) || !tool?.find || !contract) return undefined;
     const open = (thing: string): boolean =>
       programCall(contract.closed?.bind(contract), ports.state(), thing, ports.now()) !== true;
     return {
@@ -151,12 +150,16 @@ function questionsFor<X extends Program>(ports: HousePorts<X>, shown: Shown<X>, 
         ?.titleOf?.(target) ?? target,
   };
 }
-export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown<X>): readonly Tool[] {
+function declaredTools<X extends Program>(registry: readonly HouseTool<X>[]) {
+  const undeclared = registry.filter(tool => !isProgramTool(tool)).map(tool => tool.id);
+  if (undeclared.length) throw new Error(`Acts without their declaration in ${undeclared.join(", ")}`);
+  return registry.filter(isProgramTool);
+}
+export function houseTools<X extends Program>(ports: HousePorts<X>, given: Shown<X>): readonly Tool[] {
+  const shown = withIdentityWords(ports.registry, given);
   const seen = new Map<string, number>();
   const observed: SurfacePorts<X> = { ...ports, act: value => ports.act(value, seen.get(value.target ?? "") ?? 0) };
-  const undeclared = ports.registry.filter(tool => !isProgramTool(tool)).map(tool => tool.id);
-  if (undeclared.length) throw new Error(`Acts without their declaration in ${undeclared.join(", ")}`);
-  const tools = ports.registry.filter(isProgramTool);
+  const tools = declaredTools(ports.registry);
   audit(tools, shown);
   const asked = questionsFor(ports, shown, () => own);
   const built = tools.flatMap(contract => {
@@ -166,7 +169,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
   const own: Tool[] = built.map(({ contract, words, acts, start }) => {
     const mine = (): boolean => allowed(ports.state().house, ports.me, contract.id);
     const screen = builtScreen(shown.screens?.[contract.id], observed, contract, words, acts, start);
-    const tool = withThings(observed, contract, { words, shown }, screen);
+    const tool = kitScreen(observed, contract, withThings(observed, contract, { words, shown }, screen), start);
     const calls = () => ports.state().attention.has(contract.id);
     const { notices, seen: looked } = noticesOf(observed, contract, tool);
     /** What the other tools offer on a thing of this one: only on a thing, never on a view that groups them. */
@@ -178,12 +181,13 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
     return {
       ...tool,
       notices,
+      off: () => (ports.state().house.grants.has(ports.me) ? undefined : toolTexts.unassigned),
       alsoOn,
-      off: () => (mine() ? undefined : generic.notHeld),
       /** A tool nobody gave you is on your Menu unless you prefer not to see what is not yours. */
-      listed: () => mine() || !hides(ports.state().house, ports.me, "foreign"),
+      listed: () => contract.id === "identities" || mine() || !hides(ports.state().house, ports.me, "foreign"),
       calls,
       rendered: (target = contract.id) => {
+        if (!ports.state().house.grants.has(ports.me)) return;
         seen.set(target, ports.state().through);
         // Looking at what called you is attending it, the same act anyone does.
         if (calls()) ports.act({ act: "attend", input: { target: contract.id } }, 0);

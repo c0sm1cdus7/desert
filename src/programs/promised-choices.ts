@@ -33,7 +33,7 @@ function blocked<X extends Program>(
       const why = stops(option.title);
       return why === undefined ? [] : [{ value: option.title, why }];
     });
-  if (field?.kind !== "pick" || seat.tools.find(tool => tool.id === field.of)?.off?.() !== undefined) return [];
+  if (field?.kind !== "pick") return [];
   const source = program.registry.find(tool => tool.id === field.of);
   const among = aim.act.among?.(ask.sofar(answers), seat.state(), target, seat.now())[field.of];
   return (source?.targets(seat.state()) ?? []).flatMap(value => {
@@ -102,6 +102,20 @@ function checkCase<X extends Program>(
     }
   }
 }
+function foreignChoices<X extends Program>(seat: Seat<X>, foreign: Seat<X>, aim: Aim<X>, kase: Case<X>): void {
+  const ask = asking(aim.act.input, seat.words);
+  const answers = ask.answers(kase.input);
+  const target = kase.on ?? aim.tool.id;
+  const initial = begin(seat.tools, aim.tool.id, aim.name, aim.act.on === "thing" ? target : undefined);
+  for (let pos = 0; pos < answers.length; pos++) {
+    const walk = { ...initial, answers: answers.slice(0, pos), pos };
+    const held = fieldOf(seat.tools, walk);
+    const unheld = fieldOf(foreign.tools, walk);
+    if (held?.kind !== "pick" || unheld?.kind !== "pick") continue;
+    const found = new Set(unheld.found("").map(option => option.value));
+    for (const option of held.found("")) if (!option.makes) ok(found.has(option.value), promiseTexts.blockedLost);
+  }
+}
 const choiceCheck = <X extends Program>(
   program: Composition<X>,
   shown: Shown<X>,
@@ -115,6 +129,12 @@ const choiceCheck = <X extends Program>(
       const seat = seated(house(), kase.by ?? cast.admin, shown);
       try {
         checkCase(program, seat, aim, kase, false);
+        const foreign = seated(house(), cast.outsider, shown);
+        try {
+          foreignChoices(seat, foreign, aim, kase);
+        } finally {
+          foreign.router.stop();
+        }
         await prefer(seat, "off", true);
         checkCase(program, seat, aim, kase, true);
       } finally {

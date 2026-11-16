@@ -26,7 +26,6 @@ type Done<X extends Program> = Readonly<{ says: string; facts: readonly Told<X>[
   /** What the act puts before the person to be sure, word for word, when it asks that. */
   Readonly<{ sure?: string }> &
   /** What it says is for who did it alone, when the case promises that: otherwise whoever holds the tool reads it. */
-  Readonly<{ privately?: true }> &
   Readonly<{ reads?: Readonly<{ on?: string; lines: readonly unknown[] }> }> &
   /** Whom the act calls for attention, when the case promises it: nobody, for what is written only for the record. */
   Readonly<{ calls?: readonly string[] }> &
@@ -102,6 +101,7 @@ export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
 /** A program, whole: what DESERT needs to run it and to check everything it promises. */
 export type Composition<X extends Program> = AdapterComposition &
   Readonly<{
+    identities?: boolean;
     projectionVersion: CalculationVersion;
     words: Vocabulary<X["fact"]>;
     registry: readonly ProgramTool<X>[];

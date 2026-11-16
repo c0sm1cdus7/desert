@@ -152,9 +152,9 @@ describe("a program whose acts reach across its tools", () => {
 
   it("shows it off to who does not hold that other tool, and hides it if they prefer not to see such", () => {
     const { rig, tools } = seat("beto");
-    expect(actionsOn(tools, "sales/s1")).toEqual([["c", "cobrar", "sin acceso", true]]);
+    expect(actionsOn(tools, "sales/s1")).toEqual([["c", "cobrar", "fuera del kit", true]]);
     rig.act("beto", "prefer", { hide: "foreign", on: true });
-    expect(actionsOn(tools, "sales/s1")).toEqual([]);
+    expect(actionsOn(tools, "sales/s1")).toEqual([["c", "cobrar", "fuera del kit", true]]);
   });
 });
 

@@ -11,7 +11,7 @@ function rewritten({ error: _was, ignored: _key, failed: _result, notices: _noti
 function plainReason(walk: Asking, field: Field, char: string): string | undefined {
   if ("max" in field && Array.from(walk.typed).length >= (field.max ?? Infinity))
     return fieldTexts.ignored.characters(field.max ?? 0);
-  if (char !== " ") return undefined;
+  if (char !== " " || ("verbatim" in field && field.verbatim)) return undefined;
   const chars = Array.from(walk.typed);
   return walk.caret === 0 || chars[walk.caret - 1] === " " || chars[walk.caret] === " "
     ? entryAdvice.redundantSpace
