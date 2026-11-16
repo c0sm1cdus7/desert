@@ -2485,7 +2485,8 @@
         "src/programs/readonly-result.spec.ts",
         "tests/laws/readonly-state.spec.ts",
         "src/doors/socket/act-limit.spec.ts",
-        "src/adapters/storage/batch-marks.spec.ts"
+        "src/adapters/storage/batch-marks.spec.ts",
+        "src/doors/socket/socket-readonly.spec.ts"
       ]
     },
     {

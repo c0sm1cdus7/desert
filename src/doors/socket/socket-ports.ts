@@ -1,4 +1,5 @@
 // The existing HousePorts contract over the last complete view received from the house.
+import { readonlyState } from "../../journal/readonly-state.ts";
 import type { HousePorts } from "../../surface/bridge/house-ports.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
@@ -12,7 +13,8 @@ export function socketPorts<X extends Program>(
   return {
     ...options,
     me: connection.identity(),
-    state: connection.state,
+    /** Read-only to the bottom, as the house hands it (law 256); the same view of the same state, never a copy. */
+    state: () => readonlyState(connection.state()),
     now: connection.now,
     connection: connection.status,
     watch: connection.watch,
