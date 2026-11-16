@@ -2,6 +2,7 @@ import { checkComposition } from "../tools/execution/composed-authority.ts";
 import { coreRegistry } from "../tools/core/identities/identities.ts";
 import type { CalculationVersion } from "./calculation-version.ts";
 import { houseResources } from "./house-resources.ts";
+import { cancelInheritedWake } from "./inherited-wake.ts";
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
 import { defectReporter } from "../tools/failures/defect-reporter.ts";
 import type { HouseKeyProvider } from "../adapters/secrets/custody/house-keys.ts";
@@ -46,17 +47,22 @@ function checkComposedCreation<X extends Program>(options: HouseOptions<X>) {
   );
   checkComposition(registry, { ...initial, house: preview }, options.own);
 }
-export function startHouse<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource = systemTime) {
-  options = { ...options, registry: coreRegistry(options.registry, options.by, options.identities) };
+/** The composition as the house runs it, checked before anything opens. */
+function composed<X extends Program>(given: HouseOptions<X>): HouseOptions<X> {
+  const options = { ...given, registry: coreRegistry(given.registry, given.by, given.identities) };
   requireProjectionVersion(options.projectionVersion);
+  if (!options.by) throw new Error("An explicit identity is required");
+  if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
+  checkComposedCreation(options);
+  return options;
+}
+export function startHouse<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource = systemTime) {
+  options = composed(options);
   const { by, registry, creation } = options;
   const ports = {
     ...(options.own ? { own: options.own } : {}),
     ...(options.process ? { process: options.process } : {}),
   };
-  if (!by) throw new Error("An explicit identity is required");
-  if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
-  checkComposedCreation(options);
   const { capabilities, protection, journal, secrets, bus, stops, report, close, notices } = houseResources(
     home,
     options,
@@ -79,7 +85,10 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     if (!state().house.admin) createHouse(bus, creation);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
-    return { home, bus, journal, tools, registry, close, storageNotices: notices.read, now: () => time.now() };
+    const running = { home, bus, journal, tools, registry, close, storageNotices: notices.read, now: () => time.now() };
+    return Object.assign(running, {
+      cancelInheritedWake: (by: string, id: string) => cancelInheritedWake(state, bus, by, id),
+    });
   } catch (error) {
     if (!(error instanceof InvalidCreation)) report(error, "program", "program", "start");
     close();

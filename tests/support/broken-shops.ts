@@ -74,6 +74,7 @@ const emptyState = {
   attentionBy: new Map<string, ReadonlyMap<string, { delay: number; wake: string }>>(),
   processing: new Map<string, never>(),
   acts: new Map<string, never>(),
+  wakeOwners: new Map<string, string>(),
   through: 0,
 };
 const told = "sales · register · a sale is registered as it was told";

@@ -6,6 +6,7 @@ import { socketHouse } from "../../../tests/support/socket-house.ts";
 import { shopRegistry, shopShown, type Shop } from "../../../tests/support/shop.ts";
 import { effect } from "../../journal/events.ts";
 import { identityView } from "../../house/house.ts";
+import { stateResult } from "../../journal/readonly-state.ts";
 import { houseRouter } from "../../surface/bridge/house-router.ts";
 import { socketConnection } from "./socket-connection.ts";
 import { socketPorts } from "./socket-ports.ts";
@@ -25,7 +26,7 @@ it("g04c: more than 17 MiB opens and draws, also after restart", async () => {
           "ana",
         ),
       );
-    expect(serialize(f.house().tools.state()).length).toBeGreaterThan(17 * 1024 * 1024);
+    expect(serialize(stateResult(f.house().tools.state())).length).toBeGreaterThan(17 * 1024 * 1024);
     for (const restart of [false, true]) {
       if (restart) await f.reopen();
       const connection = socketConnection<Shop>("ana-terminal");

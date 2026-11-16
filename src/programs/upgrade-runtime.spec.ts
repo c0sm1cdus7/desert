@@ -19,7 +19,7 @@ it.each([0, 1, 10, 1_000_000])("recalculates an existing sale of %i after a fold
   }
 });
 
-it("rebuilds once; a second opening reuses the new state and new acts stay consistent", async () => {
+it("rebuilds once; a second opening verifies the cached state and new acts stay consistent", async () => {
   const path = home();
   await seed(path);
   let folds = 0;
@@ -33,7 +33,8 @@ it("rebuilds once; a second opening reuses the new state and new acts stay consi
   folds = 0;
   house = open(path, current);
   try {
-    expect(folds).toBe(0);
+    expect(folds).toBe(1);
+    expect(house.journal.restoration().reused).toBe(true);
     const done = await perform(house, "payments", {
       act: "receive",
       input: { sale: "s1", payment: "p1", amount: 3 },
@@ -100,7 +101,7 @@ it("keeps two organizations independent when they are open at once", async () =>
   }
 });
 
-it("opens an empty organization and keeps the unchanged version fast", async () => {
+it("opens an empty organization and verifies the unchanged version against the journal", async () => {
   const path = home();
   const empty = open(path);
   try {
@@ -113,7 +114,8 @@ it("opens an empty organization and keeps the unchanged version fast", async () 
   const current = program("shop/1", 1, () => folds++);
   const house = open(path, current);
   try {
-    expect(folds).toBe(0);
+    expect(folds).toBe(1);
+    expect(house.journal.restoration().reused).toBe(true);
     matches(house, current);
   } finally {
     house.close();

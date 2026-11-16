@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from "node:util";
+import { verifyProjections, type FoldAudit } from "./verify-projections.ts";
 // A local projection cache preserves Maps and Sets; the journal remains the source of truth.
 import { journalTexts } from "../texts/journal.texts.ts";
 import { createHash } from "node:crypto";
@@ -36,6 +38,17 @@ export class ProjectionCache<S, E extends Placed> {
     this.seq = saved?.seq ?? 0;
     this.savedThrough = this.seq;
   }
+  audit(): FoldAudit<E> {
+    let actual = structuredClone(this.initial);
+    return {
+      seq: this.seq,
+      fold: event => {
+        actual = this.reduce(actual, event);
+      },
+      matches: () => isDeepStrictEqual(actual, this.state),
+      discard: () => this.discarded(journalTexts.divergentFold),
+    };
+  }
   get reused(): boolean {
     return this.saved && this.savedThrough > 0;
   }
@@ -54,9 +67,10 @@ export class ProjectionCache<S, E extends Placed> {
   encode(): Uint8Array {
     return encodeFold(this.seq, this.state, this.identity, this.journal);
   }
-  /** Where it stands now, as a way back to it: what was folded after is forgotten. */
-  mark(): () => void {
-    const state: S = structuredClone(this.state);
+  /** Where it stands now, as a way back to it: what was folded after is forgotten. A fold replaces its state and
+   * never changes the one it read, so a nested mark keeps the reference; the outermost one keeps a copy. */
+  mark(copy = true): () => void {
+    const state: S = copy ? structuredClone(this.state) : this.state;
     const { seq } = this;
     return () => {
       this.state = state;
@@ -68,7 +82,7 @@ export class ProjectionCache<S, E extends Placed> {
 export class ProjectionGroup<E extends Placed> {
   readonly caches = new Map<
     string,
-    Pick<ProjectionCache<unknown, E>, "seq" | "compatible" | "reused" | "reset" | "fold" | "encode" | "mark">
+    Pick<ProjectionCache<unknown, E>, "seq" | "compatible" | "reused" | "reset" | "fold" | "encode" | "mark" | "audit">
   >();
   add<S>(
     name: string,
@@ -90,13 +104,22 @@ export class ProjectionGroup<E extends Placed> {
       caches.forEach(cache => cache.reset());
     return caches[0]?.seq ?? 0;
   }
+  verify(replay: (visit: FoldAudit<E>["fold"]) => void): void {
+    if (
+      !verifyProjections(
+        [...this.caches.values()].map(cache => cache.audit()),
+        replay,
+      )
+    )
+      this.caches.forEach(cache => cache.reset());
+  }
   fold(event: E): null {
     for (const cache of this.caches.values()) cache.fold(event);
     return null;
   }
   /** Where every fold stands now, as a way back to it for all of them together. */
-  mark(): () => void {
-    const back = [...this.caches.values()].map(cache => cache.mark());
+  mark(copy = true): () => void {
+    const back = [...this.caches.values()].map(cache => cache.mark(copy));
     return () => back.forEach(restore => restore());
   }
 }

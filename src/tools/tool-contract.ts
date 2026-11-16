@@ -1,3 +1,4 @@
+import type { DeepReadonly } from "../journal/readonly-state.ts";
 // What a tool is to the house: its acts, what it shows, and what it keeps, whatever program it belongs to.
 import type { TSchema } from "@sinclair/typebox";
 import type { Act } from "../catalogs/acts.ts";
@@ -12,13 +13,18 @@ export type Entry = HouseEvent<"tool-entry">;
 /** What every house keeps, whatever lives in it. */
 export type HouseState = HouseView &
   Readonly<{ processing: ReadonlyMap<string, HouseEvent<"act-started">>; through: number }> &
-  Readonly<{ acts: ReadonlyMap<string, HouseEvent<"act">> }>;
-export type State<X extends Program> = HouseState & Readonly<{ tools: X["tools"] }>;
+  Readonly<{ acts: ReadonlyMap<string, HouseEvent<"act">>; wakeOwners: ReadonlyMap<string, string> }>;
+export type State<X extends Program> = HouseState &
+  Readonly<{ tools: { readonly [K in keyof X["tools"]]: DeepReadonly<X["tools"][K]> } }>;
 /** What each tool keeps: where it starts, and how each fact moves it. A tool without a step does not exist. */
 export type Slices<X extends Program> = Readonly<{
-  initial: X["tools"];
+  initial: State<X>["tools"];
   step: {
-    readonly [K in keyof X["tools"]]: (kept: X["tools"][K], event: Event<X["fact"]>, before: State<X>) => X["tools"][K];
+    readonly [K in keyof X["tools"]]: (
+      kept: DeepReadonly<X["tools"][K]>,
+      event: Event<X["fact"]>,
+      before: State<X>,
+    ) => DeepReadonly<X["tools"][K]>;
   };
 }>;
 /** Legacy provider contract, only for explicit adoption; never part of action or startup capabilities. */

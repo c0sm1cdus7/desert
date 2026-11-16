@@ -1,6 +1,10 @@
 export const journalTexts = {
+  divergentFold: "El estado guardado no coincide con el registro; se descarta y se vuelve a plegar",
   leaseLost: "Writer exclusion was lost or another connection wrote; close and reopen this house",
   beginWrite: "begin immediate",
+  savepointWrite: "savepoint journal_write",
+  releaseWrite: "release journal_write",
+  rollbackWrite: "rollback to journal_write; release journal_write",
   checksumFold: "missing or mismatched snapshot checksum",
   leaseUnavailable: "Cannot acquire a writable, regular writer sidecar",
   invalidSqliteFiles: "SQLite files and siblings support only regular files without symbolic or hard links",
@@ -46,6 +50,9 @@ export const journalTexts = {
   invalidEvent: "Invalid event envelope or unknown kind",
   unreadable: (seq: number, kind: string) =>
     `This house's journal holds a fact this program does not read: #${seq} ${kind}`,
+  executionOnly: "Hecho reservado a la ejecución; usar act en el arranque",
+  mindRolledBack: "Acción rechazada: se deshizo la escritura que la pidió",
+  mindChain: "Acción rechazada: la cadena de esta mente llegó a 32 actos",
   closedBus: "The event bus is closed",
   listenerFailed: "Someone who listens to the house failed on hearing a fact",
   writerLeaseSql:

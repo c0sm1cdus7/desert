@@ -3,6 +3,7 @@ import { deserialize } from "node:v8";
 import { clientFrame, serverFrame, stateFrame, frameReader } from "./frame.ts";
 import { readClient, readServer } from "./protocol.ts";
 import { wire } from "../../../tests/support/socket-probe.ts";
+import { socketLimits } from "../../catalogs/levers.ts";
 it("frames survive every split, coalescing and exact JSON limit", () => {
   const hello = { tipo: "hola", protocolo: 1, node: process.versions.node, token: "test" } as const;
   const bytes = clientFrame(hello);
@@ -41,7 +42,7 @@ it.each([
 });
 it("rejects overflow at the header and truncated EOF", () => {
   const huge = Buffer.alloc(5);
-  huge.writeUInt32BE(1024 * 1024 + 2);
+  huge.writeUInt32BE(socketLimits.json + 2);
   expect(() => frameReader("client", () => {}).push(huge)).toThrow();
   const reader = frameReader("client", () => {});
   reader.push(Buffer.from([0, 0]));
@@ -51,18 +52,18 @@ it("TypeBox rejects undeclared fields on both sides", () => {
   expect(() => readClient({ tipo: "hola", protocolo: 1, node: "24", token: "t", puerta: "terminal" })).toThrow();
   expect(() => readServer({ tipo: "resultado", id: "a", status: "invented", efectos: [] })).toThrow();
 });
-it("accepts exactly 1 MiB JSON and rejects the next byte, including a header without its type", () => {
+it("accepts exactly the JSON frame limit and rejects the next byte, including a header without its type", () => {
   const base = { tipo: "acto", id: "a", act: "prefer", input: "", through: 0 } as const;
-  const room = 1024 * 1024 - Buffer.byteLength(JSON.stringify(base));
+  const room = socketLimits.json - Buffer.byteLength(JSON.stringify(base));
   const message = { ...base, input: "a".repeat(room) };
   const bytes = clientFrame(message);
-  expect(bytes.length).toBe(1024 * 1024 + 5);
+  expect(bytes.length).toBe(socketLimits.json + 5);
   const got: unknown[] = [];
   frameReader("client", value => got.push(value)).push(bytes);
   expect(got).toEqual([message]);
   expect(() => clientFrame({ ...message, input: `${message.input}b` })).toThrow();
   const header = Buffer.alloc(4);
-  header.writeUInt32BE(1024 * 1024 + 2);
+  header.writeUInt32BE(socketLimits.json + 2);
   expect(() => frameReader("client", () => {}).push(header)).toThrow();
 });
 it("rejects bad UTF-8, partial payloads and states beyond 16 MiB", () => {

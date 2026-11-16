@@ -174,7 +174,8 @@ it("un registro escrito por la custodia sola (3e69d44) se pliega igual en el ár
     true,
     true,
   ]);
-  const { house, ...rest } = rig.house.tools.state();
+  const { house, wakeOwners, ...rest } = rig.house.tools.state();
+  expect([...wakeOwners]).toEqual([['attention:["beto","vault"]', "beto"]]);
   const { kits, scenes, names, removed, ...older } = house;
   expect(Object.hasOwn(older, "channels")).toBe(false);
   const previousHouse = Object.fromEntries(Object.entries(previous.fold.house).filter(([key]) => key !== "channels"));

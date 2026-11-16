@@ -617,7 +617,9 @@ de la casa agrega su revisión de salida. Cada escritura individual del llavero 
 ## Adaptadores declarados y referencias en las acciones (A01, paso 2)
 
 `ActContext` tiene `ports` y `credentials`; no tiene `keys`, custodia ni resolvedor. `Tool.start` recibe
-`ToolStartup`: esos mismos puertos públicos, `state`, `now`, `live` y un bus reducido a `on`, `emit` y `together`.
+`ToolStartup`: esos mismos puertos públicos, `state`, `now`, `live`, `act` como su propia mente y un bus reducido
+a `on`, `emit` y `together`. `emit` solo publica comandos originales de sus credenciales y despertares propios.
+`act` no recibe autor y devuelve una promesa con estado y, cuando lo hay, motivo.
 No recibe el objeto `Execution`. El tipo `KeyStore` anterior se adapta a un borde que entregue bytes antes de llamar a `importLegacyKeys`.
 
 El programa declara `adapters` y `credentialSlots` en `Composition` o `HouseOptions`. Cada adaptador tiene
@@ -650,8 +652,9 @@ return { status: "accepted", effects: [
 ```
 
 Una acción presta sus capacidades hasta terminar, incluso si rechaza, falla, propone un borrador o se interrumpe.
-El arranque las presta hasta su cierre; su identidad es la del programa y su objeto es la propia herramienta.
-Resolver material requiere además que esa identidad tenga la herramienta en la casa. Un uso ya iniciado termina
+El arranque las presta hasta su cierre; su actor es `mind:<herramienta>` y su objeto es la propia herramienta.
+Sus vínculos pertenecen a esa mente. Resolver material exige `holds`: la herramienta de la mente debe existir;
+para una identidad, debe tener la herramienta en la casa. Un uso ya iniciado termina
 con su versión; cerrar o revocar impide nuevos usos. Las referencias de otra casa, identidad u objeto no autorizan.
 
 Al migrar: quitá `keys` de `startHouse`, `startTools` y los contextos de pruebas directas. Para una prueba directa
@@ -722,8 +725,17 @@ el ayudante no bloquea la red de código que vos le entregues. Para lotes, vínc
 `MemoryHouseKeys`, o los casos de `programChecks`; el ayudante no simula esos lotes.
 
 Al actualizar un programa:
+- El estado recibido, incluido el de cada cálculo, es de solo lectura hasta el fondo. No lo uses como memoria del
+  proceso ni cambies mapas, listas, conjuntos u objetos recibidos. Para calcular, devolvé valores nuevos; para
+  cambiar la casa, pedí una acción autorizada. Las conversiones de tipo y `Object.assign` también fallan al correr.
+- Las vistas usan proxies: `structuredClone` o serializadores nativos sobre la vista recibida no son una copia
+  pública del estado. Armá los datos propios que necesitás con sus campos, listas y mapas. La base sí convierte
+  internamente las partes de estado devueltas como datos de un resultado antes de guardarlas.
 - Quitá `keys` de opciones, contextos y arranques; `KeyStore` solo queda para adopción explícita. Cambiá `Tool.start`
-  a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios. Un arranque ya no ejecuta acciones ni accede al registro: trasladá esa ejecución a una acción explícita del programa o expresá el cambio como hechos mediante el bus de arranque.
+  a `ToolStartup` y las pruebas directas a `noCapabilities` cuando no necesiten servicios. El arranque no accede al registro ni recibe `Execution`: pide acciones con `act`, siempre como la mente de su
+  propia herramienta. Expresá los cambios del programa como efectos de una acción de su kit pedida por `act`;
+  pedí la escena también por `act`. El bus solo acepta sus credenciales originales y sus despertares, sin autor
+  elegido por el programa; cualquier otro hecho se rechaza también dentro de `together`.
 - Mové lectura, validación del material, firma, I/O y resolución a adaptadores declarados. Las acciones y callbacks
   trabajan con referencias; conservá `secret: true` y quitá `secretInputs` y `secretLimits.minLength` sin efecto.
 - Agregá `secretKeys`, métodos con esquemas cerrados y permisos, y `credentialSlots`. Usá `revision(slot)`, incluso
@@ -875,15 +887,12 @@ Al actualizar un programa:
   valor que da la acción (`also.opens` solo sirve para las primeras).
 - Menús en una herramienta que no tiene cosas (hoy un menú cuelga de una cosa).
 - Una vista previa con forma propia: hoy lo que se confirma es texto, en una o varias líneas.
-- Disparar una acción por fecha (un abono que genera a una hora): la casa tiene reloj para sus recordatorios, no para
-  las acciones de un programa.
 - Suprimir de verdad un dato del registro, dejando el hecho (un pedido de supresión de datos personales).
-- **Lo que una acción escribe queda entero o nada, salvo en un caso:** una acción que alguien ejecuta dentro de un
-  oyente de un hecho suelto (uno que no vino de una acción: un despertar, un arranque) cierra su escritura antes de
-  que sus propios oyentes la oigan; si uno de ellos falla, la acción ya contestó que sí. Un ser que actúa al oír
-  hechos (Kenon) lo va a necesitar resuelto.
-- Un oyente con estado propio (el reloj y sus temporizadores, una pantalla) no se deshace cuando se deshace lo
-  escrito: puede quedar un temporizador de un hecho que no existe.
+- Una llamada interna directa a `execute` dentro de un oyente de un hecho suelto todavía puede cerrar su escritura
+  antes de oír a sus propios oyentes. El puerto `ToolStartup.act` resuelve este caso para la mente: difiere la
+  ejecución hasta salir de la entrega del hecho y recién contesta después de escribir con sus oyentes.
+- Los efectos externos o la memoria privada que un oyente cambió antes de que falle una escritura no se revierten
+  con el registro. Los hechos que aún esperaban en la cola sí se retiran: nunca se entregan después de deshacerse.
 - Un pliegue tiene que ser puro: si cambia su estado en el lugar (`mapa.set(…)`), deshacer lo escrito no lo deshace.
   La base todavía no lo comprueba.
 - Una devolución de plata sin cosas y un rechazo que deje escrito lo que contestó el fisco: pedidos de Capibara que
@@ -1015,8 +1024,13 @@ toda la escritura; el grupo se guarda en una transacción después de restaurars
 la versión del programa y de la base, además del vocabulario y los iniciales. Un plegado sin esas identidades se
 reconstruye una vez. El sobre lleva SHA-256 de los bytes serializados del plegado completo: si falta o no coincide,
 se descarta, se reconstruye y se avisa. Los plegados de formato 3 sin suma se reconstruyen una vez.
-Una suma de control detecta daño, no autentica archivos: alterar el estado y recalcular también su suma a propósito
-sigue fuera de lo garantizado en ejecución; la comparación de la compuerta contra el registro sí lo detecta.
+Una suma de control detecta daño, no prueba que el estado corresponda al registro. Antes de usar una instantánea
+al abrir la casa, la base vuelve a plegar el prefijo desde cero y compara estado completo y reloj. Si difieren,
+la descarta, lo dice por `SAVED_FOLD_REBUILT` y reconstruye el grupo antes del arranque del programa y de la cola
+posterior. Esto incluye instantáneas de versiones anteriores con suma válida y autoridad cambiada sin hechos.
+La comprobación ocurre también si la instantánea declara secuencia cero. Abrir tiene el costo de ese plegado;
+una instantánea válida ya no evita verificar el prefijo. Las pruebas de actualización siguen rechazando una
+instantánea divergente como evidencia de un cálculo correcto, aunque la casa pueda repararla al abrir.
 
 Cada descarte dice el nombre del plegado y el motivo: formato anterior o desconocido, bytes ilegibles, secuencia
 inválida o adelantada, otro registro, cálculos distintos, nombre retirado o un grupo dependiente incompleto.
@@ -1026,7 +1040,7 @@ no escriben `tool-entry` ni agregan historia por reconstruir. Diez aperturas del
 identidades, dejan exactamente los mismos hechos. El arranque de `startHouse` conserva su hecho de ciclo de vida
 `boot`, independiente de los avisos; también siguen siendo hechos los resultados reales de las herramientas.
 Los pares de estado y reloj se conservan por identidad dentro de la misma versión de cálculos: cada identidad
-reconstruye la primera vez y después retoma desde su último hecho, aunque otras hayan abierto en el medio.
+reconstruye la primera vez y después verifica su prefijo y procesa la cola, aunque otras hayan abierto en el medio.
 No se comparten estados calculados para personas distintas. Un cambio de versión retira los pares anteriores.
 Una apertura sin descartes no repite el aviso. Quien usa `SqliteJournal` directamente recibe stderr o pasa un
 receptor de diagnósticos como tercer argumento.
@@ -1059,7 +1073,8 @@ Los programas existentes pueden seguir usando sus puertos locales:
 terminal. Las llaves reales y su revocación individual llegan en el paso 3; sacar la identidad ya corta su conexión.
 
 El marco lleva largo uint32 big-endian (cuenta el byte de tipo y el cuerpo), un byte de tipo y el cuerpo.
-Tipo 0: JSON UTF-8 válido, hasta 1 MiB, validado con TypeBox de ambos lados. Tipo 1: tramos de 64 KiB de un
+Tipo 0: JSON UTF-8 válido, hasta `actLimits.inputBytes` (1 MiB, el tope de los datos de un acto) más 64 KiB para el
+sobre, validado con TypeBox de ambos lados. Tipo 1: tramos de 64 KiB de un
 mensaje `node:v8`, solo de la casa al cliente terminal; cada marco sigue limitado a 16 MiB, el estado completo no. Un cliente nunca puede enviar tipo 1. `hola` autentica primero y recién después exige igualdad de protocolo y
 versión completa de Node; quien no entró no recibe esas versiones. El protocolo actual es 3; los límites y la versión están en `src/catalogs/levers.ts`. Los esquemas exactos están en
 `src/doors/socket/protocol.ts`. Todos los objetos JSON llevan `tipo` y rechazan propiedades adicionales:
@@ -1220,7 +1235,7 @@ por ese control con el estado vigente. Sacar una acción corta también sus acto
 volver a darla habilita actos nuevos, sin resucitar los cortados. El resultado y la entrada quedan a nombre de la mente.
 Con la custodia, la mente usa los adaptadores declarados de su propia herramienta como una identidad que la tiene
 (`holds` en `house/house.ts`). Los vínculos de credenciales son por actor, herramienta y destino: la mente solo ve
-los que ella misma vinculó, y una identidad, los suyos.
+los que ella misma vinculó, y una identidad, los suyos (salvo la colisión de nombres anteriores que se explica abajo).
 
 El contexto ofrece `signal?: AbortSignal`: los contextos existentes siguen compilando. Una acción larga puede
 escucharla o pasarla a operaciones que admitan corte. El oyente vivo reevalúa cada hecho de la casa, sin lista de
@@ -1277,10 +1292,16 @@ antes de subir. `mind:` es un nombre reservado: ninguna identidad puede llamarse
 anterior que tenga una identidad `mind:…` se pliega distinto; no se corrige ni renombra en el plegado. En particular,
 si `mind:jefe` creó la casa, ese `house-created` se ignora y un siguiente `house-created` de `ana` deja a Ana como
 administradora. Los `granted` para `mind:…` quedan en el registro pero no incorporan esa identidad a la casa.
+Las credenciales de aquella identidad sí quedan en el mismo alcance: actor, herramienta y destino son los mismos
+textos. Si una identidad anterior `mind:vault` vinculó una credencial de `vault`, la mente de `vault` la puede usar
+cuando recibe el kit para esa acción. Sin kit se rechaza antes de usar el adaptador. No se renombra ni se corrige
+esa colisión en el plegado: el programa debe resolverla antes de subir.
 No se agrega `message`. Quien construye `House` a mano agrega `kits` y `scenes` vacíos o parte de
 `emptyHouse`. `Need.to` es opcional y la entrada `testing.ts` no suma exportaciones.
-La versión de cálculos de la base pasa a `desert/6`: al actualizar se reconstruyen los plegados, también los de
-la primera vuelta (`desert/2`), para borrar los kits al recibir la administración y reconocer el nombre que una identidad escribe sobre sí. En versión manual,
+La versión de cálculos de la base pasa a `desert/7`, nueva en la unión del kit, el servidor y la mente (ninguna rama
+la usó): al actualizar se reconstruyen los plegados anteriores, también los de la primera vuelta (`desert/2`) y
+los de `desert/3` a `desert/6`, para borrar los kits al recibir la administración, reconocer el nombre que una
+identidad escribe sobre sí y conservar el primer dueño de cada despertar. En versión manual,
 la evidencia guardada debe renovarse con la entrega comprobada, conservando la anterior durante su control.
 
 La composición puede pedir `identities: true`: quien administra tiene todas las acciones de cada herramienta, sin asignación; también recibe sus recordatorios. Sin esa opción, la asignación de herramientas conserva su comportamiento anterior. Un recorte sin acciones apaga los recordatorios y excluye la herramienta de Atención, aunque siga en el kit para la preferencia de lo ajeno. La superficie y la ejecución consultan el mismo permiso por acción.
@@ -1395,3 +1416,123 @@ usa `names` para el nombre mostrado y conserva los sacados desde `removed`; la r
 Los programas sin el pedido conservan su composición. No se exige trasladar Usuarios de otro programa en este paso.
 El lugar de escritura de escenas, el stack Mentes, más de nueve filas de edición, la llave mostrada una sola vez
 y la ubicación de la puerta siguen pendientes del dueño o del carril correspondiente.
+
+
+## La mente de una herramienta desde su proceso
+
+El programa le da una mente en cero a la herramienta implementando `start(ports)`: escucha un hecho y pide
+`ports.act({ act: "anotar", target: "notas", input: {} })`. La casa fija `mind:notas`; el programa no pasa ni
+elige autor. Puede pedir acciones declaradas de Notas, incluidas las de sus cosas, según su kit, y su propia
+`scene` sin kit. Otra herramienta, los actos propios del programa y las preferencias siguen fuera de su alcance.
+Los rechazos son los mismos de `execute`: por ejemplo, sin kit o fuera de él dice «fuera del kit», una herramienta
+que ya no está dice «sin acceso», y la forma inválida dice «datos inválidos». La acción recibe sus adaptadores con el alcance de la mente, no el del proceso que abrió la casa.
+Los adaptadores del arranque y sus credenciales se prestan a la misma mente; su objeto es la propia herramienta.
+
+```ts
+start({ bus, act, now }) {
+  const stop = bus.on("woke", event => {
+    if (event.layer === "house" && event.data.id === "notas:revisar") {
+      void act({ act: "anotar", target: "notas", input: {} }).then(resultado => {
+        // El proceso recibe el estado final y, si lo hay, el motivo del rechazo.
+      });
+    }
+  });
+  bus.emit({ layer: "house", kind: "wake-at", data: { id: "notas:revisar", at: now() + 60_000 } });
+  return stop;
+}
+```
+
+El reloj persiste `wake-at`; al reabrir programa lo pendiente, aunque ya venció, y un `woke` entregado no se repite.
+Un ID nuevo empieza por `encodeURIComponent(idDeHerramienta) + ":"`. El primer pedido fija su dueño en el
+registro, incluso después de cancelarlo o reabrir. Los IDs anteriores conservan ese primer autor. Si fue una mente,
+esa mente puede reprogramarlos aunque no usaran
+el prefijo nuevo. Si fue una identidad, quien administra puede cancelarlos mediante
+`house.cancelInheritedWake(identidadAutenticada, id)`; ninguna mente puede hacerlo. La identidad debe provenir de
+la puerta autenticada, igual que en las demás operaciones de la casa. La mente sigue con un ID propio. El espacio
+`attention:[…]` de las personas está reservado. Por el bus del arranque otra herramienta no puede reemplazar ni
+cancelar ese despertar ni escribir `woke`. Los efectos de sus acciones pasan por la autoridad del kit (garantía 219):
+con otro autor, un hecho de la casa o uno de otra herramienta rechazan el lote entero; solo se escriben los hechos que
+declara su herramienta en `facts`, a nombre de la mente.
+Volver a escribir el ID propio reemplaza su fecha; `at: null` lo cancela. El ejemplo
+programa una fecha nueva cada vez que arranca; para mantener una fecha de negocio entre arranques, el programa la
+pide sólo cuando corresponde según su estado plegado. No hay reintento automático del acto.
+Un despertar puede quedar consumido justo al cerrar, antes de ejecutar el acto diferido. Por eso el programa
+no depende solo de oír `woke`: conserva el trabajo pendiente en su estado, lo revisa al arrancar y ejecuta una
+acción que lo marca cumplido junto con su resultado. `tests/support/zero-mind.ts` y `zero-house.ts` lo prueban
+con una reapertura en la misma tarea del despertar, y una segunda reapertura que no repite el trabajo.
+
+`act` siempre resuelve su promesa con estado y motivo opcional; nunca la rechaza. Una entrada cíclica, con
+`BigInt`, accesores, conversiones propias, instancias, `Map`, `Set`, fechas o `-0` devuelve «datos inválidos».
+La entrada admite hasta `actLimits.inputBytes` (1 MiB) de bytes JSON del acto, su destino y su entrada, el mismo
+tope de los datos de un acto en toda puerta; se rechazan los datos que exceden ese límite. Un marco JSON del socket
+admite ese tope más 64 KiB para el sobre, así que lo que la mente puede pedir también entra por la terminal. Que la casa
+exija el tope en la ejecución para toda puerta queda para el paso de contratos: hoy la terminal todavía lleva un acto
+entre los dos topes. Una falla interna
+devuelve «E-BASE-1 · Falló la base»
+y deja un diagnóstico; si el registro también falla, se intenta informar esa pérdida por la salida de diagnóstico.
+La petición se ejecuta en otra tarea, después de terminar la entrega del hecho y su transacción, por `execute`
+como primer nivel. Conserva la causa del hecho que se estaba oyendo cuando nació el pedido, también si una
+continuación termina más tarde o la libera otro hecho. Fuera de una escucha no inventa causa. Si esa escritura
+o el `together` del pedido se deshacen, rechaza sin escribir nada a nombre de la mente. Cada acto cede una tarea
+para intercalar personas y reloj. Una cadena de actos de la misma mente causada por sus propios actos llega
+a 32; el siguiente se rechaza con el motivo de límite de cadena, sin ejecutarse, y deja un diagnóstico a nombre
+de la mente. El tope solo cuenta cadenas causadas por actos propios: un proceso que actúa por su propio reloj no
+tiene ese tope y recibe el turno que le da la casa. Al ejecutar consulta el kit
+vigente. Lo escrito por la acción y por sus oyentes se confirma junto o se deshace junto; la mente recibe el
+rechazo si un oyente falla. Quedan el intento y su resultado/diagnóstico como para una persona. Los efectos sobre
+el mundo o la memoria privada de un oyente no son una transacción del registro.
+
+Cerrar el proceso invalida su puerto, incluidas peticiones todavía diferidas. Un acto ya iniciado queda en el
+registro; si la casa se reinicia a mitad, el arranque lo cierra como interrumpido. No se entrega `Execution`, registro
+de herramientas, custodia ni resolvedor, ni en el resultado de `act`. El bus solo admite los comandos originales
+de `credentials.replace`/`release` y `wake-at` propio. La casa fija el autor; otro autor o cualquier otro hecho
+—del programa o de la casa, incluida `scene`— se rechaza antes de guardar nada. El rechazo de un hecho
+indica usar `act`; el de un despertar inválido o ajeno indica pedir un despertar propio por el bus. El tipo impide
+publicar hechos comunes, fabricar credenciales o elegir autor.
+
+
+### Escrituras conjuntas, también dentro de otras
+
+`bus.together(() => …)` escribe entero o nada: al fallar restaura los hechos, la secuencia y los plegados.
+Cada escritura anidada tiene su propio punto de guardado. Si la interna falla y el programa atrapa el error,
+la externa conserva lo anterior y puede seguir; si falla la externa, también desaparece lo que confirmaron
+las internas. Confirmar la interna todavía no confirma la externa.
+
+Cuando se escribe desde un oyente, los hechos nuevos esperan en la cola. Si esa escritura se deshace,
+sus hechos salen de la cola antes de continuar la entrega: no llegan después al reloj, a los oyentes ni a los
+cálculos que escuchan el bus. Se conserva el orden de lo que sí quedó. Cerrar y reabrir no revive lo deshecho.
+Los pliegues del registro y el estado del reloj se restauran al punto de guardado: deshacer un pedido, un
+reemplazo o una cancelación recupera la fecha anterior, sin dejar un temporizador huérfano. Los oyentes que
+ya participaron de la escritura siguen siendo sincrónicos; sus efectos externos no se deshacen con SQLite.
+
+El pedido diferido de una mente conserva la confirmación de su causa y de todas las escrituras que lo rodean.
+Si alguna se deshace, rechaza sin escribir; si la causa quedó guardada, otra escritura fallida no la invalida.
+La confirmación pertenece a la escritura, no solo al ID: un ID retirado puede reutilizarse al reintentar.
+Las casas de prueba comprueban al cerrar cada instancia que toda causa de todo hecho existe en ese registro.
+No cambia la firma de `together`; un programa que atrapaba un fallo interno ahora ve realmente retirado lo
+que se escribió dentro, tanto en el estado vivo como al reabrir.
+
+La causa interna de un dato de custodia identifica una sesión o un motivo de mantenimiento. Se conserva allí,
+pero el recibo que lo lleva al registro no la repite como si fuera el ID de un hecho. Los registros ya escritos
+no se reescriben ni se inventan hechos para completar referencias antiguas.
+
+
+## El estado que lee un programa
+
+`State<X>` es de solo lectura hasta el fondo: objetos, listas, mapas, conjuntos y valores dentro de ellos.
+Esto vale para `start().state()`, vistas y pantallas propias, resúmenes, necesidades, ofertas, actos y sus
+validadores, efectos y los argumentos de `Slices.step`. Cambiar una referencia recibida lanza `TypeError`,
+incluidos los accesos por iteradores, `forEach`, descriptores o métodos nativos de colección. La autoridad
+sigue siendo la del registro: una mente no se da un kit ni cambia la administración desde una lectura.
+Los errores del programa conservan el diagnóstico habitual de la puerta que los recibió.
+
+La base mantiene vistas por referencia y protege cada parte al leerla. No copia ni recorre la casa en cada
+`state()`: releer una misma parte reutiliza su vista. Una lectura anterior sigue mostrando su pliegue anterior;
+para ver un acto posterior, volvé a pedir el estado. Un cálculo puede reutilizar partes de su entrada o crear
+mapas y objetos nuevos; la base se queda con sus datos nuevos, sin dejar que una referencia mutable retenida
+por el cálculo cambie después lo guardado. Los callbacks deben seguir siendo puros: la verificación al abrir
+puede llamarlos otra vez. Un cambio válido siempre nace de los hechos, no de modificar la lectura.
+
+Los iniciales, el plegado interno y las instantáneas quedan bajo control de la base. Al deshacer una escritura
+se restauran esos datos, y la siguiente lectura recibe la vista de ese pliegue. Al cerrar y reabrir se verifica
+el estado guardado contra el registro antes de entregarlo a cualquier arranque.

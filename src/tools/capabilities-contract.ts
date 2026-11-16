@@ -6,10 +6,12 @@ export type Credential = Readonly<{ revision: number; refs: SecretRefs }>;
 export type CredentialScope = Readonly<{ actor: string; tool: string; target: string }>;
 export type PublicMethod = (input: unknown) => Promise<unknown>;
 export type PublicPorts = Readonly<Record<string, Readonly<Record<string, PublicMethod>>>>;
+export const credentialCommand = Symbol("credential-command");
+type CredentialCommand = HouseEmission<"tool-entry"> & { readonly [credentialCommand]: true };
 export interface CredentialOperations {
   current(slot: string): Credential | undefined;
   revision(slot: string): number;
-  replace(slot: string, refs: SecretRefs, expected: number): HouseEmission<"tool-entry">;
-  release(slot: string, expected: number): HouseEmission<"tool-entry">;
+  replace(slot: string, refs: SecretRefs, expected: number): CredentialCommand;
+  release(slot: string, expected: number): CredentialCommand;
 }
 export type ToolCapabilities = Readonly<{ ports: PublicPorts; credentials: CredentialOperations }>;

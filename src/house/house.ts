@@ -1,4 +1,5 @@
 export { checkCreation, checkIdentity, guardJournal, InvalidCreation } from "./identity/guards.ts";
+import { readonlyState } from "../journal/readonly-state.ts";
 // A house: tool grants, action kits, shared scenes, preferences and reading.
 import { ids } from "../catalogs/ids.ts";
 import type { Hideable } from "../catalogs/acts.ts";
@@ -74,13 +75,14 @@ export function houseStep(state: House, event: Event): House {
 export const allowed = (house: House, by: string, tool: string): boolean =>
   (house.identities === true && by === house.admin && house.grants.has(by)) ||
   house.grants.get(by)?.includes(tool) === true;
-export const identityView = <S extends HouseView>(state: S, by: string): S => ({
-  ...state,
-  by,
-  attends: by === state.by ? state.attends : (state.attendance.get(by) ?? []),
-  attention: state.attentionBy.get(by) ?? noAttention,
-  entries: state.entries,
-});
+export const identityView = <S extends HouseView>(state: S, by: string): S =>
+  readonlyState({
+    ...state,
+    by,
+    attends: by === state.by ? state.attends : (state.attendance.get(by) ?? []),
+    attention: state.attentionBy.get(by) ?? noAttention,
+    entries: state.entries,
+  });
 export function createHouse(bus: HouseBus, { admin: by, assignments }: Creation): void {
   bus.emit(effect("house-created", {}, by));
   for (const { identity, tools } of assignments) bus.emit(effect("granted", { identity, tools: [...tools] }, by));

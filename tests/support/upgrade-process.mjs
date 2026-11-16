@@ -2,6 +2,7 @@ import { deepStrictEqual, strictEqual } from "node:assert/strict";
 import { startHouse } from "../../src/programs/house-runtime.ts";
 import { shopProgram, shopSlices } from "./shop.ts";
 import { startState, toolsStep } from "../../src/tools/tools.ts";
+import { stateResult } from "../../src/journal/readonly-state.ts";
 
 const mode = process.argv[2];
 if (!["old", "update", "reopen", "crash"].includes(mode)) throw new Error("Choose old, update, reopen or crash");
@@ -46,7 +47,7 @@ try {
   );
   console.log(JSON.stringify({ mode, total, replay: again.tools.sales.get("s1")?.total }));
   strictEqual(total, factor * 10);
-  deepStrictEqual(house.tools.state(), again);
+  deepStrictEqual(stateResult(house.tools.state()), again);
 } finally {
   house.close();
 }

@@ -1,5 +1,8 @@
 import { checkComposition, checkOwn } from "./execution/composed-authority.ts";
 import { attentionEffects, reminderId } from "./attention-effects.ts";
+import { readonlyPorts } from "./boundaries/readonly-ports.ts";
+import { readonlyState, stateResult } from "../journal/readonly-state.ts";
+import { openActs } from "./execution/open-acts.ts";
 import { startPrograms, programEffects } from "./boundaries/tool-listeners.ts";
 import { interrupt, watchRunning } from "./execution/running-acts.ts";
 // The house's own state and each tool's, folded together; attention as a perpetual, replayable ladder.
@@ -21,6 +24,7 @@ export const emptyHouseState: HouseState = initial({
   attendance: emptyMap<readonly string[]>(),
   processing: emptyMap(),
   acts: emptyMap(),
+  wakeOwners: emptyMap(),
   attentionBy: emptyMap<ReadonlyMap<string, Attention>>(),
   looked: emptyMap<ReadonlyMap<string, number>>(),
   entries: listOf(),
@@ -48,16 +52,6 @@ function attentionStep(state: ReadonlyMap<string, Attention>, event: Event): Rea
   }
   return next;
 }
-/** The acts still open: an act stays until its result, so what it caused can be traced to it. */
-function openActs(state: HouseState, event: Event): Pick<HouseState, "acts" | "processing"> {
-  if (event.layer !== "house") return state;
-  const acts = new Map(state.acts);
-  const processing = new Map(state.processing);
-  if (event.kind === "act") acts.set(event.id, event);
-  if (event.kind === "act-started") processing.set(event.data.act, event);
-  if (event.kind === "act-result") [acts, processing].forEach(open => open.delete(event.data.act));
-  return { acts, processing };
-}
 function houseStateStep<S extends HouseState>(state: S, event: Event): S {
   const process = processOf(event);
   const attendance = new Map(state.attendance);
@@ -82,8 +76,11 @@ function houseStateStep<S extends HouseState>(state: S, event: Event): S {
 }
 /** Every fact moves the house, and each tool moves what it keeps: the house never reads a tool's part. */
 export function toolsStep<X extends Program>(state: State<X>, event: Event<X["fact"]>, slices: Slices<X>): State<X> {
-  const tools = { ...state.tools };
-  for (const key in slices.step) tools[key] = programRule(() => slices.step[key](state.tools[key], event, state));
+  const tools: { -readonly [K in keyof State<X>["tools"]]: State<X>["tools"][K] } = { ...state.tools };
+  for (const key in slices.step)
+    tools[key] = programRule(() =>
+      stateResult(slices.step[key](readonlyState(state.tools[key]), event, readonlyState(state))),
+    );
   return { ...houseStateStep(state, event), tools };
 }
 export const attendanceActs = <X extends Program>(registry: ToolRegistry<X>): OwnAct<X>[] =>
@@ -120,12 +117,12 @@ const ownOf = <X extends Program>(ports: Starting<X>) => {
   };
 };
 export function startTools<X extends Program>(ports: Starting<X>) {
-  const { bus, state: read, registry, secrets } = ports;
+  const { bus, registry, secrets, state: read } = readonlyPorts(ports);
   let state = read();
   checkComposition(registry, state, ports.own);
   let live = true;
   const running: Execution<X> = {
-    ...ports,
+    ...readonlyPorts(ports),
     running: new Map(),
     live: () => live,
     process: ports.process ?? (() => false),

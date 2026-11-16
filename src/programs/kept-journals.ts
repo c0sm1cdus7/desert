@@ -1,3 +1,4 @@
+import { stateResult } from "../journal/readonly-state.ts";
 import type { AdapterComposition } from "../adapters/declared/adapter-contract.ts";
 import { copyJournal } from "../adapters/storage/copy-journal.ts";
 // The journals a program keeps of what organizations wrote with it: each still opens with the program of today.
@@ -47,7 +48,7 @@ function read<X extends Program>({ program, shown }: Kept<X>, house: ReturnType<
   const again = house.journal.replay(startState<X>(program.slices, runner, program.identities), (state, event) =>
     toolsStep<X>(state, event, program.slices),
   );
-  deepStrictEqual(again.tools, house.tools.state().tools);
+  deepStrictEqual(again.tools, stateResult(house.tools.state().tools));
   const admin = house.tools.state().house.admin;
   const tools = houseTools(
     localPorts(house, admin, { recentLines: 100 }, () => now),

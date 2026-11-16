@@ -1,3 +1,4 @@
+import { readonlyState } from "../../../journal/readonly-state.ts";
 // The same exact declaration is used for direct journal writes and read-only historical inspection.
 import { actCatalog } from "../../../catalogs/acts.ts";
 import { ids } from "../../../catalogs/ids.ts";
@@ -18,13 +19,13 @@ export function declaredInput<X extends Program>(
     if (builtin) return builtin[1].input;
   }
   const by = String(event.by);
-  const view = identityView({ ...state, entries: [] }, by);
+  const view = { ...identityView({ ...state, entries: [] }, by) };
   let entries: State<X>["entries"] | undefined;
   Object.defineProperty(view, "entries", {
     enumerable: true,
     get: () => (entries ??= identityView(state, by).entries),
   });
-  const own = options.own?.(view).find(act => act.object === object && act.option === option);
-  const tool = own ? undefined : targetTool(options.registry, view, String(object));
+  const own = options.own?.(readonlyState(view)).find(act => act.object === object && act.option === option);
+  const tool = own ? undefined : targetTool(options.registry, readonlyState(view), String(object));
   return (own ?? tool?.acts[String(option)])?.input;
 }

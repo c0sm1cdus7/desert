@@ -4,6 +4,7 @@ import { serialize } from "node:v8";
 import { socketHouse } from "../../../tests/support/socket-house.ts";
 import { shopRegistry, type Shop } from "../../../tests/support/shop.ts";
 import { identityView } from "../../house/house.ts";
+import { stateResult } from "../../journal/readonly-state.ts";
 import { localPorts } from "../../programs/house-runtime.ts";
 import { effect } from "../../journal/events.ts";
 import { settle } from "../../surface/bridge/house-ports.ts";
@@ -41,7 +42,8 @@ it("measures acts with 100, 2000 and 20000 entries, local and with one or five t
         times.push(performance.now() - start);
       }
       const localMs = median(times);
-      const view = identityView(f.house().tools.state(), "ana");
+      // The state is a read-only membrane since the mind (0c): the measure reads its plain parts.
+      const view = identityView(stateResult(f.house().tools.state()), "ana");
       const started = performance.now();
       const initialFrames = stateTransfer(view, undefined, f.house().now());
       const encodingMs = performance.now() - started;
@@ -53,7 +55,7 @@ it("measures acts with 100, 2000 and 20000 entries, local and with one or five t
           entries,
           initialBytes,
           encodingMs,
-          rawBytes: serialize(view).length,
+          rawBytes: serialize(stateResult(view)).length,
         })}\n`,
       );
     } finally {
@@ -108,7 +110,9 @@ async function measureRemote(
       measuredBytes += bytes - beforeBytes;
       measuredDeliveries += deliveries - beforeDeliveries;
       expect(done.status).toBe("accepted");
-      for (const c of clients) expect(c.connection.state()).toEqual(identityView(f.house().tools.state(), "ana"));
+      // Compare plain parts: walking the read-only membrane of 20.000 entries would measure the comparison instead.
+      const view = stateResult(identityView(stateResult(f.house().tools.state()), "ana"));
+      for (const c of clients) expect(c.connection.state()).toEqual(view);
     }
     const perAct = measuredBytes / limits.repetitions;
     const localMs = median(localTimes);

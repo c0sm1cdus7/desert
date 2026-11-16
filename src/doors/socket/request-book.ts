@@ -10,6 +10,8 @@ import type { Program } from "../../tools/tool-contract.ts";
 import type { RequestAct, ResultMessage, ServerMessage } from "./protocol.ts";
 type Saved = { content: string; id: string; effects: ResultMessage["efectos"]; result?: ResultMessage };
 const prefix = "socket-request:";
+/** The two causes of a socket act that name the door's request, not a fact: its key and its content's hash. */
+export const requestCauses = [prefix, "socket-content:"] as const;
 const requestKey = (by: string, id: string) => `${prefix}${JSON.stringify([by, id])}`;
 function receipt(event: Event): ResultMessage["efectos"] {
   if (event.layer !== "house") return [];

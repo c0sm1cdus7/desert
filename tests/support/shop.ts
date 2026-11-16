@@ -13,6 +13,8 @@ export const shopCatalog = {
   "sale-registered": object({ sale, total: money("Total") }),
   "slow-written": object({ sale, total: money("Total") }),
   "batch-sale-registered": object({ sale, total: money("Total") }),
+  /** What a zero mind of the tests notes when it wakes; it folds as a sale (zero-mind.ts). */
+  "mind-noted": object({ sale, total: money("Total") }),
   "sale-settled": object({ sale, amount: money("Monto") }),
   "sale-corrected": object({ sale, total: money("Total"), paid: money("Cobrado") }),
   "payment-received": object({
@@ -28,7 +30,7 @@ export const shop = vocabulary(shopCatalog);
 /** What each tool of the shop keeps. */
 export type Sales = ReadonlyMap<string, Readonly<{ total: number; paid: number; by: string }>>;
 export type Payments = Readonly<{ received: number; unmatched: readonly string[] }>;
-export type Shop = { fact: ShopFact; tools: { sales: Sales; payments: Payments } };
+export type Shop = { fact: ShopFact; tools: { sales: Sales; payments: Payments; desk?: ReadonlyMap<string, string> } };
 export const shopSlices: Slices<Shop> = {
   initial: { sales: new Map(), payments: { received: 0, unmatched: [] } },
   step: { sales: salesStep, payments: paymentsStep },

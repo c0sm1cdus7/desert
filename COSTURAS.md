@@ -47,6 +47,18 @@ resultados de acciones. El bus público de arranque se cierra en el carril de la
   en `offered`, `stops`, `among` o `holding`; `refuse` ya no existe. El programa ofrece actos propios por `own`,
   solo para identidades. La casa agrega preferencias, atender y dejar de atender para identidades;
   identidades y mentes escriben su propia `scene`. Una mente no recibe los actos de `own` del programa.
+- `Tool.start` puede ser la mente en cero: escucha hechos y llama `ToolStartup.act({ act, target, input })`.
+  La casa fija `mind:<id de esa herramienta>` y pasa por `execute`, con su kit, su escena y sus adaptadores.
+  La promesa siempre resuelve: difiere a otra tarea, conserva la causa de la escucha original incluso en
+  continuaciones, y rechaza si esa escritura o el `together` del pedido se deshicieron. Sus escrituras y las de
+  sus oyentes quedan juntas o se deshacen. La cadena propia admite 32 actos; el siguiente recibe rechazo y deja un diagnóstico visible. El proceso con
+  reloj propio no cuenta como cadena. Los efectos de los actos quedan sujetos al cierre de autoridad del kit.
+  El bus solo escribe credenciales originales y `wake-at` propio, con autor fijado por la casa; rechaza todo
+  otro hecho o autor. Un ID nuevo empieza por `encodeURIComponent(herramienta) + ":"`; conserva el primer dueño,
+  aun cancelado o anterior a esta versión. El espacio `attention:[…]` queda reservado a la casa.
+  El bus del arranque no escribe `woke`. Las fechas pendientes sobreviven al reinicio; al arrancar, el programa revisa
+  su estado para recuperar trabajo de un despertar consumido justo al cerrar, sin repetir lo cumplido.
+  No se publica el motor, registro de herramientas, custodia ni resolvedor; cerrar invalida el puerto.
 - Las acciones y los arranques reciben métodos públicos de adaptadores declarados y operaciones de vínculos.
   La custodia y la limpieza de secretos son capacidades internas del motor; `KeyStore` queda solo para adopción.
 
@@ -235,7 +247,7 @@ formato 4 llevan una suma SHA-256 del contenido serializado, además de la ident
 es atómico y una restauración fallida no publica plegados. La decisión de compatibilidad queda concentrada en
 `snapshot-format.ts`, que también exige la identidad de cálculos del programa y de la base (A04).
 Cada descarte deja un aviso con motivo en stderr; al restaurar la casa, también en su registro de diagnósticos.
-La identidad se asigna al abrir registros anteriores. Una alteración manual de archivos queda fuera de la garantía.
+La identidad se asigna al abrir registros anteriores. Una instantánea semánticamente distinta del registro se descarta incluso si conserva una suma válida.
 La primera `codeProjectionVersion` de una declaración fija la huella de código y Node durante el proceso;
 `projectionVersion` lee los bytes actuales para las comprobaciones. Una restauración
 fallida impide guardar plegados durante toda la vida de esa instancia, aun si después logra reintentarlo.
@@ -248,10 +260,18 @@ Si el proceso lee o copia por su cuenta el auxiliar con funciones de archivos, s
 La base nunca lo hace; `copyJournal` es la copia permitida del registro abierto. Un avance ajeno del registro
 o una transacción de escritura ajena hacen fallar con `WriterLeaseLost`, sin escritura parcial ni reintento
 en esa instancia. `WriterAlreadyOpen` distingue la contención al abrir. SQLite crea auxiliares nuevos en modo 600.
-Los plegados se conservan por identidad y versión: alternar personas retoma sus colas, sin recomenzar siempre.
+Los plegados se conservan por identidad y versión: al abrir la casa se verifica el prefijo desde cero antes de retomar la cola.
 `renewKeptJournals`, disponible desde testing, renueva la evidencia manual de una entrega sin nuevos hechos.
 La compuerta resume la lista de comprobaciones en `tests/program/setup.ts` antes de lanzar las partes; cada
 parte coteja su lista. Quien usa la base incorpora ese archivo en `globalSetup` de Vitest.
+
+`bus.together` retira de la cola los hechos que agregó una escritura deshecha, antes de continuar la entrega.
+`SqliteJournal.batch` abre un punto de guardado por nivel: restaura hechos, secuencia y plegados del nivel
+fallido, y confirmar uno interno no impide que la escritura externa deshaga todo. El punto anidado guarda los
+plegados por referencia y solo el más externo los copia: un lote largo no copia los plegados por cada hecho. Las casas de prueba
+comprueban al cerrar que no hay causas ausentes en todo el registro.
+El reloj registra su restauración en cada escritura abierta con `onRollback`: si una falla, recupera sus fechas
+y rearma la anterior. El bus de arranque sigue exponiendo solo `on`, `emit` y `together`.
 
 - Identidades del core vive en `src/tools/core/identities/`: usa el contrato declarado para la Lista y los Hilos,
   sin slice ni proceso. `startHouse` la compone solo con `identities: true`; `houseTools` incorpora sus palabras.
@@ -351,3 +371,23 @@ miden alternados y solo se informan. Los plazos de presión se verifican con rel
 
 `client-requests.ts` conserva las consultas inciertas rechazadas por cupo y las reintenta al segundo, con un
 solo temporizador cancelable por conjunto pendiente. La recuperación sigue consultando; nunca repite actos.
+
+
+## El programa lee el estado, no lo cambia
+
+`journal/readonly-state.ts` mantiene vistas de solo lectura por referencia; protege cada parte al accederla,
+sin copiar el estado entero por lectura. `State` y los argumentos de `Slices.step` llevan el contrato profundo
+para mapas, conjuntos, listas y objetos. Arranques, efectos y el estado público usan `readonlyPorts`;
+`identityView` también protege los objetos que arma para actos y superficies. La resolución de declaraciones
+de la custodia termina de armar su vista antes de protegerla. Un intento de escritura falla a la vista.
+
+Un programa que sube debe devolver datos nuevos desde sus cálculos y pedir acciones para cambiar la casa.
+No puede guardar memoria privada en el estado recibido. Los proxies no sirven como entrada directa a
+`structuredClone`: el programa arma sus propios datos cuando necesita una copia. Los resultados que reutilizan
+partes leídas sí se convierten internamente antes de guardarse; el programa no recibe el objeto interno.
+
+`houseProjections` exige verificar el estado guardado y el reloj contra el prefijo plegado desde cero, antes
+que el arranque o cualquier cola puedan usarlos. `verify-saved` conecta esa comprobación al almacenamiento y
+`verify-projections` compara todos los plegados dependientes. Una diferencia descarta el grupo con su aviso;
+la compuerta de actualización conserva esa diferencia como falla de evidencia. Verificar al abrir cuesta un
+plegado del prefijo, aun con instantáneas válidas. La lectura ordinaria no paga ese costo.

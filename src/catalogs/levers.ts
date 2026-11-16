@@ -8,14 +8,17 @@ export type ViewLimits = Readonly<{ recentLines: number }> &
   Readonly<{ now: number }>;
 
 /** Bump whenever the base changes how its own facts fold. */
-export const baseProjectionVersion = "desert/6";
+export const baseProjectionVersion = "desert/7";
 
 /** Bounded descriptions: one shared scene and a part for each identity. */
 export const sceneLimits = { general: 4000, each: 1000, identities: 64, name: 160 } as const;
+/** One bound for the JSON data of one act, whatever door it enters by: the act and its target and input. */
+export const actLimits = { inputBytes: 1024 * 1024 } as const;
 /** Local house wire: equality includes the complete Node version because state uses v8 serialization. */
 export const houseProtocolVersion = 3;
 export const socketLimits = {
-  json: 1024 * 1024,
+  /** A JSON frame holds an act within its bound plus room for the envelope, so what a mind may ask also travels. */
+  json: actLimits.inputBytes + 64 * 1024,
   state: 16 * 1024 * 1024,
   chunk: 64 * 1024,
   helloMs: 5000,

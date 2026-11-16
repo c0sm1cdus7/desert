@@ -32,7 +32,7 @@ function factEntry(facts: readonly CredentialFact[]) {
       detail: { custodyBatch: facts },
     },
     fact.actor,
-    [fact.cause],
+    // Custody causes name sessions or maintenance reasons, not facts in this journal.
   );
 }
 function commitBoundary() {

@@ -70,9 +70,10 @@ describe("what each tool keeps", () => {
     expect(Object.keys(emptyHouseState).sort()).toEqual(
       [
         ...["acts", "attendance", "attends", "attention", "attentionBy", "looked"],
-        ...["by", "entries", "house", "processing", "through"],
+        ...["by", "entries", "house", "processing", "through", "wakeOwners"],
       ].sort(),
     );
+    expect(emptyHouseState.wakeOwners).toEqual(new Map());
     expect(Object.keys(startState<Shop>(shopSlices, "ana").tools)).toEqual(["sales", "payments"]);
   });
 

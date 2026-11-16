@@ -1,3 +1,4 @@
+import { verifiedAfter, restorationOf } from "./verify-saved.ts";
 // Append-only facts; replay folds the complete journal without publishing effects.
 import { ProjectionGroup } from "../../journal/projections.ts";
 import { snapshotEvery } from "../../catalogs/levers.ts";
@@ -8,6 +9,7 @@ import { journalIdentity } from "./journal-identity.ts";
 import type { FoldWarning } from "../../journal/snapshot-format.ts";
 import { snapshotWarning } from "./storage-notices.ts";
 import { journalPosition } from "./journal-position.ts";
+import { journalTransaction } from "./journal-transaction.ts";
 import { writerLease } from "./writer-lease.ts";
 import { privateDatabase } from "./home.ts";
 import { DatabaseSync } from "node:sqlite";
@@ -77,35 +79,32 @@ export class SqliteJournal<P extends Foreign = Foreign> {
     }
   }
   restoration() {
-    return {
-      reused: [...this.projections.caches.values()].every(cache => cache.reused),
-      warnings: [...this.warnings],
-    };
+    return restorationOf(this.projections, this.warnings);
   }
-  /** Several facts written whole or not at all. One that does not fold is never kept: neither it nor what was
-   * written with it stays, on disk or in what is folded, and whoever wrote hears why. */
+  /** Each batch restores its own rows, position and folds on failure, including nested batches. */
   batch<T>(write: () => T): T {
     this.lease.check();
-    if (this.batching) return write();
-    this.position.begin();
+    const nested = this.batching;
+    const transaction = journalTransaction(this.db, this.position, nested);
     const position = this.position.mark();
     this.batching = true;
-    const back = this.projections.mark();
+    // Each fact appended inside a batch is a nested batch: copying every fold there made a long batch quadratic.
+    const back = this.projections.mark(!nested);
     const restored = this.restored;
     try {
       this.position.check();
       const done = write();
       this.lease.check();
-      this.db.exec("commit");
+      transaction.commit();
       return done;
     } catch (error) {
-      this.db.exec("rollback");
+      transaction.rollback();
       position();
       back();
       this.restored = restored;
       throw error;
     } finally {
-      this.batching = false;
+      this.batching = nested;
     }
   }
   append(emission: Emission<P>, at: number): Event<P> {
@@ -153,7 +152,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
     );
   }
   /** Restores watched folds; drops names outside them and the explicitly retained calculation family. */
-  restore(retainPrefix = ""): void {
+  restore(retainPrefix = "", verify = false): void {
     this.restored = false;
     try {
       this.batch(() => {
@@ -166,7 +165,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
         const names = watched.map(() => "?").join(", ");
         this.lease.check();
         this.db.prepare(`delete from snapshots where name not in (${names})`).run(...watched);
-        this.replay(null, (_, event) => this.projections.fold(event), this.projections.after());
+        this.replay(null, (_, event) => this.projections.fold(event), verifiedAfter(this.projections, this, verify));
       });
     } catch (error) {
       this.restoreFailed = true;

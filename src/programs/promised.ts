@@ -1,3 +1,4 @@
+import { stateResult } from "../journal/readonly-state.ts";
 // Every check a program's promises derive: nobody writes them. Each case is a check; so is each law of every act.
 import { addresses } from "../catalogs/addressing.ts";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
@@ -72,7 +73,7 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
       if ("refused" in kase.then) {
         deepStrictEqual([done.status, done.reason], ["rejected", kase.then.refused], said.refusalMismatch);
         deepStrictEqual(wroteSince(house(), before.through), []);
-        deepStrictEqual(house().tools.state().tools, before.tools);
+        deepStrictEqual(stateResult(house().tools.state().tools), stateResult(before.tools));
       } else {
         strictEqual(done.status, "accepted", done.reason);
         deepStrictEqual(wroteSince(house(), before.through), kase.then.facts, said.factsMismatch);
@@ -94,10 +95,10 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
       }
       /** What a tool says beside its name is never a bare number: a count says what it counts. */
       assertSummaries(program, house().tools.state());
-      const after = house().tools.state().tools;
+      const after = stateResult(house().tools.state().tools);
       deepStrictEqual(rebuilt(program, house()), after, said.rebuiltMismatch);
       reopen();
-      deepStrictEqual(house().tools.state().tools, after);
+      deepStrictEqual(stateResult(house().tools.state().tools), after);
     });
   return { name: label(aim, kase.promise), run };
 }

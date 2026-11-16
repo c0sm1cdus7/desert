@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { socketHouse } from "../../../tests/support/socket-house.ts";
-import { houseProtocolVersion } from "../../catalogs/levers.ts";
+import { houseProtocolVersion, socketLimits } from "../../catalogs/levers.ts";
 import { wire } from "../../../tests/support/socket-probe.ts";
 describe.each(["stream", "unix"] as const)("%s", transport => {
   let fixture: Awaited<ReturnType<typeof socketHouse>> | undefined;
@@ -33,7 +33,7 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
     let bytes = wire({ tipo: "hola", protocolo: "one" });
     if (kind === "oversize") {
       bytes = Buffer.alloc(5);
-      bytes.writeUInt32BE(1024 * 1024 + 2);
+      bytes.writeUInt32BE(socketLimits.json + 2);
     }
     if (kind === "json") {
       bytes = Buffer.from([0, 0, 0, 2, 0, 123]);

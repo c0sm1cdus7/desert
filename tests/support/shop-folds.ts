@@ -2,7 +2,12 @@
 import type { State } from "../../src/tools/tool-contract.ts";
 import type { Sales, Payments, Shop, ShopEvent } from "./shop.ts";
 export const salesStep = (kept: Sales, event: ShopEvent): Sales => {
-  if (event.kind === "sale-registered" || event.kind === "slow-written" || event.kind === "batch-sale-registered")
+  if (
+    event.kind === "sale-registered" ||
+    event.kind === "slow-written" ||
+    event.kind === "batch-sale-registered" ||
+    event.kind === "mind-noted"
+  )
     return new Map(kept).set(event.data.sale, { total: event.data.total, paid: 0, by: event.by });
   if (event.kind === "sale-corrected") {
     const { sale: name, total, paid } = event.data;
