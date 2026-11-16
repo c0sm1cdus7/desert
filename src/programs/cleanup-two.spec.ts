@@ -1,3 +1,4 @@
+import { shopShown } from "../../tests/support/shop.ts";
 import { Type, type TSchema } from "@sinclair/typebox";
 import { expect, it } from "vitest";
 import { day, quantity } from "../catalogs/fields.ts";
@@ -14,7 +15,7 @@ async function checkField(field: TSchema) {
   const registry = base.registry.map(item =>
     item.id === "sales" ? { ...tool, acts: { ...tool.acts, register: { ...act, input } } } : item,
   );
-  const check = promisedChecks({ ...base, registry }).find(item =>
+  const check = promisedChecks({ ...base, registry }, shopShown).find(item =>
     item.name.startsWith("sales · register · promises a case"),
   );
   if (!check) throw new Error("missing check");
@@ -39,7 +40,7 @@ it.each([
 });
 
 it("checks computed openings without a from case", async () => {
-  const check = promisedChecks(invalidOpeningShop()).find(item =>
+  const check = promisedChecks(invalidOpeningShop(), shopShown).find(item =>
     item.name.startsWith("payments · charge · promises a case"),
   );
   await expect(check?.run()).rejects.toThrow(/amount.*-5/u);

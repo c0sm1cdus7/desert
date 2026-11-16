@@ -9,7 +9,8 @@ import { seated } from "./promised-keys.ts";
 import { missingAt } from "./promised-route.ts";
 import { must } from "../surface/window.ts";
 const program = { ...shopProgram, registry: moneyRegistry };
-for (const check of [...promisedChecks(program), ...walkedChecks(program, shopShown)]) it(check.name, check.run);
+for (const check of [...promisedChecks(program, shopShown), ...walkedChecks(program, shopShown)])
+  it(check.name, check.run);
 
 it("the missing-route question uses the case's state and sale target", async () => {
   await staged(program, async ({ house }) => {

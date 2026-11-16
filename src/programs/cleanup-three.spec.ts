@@ -1,3 +1,4 @@
+import { shopShown } from "../../tests/support/shop.ts";
 import { Type } from "@sinclair/typebox";
 import { expect, it } from "vitest";
 import { object } from "../catalogs/acts.ts";
@@ -20,7 +21,7 @@ const input = object({
   tip: Type.Optional(money("Propina")),
 });
 const check = (also: NonNullable<typeof charge.also>) =>
-  openingChecks(chargingShop, { tool, name: "charge", act: { ...charge, input, also } });
+  openingChecks(chargingShop, { tool, name: "charge", act: { ...charge, input, also } }, shopShown);
 const base = charge.also;
 if (!base) throw new Error("missing offer");
 it("checks only offered rows, allowing absent suggestions", async () => {
@@ -47,17 +48,25 @@ it("checks precision and calendar validity in calculated suggestions", async () 
   const quantityInput = object({ sale: thing("Venta", "sales"), amount: quantity("Cantidad") });
   const dateInput = object({ sale: thing("Venta", "sales"), amount: day("Día") });
   await expect(
-    openingChecks(chargingShop, {
-      tool,
-      name: "charge",
-      act: { ...charge, input: quantityInput, also: { ...base, opens: () => ({ amount: 1.2345 }) } },
-    }),
+    openingChecks(
+      chargingShop,
+      {
+        tool,
+        name: "charge",
+        act: { ...charge, input: quantityInput, also: { ...base, opens: () => ({ amount: 1.2345 }) } },
+      },
+      shopShown,
+    ),
   ).rejects.toThrow(/amount.*1.2345/u);
   await expect(
-    openingChecks(chargingShop, {
-      tool,
-      name: "charge",
-      act: { ...charge, input: dateInput, also: { ...base, opens: () => ({ amount: "2025-02-30" }) } },
-    }),
+    openingChecks(
+      chargingShop,
+      {
+        tool,
+        name: "charge",
+        act: { ...charge, input: dateInput, also: { ...base, opens: () => ({ amount: "2025-02-30" }) } },
+      },
+      shopShown,
+    ),
   ).rejects.toThrow(/amount.*2025-02-30/u);
 });

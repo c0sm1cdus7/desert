@@ -59,7 +59,7 @@ const actionsOn = (tools: ReturnType<typeof seat>["tools"], target: string) =>
     .map(row => [row.key, row.title, row.detail, row.off === true]);
 
 describe("a program whose acts reach across its tools", () => {
-  for (const check of promisedChecks(chargingShop)) it(check.name, check.run);
+  for (const check of promisedChecks(chargingShop, shopShown)) it(check.name, check.run);
   for (const check of walkedChecks(chargingShop, shopShown)) it(check.name, check.run);
 
   it("asks which thing with their list: a number takes its row, and space looks for one by what is typed", async () => {
@@ -159,7 +159,7 @@ describe("a program whose acts reach across its tools", () => {
 });
 
 describe("an act that takes only some things of another tool", () => {
-  for (const check of promisedChecks(narrowShop)) it(check.name, check.run);
+  for (const check of promisedChecks(narrowShop, shopShown)) it(check.name, check.run);
   for (const check of walkedChecks(narrowShop, shopShown)) it(check.name, check.run);
 
   it("shows rejected things with their reason, including in search, and never takes them", () => {

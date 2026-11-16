@@ -10,7 +10,7 @@ import { promisedChecks } from "./promised.ts";
 /** What each act promises on the house, and the same promises kept by keys from the Menu. A check DESERT gains
  * reaches every program the day it moves onto that DESERT: no program lists the checks it wants. */
 export const programChecks = <X extends Program>(program: Composition<X>, shown: Shown<X>): readonly Check[] => [
-  ...promisedChecks(program),
+  ...promisedChecks(program, shown),
   ...opacityChecks(program),
   ...walkedChecks(program, shown),
 ];

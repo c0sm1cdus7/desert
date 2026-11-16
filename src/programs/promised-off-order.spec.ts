@@ -14,7 +14,8 @@ import { walkedChecks } from "./promised-walk.ts";
 for (const mode of ["offered", "also"] satisfies readonly OffMode[]) {
   const program = offShop(mode);
   describe(`one disabled reason: ${mode}`, () => {
-    for (const check of [...promisedChecks(program), ...walkedChecks(program, shopShown)]) it(check.name, check.run);
+    for (const check of [...promisedChecks(program, shopShown), ...walkedChecks(program, shopShown)])
+      it(check.name, check.run);
     it("shows the explicit reason on the row even with no eligible answer", () =>
       staged(program, async ({ house }) => {
         const tool = program.registry.find(tool => tool.id === "payments");

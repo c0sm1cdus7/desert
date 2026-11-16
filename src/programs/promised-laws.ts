@@ -1,3 +1,4 @@
+import type { Shown } from "../surface/bridge/house-ports.ts";
 import { inspect } from "node:util";
 import { Type } from "@sinclair/typebox";
 import { fieldValidity } from "../catalogs/fields.ts";
@@ -96,12 +97,12 @@ export function defaultsIn(schema: unknown, path = "$"): void {
     defaultsIn(node.additionalProperties, `${path}.*`);
 }
 /** What an act declares has to add up: a case the house accepts, and a case for each cause it may refuse with. */
-export function coverage<X extends Program>(program: Composition<X>, aim: Aim<X>): Check {
+export function coverage<X extends Program>(program: Composition<X>, aim: Aim<X>, shown: Shown<X>): Check {
   const refused = aim.act.cases.flatMap(kase => ("refused" in kase.then ? [kase.then.refused] : []));
   const run = (): Promise<void> =>
     Promise.resolve().then(async () => {
       defaultsIn(aim.act.input);
-      await openingChecks(program, aim);
+      await openingChecks(program, aim, shown);
       const does = aim.act.cases.some(kase => !("refused" in kase.then));
       ok(does, said.nothingDone);
       /** What an act puts to be confirmed is promised word for word by one of its cases. */

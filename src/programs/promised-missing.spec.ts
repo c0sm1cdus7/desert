@@ -47,7 +47,7 @@ describe("a case naming a thing that does not exist", () => {
         ]),
       ),
     }));
-    const check = promisedChecks({ ...chargingShop, registry }).find(check => check.name.endsWith(missing));
+    const check = promisedChecks({ ...chargingShop, registry }, shopShown).find(check => check.name.endsWith(missing));
     expect(check).toBeDefined();
     await expect(check?.run()).rejects.toMatchObject({
       actual: ["accepted", undefined],

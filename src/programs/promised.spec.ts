@@ -16,12 +16,14 @@ import { shopShown } from "../../tests/support/shop.ts";
 /** The names of the checks that fail, in the order they ran. */
 describe("a program that breaks a promise", () => {
   it.each(brokenShops)("$name: fails exactly the checks of what it broke", async ({ program, fails, because }) => {
-    expect(await failing([...promisedChecks(program), ...walkedChecks(program, shopShown)], because)).toEqual(fails);
+    expect(
+      await failing([...promisedChecks(program, shopShown), ...walkedChecks(program, shopShown)], because),
+    ).toEqual(fails);
   });
 });
 
 describe("a program with acts on its things", () => {
-  for (const check of promisedChecks(settlingShop)) it(check.name, check.run);
+  for (const check of promisedChecks(settlingShop, shopShown)) it(check.name, check.run);
   for (const check of walkedChecks(settlingShop, shopShown)) it(check.name, check.run);
   for (const check of walkedChecks(settlingShop, nestedShown)) it(`${check.name}, two views deep`, check.run);
   const hidden = `${settledTwice}, hidden for who prefers not to see what cannot be done`;
@@ -114,7 +116,7 @@ describe("a program with acts on its things", () => {
       return { ...tool, acts: { ...tool.acts, register: { ...register, offered, refuses, cases: [closed] } } };
     });
     const program = { ...settlingShop, registry };
-    const checks = [...promisedChecks(program), ...walkedChecks(program, shopShown)];
+    const checks = [...promisedChecks(program, shopShown), ...walkedChecks(program, shopShown)];
     const mine = checks.filter(check => check.name.includes("beto does not register"));
     expect(mine.map(check => check.name.split(" · ").at(-1))).toEqual([
       "beto does not register",
@@ -127,7 +129,7 @@ describe("a program with acts on its things", () => {
   });
 
   it("a tool that does not say what its cases promise needs someone to act fails that, on every door", async () => {
-    const checks = [...promisedChecks(carelessShop), ...walkedChecks(carelessShop, shopShown)];
+    const checks = [...promisedChecks(carelessShop, shopShown), ...walkedChecks(carelessShop, shopShown)];
     expect(await failing(checks, ["Attention differs from the case", "Debe $ 0,90"])).toEqual([
       stillOwing,
       `${stillOwing}, in Attention with why`,
@@ -139,7 +141,7 @@ describe("a program with acts on its things", () => {
       tool.id === "sales" ? { ...tool, summary: () => String(tool.targets.length) } : tool,
     );
     const why: string[] = [];
-    for (const check of promisedChecks({ ...settlingShop, registry }))
+    for (const check of promisedChecks({ ...settlingShop, registry }, shopShown))
       await check.run().catch((error: unknown) => why.push(String(error)));
     expect(why.length).toBeGreaterThan(0);
     expect(why.filter(said => !said.includes("sales says a bare number beside its name"))).toEqual([]);

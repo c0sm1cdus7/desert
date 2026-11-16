@@ -931,6 +931,12 @@ entonces actualizar y abrir. No se admite mezclar versiones en ejecución. No ca
 cambiar el vocabulario o los pliegues por A03. La primera apertura reconstruye los plegados del formato anterior:
 recupera lo que el registro conservó aunque el estado guardado estuviera incompleto, sin repetir las acciones.
 
+Las comprobaciones de sugerencias calculadas usan la superficie declarada del programa: las mismas preguntas,
+listas, creadores de opciones, calendario, identidad, destino e instante que la fila encadenada. Si la fila está
+apagada, no calculan su sugerencia; `undefined` significa que no hay sugerencia. Una sugerencia presente que no
+cumple su campo falla nombrando campo y valor. `programChecks(programa, mostrado)` conserva su firma;
+quien invoque por separado `promisedChecks` ahora pasa también `mostrado` como segundo argumento.
+
 Los hechos anteriores con campos de texto libre siguen leyéndose con la regla anterior: al menos un carácter
 que no sea espacio según `\S`. Los hechos nuevos deben cumplir la regla actual de texto visible.
 

@@ -1,3 +1,4 @@
+import type { Shown } from "../surface/bridge/house-ports.ts";
 // Every check a program's promises derive: nobody writes them. Each case is a check; so is each law of every act.
 import { addresses } from "../catalogs/addressing.ts";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
@@ -102,13 +103,13 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
     });
   return { name: label(aim, kase.promise), run };
 }
-export function promisedChecks<X extends Program>(program: Composition<X>): readonly Check[] {
+export function promisedChecks<X extends Program>(program: Composition<X>, shown: Shown<X>): readonly Check[] {
   return program.registry.flatMap(tool =>
     Object.entries(tool.acts).flatMap(([name, act]) => {
       const aim = { tool, name, act };
       const accepted = act.cases.find(kase => !("refused" in kase.then));
       return [
-        coverage(program, aim),
+        coverage(program, aim, shown),
         ...act.cases.map(kase => caseCheck(program, aim, kase)),
         ...(accepted ? lawChecks(program, aim, accepted) : []),
       ];

@@ -140,7 +140,7 @@ function withThings<X extends Program>(
   return { ...screen, has, view: target => (isThing(target) ? thing(target) : screen.view(target)) };
 }
 /** The program's calendar keeps its receiver; reference readers resolve the assembled tools lazily. */
-function questionsFor<X extends Program>(ports: HousePorts<X>, shown: Shown<X>, tools: () => readonly Tool[]) {
+export function questionsFor<X extends Program>(ports: HousePorts<X>, shown: Shown<X>, tools: () => readonly Tool[]) {
   return {
     locale: shown.locale,
     day: shown.day?.bind(shown),
