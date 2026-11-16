@@ -1038,6 +1038,167 @@ Las pruebas derivadas de cada caso y recorrido comparan estado completo y reloj 
 apertura después de borrar los plegados guardados. Los registros conservados hacen esa comparación antes de
 recorrerlos; el archivo auxiliar del escritor no se toma como un registro conservado.
 
+## La casa como servidor local (paso 1)
+
+Un programa puede abrir una sola casa con `startHouse(home, opciones)` y pasar ese resultado a
+`serveHouse(casa, home, llaves)` (`src/doors/socket/serve.ts`). La tabla de prueba es un `ReadonlyMap` de llave a
+`{ identity, door: "terminal" | "agente" }`; no es el almacenamiento definitivo de llaves. La identidad debe seguir
+perteneciendo a la casa. La llave decide identidad y puerta: el cliente no puede declararlas en su saludo. Una llave que nombra
+una mente (`mind:…`) se rechaza siempre: las mentes no entran por la puerta.
+
+Solo el servidor abre almacenamiento. La composición debe dejar salir `WriterAlreadyOpen` con su texto y código
+no cero, sin reintentar; la prueba de proceso muestra ese arranque en `tests/support/socket-server-process.ts`.
+Después de tomar el escritor y verificar que pertenece a esa carpeta se reemplaza el socket viejo, se escucha en `<home>/casa.sock` (0600, carpeta 0700) y
+se escribe `casa.pid` (0600). La ruta completa debe entrar en los 103 bytes útiles de macOS: el error la nombra.
+`close()`, SIGINT, SIGTERM o `apagar` de quien administra dejan de aceptar, avisan y esperan hasta diez segundos;
+el cierre informa la cantidad de actos pendientes y libera la casa antes de borrar socket y pid.
+
+Los programas existentes pueden seguir usando sus puertos locales:
+`HousePorts`, `localPorts`, el router y `startHouse` conservan su contrato. La adopción del cliente se describe en
+«Terminal cliente de la casa (paso 2)». La sesión de agentes llega aparte: en este paso se autentica, pero no recibe estado ni ejecuta pedidos de
+terminal. Las llaves reales y su revocación individual llegan en el paso 3; sacar la identidad ya corta su conexión.
+
+El marco lleva largo uint32 big-endian (cuenta el byte de tipo y el cuerpo), un byte de tipo y el cuerpo.
+Tipo 0: JSON UTF-8 válido, hasta 1 MiB, validado con TypeBox de ambos lados. Tipo 1: tramos de 64 KiB de un
+mensaje `node:v8`, solo de la casa al cliente terminal; cada marco sigue limitado a 16 MiB, el estado completo no. Un cliente nunca puede enviar tipo 1. `hola` autentica primero y recién después exige igualdad de protocolo y
+versión completa de Node; quien no entró no recibe esas versiones. El protocolo actual es 3; los límites y la versión están en `src/catalogs/levers.ts`. Los esquemas exactos están en
+`src/doors/socket/protocol.ts`. Todos los objetos JSON llevan `tipo` y rechazan propiedades adicionales:
+
+| Dirección | `tipo` | Campos además de `tipo` |
+|---|---|---|
+| Cliente | `hola` | `protocolo: entero`, `node: texto`, `token: texto`; primero y dentro de 5 s |
+| Cliente | `acto` | `id`, `act`, `target?`, `input`, `through: secuencia` |
+| Cliente | `leer` | `id`, `qué`, `desde?`; `catalogo` devuelve nombres y acciones, `pedido` recupera el acto con ese `id` |
+| Cliente | `esperar` | `id`, `hasta: instante`; espera un hecho o el plazo, hasta 240 s, sin sondeo |
+| Cliente | `defecto` | `tool`, `target`, `option`; la casa exige la acción en el kit y arma la entrada con su catálogo |
+| Cliente | `sincronizar` | ninguno; pide estado completo; el primer pedido deja un único aviso por terminal |
+| Cliente | `apagar`, `chau` | ninguno |
+| Casa | `bienvenida` | `protocolo`, `identidad`, `admin: booleano`, `ahora`, `seq`; luego `estado` solo a terminal |
+| Casa | `estado` | `seq`, `ahora`, `base` (secuencia o `null` para completo), `huella` SHA-256, `bytes`; luego sus tramos tipo 1 |
+| Casa | `resultado` | `id`, `status`, `reason?`, `private?`, `efectos` |
+| Casa | `respuesta` | `id`, `seq`, `datos`; la espera dice `{ cambio: booleano }` |
+| Casa | `rechazo` | `id?`, `motivo` |
+| Casa | `cortado` | `motivo` |
+| Casa | `cerrando` | ninguno |
+
+Los nombres e identificadores admiten de 1 a 256 caracteres; los números son enteros seguros no negativos.
+`desde` queda reservado: este paso no pagina el catálogo ni entrega el diario. Un `leer` de pedido ausente se
+rechaza. `status` es `accepted`, `rejected`, `draft`, `inconclusive`, `interrupted` o `processing`.
+`efectos` lleva solamente el texto de `tool-entry` con herramienta, destino y autor, y el objeto, acción y texto de
+`act-done`; no lleva todos los hechos ni diagnósticos. `defecto` responde con `id: "defecto"`.
+
+Cada terminal recibe `identityView` con secuencia, agrupando los cambios del turno. Al entrar se manda completa;
+luego viajan solo los campos y claves que cambiaron, y de las listas que crecen, el agregado. Los campos y mapas
+siguen la estructura real del estado: eso conserva las herramientas opacas y evita volver a mandar el historial.
+Una huella semántica SHA-256 del estado entero acompaña cada envío; no depende de los alias internos de v8
+ni de que un número esté guardado como entero o double. Se compone de huellas de partes inmutables: se reutilizan
+las partes sin cambios y se recalculan las que cambiaron y sus contenedores. Los escalares se escriben directamente
+en la parte que los contiene, sin serialización V8 ni un SHA por cada escalar. El parche compara con ese mismo
+criterio de valor. La primera lectura completa sigue siendo proporcional al tamaño del estado.
+
+La codificación usa etiquetas de tipo y separadores: `null;`, `undefined:undefined;`, booleanos `true`/`false`,
+números con `String(n)` (incluidos `NaN`, `Infinity`, `-Infinity`; `-0` tiene el valor de `0`), bigint decimal y
+cadenas con escape JSON, incluidos los sustitutos Unicode aislados. Los objetos recorren claves propias en orden
+lexicográfico UTF-16 fijo, sin depender del locale; las listas conservan longitud, posiciones y huecos. Map y Set
+conservan el orden observable de iteración. Cada objeto hijo aporta su SHA-256, independientemente de sus alias.
+Date aporta milisegundos, RegExp fuente y banderas; los binarios aportan tipo y bytes, y Float32/Float64 sus valores
+numéricos canónicos. Buffer y Uint8Array son tipos distintos. Son partes acíclicas e inmutables; un tipo no admitido
+falla con el aviso de envío, nunca genera una huella a partir de bytes internos de V8.
+
+Por esta puerta los pedidos aceptan solo árboles de datos JSON: `null`, booleanos, texto, números finitos,
+listas densas y objetos de claves de texto. Se rechazan `-0` (también por subdesborde), números no finitos, undefined,
+bigint, funciones, símbolos, fechas, mapas, conjuntos, huecos, accesores, ciclos y propiedades que JSON omitiría.
+El rechazo dice «El pedido tiene datos inválidos. No se escribió nada.» y ocurre antes de registrar el pedido o
+escribir hechos. El mismo identificador puede corregirse: no se reservó. No cambia la puerta de un solo proceso.
+
+La terminal arma aparte y publica solo después de verificar huella, secuencia e identidad. Si difiere, conserva la
+última vista válida, muestra una vez el texto del catálogo, suspende los actos y pide `sincronizar`. Tres estados
+inválidos consecutivos en la misma secuencia agotan la recuperación: son dos pedidos como máximo; un estado válido
+reinicia la cuenta. La terminal termina con código 1 y «No se pudo comprobar el estado de la casa. Se cerró la
+terminal. Volvé a abrirla.», también si ya había entrado. La casa escribe un solo aviso de resincronización por
+conexión, aunque cambie la secuencia: el archivo no crece con cada vuelta.
+Desde el envío de `hola` hasta el primer estado comprobado hay cinco segundos totales. Ningún encabezado, tramo
+ni resincronización reinicia ese plazo; al vencer, la terminal sale con su texto del catálogo y código 1.
+El protocolo 3 identifica esta nueva codificación: casa y terminal deben actualizarse juntas; un cliente de
+protocolo 2 autenticado recibe el rechazo de versión, antes de intercambiar estado.
+La vista y su codificación se comparten entre las conexiones de la misma identidad y secuencia. El resultado sale
+después del estado que contiene sus efectos. Cada conexión respeta backpressure: el plazo de un segundo sin
+drenaje cuenta solo el tiempo ocioso del bucle de la casa (`eventLoopUtilization().idle`), no el tiempo que la
+casa pasa trabajando. Al vencer, o con más de 1 MiB de envíos posteriores pendientes, se corta con aviso. Un estado inicial grande se
+transmite por tramos, sin contar su tamaño total como cola pendiente. Ninguna conexión espera a otra.
+Hay hasta 32 conexiones sin presentarse: una nueva desplaza la más antigua que todavía no entró, sin cortar
+miembros. Cada conexión atiende hasta 16 marcos por vuelta del bucle y pausa su entrada entre vueltas para
+dejar pasar el drenaje y las demás conexiones. Cada cuerpo incompleto vence en cinco segundos, también después del hola. Entre miembros esa vista conserva los datos que la casa ya muestra; no sirve como
+frontera de permisos. Antes de entrar no hay estado, catálogo ni resultados. Una identidad retirada deja de recibir.
+
+El cliente elige un `id` estable por intento lógico de actuar. La causa del acto conserva
+`socket-request:` seguido de la representación JSON de `[identidad, id]`. Repetir el pedido devuelve su resultado,
+o `processing` solo mientras siga en curso; cambiar el contenido conservando el identificador recibe un rechazo
+explícito. Una huella canónica del contenido viaja como segunda causa `socket-content:`. Si no se pudo escribir
+el acto, la respuesta termina con el rechazo de la base o interrumpida; ese resultado queda en memoria para
+repetir y consultar en ese proceso. Si el almacenamiento no guardó ningún hecho, ese pedido no sobrevive al reinicio.
+Otra identidad o identificador constituye otro acto. Al reabrir se reconstruye el índice desde el diario, incluidos
+los resultados `interrupted` que escribe el arranque. Los registros anteriores, sin esa causa, siguen siendo válidos.
+El recibo `private` se conserva solo en memoria: tras un reinicio se recuperan estado, motivo y efectos públicos,
+nunca se persiste ni se vuelve a emitir una credencial para reconstruir un recibo perdido.
+
+## Terminal cliente de la casa (paso 2)
+
+El programa puede abrir `openProgramTerminal(raízDelPrograma, carpetaDeCasa, llave, program, shown)` desde
+`src/programs/open-terminal.ts`. `program` y `shown` son imports estáticos de su composición. La llave se entrega
+en memoria; nunca se pasa en argumentos del proceso servidor. Su provisión definitiva corresponde al paso 3.
+Los programas locales existentes y `shop-open.ts` siguen compilando y funcionando. `HousePorts` suma
+`observe?`, opcional, para los actos del dibujo; sin ese puerto se usa el mismo `act` local de siempre.
+
+La función prueba `<carpetaDeCasa>/casa.sock`. Si falta, ejecuta con Node el archivo declarado en
+`package.json → desert.program`, pasándole únicamente la carpeta de la casa. Ese archivo sigue exportando
+`program` y `shown` y, cuando `import.meta.main`, llama `runProgramServer(program, opciones, carpeta)` de
+`src/programs/server-process.ts`. Las opciones son `by`, `creation`, `keys` (tabla del paso 1) y, si corresponde,
+`secretKeys`. Ver `tests/support/shop-program.ts` para una composición completa con custodia solo de prueba.
+El programa usa sus proveedores de custodia reales en su composición; la terminal no abre el almacenamiento.
+
+El arranque tiene cinco segundos para confirmar por IPC que escucha. Después, el proceso queda independiente.
+Un relevo independiente recoge stdout y stderr del hijo, incluidos mensajes nativos, en `<home>/casa.log`,
+en modo 0600 dentro de la carpeta 0700. Se conservan al relanzar mientras entren en 1 MiB. Al exceder ese tope
+se trunca el mismo descriptor, se escribe «Se alcanzó el tope de la salida. Se conserva el tramo más reciente.»
+y se guarda el tramo reciente que entre; no se acumulan archivos rotados. Un archivo de la versión anterior
+que ya exceda el tope se reemplaza por ese aviso al abrir el relevo.
+El archivo no sigue enlaces ni admite enlaces duros. Toda falla al abrir se traduce a una línea del catálogo y
+salida distinta de cero; ninguna traza cruda llega a la terminal. Un arranque fallido no dice «Casa cerrada»:
+el hijo escribe primero la causa segura (el código del sistema, cuando existe), y el relevo recoge su salida
+antes de devolver el rechazo. Si el propio archivo no se puede abrir, la terminal conserva su rechazo visible.
+Cerrar la terminal no apaga la casa, según la decisión de la obra.
+Un escritor sin socket devuelve literalmente `This house is already open in a running process`: este paso
+conserva ese texto en inglés. Una ruta de socket demasiado larga falla nombrándola, sin acortarla.
+Al perder una casa ya conectada, la terminal intenta reconectarse cada 500 ms y no vuelve a lanzarla.
+
+`socketConnection` conserva la última vista y `socketPorts` implementa el contrato existente. La Barra usa los
+cuatro iconos y colores de siempre, sin palabras nuevas. `now` suma a la hora fresca de la bienvenida de esta
+conexión el tiempo monotónico transcurrido. La hora del encabezado `estado` se conserva por compatibilidad
+del protocolo, pero nunca ajusta el reloj: puede pertenecer a un envío guardado. Reconectar toma otra bienvenida. Solo las observaciones automáticas del dibujo comparten promesa; cada acto de la persona, incluido
+`attend` antes de actuar, tiene un pedido nuevo. Un corte resuelve con `interrupted` y
+«Se cortó antes de la respuesta: fijate en Actividad si se hizo.». Los identificadores inciertos se consultan
+al reconectar y cuando llega otro estado; nunca se reenvían automáticamente sus actos. El resultado recibido
+para esa consulta no reemplaza el mensaje de corte que ya vio la persona: Actividad y la vista de la casa
+siguen siendo la forma de comprobarlo. Los identificadores se conservan durante la vida de esa terminal. Una consulta rechazada por cupo conserva
+su identificador incierto y se vuelve a consultar al segundo, con un único temporizador para el conjunto;
+perder la conexión cancela ese temporizador. Nunca se reenvía el acto.
+
+`defecto` lleva solo `tool`, `target` y `option`: la casa verifica el destino, que la acción sea una propiedad
+propia de la herramienta y su kit, y arma texto y autor. `constructor`, `toString`, `__proto__` y
+`hasOwnProperty` heredados no son acciones. No acepta entrada, atención, texto elegido, made, draft ni silent. La excepción del cliente no viaja.
+El diagnóstico ya presente en `identityView` sigue viajando como en local; este carril no cambia quién lee qué.
+Los marcos locales y remotos se comparan después de aquietar el router y recibir el estado de sus actos,
+incluidos los que dispara un dibujo. También se comparan los hechos `act` del registro.
+
+Los pedidos autenticados que no son actos (`defecto`, `esperar`, lecturas, `sincronizar`, `apagar`) comparten
+32 admisiones por conexión en una ventana móvil de un segundo; hay como máximo ocho esperas simultáneas.
+Un rechazo lleva el identificador del pedido, o su tipo cuando no tiene identificador, y dice «Llegaste al tope
+de pedidos de esta conexión. Esperá un segundo y volvé a intentar.». No escribe ni reserva otra espera.
+La terminal muestra ese aviso como máximo una vez por segundo y sigue conectada.
+Terminar una espera o cortar su conexión libera el lugar. Los actos y `chau` quedan fuera de ese cupo.
+La prueba del costo compara bytes y cantidad de envíos, con un envío de estado por terminal y pago; alterna
+el camino local y remoto para informar sus tiempos y relación, sin un umbral de milisegundos dependiente de la máquina.
 
 ## El kit, la escena y el destinatario de la atención (14/11)
 

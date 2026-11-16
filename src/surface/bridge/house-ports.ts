@@ -15,6 +15,8 @@ export interface HousePorts<X extends Program> {
   readonly registry: ToolRegistry<X>;
   readonly limits: Omit<ViewLimits, "now">;
   readonly act: (value: Act, through: number) => ExecutionResult<X>;
+  /** Repeated observations from drawing may share an in-flight request; personal acts never do. */
+  readonly observe?: (value: Act) => ExecutionResult<X>;
   readonly now: () => number;
   readonly defect: (error: unknown, tool: string, target: string, option: string) => string;
   /** How this device reaches the house right now. */
@@ -24,8 +26,9 @@ export interface HousePorts<X extends Program> {
   /** How a private receipt reads here, when the door has more to say than the receipt itself. */
   readonly receipt?: (secret: string) => string;
 }
-export type SurfacePorts<X extends Program> = Omit<HousePorts<X>, "act"> & {
+export type SurfacePorts<X extends Program> = Omit<HousePorts<X>, "act" | "observe"> & {
   readonly act: (value: Act) => ExecutionResult<X>;
+  readonly observe?: (value: Act) => ExecutionResult<X>;
 };
 /** What a program calls a tool where a person reads it; its acts say their own words where they are declared.
  * The tool it lives in, when it lives in one: it has no row on the Menu, and is opened from that tool's own, as the

@@ -141,12 +141,12 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 - Los textos propios de DESERT pasan por las mismas guardias (`programs/own-words.spec.ts`).
 
 ## Abierto
-- **La puerta.** Decidido: viaja el estado (la de Kenon), con el router de este lado. Falta portarla: cada
-  herramienta dice cómo viaja su parte y de quién son sus hechos, y la casa manda a cada integrante solo lo de
-  las herramientas que tiene.
-- **Tamaño.** La puerta de Kenon manda al conectar todo lo de las herramientas del integrante, y `entries` crece
-  para siempre. Para una cuenta de Capibara hay que paginar: en memoria y en viaje lo reciente, lo viejo por
-  páginas. Se resuelve al portar la puerta.
+- **La puerta.** El servidor local y la terminal externa ya llevan `identityView`, con el router del lado de la
+  terminal. Todos los integrantes leen la misma casa; el kit limita acciones, no lectura. Quedan la sesión de
+  agentes y las llaves reales del paso 3.
+- **Tamaño.** El estado inicial viaja completo por tramos; después viajan los cambios y solo el agregado de las
+  listas que crecen. El historial completo sigue en memoria: la paginación de lectura no forma parte de este
+  servidor. El límite de un marco ya no limita el tamaño total del estado.
 - **Lecturas de cada herramienta.** Hoy el puente lee la vista de texto de la herramienta y la vuelve filas.
   Para Capibara conviene que cada herramienta declare sus filas con tipos. Se define con las herramientas de Capibara.
 - **Motivos de rechazo.** Son textos. Desde el 11/11 una causa es un dato corto, sin punto y sin segunda persona
@@ -194,7 +194,7 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 2. Casa y motor de herramientas con estado por herramienta. HECHO.
 3. Puente de la superficie y casa corriendo en un proceso, con secretos fuera del registro. HECHO.
 4. Router compartido por todos los renderers. HECHO.
-5. La puerta: viaja el estado, por herramienta entera y paginado.
+5. La puerta local: estado inicial por tramos y cambios por campos, mapas y sufijos de listas. HECHO.
 6. Emparejar dispositivos y herramienta de equipo (permisos y conexiones).
 7. Core de muchas casas.
 
@@ -277,3 +277,77 @@ parte coteja su lista. Quien usa la base incorpora ese archivo en `globalSetup` 
   escenas ni su plegado. La terminal escribe General; las partes dirigidas permanecen en el acto de casa.
   Al adoptar `identities: true`, un programa reserva el id del core, usa la regla pública del identificador y distingue
   `names`, `removed` y `grants`: el nombre y la fila sobreviven a sacar, mientras la readmisión no restaura herramientas.
+
+## Servidor local de la casa (paso 1)
+
+`src/doors/socket/serve.ts` compone una casa ya abierta con el protocolo local. El acceso a `node:net` y al sistema
+de archivos está en `src/programs/socket-listener.ts`, respetando la separación del sistema operativo de la ley 10.
+La puerta usa `tools.state`, `tools.act`, `tools.prepare`, el bus y el diario que `startHouse` ya devuelve. El único agregado a
+`house-runtime.ts` es devolver `home`, para verificar que la carpeta del socket pertenece a ese escritor. Ningún cliente importa almacenamiento para conectarse. El índice de pedidos se reconstruye del
+registro existente, sin tabla adicional ni nueva versión de cálculo: el identificador viaja como causa del acto.
+
+Los módulos de sesión y entrega admiten streams para probar el protocolo sin abrir sockets. Las pruebas Unix y de
+procesos separados siguen siendo necesarias para comprobar permisos, señales y limpieza del enlace real. La sesión
+de agentes aún se debe: autenticar esa puerta no habilita el camino de terminal ni elimina su futura escena.
+
+## Terminal externa (paso 2)
+
+La conexión y `socketPorts` están en `src/doors/socket/`; el sistema operativo, el arranque independiente y la
+reconexión están en `src/programs/`. El router y todos los archivos del dibujante conservan su código.
+La composición del programa es estática: el manifiesto elige un ejecutable, no un import dinámico. El ejecutable
+coopera con el handshake de `runProgramServer`; `openProgramTerminal` recibe la composición ya importada.
+No se cambia la huella de cálculos ni se exceptúan imports de sus leyes.
+
+Los presupuestos de socket, programs y texts crecen exactamente por los archivos agregados y el cierre de
+pedidos incompletos al reconstruir el índice; cada propósito está en `tests/laws/tree.json`. Las garantías
+246–250 y la evidencia adicional de la 11 describen esta puerta. La prueba de marcos también acompaña las
+reglas de terminal 1–106 que ya tienen garantía; no cancela las deudas existentes.
+
+Las pruebas de muerte de proceso llevan los mismos marcos por IPC para comprobar SQLite y el protocolo aun
+cuando la caja impide escuchar un socket Unix. No sustituyen las pruebas Unix: el arranque real, el socket viejo,
+los dos clientes en pseudo-terminal y sus colores al reconectar se comprueban además por ese camino.
+
+
+## Arreglo adversario del servidor (14/11)
+
+El protocolo 3 manda un encabezado `estado` con base, secuencia, longitud y huella, seguido de tramos de 64 KiB.
+`state-patch.ts` divide recursivamente por campos y claves de mapas; las listas que crecen envían su sufijo.
+`state-hash.ts` calcula una huella semántica del estado completo y reutiliza nodos inmutables. `state-delivery.ts`
+prepara una vez por identidad y secuencia; `state-receiver.ts` arma aparte y verifica antes de publicar.
+Una discrepancia conserva la última vista válida, se dice en la terminal y pide el estado completo; la casa deja
+su aviso. `peer-writer.ts` respeta backpressure sin esperar a otros; limita la cola posterior y el tiempo sin drenaje.
+El estado completo supera el tamaño de un marco sin subir ese límite. `socket-cost.spec.ts` mide el acto completo,
+con SQLite, contra local, con 100, 2.000 y 20.000 entradas y una o cinco terminales.
+
+`HousePorts.observe?` distingue las dos observaciones automáticas en `notices.ts` y `house-tools.ts` de los actos
+pedidos por la persona. El router y el dibujante siguen intactos; sin `observe` se llama al `act` local como antes.
+`defecto` deja de aceptar la entrada del cliente: solo herramienta, destino y acción, comprobados contra el kit.
+El rechazo de mentes se combina con `present`, la misma pertenencia que consulta la casa. La comprobación redundante
+al inicio de cada pedido se retiró: el aviso del bus cierra inmediatamente la conexión y `receivePeer` exige que
+siga viva. La condición redundante M06 de las respuestas también se retiró: `peer.send` no escribe en una
+conexión terminada. La retirada se prueba antes de atender otro pedido y antes de enviar resultados pendientes.
+
+`house-output.ts` abre el archivo privado de salida del proceso lanzado; `terminal-error.ts` limita los errores
+visibles al catálogo. La cancelación de un arranque libera recursos sin anunciar un cierre exitoso. La huella de
+contenido acompaña al identificador del pedido en la causa; el libro recupera también los pedidos anteriores sin
+huella a partir del contenido registrado. Si falló toda escritura, el resultado final vive solo en ese proceso.
+
+La huella del protocolo 3 compone partes inmutables con escalares canónicos por valor, sin bytes internos de V8.
+El detalle de tipos está en `PROGRAMA.md`. El pedido remoto rechaza datos que JSON perdería o cambiaría,
+incluidos -0 y no finitos, antes de escribir. La entrada tiene cinco segundos totales; tres estados inválidos
+consecutivos en la misma secuencia cierran la terminal con texto del catálogo y salida 1. Cada conexión deja
+un solo aviso de resincronización en la salida de la casa.
+
+En la segunda vuelta, `peer-input.ts` pausa la entrada y procesa hasta 16 marcos por vuelta, conservando el
+trozo pendiente sin copiarlo. `peer-writer.ts` cuenta un segundo ocioso del bucle para el drenaje; conserva el
+tope de 1 MiB posterior. `request-budget.ts` limita a 32 pedidos no actuantes por segundo móvil y ocho esperas
+vivas por conexión, con rechazo visible. Una introducción nueva desplaza la más antigua sin presentar, dentro
+de los mismos 32 lugares. El reloj de la terminal se toma únicamente de cada bienvenida fresca.
+`house-output-process.ts` recoge ambas salidas del hijo hasta su cierre; `bounded-output.ts` las limita a 1 MiB
+sobre el descriptor privado validado, reemplazando el tramo anterior al llenarse. No reabre una ruta ni sigue
+enlaces. El error de arranque devuelve el rechazo después de recoger su causa segura.
+`socket-cost.spec.ts` exige bytes y cantidad de envíos estables con el historial; los tiempos local y remoto se
+miden alternados y solo se informan. Los plazos de presión se verifican con relojes controlados.
+
+`client-requests.ts` conserva las consultas inciertas rechazadas por cupo y las reintenta al segundo, con un
+solo temporizador cancelable por conjunto pendiente. La recuperación sigue consultando; nunca repite actos.

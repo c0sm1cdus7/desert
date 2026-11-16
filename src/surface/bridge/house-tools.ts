@@ -1,5 +1,6 @@
 import { kitScreen } from "../../tools/core/identities/kit-screen.ts";
 import { withIdentityWords } from "../../tools/core/identities/identity-reading.ts";
+import { observedPorts } from "./observed-ports.ts";
 import { programCall } from "../../tools/boundaries/program-call.ts";
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
 import { builtScreen } from "./execution/program-screen.ts";
@@ -158,7 +159,7 @@ function declaredTools<X extends Program>(registry: readonly HouseTool<X>[]) {
 export function houseTools<X extends Program>(ports: HousePorts<X>, given: Shown<X>): readonly Tool[] {
   const shown = withIdentityWords(ports.registry, given);
   const seen = new Map<string, number>();
-  const observed: SurfacePorts<X> = { ...ports, act: value => ports.act(value, seen.get(value.target ?? "") ?? 0) };
+  const observed = observedPorts(ports, seen);
   const tools = declaredTools(ports.registry);
   audit(tools, shown);
   const asked = questionsFor(ports, shown, () => own);
@@ -190,7 +191,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, given: Shown
         if (!ports.state().house.grants.has(ports.me)) return;
         seen.set(target, ports.state().through);
         // Looking at what called you is attending it, the same act anyone does.
-        if (calls()) ports.act({ act: "attend", input: { target: contract.id } }, 0);
+        if (calls()) observed.observe?.({ act: "attend", input: { target: contract.id } });
         looked(target);
       },
     };

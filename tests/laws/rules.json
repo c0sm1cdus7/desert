@@ -13,56 +13,64 @@
       "rule": "Solo regular y negrita",
       "from": "REGLAS §2",
       "guarantee": "type",
-      "evidence": ["src/doors/terminal/cells.ts", "src/surface/contract.ts"]
+      "evidence": ["src/doors/terminal/cells.ts", "src/surface/contract.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 3,
       "rule": "Todo texto cae en una celda dentro de la grilla",
       "from": "REGLAS §2, §17",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/cells.ts", "src/doors/terminal/destinations.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/cells.ts",
+        "src/doors/terminal/destinations.spec.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 4,
       "rule": "Mínimo 40×16; por debajo solo «Ventana muy chica»",
       "from": "REGLAS §2, §14",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/texts/surface.texts.ts"]
+      "evidence": ["src/doors/terminal/paint.ts", "src/texts/surface.texts.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 5,
       "rule": "Tres zonas que nunca se mueven (Barra, Contenido, Toolbar)",
       "from": "REGLAS §3",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts"]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 6,
       "rule": "Barra y Toolbar de lado a lado con borde; Toolbar un solo riel",
       "from": "REGLAS §3",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts"]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 7,
       "rule": "Contenido en columna de 76 centrada",
       "from": "REGLAS §3",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts"]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 8,
       "rule": "Entrada dentro de la columna, fila 26 de 30, con fila libre arriba y abajo",
       "from": "REGLAS §3",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/terminal.spec.ts", "src/doors/terminal/thread.ts"]
+      "evidence": [
+        "src/doors/terminal/terminal.spec.ts",
+        "src/doors/terminal/thread.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 9,
       "rule": "Barra: icono y hora, igual en toda pantalla (también la inicial)",
       "from": "REGLAS §4",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/surface/resolve.ts"]
+      "evidence": ["src/doors/terminal/paint.ts", "src/surface/resolve.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 10,
@@ -76,7 +84,13 @@
       "rule": "Cuatro estados cerrados con su icono y color",
       "from": "REGLAS §4",
       "guarantee": "type",
-      "evidence": ["src/doors/terminal/paint.ts", "src/surface/contract.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/surface/contract.ts",
+        "src/doors/socket/socket-ports.spec.ts",
+        "src/programs/socket-terminal.spec.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 12,
@@ -97,14 +111,14 @@
       "rule": "El punto nunca late",
       "from": "REGLAS §4, §11",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts"]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 15,
       "rule": "Enviar no es un estado",
       "from": "REGLAS §4",
       "guarantee": "type",
-      "evidence": ["src/surface/contract.ts"]
+      "evidence": ["src/surface/contract.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 16,
@@ -118,21 +132,21 @@
       "rule": "La Barra muestra el nombre de la acción",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/resolve.ts"]
+      "evidence": ["src/surface/resolve.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 18,
       "rule": "Barra: elipsis en el título; icono y hora siempre se ven",
       "from": "REGLAS §14",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts"]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 19,
       "rule": "Toolbar izquierda fija ctrl o menú ctrl c salir; sin ctrl o en acciones; en el Menú ni ctrl o ni esc",
       "from": "REGLAS §5",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/surface/resolve.ts"]
+      "evidence": ["src/doors/terminal/paint.ts", "src/surface/resolve.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 20,
@@ -144,7 +158,8 @@
         "src/surface/resolve.ts",
         "src/surface/shown-tool.ts",
         "src/surface/talk.ts",
-        "src/surface/walk.ts"
+        "src/surface/walk.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -152,63 +167,82 @@
       "rule": "↑↓ mueven, enter abre o confirma, esc vuelve; ← → no navegan",
       "from": "REGLAS §5",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/input.ts", "src/doors/terminal/renderers.spec.ts", "src/surface/step.ts"]
+      "evidence": [
+        "src/doors/terminal/input.ts",
+        "src/doors/terminal/renderers.spec.ts",
+        "src/surface/step.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 22,
       "rule": "En una Entrada con texto, ← → solo mueven el cursor",
       "from": "REGLAS §5",
       "guarantee": "surface",
-      "evidence": ["src/surface/step.ts", "src/surface/talk.ts"]
+      "evidence": ["src/surface/step.ts", "src/surface/talk.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 23,
       "rule": "enter dice lo que hace: continuar, el verbo, o lo elegido",
       "from": "REGLAS §5",
       "guarantee": "surface",
-      "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/walk.ts"]
+      "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 24,
       "rule": "esc desenfoca un mensaje; en una acción vuelve una pregunta",
       "from": "REGLAS §5, §9",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/terminal.spec.ts", "src/surface/step.ts", "src/surface/talk.ts"]
+      "evidence": [
+        "src/doors/terminal/terminal.spec.ts",
+        "src/surface/step.ts",
+        "src/surface/talk.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 25,
       "rule": "Todo lo que tiene atajo también se alcanza navegando; la letra no se repite en la Toolbar",
       "from": "REGLAS §5",
       "guarantee": "surface",
-      "evidence": ["src/surface/resolve.ts", "src/surface/step.ts"]
+      "evidence": ["src/surface/resolve.ts", "src/surface/step.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 26,
       "rule": "La letra de una fila se ve en [x]",
       "from": "REGLAS §5",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/doors/terminal/thread.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/terminal/thread.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 27,
       "rule": "Debajo de 60 columnas la izquierda queda ctrl o  ctrl c y caen los aids del primero al último",
       "from": "REGLAS §5, §14",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts"]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 28,
       "rule": "El menú es siempre el punto de entrada",
       "from": "REGLAS §6",
       "guarantee": "surface",
-      "evidence": ["src/surface/screen.ts", "src/surface/step.ts"]
+      "evidence": ["src/surface/screen.ts", "src/surface/step.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 29,
       "rule": "Dos secciones, Herramientas y Sistema; fila [x] nombre",
       "from": "REGLAS §6",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/terminal.spec.ts", "src/surface/lists.ts", "src/surface/shown-tool.ts"]
+      "evidence": [
+        "src/doors/terminal/terminal.spec.ts",
+        "src/surface/lists.ts",
+        "src/surface/shown-tool.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 30,
@@ -218,7 +252,8 @@
       "evidence": [
         "src/surface/bridge/house-ports.ts",
         "src/surface/bridge/house-tools.spec.ts",
-        "src/surface/bridge/house-tools.ts"
+        "src/surface/bridge/house-tools.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -233,7 +268,12 @@
       "rule": "Resultado: Listo verde o Error coral, el mensaje como texto, nunca entero pintado",
       "from": "REGLAS §7, §9",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/terminal.spec.ts", "src/surface/talk.ts", "src/surface/walk.ts"]
+      "evidence": [
+        "src/doors/terminal/terminal.spec.ts",
+        "src/surface/talk.ts",
+        "src/surface/walk.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 33,
@@ -268,28 +308,32 @@
       "rule": "Responder: fila ↳ Nora · comienzo en texto 3, con elipsis",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts", "src/surface/talk.ts"]
+      "evidence": ["src/doors/terminal/thread.ts", "src/surface/talk.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 38,
       "rule": "Si una fila lleva tecla, todo su stack reserva ese lugar",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/doors/terminal/thread.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/terminal/thread.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 39,
       "rule": "Evento con cabecera; debajo todo con 1 celda de indent; sin cabecera sin indent; una fila en blanco entre eventos",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts"]
+      "evidence": ["src/doors/terminal/thread.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 40,
       "rule": "El Hilo arranca en la columna del chevron",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts"]
+      "evidence": ["src/doors/terminal/thread.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 41,
@@ -303,35 +347,50 @@
       "rule": "El ser pregunta con opciones y otra respuesta al final; esc después",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": ["src/surface/talk.ts"]
+      "evidence": ["src/surface/talk.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 43,
       "rule": "Navegar el hilo: ↑↓ enfocan, enter abre o envía; el enfocado con fondo foco y el resto en texto 3; esquinas cortadas solo con aire",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/destinations.spec.ts", "src/doors/terminal/thread.ts", "src/surface/talk.ts"]
+      "evidence": [
+        "src/doors/terminal/destinations.spec.ts",
+        "src/doors/terminal/thread.ts",
+        "src/surface/talk.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 44,
       "rule": "Cuatro composiciones cerradas; una pantalla usa una",
       "from": "REGLAS §9",
       "guarantee": "type",
-      "evidence": ["src/surface/contract.ts", "src/surface/resolve.ts", "src/surface/shown-tool.ts"]
+      "evidence": [
+        "src/surface/contract.ts",
+        "src/surface/resolve.ts",
+        "src/surface/shown-tool.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 45,
       "rule": "Lista: stacks con título; Acciones siempre último",
       "from": "REGLAS §9, §17",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/terminal.spec.ts", "src/surface/lists.ts", "src/surface/shown-tool.ts"]
+      "evidence": [
+        "src/doors/terminal/terminal.spec.ts",
+        "src/surface/lists.ts",
+        "src/surface/shown-tool.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 46,
       "rule": "Sin columnas: título a la izquierda; propósito y dato a la derecha",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts", "src/surface/lists.ts"]
+      "evidence": ["src/doors/terminal/thread.ts", "src/surface/lists.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 47,
@@ -344,7 +403,8 @@
         "src/tools/promises.ts",
         "src/programs/promised-walk.ts",
         "src/tools/promises.spec.ts",
-        "src/doors/terminal/house-screens.spec.ts"
+        "src/doors/terminal/house-screens.spec.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -363,7 +423,8 @@
         "src/doors/terminal/paint.ts",
         "src/doors/terminal/terminal.spec.ts",
         "src/surface/window.spec.ts",
-        "src/surface/window.ts"
+        "src/surface/window.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -371,7 +432,7 @@
       "rule": "…en el Hilo",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts"]
+      "evidence": ["src/doors/terminal/thread.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 51,
@@ -383,7 +444,8 @@
         "src/surface/resolve.ts",
         "src/doors/terminal/thread.ts",
         "src/programs/promised-keys.ts",
-        "src/programs/promised-walk.ts"
+        "src/programs/promised-walk.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -391,28 +453,41 @@
       "rule": "Lista vacía: el stack se muestra con título apagado y Sin X. en texto 1",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/surface/bridge/house-ports.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/surface/bridge/house-ports.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 53,
       "rule": "Una acción es una serie de inputs y después un comando, siempre como Hilo",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/resolve.ts", "src/surface/screen.ts", "src/surface/walk.ts"]
+      "evidence": [
+        "src/surface/resolve.ts",
+        "src/surface/screen.ts",
+        "src/surface/walk.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 54,
       "rule": "Pregunta: un sustantivo, sin punto ni signos",
       "from": "REGLAS §9, §12",
       "guarantee": "compose",
-      "evidence": ["src/surface/bridge/asking-parts.ts", "src/surface/bridge/asking-back.ts"]
+      "evidence": [
+        "src/surface/bridge/asking-parts.ts",
+        "src/surface/bridge/asking-back.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 55,
       "rule": "La pregunta pasa de texto 1 a texto 2 al responderse; la respuesta queda agregada, en texto 1, sin autor",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/walk.ts"]
+      "evidence": ["src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 56,
@@ -421,7 +496,8 @@
       "guarantee": "spec",
       "evidence": [
         "src/surface/bridge/questions/opacity-surface.spec.ts",
-        "src/doors/terminal/opacity-terminal.spec.ts"
+        "src/doors/terminal/opacity-terminal.spec.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -429,21 +505,26 @@
       "rule": "Seis tipos de input cerrados",
       "from": "REGLAS §9",
       "guarantee": "type",
-      "evidence": ["src/surface/bridge/asking.ts", "src/surface/contract.ts"]
+      "evidence": ["src/surface/bridge/asking.ts", "src/surface/contract.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 58,
       "rule": "Texto: número o fecha es texto con validación; formatos cerrados",
       "from": "REGLAS §9",
       "guarantee": "type",
-      "evidence": ["src/catalogs/fields.ts", "src/surface/contract.ts", "src/surface/masks.ts"]
+      "evidence": [
+        "src/catalogs/fields.ts",
+        "src/surface/contract.ts",
+        "src/surface/masks.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 59,
       "rule": "Opción única: lista con ↑↓ y enter",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/step.ts"]
+      "evidence": ["src/surface/step.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 60,
@@ -454,7 +535,8 @@
         "src/surface/step.ts",
         "src/surface/walk.ts",
         "src/catalogs/fields.ts",
-        "src/surface/bridge/asking.ts"
+        "src/surface/bridge/asking.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -467,7 +549,8 @@
         "src/surface/walk.ts",
         "src/surface/bridge/asking-parts.ts",
         "src/surface/bridge/house-tools.ts",
-        "src/programs/promised-walk.ts"
+        "src/programs/promised-walk.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -475,77 +558,109 @@
       "rule": "Confirmación: el verbo y volver",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/screen.ts"]
+      "evidence": [
+        "src/surface/bridge/program-acts.ts",
+        "src/surface/screen.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 63,
       "rule": "La tecla del verbo es su inicial",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/bridge/program-acts.ts", "src/tools/promises.ts"]
+      "evidence": [
+        "src/surface/bridge/program-acts.ts",
+        "src/tools/promises.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 65,
       "rule": "Nada se ejecuta hasta el último input; durante los inputs solo se lee",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/step.ts"]
+      "evidence": ["src/surface/step.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 66,
       "rule": "Sin inputs solo confirma; si no se puede deshacer volver viene elegido, si se puede el verbo",
       "from": "REGLAS §9",
       "guarantee": "type",
-      "evidence": ["src/tools/promises.ts", "src/surface/bridge/program-acts.ts"]
+      "evidence": [
+        "src/tools/promises.ts",
+        "src/surface/bridge/program-acts.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 67,
       "rule": "Mientras corre: evento en vivo, late Procesando, igual en todas, sin Entrada",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/router.spec.ts", "src/surface/walk.ts", "src/texts/surface.texts.ts"]
+      "evidence": [
+        "src/surface/router.spec.ts",
+        "src/surface/walk.ts",
+        "src/texts/surface.texts.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 68,
       "rule": "Cuando no hace falta, la Entrada se va (no se deshabilita ni se reserva)",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts", "src/surface/walk.ts"]
+      "evidence": ["src/doors/terminal/thread.ts", "src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 69,
       "rule": "El resultado se dice Verbo · Objeto · Detalle",
       "from": "REGLAS §9",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised.ts"]
+      "evidence": ["src/programs/promised.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 70,
       "rule": "Un paso con datos inválidos no avanza",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/screen.ts", "src/surface/step.ts", "src/surface/walk.ts"]
+      "evidence": [
+        "src/surface/screen.ts",
+        "src/surface/step.ts",
+        "src/surface/walk.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 71,
       "rule": "Si falla, el error queda en el Hilo y vuelve a preguntar con lo escrito",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/terminal.spec.ts", "src/surface/step.ts", "src/surface/walk.ts"]
+      "evidence": [
+        "src/doors/terminal/terminal.spec.ts",
+        "src/surface/step.ts",
+        "src/surface/walk.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 72,
       "rule": "esc vuelve, cancela o cierra según la fase",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": ["src/surface/step.ts", "src/surface/walk.ts"]
+      "evidence": ["src/surface/step.ts", "src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 73,
       "rule": "Al cerrar lo que eliminó una cosa se vuelve a la lista que la mostraba",
       "from": "REGLAS §9d",
       "guarantee": "derived",
-      "evidence": ["src/doors/terminal/destinations.spec.ts", "src/programs/promised-walk.ts", "src/surface/step.ts"]
+      "evidence": [
+        "src/doors/terminal/destinations.spec.ts",
+        "src/programs/promised-walk.ts",
+        "src/surface/step.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 74,
@@ -555,7 +670,8 @@
       "evidence": [
         "src/doors/terminal/destinations.spec.ts",
         "src/programs/promised-laws.ts",
-        "src/surface/shown-tool.ts"
+        "src/surface/shown-tool.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -567,7 +683,8 @@
         "src/doors/terminal/destinations.spec.ts",
         "src/surface/lists.ts",
         "src/surface/resolve.ts",
-        "src/texts/surface.texts.ts"
+        "src/texts/surface.texts.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -575,21 +692,26 @@
       "rule": "Ninguna pantalla se escribe a mano; la herramienta no dibuja",
       "from": "REGLAS §9d",
       "guarantee": "type",
-      "evidence": ["src/surface/contract.ts", "src/surface/resolve.ts", "src/surface/shown-tool.ts"]
+      "evidence": [
+        "src/surface/contract.ts",
+        "src/surface/resolve.ts",
+        "src/surface/shown-tool.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 77,
       "rule": "La herramienta da su tecla y sección (place) y el dato de su fila (summary)",
       "from": "REGLAS §9d",
       "guarantee": "type",
-      "evidence": ["src/surface/lists.ts", "src/surface/shown-tool.ts"]
+      "evidence": ["src/surface/lists.ts", "src/surface/shown-tool.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 78,
       "rule": "Procesando, Barra y Toolbar los pone el contrato de superficie",
       "from": "REGLAS §9d",
       "guarantee": "surface",
-      "evidence": ["src/surface/resolve.ts"]
+      "evidence": ["src/surface/resolve.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 80,
@@ -600,7 +722,8 @@
         "src/surface/bridge/house-tools.ts",
         "src/surface/bridge/any-tool.ts",
         "src/tools/promises.ts",
-        "src/programs/promised-data.spec.ts"
+        "src/programs/promised-data.spec.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -608,14 +731,14 @@
       "rule": "Todo color de la UI sale de la tabla de tokens",
       "from": "REGLAS §10, §17",
       "guarantee": "type",
-      "evidence": ["src/surface/tones.ts"]
+      "evidence": ["src/surface/tones.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 82,
       "rule": "Valores hex y ANSI de la tabla",
       "from": "REGLAS §10",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/cells.ts"]
+      "evidence": ["src/doors/terminal/cells.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 83,
@@ -629,21 +752,27 @@
       "rule": "Jerarquía por brillo: tres textos y negrita",
       "from": "REGLAS §10",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts", "src/surface/walk.ts"]
+      "evidence": ["src/doors/terminal/thread.ts", "src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 85,
       "rule": "Un pulso a la vez; en reposo no se mueve nada",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": ["src/catalogs/time.ts", "src/surface/router.spec.ts", "src/surface/router.ts", "src/surface/walk.ts"]
+      "evidence": [
+        "src/catalogs/time.ts",
+        "src/surface/router.spec.ts",
+        "src/surface/router.ts",
+        "src/surface/walk.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 86,
       "rule": "Los títulos nunca laten",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts"]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 87,
@@ -664,21 +793,21 @@
       "rule": "Cambiar de lugar es un corte seco",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/boot.ts"]
+      "evidence": ["src/doors/terminal/boot.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 90,
       "rule": "La actividad se muestra con su propio dato (contador)",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": ["src/surface/walk.ts"]
+      "evidence": ["src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 91,
       "rule": "Late la palabra: fundido de 1,6 s, por pasos de color en la terminal",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": ["src/surface/walk.ts"]
+      "evidence": ["src/surface/walk.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 92,
@@ -697,7 +826,8 @@
         "src/tools/promises.ts",
         "src/surface/bridge/asking-parts.ts",
         "src/programs/promised.ts",
-        "src/programs/own-words.spec.ts"
+        "src/programs/own-words.spec.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -719,28 +849,32 @@
       "rule": "Las acciones destructivas piden confirmación",
       "from": "REGLAS §12",
       "guarantee": "compose",
-      "evidence": ["src/tools/promises.ts"]
+      "evidence": ["src/tools/promises.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 97,
       "rule": "Al achicarse cae lo secundario y después elipsis",
       "from": "REGLAS §14",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/cells.ts", "src/doors/terminal/paint.ts"]
+      "evidence": [
+        "src/doors/terminal/cells.ts",
+        "src/doors/terminal/paint.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 98,
       "rule": "Terminal: contenido hasta 76, en angosto todo el ancho",
       "from": "REGLAS §14",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts"]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 99,
       "rule": "Filas y menú: elipsis en dato o descripción; el nombre manda",
       "from": "REGLAS §14",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/thread.ts"]
+      "evidence": ["src/doors/terminal/thread.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 100,
@@ -754,7 +888,7 @@
       "rule": "LEYES 1: toda acción lleva propósito",
       "from": "LEYES 1",
       "guarantee": "type",
-      "evidence": ["src/surface/lists.ts", "src/tools/promises.ts"]
+      "evidence": ["src/surface/lists.ts", "src/tools/promises.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 102,
@@ -768,7 +902,8 @@
         "src/surface/bridge/house-tools.ts",
         "src/surface/contract.ts",
         "src/surface/lists.ts",
-        "src/tools/promises.ts"
+        "src/tools/promises.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -776,14 +911,21 @@
       "rule": "LEYES 3: las acciones viven en un catálogo único",
       "from": "LEYES 3",
       "guarantee": "compose",
-      "evidence": ["src/surface/bridge/house-tools.ts"]
+      "evidence": ["src/surface/bridge/house-tools.ts", "src/doors/socket/same-screens.spec.ts"]
     },
     {
       "id": 104,
       "rule": "LEYES 4: todas las acciones conservan su tecla; cada acción fuera del kit queda apagada con su motivo",
       "from": "LEYES 4",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-off.ts", "src/surface/availability/action-off.ts", "src/tools/execute.ts"]
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/surface/availability/action-off.ts",
+        "src/tools/execute.ts",
+        "src/programs/promised-walk.ts",
+        "src/tools/promises.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 105,
@@ -793,7 +935,8 @@
       "evidence": [
         "src/programs/promised-off.ts",
         "src/programs/promised-notices.ts",
-        "src/surface/bridge/program-acts.ts"
+        "src/surface/bridge/program-acts.ts",
+        "src/doors/socket/same-screens.spec.ts"
       ]
     },
     {
@@ -801,7 +944,11 @@
       "rule": "LEYES 6: navegando se llega a todas las acciones",
       "from": "LEYES 6",
       "guarantee": "derived",
-      "evidence": ["src/programs/promised-keys.ts", "src/programs/promised-walk.ts"]
+      "evidence": [
+        "src/programs/promised-keys.ts",
+        "src/programs/promised-walk.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
     },
     {
       "id": 107,
@@ -2258,6 +2405,152 @@
         "src/tools/kit-scopes.spec.ts",
         "src/programs/kit-adapters.spec.ts",
         "src/doors/terminal/kit-cut.spec.ts"
+      ]
+    },
+    {
+      "id": 240,
+      "rule": "Un proceso servidor posee el escritor y sirve varios clientes por socket Unix 0600 en la carpeta privada. Un escritor cerrado no limpia el socket; otro escritor falla una vez. La ruta macOS no se acorta.",
+      "from": "14/11 · casa-servidor · paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-server.spec.ts",
+        "src/doors/socket/socket-start.spec.ts",
+        "src/doors/socket/socket-process.spec.ts"
+      ]
+    },
+    {
+      "id": 241,
+      "rule": "La entrada exige hola en cinco segundos, llave válida y pertenencia actual según la casa; una mente nunca entra, aunque tenga llave. Identidad y puerta salen de la llave. Solo después de autenticar se comparan protocolo y versión completa de Node. Quien no entró no recibe versiones, estado, catálogo ni resultados; sacar una identidad corta sus conexiones en el aviso del bus.",
+      "from": "14/11 · casa-servidor · paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-protocol.spec.ts",
+        "src/doors/socket/socket-neighbors.spec.ts",
+        "src/doors/socket/socket-adversarial.spec.ts",
+        "src/doors/socket/socket-server.spec.ts",
+        "src/doors/socket/socket-integrity.spec.ts"
+      ]
+    },
+    {
+      "id": 242,
+      "rule": "Cada marco lleva largo uint32 big-endian, tipo y cuerpo. JSON validado con TypeBox en ambos sentidos, hasta 1 MiB; el binario solo sale de la casa, en tramos de 64 KiB bajo el tope de marco de 16 MiB. El estado entero no tiene ese tope. La lectura copia cada trozo una vez y cada marco incompleto tiene cinco segundos, también después de entrar. Hay hasta 32 conexiones sin presentarse; al llegar otra se desplaza la más antigua que aún no entró, sin cortar miembros. Se atienden hasta 16 marcos por conexión y vuelta del bucle; un marco inválido corta solo esa conexión.",
+      "from": "14/11 · casa-servidor · paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-frame.spec.ts",
+        "src/doors/socket/socket-protocol.spec.ts",
+        "src/doors/socket/socket-pressure.spec.ts",
+        "src/doors/socket/socket-state.spec.ts",
+        "src/doors/socket/socket-revision.spec.ts",
+        "src/doors/socket/socket-waits.spec.ts"
+      ]
+    },
+    {
+      "id": 243,
+      "rule": "La terminal arma exactamente identityView: al entrar recibe el estado completo por tramos, después solo campos y claves cambiados y el agregado de las listas que crecen. Cada envío lleva secuencia, base y huella del estado entero. Una huella distinta no se publica: se avisa a la vista, se pide el estado completo y la casa deja un aviso en su salida. Se prepara una vez por identidad y secuencia, agrupando el turno; en reposo no viaja estado. Los resultados siguen al estado con sus efectos. Una terminal que no lee se corta con aviso al acumular más de 1 MiB de envíos posteriores o un segundo de oportunidad de drenaje, medido por el tiempo ocioso del bucle de la casa. El tiempo ocupado de la casa no consume ese plazo. Una terminal lectora en otro proceso permanece conectada y recibe la misma vista durante ráfagas; todo pago hecho recibe su resultado. Cada conexión progresa sin esperar a otra. La puerta de agentes no recibe estado ni atajos de terminal.",
+      "from": "14/11 · casa-servidor · paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-server.spec.ts",
+        "src/doors/socket/socket-requests.spec.ts",
+        "src/doors/socket/socket-cost.spec.ts",
+        "src/doors/socket/socket-integrity.spec.ts",
+        "src/doors/socket/socket-state.spec.ts",
+        "src/doors/socket/peer-writer.spec.ts",
+        "src/doors/socket/socket-burst.spec.ts",
+        "src/doors/socket/socket-pressure.spec.ts"
+      ]
+    },
+    {
+      "id": 244,
+      "rule": "La identidad y el identificador de pedido distinguen el acto. Repetir el mismo contenido devuelve su resultado; otro contenido con ese identificador recibe un rechazo explícito. Otro identificador o identidad es otro acto. En curso existe solo mientras la ejecución sigue viva: si falla la escritura del acto, el pedido termina con el rechazo de la base o interrumpido y conserva ese resultado en el proceso. La causa guarda identificador y huella del contenido; lo que alcanzó el diario se recupera al reabrir. El recibo privado no se persiste.",
+      "from": "14/11 · casa-servidor · paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-server.spec.ts",
+        "src/doors/socket/socket-neighbors.spec.ts",
+        "src/doors/socket/socket-adversarial.spec.ts",
+        "src/doors/socket/socket-crash.spec.ts"
+      ]
+    },
+    {
+      "id": 245,
+      "rule": "SIGINT, SIGTERM o apagar de quien administra dejan de aceptar y avisan cerrando. La casa espera hasta diez segundos, cuenta lo que sigue en curso, cierra sus recursos y borra socket y pid. La casa que lanza la terminal guarda stdout y stderr, incluidos cierre, pendientes y avisos del almacenamiento, en casa.log 0600 dentro de su carpeta 0700. La salida no admite enlaces simbólicos ni duros y tiene un tope de 1 MiB: al excederlo se reemplaza el tramo anterior con un aviso y lo más reciente, sin un segundo archivo. Una salida anterior sobredimensionada se recorta al abrir el relevo. Un arranque fallido deja su causa segura (código del sistema cuando lo hay), sin anunciar un cierre exitoso. Cerrar un cliente no apaga la casa.",
+      "from": "14/11 · casa-servidor · paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-neighbors.spec.ts",
+        "src/doors/socket/socket-drain.spec.ts",
+        "src/doors/socket/socket-process.spec.ts",
+        "src/programs/private-output.spec.ts",
+        "src/doors/socket/socket-start.spec.ts",
+        "src/programs/output-boundaries.spec.ts",
+        "src/programs/bounded-output.spec.ts"
+      ]
+    },
+    {
+      "id": 246,
+      "rule": "La terminal usa HousePorts por socket con el router y dibujante existentes: los mismos recorridos, incluida la misma venta pedida dos veces con teclas rápidas, dan marcos idénticos y los mismos hechos act. La vista verificada llega antes del resultado; el reloj avanza desde la hora fresca de la bienvenida de esa conexión y no vuelve a tomar la hora de los estados guardados, ni al entrar tarde con la misma identidad ni al reconectar. El camino local conserva su comportamiento. La huella compone partes inmutables con números canónicos por valor y claves de objeto en orden fijo, independiente de alias y representaciones internas de V8; el parche usa la misma igualdad. La puerta remota solo admite datos JSON sin pérdidas, rechaza -0 y no finitos antes de escribir.",
+      "from": "14/11 · casa-servidor · paso 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/same-screens.spec.ts",
+        "src/doors/socket/socket-ports.spec.ts",
+        "src/doors/socket/state-value.spec.ts",
+        "src/doors/socket/socket-json.spec.ts",
+        "src/doors/socket/socket-numbers-process.spec.ts",
+        "src/doors/socket/state-delivery.spec.ts",
+        "src/doors/socket/socket-revision.spec.ts"
+      ]
+    },
+    {
+      "id": 247,
+      "rule": "Sin señal ni estado verificado no se envían actos. Solo las observaciones automáticas del dibujo comparten pedido mientras están en camino; cada acto pedido por la persona tiene un identificador nuevo, aunque repita el contenido. Un corte termina la espera como interrupted, nunca rejected, y remite a Actividad; reconectar consulta el identificador sin repetir el acto. Dos identidades tienen pedidos independientes.",
+      "from": "14/11 · casa-servidor · paso 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-ports.spec.ts",
+        "src/doors/socket/socket-client-neighbors.spec.ts",
+        "src/doors/socket/socket-integrity.spec.ts",
+        "src/doors/socket/same-screens.spec.ts"
+      ]
+    },
+    {
+      "id": 248,
+      "rule": "La terminal prueba el socket y, si falta, lanza el programa declarado en un proceso independiente con un plazo de cinco segundos. El candado sin socket conserva su texto y no abre otro escritor. Cerrar la terminal no apaga la casa; reconectar conserva la pantalla. Toda falla al abrir sale con una línea del catálogo y código distinto de cero, sin traza cruda. Desde hola hasta el primer estado comprobado hay cinco segundos totales que los envíos no reinician. Tres estados inválidos consecutivos en la misma secuencia agotan dos pedidos de recuperación y cierran la terminal con una línea del catálogo y código 1, al entrar o ya adentro. La casa deja un único aviso de resincronización por conexión, no uno por vuelta. La salida del proceso lanzado se conserva con el límite y las condiciones de la ley 245; el rechazo de arranque llega a la terminal después de recoger la salida del hijo.",
+      "from": "14/11 · casa-servidor · paso 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/programs/terminal-client.spec.ts",
+        "src/programs/launch-house.spec.ts",
+        "src/programs/socket-terminal.spec.ts",
+        "src/programs/terminal-failures.spec.ts",
+        "src/doors/socket/socket-resync.spec.ts",
+        "src/programs/terminal-state-failure.spec.ts",
+        "src/programs/output-boundaries.spec.ts"
+      ]
+    },
+    {
+      "id": 249,
+      "rule": "La respuesta perdida después de escribir se consulta sin un segundo efecto, también tras matar el proceso. Un corte antes o dentro de la transacción deja ningún efecto; entre efectos y respuesta deja el efecto entero y un resultado consultable o interrumpido con referencia a Actividad. Un pedido registrado sin empezar no queda en curso al reiniciar.",
+      "from": "14/11 · casa-servidor · paso 2",
+      "guarantee": "spec",
+      "evidence": ["src/doors/socket/socket-crash.spec.ts", "src/doors/socket/socket-client-neighbors.spec.ts"]
+    },
+    {
+      "id": 250,
+      "rule": "El defecto remoto acepta solo herramienta, destino y acción, sin campos adicionales. La casa comprueba que la acción es una propiedad propia declarada por la herramienta y existe sobre ese destino y está en el kit antes de escribir, fija el autor de la conexión y arma el texto desde su catálogo, pasando la entrada por prepare. Nunca acepta texto, atención, destinatario, made, draft ni silent del cliente; no transporta la excepción ni el diagnóstico del cliente. Los pedidos autenticados que no son actos comparten un máximo de 32 admisiones en cualquier ventana de un segundo por conexión, con hasta ocho esperas vivas. Al llegar al tope se devuelve un rechazo visible con identificador; no se escribe ni se agrega una espera. Los actos y el cierre de la conexión no consumen ese cupo. Completar o cortar una espera libera su lugar. La terminal muestra el aviso de cupo como máximo una vez por segundo y sigue leyendo. Una consulta de resultado rechazada por cupo conserva su identificador incierto y se reintenta al segundo, sin repetir el acto.",
+      "from": "14/11 · casa-servidor · paso 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/socket/socket-ports.spec.ts",
+        "src/doors/socket/socket-requests.spec.ts",
+        "src/doors/socket/socket-adversarial.spec.ts",
+        "src/doors/socket/socket-revision.spec.ts",
+        "src/doors/socket/request-budget.spec.ts",
+        "src/doors/socket/socket-waits.spec.ts",
+        "src/doors/socket/socket-quota-notice.spec.ts",
+        "src/doors/socket/socket-quota-recovery.spec.ts"
       ]
     },
     {

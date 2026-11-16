@@ -45,7 +45,7 @@ function painter(tty: Tty, router: Router) {
 
 /** Runs until ctrl c: each key is an intent for the router, and each change of the router is a frame. Bytes are read
  * as they come: a character or a key cut between two chunks is still that character and that key. */
-export function startTerminal(tty: Tty, keyboard: Keyboard, router: Router): Promise<void> {
+export function startTerminal(tty: Tty, keyboard: Keyboard, router: Router, signal?: AbortSignal): Promise<void> {
   const frames = painter(tty, router);
   const keys = keyReader();
   const text = new StringDecoder("utf8");
@@ -53,17 +53,18 @@ export function startTerminal(tty: Tty, keyboard: Keyboard, router: Router): Pro
     const unwatch = router.watch(frames.draw);
     let waiting: ReturnType<typeof setTimeout> | undefined;
     let due: ReturnType<typeof setImmediate> | undefined;
+    const stop = terminalStop(tty, keyboard, signal, () => {
+      clearTimeout(waiting);
+      clearImmediate(due);
+      unwatch();
+      done();
+    });
     /** False once the person asked to leave. */
     const take = (intents: readonly Intent[]): boolean => {
+      if (stop.ended()) return false;
       const stays = intents.every(key => router.send(key));
       if (stays) frames.draw();
-      else {
-        unwatch();
-        keyboard.setRawMode(false);
-        keyboard.pause();
-        tty.write(leaveScreen);
-        done();
-      }
+      else stop.finish();
       return stays;
     };
     /** Once its time is up, what waits is settled only after what had already arrived was read: a moment in which
@@ -81,5 +82,21 @@ export function startTerminal(tty: Tty, keyboard: Keyboard, router: Router): Pro
     keyboard.resume();
     tty.write(enter);
     frames.draw();
+    signal?.addEventListener("abort", stop.finish, { once: true });
+    if (signal?.aborted) stop.finish();
   });
+}
+
+function terminalStop(tty: Tty, keyboard: Keyboard, signal: AbortSignal | undefined, done: () => void) {
+  let ended = false;
+  const finish = () => {
+    if (ended) return;
+    ended = true;
+    signal?.removeEventListener("abort", finish);
+    keyboard.setRawMode(false);
+    keyboard.pause();
+    tty.write(leaveScreen);
+    done();
+  };
+  return { ended: () => ended, finish };
 }
