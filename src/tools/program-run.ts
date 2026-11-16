@@ -3,7 +3,7 @@ import { programCall } from "./boundaries/program-call.ts";
 // Every execution of a program act checks its current declaration before entering its body.
 import { answerChange } from "./answers/answer-change.ts";
 import { Value } from "@sinclair/typebox/value";
-import { fine, wrongIn } from "../catalogs/fields.ts";
+import { fieldValidity } from "../catalogs/fields.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { outsideRun } from "./outside.ts";
 import { declaredCause, isProgram } from "./execution/program-causes.ts";
@@ -17,12 +17,10 @@ export function programOffered<X extends Program>(act: ToolAct<X>, state: State<
     : act.offered?.(state, target, at);
 }
 function before<X extends Program>(act: ProgramAct<X>, value: unknown, context: ActContext<X>) {
-  if (!Value.Check(executionSchema(act.input), value) || !fine(executionSchema(act.input), value))
-    return toolTexts.invalid;
+  const validity = fieldValidity(executionSchema(act.input), value, context.at);
+  if (validity.invalid) return toolTexts.invalid;
   const whole = refusedWhole(executionSchema(act.input), act, value);
-  const wrong =
-    wrongIn(executionSchema(act.input), value, context.at) ??
-    whole(context.state, context.target, act.refuses, context.at);
+  const wrong = validity.wrong ?? whole(context.state, context.target, act.refuses, context.at);
   declaredCause(act.refuses, wrong);
   const current = programCall(act.today?.bind(act), context.state, context.target, context.at);
   const same = current === undefined ? undefined : Value.Equal(current, value);

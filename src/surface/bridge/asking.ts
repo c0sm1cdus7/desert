@@ -1,3 +1,4 @@
+import { checkMoneyScreen } from "../invalid-money.ts";
 import { questionMaterial } from "../../tools/inputs/question-material.ts";
 import { answeredInput } from "../../tools/inputs/secret-input.ts";
 // The questions of an act come from the declaration of what it takes; so do its answers, read back as data.
@@ -12,7 +13,7 @@ export type { AskWords, Things } from "./asking-parts.ts";
 const one = (ask: string, options: readonly Option[]): Field => ({ ask, kind: "one", options });
 function leaf(schema: TSchema, ctx: Ctx, from: number): Got {
   const answer = ctx.answers[from];
-  if (answer === undefined) return { ask: written(schema, { ...ctx, position: from }) };
+  if (answer === undefined) return { ask: checkMoneyScreen(schema, written(schema, { ...ctx, position: from })) };
   return { value: valueOf(schema, { ...ctx, position: from }, answer), at: from + 1 };
 }
 function choice(schema: TSchema, ctx: Ctx, from: number): Got {

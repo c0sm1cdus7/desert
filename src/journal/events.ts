@@ -1,8 +1,8 @@
 import { stateResult, type DeepReadonly } from "./readonly-state.ts";
 // One journal for the house's facts and a program's: the house reads its own and carries the program's unread.
-import { Type, type Static, type TSchema } from "@sinclair/typebox";
+import { Type, TypeGuard, type Static, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { object, preference, scene, t as visibleText } from "../catalogs/acts.ts";
+import { object, preference, scene, t, visibleText } from "../catalogs/acts.ts";
 import { toolLimits } from "../catalogs/levers.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 const literals = <T extends string>(...values: T[]) => Type.Union(values.map(value => Type.Literal(value)));
@@ -15,7 +15,7 @@ const actStatus = literals("accepted", "rejected", "draft", "inconclusive", "int
 export const houseCatalog = {
   "house-created": object({}),
   granted: object({ identity: name, tools: names }),
-  named: object({ identity: name, name: visibleText(toolLimits.text) }),
+  named: object({ identity: name, name: t(toolLimits.text) }),
   /** Someone leaves the house: from then on nothing of it is theirs. Only who administers it says so. */
   removed: object({ identity: name }),
   /** The house passes to another of those who are in it: from then on that one administers it. */
@@ -108,6 +108,20 @@ const legacyHouseCatalog = {
   "act-done": object({ object: name, act: name, text, recipient: Type.Optional(name) }),
 } satisfies Catalog;
 const legacyArms = arms("house", legacyHouseCatalog, {});
+// Free-text fields used \S before the visible-text rule; keep that rule for stored program facts.
+const historical = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(historical);
+  if (!value || typeof value !== "object") return value;
+  const copy = Object.fromEntries(Object.entries(value).map(([key, each]) => [key, historical(each)]));
+  for (const symbol of Object.getOwnPropertySymbols(value)) Reflect.set(copy, symbol, Reflect.get(value, symbol));
+  if (copy.plain === true && copy.pattern === visibleText) copy.pattern = "\\S";
+  return copy;
+};
+const historicalSchema = (schema: TSchema): TSchema => {
+  const result = historical(schema);
+  if (!TypeGuard.IsSchema(result)) throw new Error("Invalid historical schema");
+  return result;
+};
 const freeze = (value: unknown): void => {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return;
   Object.freeze(value);
@@ -126,13 +140,20 @@ type Own<C extends Catalog> = C & Readonly<Partial<Record<HouseKind, never>>>;
 export function vocabulary<C extends Catalog>(program: Own<C>) {
   const taken = Object.keys(program).filter(kind => layerOf(kind) === "house");
   if (taken.length) throw new Error(journalTexts.kindTaken(taken));
-  const all = (fields: Readonly<Record<string, TSchema>>, legacy = false) =>
+  const all = (fields: Readonly<Record<string, TSchema>>) =>
+    Type.Union([...arms("house", houseCatalog, fields), ...arms("program", program, fields)]);
+  // What earlier versions wrote is read as written: house kinds from before shared reading, program free text under \S.
+  const stored = { ...provenance, ...position };
+  const historicalProgram = Object.fromEntries(
+    Object.entries(program).map(([kind, schema]) => [kind, historicalSchema(schema)]),
+  );
+  const event = Type.Unsafe<Event<ProgramFacts<C>>>(
     Type.Union([
-      ...arms("house", houseCatalog, fields),
-      ...arms("program", program, fields),
-      ...(legacy ? legacyArms.map(arm => Type.Composite([arm, object(fields)])) : []),
-    ]);
-  const event = Type.Unsafe<Event<ProgramFacts<C>>>(all({ ...provenance, ...position }, true));
+      ...arms("house", houseCatalog, stored),
+      ...arms("program", historicalProgram, stored),
+      ...legacyArms.map(arm => Type.Composite([arm, object(stored)])),
+    ]),
+  );
   return {
     event,
     emission: Type.Unsafe<Emission<ProgramFacts<C>>>(all(provenance)),

@@ -139,3 +139,13 @@ it("the visible name persists and an unnamed identity reads as its identifier", 
     return Promise.resolve();
   });
 });
+it("rejects an invisible scene atomically, without a program defect, and keeps the scene before it", async () => {
+  await staged(identitiesProgram, async ({ house }) => {
+    const scene = (general: string) => ({ act: "scene", on: "identities/carla", by: "carla", input: { general } });
+    expect(await perform(house(), "identities", scene("En curso"))).toMatchObject({ status: "accepted" });
+    const result = await perform(house(), "identities", scene("​"));
+    expect(result).toMatchObject({ status: "rejected", reason: "datos inválidos" });
+    expect(result.defect).not.toBe(true);
+    expect(house().tools.state().house.scenes.get("carla")?.data.general).toBe("En curso");
+  });
+});

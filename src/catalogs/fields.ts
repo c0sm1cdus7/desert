@@ -1,4 +1,5 @@
 // The fields an act can take. Each one carries how it is asked, so the question is declared once, with the datum.
+import { visibleText } from "./acts.ts";
 import { programCall } from "../tools/boundaries/program-call.ts";
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -11,7 +12,7 @@ export type More = Readonly<{ ask: string; done: Choice; another: Choice }>;
 export const textLimit = 120;
 /** Free text: the question, and a placeholder that shows what goes there. It says something, not only spaces. */
 export const text = (ask: string, placeholder: string) =>
-  Type.String({ minLength: 1, maxLength: textLimit, pattern: "\\S", plain: true, title: ask, placeholder });
+  Type.String({ minLength: 1, maxLength: textLimit, pattern: visibleText, plain: true, title: ask, placeholder });
 export { money, shownMoney } from "./fields/money-field.ts";
 /** How many decimals a quantity carries: what its mask lets be written, and what every door is held to. */
 export const quantityDecimals = 3;
@@ -135,4 +136,10 @@ export function fine(schema: unknown, value: unknown): boolean {
   if (Array.isArray(value)) return value.every(each => fine(part(schema, "items"), each));
   if (value === null || typeof value !== "object") return true;
   return Object.entries(value).every(([key, each]) => fine(part(part(schema, "properties"), key), each));
+}
+
+/** Validate a field as the house does, at the instant it is used. */
+export function fieldValidity(schema: TSchema, value: unknown, at: number) {
+  const invalid = !Value.Check(schema, value) || !fine(schema, value);
+  return { invalid, wrong: invalid ? undefined : wrongIn(schema, value, at) };
 }

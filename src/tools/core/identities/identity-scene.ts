@@ -1,16 +1,14 @@
 // The same bounded general scene, offered on its author's row by the ordinary declared action path.
-import { Value } from "@sinclair/typebox/value";
 import { object, scene } from "../../../catalogs/acts.ts";
-import { holding, text } from "../../../catalogs/fields.ts";
+import { text } from "../../../catalogs/fields.ts";
 import { effect } from "../../../journal/events.ts";
+import { genericTexts as generic } from "../../../texts/generic-surface.texts.ts";
 import { identityTexts as words } from "../../../texts/identities/identities.texts.ts";
 import { programAct } from "../../promises.ts";
 import type { Program } from "../../tool-contract.ts";
+/** Free text with something visible, within the scene's bound: the field holds the same rule as the house. */
 const input = object({
-  general: holding(
-    { ...text(words.general, words.visibleScene), maxLength: scene.properties.general.maxLength },
-    value => (Value.Check(scene.properties.general, value) ? undefined : words.visibleScene),
-  ),
+  general: { ...text(words.general, generic.lacks.visible), maxLength: scene.properties.general.maxLength },
 });
 const cases = [
   {
@@ -39,13 +37,6 @@ const cases = [
     input: { general: words.sceneExample },
     then: { refused: words.ownScene },
   },
-  {
-    promise: words.promises.invisibleScene,
-    by: "carla",
-    on: "identities/carla",
-    input: { general: "\u200b" },
-    then: { refused: words.visibleScene },
-  },
 ] as const;
 export function identityScene<X extends Program>() {
   return programAct<X, typeof input>({
@@ -54,7 +45,7 @@ export function identityScene<X extends Program>() {
     on: "thing",
     leaves: false,
     undoable: true,
-    refuses: [words.ownScene, words.visibleScene],
+    refuses: [words.ownScene],
     offered: ({ by }, target) => (target === `identities/${by}` ? undefined : words.ownScene),
     run: ({ general }, { by }) => ({
       status: "accepted",

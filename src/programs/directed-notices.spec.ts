@@ -15,7 +15,7 @@ it.each(["ana", "beto"])("12: derives Attention from both the actor and recipien
 
 it("12: detects a recipient omitted by the case in both the house and Attention checks", async () => {
   const program = directedShop(false);
-  const checks = [...promisedChecks(program), ...noticeChecks(program, shopShown)].filter(
+  const checks = [...promisedChecks(program, shopShown), ...noticeChecks(program, shopShown)].filter(
     check => check.name === stillOwing || check.name === `${stillOwing}, in Attention with why`,
   );
   expect(checks).toHaveLength(2);
@@ -47,7 +47,7 @@ it.each(["nadie", "mind:sales", "carla"])(
   "adversarial attention: rejects an invisible promised recipient %s",
   async to => {
     const program = directedShop(true, to);
-    const checks = [...promisedChecks(program), ...noticeChecks(program, shopShown)];
+    const checks = [...promisedChecks(program, shopShown), ...noticeChecks(program, shopShown)];
     const failed: { name: string; reason: string }[] = [];
     for (const check of checks)
       await check.run().catch((error: unknown) => failed.push({ name: check.name, reason: String(error) }));

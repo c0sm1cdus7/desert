@@ -182,3 +182,5 @@ export const invalidDefaultShop = (value: number): Composition<Shop> => {
     registry: [{ ...salesTool, acts: { ...salesTool.acts, register: { ...register, input } } }, paymentsTool],
   };
 };
+
+export { invalidOpeningShop } from "./invalid-opening-shop.ts";

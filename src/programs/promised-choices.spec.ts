@@ -51,7 +51,7 @@ const sabotages = [
   },
 ];
 describe("choices checked before choosing", () => {
-  for (const check of [...promisedChecks(choosingShop), ...walkedChecks(choosingShop, shopShown)])
+  for (const check of [...promisedChecks(choosingShop, shopShown), ...walkedChecks(choosingShop, shopShown)])
     it(check.name, check.run);
   for (const sabotage of sabotages) {
     it(`fails when a compiling surface ${sabotage.name}`, async () => {

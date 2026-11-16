@@ -58,6 +58,10 @@ it("runs the witnesses for law 255", () => {
     "src/catalogs/fields/money-cleanup.spec.ts",
     "src/surface/money-limit-cleanup.spec.ts",
     "src/tools/promises.spec.ts",
+    "src/programs/promised-data.spec.ts",
+    "src/programs/promised-money.spec.ts",
+    "src/programs/directed-notices.spec.ts",
+    "src/programs/promised-known.spec.ts",
     "src/surface/bridge/window-cost.spec.ts",
   ];
   expect(law?.evidence).toEqual(expect.arrayContaining(witnesses));

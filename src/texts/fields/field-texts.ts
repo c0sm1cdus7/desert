@@ -9,6 +9,7 @@ export const fieldTexts = {
     digits: "dígitos incompletos",
     characters: (count: number) => `${count} caracteres`,
     shape: "formato inválido",
+    visible: "texto con algo visible",
     least: (least: string) => `mínimo ${least}`,
     above: (than: string) => `mayor a ${than}`,
     most: (most: string) => `máximo ${most}`,

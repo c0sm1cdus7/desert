@@ -28,10 +28,12 @@ describe("the tree of src/", () => {
     expect(over.map(([folder, size]) => `${folder}: ${size} > ${folderBudgets[folder] ?? 0}`)).toEqual([]);
     expect(Object.keys(folderBudgets).filter(folder => !sizes.has(folder))).toEqual([]);
   });
-  it("keeps every file within 200 lines and the texts within 518", () => {
+  // 518 since the first step. Union 1: +2 for an invalid amount (casa-limpieza); the reason «texto con algo visible»
+  // moves from Identidades to every field and the invisible-scene promise goes to a neighbor test (−1).
+  it("keeps every file within 200 lines and the texts within 519", () => {
     expect(files.filter(file => lines(file) > 200).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(518);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(519);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

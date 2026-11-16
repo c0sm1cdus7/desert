@@ -25,8 +25,9 @@ async function invalidScreen(): Promise<string> {
     rmSync(home, { recursive: true, force: true });
   }
 }
-it("shows the generic base failure without the invalid amount (detail remains a debt)", async () => {
+it("shows why the initial amount cannot be drawn", async () => {
   const screen = await invalidScreen();
   expect(screen).toContain("E-BASE-1 · Falló la base");
-  expect(screen).not.toContain("-5");
+  expect(screen).toContain("importe");
+  expect(screen).toContain("Total");
 }, 20000);

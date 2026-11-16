@@ -1,4 +1,5 @@
 // Rendering and choosing are program execution too: their defects get one public screen and a support record.
+import { InvalidMoney } from "../invalid-money.ts";
 import { surfaceTexts } from "../../texts/surface.texts.ts";
 import type { Screen } from "../contract.ts";
 import type { Router } from "../router.ts";
@@ -18,7 +19,9 @@ export function routerDefects(
     const tool = place && "tool" in place ? place.tool : "program";
     const option = place?.kind === "act" ? place.act : tool;
     const target = place && "target" in place ? (place.target ?? tool) : tool;
-    reason = report(error, tool, target, option);
+    reason = "";
+    const reported = report(error, tool, target, option);
+    reason = error instanceof InvalidMoney ? `${reported} · ${surfaceTexts.invalidMoney(error.field)}` : reported;
     return reason;
   };
   const screen = (): Screen => ({

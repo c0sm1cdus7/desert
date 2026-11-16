@@ -1125,7 +1125,7 @@
     },
     {
       "id": 126,
-      "rule": "Todo dato que una persona escribe tiene tope: la plata, las cantidades y los números con su máximo; un texto con su largo y sin ser solo espacios. Un campo sin tope hace que el programa no arranque, y cada acción se prueba sola con un dato pasado de su tope",
+      "rule": "Todo dato que una persona escribe tiene tope: la plata, las cantidades y los números con su máximo; un texto libre con su largo y al menos un carácter que no sea espacio, control, formato, ignorable por defecto ni uno de los blancos U+2800, U+3164, U+115F, U+1160 y U+FFA0; un identificador corto admite los caracteres que declara, incluso espacios si están permitidos. Un campo sin tope hace que el programa no arranque, y cada acción se prueba sola con un dato pasado de su tope. Los valores iniciales calculados se comprueban solo en filas ofrecidas y encendidas, con las preguntas y opciones de la superficie y el estado, identidad, kit e instante del caso; un valor ausente no propone nada, y uno inválido nombra campo y valor. El texto libre de hechos anteriores se lee con la regla anterior; las emisiones nuevas cumplen la actual.",
       "from": "11/11 · revisión de lógica: importes de 10^17, cantidad 1e300, nombres de 100.000 letras",
       "guarantee": "derived",
       "evidence": [
@@ -1133,7 +1133,16 @@
         "src/surface/bridge/asking-parts.ts",
         "src/tools/schema-breaks.ts",
         "src/programs/promised-laws.ts",
-        "src/surface/bridge/asking.spec.ts"
+        "src/surface/bridge/asking.spec.ts",
+        "src/catalogs/cleanup-three.spec.ts",
+        "src/catalogs/field-validity.spec.ts",
+        "src/programs/shared-field-validation.spec.ts",
+        "src/programs/opening-availability.spec.ts",
+        "src/programs/opening-kit.spec.ts",
+        "src/programs/opening-context.spec.ts",
+        "src/journal/legacy-visible.spec.ts",
+        "src/journal/legacy-reopen.spec.ts",
+        "tests/laws/cleanup-four.spec.ts"
       ]
     },
     {
@@ -2113,7 +2122,7 @@
     },
     {
       "id": 213,
-      "rule": "Al Enter, todo valor inválido dice por qué no avanza: obligatorio vacío, día o dígitos incompletos, texto corto y número bajo el mínimo. Mientras se escribe un prefijo que puede completarse no molesta; un opcional vacío sigue valiendo nada. Un secreto inválido explica vacío, mínimo, máximo o forma a partir del esquema sin crear referencia ni mostrar material. El pegado secreto se conserva entero y el máximo se explica al Enter, sin truncar credenciales.",
+      "rule": "Al Enter, todo valor inválido dice por qué no avanza: obligatorio vacío, día o dígitos incompletos, texto corto, texto libre sin nada visible y número bajo el mínimo. Mientras se escribe un prefijo que puede completarse no molesta; un opcional vacío sigue valiendo nada. Un secreto inválido explica vacío, mínimo, máximo o forma a partir del esquema sin crear referencia ni mostrar material. El pegado secreto se conserva entero y el máximo se explica al Enter, sin truncar credenciales.",
       "from": "13/11 · campos · H05 y H18",
       "guarantee": "spec",
       "evidence": [
@@ -2125,7 +2134,7 @@
         "src/surface/field-rejections.spec.ts",
         "src/surface/entry-status.spec.ts",
         "src/surface/secret-entry-status.spec.ts",
-        "src/doors/terminal/secret-reasons.spec.ts"
+        "src/doors/terminal/secret-reasons.spec.ts", "src/surface/visible-reason.spec.ts", "src/doors/terminal/identity-scene-terminal.spec.ts"
       ]
     },
     {
@@ -2419,7 +2428,12 @@
         "tests/support/window-volume.ts",
         "src/surface/bridge/window-cost.spec.ts",
         "src/catalogs/fields/money-cleanup.spec.ts",
-        "src/surface/money-limit-cleanup.spec.ts"
+        "src/surface/money-limit-cleanup.spec.ts",
+        "src/programs/promised-data.spec.ts",
+        "src/programs/promised-money.spec.ts",
+        "src/programs/directed-notices.spec.ts",
+        "src/programs/promised-known.spec.ts",
+        "src/catalogs/cleanup-three.spec.ts"
       ]
     },
     {

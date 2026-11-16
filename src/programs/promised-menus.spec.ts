@@ -56,7 +56,7 @@ const atSale = (shown: Shown<Shop>, use: (hands: Hands) => Promise<void>) =>
   });
 
 describe("a program with a menu on its things", () => {
-  for (const check of promisedChecks(correctingShop)) it(check.name, check.run);
+  for (const check of promisedChecks(correctingShop, shopShown)) it(check.name, check.run);
   for (const check of walkedChecks(correctingShop, shopShown)) it(check.name, check.run);
   for (const check of walkedChecks(correctingShop, partsShown)) it(`${check.name}, each part alone`, check.run);
 

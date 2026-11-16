@@ -3,6 +3,7 @@ import { moneyQuestion, type MoneyContext } from "./currency/money-question.ts";
 import { secretReason } from "./secret-reason.ts";
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { visibleText } from "../../catalogs/acts.ts";
 import { addresses } from "../../catalogs/addressing.ts";
 import { wrongIn } from "../../catalogs/fields.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
@@ -132,6 +133,8 @@ function invalidReason(schema: TSchema, ctx: Ctx, typed: string, submitted: bool
   const least = at(schema, "minLength");
   if (typeof least === "number" && typeof value === "string" && Array.from(value).length < least)
     return generic.lacks.least(generic.lacks.characters(least));
+  if (at(schema, "plain") === true && typeof value === "string" && !new RegExp(visibleText).test(value))
+    return generic.lacks.visible;
   return generic.lacks.shape;
 }
 /** A secret is checked as typed: its material never becomes a value outside the private handoff. */
