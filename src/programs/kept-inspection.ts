@@ -12,6 +12,8 @@ import { InspectionUnavailable } from "../tools/failures/inspection-unavailable.
 import { credentialJournal } from "../adapters/declared/credential-journal.ts";
 import { Bus } from "../journal/bus.ts";
 import { effect } from "../journal/events.ts";
+import { guardJournal } from "../house/house.ts";
+import { coreRegistry } from "../tools/core/identities/identities.ts";
 import { startTools } from "../tools/tools.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import type { RunningHouse, HouseOptions } from "./house-runtime.ts";
@@ -55,15 +57,18 @@ function inspectionTools<X extends Program>(
   return { bus, tools };
 }
 async function inspectCopy<X extends Program, R>(
-  program: InspectionProgram<X>,
+  given: InspectionProgram<X>,
   file: string,
   use: (house: RunningHouse<X>, now: number) => R | Promise<R>,
 ): Promise<R> {
   const { runner, last } = journalKept(file);
   ok(runner, said.keptEmpty);
+  // Composed as a live house composes it: the core pieces it asked for, and the guard on every new identity name.
+  const program = { ...given, registry: coreRegistry(given.registry, runner, given.identities) };
   checkReopenedState<X>(file, { ...program, by: runner });
   const journal = houseJournal(file, program.words),
     now = last + 1;
+  guardJournal(journal, runner);
   try {
     const { bus, tools } = inspectionTools(program, journal, runner, now);
     const close = () => {
