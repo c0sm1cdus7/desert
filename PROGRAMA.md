@@ -164,7 +164,8 @@ La tienda de prueba declara los hechos de Ventas y Pagos; saldar escribe `sale-s
   el campo acepta. Por ejemplo, agregar una regla a `day` no permite guardar un día inexistente. Se pueden
   encadenar reglas; se muestra el primer motivo que aplique, en el orden en que se agregaron.
   Al Enter, todo valor inválido dice el motivo: «falta completar» si es obligatorio vacío, «día incompleto»,
-  «dígitos incompletos», el mínimo de caracteres o el límite numérico. Mientras se escribe, un prefijo que
+  «dígitos incompletos», el mínimo de caracteres, «texto con algo visible» si un texto libre no tiene nada que
+  se vea, o el límite numérico. Mientras se escribe, un prefijo que
   puede completarse no molesta. Un campo opcional vacío sigue aceptando «nada».
   Un carácter que el campo descarta dice por qué debajo de la pregunta, una sola vez por motivo distinto.
   Borrar en vacío, mover el cursor o repetir cero sobre cero no borra motivos ni el Error anterior.
@@ -1630,7 +1631,7 @@ no se reescriben ni se inventan hechos para completar referencias antiguas.
 
 `State<X>` es de solo lectura hasta el fondo: objetos, listas, mapas, conjuntos y valores dentro de ellos.
 Esto vale para `start().state()`, vistas y pantallas propias, resúmenes, necesidades, ofertas, actos y sus
-validadores, efectos y los argumentos de `Slices.step`. Cambiar una referencia recibida lanza `TypeError`,
+validadores, efectos y los argumentos de `Slices.step`, también en una terminal conectada por socket. Cambiar una referencia recibida lanza `TypeError`,
 incluidos los accesos por iteradores, `forEach`, descriptores o métodos nativos de colección. La autoridad
 sigue siendo la del registro: una mente no se da un kit ni cambia la administración desde una lectura.
 Los errores del programa conservan el diagnóstico habitual de la puerta que los recibió.
