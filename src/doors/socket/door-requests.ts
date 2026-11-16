@@ -42,7 +42,7 @@ export async function routeRequest<X extends Program>(
     const action = declared && Object.hasOwn(declared.acts, option) ? declared.acts[option] : undefined;
     const wrongPlace = action?.on !== undefined && (action.on === "tool") !== (target === tool);
     if (declared?.id !== tool || !action || wrongPlace) return { ...refusal, motivo: toolTexts.unknown };
-    if (!allowedAct(state.house, by, tool, option)) return { ...refusal, motivo: toolTexts.outsideKit };
+    if (!allowedAct(state.house, by, tool, option)) return { ...refusal, motivo: toolTexts.kitRefusal(tool) };
     const entry = house.tools.prepare({ tool, target, author: by, text: toolTexts.baseFailure });
     house.bus.emit(effect("tool-entry", entry, by));
     return { tipo: "respuesta", id: "defecto", seq: house.tools.state().through, datos: null };

@@ -2643,7 +2643,7 @@
     },
     {
       "id": 250,
-      "rule": "El defecto remoto acepta solo herramienta, destino y acción, sin campos adicionales. La casa comprueba que la acción es una propiedad propia declarada por la herramienta y existe sobre ese destino y está en el kit antes de escribir, fija el autor de la conexión y arma el texto desde su catálogo, pasando la entrada por prepare. Nunca acepta texto, atención, destinatario, made, draft ni silent del cliente; no transporta la excepción ni el diagnóstico del cliente. Los pedidos autenticados que no son actos comparten un máximo de 32 admisiones en cualquier ventana de un segundo por conexión, con hasta ocho esperas vivas. Al llegar al tope se devuelve un rechazo visible con identificador; no se escribe ni se agrega una espera. Los actos y el cierre de la conexión no consumen ese cupo. Completar o cortar una espera libera su lugar. La terminal muestra el aviso de cupo como máximo una vez por segundo y sigue leyendo. Una consulta de resultado rechazada por cupo conserva su identificador incierto y se reintenta al segundo, sin repetir el acto.",
+      "rule": "El defecto remoto acepta solo herramienta, destino y acción, sin campos adicionales. La casa comprueba que la acción es una propiedad propia declarada por la herramienta y existe sobre ese destino y está en el kit antes de escribir (si no, rechaza con el mismo motivo que la fila y la ejecución), fija el autor de la conexión y arma el texto desde su catálogo, pasando la entrada por prepare. Nunca acepta texto, atención, destinatario, made, draft ni silent del cliente; no transporta la excepción ni el diagnóstico del cliente. Los pedidos autenticados que no son actos comparten un máximo de 32 admisiones en cualquier ventana de un segundo por conexión, con hasta ocho esperas vivas. Al llegar al tope se devuelve un rechazo visible con identificador; no se escribe ni se agrega una espera. Los actos y el cierre de la conexión no consumen ese cupo. Completar o cortar una espera libera su lugar. La terminal muestra el aviso de cupo como máximo una vez por segundo y sigue leyendo. Una consulta de resultado rechazada por cupo conserva su identificador incierto y se reintenta al segundo, sin repetir el acto.",
       "from": "14/11 · casa-servidor · paso 2",
       "guarantee": "spec",
       "evidence": [
@@ -2654,7 +2654,8 @@
         "src/doors/socket/request-budget.spec.ts",
         "src/doors/socket/socket-waits.spec.ts",
         "src/doors/socket/socket-quota-notice.spec.ts",
-        "src/doors/socket/socket-quota-recovery.spec.ts"
+        "src/doors/socket/socket-quota-recovery.spec.ts",
+        "src/doors/socket/defect-kit-reason.spec.ts"
       ]
     },
     {

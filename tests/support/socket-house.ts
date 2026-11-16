@@ -30,10 +30,11 @@ function program(hold?: Promise<void>) {
   };
   return { ...shopProgram, registry: [shopProgram.registry[0], delayed].filter(tool => tool !== undefined) };
 }
-function opening(hold?: Promise<void>) {
+function opening(hold?: Promise<void>, identities = false) {
   const home = mkdtempSync("/tmp/casa-s-");
   const options = {
     ...program(hold),
+    identities,
     by: "house",
     secretKeys: new MemoryHouseKeys(),
     creation: {
@@ -44,8 +45,8 @@ function opening(hold?: Promise<void>) {
   const time = { now: () => 1_800_000_000_000, wait: () => () => {} };
   return { home, open: () => startHouse(home, options, time) };
 }
-export async function socketHouse(transport: "unix" | "stream" = "unix", hold?: Promise<void>) {
-  const { home, open } = opening(hold);
+export async function socketHouse(transport: "unix" | "stream" = "unix", hold?: Promise<void>, identities = false) {
+  const { home, open } = opening(hold, identities);
   let house = open();
   let door = transport === "stream" ? houseDoor(house, doorKeys) : undefined;
   const listen = async () => (door ? { path: "", close: door.close } : serveHouse(house, home, doorKeys));
