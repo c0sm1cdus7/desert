@@ -26,7 +26,7 @@ for (const mode of ["start", "stop"] as const) {
     const options = {
       ...shopProgram,
       registry,
-      by: "ana",
+      by: "shop",
       creation: { admin: "ana", assignments: [] },
     };
     try {

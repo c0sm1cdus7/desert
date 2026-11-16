@@ -1,9 +1,12 @@
 import { absentCheck, foreignReferences } from "./promised-read.ts";
+import { absentMindAction } from "./core/kit-checks.ts";
+import { checkKitChange, checkForeignVisibility, checkSceneRow, isCoreScene } from "./core/identity-checks.ts";
 // What a person sees of what they cannot do, and what they may prefer not to see: checked for every tool and act.
 import { effect } from "../journal/events.ts";
 import { ok, strictEqual } from "node:assert/strict";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
+import { identityTexts } from "../texts/identities/identities.texts.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition, ProgramTool } from "../tools/promises.ts";
@@ -22,9 +25,11 @@ function foreignActions<X extends Program>(seat: Seat<X>, tool: ProgramTool<X>):
     const targets = act.on === "tool" ? [tool.id] : tool.targets(seat.state());
     for (const target of targets) {
       const found = actRow(seat, { tool, name, act }, target);
+      if (absentMindAction(tool, name, target, found)) continue;
+      if (checkSceneRow(tool.id, name, seat.state().by, target, found?.row)) continue;
       ok(found, said.notOffered(name));
       ok(found.row.off);
-      ok(found.row.detail?.endsWith(toolTexts.outsideKit));
+      ok(found.row.detail?.endsWith(toolTexts.kitRefusal(tool.id)));
       strictEqual(found.row.open, undefined);
     }
   }
@@ -47,19 +52,20 @@ function foreignCheck<X extends Program>(program: Composition<X>, shown: Shown<X
         foreignReferences(seat, program);
         seat.router.send({ kind: "menu" });
         await prefer(seat, "foreign", true);
-        strictEqual(row(), undefined, said.stillShown(tool.id));
+        checkForeignVisibility(tool.id, row());
         await prefer(seat, "foreign", false);
         ok(row()?.open, said.notOnMenu(tool.id));
       } finally {
         seat.router.stop();
       }
     });
-  return { name: `${tool.id} · ${said.foreign}`, run };
+  const promise = tool.id === "identities" ? identityTexts.promises.sharedReading : said.foreign;
+  return { name: `${tool.id} · ${promise}`, run };
 }
 /** A tool stays usable while a single action is removed from its holder's kit. */
 function partialCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
   return {
-    name: label(aim, said.partialKit),
+    name: label(aim, isCoreScene(aim) ? identityTexts.promises.sceneKitRetained : said.partialKit),
     run: () =>
       staged(program, async ({ house }) => {
         await given(house(), aim.tool.id, kase.given, kase.at);
@@ -74,16 +80,20 @@ function partialCheck<X extends Program>(program: Composition<X>, shown: Shown<X
             const before = actRow(seat, other, target)?.row;
             return before ? [{ other, target, off: before.off, detail: before.detail }] : [];
           });
-          house().bus.emit(effect("kit-set", { holder: cast.member, tool: aim.tool.id, acts }, cast.admin));
+          checkKitChange(aim.tool.id, () =>
+            house().bus.emit(effect("kit-set", { holder: cast.member, tool: aim.tool.id, acts }, cast.admin)),
+          );
           for (const { other, target, off, detail } of others) {
             const row = actRow(seat, other, target)?.row;
             strictEqual(row?.off, off);
             strictEqual(row?.detail, detail);
           }
-          const row = actRow(seat, aim, kase.on ?? aim.tool.id, undefined, caseOrigin(aim, kase));
+          const target = isCoreScene(aim) ? `identities/${cast.member}` : (kase.on ?? aim.tool.id);
+          const row = actRow(seat, aim, target, undefined, caseOrigin(aim, kase));
+          if (checkSceneRow(aim.tool.id, aim.name, cast.member, target, row?.row)) return;
           ok(row, said.notOffered(aim.name));
           ok(row.row.off);
-          ok(row.row.detail?.endsWith(toolTexts.outsideKit));
+          ok(row.row.detail?.endsWith(toolTexts.kitRefusal(aim.tool.id)));
         } finally {
           seat.router.stop();
         }

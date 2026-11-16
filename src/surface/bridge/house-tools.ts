@@ -1,3 +1,5 @@
+import { kitScreen } from "../../tools/core/identities/kit-screen.ts";
+import { withIdentityWords } from "../../tools/core/identities/identity-reading.ts";
 import { programCall } from "../../tools/boundaries/program-call.ts";
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
 import { builtScreen } from "./execution/program-screen.ts";
@@ -148,12 +150,16 @@ function questionsFor<X extends Program>(ports: HousePorts<X>, shown: Shown<X>, 
         ?.titleOf?.(target) ?? target,
   };
 }
-export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown<X>): readonly Tool[] {
+function declaredTools<X extends Program>(registry: readonly HouseTool<X>[]) {
+  const undeclared = registry.filter(tool => !isProgramTool(tool)).map(tool => tool.id);
+  if (undeclared.length) throw new Error(`Acts without their declaration in ${undeclared.join(", ")}`);
+  return registry.filter(isProgramTool);
+}
+export function houseTools<X extends Program>(ports: HousePorts<X>, given: Shown<X>): readonly Tool[] {
+  const shown = withIdentityWords(ports.registry, given);
   const seen = new Map<string, number>();
   const observed: SurfacePorts<X> = { ...ports, act: value => ports.act(value, seen.get(value.target ?? "") ?? 0) };
-  const undeclared = ports.registry.filter(tool => !isProgramTool(tool)).map(tool => tool.id);
-  if (undeclared.length) throw new Error(`Acts without their declaration in ${undeclared.join(", ")}`);
-  const tools = ports.registry.filter(isProgramTool);
+  const tools = declaredTools(ports.registry);
   audit(tools, shown);
   const asked = questionsFor(ports, shown, () => own);
   const built = tools.flatMap(contract => {
@@ -163,7 +169,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
   const own: Tool[] = built.map(({ contract, words, acts, start }) => {
     const mine = (): boolean => allowed(ports.state().house, ports.me, contract.id);
     const screen = builtScreen(shown.screens?.[contract.id], observed, contract, words, acts, start);
-    const tool = withThings(observed, contract, { words, shown }, screen);
+    const tool = kitScreen(observed, contract, withThings(observed, contract, { words, shown }, screen), start);
     const calls = () => ports.state().attention.has(contract.id);
     const { notices, seen: looked } = noticesOf(observed, contract, tool);
     /** What the other tools offer on a thing of this one: only on a thing, never on a view that groups them. */
@@ -178,7 +184,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
       off: () => (ports.state().house.grants.has(ports.me) ? undefined : toolTexts.unassigned),
       alsoOn,
       /** A tool nobody gave you is on your Menu unless you prefer not to see what is not yours. */
-      listed: () => mine() || !hides(ports.state().house, ports.me, "foreign"),
+      listed: () => contract.id === "identities" || mine() || !hides(ports.state().house, ports.me, "foreign"),
       calls,
       rendered: (target = contract.id) => {
         if (!ports.state().house.grants.has(ports.me)) return;

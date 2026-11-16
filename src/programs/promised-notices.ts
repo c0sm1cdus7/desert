@@ -11,7 +11,7 @@ import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
-import { seated, openRows, view } from "./promised-keys.ts";
+import { seated, openRows, view, type Seat } from "./promised-keys.ts";
 import { prefer } from "./promised-off.ts";
 import { promisedNeeds } from "./promised.ts";
 import { cast, given, label, perform, staged, type Aim, type Check } from "./promised-stage.ts";
@@ -38,16 +38,13 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
       if (!entry) return;
       const theirs = seated(house(), other, shown);
       const own = seated(house(), actor, shown);
-      const outside = seated(house(), cast.outsider, shown);
+      const outside = seated(house(), actor === cast.outsider ? cast.admin : cast.outsider, shown);
       const news = (tools: readonly Tool[], tool?: string) =>
         listAt(tools, surface.activity, tool)?.find(row => row.title === firstLine(entry.data.text));
       try {
         ok(news(theirs.tools) && news(theirs.tools, aim.tool.id), said.noActivity(entry.data.text));
         strictEqual(news(own.tools), undefined, said.ownActivity(entry.data.text));
-        ok(news(outside.tools) && news(outside.tools, aim.tool.id), said.noActivity(entry.data.text));
-        await prefer(outside, "foreign", true);
-        ok(news(outside.tools), said.noActivity(entry.data.text));
-        await prefer(outside, "foreign", false);
+        await outsideActivity(outside, news, entry.data.text, aim.tool.id);
         strictEqual((listAt(outside.tools, surface.attentionList, aim.tool.id) ?? []).length, 0);
         const at = choices({ kind: "menu", at: 0 }, theirs.tools).findIndex(
           row => row.title === firstLine(entry.data.text),
@@ -62,6 +59,22 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
       }
     });
   return { name: label(aim, said.activity(kase.promise)), run };
+}
+/** Who has no tool still reads Activity, also hiding what is not theirs; who left the house reads nothing (6a). */
+async function outsideActivity<X extends Program>(
+  outside: Seat<X>,
+  news: (tools: readonly Tool[], tool?: string) => unknown,
+  text: string,
+  tool: string,
+): Promise<void> {
+  if (!outside.state().house.grants.has(outside.state().by)) {
+    strictEqual(news(outside.tools), undefined, said.absentReader);
+    return;
+  }
+  ok(news(outside.tools) && news(outside.tools, tool), said.noActivity(text));
+  await prefer(outside, "foreign", true);
+  ok(news(outside.tools), said.noActivity(text));
+  await prefer(outside, "foreign", false);
 }
 function checkPartialAttention<X extends Program>(
   by: string,

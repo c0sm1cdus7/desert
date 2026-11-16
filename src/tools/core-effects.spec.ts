@@ -74,7 +74,7 @@ it.each(["scene", "named"] as const)("el core deja decir el propio %s a quien ac
   );
   rigs.push(rig);
   rig.attend("beto", "identities/beto");
-  expect((await settle(rig.act("beto", "forge", {}, "identities/beto"))).status).toBe("accepted");
+  expect((await settle(rig.act("beto", "scene", {}, "identities/beto"))).status).toBe("accepted");
   rig.restart();
   if (kind === "scene") expect(rig.state().house.scenes.get("beto")?.data.general).toBe("Propia");
   else expect(rig.state().house.names.get("beto")).toBe("Nombre propio");
@@ -90,7 +90,7 @@ it.each(["named", "granted", "preferred"] as const)("actuar sobre sí no autoriz
   }, true);
   rigs.push(rig);
   rig.attend("beto", "identities/beto");
-  const result = await settle(rig.act("beto", "forge", {}, "identities/beto"));
+  const result = await settle(rig.act("beto", "scene", {}, "identities/beto"));
   expect(result.status).toBe("rejected");
   expect(result.reason).toContain(kind);
 });

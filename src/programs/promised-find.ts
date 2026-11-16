@@ -14,10 +14,16 @@ import { cast, given, label, perform, staged, type Aim, type Check } from "./pro
 type Sought = Readonly<{ tool: string; target: string; name: string }>;
 /** From one menu: space, the thing's name, down to its row, enter. It lands on the thing; and going back, the
  * menu is as it was before anyone looked for anything. While looking, no row starts an act. */
-function seek<X extends Program>({ router, tools }: Seat<X>, menu: Picture, { tool, target, name }: Sought): void {
+function seek<X extends Program>(seat: Seat<X>, menu: Picture, { tool, target, name }: Sought): void {
+  const { router, tools, state } = seat;
   type(router, ` ${name}`);
   const rows = stacksOf({ ...menu, find: name }, tools).flatMap(stack => stack.rows.filter(row => row.open));
   const at = rows.findIndex(row => row.opens === target && row.open?.kind === "view" && row.open.tool === tool);
+  /** Who is no longer in the house finds nothing (6a). */
+  if (!state().house.grants.has(state().by)) {
+    strictEqual(at, -1, said.absentReader);
+    return;
+  }
   ok(at >= 0, said.notFound(name));
   ok(!rows.some(row => row.starts), said.actsWhileFinding);
   for (let step = 0; step < at; step++) router.send({ kind: "down" });

@@ -41,6 +41,8 @@ export function effectRig(
     {
       acts: {
         forge: toolAct<Shop, typeof nothing>(nothing, (_, context) => run(context)),
+        /** The one core action a member runs on its own row; the effects stay the test's. */
+        scene: toolAct<Shop, typeof nothing>(nothing, (_, context) => run(context)),
         other: toolAct<Shop, typeof nothing>(nothing, () => ({
           status: "accepted",
           text: "Otra",

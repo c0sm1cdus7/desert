@@ -1,3 +1,4 @@
+export { checkCreation, checkIdentity, guardJournal, InvalidCreation } from "./identity/guards.ts";
 // A house: tool grants, action kits, shared scenes, preferences and reading.
 import { ids } from "../catalogs/ids.ts";
 import type { Hideable } from "../catalogs/acts.ts";
@@ -84,11 +85,13 @@ export function createHouse(bus: HouseBus, { admin: by, assignments }: Creation)
   bus.emit(effect("house-created", {}, by));
   for (const { identity, tools } of assignments) bus.emit(effect("granted", { identity, tools: [...tools] }, by));
 }
+/** The name shown for an identity defaults to its identifier. */
+export const identityDisplayName = (house: House, identity: string): string => house.names.get(identity) ?? identity;
 /** Whether an identity prefers not to see something. */
 export const hides = (house: House, by: string, what: Hideable): boolean =>
   house.hides.get(by)?.includes(what) === true;
 export const assigned = (house: House, by: string, tools: readonly string[]): string[] =>
-  tools.filter(tool => allowed(house, by, tool));
+  tools.filter(tool => tool !== "identities" && allowed(house, by, tool));
 
 /** The journal name of a tool's mind; an empty suffix does not name a tool. */
 export const mindOf = (tool: string): string => `${ids.mind}${tool}`;
@@ -104,7 +107,8 @@ export const holds = (registry: readonly { id: string }[], house: House, by: str
   mindTool(by) === undefined ? allowed(house, by, tool) : mindTool(by) === tool && present(registry, house, by);
 /** Identities inherit every act of a granted tool; minds receive only explicit acts of their own tool. */
 export function allowedAct(house: House, by: string, tool: string, act: string): boolean {
-  if (tool === "identities") return house.identities === true && by === house.admin && house.grants.has(by);
+  if (tool === "identities")
+    return house.identities === true && (act === "scene" || by === house.admin) && house.grants.has(by);
   const kit = by === house.admin ? undefined : house.kits.get(by)?.get(tool);
   const own = mindTool(by);
   if (own !== undefined) return own === tool && kit !== undefined && (kit === null || kit.includes(act));

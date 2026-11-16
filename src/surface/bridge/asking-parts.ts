@@ -77,6 +77,7 @@ export const valueOf = (schema: unknown, ctx: Ctx, answer: string): unknown => {
     return TypeGuard.IsSchema(schema) && Value.Check(schema, answer)
       ? ctx.secret?.(answer, ctx.position ?? ctx.answers.length)
       : undefined;
+  if (at(schema, "verbatim") === true) return answer;
   return formatOf(schema, ctx)?.value(answer) ?? (formatOf(schema, ctx) ? undefined : answer.trim());
 };
 /** One of the things of a tool, picked from their list. The answer is the thing; it shows by its name. A field
@@ -143,6 +144,7 @@ const secretField = (schema: TSchema, ctx: Ctx): Field => ({
     return ctx.cause ? ctx.cause(reason) : reason;
   },
 });
+const literalText = (schema: TSchema) => (at(schema, "verbatim") === true ? { verbatim: true as const } : {});
 export function written(schema: TSchema, ctx: Ctx): Field {
   if (schema.secret === true) return secretField(schema, ctx);
   ctx = moneyQuestion(schema, ctx);
@@ -184,5 +186,5 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   const placeholder = word(schema, "placeholder");
   const max = at(schema, "maxLength");
   if (typeof max !== "number") throw new Error(`The field ${ask} does not say how long it may be`);
-  return { ask, valid, wrong, kind: "text", placeholder, max, ...initial };
+  return { ask, valid, wrong, kind: "text", placeholder, max, ...initial, ...literalText(schema) };
 }
