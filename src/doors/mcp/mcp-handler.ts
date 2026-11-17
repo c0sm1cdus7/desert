@@ -3,6 +3,8 @@ import { mindTool, present } from "../../house/kit.ts";
 import type { Program, ViewLimits } from "../../tools/tool-contract.ts";
 import { requestBook } from "../socket/requests/request-book.ts";
 import { houseChange } from "../socket/requests/house-change.ts";
+import { requestBudget } from "../socket/peers/request-budget.ts";
+import { socketLimits } from "../socket/wire/protocol.ts";
 import type { DoorKey } from "../socket/peers/socket-peer.ts";
 import { mcpTexts as said } from "../../texts/mcp.texts.ts";
 import { authenticate, bodyFailure, readBody, empty, type McpRequest, type McpResponse } from "./mcp-access.ts";
@@ -30,7 +32,8 @@ export function mcpDoor<X extends Program>(
   const book = requestBook(house);
   const controller = new AbortController();
   const pending = new Set<Promise<McpResponse>>();
-  const call = caller(house, book, options);
+  const waits = new Map<string, number>();
+  const call = caller(house, book, options, waits);
   const dispatch = dispatcher(house, keys, controller.signal, call);
   const handle = (request: McpRequest) => {
     const work = dispatch(request);
@@ -54,6 +57,8 @@ function dispatcher<X extends Program>(
   closing: AbortSignal,
   call: (by: string, method: string, params: unknown, signal: AbortSignal) => Promise<unknown>,
 ) {
+  // Each identity gets the socket's rolling window of requests, whatever connection or key it comes through.
+  const budgets = new Map<string, ReturnType<typeof requestBudget>>();
   return async (request: McpRequest): Promise<McpResponse> => {
     if (request.method === "GET" && request.path === "/salud")
       return { status: 200, headers: { "Content-Type": "text/plain" }, body: said.health };
@@ -62,6 +67,9 @@ function dispatcher<X extends Program>(
     const by = identityOf(house, keys, request);
     if (!by) return empty(401, { "WWW-Authenticate": "Bearer" });
     if (closing.aborted) return empty(503);
+    const budget = budgets.get(by) ?? requestBudget();
+    budgets.set(by, budget);
+    if (!budget.take(false)) return empty(429, { "Retry-After": "1" });
     const failed = bodyFailure(request);
     if (failed) return failed;
     const signal = request.signal ? AbortSignal.any([closing, request.signal]) : closing;
@@ -137,7 +145,12 @@ function publicResult<X extends Program>(
   };
   return redact(clean);
 }
-function caller<X extends Program>(house: McpHouse<X>, book: ReturnType<typeof requestBook<X>>, options: McpOptions) {
+function caller<X extends Program>(
+  house: McpHouse<X>,
+  book: ReturnType<typeof requestBook<X>>,
+  options: McpOptions,
+  waits: Map<string, number>,
+) {
   return async (by: string, method: string, params: unknown, signal: AbortSignal): Promise<unknown> => {
     if (method === "initialize") return initialize(params, { name: options.name, version: options.version });
     if (method === "ping") return {};
@@ -148,16 +161,8 @@ function caller<X extends Program>(house: McpHouse<X>, book: ReturnType<typeof r
     const tool = typeof args.herramienta === "string" ? args.herramienta : undefined;
     if (name === "leer") return reading.read(tool);
     if (name === "acciones") return reading.actions(tool);
-    if (name === "esperar" && typeof args.desde === "number" && typeof args.segundos === "number") {
-      const changed = await houseChange(
-        () => house.tools.state().through,
-        changed => house.bus.on(changed),
-        args.desde,
-        Math.min(60, args.segundos) * 1000,
-        signal,
-      );
-      return toolResult(JSON.stringify(changed));
-    }
+    if (name === "esperar" && typeof args.desde === "number" && typeof args.segundos === "number")
+      return wait(house, waits, by, { desde: args.desde, segundos: args.segundos }, signal);
     if (name === "actuar" && tool !== undefined && typeof args.accion === "string")
       return mcpAct(
         house,
@@ -170,4 +175,28 @@ function caller<X extends Program>(house: McpHouse<X>, book: ReturnType<typeof r
       );
     throw new RpcError(-32602, said.params);
   };
+}
+/** One identity keeps at most the socket's number of open waits; each frees its place when it ends. */
+async function wait<X extends Program>(
+  house: McpHouse<X>,
+  waits: Map<string, number>,
+  by: string,
+  { desde, segundos }: Readonly<{ desde: number; segundos: number }>,
+  signal: AbortSignal,
+) {
+  const open = waits.get(by) ?? 0;
+  if (open >= socketLimits.waits) throw new RpcError(-32000, said.busy);
+  waits.set(by, open + 1);
+  try {
+    const changed = await houseChange(
+      () => house.tools.state().through,
+      changed => house.bus.on(changed),
+      desde,
+      Math.min(60, segundos) * 1000,
+      signal,
+    );
+    return toolResult(JSON.stringify(changed));
+  } finally {
+    waits.set(by, (waits.get(by) ?? 1) - 1);
+  }
 }

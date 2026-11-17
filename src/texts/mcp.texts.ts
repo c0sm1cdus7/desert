@@ -18,5 +18,6 @@ export const mcpTexts = {
   action: "La acción o el objetivo no corresponden a esa herramienta.",
   noThings: "Todavía no hay cosas sobre las que hacer esta acción.",
   redacted: "[secreto]",
+  busy: "Demasiadas esperas abiertas para esta identidad; cerrá alguna antes de abrir otra.",
   health: "ok",
 };
