@@ -74,10 +74,11 @@ describe("the tree of src/", () => {
   // Marco: +26 líneas exactas para instrucciones y rótulos del marco.
   // Mente 2C: +78 líneas exactas para cierres, correcciones, consulta y revisión del turno.
   // Mente 2D: +29 líneas exactas para el mensaje de propósitos de los seis controles de journey.
-  it("keeps every file within 300 lines and the texts within 829", () => {
+  // Mente 2E: +57 líneas exactas para diagnósticos y asignación de cartas y gasto.
+  it("keeps every file within 300 lines and the texts within 886", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(829);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(886);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));
