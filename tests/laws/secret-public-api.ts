@@ -46,7 +46,7 @@ const modules: Record<string, readonly string[]> = {
   "tools/promises.ts": ["programAct", "ProgramAct", "ProgramTool", "Case", "Step", "Also", "Need", "Offered", "Told"],
   "tools/startup-contract.ts": ["ToolStartup"],
   "tools/capabilities-contract.ts": ["SecretRef", "SecretRefs", "Credential", "CredentialOperations", "PublicPorts"],
-  "tools/execution/capabilities.ts": ["noCapabilities"],
+  "tools/execution/execution-capabilities.ts": ["noCapabilities"],
   "fields/program-call.ts": ["OutsideDefect"],
   "tools/outside.ts": ["outsideCause", "RunResult"],
   "tools/failures/port-failure.ts": ["PortFailure"],

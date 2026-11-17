@@ -1,4 +1,5 @@
 // toolAct and ownAct bound to their schema; reading, accepted, rejected
+import type { Capability } from "../fields/capabilities.ts";
 import { executionSchema } from "./inputs/secret-input.ts";
 import type { Static, TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -16,10 +17,12 @@ export function toolAct<X extends Program, S extends TSchema>(
   perform: Perform<X, S>,
   reach: Reach = "house",
   normalize: (value: unknown) => unknown = value => value,
+  needs?: readonly Capability[],
 ): ToolAct<X> {
   return {
     input,
     reach,
+    ...(needs === undefined ? {} : { needs }),
     run: (value, context) => {
       const prepared = normalize(value);
       /** What its schema admits, and nothing finer than its fields carry: no door sends what a person cannot write. */
@@ -31,9 +34,14 @@ export function toolAct<X extends Program, S extends TSchema>(
 export const ownAct = <X extends Program, S extends TSchema>(
   object: string,
   option: string,
-  declaration: { input: S; purpose: string },
+  declaration: { input: S; purpose: string; needs?: readonly Capability[] },
   perform: Perform<X, S>,
-): OwnAct<X> => ({ object, option, purpose: declaration.purpose, ...toolAct(declaration.input, perform) });
+): OwnAct<X> => ({
+  object,
+  option,
+  purpose: declaration.purpose,
+  ...toolAct(declaration.input, perform, "house", value => value, declaration.needs),
+});
 /** Declare that an act returns something to read. */
 export const reading = <A extends { readonly output?: boolean }>(act: A): A => ({ ...act, output: true });
 export const accepted = <P extends Emission>(...effects: P[]) => ({ status: "accepted" as const, effects });

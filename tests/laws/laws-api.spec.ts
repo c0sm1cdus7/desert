@@ -26,6 +26,7 @@ const names = [
   "uncataloguedWords",
   "staleWordExemptions",
   "hiddenRules",
+  "messageCoverage",
   "instructionFiles",
   "programLaws",
   "uncoveredCode",

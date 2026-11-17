@@ -51,6 +51,12 @@ it.each([
   ["gate", 'it.only("focused", f);', "src/a.ts: it.only"],
   ["biases", 'const x = "A visible sentence";', "src/a.ts: A visible sentence"],
   ["prompts", 'const x = "never";', "src/a.ts: never"],
+  [
+    "messages",
+    'import { defineMessage } from "./fields/messages.ts"; ' +
+      'defineMessage({ id: "missing", kind: "text", parameters: {}, texts: {} });',
+    "src/a.ts:missing:es",
+  ],
 ])("automatically catches the %s violation in a temporary program", async (_law, source, violation) => {
   const repo = lawRepository({ "src/a.ts": source });
   expect(await programLaws(repo.root)).toContain(violation);

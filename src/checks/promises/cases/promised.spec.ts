@@ -142,14 +142,6 @@ describe("a program with acts on its things", () => {
     expect(await failing(mine, [])).toEqual([]);
   });
 
-  it("a tool that does not say what its cases promise needs someone to act fails that, on every door", async () => {
-    const checks = [...promisedChecks(carelessShop, shopShown), ...walkedChecks(carelessShop, shopShown)];
-    expect(await failing(checks, ["Attention differs from the case", "Debe $ 0,90"])).toEqual([
-      stillOwing,
-      `${stillOwing}, in Attention with why`,
-    ]);
-  });
-
   it("a tool that says a bare number beside its name fails its cases: a count says what it counts", async () => {
     const registry = settlingShop.registry.map(tool =>
       tool.id === "sales" ? { ...tool, summary: () => String(tool.targets.length) } : tool,
@@ -167,4 +159,19 @@ describe("a program with acts on its things", () => {
     expect(failed.every(name => name.endsWith("is found by its name from any menu"))).toBe(true);
     expect(failed.filter(name => name.startsWith("sales ·")).length).toBe(failed.length);
   });
+});
+
+describe("a tool that does not say what its cases promise needs someone to act fails that, on every door", () => {
+  const checks = [...promisedChecks(carelessShop, shopShown), ...walkedChecks(carelessShop, shopShown)];
+  const expected = [stillOwing, `${stillOwing}, in Attention with why`];
+  it("derives both expected failures exactly once and in order", () => {
+    expect(checks.map(check => check.name).filter(name => expected.includes(name))).toEqual(expected);
+  });
+  // Each check opens its own house; report and time it independently without dropping the checks that pass.
+  for (const check of checks)
+    it(check.name, async () => {
+      expect(await failing([check], ["Attention differs from the case", "Debe $ 0,90"])).toEqual(
+        expected.includes(check.name) ? [check.name] : [],
+      );
+    });
 });

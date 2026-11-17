@@ -4,7 +4,7 @@ import type { AdapterComposition } from "../../tools/adapter-contract.ts";
 import { type CredentialFact, sameScope } from "../../keychain/custody/custody-contract.ts";
 
 import { InspectionUnavailable } from "../../tools/failures/inspection-unavailable.ts";
-import type { CapabilityFactory } from "../../tools/execution/capabilities.ts";
+import type { CapabilityFactory } from "../../tools/execution/execution-capabilities.ts";
 const denied = (reason: string) => (): never => {
   throw new InspectionUnavailable(reason);
 };

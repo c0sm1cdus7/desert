@@ -81,7 +81,12 @@ export function programAct<X extends Program, S extends TSchema, const O extends
   const summary = (value: unknown, state: State<X>, target: string, at: number): string | undefined =>
     Value.Check(executionSchema(input), value) ? confirms?.call(declared, value, state, target, at) : undefined;
   const said = soFar<X>(input, declared);
-  const act = { input, reach: reach ?? "house", run: body(declared) };
+  const act = {
+    input,
+    reach: reach ?? "house",
+    run: body(declared),
+    ...(declared.needs === undefined ? {} : { needs: declared.needs }),
+  };
   const promised = {
     ...offeredBy(declared),
     refuses,

@@ -3,16 +3,19 @@ import ts from "typescript";
 import { parsed } from "./law-files.ts";
 
 /** Every string a file's code holds: literals and the fixed parts of templates, never comments. */
-export function stringsOf(path: string): string[] {
+export function stringsIn(source: ts.Node, omitted: readonly ts.Node[] = []): string[] {
   const found: string[] = [];
   const visit = (node: ts.Node): void => {
+    if (omitted.includes(node)) return;
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) found.push(node.text);
     if (ts.isTemplateExpression(node)) found.push(node.head.text, ...node.templateSpans.map(span => span.literal.text));
     ts.forEachChild(node, visit);
   };
-  visit(parsed(path));
+  visit(source);
   return found;
 }
+
+export const stringsOf = (path: string): string[] => stringsIn(parsed(path));
 
 /** A text in words: at least two of them, apart. */
 export const isProse = (text: string): boolean => (text.match(/\p{L}+/gu) ?? []).length >= 2 && /\s/.test(text);
@@ -34,7 +37,7 @@ export function proseOf(source: ts.SourceFile): string[] {
   return found.filter(isProse);
 }
 
-/** Words that tell a model how to behave: no string of the code and no purpose may carry one. */
+/** Words that tell a model how to behave: only marked skill and system-layer translations may carry one. */
 const normativeWords = [
   /\bdeb[eé]s\b/i,
   /\bten[eé]s que\b/i,

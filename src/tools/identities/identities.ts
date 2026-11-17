@@ -1,6 +1,7 @@
 // The optional core piece uses declarations for reading and actions, and keeps nothing outside House.
 import type { ProgramTool } from "../promises.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";
+import { identitySkill } from "../../texts/tool-skills.texts.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import { identityScene } from "./identity-scene.ts";
 import { identityActions } from "./identity-actions.ts";
@@ -13,6 +14,7 @@ export function identitiesTool<X extends Program>(registry: ToolRegistry<X>, run
   const tool: ProgramTool<X> = {
     id: "identities",
     purpose: words.purpose,
+    skill: identitySkill,
     targets: ({ house }) =>
       [...members(house), ...kitCatalog(registry).map(tool => `mind:${tool.id}`)].map(identityTarget),
     view: ({ house, by }, target) => identityReading(house, target, registry, by),

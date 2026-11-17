@@ -109,6 +109,7 @@ export type Composition<X extends Program> = AdapterComposition &
 export type Declared<X extends Program, S extends TSchema, O extends readonly string[]> = Readonly<{
   input: S;
   reach?: Reach;
+  needs?: ToolAct<X>["needs"];
   output?: boolean;
 }> &
   /** No act without its purpose, its key and its words: an option nobody can explain or reach is not an option. */

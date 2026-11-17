@@ -1,7 +1,8 @@
-// Law 15: source words carry no behavioral instruction, and data files are explicitly accounted for.
+// Ley 15: las instrucciones viven solo en traducciones marcadas de skills y capas de casa o mente.
 import { join } from "node:path";
 import {
   codeFiles,
+  parsed,
   filesUnder,
   fromRoot,
   isSpec,
@@ -9,7 +10,8 @@ import {
   type Repository,
   type Exemptions,
 } from "./law-files.ts";
-import { stringsOf, isNormative } from "./law-words.ts";
+import { instructionTranslations } from "./message-declarations.ts";
+import { stringsOf, stringsIn, isNormative } from "./law-words.ts";
 export type RuleExemptions = Readonly<Record<string, Readonly<{ reason: string; texts: readonly string[] }>>>;
 export type PromptOptions = Readonly<{ exempt: RuleExemptions }>;
 
@@ -26,11 +28,12 @@ export function hiddenRules(repo: Repository, options: PromptOptions): string[] 
   return [
     ...stale,
     ...unused.map(([path]) => path),
-    ...files.flatMap(file =>
-      stringsOf(file)
+    ...files.flatMap(file => {
+      const source = parsed(file);
+      return stringsIn(source, instructionTranslations(source))
         .filter(text => isNormative(text) && !options.exempt[fromRoot(repo.root, file)]?.texts.includes(text))
-        .map(text => `${fromRoot(repo.root, file)}: ${text}`),
-    ),
+        .map(text => `${fromRoot(repo.root, file)}: ${text}`);
+    }),
   ];
 }
 

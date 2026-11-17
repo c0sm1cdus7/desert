@@ -2986,7 +2986,7 @@
     },
     {
       "id": 257,
-      "rule": "Cada archivo tiene como máximo 300 renglones y los textos suman como máximo 572 (incluye addressing.ts, código que lee textos, los 2 renglones de capital.ts, las 7 cabeceras de limpiar 5, los 23 renglones de la puerta MCP y los 7 de las llaves de nube); cada archivo de producción tiene una descripción en el árbol.",
+      "rule": "Cada archivo tiene como máximo 300 renglones y los textos suman como máximo 586 (incluye addressing.ts, código que lee textos, los 2 renglones de capital.ts, las 7 cabeceras de limpiar 5, los 23 renglones de la puerta MCP, los 7 de las llaves de nube y los 14 de la skill tipada de Identidades); cada archivo de producción tiene una descripción en el árbol.",
       "from": "16/11 · reorden 1, mapa firmado",
       "guarantee": "spec",
       "evidence": [
@@ -3099,8 +3099,8 @@
     },
     {
       "id": 266,
-      "rule": "El código no guarda instrucciones de conducta ni archivos de instrucciones; cada exención nombra datos o tokens exactos presentes y su motivo.",
-      "from": "Leyes del repositorio 15 · limpiar 3",
+      "rule": "Las instrucciones de conducta se permiten solo en las traducciones de mensajes marcados como skill o capa del system prompt de casa o mente. Los propósitos y demás textos siguen rechazándolas; cada exención técnica nombra tokens exactos presentes y su motivo. No se admiten archivos de instrucciones sin declarar.",
+      "from": "Leyes del repositorio 15 · firma del 17/11, mente 1",
       "guarantee": "spec",
       "evidence": [
         "src/checks/laws/prompts.ts",
@@ -3108,7 +3108,9 @@
         "tests/laws/prompts.spec.ts",
         "src/checks/laws/program-laws.ts",
         "src/checks/laws/program-laws.spec.ts",
-        "tests/program/registration.ts"
+        "tests/program/registration.ts",
+        "src/checks/laws/message-declarations.ts",
+        "tests/laws/messages.spec.ts"
       ]
     },
     {
@@ -3132,6 +3134,32 @@
         "src/doors/mcp/mcp-secrets.spec.ts",
         "src/doors/mcp/mcp-boundaries.spec.ts",
         "src/doors/mcp/mcp-http.spec.ts"
+      ]
+    },
+    {
+      "id": 269,
+      "rule": "Cada mensaje declara un id único, parámetros tipados y traducciones explícitas para todos los idiomas declarados. Leerlo exige el idioma y sus parámetros; si falta un idioma, una traducción o un parámetro, falla a la vista. La ley de cobertura también corre en los programas que adoptan la base.",
+      "from": "17/11 · mente 1, mensajes por idioma",
+      "guarantee": "spec",
+      "evidence": [
+        "src/fields/messages.ts",
+        "src/fields/messages.spec.ts",
+        "src/checks/laws/message-coverage.ts",
+        "tests/laws/messages.spec.ts",
+        "src/checks/laws/program-laws.ts"
+      ]
+    },
+    {
+      "id": 270,
+      "rule": "Cada herramienta conserva su propósito y puede declarar una skill como mensaje. Cada acto puede declarar needs con sees y hears; omitirlo significa que solo necesita escribir. Los constructores de actos propios, de herramienta y de programa conservan esa declaración.",
+      "from": "17/11 · mente 1, purpose, skill y capacidades por acto",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/tool-contract.ts",
+        "src/tools/act-definition.ts",
+        "src/tools/promises.ts",
+        "src/fields/capabilities.ts",
+        "src/tools/mind-metadata.spec.ts"
       ]
     }
   ]

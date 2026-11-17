@@ -93,7 +93,7 @@ export { startState, toolsStep } from "./house/state.ts";
 export { startTools } from "./tools/start.ts";
 export type { Also, Need, Offered, Told } from "./tools/promises.ts";
 export type { ActContext, ActResult, Slices } from "./tools/tool-contract.ts";
-export { noCapabilities } from "./tools/execution/capabilities.ts";
+export { noCapabilities } from "./tools/execution/execution-capabilities.ts";
 export type { ToolStartup } from "./tools/startup-contract.ts";
 export type {
   SecretRef,

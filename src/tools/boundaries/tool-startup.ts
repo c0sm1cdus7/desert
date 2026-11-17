@@ -11,7 +11,7 @@ import type { Emission, Event, Foreign } from "../../journal/vocabulary.ts";
 import type { Execution } from "../execute.ts";
 import type { Program, Tool } from "../tool-contract.ts";
 import type { ToolStartup } from "../startup-contract.ts";
-import { noCapabilities, type CapabilityLease } from "../execution/capabilities.ts";
+import { noCapabilities, type CapabilityLease } from "../execution/execution-capabilities.ts";
 
 import { baseFunctions } from "./program-functions.ts";
 const ofKind = <E extends { kind: string }, K extends string>(event: E, kind: K): event is E & { kind: K } =>

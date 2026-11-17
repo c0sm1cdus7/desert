@@ -21,6 +21,7 @@ export {
   uncollectedTests,
 } from "./checks/laws/gate.ts";
 export { uncataloguedWords, staleWordExemptions } from "./checks/laws/biases.ts";
+export { messageCoverage } from "./checks/laws/message-coverage.ts";
 export { hiddenRules, instructionFiles } from "./checks/laws/prompts.ts";
 export { programLaws, uncoveredCode } from "./checks/laws/program-laws.ts";
 export type { Repository, Exemptions } from "./checks/laws/law-files.ts";

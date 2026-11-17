@@ -19,6 +19,7 @@ import {
 } from "./gate.ts";
 import { uncataloguedWords } from "./biases.ts";
 import { hiddenRules, instructionFiles } from "./prompts.ts";
+import { messageCoverage } from "./message-coverage.ts";
 import { programLawOptions } from "./program-law-options.ts";
 
 /** Compiled program files also belong to a declared law folder, including a separate startup folder. */
@@ -66,5 +67,6 @@ export async function programLaws(root: string): Promise<string[]> {
     ...uncataloguedWords(repo, { catalog: options.catalog, exempt: options.exemptWords }),
     ...hiddenRules(repo, { exempt: options.exemptRules }),
     ...instructionFiles(repo, options),
+    ...messageCoverage(repo),
   ];
 }

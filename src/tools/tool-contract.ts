@@ -3,6 +3,8 @@
 export type ViewLimits = Readonly<{ recentLines: number }> &
   /** The instant of the reading, for what a tool reads by the day: what is due today. */
   Readonly<{ now: number }>;
+import type { Capability } from "../fields/capabilities.ts";
+import type { Skill } from "../fields/messages.ts";
 import type { DeepReadonly } from "../journal/readonly-state.ts";
 import type { TSchema } from "@sinclair/typebox";
 import type { Act } from "../house/own-acts.ts";
@@ -66,6 +68,8 @@ export type ActContext<X extends Program> = ToolCapabilities &
     execute?: (act: Act) => Promise<ActResult<X>>;
   }>;
 export interface ToolAct<X extends Program> extends Readonly<{ input: TSchema; reach: Reach }> {
+  /** Seeing or hearing required from a card; absence means writing alone. */
+  readonly needs?: readonly Capability[];
   /** Where it stands, when it says so: on its tool, or on one of its things. The house refuses it anywhere else. */
   readonly on?: "tool" | "thing";
   /** The tool's cause for not offering this act in this state, at this moment; an act that does not work is not
@@ -78,6 +82,8 @@ export interface ToolAct<X extends Program> extends Readonly<{ input: TSchema; r
   reject?(context: ActContext<X>, result: Accepted<X>): string | undefined;
 }
 export interface Tool<X extends Program> extends Readonly<{ id: string; purpose: string }> {
+  /** Guidance read by the mind working with this tool; tools without a mind may omit it. */
+  readonly skill?: Skill;
   /** Program fact kinds owned exclusively by this tool; absent means no program facts. */
   readonly facts?: readonly X["fact"]["kind"][];
   start?(ports: ToolStartup<X>): () => void;

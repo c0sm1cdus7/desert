@@ -1813,3 +1813,57 @@ y espera los pedidos admitidos antes de soltar el libro de actos; no cierra la c
 recibe método, ruta, encabezados y una función que entrega fragmentos del cuerpo: esa función no se invoca para
 pedidos sin autorización. Así se prueban protocolo y herramientas sin abrir sockets; `mcp-http.spec.ts` comprueba
 el adaptador con un puerto real en un entorno que permita escuchar.
+
+## Mensajes por idioma, skills y capacidades de la carta (17/11)
+
+Un mensaje declara `id`, `kind`, `parameters` (un objeto TypeBox) y `texts`, con una traducción por idioma.
+`src/fields/languages.ts` declara hoy solamente `es`. Quien lee llama `mensaje.text(idiomaDeLaCasa, parámetros)`:
+no hay idioma global, idioma implícito ni reemplazo cuando falta una traducción. Incluso un mensaje sin parámetros
+se lee con `{}`. Los tipos y la validación en ejecución comprueban los parámetros; el error nombra el mensaje y
+la posición inválida. La elección y persistencia del idioma de una casa corresponden a su composición; este
+contrato lo recibe explícitamente, sin deducirlo del país de `Shown.locale`.
+
+Para migrar un texto, dejalo en `src/texts/`, importá `defineMessage` de `../fields/messages.ts` y reemplazá el
+literal o la función por una declaración como esta:
+
+```ts
+import { Type } from "@sinclair/typebox";
+import { defineMessage } from "../fields/messages.ts";
+export const noteCount = defineMessage({
+  id: "notes.count",
+  kind: "text",
+  parameters: Type.Object({ count: Type.Number() }, { additionalProperties: false }),
+  texts: { es: ({ count }) => `${count} notas` },
+});
+// Quien pide el texto recibe language como argumento de su casa.
+const shown = noteCount.text(language, { count: 3 });
+```
+
+Usá un id estable y único, y mantené `id`, `kind` y `texts` explícitos en la declaración: la ley los lee sin
+correr el programa. No se esconden traducciones en un spread ni en una variable externa. El catálogo existente
+sigue disponible: este corte agrega la skill de Identidades como mensaje; migrar los demás textos es otro encargo.
+Para sumar un idioma, agregalo a `languages` y completá `texts` en cada mensaje; los parámetros mantienen su tipo.
+La ley `messageCoverage` falla nombrando archivo, mensaje e idioma faltante. Corre con las leyes de la base y
+con `programLaws`; también se exporta desde `src/laws.ts` para una comprobación propia.
+
+`kind: "text"` identifica palabras comunes. La ley 15 permite instrucciones de conducta únicamente dentro de
+`texts` de mensajes con `kind: "skill"`, `"house"` o `"mind"`: respectivamente, cómo usar una herramienta,
+la capa fija de casa y la capa fija de mente del system prompt. Los ids, parámetros, propósitos y textos vecinos
+siguen controlados, aunque estén en el mismo archivo. Esas marcas describen el destino del mensaje; no crean
+una mente, no arman el turno ni otorgan permisos.
+
+`Tool.purpose` conserva su texto descriptivo. `Tool.skill?: Skill` es un mensaje sin parámetros variables, con
+`kind: "skill"`, que la mente que trabaja con esa herramienta puede leer con `tool.skill.text(language, {})`.
+Es opcional porque una herramienta sin mente no la necesita. Identidades declara su skill en
+`src/texts/tool-skills.texts.ts`; declararla no la agrega a las lecturas ni a las puertas de las personas.
+La selección de skills para el marco y las reescrituras firmadas de la casa pertenecen al armado de la mente.
+
+Cada `ToolAct` puede declarar `needs?: readonly Capability[]`. El vocabulario exacto vive en
+`src/fields/capabilities.ts`: `sees` para imágenes y `hears` para audio. Toda carta escribe; omitir `needs` o dar
+`[]` significa que escribir alcanza. `["sees", "hears"]` necesita ambas capacidades. No se cambia el `needs`
+de `ProgramTool`, que sigue declarando otras necesidades del programa.
+
+`programAct({ ..., needs: ["sees"] })` y `ownAct(objeto, opción, { input, purpose, needs }, ejecución)` conservan
+la lista. El constructor de bajo nivel acepta `toolAct(input, ejecución, alcance, normalización, needs)`;
+`reading(acto)` también la conserva. Los actos anteriores siguen funcionando sin agregar una declaración.
+Este contrato comunica requisitos: elegir cartas y filtrar actos por capacidades corresponde al carril de mentes.

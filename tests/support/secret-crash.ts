@@ -19,8 +19,9 @@ registerHooks({
 });
 const { startHouse, localPorts } = await import("../../src/runtime/house-runtime.ts");
 const schema = Type.Object({ value: Type.String({ secret: true }) });
-const [home, mode] = process.argv.slice(2);
+const [home, mode, marker] = process.argv.slice(2);
 if (!home || !mode) throw new Error("Falta carpeta temporal");
+if (!marker) throw new Error("Falta material sintético de la prueba");
 const kill = () => process.kill(process.pid, "SIGKILL");
 const options = {
   by: "fixture",
@@ -56,7 +57,7 @@ const options = {
 const house = startHouse(home, options, { now: () => 1000, wait: () => () => {} });
 const ports = localPorts(house, "ana", { recentLines: 20 });
 ports.act({ act: "attend", input: { target: "vault" } }, 0);
-ports.act({ act: mode === "reopen" ? "set" : mode, target: "vault", input: { value: "QZ" } }, 0);
+ports.act({ act: mode === "reopen" ? "set" : mode, target: "vault", input: { value: marker } }, 0);
 if (mode === "reopen") {
   const facts = house.journal.replay<unknown[]>([], (all, event) => [...all, event]);
   house.close();
