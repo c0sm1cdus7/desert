@@ -31,8 +31,7 @@ it("catches ignored files and relaxed rules from a real temporary ESLint configu
   const readings = await readLint(repo);
   expect(ignoredFiles(repo, readings)).toContain("src/a.ts");
   expect(looseRules(repo, { readings, maxLines: 300 })).toContain("src/a.ts: max-lines");
-  expect(looseRules(repo, { readings, maxLines: null })).not.toContain("src/a.ts: max-lines");
-  expect(looseRules(repo, { readings, maxLines: null })).toContain("src/a.ts: max-len");
+  expect(looseRules(repo, { readings, maxLines: 300 })).toContain("src/a.ts: max-len");
   expect(ignoredFiles(repo, [])).toContain("src/a.ts");
 });
 it("catches a weakened gate, a public package, stray tests and skipped tests", () => {

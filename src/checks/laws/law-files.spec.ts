@@ -44,8 +44,8 @@ it("reads every declared folder, retaining specs while leaving hidden folders an
   expect(filesUnder(join(repo.root, "src"), path => !path.endsWith(".ts"))).toEqual([join(repo.root, "src/data.json")]);
 });
 
-it.each(["missing", "empty"])("every synchronous law stops on a %s code folder", kind => {
-  const original = lawRepository({});
+it.each(["missing", "empty", "specs"])("every synchronous law stops on a %s code folder", kind => {
+  const original = lawRepository({ "specs/a.spec.ts": "export {};" });
   mkdirSync(join(original.root, "empty"));
   const repo = { ...original, code: [kind] };
   const checks = [

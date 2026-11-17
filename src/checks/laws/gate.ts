@@ -48,10 +48,10 @@ export function ignoredFiles(repo: Repository, readings: readonly LintReading[])
     .filter(file => !readings.some(entry => entry.file === file && !entry.ignored))
     .map(file => fromRoot(repo.root, file));
 }
-const looseRulesOf = (repo: Repository, entry: LintReading, max: number | null): string[] => {
+const looseRulesOf = (repo: Repository, entry: LintReading, max: number): string[] => {
   const { file, config } = entry;
   const inline = field(field(config, "linterOptions"), "noInlineConfig") === true ? [] : ["inline configuration"];
-  const rules = max === null ? required : { ...required, "max-lines": atMost("max", () => max) };
+  const rules = { ...required, "max-lines": atMost("max", () => max) };
   const loose = Object.entries(rules).filter(([rule, limit]) => {
     const setting = field(field(config, "rules"), rule);
     const entries: readonly unknown[] = Array.isArray(setting) ? setting : [];
@@ -64,7 +64,7 @@ export function looseRules(
   repo: Repository,
   options: Readonly<{
     readings: readonly LintReading[];
-    maxLines: number | null;
+    maxLines: number;
   }>,
 ): string[] {
   return lintFiles(repo).flatMap(file =>

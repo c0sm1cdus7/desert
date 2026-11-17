@@ -1663,21 +1663,22 @@ Al adoptar esta versión, la compuerta de la base corre también las siete leyes
   "exemptWords": {},
   "exemptRules": {},
   "data": {},
-  "maxLines": null
+  "maxLines": 300
 }
 ```
 
 Todos esos campos son obligatorios, también los vacíos. Una opción ausente o inválida falla nombrando el campo.
-`code` enumera carpetas reales con TypeScript; una ausente o vacía falla. El código que compila el programa debe
-estar cubierto por esas carpetas. `base` es la ruta relativa de la base, o `null` para la base misma. Las raíces
-`adapters`, `storage` y `keychain` de esa base siempre se reconocen como adaptadores. `adapters` agrega las raíces
-propias del programa. `catalog` admite carpetas terminadas en `/` o archivos de palabras.
+`code` enumera carpetas reales con TypeScript; una ausente, vacía o con solo pruebas falla. El código que compila el
+programa debe estar cubierto por esas carpetas. `base` es la ruta relativa de la base, que tiene que existir, o `null`
+para la base misma. Las raíces `adapters`, `storage` y `keychain` de esa base siempre se reconocen como adaptadores.
+`adapters` agrega las raíces propias del programa; cada una tiene que existir. `catalog` admite carpetas terminadas
+en `/` o archivos de palabras, nunca una carpeta de código entera ni una que la contenga.
 
 `adapterUsers`, `mayTalkOutside`, `exemptWords` y `data` son objetos de ruta a motivo. Los dos primeros admiten
 carpetas terminadas en `/`; `exemptWords` y `data` nombran archivos. `exemptRules` nombra cada archivo y declara
 `{ "reason": "motivo técnico", "texts": ["token exacto"] }`. Una exención sin motivo, ausente o cuyo texto dejó de
-existir falla. Los textos de instrucciones fuera de esos tokens siguen fallando. `maxLines` es un entero positivo
-o `null`, que desactiva únicamente ese tope; la base declara 300. Las otras reglas de tamaño y lint siguen activas.
+existir falla. Los textos de instrucciones fuera de esos tokens siguen fallando. `maxLines` es un entero entre 1 y
+300: un programa puede pedirse archivos más cortos que la base, nunca más largos ni sin tope. La base declara 300.
 
 El runner declara inclusiones literales, en orden: los patrones `<carpeta>/**/*.spec.ts` de `code`, seguidos de
 `desert/tests/program/**/*.checks.ts` en el proyecto de specs; `tests/laws/**/*.spec.ts` en el proyecto de leyes.

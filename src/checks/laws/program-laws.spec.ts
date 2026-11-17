@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "vitest";
 import { programLaws, uncoveredCode } from "./program-laws.ts";
@@ -56,15 +56,43 @@ it.each([
   expect(await programLaws(repo.root)).toContain(violation);
 });
 
-it("lets a program explicitly omit the file-length cap while retaining the other checks", async () => {
-  const repo = lawRepository({
-    "src/a.ts": "export {};\n".repeat(301),
-    "package.json": JSON.stringify({
-      ...lawPackage,
-      desert: { program: "src/a.ts", laws: { ...lawOptions, maxLines: null } },
-    }),
-  });
-  expect(await programLaws(repo.root)).toEqual([]);
-  writeFileSync(join(repo.root, "src/a.ts"), "const x = value as string;");
-  expect(await programLaws(repo.root)).toContain("src/a.ts: value as string");
+it("never lets a program switch the file-length cap off or raise it past the base's 300", () => {
+  const repo = lawRepository({});
+  for (const maxLines of [null, 301, Number.MAX_SAFE_INTEGER, 1.5]) {
+    writeFileSync(
+      join(repo.root, "package.json"),
+      JSON.stringify({ ...lawPackage, desert: { laws: { ...lawOptions, maxLines } } }),
+    );
+    expect(() => programLawOptions(repo.root)).toThrow("desert.laws.maxLines");
+  }
+});
+it("rejects adapter roots and a base that are not there, and a catalog that holds a code folder", () => {
+  const repo = lawRepository({});
+  const invalid: ReadonlyArray<readonly [string, unknown]> = [
+    ["adapters", ["src/storage"]],
+    ["base", "desert"],
+    ["catalog", ["src/"]],
+    ["catalog", ["src"]],
+    ["catalog", ["."]],
+  ];
+  for (const [key, value] of invalid) {
+    writeFileSync(
+      join(repo.root, "package.json"),
+      JSON.stringify({ ...lawPackage, desert: { laws: { ...lawOptions, [key]: value } } }),
+    );
+    expect(() => programLawOptions(repo.root)).toThrow(`desert.laws.${key}`);
+  }
+  mkdirSync(join(repo.root, "src/storage"));
+  mkdirSync(join(repo.root, "desert"));
+  for (const [key, value] of [
+    ["adapters", ["src/storage"]],
+    ["base", "desert"],
+    ["catalog", ["src/texts/"]],
+  ] as const) {
+    writeFileSync(
+      join(repo.root, "package.json"),
+      JSON.stringify({ ...lawPackage, desert: { laws: { ...lawOptions, [key]: value } } }),
+    );
+    expect(programLawOptions(repo.root)[key]).toEqual(value);
+  }
 });

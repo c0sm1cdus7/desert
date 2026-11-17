@@ -1,6 +1,7 @@
 // Every adopting program runs all seven repository laws from its own gate and its own declared folders.
 import { join } from "node:path";
 import ts from "typescript";
+import { isRecord } from "../../fields/json-values.ts";
 import { codeFiles, fromRoot, type Repository } from "./law-files.ts";
 import { importCycles } from "./cycles.ts";
 import { strayImports } from "./imports.ts";
@@ -24,7 +25,8 @@ import { programLawOptions } from "./program-law-options.ts";
 export function uncoveredCode(repo: Repository, options: Readonly<{ base: string | null }>): string[] {
   const known = new Set(codeFiles(repo));
   const config = ts.readConfigFile(join(repo.root, "tsconfig.json"), path => ts.sys.readFile(path));
-  const compiled = ts.parseJsonConfigFileContent(config.config ?? {}, ts.sys, repo.root).fileNames;
+  if (config.error || !isRecord(config.config)) return ["tsconfig.json"];
+  const compiled = ts.parseJsonConfigFileContent(config.config, ts.sys, repo.root).fileNames;
   return compiled
     .filter(file => {
       const path = fromRoot(repo.root, file);
@@ -47,7 +49,7 @@ export async function programLaws(root: string): Promise<string[]> {
     ...strayImports(repo, options),
     ...outsideAccess(repo, options),
     ...outsideGlobals(repo, options),
-    ...(maxLines === null ? [] : longFiles(repo, maxLines)),
+    ...longFiles(repo, maxLines),
     ...longLines(repo),
     ...unsafeCasts(repo),
     ...switchedOffChecks(repo),

@@ -16,13 +16,13 @@ export function filesUnder(folder: string, accept: (path: string) => boolean): s
   });
 }
 
-/** Every TypeScript file of the code folders. A folder that is missing or holds none stops the law: it never passes. */
+/** Every TypeScript file of the code folders. A folder that is missing or holds no code but specs stops the law. */
 export function codeFiles({ root, code }: Repository): string[] {
   if (code.length === 0) throw new Error(`${root}: no code folder named`);
   return code.flatMap(folder => {
     const path = join(root, folder);
     const files = existsSync(path) ? filesUnder(path, file => file.endsWith(".ts")) : [];
-    if (files.length === 0) throw new Error(`${path}: no TypeScript file to check`);
+    if (!files.some(file => !isSpec(file))) throw new Error(`${path}: no TypeScript file to check`);
     return files;
   });
 }

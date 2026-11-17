@@ -1,7 +1,7 @@
 // Law 2: explicit dependencies and isolated adapters, including type queries and require.
 import { dirname, isAbsolute, join, resolve, sep } from "node:path";
 import ts from "typescript";
-import { field } from "../../fields/json-values.ts";
+import { field, isRecord } from "../../fields/json-values.ts";
 import { codeFiles, fromRoot, isSpec, parsed, staleExemptions, type Repository, type Exemptions } from "./law-files.ts";
 export type ImportOptions = Readonly<{
   base: string | null;
@@ -28,7 +28,9 @@ export const importsIn = (source: ts.SourceFile): string[] => {
 
 const targetOf = (repo: Repository, options: ImportOptions, file: string, specifier: string): string | undefined => {
   const config: unknown = ts.readConfigFile(join(repo.root, "tsconfig.json"), path => ts.sys.readFile(path)).config;
-  const compiler = ts.convertCompilerOptionsFromJson(field(config, "compilerOptions") ?? {}, repo.root).options;
+  const declared = field(config, "compilerOptions");
+  if (!isRecord(declared)) throw new Error(`${repo.root}/tsconfig.json: no compilerOptions to resolve imports with`);
+  const compiler = ts.convertCompilerOptionsFromJson(declared, repo.root).options;
   const resolved = ts.resolveModuleName(specifier, file, compiler, ts.sys).resolvedModule?.resolvedFileName;
   if (resolved) return resolved;
   if (options.base && specifier.startsWith("#desert/"))

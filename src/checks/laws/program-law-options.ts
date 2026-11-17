@@ -1,5 +1,5 @@
 // Reads every mandatory repository-law option from the adopting program's package declaration.
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { field, isRecord } from "../../fields/json-values.ts";
 import type { Exemptions, Repository } from "./law-files.ts";
@@ -16,8 +16,10 @@ export type ProgramLawOptions = Readonly<{
   exemptWords: Exemptions;
   exemptRules: RuleExemptions;
   data: Exemptions;
-  maxLines: number | null;
+  maxLines: number;
 }>;
+/** The base keeps every file within 300 lines; a program may ask less of itself, never more. */
+const longest = 300;
 const fail = (key: string): never => {
   throw new Error(`package.json desert.laws.${key}: missing or invalid option`);
 };
@@ -27,6 +29,13 @@ const local = (value: unknown): value is string =>
   !isAbsolute(value) &&
   !value.split(/[\\/]/).some(part => part === ".." || part === ".") &&
   !value.includes("\\");
+/** A declared folder that is not there would make its law check nothing: it is an invalid option. */
+const folder = (root: string, path: string): boolean =>
+  existsSync(join(root, path)) && statSync(join(root, path)).isDirectory();
+/** A catalog that holds a whole code folder would exempt all of its prose from the catalog law. */
+const trimmed = (path: string): string => path.replace(/\/+$/u, "");
+const covers = (catalog: string, code: string): boolean =>
+  trimmed(code) === trimmed(catalog) || trimmed(code).startsWith(`${trimmed(catalog)}/`);
 const paths = (options: unknown, key: string): readonly string[] => {
   const value = field(options, key);
   if (!Array.isArray(value) || !value.every(local)) return fail(key);
@@ -71,19 +80,23 @@ export function programLawOptions(root: string): ProgramLawOptions {
   const name = field(pkg, "name");
   if (typeof name !== "string" || !name) return fail("name");
   const base = field(options, "base");
-  if (base !== null && !local(base)) return fail("base");
+  if (base !== null && (!local(base) || !folder(root, base))) return fail("base");
   const maxLines = field(options, "maxLines");
-  if (maxLines !== null && (typeof maxLines !== "number" || !Number.isSafeInteger(maxLines) || maxLines < 1))
+  if (typeof maxLines !== "number" || !Number.isSafeInteger(maxLines) || maxLines < 1 || maxLines > longest)
     return fail("maxLines");
+  const adapters = paths(options, "adapters");
+  if (!adapters.every(path => folder(root, path))) return fail("adapters");
+  const catalog = paths(options, "catalog");
+  if (catalog.some(path => code.some(own => covers(path, own)))) return fail("catalog");
   return {
     repo: { root, code },
     name,
     base,
     maxLines,
-    adapters: paths(options, "adapters"),
+    adapters,
     adapterUsers: exemptions(options, "adapterUsers"),
     mayTalkOutside: exemptions(options, "mayTalkOutside"),
-    catalog: paths(options, "catalog"),
+    catalog,
     exemptWords: exemptions(options, "exemptWords"),
     exemptRules: ruleExemptions(options),
     data: exemptions(options, "data"),
