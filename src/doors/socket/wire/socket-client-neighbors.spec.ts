@@ -136,7 +136,7 @@ it("reconnecting during an unfinished act queries again when its final state arr
   try {
     await settle(c.ports.act({ act: "attend", input: { target: "payments" } }, 0));
     const answer = settle(c.ports.act({ act: "receive", target: "payments", input: { payment: "p", amount: 19 } }, 0));
-    await delay(20);
+    await expect.poll(() => f.house().tools.state().processing.size).toBe(1);
     f.attach(second[1]);
     const replies: ServerMessage[] = [];
     const sends: string[] = [];
@@ -148,11 +148,11 @@ it("reconnecting during an unfinished act queries again when its final state arr
     };
     await c.connection.attach(second[0]);
     expect((await answer).status).toBe("interrupted");
-    await delay(20);
-    expect(replies).toContainEqual(expect.objectContaining({ tipo: "resultado", status: "processing" }));
+    await expect
+      .poll(() => replies)
+      .toContainEqual(expect.objectContaining({ tipo: "resultado", status: "processing" }));
     finish();
-    await delay(20);
-    expect(replies).toContainEqual(expect.objectContaining({ tipo: "resultado", status: "accepted" }));
+    await expect.poll(() => replies).toContainEqual(expect.objectContaining({ tipo: "resultado", status: "accepted" }));
     expect(sends).not.toContain("acto");
     expect(c.ports.state().tools.payments.received).toBe(19);
   } finally {

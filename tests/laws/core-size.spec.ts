@@ -70,10 +70,11 @@ describe("the tree of src/", () => {
   // Mente 1: +14 exact lines for the typed Identidades skill message and its Spanish translation.
   // Modelos: +14 líneas exactas para explicar errores del catálogo y el proveedor.
   // Mente 3: +10 líneas exactas para el mensaje parametrizado de rechazo de contratos de mente.
-  it("keeps every file within 300 lines and the texts within 610", () => {
+  // Mente 2C: +78 líneas exactas para cierres, correcciones, consulta y revisión del turno.
+  it("keeps every file within 300 lines and the texts within 688", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(610);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(688);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));
