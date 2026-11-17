@@ -25,8 +25,9 @@ export type Card = {
 };
 export type Usage = { input: number; cacheWrite: number; cacheRead: number; output: number };
 export type Act = { needs: readonly Capability[] };
-/** Lectura de caché y escritura con vida de cinco minutos, por millón de tokens (referencia de la API, 03/11/2026):
- * la escritura cuesta 1,25 veces la entrada; la lectura, 0,1 veces salvo Sonnet 5.5 y Opus 5.5 (0,05) y Fable 5.2 (0,025). */
+/** Lectura de caché y escritura con vida de cinco minutos, por millón de tokens (referencia de la API,
+ * 03/11/2026): la escritura cuesta 1,25 veces la entrada; la lectura, 0,1 veces, salvo Sonnet 5.5 y Opus 5.5
+ * (0,05) y Fable 5.2 (0,025). */
 const price = (input: number, output: number, cacheRead: Price, cacheWrite: Price): Prices => ({
   input,
   output,
