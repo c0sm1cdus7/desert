@@ -100,7 +100,7 @@
     "doors/terminal/cells.ts": "terminal cells: palettes, wide chars, put/edge/light, changed-row bytes; shares the currency column measure with declarations",
     "doors/terminal/entry.ts": "Written entries with their unfilled shape and cursor, in threads and rows; places the cursor by painted columns without overwriting wide symbols",
     "doors/terminal/house-output-process.ts": "Relevo independiente de ambas salidas del hijo, con tope y entrega del error después de recogerlas.",
-    "doors/terminal/house-output.ts": "limits and file modes, scene bounds, the one bound for an act's data (actLimits), ViewLimits and the base fold version Abre casa.log privado sin seguir enlaces, para conservar stdout y stderr del proceso lanzado.",
+    "doors/terminal/house-output.ts": "Abre casa.log privado sin seguir enlaces, para conservar stdout y stderr del proceso lanzado, con su tope de bytes.",
     "doors/terminal/input.ts": "keyReader, keysOf: terminal bytes to surface intents, across chunks; a sequence that started waits for its end, and what is pasted is one text, never keys",
     "doors/terminal/launch-house.ts": "Lanza la composición declarada como proceso independiente y espera cinco segundos por IPC.",
     "doors/terminal/open-terminal.ts": "Terminal pública por socket: fallas de entrada y verificación terminan con catálogo y salida 1.",
@@ -179,15 +179,15 @@
     "runtime/house-projections.ts": "Restores the complete house and clock under program and base calculation identities before any effects.",
     "runtime/house-resources.ts": "Abre diario, plegados y custodia, valida identidades, presta adaptadores autorizados y cierra los recursos.",
     "runtime/house-runtime.ts": "startHouse: comprueba la composición y abre registro, custodia, herramientas y reloj de una casa con estado y reloj restaurados antes de abrir custodia; localPorts; expone home para atar el socket al escritor de su carpeta.",
-    "runtime/projection-version.ts": "limits and file modes, scene bounds, the one bound for an act's data (actLimits), ViewLimits and the base fold version Hashes preflighted regular code paths and bytes plus Node, excluding hidden and undeclared files.",
+    "runtime/projection-version.ts": "Hashes preflighted regular code paths and bytes plus Node, excluding hidden and undeclared files; holds the base fold version.",
     "storage/copy-journal.ts": "Copies a consistent journal through SQLite including its WAL, without foreign file descriptors.",
     "storage/copy-kept-journal.ts": "Copia evidencia cerrada y su WAL conservado a una carpeta privada, sin abrir SQLite junto al original.",
-    "storage/home.ts": "Private SQLite connections: only SQLite opens and closes descriptors, preserving process-wide locks. limits and file modes, scene bounds, the one bound for an act's data (actLimits), ViewLimits and the base fold version",
+    "storage/home.ts": "Private SQLite connections: only SQLite opens and closes descriptors, preserving process-wide locks; private file modes.",
     "storage/journal-identity.ts": "Creates and preserves the source journal identity, including on first opening an older journal.",
     "storage/journal-position.ts": "detecta avances ajenos del registro dentro de la transacción e invalida al escritor",
     "storage/journal-reader.ts": "Lectura de hechos desde otra conexión, sin tomar la exclusión de escritor.",
     "storage/journal-record.ts": "Reads SQLite fact envelopes and derives stable effect identifiers from their provenance. Identifica la secuencia y el tipo de un hecho que no se puede decodificar al reproducir.",
-    "storage/journal-store.ts": "Registro transaccional con exclusión de escritor; el mantenimiento agrega sin restaurar ni tocar plegados. limits and file modes, scene bounds, the one bound for an act's data (actLimits), ViewLimits and the base fold version",
+    "storage/journal-store.ts": "Registro transaccional con exclusión de escritor; el mantenimiento agrega sin restaurar ni tocar plegados; guarda plegados cada cien hechos.",
     "storage/journal-transaction.ts": "Abre una transacción o un punto de guardado propio; confirmar el interno conserva la autoridad del externo para deshacerlo.",
     "storage/kept-journal.ts": "Inspects a kept journal with writer exclusion, optionally discarding its saved folds.",
     "storage/sqlite-files.ts": "Rejects nonregular or aliased SQLite files and journal/WAL/SHM siblings before any SQLite open.",
@@ -331,6 +331,6 @@
     "tools/so-far.ts": "SoFar, Among; soFar: what an act says of what was answered so far, asked only about the fields it takes",
     "tools/start.ts": "Checks and starts tools and listeners, composes own acts, dispatches actions and stops the running engine.",
     "tools/startup-contract.ts": "Contrato público de arranque, sin custodia, almacén ni resolvedor.",
-    "tools/tool-contract.ts": "limits and file modes, scene bounds, the one bound for an act's data (actLimits), ViewLimits and the base fold version Program, State, Slices, Tool, ToolAct, ActResult, KeyStore: a tool as the house sees it"
+    "tools/tool-contract.ts": "Program, State, Slices, Tool, ToolAct, ActResult, KeyStore and ViewLimits: a tool as the house sees it"
   }
 }
