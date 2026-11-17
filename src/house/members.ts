@@ -1,15 +1,29 @@
 // A house: tool grants, action kits, shared scenes, preferences and reading.
+import { mindHouseStep } from "./minds/mind-house-state.ts";
 import { sceneStep } from "./scenes.ts";
 import { readonlyState } from "../journal/readonly-state.ts";
 import type { Hideable } from "./own-acts.ts";
 import { effect, type HouseEvent } from "./facts.ts";
 import type { Event, HouseBus } from "../journal/vocabulary.ts";
-import { kitStep, mindTool } from "./kit.ts";
+import { kitStep } from "./kit.ts";
+import { isMindActor } from "../fields/mind-actor.ts";
+import { type AssistantState } from "./assistants/assistant-state.ts";
+import { type MindAssignment } from "./minds/mind-settings.ts";
+import { emptyMindState, type MindState } from "./minds/mind-state.ts";
+import { type Journeys } from "./minds/journey-state.ts";
+import { type ModelCalls } from "./minds/model-call-state.ts";
 
 export { checkCreation, checkIdentity, guardJournal, InvalidCreation } from "./identities/guards.ts";
 type Assignment = Readonly<{ identity: string; tools: readonly string[] }>;
 export type Creation = Readonly<{ admin: string; assignments: readonly Assignment[] }>;
 export type House = Readonly<{ admin: string }> &
+  Readonly<{
+    assistants: ReadonlyMap<string, AssistantState>;
+    mindAssignments: ReadonlyMap<string, MindAssignment>;
+    minds: MindState;
+    journeys: Journeys;
+    modelCalls: ModelCalls;
+  }> &
   Readonly<{ identities?: boolean; grants: ReadonlyMap<string, readonly string[]> }> &
   /** What each identity prefers not to see: its own to say, and nobody else's. */
   Readonly<{ hides: ReadonlyMap<string, readonly Hideable[]> }> &
@@ -27,6 +41,11 @@ type Attentions = ReadonlyMap<string, Attention>;
 const noAttention: Attentions = new Map();
 export const emptyHouse: House = {
   admin: "",
+  assistants: new Map(),
+  mindAssignments: new Map(),
+  minds: emptyMindState,
+  journeys: new Map(),
+  modelCalls: new Map(),
   grants: new Map(),
   hides: new Map(),
   kits: new Map(),
@@ -36,6 +55,7 @@ export const emptyHouse: House = {
 };
 export function houseStep(state: House, event: Event): House {
   if (event.layer !== "house" || namesMind(event)) return state;
+  state = mindHouseStep(state, event);
   state = sceneStep(state, event);
   state = kitStep(state, event);
   if (event.kind === "house-created" && !state.admin) {
@@ -94,8 +114,8 @@ export const hides = (house: House, by: string, what: Hideable): boolean =>
   house.hides.get(by)?.includes(what) === true;
 /** Identity-only facts cannot turn a mind into a member or administrator. */
 function namesMind(event: HouseEvent): boolean {
-  if (event.kind === "house-created") return mindTool(event.by) !== undefined;
-  if (event.kind === "granted") return mindTool(event.data.identity) !== undefined;
-  if (event.kind === "handed") return mindTool(event.data.to) !== undefined;
+  if (event.kind === "house-created") return isMindActor(event.by);
+  if (event.kind === "granted") return isMindActor(event.data.identity);
+  if (event.kind === "handed") return isMindActor(event.data.to);
   return false;
 }

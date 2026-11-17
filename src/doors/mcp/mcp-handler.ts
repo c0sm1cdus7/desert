@@ -1,5 +1,6 @@
 // Maneja HTTP y JSON-RPC sin sockets; cada pedido toma su identidad de la llave y usa los puertos de la casa.
-import { mindTool, present } from "../../house/kit.ts";
+import { isMindActor } from "../../fields/mind-actor.ts";
+import { present } from "../../house/kit.ts";
 import type { Program, ViewLimits } from "../../tools/tool-contract.ts";
 import { requestBook } from "../socket/requests/request-book.ts";
 import { houseChange } from "../socket/requests/house-change.ts";
@@ -84,7 +85,7 @@ function dispatcher<X extends Program>(
 }
 function identityOf<X extends Program>(house: McpHouse<X>, keys: ReadonlyMap<string, DoorKey>, request: McpRequest) {
   const key = authenticate(request, keys);
-  return key && mindTool(key.identity) === undefined && present(house.registry, house.tools.state().house, key.identity)
+  return key && !isMindActor(key.identity) && present(house.registry, house.tools.state().house, key.identity)
     ? key.identity
     : undefined;
 }

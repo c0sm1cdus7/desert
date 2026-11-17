@@ -24,7 +24,7 @@ it.each(["desert/3", "desert/4", "desert/6"])(
     rig.house().bus.emit(effect("wake-at", { id: "old-name", at: null }, "mind:desk"));
     rig.house().close();
     version.old = undefined;
-    expect(baseProjectionVersion).toBe("desert/7");
+    expect(baseProjectionVersion).toBe("desert/8");
     rig.restart();
     expect(
       rig

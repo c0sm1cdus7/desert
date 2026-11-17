@@ -1887,3 +1887,72 @@ transporte inyectable. `readResponse` devuelve el primer bloque de texto JSON va
 rechazo, corte por máximo, JSON inválido, esquema inválido, fallo HTTP y transporte. Se reducen las restricciones que
 el proveedor no admite y se comprueban al leer. Los esquemas con vocabulario que el validador no reconoce fallan;
 la aceptación del esquema reducido por el servicio real queda sin comprobar hasta la llamada exterior.
+
+## Contratos y autoridad del asistente (17/11, etapa 1)
+
+Una identidad puede tener un asistente habilitado por quien administra. Su actor estable es
+`assistant:<titular>`; `assistantOf(owner)` lo construye y `parseMindActor` distingue asistente y mente de
+herramienta. El nombre visible no cambia su titular. Un asistente no recibe `granted`, administración ni
+preferencias, no atiende herramientas y no entra por MCP ni por el socket como identidad. Puede escribir su
+escena propia. Las mentes `mind:<herramienta>` conservan su kit y su ejecución actuales, sin modelos.
+
+`house.assistants` conserva el nombre, la habilitación, la delegación y, si hubo adopción, la identidad anterior.
+`assistant-enabled` y `assistant-disabled` exigen al administrador; `assistant-kit-set` exige al titular.
+El kit enumera herramientas y actos concretos: no hereda acciones nuevas. `assistantOfIdentity` conserva también
+al asistente deshabilitado para leer historia. `effectiveAssistantKit(house, owner, registry)` cruza lo delegado,
+los permisos que tiene hoy el titular y las capacidades de la carta asignada. Sin carta no ofrece actos de trabajo.
+`allowedAct` exige además `registry` cuando el actor es un asistente, para comprobar los requisitos de cada acto;
+las llamadas anteriores para identidades y mentes de herramienta no cambian. `holds` aplica la misma intersección
+al acceso a adaptadores. Los vínculos de credenciales siguen siendo del actor, herramienta y destino propios:
+ser asistente no concede los vínculos del titular.
+
+El lugar de ejecución reconoce `delegate-assistant` sobre `identities/<titular>` para que el titular pueda
+escribir únicamente su delegación. Los hechos administrativos requieren sus actos específicos: `enable-assistant`,
+`disable-assistant`, `adopt-assistant` y `assign-mind-card`. Un acto cualquiera de Identidades no puede esconder
+estos efectos. Las acciones y pantallas concretas se agregan en la etapa 2A; acá queda la autoridad para recibirlas.
+El retiro del kit, de la habilitación, del titular o de una capacidad corta el acto pendiente y sus anidados.
+Devolver el permiso habilita trabajo nuevo y no revive las señales ya cortadas.
+
+La adopción se escribe como un lote explícito: `removed` de la identidad anterior, habilitación y
+`assistant-adopted { owner, legacy }`. El vínculo exige una identidad anterior removida, sin colisiones con otro
+asistente; repetir el mismo vínculo no cambia su significado. Un administrador distinto no delega por el titular.
+Los hechos antiguos conservan su `by`, incluidas notas o escenas escritas como `nora`: no pasan a ser de
+`assistant:franco`. No se ejecuta una migración de casas al importar estos contratos.
+
+`mind-card-assigned { mind, card, version, capabilities }` lleva firma administrativa, también para asistentes.
+`house.mindAssignments` guarda esa configuración; la elegibilidad de la carta y su banco pertenecen a la etapa 2E.
+La configuración y `house.modelCalls` están separados de `house.minds`, que contiene el hilo público. Los contratos
+`MindDefinition`, `MindScope` y `TurnContext` no incluyen cartas, precios ni gasto. El contexto declara un contador
+compartido y `TurnLimits`: doce intentos físicos, una corrección y una consulta. `ReviewPort` reserva el lugar de
+las reglas y del supervisor; este corte no implementa el turno ni llama modelos.
+
+`MindAnswer` tiene `scene`, `consulta: { question } | null` y `acts: [{ act, target, input }]`. `answerSchema(menu)`
+cierra también los objetos de entrada del menú y conserva sus restricciones locales; el adaptador de modelos ya
+reduce las restricciones de transporte al armar el pedido. `validateAnswer` comprueba texto visible, hasta 4.000
+caracteres por escena o pregunta, hasta 32 actos, destinos exactos, permisos actuales, consulta única y alcance.
+La consciencia recibe comunicación y apertura; el journey recibe controles y trabajo dentro de su kit. Los campos
+extra `by` y `process` se rechazan. La ejecución los obtiene del contexto confiable y de los hechos, incluso en
+anidados. No se persiste el cuerpo crudo de una respuesta inválida: se guardan códigos y posiciones.
+
+Los hechos nuevos de turno son `mind-turn-opened`, `mind-answer-invalid`, `mind-consultation-requested`,
+`mind-consultation-answered`, `mind-review-recorded`, `mind-turn-closed`, `mind-scene` y `mind-message`.
+La consulta retiene los actos propuestos; la revisión conserva propuesta, actos, versión de reglas y resultado.
+`mindStep` rechaza consultas duplicadas, respuestas sin consulta, autores o procesos cambiados y escrituras tardías.
+`journeyStep` pliega `journey-opened`, `journey-plan-written`, `journey-step-done`, `journey-waiting` y
+`journey-closed`. El plan se escribe una vez; un paso ausente o repetido falla. El journey conserva su `by` y su
+id en `process`; las causas apuntan a hechos del diario, incluida su apertura. La ejecución comprueba el kit del
+journey además del kit actual del actor y rechaza un proceso cerrado o ajeno. Los controles que abren y terminan
+journeys corresponden a la etapa 2D.
+
+Las llamadas declaran `model-call-reserved`, `model-call-started`, `model-call-settled`, `model-call-uncertain` y
+`model-call-cancelled`. Los montos son enteros seguros en milmillonésimas de dólar (`NanoUsd`), sin redondeo a
+centavos. `modelAccount` suma gasto liquidado y reservas pendientes por cuenta; una llamada incierta mantiene su
+reserva hasta recibir consumo comprobado. Solo se cancela antes de enviar. Una cancelación no consume un intento;
+un envío incierto o pendiente impide reservar el siguiente del mismo turno. Mente y supervisor comparten los
+números del turno. El control del saldo y el transporte se implementan después; estos pliegues no gastan crédito.
+
+La versión de cálculos pasa a `desert/8` para reconstruir los estados anteriores con los nuevos campos de casa.
+Quien construya `House` a mano parte de `emptyHouse` o agrega `assistants`, `mindAssignments`, `minds`, `journeys`
+y `modelCalls`. Quedan reservados los nombres de hechos enumerados y el prefijo `assistant:`; una identidad
+histórica con ese prefijo no adquiere derechos de asistente ni de identidad al plegar. Los registros y sus
+credenciales no se renombran: la composición debe resolver esa colisión explícitamente antes de adoptar la base.

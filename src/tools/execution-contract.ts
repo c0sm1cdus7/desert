@@ -4,10 +4,14 @@ import type { Bus } from "../journal/bus.ts";
 import type { Program, State, ToolRegistry, OwnAct } from "./tool-contract.ts";
 import type { CapabilityFactory, CapabilityLease } from "./execution/execution-capabilities.ts";
 import type { RunningAct } from "./execution/running-acts.ts";
+import type { MindScope } from "./minds/mind-contract.ts";
+import type { ReviewPort } from "./minds/mind-review.ts";
 export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: () => number }> &
   Readonly<{ registry: ToolRegistry<X>; state: () => State<X>; own: (state: State<X>) => readonly OwnAct<X>[] }> &
   Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
   Readonly<{
+    mindScope?: MindScope;
+    review?: ReviewPort;
     houseOwn?: (act: OwnAct<X>) => boolean;
     capabilities?: CapabilityFactory;
     running?: Map<string, RunningAct>;

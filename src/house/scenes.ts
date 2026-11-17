@@ -1,7 +1,7 @@
 // Every actor writes its own scene; only identities have preferences and things in view.
 import { actCatalog } from "./own-acts.ts";
 import { ids } from "./ids.ts";
-import { mindTool } from "./kit.ts";
+import { isMindActor } from "../fields/mind-actor.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { effect, type HouseEvent } from "./facts.ts";
 import { accepted, ownAct, rejected } from "../tools/act-definition.ts";
@@ -13,19 +13,19 @@ export function houseActs<X extends Program>(attendance: readonly OwnAct<X>[]) {
     "scene",
     actCatalog.scene,
     (input, { by, state }) => {
-      const absent = Object.keys(input.to ?? {}).find(to => mindTool(to) !== undefined || !state.house.grants.has(to));
+      const absent = Object.keys(input.to ?? {}).find(to => isMindActor(to) || !state.house.grants.has(to));
       return absent === undefined ? accepted(effect("scene", input, by)) : rejected(toolTexts.sceneRecipient(absent));
     },
   );
   const identity = [...attendance, preferenceAct<X>(), scene];
-  return (by: string): readonly OwnAct<X>[] => (mindTool(by) === undefined ? identity : [scene]);
+  return (by: string): readonly OwnAct<X>[] => (!isMindActor(by) ? identity : [scene]);
 }
 
 import type { House } from "./members.ts";
 
 /** Fold the shared scene exactly as written by its actor. */
 export function sceneStep(state: House, event: HouseEvent): House {
-  if (event.kind === "scene" && (state.grants.has(event.by) || mindTool(event.by) !== undefined))
+  if (event.kind === "scene" && (state.grants.has(event.by) || isMindActor(event.by)))
     return { ...state, scenes: new Map(state.scenes).set(event.by, event) };
   return state;
 }

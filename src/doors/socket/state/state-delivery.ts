@@ -1,6 +1,7 @@
 // One view/encoding per identity and sequence; all results queue behind the transfer containing their effects.
+import { isMindActor } from "../../../fields/mind-actor.ts";
 import { identityView } from "../../../house/members.ts";
-import { present, mindTool } from "../../../house/kit.ts";
+import { present } from "../../../house/kit.ts";
 import type { RunningHouse } from "../../../runtime/house-runtime.ts";
 import type { Program, State } from "../../../tools/tool-contract.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
@@ -45,8 +46,7 @@ export function stateDelivery<X extends Program>(house: RunningHouse<X>, peers: 
 function isMember<X extends Program>(house: RunningHouse<X>, peer: Peer): boolean {
   const key = peer.key();
   if (!key || !peer.live()) return false;
-  if (mindTool(key.identity) === undefined && present(house.registry, house.tools.state().house, key.identity))
-    return true;
+  if (!isMindActor(key.identity) && present(house.registry, house.tools.state().house, key.identity)) return true;
   peer.end({ tipo: "cortado", motivo: socketTexts.removed });
   return false;
 }

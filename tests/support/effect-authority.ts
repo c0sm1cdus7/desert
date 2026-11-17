@@ -1,4 +1,5 @@
 // Effects returned by a real action, with the same house and journal used by the shop.
+import { mindEffects } from "./mind-facts.ts";
 import { object } from "../../src/fields/visible-text.ts";
 import { effect, type HouseKind } from "../../src/house/facts.ts";
 import type { Emission } from "../../src/journal/vocabulary.ts";
@@ -9,6 +10,7 @@ import { salesTool, paymentsTool, type Shop } from "./shop.ts";
 export const nothing = object({});
 export const houseEffects = (by: string) =>
   [
+    ...mindEffects(by),
     effect("house-created", {}, by),
     effect("granted", { identity: "beto", tools: ["sales", "payments"] }, by),
     effect("named", { identity: "beto", name: "Otro nombre" }, by),

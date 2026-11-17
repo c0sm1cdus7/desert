@@ -1,4 +1,5 @@
 // Live cancellation belongs to the listener, never to a replayed projection.
+import { journeyAllows } from "../../house/minds/journey-state.ts";
 import { coreSelf } from "./effect-authority.ts";
 import { allowedAct, present } from "../../house/kit.ts";
 import { houseStep, type House } from "../../house/members.ts";
@@ -33,7 +34,13 @@ function withdrawn<X extends Program>(ports: Execution<X>, active: RunningAct, h
   if (!origin || !tool) return false;
   if (house.identities && coreSelf(tool, origin.by, origin.data.object))
     return !present(ports.registry, house, origin.by);
-  return !allowedAct(house, origin.by, tool, origin.data.option);
+  if (
+    origin.process &&
+    house.journeys.has(origin.process) &&
+    !journeyAllows(house.journeys, origin.process, origin.by, tool, origin.data.option)
+  )
+    return true;
+  return !allowedAct(house, origin.by, tool, origin.data.option, ports.registry);
 }
 /** Each heard removal sees the current folded house; a later grant cannot unabort this particular act. */
 function cutRunning<X extends Program>(ports: Execution<X>, event: Event, house: House): void {

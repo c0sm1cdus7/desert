@@ -1,7 +1,8 @@
 // Session controls require hello. Removal ends peers synchronously on the bus before any later reply.
+import { isMindActor } from "../../../fields/mind-actor.ts";
 import { houseProtocolVersion, type ClientMessage } from "../wire/protocol.ts";
 import type { RunningHouse } from "../../../runtime/house-runtime.ts";
-import { mindTool, present } from "../../../house/kit.ts";
+import { present } from "../../../house/kit.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import { socketTexts as said } from "../../../texts/socket.texts.ts";
 
@@ -84,11 +85,7 @@ function welcome<X extends Program>(
   }
   const key = keys.get(message.token);
   /** Identities are always outside the house; a tool's mind never enters through the door. */
-  if (
-    !key ||
-    mindTool(key.identity) !== undefined ||
-    !present(house.registry, house.tools.state().house, key.identity)
-  ) {
+  if (!key || isMindActor(key.identity) || !present(house.registry, house.tools.state().house, key.identity)) {
     peer.end({ tipo: "rechazo", motivo: said.denied });
     return;
   }

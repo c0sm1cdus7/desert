@@ -6,7 +6,7 @@ import { startPrograms, programEffects } from "./boundaries/tool-listeners.ts";
 import { interrupt, watchRunning } from "./execution/running-acts.ts";
 import { programRule } from "../fields/program-call.ts";
 import { identityView } from "../house/members.ts";
-import { mindTool } from "../house/kit.ts";
+import { isMindActor } from "../fields/mind-actor.ts";
 import { actReach, execute, type Execution } from "./execute.ts";
 import { houseActs } from "../house/scenes.ts";
 import type { OwnAct, Program, State } from "./tool-contract.ts";
@@ -20,7 +20,7 @@ const ownOf = <X extends Program>(ports: Starting<X>) => {
   const own = (state: State<X>) => {
     const builtins = offered(state.by);
     builtins.forEach(act => houseOwn.add(act));
-    const program = mindTool(state.by) === undefined ? programRule(() => ports.own?.(state) ?? []) : [];
+    const program = !isMindActor(state.by) ? programRule(() => ports.own?.(state) ?? []) : [];
     checkOwn(ports.registry, state, program);
     return [...builtins, ...program];
   };
@@ -29,6 +29,12 @@ const ownOf = <X extends Program>(ports: Starting<X>) => {
     houseOwn: (act: OwnAct<X>) => houseOwn.has(act),
   };
 };
+const processOf =
+  <X extends Program>(ports: Starting<X>) =>
+  (id: string, by?: string): boolean => {
+    const journey = ports.state().house.journeys.get(id);
+    return journey ? !journey.closed && (by === undefined || journey.by === by) : (ports.process?.(id, by) ?? false);
+  };
 export function startTools<X extends Program>(ports: Starting<X>) {
   const { bus, registry, secrets, state: read } = readonlyPorts(ports);
   let state = read();
@@ -38,7 +44,7 @@ export function startTools<X extends Program>(ports: Starting<X>) {
     ...readonlyPorts(ports),
     running: new Map(),
     live: () => live,
-    process: ports.process ?? (() => false),
+    process: processOf(ports),
     ...ownOf(ports),
   };
   const shutdown = startPrograms(registry, running);

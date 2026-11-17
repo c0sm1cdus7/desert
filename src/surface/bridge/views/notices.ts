@@ -1,6 +1,7 @@
 // What a tool tells a person from any menu: what of it needs someone to act, and what the others did since they looked.
 import { programCall } from "../../../fields/program-call.ts";
-import { holdsAny, mindTool } from "../../../house/kit.ts";
+import { isMindActor } from "../../../fields/mind-actor.ts";
+import { holdsAny } from "../../../house/kit.ts";
 import { hides } from "../../../house/members.ts";
 import type { ProgramTool } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
@@ -35,7 +36,7 @@ export function noticesOf<X extends Program>(
       .filter(
         need =>
           need.to === undefined ||
-          mindTool(need.to) !== undefined ||
+          isMindActor(need.to) ||
           !holdsAny(ports.state().house, need.to, tool.id, Object.keys(tool.acts)) ||
           need.to === ports.me,
       )

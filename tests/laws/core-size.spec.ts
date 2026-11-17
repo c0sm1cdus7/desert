@@ -69,10 +69,11 @@ describe("the tree of src/", () => {
   // MCP budget: +1 line for the refusal of a wait past the per-identity bound.
   // Mente 1: +14 exact lines for the typed Identidades skill message and its Spanish translation.
   // Modelos: +14 líneas exactas para explicar errores del catálogo y el proveedor.
-  it("keeps every file within 300 lines and the texts within 600", () => {
+  // Mente 3: +10 líneas exactas para el mensaje parametrizado de rechazo de contratos de mente.
+  it("keeps every file within 300 lines and the texts within 610", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(600);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(610);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

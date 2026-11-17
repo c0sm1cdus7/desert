@@ -13,6 +13,7 @@ import {
   type HouseKind,
   layerOf,
   houseCatalog,
+  mindHouseCatalog,
   origin,
   type HouseEvent,
 } from "../house/facts.ts";
@@ -38,6 +39,10 @@ const arms = (layer: Layer, catalog: Catalog, fields: Readonly<Record<string, TS
     object({ ...fields, layer: Type.Literal(layer), kind: Type.Literal(kind), data }),
   );
 const legacyArms = arms("house", legacyHouseCatalog, {});
+// New house contracts do not make every existing program fact traverse their validation branches first.
+const previousHouseCatalog = Object.fromEntries(
+  Object.entries(houseCatalog).filter(([kind]) => !Object.hasOwn(mindHouseCatalog, kind)),
+);
 // Free-text fields used \S before the visible-text rule; keep that rule for stored program facts.
 const historical = (value: unknown): unknown => {
   if (Array.isArray(value)) return value.map(historical);
@@ -64,13 +69,18 @@ export type Vocabulary<P extends Foreign> = Readonly<{
   emission: TSchema;
   read(value: unknown): Event<P>;
 }>;
+const currentSchema = (program: Catalog, fields: Readonly<Record<string, TSchema>>) =>
+  Type.Union([
+    ...arms("house", previousHouseCatalog, fields),
+    ...arms("program", program, fields),
+    ...arms("house", mindHouseCatalog, fields),
+  ]);
+
 /** A program's kinds; none takes a name the house already writes. */
 type Own<C extends Catalog> = C & Readonly<Partial<Record<HouseKind, never>>>;
 export function vocabulary<C extends Catalog>(program: Own<C>) {
   const taken = Object.keys(program).filter(kind => layerOf(kind) === "house");
   if (taken.length) throw new Error(journalTexts.kindTaken(taken));
-  const all = (fields: Readonly<Record<string, TSchema>>) =>
-    Type.Union([...arms("house", houseCatalog, fields), ...arms("program", program, fields)]);
   // What earlier versions wrote is read as written: house kinds from before shared reading, program free text under \S.
   const stored = { ...provenance, ...position };
   const historicalProgram = Object.fromEntries(
@@ -78,14 +88,15 @@ export function vocabulary<C extends Catalog>(program: Own<C>) {
   );
   const event = Type.Unsafe<Event<ProgramFacts<C>>>(
     Type.Union([
-      ...arms("house", houseCatalog, stored),
+      ...arms("house", previousHouseCatalog, stored),
       ...arms("program", historicalProgram, stored),
       ...legacyArms.map(arm => Type.Composite([arm, object(stored)])),
+      ...arms("house", mindHouseCatalog, stored),
     ]),
   );
   return {
     event,
-    emission: Type.Unsafe<Emission<ProgramFacts<C>>>(all(provenance)),
+    emission: Type.Unsafe<Emission<ProgramFacts<C>>>(currentSchema(program, provenance)),
     read: (value: unknown) => {
       if (!Value.Check(event, value)) throw new Error(journalTexts.invalidEvent);
       const read = structuredClone(stateResult(value));

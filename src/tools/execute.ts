@@ -7,7 +7,7 @@ import { programCall } from "../fields/program-call.ts";
 import { Value } from "@sinclair/typebox/value";
 import { actEnvelope, type Act } from "../house/own-acts.ts";
 import { ids } from "../house/ids.ts";
-import { allowedAct, mindTool, present } from "../house/kit.ts";
+import { allowedAct, present } from "../house/kit.ts";
 import { identityView } from "../house/members.ts";
 import { effect, type HouseEvent } from "../house/facts.ts";
 import type { Emission } from "../journal/vocabulary.ts";
@@ -21,6 +21,8 @@ import type { Execution } from "./execution-contract.ts";
 import type { ToolCapabilities } from "./capabilities-contract.ts";
 import { usingCapabilities } from "./execution/action-capabilities.ts";
 export type { Execution } from "./execution-contract.ts";
+import { isMindActor } from "../fields/mind-actor.ts";
+import { journeyAllows } from "../house/minds/journey-state.ts";
 type Origin = HouseEvent<"act">;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
   Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &
@@ -34,7 +36,14 @@ type Resolving<X extends Program> = Pick<Execution<X>, "state" | "own" | "regist
 /** The act an identity's act resolves to: one the house offers it directly first, then the target's tool act. */
 const resolve = <X extends Program>(ports: Resolving<X>, by: string, target: string, option: string) => {
   const state = identityView(ports.state(), by);
-  const offered = ports.own(state).find(act => act.object === target && act.option === option);
+  const offered = ports
+    .own(state)
+    .find(
+      act =>
+        act.object === target &&
+        act.option === option &&
+        (!isMindActor(by) || (target === ids.self && option === "scene")),
+    );
   const tool = targetTool(ports.registry, state, target);
   return { state, offered, tool, act: offered ?? tool?.acts[option] };
 };
@@ -51,10 +60,16 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   if (!present(ports.registry, state.house, by) || (process && !ports.process(process, by)))
     return toolTexts.unassigned;
   if (!act) return toolTexts.unknown;
-  if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option)))
+  if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option, ports.registry)))
     return toolTexts.kitRefusal(tool?.id ?? "");
   if (!offered && tool && elsewhere(act, tool, target)) return toolTexts.unknown;
-  if (!offered && mindTool(by) !== tool?.id && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
+  if (
+    process &&
+    state.house.journeys.has(process) &&
+    (!tool || !journeyAllows(state.house.journeys, process, by, tool.id, origin.data.option))
+  )
+    return toolTexts.outsideKit;
+  if (!offered && !isMindActor(by) && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
   return programOffered(act, state, target, ports.now());
 }
 const decide = <X extends Program>(
@@ -105,7 +120,8 @@ async function executeNested<X extends Program>(
   const tool = targetTool(ports.registry, identityView(ports.state(), by), nested.target ?? "");
   const unknown: ActResult<X> = { status: "rejected", reason: toolTexts.unknown };
   if (!tool) return unknown;
-  const cause = [id, ...(process ? [process] : [])];
+  const parent = process ? (ports.state().house.journeys.get(process)?.opened ?? process) : undefined;
+  const cause = [id, ...(parent ? [parent] : [])];
   const started = execute(ports, nested, origin.data.through ?? 0, by, cause);
   const result = started.status === "processing" ? await started.completion : started;
   const done: ActResult<X> =
@@ -157,7 +173,10 @@ function executeScoped<X extends Program>(
   capabilities: ToolCapabilities,
   valid: boolean,
 ): ExecutionResult<X> {
-  const process = cause.find(id => ports.process(id));
+  const journeys = ports.state().house.journeys;
+  const journey = [...journeys.values()].find(each => cause.includes(each.opened));
+  const process = ports.mindScope?.process ?? journey?.id ?? cause.find(id => ports.process(id));
+  if (ports.mindScope && ports.mindScope.actor !== by) return rejected(toolTexts.unassigned);
   const data = { object: value.target ?? ids.self, option: value.act, input: value.input, through };
   const started = startAct(ports, effect("act", data, by, cause, process));
   if (started.failed) return started.failed;

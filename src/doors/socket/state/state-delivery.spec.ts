@@ -40,3 +40,32 @@ it("N03: a terminal behind the cached delta receives a full state", async () => 
     await f.close();
   }
 });
+it("un asistente habilitado no recibe el estado aunque tenga una sesión plantada", async () => {
+  const f = await socketHouse("stream");
+  f.house().bus.emit(effect("assistant-enabled", { owner: "beto", name: "Nora" }, "ana"));
+  const pair = duplexPair();
+  const peer = socketPeer(
+    pair[1],
+    () => {},
+    () => {},
+  );
+  const delivery = stateDelivery(f.house(), new Set());
+  const headers: ServerMessage[] = [];
+  let binary = 0;
+  const reader = frameReader("server", value => {
+    if (Buffer.isBuffer(value)) binary++;
+    else headers.push(readServer(value));
+  });
+  pair[0].on("data", (bytes: Buffer) => reader.push(bytes));
+  peer.enter({ identity: "assistant:beto", door: "terminal" });
+  try {
+    delivery.sendState(peer, true);
+    await new Promise<void>(resolve => setImmediate(resolve));
+    expect(headers.map(header => header.tipo)).toEqual(["cortado"]);
+    expect(binary).toBe(0);
+  } finally {
+    delivery.stop();
+    pair.forEach(stream => stream.destroy());
+    await f.close();
+  }
+});

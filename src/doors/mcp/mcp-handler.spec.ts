@@ -1,3 +1,4 @@
+import { effect } from "../../house/facts.ts";
 import { mcpTexts } from "../../texts/mcp.texts.ts";
 import { randomUUID } from "node:crypto";
 import { afterEach, expect, it, vi } from "vitest";
@@ -13,10 +14,11 @@ afterEach(async () => {
   vi.useRealTimers();
   for (const rig of opened.splice(0)) await rig.close();
 });
-it.each(["missing", "wrong", "terminal", "short", "long", "absent", "mind"])(
+it.each(["missing", "wrong", "terminal", "short", "long", "absent", "mind", "assistant"])(
   "denies %s credentials before reading the body",
   async kind => {
     const h = setup();
+    h.rig.bus.emit(effect("assistant-enabled", { owner: "beto", name: "Nora" }, "ana"));
     const tokens: Record<string, string> = {
       wrong: randomUUID(),
       terminal: h.terminal,
@@ -24,6 +26,7 @@ it.each(["missing", "wrong", "terminal", "short", "long", "absent", "mind"])(
       long: randomUUID().repeat(3),
       absent: h.key("absent"),
       mind: h.key("mind:sales"),
+      assistant: h.key("assistant:beto"),
     };
     const body = vi.fn(() => {
       throw new Error("Body must stay unread");

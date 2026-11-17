@@ -5,12 +5,25 @@ import { Type } from "@sinclair/typebox";
 import { object } from "../fields/visible-text.ts";
 import type { Facts, Position, Catalog, Layer } from "../journal/vocabulary.ts";
 
+import { assistantFacts } from "./assistants/assistant-facts.ts";
+import { journeyFacts } from "./minds/journey-facts.ts";
+import { mindFacts } from "./minds/mind-facts.ts";
+import { mindSettingsFacts } from "./minds/mind-settings.ts";
+import { modelCallFacts } from "./minds/model-call-facts.ts";
 const literals = <T extends string>(...values: T[]) => Type.Union(values.map(value => Type.Literal(value)));
 const text = Type.String();
 
 export const names = Type.Array(name);
 
 const actStatus = literals("accepted", "rejected", "draft", "inconclusive", "interrupted");
+/** The new mind facts stay after existing facts in validation, without changing their schemas. */
+export const mindHouseCatalog = {
+  ...assistantFacts,
+  ...journeyFacts,
+  ...mindFacts,
+  ...mindSettingsFacts,
+  ...modelCallFacts,
+};
 /** What every house writes, whatever program lives in it. */
 export const houseCatalog = {
   "house-created": object({}),
@@ -53,6 +66,7 @@ export const houseCatalog = {
   stimulus: object({ tool: name }),
   "wake-at": object({ id: name, at: Type.Union([wholeNumber, Type.Null()]) }),
   woke: object({ id: name }),
+  ...mindHouseCatalog,
 };
 export type HouseKind = keyof typeof houseCatalog;
 export type HouseEmission<K extends HouseKind = HouseKind> = Extract<Facts<typeof houseCatalog, "house">, { kind: K }>;

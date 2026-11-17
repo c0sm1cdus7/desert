@@ -3161,6 +3161,55 @@
         "src/fields/capabilities.ts",
         "src/tools/mind-metadata.spec.ts"
       ]
+    },
+    {
+      "id": 271,
+      "rule": "El asistente conserva actor assistant:<titular>, nunca se incorpora como identidad y no entra por las puertas. Quien administra habilita y asigna carta; solo el titular delega actos concretos que puede ejecutar. El kit efectivo cruza delegación, permisos actuales y capacidades; retirar autoridad corta actos pendientes y anidados sin resucitarlos.",
+      "guarantee": "spec",
+      "evidence": [
+        "src/fields/mind-actor.ts",
+        "src/house/assistants/assistant-state.spec.ts",
+        "src/house/assistants/assistant-authority.spec.ts",
+        "src/house/assistants/assistant-effects.spec.ts",
+        "src/house/kit.ts",
+        "src/tools/execution/effect-authority.ts"
+      ],
+      "from": "17/11 · mente 3, contratos y autoridad"
+    },
+    {
+      "id": 272,
+      "rule": "Turnos, consultas, revisiones, mensajes, escenas y journeys se reconstruyen desde hechos cerrados. Los journeys conservan autor y proceso en actos anidados; un cierre, una consulta repetida o una transición inválida no reabren trabajo. La adopción conserva las autorías históricas.",
+      "guarantee": "spec",
+      "evidence": [
+        "src/house/minds/mind-state.spec.ts",
+        "src/house/minds/journey-state.spec.ts",
+        "src/house/minds/mind-recovery.spec.ts",
+        "src/tools/execute.ts"
+      ],
+      "from": "17/11 · mente 3, contratos y autoridad"
+    },
+    {
+      "id": 273,
+      "rule": "La respuesta de una mente contiene scene, consulta y acts, con entradas cerradas derivadas del menú. La validación local conserva límites, destinos, permisos y alcance; el modelo no elige autor ni proceso. El puerto de revisión declara propuesta, motivo y versión de reglas sin ejecutar un supervisor.",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/minds/mind-answer.spec.ts",
+        "src/tools/minds/mind-answer.ts",
+        "src/tools/minds/mind-contract.ts",
+        "src/tools/minds/mind-review.ts"
+      ],
+      "from": "17/11 · mente 3, contratos y autoridad"
+    },
+    {
+      "id": 274,
+      "rule": "Los hechos de llamadas conservan reservas, envío, liquidación y resultado incierto. La incertidumbre retiene la reserva y bloquea otro envío del mismo turno; cancelar antes de enviar libera la reserva sin consumir un intento físico. Mente y supervisor comparten el contrato de doce intentos por turno.",
+      "guarantee": "spec",
+      "evidence": [
+        "src/house/minds/model-call-state.ts",
+        "src/house/minds/mind-state.spec.ts",
+        "src/house/minds/mind-recovery.spec.ts"
+      ],
+      "from": "17/11 · mente 3, contratos y autoridad"
     }
   ]
 }
