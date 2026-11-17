@@ -1,6 +1,6 @@
-// knows the surface. It needs python3, which opens the pseudo-terminal: without it the check fails, and says so.
-// The keys go in as bytes, through the system's terminal and the program's own way of reading them; nothing here
 // A program on a real terminal, as a person has it: a pseudo-terminal, its keyboard and what it paints on it.
+// The keys go in as bytes, through the system's terminal and the program's own way of reading them; nothing here
+// knows the surface. It needs python3, which opens the pseudo-terminal: without it the check fails, and says so.
 import { spawn, spawnSync } from "node:child_process";
 import { join } from "node:path";
 import { StringDecoder } from "node:string_decoder";

@@ -1,5 +1,5 @@
-// to today needs how its country counts days, and a thing made where it is picked needs the act that makes it.
 // What the fields of a program's acts need from the rest of the program, checked when it is composed: a day held
+// to today needs how its country counts days, and a thing made where it is picked needs the act that makes it.
 import { short } from "../../../tools/act-words.ts";
 import type { ProgramTool } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";

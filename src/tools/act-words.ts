@@ -1,5 +1,5 @@
-// it is for and why it is refused are data beside a row, never sentences, and speak to nobody.
 // The words an act is declared with, checked when a program is composed: what a row says, what confirms it, what
+// it is for and why it is refused are data beside a row, never sentences, and speak to nobody.
 import { addresses } from "../texts/addressing.ts";
 /** What a row says is not a sentence: it starts no phrase with a capital, carries no punctuation and is short. */
 const phrase = /^(?![A-ZÁÉÍÓÚÑ][a-záéíóúñ])[^.,;:!?¡¿]{1,28}$/u;

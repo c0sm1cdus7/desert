@@ -1,5 +1,5 @@
-// same order; one with nothing in it says so. A program gives the reading; it never draws the thing.
 // A thing on a surface: what it is and what it has, in the stacks its tool declared. Always the same stacks, in the
+// same order; one with nothing in it says so. A program gives the reading; it never draws the thing.
 import { field, plain } from "../../../fields/json-values.ts";
 import { OutsideDefect, programCall } from "../../../fields/program-call.ts";
 import type { ProgramTool } from "../../../tools/promises.ts";

@@ -1,5 +1,5 @@
-// Every fact is read and folds from the first, and every thing is read as whoever administers it reads it.
 // The journals a program keeps of what organizations wrote with it: each still opens with the program of today.
+// Every fact is read and folds from the first, and every thing is read as whoever administers it reads it.
 import { stateResult } from "../../journal/readonly-state.ts";
 import { inspectKept } from "./kept-inspection.ts";
 import { deepStrictEqual } from "node:assert/strict";
