@@ -17,7 +17,9 @@ async function invalidScreen(): Promise<string> {
     term.press("r");
     await term.until("Nombre de la venta");
     term.press("venta\r");
-    return (await term.until("Error")).join("\n");
+    await term.until("E-BASE-1 · Falló la base");
+    await term.until("importe");
+    return (await term.until("Total")).join("\n");
   } finally {
     term.press("\x1b");
     await term.rest(100);

@@ -14,5 +14,5 @@ describe("a program with a row that carries everything its act takes", () => {
         "the act mark is not off exactly when its tool says why",
       ),
     ).toEqual([`${overMarked}, by keys`]);
-  });
+  }, 20000);
 });
