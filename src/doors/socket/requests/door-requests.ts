@@ -1,4 +1,4 @@
-// Only the terminal session is implemented here. The agent door must supply its scene-aware session later.
+// The socket serves terminal sessions; the HTTP agent door authenticates its own requests.
 import { allowedAct } from "../../../house/kit.ts";
 import { targetTool } from "../../../house/attendance.ts";
 import { toolTexts } from "../../../texts/tools.texts.ts";
@@ -8,6 +8,7 @@ import { socketTexts as said } from "../../../texts/socket.texts.ts";
 import type { ClientMessage, ServerMessage } from "../wire/protocol.ts";
 import type { Session } from "./door-session.ts";
 import type { Peer } from "../peers/socket-peer.ts";
+import { houseChange } from "./house-change.ts";
 import { jsonData } from "./json-data.ts";
 export async function routeRequest<X extends Program>(
   session: Session<X>,
@@ -55,23 +56,18 @@ function waitForChange<X extends Program>(
   id: string,
   until: number,
 ): Promise<ServerMessage> {
-  return new Promise(resolve => {
-    const seq = house.tools.state().through;
-    const finish = () => {
-      stop();
-      clearTimeout(timer);
-      signal.removeEventListener("abort", finish);
-      peer.stream.off("close", finish);
-      resolve({
-        tipo: "respuesta",
-        id,
-        seq: house.tools.state().through,
-        datos: { cambio: house.tools.state().through > seq },
-      });
-    };
-    const stop = house.bus.on(finish);
-    const timer = setTimeout(finish, Math.min(240_000, Math.max(0, until - house.now())));
-    signal.addEventListener("abort", finish, { once: true });
-    peer.stream.once("close", finish);
+  const disconnected = new AbortController();
+  const close = () => disconnected.abort();
+  peer.stream.once("close", close);
+  const waiting = houseChange(
+    () => house.tools.state().through,
+    changed => house.bus.on(changed),
+    house.tools.state().through,
+    Math.min(240_000, Math.max(0, until - house.now())),
+    AbortSignal.any([signal, disconnected.signal]),
+  );
+  return waiting.then(({ seq, cambio }) => {
+    peer.stream.off("close", close);
+    return { tipo: "respuesta", id, seq, datos: { cambio } };
   });
 }

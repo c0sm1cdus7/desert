@@ -3120,6 +3120,19 @@
         "tests/laws/core-size.spec.ts",
         "tests/laws/tree.json"
       ]
+    },
+    {
+      "id": 268,
+      "rule": "La puerta MCP autentica cada pedido antes de leerlo con comparación SHA-256 de todas las llaves de agente. Limita bytes y tipo de cuerpo, negocia las tres versiones admitidas y mantiene cuatro herramientas fijas sin sesión MCP. Lee por los puertos de la terminal, ofrece solo actos del kit, actúa por el libro del socket y espera cambios hasta 60 segundos. No expone llaves ni recibos privados, y vuelve a comprobar la autorización tras leer y antes de responder. Salud es pública y no revela datos de la casa.",
+      "from": "16/11 · nube, MCP 1: puerta HTTP de agentes",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/mcp/mcp-handler.spec.ts",
+        "src/doors/mcp/mcp-tools.spec.ts",
+        "src/doors/mcp/mcp-secrets.spec.ts",
+        "src/doors/mcp/mcp-boundaries.spec.ts",
+        "src/doors/mcp/mcp-http.spec.ts"
+      ]
     }
   ]
 }

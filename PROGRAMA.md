@@ -1688,3 +1688,71 @@ La entrada `#desert/laws.ts` permite usar las mismas funciones en pruebas propia
 lista vacía cuando se cumple la ley. `readLint(repo)` obtiene la lectura asíncrona completa de ESLint que reciben
 `ignoredFiles` y `looseRules`. `programLaws(root)` lee las opciones y corre todo. `#desert/testing.ts` conserva su
 entrada separada. Los programas que fijan una versión anterior recién reciben esto al actualizar su base.
+
+## La puerta MCP por HTTP
+
+Un programa puede servir la misma casa a un cliente MCP por HTTP. La puerta se arma sobre una casa ya abierta;
+no crea otra casa ni guarda sesiones MCP. El mapa de llaves vincula cada llave con una identidad presente y la
+puerta `agente`. Las llaves de `terminal` no sirven para entrar por MCP.
+
+```ts
+import { mcpDoor } from "./src/doors/mcp/mcp-handler.ts";
+import { serveMcp } from "./src/doors/mcp/mcp-http.ts";
+
+// house es la casa ya abierta; keys es su ReadonlyMap<string, DoorKey>.
+const door = mcpDoor(house, keys, {
+  name: "Mi programa",
+  version: "1.0.0",
+  limits: { recentLines: 40 },
+});
+const http = await serveMcp(door, { host: "0.0.0.0", port: 3000 });
+// Cuando el programa termina de atender HTTP:
+await http.close();
+// El programa sigue siendo dueño de cerrar house después de sus otras puertas.
+```
+
+La dirección y el puerto los decide el programa. Railway termina TLS y reenvía HTTP a ese puerto.
+`GET /salud` responde `200` con `ok`, sin llave ni datos de la casa. El protocolo entra por `POST /mcp`;
+`GET /mcp` responde `405` porque no hay SSE. Las demás combinaciones de método y ruta responden `404`.
+Para conectar Claude:
+
+```sh
+claude mcp add --transport http <nombre> <url>/mcp --header "Authorization: Bearer <llave>"
+```
+
+Cada pedido lleva la llave. Antes de consumir el cuerpo, la puerta compara hashes SHA-256 de igual tamaño con
+`timingSafeEqual`, recorriendo todas las llaves; exige una identidad presente y una llave de `agente`.
+Si falla, responde `401`, `WWW-Authenticate: Bearer` y cuerpo vacío. Comprueba la longitud declarada y corta la
+lectura por fragmentos al superar `socketLimits.json` (`413`). El cuerpo requiere `application/json` (`415`);
+se admite el parámetro de codificación habitual. Al terminar de leer y antes de responder comprueba nuevamente
+la autorización, para respetar una llave retirada o una identidad removida durante el pedido.
+
+Hay un solo mensaje JSON-RPC 2.0 por pedido; una lista recibe `-32600`. `initialize` repite una de las versiones
+`2025-03-26`, `2025-06-18` o `2025-11-25` si fue la solicitada; ante otra, ofrece `2025-11-25`. Publica el nombre y
+la versión indicados por el programa, `{ tools: { listChanged: false } }` y la orientación del catálogo.
+`ping` devuelve `{}`; `notifications/*` recibe `202` sin cuerpo. No hay `Mcp-Session-Id` ni una inicialización
+obligatoria entre pedidos. Un método desconocido recibe `-32601`; argumentos inválidos, `-32602`.
+
+Las herramientas publicadas son siempre `leer`, `acciones`, `actuar` y `esperar`:
+
+- `leer { herramienta?: string }` muestra la identidad, la secuencia `desde`, las escenas generales con la parte
+  dirigida a quien lee, las herramientas asignadas y sus avisos. Con `herramienta`, muestra su lectura textual,
+  sin códigos de terminal. Usa `localPorts`, las lecturas de identidad y los avisos de la terminal.
+- `acciones { herramienta?: string }` muestra solo actos del kit: herramienta, identificador de la acción, nombre,
+  propósito, si se hace sobre una herramienta o una cosa, objetivo, esquema TypeBox serializado como JSON Schema
+  y motivo de indisponibilidad. Las posiciones secretas conservan `secret: true`. Si todavía no hay cosas, la
+  acción de cosa aparece con ese motivo y sin objetivo.
+- `actuar { herramienta, accion, objetivo?, datos }` toma la herramienta como objetivo cuando no se indica otro.
+  Atiende el objetivo y ejecuta mediante `requestBook`, el mismo camino del socket, con los chequeos de kit y el
+  tope de datos de la casa. Devuelve el texto aceptado o el motivo del rechazo con `isError: true`. Los recibos
+  privados no se exponen por esta puerta. Cada llamada es un acto nuevo: el ID JSON-RPC correlaciona la respuesta,
+  no sirve como clave de deduplicación para reintentar una escritura.
+- `esperar { desde, segundos }` devuelve texto JSON con `seq` y `cambio`. Responde inmediatamente si la secuencia
+  ya avanzó; en otro caso espera un cambio posterior a `desde` o el plazo, limitado a 60 segundos. Al desconectar
+  o cerrar la puerta se liberan la escucha y el temporizador. Comparte la espera con el socket.
+
+Esta puerta no ofrece apagar, sincronizar ni declarar defectos. `http.close()` deja de escuchar, corta conexiones
+y espera los pedidos admitidos antes de soltar el libro de actos; no cierra la casa. El manejador `door.handle`
+recibe método, ruta, encabezados y una función que entrega fragmentos del cuerpo: esa función no se invoca para
+pedidos sin autorización. Así se prueban protocolo y herramientas sin abrir sockets; `mcp-http.spec.ts` comprueba
+el adaptador con un puerto real en un entorno que permita escuchar.

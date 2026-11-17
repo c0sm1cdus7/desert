@@ -8,6 +8,7 @@ import type { Event } from "../../../journal/vocabulary.ts";
 import type { RunningHouse } from "../../../runtime/house-runtime.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import type { RequestAct, ResultMessage, ServerMessage } from "../wire/protocol.ts";
+export type RequestHouse<X extends Program> = Pick<RunningHouse<X>, "tools" | "journal" | "bus">;
 type Saved = { content: string; id: string; effects: ResultMessage["efectos"]; result?: ResultMessage };
 const prefix = "socket-request:";
 /** The two causes of a socket act that name the door's request, not a fact: its key and its content's hash. */
@@ -47,7 +48,7 @@ function history() {
   };
   return { requests, record };
 }
-export function requestBook<X extends Program>(house: RunningHouse<X>) {
+export function requestBook<X extends Program>(house: RequestHouse<X>) {
   const { requests, record } = history();
   house.journal.replay(null, (_, event) => {
     record(event);
@@ -75,7 +76,7 @@ export function requestBook<X extends Program>(house: RunningHouse<X>) {
 }
 
 function actRequest<X extends Program>(
-  house: RunningHouse<X>,
+  house: RequestHouse<X>,
   requests: Map<string, Saved>,
   lookup: (by: string, id: string) => ResultMessage | undefined,
 ) {

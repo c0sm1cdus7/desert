@@ -63,10 +63,11 @@ describe("the tree of src/", () => {
   // Cleanup 1: +2 lines for texts/capital.ts, the shared initial-capital definition and its purpose.
   // Cleanup 5: +7 purpose headers in capital, identity-name, journal, secrets, socket, surface and tools.
   // Moving the existing headers in generic-surface and promises adds no lines; the per-file limit stays 300.
-  it("keeps every file within 300 lines and the texts within 542", () => {
+  // MCP: +21 lines for its four fixed tools, orientation and protocol errors in the catalog.
+  it("keeps every file within 300 lines and the texts within 563", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(542);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(563);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

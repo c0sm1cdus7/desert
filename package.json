@@ -78,7 +78,8 @@
         "src/doors/terminal/open-terminal.ts": "Relocated door owns its external I/O.",
         "src/doors/terminal/terminal-client.ts": "Relocated door owns its external I/O.",
         "src/doors/terminal/terminal-error.ts": "Relocated door owns its external I/O.",
-        "src/doors/terminal/terminal-program.ts": "Relocated door owns its external I/O."
+        "src/doors/terminal/terminal-program.ts": "Relocated door owns its external I/O.",
+        "src/doors/mcp/mcp-http.ts": "The HTTP door adapter owns its listener; the handler has no network access."
       },
       "catalog": [
         "src/texts/"

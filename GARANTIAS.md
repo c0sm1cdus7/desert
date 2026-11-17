@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 246. Deudas: 23.
+Leyes: 247. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -253,3 +253,4 @@ Leyes: 246. Deudas: 23.
 | 265 | Los textos en palabras viven en el catálogo; cada exención técnica tiene motivo y sigue vigente. | Leyes del repositorio 20 · limpiar 3 | una spec a mano | `src/checks/laws/biases.ts` `src/checks/laws/biases.spec.ts` `tests/laws/biases.spec.ts` `src/checks/laws/program-laws.ts` `src/checks/laws/program-laws.spec.ts` `tests/program/registration.ts` |
 | 266 | El código no guarda instrucciones de conducta ni archivos de instrucciones; cada exención nombra datos o tokens exactos presentes y su motivo. | Leyes del repositorio 15 · limpiar 3 | una spec a mano | `src/checks/laws/prompts.ts` `src/checks/laws/prompts.spec.ts` `tests/laws/prompts.spec.ts` `src/checks/laws/program-laws.ts` `src/checks/laws/program-laws.spec.ts` `tests/program/registration.ts` |
 | 267 | Cada archivo de código de src/, salvo las pruebas, empieza en su primer renglón con un comentario // de una línea que dice para qué es. La ley atrapa archivos sin cabecera, con ella desplazada o sin texto. | 16/11 · limpiar 5, cabeceras de propósito | una spec a mano | `tests/laws/core-size.spec.ts` `tests/laws/tree.json` |
+| 268 | La puerta MCP autentica cada pedido antes de leerlo con comparación SHA-256 de todas las llaves de agente. Limita bytes y tipo de cuerpo, negocia las tres versiones admitidas y mantiene cuatro herramientas fijas sin sesión MCP. Lee por los puertos de la terminal, ofrece solo actos del kit, actúa por el libro del socket y espera cambios hasta 60 segundos. No expone llaves ni recibos privados, y vuelve a comprobar la autorización tras leer y antes de responder. Salud es pública y no revela datos de la casa. | 16/11 · nube, MCP 1: puerta HTTP de agentes | una spec a mano | `src/doors/mcp/mcp-handler.spec.ts` `src/doors/mcp/mcp-tools.spec.ts` `src/doors/mcp/mcp-secrets.spec.ts` `src/doors/mcp/mcp-boundaries.spec.ts` `src/doors/mcp/mcp-http.spec.ts` |
