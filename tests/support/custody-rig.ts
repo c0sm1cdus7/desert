@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, vi } from "vitest";
 import { SecretCustody } from "../../src/keychain/custody/secret-custody.ts";
-import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
+import { MemoryHouseKeys, type HouseKeyProvider } from "../../src/keychain/custody/house-keys.ts";
 import type { CredentialFact, CredentialLedger } from "../../src/keychain/custody/custody-contract.ts";
 const homes: string[] = [];
 const opened: SecretCustody[] = [];
@@ -13,11 +13,11 @@ afterEach(() => {
   homes.splice(0).forEach(home => rmSync(home, { recursive: true, force: true }));
 });
 export const custodyScope = { actor: "ana", tool: "vault", target: "organization:test" };
-export function custodyRig() {
+export function custodyRig(createKeys: (home: string) => HouseKeyProvider = () => new MemoryHouseKeys()) {
   const home = mkdtempSync(join(tmpdir(), "custody-fixture-"));
   homes.push(home);
   const file = join(home, "fixture.sqlite"),
-    keys = new MemoryHouseKeys();
+    keys = createKeys(home);
   const open = (ledger?: CredentialLedger) => {
     const store = new SecretCustody(file, home, keys, ledger);
     opened.push(store);
