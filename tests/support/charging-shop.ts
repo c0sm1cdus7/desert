@@ -2,8 +2,9 @@
 import { Type, type Static } from "@sinclair/typebox";
 import { object } from "../../src/fields/visible-text.ts";
 import { money, thing } from "../../src/fields/fields.ts";
-import { programAct, type Composition } from "../../src/tools/promises.ts";
-import { paymentsTool, salesTool, shop, shopProgram, type Shop } from "./shop.ts";
+import { programAct } from "../../src/tools/promises.ts";
+import { shop, type Shop } from "./shop.ts";
+import { shopWith } from "./shop-variants.ts";
 
 /** What charging takes. `makes` is the act of the sales tool that registers a new sale right where one is picked. */
 const chargedWith = (makes?: string) =>
@@ -20,9 +21,6 @@ const paid = (amount: number) => ({
   says: "Cobrada · s1\nRecibo de prueba",
   facts: [{ kind: "payment-received" as const, data: { payment: "for-s1", amount, sale: "s1" } }],
 });
-export const chargedFromSale =
-  "payments · charge · a sale is charged from the sale itself, which says which sale it is";
-export const chargedByName = "payments · charge · a sale is charged from payments, picked by its name";
 /** What charging promises, however the sale is picked. */
 const chargeCases = [
   {
@@ -93,14 +91,11 @@ const chargeWith = (input: Charged) =>
     run: charge,
     cases: chargeCases,
   });
-const paymentsWith = (makes?: string) => ({
-  ...paymentsTool,
-  acts: { ...paymentsTool.acts, charge: chargeWith(chargedWith(makes)) },
-});
-export const chargingRegistry = [salesTool, paymentsWith()];
-export const chargingShop: Composition<Shop> = { ...shopProgram, registry: chargingRegistry };
+const chargingWith = (makes?: string) => shopWith({ payments: { acts: { charge: chargeWith(chargedWith(makes)) } } });
+export const chargingShop = chargingWith();
+export const chargingRegistry = chargingShop.registry;
 /** The same shop, where the sale to charge can be registered right where it is picked. */
-export const makingRegistry = [salesTool, paymentsWith("register")];
+export const makingRegistry = chargingWith("register").registry;
 /** The same act, which takes only the sales of a thousand or more: the others stay disabled with their reason,
  * and the base refuses one through any door. The act says it once, in what it takes. */
 type Sales = Parameters<NonNullable<ReturnType<typeof chargeWith>["offered"]>>[0];
@@ -141,5 +136,5 @@ const narrowCharge = () => {
     ],
   });
 };
-export const narrowRegistry = [salesTool, { ...paymentsTool, acts: { ...paymentsTool.acts, charge: narrowCharge() } }];
-export const narrowShop: Composition<Shop> = { ...shopProgram, registry: narrowRegistry };
+export const narrowShop = shopWith({ payments: { acts: { charge: narrowCharge() } } });
+export const narrowRegistry = narrowShop.registry;

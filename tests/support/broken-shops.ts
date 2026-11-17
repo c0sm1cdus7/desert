@@ -3,8 +3,9 @@ import { emptyHouse } from "../../src/house/members.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { RunResult } from "../../src/tools/outside.ts";
 import type { ActContext } from "../../src/tools/tool-contract.ts";
+import { must } from "../../src/surface/session/window.ts";
+import { chargingShop } from "./charging-shop.ts";
 import {
-  paymentsTool,
   registerCases,
   registerOffer,
   salesTool,
@@ -15,6 +16,7 @@ import {
   type Sales,
   type Shop,
 } from "./shop.ts";
+import { actRewritten, shopWith } from "./shop-variants.ts";
 
 type Told = { sale: string; total: number };
 type Run = (input: Told, context: ActContext<Shop>) => RunResult<Shop, readonly []>;
@@ -35,7 +37,7 @@ const registering = (run: Run, refuses: readonly string[] = ["repeated"], repeat
     run,
     cases: registerCases,
   });
-  return { ...shopProgram, registry: [{ ...salesTool, acts: { register } }, paymentsTool] };
+  return shopWith({ sales: { acts: { register }, only: true } });
 };
 /** The shop that speaks to who registered: its case promises those very words, so only how it says it is wrong. */
 const speaking = (): Composition<Shop> => {
@@ -55,7 +57,7 @@ const speaking = (): Composition<Shop> => {
     run,
     cases,
   });
-  return { ...shopProgram, registry: [{ ...salesTool, acts: { register } }, paymentsTool] };
+  return shopWith({ sales: { acts: { register }, only: true } });
 };
 /** It keeps every sale at twice what it was told: the fact is right, what is read of it is not. */
 const doubling = (kept: Sales, event: Parameters<typeof shopSlices.step.sales>[1]): Sales => {
@@ -176,20 +178,21 @@ export const brokenShops: readonly Readonly<{
 ];
 
 /** A declaration with an initial amount outside the declared field schema. */
-export const invalidDefaultShop = (value: number): Composition<Shop> => {
-  const register = salesTool.acts.register;
-  if (!register) throw new Error("missing register");
-  const input = {
-    ...register.input,
-    properties: {
-      ...shopCatalog["sale-registered"].properties,
-      total: { ...shopCatalog["sale-registered"].properties.total, default: value },
+export const invalidDefaultShop = (value: number): Composition<Shop> =>
+  actRewritten(shopProgram, "sales", "register", register => ({
+    ...register,
+    input: {
+      ...register.input,
+      properties: {
+        ...shopCatalog["sale-registered"].properties,
+        total: { ...shopCatalog["sale-registered"].properties.total, default: value },
+      },
     },
-  };
-  return {
-    ...shopProgram,
-    registry: [{ ...salesTool, acts: { ...salesTool.acts, register: { ...register, input } } }, paymentsTool],
-  };
-};
-
-export { invalidOpeningShop } from "./invalid-opening-shop.ts";
+  }));
+/** A calculated opening outside the field, with no case entering from a sale. */
+export const invalidOpeningShop = () =>
+  actRewritten(chargingShop, "payments", "charge", charge => ({
+    ...charge,
+    cases: charge.cases.filter(kase => kase.from === undefined),
+    also: { ...must(charge.also), opens: () => ({ amount: -5 }) },
+  }));

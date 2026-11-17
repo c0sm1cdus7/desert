@@ -2,7 +2,8 @@
 import { object } from "../../src/fields/visible-text.ts";
 import { day, holding, thing } from "../../src/fields/fields.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
-import { paymentsTool, registerOffer, salesTool, shopProgram, shopShown, type Shop } from "./shop.ts";
+import { registerOffer, shopShown, type Shop } from "./shop.ts";
+import { shopWith } from "./shop-variants.ts";
 
 export const instant = Date.UTC(2026, 10, 13, 1);
 export const localDay = (at: number): string => new Date(at - 3 * 3_600_000).toISOString().slice(0, 10);
@@ -59,10 +60,5 @@ function choosingAct(clock: Clock) {
     ],
   });
 }
-export const datedShop = (mode: "stops" | "wrong" | "among", clock: Clock = at => at): Composition<Shop> => ({
-  ...shopProgram,
-  registry: [
-    { ...salesTool, acts: { ...salesTool.acts, date: mode === "among" ? choosingAct(clock) : dateAct(mode, clock) } },
-    paymentsTool,
-  ],
-});
+export const datedShop = (mode: "stops" | "wrong" | "among", clock: Clock = at => at): Composition<Shop> =>
+  shopWith({ sales: { acts: { date: mode === "among" ? choosingAct(clock) : dateAct(mode, clock) } } });

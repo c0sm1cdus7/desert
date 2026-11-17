@@ -1,18 +1,13 @@
 // The test shop with an act on one of its things, and screens that list those things deeper, or not at all.
 import { object } from "../../src/fields/visible-text.ts";
 import { anyToolScreen } from "../../src/surface/bridge/views/any-tool.ts";
-import {
-  listsOf,
-  section,
-  type ProgramScreen,
-  type Shown,
-  type ToolWords,
-} from "../../src/surface/bridge/ports/house-ports.ts";
+import { listsOf, section, type ProgramScreen, type ToolWords } from "../../src/surface/bridge/ports/house-ports.ts";
 
 import type { ViewRow } from "../../src/surface/contract/shown-tool.ts";
-import { programAct, type Composition } from "../../src/tools/promises.ts";
+import { programAct } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
-import { paymentsTool, pesos, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
+import { pesos, shop, type Shop } from "./shop.ts";
+import { shopWith, shownWith } from "./shop-variants.ts";
 
 const taken = object({});
 const nameOf = (target: string): string => target.replace("sales/", "");
@@ -28,7 +23,6 @@ const settled = (state: State<Shop>, target: string): string | undefined => {
 };
 export const registered = { act: "register", input: { sale: "s1", total: 1500 } };
 const whole = { amount: 1500, sale: "s1" };
-export const settles = "sales · settle · a sale is settled for what it still owes";
 export const settledTwice = "sales · settle · a settled sale is not settled again";
 export const stillOwing = "sales · settle · a sale that still owes keeps asking for attention when another is settled";
 /** Settling a sale receives, in one act on it, the payment for everything it still owes. */
@@ -87,13 +81,9 @@ const owing = (state: State<Shop>) =>
     .map(sale => `sales/${sale}`)
     .filter(target => owed(state, target) > 0)
     .map(target => ({ target, why: `Debe ${pesos(owed(state, target))}` }));
-const needing = { ...salesTool, needs: owing, acts: { ...salesTool.acts, settle } };
-export const settlingShop: Composition<Shop> = { ...shopProgram, registry: [needing, paymentsTool] };
+export const settlingShop = shopWith({ sales: { needs: owing, acts: { settle } } });
 /** The same shop, whose sales never say they need anyone: what its cases promise of that is not kept. */
-export const carelessShop: Composition<Shop> = {
-  ...shopProgram,
-  registry: [{ ...needing, needs: () => [] }, paymentsTool],
-};
+export const carelessShop = shopWith({ sales: { needs: () => [], acts: { settle } } });
 export const every = "sales:every";
 /** What heads the list of the sales, and what it says with none: the shop's own words for them. */
 const listed = (words: ToolWords): string => listsOf(words)?.listed ?? "";
@@ -118,13 +108,10 @@ const hiding: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
     view: target => (target === undefined ? [section(listed(words), [], none(words))] : plain.view(target)),
   };
 };
-export const nestedShown: Shown<Shop> = { ...shopShown, screens: { sales: nested } };
-export const hidingShown: Shown<Shop> = { ...shopShown, screens: { sales: hiding } };
+export const nestedShown = shownWith({ sales: nested });
+export const hidingShown = shownWith({ sales: hiding });
 /** The same shop, whose settling says that the sale leaves the list it was opened from. */
-export const leavingShop: Composition<Shop> = {
-  ...shopProgram,
-  registry: [{ ...needing, acts: { ...needing.acts, settle: { ...settle, leaves: true } } }, paymentsTool],
-};
+export const leavingShop = shopWith({ sales: { needs: owing, acts: { settle: { ...settle, leaves: true } } } });
 const settledOnes = "sales:settled";
 /** The settled sales apart: the tool's own view lists what still owes, and one row opens the rest. */
 const apart: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
@@ -143,7 +130,7 @@ const apart: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
     },
   };
 };
-export const apartShown: Shown<Shop> = { ...shopShown, screens: { sales: apart } };
+export const apartShown = shownWith({ sales: apart });
 /** A screen that takes off its list what cannot be done now, instead of leaving it there saying why. */
 const muted: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
   const quiet = Object.entries(acts.actsOn ?? {}).map(([name, act]) => {
@@ -152,7 +139,7 @@ const muted: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
   });
   return anyToolScreen(ports, tool, words, { ...acts, actsOn: Object.fromEntries(quiet) }, start);
 };
-export const mutedShown: Shown<Shop> = { ...shopShown, screens: { sales: muted } };
+export const mutedShown = shownWith({ sales: muted });
 /** A screen that keeps on its list what cannot be done, whatever the person prefers to see. */
 const stubborn: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
   const every = Object.entries(acts.actsOn ?? {}).map(([name, act]) => {
@@ -161,7 +148,7 @@ const stubborn: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
   });
   return anyToolScreen(ports, tool, words, { ...acts, actsOn: Object.fromEntries(every) }, start);
 };
-export const stubbornShown: Shown<Shop> = { ...shopShown, screens: { sales: stubborn } };
+export const stubbornShown = shownWith({ sales: stubborn });
 /** A screen that does not say how its things are found: nobody can look into its tool. */
 const deaf: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
   const plain = anyToolScreen(ports, tool, words, acts, start);
@@ -175,4 +162,4 @@ const deaf: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
     view: target => plain.view(target),
   };
 };
-export const deafShown: Shown<Shop> = { ...shopShown, screens: { sales: deaf } };
+export const deafShown = shownWith({ sales: deaf });

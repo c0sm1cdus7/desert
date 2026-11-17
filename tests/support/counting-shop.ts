@@ -1,8 +1,9 @@
 // Numeric cases exercise leading zeros as well as the canonical numbers supplied by another door.
 import { object } from "../../src/fields/visible-text.ts";
 import { money, padded, quantity } from "../../src/fields/fields.ts";
-import { programAct, type Composition } from "../../src/tools/promises.ts";
-import { paymentsTool, salesTool, shopProgram, type Shop } from "./shop.ts";
+import { programAct } from "../../src/tools/promises.ts";
+import type { Shop } from "./shop.ts";
+import { shopWith } from "./shop-variants.ts";
 
 const input = object({ point: padded("Punto de venta", 4), quantity: quantity("Cantidad"), amount: money("Monto", 1) });
 const count = programAct<Shop, typeof input>({
@@ -23,7 +24,5 @@ const count = programAct<Shop, typeof input>({
     },
   ],
 });
-export const countingShop: Composition<Shop> = {
-  ...shopProgram,
-  registry: [salesTool, { ...paymentsTool, acts: { count } }],
-};
+/** Its payments count and do nothing else: receiving is not among their acts. */
+export const countingShop = shopWith({ payments: { acts: { count }, only: true } });

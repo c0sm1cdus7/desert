@@ -2,10 +2,11 @@
 import { object } from "../../src/fields/visible-text.ts";
 import { money, oneOf, option, thing } from "../../src/fields/fields.ts";
 import { must } from "../../src/surface/session/window.ts";
-import { programAct, type ProgramTool } from "../../src/tools/promises.ts";
+import { programAct } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
 import { formats } from "../../src/surface/formats/masks.ts";
-import { salesTool, paymentsTool, shop, shopShown, type Shop } from "./shop.ts";
+import { salesTool, shop, shopShown, type Shop } from "./shop.ts";
+import { shopWith } from "./shop-variants.ts";
 
 export const symbol = (answered: Readonly<Record<string, unknown>>) => (answered.currency === "USD" ? "US$" : "$");
 export const onSale = (answered: Readonly<Record<string, unknown>>, state: State<Shop>, target: string) => {
@@ -112,22 +113,16 @@ const receive = programAct<Shop, typeof paymentInput>({
   run: () => ({ status: "accepted", text: "Recibido · cobro", effects: [] }),
 });
 const seed = must(salesTool.acts.register);
-export const moneyRegistry: readonly ProgramTool<Shop>[] = [
-  {
-    ...salesTool,
-    acts: {
-      seed: {
-        ...seed,
-        key: "s",
-        cases: seed.cases.map(kase => ({
-          ...kase,
-          ...(kase.given ? { given: kase.given.map(step => ("act" in step ? { ...step, act: "seed" } : step)) } : {}),
-        })),
-      },
-      register,
-      edit,
-      credit,
-    },
-  },
-  { ...paymentsTool, acts: { receive } },
-];
+const seeded = {
+  ...seed,
+  key: "s",
+  cases: seed.cases.map(kase => ({
+    ...kase,
+    ...(kase.given ? { given: kase.given.map(step => ("act" in step ? { ...step, act: "seed" } : step)) } : {}),
+  })),
+};
+/** Its sales and payments take money in another currency, in place of what the shop's own do. */
+export const moneyRegistry = shopWith({
+  sales: { acts: { seed: seeded, register, edit, credit }, only: true },
+  payments: { acts: { receive }, only: true },
+}).registry;

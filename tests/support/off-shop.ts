@@ -1,9 +1,10 @@
 // The shop's explicit reasons win even when its first remaining reference has no eligible sale.
 import { object } from "../../src/fields/visible-text.ts";
 import { money, thing } from "../../src/fields/fields.ts";
-import type { Composition, ProgramAct, ProgramTool } from "../../src/tools/promises.ts";
+import type { Composition, ProgramAct } from "../../src/tools/promises.ts";
 import { narrowShop } from "./charging-shop.ts";
 import type { Shop } from "./shop.ts";
+import { actRewritten } from "./shop-variants.ts";
 
 export type OffMode = "offered" | "also";
 export const offWords = { offered: "única venta", also: "venta cerrada", empty: "sin ventas elegibles" };
@@ -32,9 +33,5 @@ function closedCharge(act: ProgramAct<Shop>, mode: OffMode): ProgramAct<Shop> {
   };
 }
 export function offShop(mode: OffMode): Composition<Shop> {
-  const registry = narrowShop.registry.map((tool): ProgramTool<Shop> => {
-    const charge = tool.acts.charge;
-    return charge ? { ...tool, acts: { ...tool.acts, charge: closedCharge(charge, mode) } } : tool;
-  });
-  return { ...narrowShop, registry };
+  return actRewritten(narrowShop, "payments", "charge", charge => closedCharge(charge, mode));
 }

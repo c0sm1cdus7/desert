@@ -3,7 +3,8 @@ import { object } from "../../src/fields/visible-text.ts";
 import { oneOf, option, text, thing } from "../../src/fields/fields.ts";
 import { toolTexts } from "../../src/texts/tools.texts.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
-import { paymentsTool, registerOffer, salesTool, shopProgram, type Shop } from "./shop.ts";
+import { registerOffer, type Shop } from "./shop.ts";
+import { shopWith } from "./shop-variants.ts";
 
 type Mode = "one" | "text" | "pick";
 function valueField(mode: Mode) {
@@ -50,5 +51,5 @@ export function unchangedShop(mode: Mode): Composition<Shop> {
       },
     ],
   });
-  return { ...shopProgram, registry: [salesTool, { ...paymentsTool, acts: { ...paymentsTool.acts, adjust: act } }] };
+  return shopWith({ payments: { acts: { adjust: act } } });
 }

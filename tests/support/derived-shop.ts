@@ -5,7 +5,8 @@ import { anyToolScreen } from "../../src/surface/bridge/views/any-tool.ts";
 import { section, type Shown } from "../../src/surface/bridge/ports/house-ports.ts";
 import { toolTexts } from "../../src/texts/tools.texts.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
-import { shopProgram, shopShown, salesTool, paymentsTool, type Shop } from "./shop.ts";
+import { shopShown, salesTool, type Shop } from "./shop.ts";
+import { shopWith } from "./shop-variants.ts";
 
 export const derivedWords = {
   cause: "traída del fisco, sin cambios a mano",
@@ -67,35 +68,26 @@ const closed = programAct<Shop, typeof input>({
 });
 export function derivedShop(menu = false, cause = derivedWords.closed, long = false): Composition<Shop> {
   const under = menu ? { under: "edit" } : {};
-  const acts = {
-    ...salesTool.acts,
-    review: { ...review, ...under },
-    archive: {
-      ...closed,
-      ...under,
-      refuses: [cause],
-      offered: () => cause,
-      cases: closed.cases.map(kase => ({ ...kase, then: { refused: cause } })),
+  const archive = {
+    ...closed,
+    ...under,
+    refuses: [cause],
+    offered: () => cause,
+    cases: closed.cases.map(kase => ({ ...kase, then: { refused: cause } })),
+  };
+  return shopWith({
+    sales: {
+      acts: { review: { ...review, ...under }, archive },
+      view: (state, target, limits) =>
+        long && target !== "sales"
+          ? JSON.stringify({
+              related: { id: target, text: "Venta" },
+              notes: Array.from({ length: 70 }, (_, i) => `Dato ${i}`),
+            })
+          : salesTool.view(state, target, limits),
+      menus: menu ? { edit: { name: "editar", key: "e", purpose: "la venta" } } : {},
     },
-  };
-  return {
-    ...shopProgram,
-    registry: [
-      {
-        ...salesTool,
-        acts,
-        view: (state, target, limits) =>
-          long && target !== "sales"
-            ? JSON.stringify({
-                related: { id: target, text: "Venta" },
-                notes: Array.from({ length: 70 }, (_, i) => `Dato ${i}`),
-              })
-            : salesTool.view(state, target, limits),
-        menus: menu ? { edit: { name: "editar", key: "e", purpose: "la venta" } } : {},
-      },
-      paymentsTool,
-    ],
-  };
+  });
 }
 export const derivedShown = (long = false): Shown<Shop> => ({
   ...shopShown,
@@ -161,7 +153,4 @@ const choose = programAct<Shop, typeof picked>({
     },
   ],
 });
-export const orderedShop: Composition<Shop> = {
-  ...shopProgram,
-  registry: [{ ...salesTool, acts: { ...salesTool.acts, choose } }, paymentsTool],
-};
+export const orderedShop = shopWith({ sales: { acts: { choose } } });

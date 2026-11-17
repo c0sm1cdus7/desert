@@ -2,13 +2,14 @@
 import { object } from "../../src/fields/visible-text.ts";
 import { money } from "../../src/fields/fields.ts";
 import { anyToolScreen } from "../../src/surface/bridge/views/any-tool.ts";
-import { section, type ProgramScreen, type Shown, type Start } from "../../src/surface/bridge/ports/house-ports.ts";
+import { section, type ProgramScreen, type Start } from "../../src/surface/bridge/ports/house-ports.ts";
 import { menuTarget } from "../../src/surface/bridge/acts/program-acts.ts";
 import type { ViewRow } from "../../src/surface/contract/shown-tool.ts";
 import { toolTexts } from "../../src/texts/tools.texts.ts";
-import { programAct, type Composition } from "../../src/tools/promises.ts";
+import { programAct } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
-import { paymentsTool, pesos, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
+import { pesos, shop, type Shop } from "./shop.ts";
+import { shopWith, shownWith } from "./shop-variants.ts";
 
 const corrected = object({ total: money("Total"), paid: money("Cobrado") });
 const nameOf = (target: string): string => target.replace("sales/", "");
@@ -76,8 +77,7 @@ const correct = programAct<Shop, typeof corrected>({
   ],
 });
 const edit = { name: "editar", purpose: "total y cobrado", key: "e" };
-const sales = { ...salesTool, menus: { edit }, acts: { ...salesTool.acts, correct } };
-export const correctingShop: Composition<Shop> = { ...shopProgram, registry: [sales, paymentsTool] };
+export const correctingShop = shopWith({ sales: { menus: { edit }, acts: { correct } } });
 /** The thing a destination is a part of, when it ends as that part does. */
 const under = (target: string | undefined, part: string): string | undefined =>
   target?.endsWith(part) ? target.slice(0, -part.length) : undefined;
@@ -120,17 +120,13 @@ const shouting: Rows = (start, thing, today) => [
 ];
 /** The same menus, with two rows that take one key. */
 const twins: Rows = (start, thing, today) => honest(start, thing, today).map(row => ({ ...row, key: "t" }));
-const shownWith = (screen: ProgramScreen<Shop>): Shown<Shop> => ({ ...shopShown, screens: { sales: screen } });
-export const partsShown = shownWith(parted(honest));
-export const staleShown = shownWith(parted(stale));
-export const twinsShown = shownWith(parted(twins));
-export const shoutingShown = shownWith(parted(shouting));
+export const partsShown = shownWith({ sales: parted(honest) });
+export const staleShown = shownWith({ sales: parted(stale) });
+export const twinsShown = shownWith({ sales: parted(twins) });
+export const shoutingShown = shownWith({ sales: parted(shouting) });
 /** A screen whose Edit menu lists nothing: the act under it is declared, and no list a person reaches has it. */
-export const lostShown = shownWith(parted(() => []));
+export const lostShown = shownWith({ sales: parted(() => []) });
 /** The parts menu goes away once the sale was paid something: correcting what was paid takes its own menu away. */
-export const fragileShown = shownWith(parted(honest, true));
+export const fragileShown = shownWith({ sales: parted(honest, true) });
 /** The same shop, whose correcting says that it may take away the menu it was taken from. */
-export const leavingCorrect: Composition<Shop> = {
-  ...shopProgram,
-  registry: [{ ...sales, acts: { ...sales.acts, correct: { ...correct, leaves: true } } }, paymentsTool],
-};
+export const leavingCorrect = shopWith({ sales: { menus: { edit }, acts: { correct: { ...correct, leaves: true } } } });

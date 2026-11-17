@@ -1,8 +1,9 @@
 // The test shop whose payments are named by a rule: a name that is complete and wrong is said so where it is written.
 import { object } from "../../src/fields/visible-text.ts";
 import { holding, money, text } from "../../src/fields/fields.ts";
-import { programAct, type Composition } from "../../src/tools/promises.ts";
-import { paymentsTool, salesTool, shop, shopProgram, type Shop } from "./shop.ts";
+import { programAct } from "../../src/tools/promises.ts";
+import { shop, type Shop } from "./shop.ts";
+import { shopWith } from "./shop-variants.ts";
 
 /** A payment is named from p on: the field knows it, and nothing else in the shop checks it. */
 const named = holding(text("Pago", "Nombre del pago"), name => (name.startsWith("p") ? undefined : "name"));
@@ -35,11 +36,7 @@ const noting = (refuses: readonly string[]) =>
       },
     ],
   });
-const shopWith = (refuses: readonly string[]): Composition<Shop> => ({
-  ...shopProgram,
-  registry: [salesTool, { ...paymentsTool, acts: { ...paymentsTool.acts, note: noting(refuses) } }],
-});
-export const checkingShop = shopWith(["name"]);
+export const checkingShop = shopWith({ payments: { acts: { note: noting(["name"]) } } });
 /** The same shop, whose act does not declare the cause its field refuses with. */
-export const undeclaredShop = shopWith([]);
+export const undeclaredShop = shopWith({ payments: { acts: { note: noting([]) } } });
 export const wrongName = "payments · note · a payment named against the rule is not noted";

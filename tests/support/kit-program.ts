@@ -1,7 +1,7 @@
 import { object } from "../../src/fields/visible-text.ts";
 import { programAct } from "../../src/tools/promises.ts";
-import { identitiesTool } from "../../src/tools/identities/identities.ts";
-import { salesTool, shopProgram, shopShown, type Shop } from "./shop.ts";
+import { shopShown, type Shop } from "./shop.ts";
+import { shopWith, withIdentities } from "./shop-variants.ts";
 const input = object({});
 const wait = programAct<Shop, typeof input>({
   name: "esperar",
@@ -18,14 +18,5 @@ const wait = programAct<Shop, typeof input>({
     }),
   cases: [{ promise: "only by its kit", by: "carla", input: {}, then: { refused: "fuera del kit" } }],
 });
-const sales = { ...salesTool, acts: { ...salesTool.acts, wait } };
-export const kitProgram = {
-  ...shopProgram,
-  identities: true,
-  registry: [
-    sales,
-    ...shopProgram.registry.filter(tool => tool.id !== "sales"),
-    identitiesTool([sales, ...shopProgram.registry.filter(tool => tool.id !== "sales")], "house"),
-  ],
-};
+export const kitProgram = withIdentities(shopWith({ sales: { acts: { wait } } }));
 export const kitShown = shopShown;

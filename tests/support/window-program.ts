@@ -1,31 +1,29 @@
 // A declared program case with 101 existing sales crosses the derived walks' 100-row window.
-import { chargingRegistry } from "./charging-shop.ts";
-import { salesTool, shopProgram, shopShown, type Shop } from "./shop.ts";
+import { chargingShop } from "./charging-shop.ts";
+import { salesTool, shopProgram, shopShown } from "./shop.ts";
+import { shopWith } from "./shop-variants.ts";
 import { must } from "../../src/surface/session/window.ts";
-import type { Composition } from "../../src/tools/promises.ts";
-const payments = must(chargingRegistry.find(tool => tool.id === "payments"));
-const charge = must(payments.acts.charge);
-export const windowProgram: Composition<Shop> = {
-  ...shopProgram,
-  slices: {
-    ...shopProgram.slices,
-    initial: {
-      ...shopProgram.slices.initial,
-      sales: new Map(Array.from({ length: 101 }, (_, i) => [`s${i + 1}`, { total: 1500, paid: 0, by: "ana" }])),
+const charge = must(chargingShop.registry.find(tool => tool.id === "payments")?.acts.charge);
+export const windowProgram = shopWith(
+  {
+    slices: {
+      ...shopProgram.slices,
+      initial: {
+        ...shopProgram.slices.initial,
+        sales: new Map(Array.from({ length: 101 }, (_, i) => [`s${i + 1}`, { total: 1500, paid: 0, by: "ana" }])),
+      },
     },
-  },
-  registry: [
-    {
-      ...salesTool,
+    sales: {
       acts: {},
+      only: true,
       needs: () => [{ target: "sales/s1", why: "Pendiente" }],
       view: (...args) => {
         const view = salesTool.view(...args);
         return args[1] === "sales" ? view.split("\n").slice(-args[2].recentLines).join("\n") : view;
       },
     },
-    {
-      ...payments,
+    payments: {
+      only: true,
       acts: {
         charge: {
           ...charge,
@@ -59,6 +57,7 @@ export const windowProgram: Composition<Shop> = {
         },
       },
     },
-  ],
-};
+  },
+  chargingShop,
+);
 export { shopShown as windowShown };

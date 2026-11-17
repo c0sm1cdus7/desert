@@ -2,9 +2,10 @@
 import { object } from "../../src/fields/visible-text.ts";
 import { money } from "../../src/fields/fields.ts";
 import { anyToolScreen } from "../../src/surface/bridge/views/any-tool.ts";
-import { section, type ProgramScreen, type Shown } from "../../src/surface/bridge/ports/house-ports.ts";
-import { programAct, type Composition } from "../../src/tools/promises.ts";
-import { paymentsTool, pesos, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
+import { section, type ProgramScreen } from "../../src/surface/bridge/ports/house-ports.ts";
+import { programAct } from "../../src/tools/promises.ts";
+import { pesos, shop, type Shop } from "./shop.ts";
+import { shopWith, shownWith } from "./shop-variants.ts";
 
 const marked = object({ paid: money("Cobrado") });
 const nameOf = (target: string): string => target.replace("sales/", "");
@@ -51,8 +52,7 @@ const mark = programAct<Shop, typeof marked>({
   ],
 });
 const marks = { name: "marcas", purpose: "lo que se cobró", key: "k" };
-const sales = { ...salesTool, menus: { marks }, acts: { ...salesTool.acts, mark } };
-export const markingShop: Composition<Shop> = { ...shopProgram, registry: [sales, paymentsTool] };
+export const markingShop = shopWith({ sales: { menus: { marks }, acts: { mark } } });
 /** The menu of marks: one row for the whole total, and one for a peso more, which the act refuses. A screen that
  * knows it shows that row off, saying why; a careless one offers it as if it could be done. */
 const marking =
@@ -73,5 +73,5 @@ const marking =
       },
     };
   };
-export const knowingShown: Shown<Shop> = { ...shopShown, screens: { sales: marking(true) } };
-export const carelessShown: Shown<Shop> = { ...shopShown, screens: { sales: marking(false) } };
+export const knowingShown = shownWith({ sales: marking(true) });
+export const carelessShown = shownWith({ sales: marking(false) });

@@ -1,8 +1,9 @@
 // A deterministic stand-in for an outside printer: no provider, network or credentials are involved.
 import { object } from "../../src/fields/visible-text.ts";
 import { text } from "../../src/fields/fields.ts";
-import { programAct, type Composition } from "../../src/tools/promises.ts";
-import { registerOffer, paymentsTool, salesTool, shopProgram, type Shop } from "./shop.ts";
+import { programAct } from "../../src/tools/promises.ts";
+import { registerOffer, type Shop } from "./shop.ts";
+import { shopWith } from "./shop-variants.ts";
 
 const input = object({ receipt: text("Recibo", "Nombre del recibo") });
 const outside = ["printer offline"] as const;
@@ -26,7 +27,4 @@ const print = programAct<Shop, typeof input, typeof outside>({
     { promise: "the printer is offline", input: { receipt: "offline" }, then: { refused: "printer offline · desk" } },
   ],
 });
-export const printingShop: Composition<Shop> = {
-  ...shopProgram,
-  registry: [{ ...salesTool, acts: { ...salesTool.acts, print } }, paymentsTool],
-};
+export const printingShop = shopWith({ sales: { acts: { print } } });

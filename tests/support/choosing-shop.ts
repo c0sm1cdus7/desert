@@ -2,7 +2,8 @@
 import { object } from "../../src/fields/visible-text.ts";
 import { oneOf, option } from "../../src/fields/fields.ts";
 import { programAct } from "../../src/tools/promises.ts";
-import { shopProgram, type Shop } from "./shop.ts";
+import type { Shop } from "./shop.ts";
+import { shopWith } from "./shop-variants.ts";
 
 const input = object({
   context: oneOf("Destino", option("shop", "Local", "l"), option("web", "Web", "w")),
@@ -37,9 +38,4 @@ export const choosing = programAct<Shop, typeof input>({
     },
   ],
 });
-export const choosingShop = {
-  ...shopProgram,
-  registry: shopProgram.registry.map(tool =>
-    tool.id === "sales" ? { ...tool, acts: { ...tool.acts, connect: choosing } } : tool,
-  ),
-};
+export const choosingShop = shopWith({ sales: { acts: { connect: choosing } } });

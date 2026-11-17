@@ -1,7 +1,8 @@
 // Entirely synthetic material; this program has no external service or model provider.
 import { Type, type TSchema } from "@sinclair/typebox";
 import { programAct, type Composition, type Case, type ProgramAct } from "../../src/tools/promises.ts";
-import { shopProgram, type Shop } from "./shop.ts";
+import type { Shop } from "./shop.ts";
+import { shopWith } from "./shop-variants.ts";
 export const opacityInput = Type.Object({
   first: Type.String({ secret: true, title: "Primer material", maxLength: 4000 }),
   second: Type.String({ secret: true, title: "Segundo material", maxLength: 4000 }),
@@ -46,5 +47,5 @@ export function opacityProgram(
       return { status: "accepted", text: "Material · Guardado" };
     },
   });
-  return { ...shopProgram, registry: [...shopProgram.registry, tool(act)] };
+  return shopWith({ more: [tool(act)] });
 }

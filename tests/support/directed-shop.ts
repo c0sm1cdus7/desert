@@ -3,9 +3,9 @@ import type { State } from "../../src/tools/tool-contract.ts";
 import type { Composition } from "../../src/tools/promises.ts";
 import { settlingShop } from "./settling-shop.ts";
 import type { Shop } from "./shop.ts";
+import { toolRewritten } from "./shop-variants.ts";
 export function directedShop(promised = true, to = "beto"): Composition<Shop> {
-  const registry = settlingShop.registry.map(tool => {
-    if (tool.id !== "sales") return tool;
+  return toolRewritten(settlingShop, "sales", tool => {
     const acts = Object.fromEntries(
       Object.entries(tool.acts).map(([name, act]) => [
         name,
@@ -24,5 +24,4 @@ export function directedShop(promised = true, to = "beto"): Composition<Shop> {
       needs: (state: State<Shop>, now: number) => (tool.needs?.(state, now) ?? []).map(need => ({ ...need, to })),
     };
   });
-  return { ...settlingShop, registry };
 }
