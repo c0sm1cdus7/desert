@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { cards } from "../../adapters/models/catalog.ts";
-import { callAssignedModel } from "./mind-model-bridge.ts";
+import { callAssignedModel, providerMarginTokens } from "./mind-model-bridge.ts";
 it("liquida una respuesta inválida con uso y no expone la llave", async () => {
   const card = cards[0];
   if (!card) throw new Error("card");
@@ -135,7 +135,7 @@ it("presupuesta escritura de caché, rechaza precios ausentes y liquida una resp
   const ports = {
     card: () => ({ card, role: "assistant", fingerprint }),
     key: () => Promise.resolve("synthetic"),
-    maxInputTokens: 1000,
+    maxInputTokens: 5000,
     capNanoUsd: 1000000000,
     reserve: (_request: unknown, value: number) => {
       maximum = value;
@@ -178,6 +178,66 @@ it("presupuesta escritura de caché, rechaza precios ausentes y liquida una resp
   ).toEqual({ kind: "not-sent", reason: "cap" });
   expect(sends).toBe(0);
   expect((await callAssignedModel(ports)(request)).kind).toBe("answer");
-  expect(maximum).toBe(162500000);
+  // Sonnet 5.5: 5000 de entrada escritos en caché a USD 2,50/M más 16000 de salida a USD 10/M.
+  expect(maximum).toBe(172500000);
   expect(actual).toBe(146000);
+});
+const assistantCard = () => {
+  const base = cards.find(each => each.model === "claude-sonnet-5-5");
+  if (!base) throw new Error("card");
+  const fingerprint = { cases: "c", skill: "s", frameTexts: "f" };
+  const result = { role: "assistant", passed: true, cases: 3, scenes: 9, costUsd: 0, seconds: 1, date: "2026-11-17" };
+  return { card: { ...base, results: [{ ...result, fingerprint }] }, role: "assistant", fingerprint };
+};
+const smallRequest = {
+  mind: "assistant:franco" as const,
+  turn: "t",
+  number: 1,
+  frame: { layers: ["a", "b", "c", "d"] as const, changing: "e" },
+  schema: { type: "object", additionalProperties: false },
+};
+it("un error HTTP del proveedor se liquida en cero y no deja la reserva incierta", async () => {
+  const settled: unknown[] = [];
+  let uncertain = 0;
+  const outcome = await callAssignedModel({
+    card: assistantCard,
+    key: () => Promise.resolve("synthetic"),
+    maxInputTokens: 10000,
+    capNanoUsd: 1000000000,
+    reserve: () => Promise.resolve(true),
+    start: () => Promise.resolve(),
+    settle: (_request, usage, amount) => {
+      settled.push({ usage, amount });
+      return Promise.resolve();
+    },
+    uncertain: () => {
+      uncertain++;
+      return Promise.resolve();
+    },
+    transport: () => Promise.resolve(new Response(JSON.stringify({ type: "error" }), { status: 529 })),
+  })(smallRequest);
+  expect(outcome).toEqual({ kind: "failed", reason: "http" });
+  expect(settled).toEqual([{ usage: { input: 0, cacheWrite: 0, cacheRead: 0, output: 0 }, amount: 0 }]);
+  expect(uncertain).toBe(0);
+});
+it("no envía un pedido cuyos bytes más el margen del proveedor pasan la cota de entrada", async () => {
+  let sends = 0;
+  const ports = {
+    card: assistantCard,
+    key: () => Promise.resolve("synthetic"),
+    capNanoUsd: 1000000000,
+    reserve: () => Promise.resolve(true),
+    start: () => Promise.resolve(),
+    settle: () => Promise.resolve(),
+    uncertain: () => Promise.resolve(),
+    transport: () => {
+      sends++;
+      return Promise.reject(new Error("no debería salir"));
+    },
+  };
+  expect(await callAssignedModel({ ...ports, maxInputTokens: providerMarginTokens })(smallRequest)).toEqual({
+    kind: "not-sent",
+    reason: "cap",
+  });
+  expect(sends).toBe(0);
 });

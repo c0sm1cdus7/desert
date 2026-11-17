@@ -13,8 +13,7 @@ export type FrameSource = Readonly<{
   thread: readonly FrameItem[];
 }>;
 export type FrameSnapshot = Readonly<FrameSource & { scope: MindScope; through: number; wake: readonly string[] }>;
-export type MindFrame = Readonly<{ layers: readonly [string, string, string, string]; changing: string }>;
-export type FramePort = (scope: MindScope, turn: TurnContext) => MindFrame | Readonly<{ tooLarge: true }>;
+export type { FramePort, MindFrame } from "./mind-ports.ts";
 export function buildMindFrame(scope: MindScope, turn: TurnContext, source: FrameSource): FrameSnapshot {
   const required = (value: unknown, name: string) => {
     if (value == null) throw new Error(`Falta el argumento · ${name}`);

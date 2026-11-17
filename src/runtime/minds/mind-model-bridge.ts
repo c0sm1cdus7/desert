@@ -2,20 +2,10 @@
 import { callAnthropic, ModelFailure, requestBody } from "../../adapters/models/anthropic.ts";
 import { costUsd, validBankResult, type Card, type Usage } from "../../adapters/models/catalog.ts";
 import type { MindActor } from "../../fields/mind-actor.ts";
-type Frame = Readonly<{ layers: readonly [string, string, string, string]; changing: string }>;
-export type ModelRequest = Readonly<{
-  mind: MindActor;
-  turn: string;
-  number: number;
-  frame: Frame;
-  schema: Record<string, unknown>;
-}>;
-export type ModelOutcome =
-  | Readonly<{ kind: "answer"; value: unknown; usage: Usage }>
-  | Readonly<{ kind: "invalid"; reason: "json" | "schema" | "max_tokens" | "refusal"; usage?: Usage }>
-  | Readonly<{ kind: "failed"; reason: "http" | "transport" }>
-  | Readonly<{ kind: "not-sent"; reason: "cap" | "no-key" | "no-card" }>
-  | Readonly<{ kind: "uncertain" }>;
+import type { ModelOutcome, ModelRequest } from "./mind-ports.ts";
+/** Tokens que el proveedor agrega solo (el formato del esquema): los bytes acotan nada más el texto que mandamos. */
+export const providerMarginTokens = 4096;
+const zeroUsage: Usage = { input: 0, cacheWrite: 0, cacheRead: 0, output: 0 };
 type Ports = Readonly<{
   card: (mind: MindActor) =>
     | Readonly<{
@@ -108,9 +98,17 @@ async function failedCall(
       await ports.uncertain(request);
       return { kind: "uncertain" };
     }
+  } else if (error.kind === "http") {
+    // El proveedor contestó con un error: es una respuesta definitiva que no se cobra; la reserva se liquida en cero.
+    try {
+      await ports.settle(request, zeroUsage, 0);
+    } catch {
+      await ports.uncertain(request);
+      return { kind: "uncertain" };
+    }
   } else {
     await ports.uncertain(request);
-    if (error.kind !== "http") return { kind: "uncertain" };
+    return { kind: "uncertain" };
   }
   if (error.kind === "json" || error.kind === "schema" || error.kind === "refusal" || error.kind === "max_tokens")
     return { kind: "invalid", reason: error.kind, ...(usage ? { usage } : {}) };
@@ -157,7 +155,7 @@ async function invoke(request: ModelRequest, ports: Ports): Promise<ModelOutcome
     schema: request.schema,
   };
   const body = requestBody(payload);
-  if (new TextEncoder().encode(JSON.stringify(body)).length > ports.maxInputTokens)
+  if (new TextEncoder().encode(JSON.stringify(body)).length + providerMarginTokens > ports.maxInputTokens)
     return { kind: "not-sent", reason: "cap" };
   let maximum: number;
   try {

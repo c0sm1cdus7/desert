@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { fitMindFrame } from "./mind-frame-fit.ts";
-import { buildMindFrame } from "./mind-frame.ts";
+import { buildMindFrame, type MindFrame } from "./mind-frame.ts";
 import { defineMessage } from "../../fields/messages.ts";
 import { object } from "../../fields/visible-text.ts";
 import { turnLimits } from "../../tools/minds/mind-contract.ts";
@@ -15,6 +15,8 @@ const turn = {
   limits: turnLimits,
   usage: { calls: 0, corrections: 0, consultations: 0 },
 } as const;
+/** The trimming under test is of the changing part: the house layer's own length stays out of the measure. */
+const size = (frame: MindFrame) => JSON.stringify(frame).length - JSON.stringify(frame.layers[0]).length;
 const snapshot = buildMindFrame(scope, turn, {
   definition: { role: "asistente", actor: scope.actor, rules: mind, communication: [] },
   skills: [],
@@ -29,7 +31,7 @@ const snapshot = buildMindFrame(scope, turn, {
   thread: [],
 });
 it("reports omissions while retaining wake and required context", () => {
-  const result = fitMindFrame(snapshot, "es", { max: 500, bound: frame => JSON.stringify(frame).length });
+  const result = fitMindFrame(snapshot, "es", { max: 349, bound: size });
   expect(result.tooLarge).toBe(false);
   if (!result.tooLarge) {
     expect(result.frame.changing).toContain("despertar");
@@ -52,7 +54,7 @@ it("preserves uncovered activity and drops whole objects before older thread ent
   };
   const minimum = fitMindFrame(rich, "es", { max: 1, bound: frame => JSON.stringify(frame).length });
   expect(minimum).toEqual({ tooLarge: true });
-  const result = fitMindFrame(rich, "es", { max: 650, bound: frame => JSON.stringify(frame).length });
+  const result = fitMindFrame(rich, "es", { max: 499, bound: size });
   expect(result.tooLarge).toBe(false);
   if (!result.tooLarge) {
     expect(result.omitted[0]).toBe("obj");
