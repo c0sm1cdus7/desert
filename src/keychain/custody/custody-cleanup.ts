@@ -1,3 +1,4 @@
+// Guarda pendientes y recibos por lote; purga cifrado y llave sin tapar el resultado de otro uso.
 import { CustodyError } from "./house-keys.ts";
 import type { CredentialFact, SecretRef } from "./custody-contract.ts";
 import type { CustodyState } from "./custody-state.ts";

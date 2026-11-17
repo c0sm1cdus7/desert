@@ -1,3 +1,4 @@
+// Adopta la bóveda anterior: cifra, relee, compara y retira lo viejo con recuperación.
 import { timingSafeEqual } from "node:crypto";
 import type { CustodyState } from "./custody-state.ts";
 import { secretRef } from "./custody-database.ts";

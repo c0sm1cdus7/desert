@@ -1,3 +1,4 @@
+// Casos declarados de alta con nombre y kit, alta vacía, duplicados y permiso de administración.
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import type { Case } from "../promises.ts";
 import type { Program } from "../tool-contract.ts";

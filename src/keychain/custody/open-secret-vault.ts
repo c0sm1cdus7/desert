@@ -1,3 +1,4 @@
+// Abre la bóveda y libera el registro si falla la llave o la recuperación.
 import type { CredentialLedger } from "./custody-contract.ts";
 import type { TSchema } from "@sinclair/typebox";
 import type { Program } from "../../tools/tool-contract.ts";

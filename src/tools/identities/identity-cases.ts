@@ -1,3 +1,4 @@
+// Casos declarados de sacar, readmitir y pasar la administración, incluidos los motivos de rechazo.
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import type { Case } from "../promises.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";

@@ -1,3 +1,4 @@
+// Bus del arranque limitado a credenciales originales y despertares propios, con autor fijado por la casa.
 import { readonlyPorts } from "./readonly-ports.ts";
 import { ids } from "../../house/ids.ts";
 import { mindOf } from "../../house/kit.ts";

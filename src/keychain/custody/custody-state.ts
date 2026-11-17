@@ -1,3 +1,4 @@
+// Reconstruye vínculos confirmados, guarda sesiones y reservas y comprueba el escritor antes de usar material.
 import { custodyPreflight, CustodyDatabase } from "./custody-database.ts";
 import { randomUUID } from "node:crypto";
 

@@ -1,3 +1,4 @@
+// Une la custodia al commit del diario: un lote por transacción, lectura confirmada y comprobación del escritor.
 import { Value } from "@sinclair/typebox/value";
 import { effect } from "../house/facts.ts";
 import type { Emission, Event, Foreign } from "../journal/vocabulary.ts";

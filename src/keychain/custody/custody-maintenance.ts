@@ -1,3 +1,4 @@
+// Mantenimiento cerrado: revisa, acepta una cabeza, informa pendientes, adopta, descarta y olvida por las dos fuentes.
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import type { CredentialLedger, CredentialScope, SecretRef, SecretRefs } from "./custody-contract.ts";
 import { CustodyError, type HouseKeyProvider, type LedgerHead } from "./house-keys.ts";

@@ -1,3 +1,4 @@
+// Adopta proveedores anteriores por un manifiesto y un borde de bytes; verifica antes de retirar.
 import type { SecretCustody } from "../custody/secret-custody.ts";
 import type { SecretRef } from "../custody/custody-contract.ts";
 import { CustodyError } from "../custody/house-keys.ts";

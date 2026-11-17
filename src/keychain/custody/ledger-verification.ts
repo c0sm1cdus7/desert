@@ -1,3 +1,4 @@
+// Verifica la cola autenticada con una sola llave transitoria y conserva únicamente el prefijo público confirmado.
 import type { CredentialFact, CredentialLedger } from "./custody-contract.ts";
 import type { CustodyCipher } from "./custody-cipher.ts";
 import { CustodyError } from "./house-keys.ts";

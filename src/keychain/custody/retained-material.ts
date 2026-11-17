@@ -1,3 +1,4 @@
+// Retiene y adopta material anterior con IDs estables y dueño explícito.
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import type { CustodyState } from "./custody-state.ts";
 import type { CredentialScope, SecretRef, SecretRefs } from "./custody-contract.ts";

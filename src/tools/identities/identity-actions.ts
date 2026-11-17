@@ -1,3 +1,4 @@
+// Acciones declaradas de sacar, readmitir sin herramientas y pasar la administración, con disponibilidad actual.
 import { object } from "../../fields/visible-text.ts";
 import { identityDisplayName, type House } from "../../house/members.ts";
 import { mindTool } from "../../house/kit.ts";

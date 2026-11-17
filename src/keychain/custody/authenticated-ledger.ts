@@ -1,3 +1,4 @@
+// Reúne agregados, compara el ancla y expone el anclado pendiente sin rechazar commits confirmados.
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { latestBindings } from "./custody-restoration.ts";
 import { factBody, VerifiedHistory } from "./ledger-verification.ts";

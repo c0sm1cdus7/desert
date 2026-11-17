@@ -1,3 +1,4 @@
+// Every editable row counts: identities include the whole tool; minds only include its actions.
 import { allowedAct, mindTool } from "../../house/kit.ts";
 import type { House } from "../../house/members.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";
@@ -6,7 +7,6 @@ export const kitMenu = (tool: string) => `kit:${tool}`;
 export const kitAct = (tool: string, act?: string) => `${kitMenu(tool)}${act === undefined ? "" : `:${act}`}`;
 export const kitCatalog = <X extends Program>(registry: ToolRegistry<X>) =>
   registry.filter(tool => tool.id !== "identities");
-// Every editable row counts: identities include the whole tool; minds only include its actions.
 export const kitFits = (count: number, whole = false) => count + Number(whole) <= 9;
 export function kitDatum(house: House, holder: string, tool: string, actions: readonly string[]) {
   if (holder === house.admin) return words.all;

@@ -1,3 +1,4 @@
+// Abre diario, plegados y custodia, valida identidades, presta adaptadores autorizados y cierra los recursos.
 import { CustodyError } from "../keychain/custody/house-keys.ts";
 import { closeResources } from "../tools/boundaries/close-resources.ts";
 import { defectReporter } from "../tools/failures/defect-reporter.ts";

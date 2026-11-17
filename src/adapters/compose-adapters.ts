@@ -1,3 +1,4 @@
+// Fija permisos y vistas iniciales sin lecturas hasta el uso; transmite avisos y cierra préstamos con cambios.
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { credentialEffects } from "./credential-effects.ts";

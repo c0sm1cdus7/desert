@@ -1,18 +1,53 @@
 // Each production file names its purpose; folders group concerns rather than enforce a line budget.
 import { readFileSync } from "node:fs";
-import { basename, posix, relative, sep } from "node:path";
+import { basename, join, posix, relative, sep } from "node:path";
 import { describe, expect, it } from "vitest";
+import { lawRepository } from "../support/law-repository.ts";
 import { filesUnder, isSpec, src } from "../support/sources.ts";
 import { tree } from "./tree.ts";
 const files = filesUnder(src);
 const production = files.filter(file => !isSpec(file));
 const nameOf = (file: string): string => relative(src, file).split(sep).join("/");
 const lines = (file: string): number => readFileSync(file, "utf8").replace(/\n$/, "").split("\n").length;
+const withoutPurpose = (folder: string): string[] =>
+  filesUnder(folder)
+    .filter(file => !isSpec(file))
+    .filter(file => !/^\/\/ \S[^\r\n]*$/u.test(readFileSync(file, "utf8").split(/\r?\n/u)[0] ?? ""))
+    .map(file => relative(folder, file).split(sep).join("/"));
 describe("the tree of src/", () => {
   it("admits exactly the planned production files, each with a one-line purpose", () => {
     expect(production.map(nameOf).sort()).toEqual(Object.keys(tree).sort());
     const vague = Object.entries(tree).filter(([, purpose]) => purpose.trim() === "" || purpose.includes("\n"));
     expect(vague.map(([name]) => name)).toEqual([]);
+  });
+  it("starts every production file with a one-line purpose comment", () => {
+    expect(withoutPurpose(src)).toEqual([]);
+  });
+  it("catches missing, misplaced and empty headers in planted production files", () => {
+    const repo = lawRepository({
+      "src/blank.ts": "\n// Declares the entry point.\nexport {};\n",
+      "src/block.ts": "/** Declares the entry point. */\nexport {};\n",
+      "src/crlf.ts": "// Declares the entry point.\r\nexport {};\r\n",
+      "src/empty.ts": "",
+      "src/indented.ts": " // Declares the entry point.\nexport {};\n",
+      "src/joined.ts": "//Declares the entry point.\nexport {};\n",
+      "src/missing.spec.ts": "export {};\n",
+      "src/nested/after-import.ts": 'import "../a.ts";\n// Declares the entry point.\nexport {};\n',
+      "src/purpose.ts": "// Declares the entry point.\nexport {};\n",
+      "src/spaces.ts": "// \t \nexport {};\n",
+      "src/vacant.ts": "// \nexport {};\n",
+    });
+    expect(withoutPurpose(join(repo.root, "src")).sort()).toEqual([
+      "a.ts",
+      "blank.ts",
+      "block.ts",
+      "empty.ts",
+      "indented.ts",
+      "joined.ts",
+      "nested/after-import.ts",
+      "spaces.ts",
+      "vacant.ts",
+    ]);
   });
   it("groups at least two production files per folder, except the package root awaiting index.ts", () => {
     const folders = new Map<string, string[]>();
@@ -26,10 +61,12 @@ describe("the tree of src/", () => {
   // The signed move changes file size, but preserves the complete 519-line text budget.
   // 518 since the first step; 519 after union 1. Reorder: +14, addressing.ts (code that reads texts) lives in texts/.
   // Cleanup 1: +2 lines for texts/capital.ts, the shared initial-capital definition and its purpose.
-  it("keeps every file within 300 lines and the texts within 535", () => {
+  // Cleanup 5: +7 purpose headers in capital, identity-name, journal, secrets, socket, surface and tools.
+  // Moving the existing headers in generic-surface and promises adds no lines; the per-file limit stays 300.
+  it("keeps every file within 300 lines and the texts within 542", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(535);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(542);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

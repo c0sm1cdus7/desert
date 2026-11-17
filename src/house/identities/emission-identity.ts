@@ -1,3 +1,4 @@
+// Valida identificadores nuevos y rechaza asignaciones o recortes del id reservado identities antes de escribir.
 import type { Emission, Foreign } from "../../journal/vocabulary.ts";
 import type { HouseEmission } from "../facts.ts";
 import { identityNameProblem } from "./identity-name.ts";

@@ -1,3 +1,4 @@
+// Preguntas y ejecución del alta: identificador literal validado, nombre opcional y herramientas enteras en un lote.
 import { newIdentityCases } from "./new-identity-cases.ts";
 import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";

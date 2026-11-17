@@ -1,3 +1,4 @@
+// Custodia común: ingreso provisional, vínculos, reservas, retenciones y recolección.
 import { forgetCustody } from "./custody-maintenance.ts";
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { openCustody } from "./custody-opening.ts";

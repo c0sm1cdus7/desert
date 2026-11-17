@@ -1,3 +1,4 @@
+// Ejecuta el cuerpo anunciado, clasifica fallas y cierra resultados síncronos o pendientes con sus avisos.
 import { effect, type HouseEvent } from "../../house/facts.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import { identityView } from "../../house/members.ts";

@@ -1,3 +1,4 @@
+// Schemas for the house’s own acts, preferences and scenes, with their shared input and text limits.
 export const toolLimits = { text: 160, label: 40, minOptions: 2, maxOptions: 4, minText: 1 } as const;
 
 /** Bounded descriptions: one shared scene and a part for each identity. */

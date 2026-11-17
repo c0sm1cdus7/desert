@@ -1,3 +1,4 @@
+// Starts and folds the house with its program slices; declares the options passed when opening it.
 import type { CalculationVersion } from "../tools/calculation-contract.ts";
 import type { HouseKeyProvider } from "../keychain/custody/house-keys.ts";
 import { type Creation, emptyHouse, houseStep, type Attention } from "./members.ts";

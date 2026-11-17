@@ -1,3 +1,4 @@
+// Contrato interno de préstamos revocables y contexto de pruebas sin servicios.
 import type { Emission } from "../../journal/vocabulary.ts";
 import type { CredentialScope, ToolCapabilities } from "../capabilities-contract.ts";
 /** Internal lifetime of the public methods lent to one action or startup. */

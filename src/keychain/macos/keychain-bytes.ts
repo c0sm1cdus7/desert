@@ -1,3 +1,4 @@
+// Codifica y valida llaves base64 directamente en búferes borrables, sin texto intermedio.
 import { CustodyError } from "../custody/house-keys.ts";
 const alphabet = Buffer.from("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 /** Base64 directly between buffers: Node's string encoder would leave an uneraseable key copy. */

@@ -1,3 +1,4 @@
+// toolAct and ownAct bound to their schema; reading, accepted, rejected
 import { executionSchema } from "./inputs/secret-input.ts";
 import type { Static, TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";

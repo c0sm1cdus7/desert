@@ -1,3 +1,4 @@
+// Textos de entrada, versiones incompatibles, pedidos y apagado del servidor local.
 export const socketTexts = {
   interrupted: "Se cortó antes de la respuesta: fijate en Actividad si se hizo.",
   startFailed: "No se pudo abrir la casa.",

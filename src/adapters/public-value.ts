@@ -1,3 +1,4 @@
+// Copia datos públicos sin accesores ni capacidades y cierra los esquemas JSON declarados.
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { AdapterFailure } from "../tools/adapter-contract.ts";

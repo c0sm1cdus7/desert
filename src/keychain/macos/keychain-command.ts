@@ -1,3 +1,4 @@
+// Ejecutor optativo de security con entrada y salida en bytes, límite de tiempo y descarte de stderr.
 import { spawnSync } from "node:child_process";
 export const keychainTimeout = 5000;
 export type KeychainCommand = (

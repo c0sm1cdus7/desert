@@ -1,3 +1,4 @@
+// Proveedor externo con llaves por referencia, consulta de presencia, anclas y olvido de casa.
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { randomBytes } from "node:crypto";
 export type LedgerHead = Readonly<{ count: number; authentication: string }>;

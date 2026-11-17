@@ -1,3 +1,4 @@
+// Journal diagnostics and the SQLite command that acquires the writer lease.
 export const journalTexts = {
   divergentFold: "El estado guardado no coincide con el registro; se descarta y se vuelve a plegar",
   leaseLost: "Writer exclusion was lost or another connection wrote; close and reopen this house",

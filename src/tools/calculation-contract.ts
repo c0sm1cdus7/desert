@@ -1,3 +1,4 @@
+// CalculationVersion and the public structural shape of a code-derived projection version.
 /** The public shape of a version calculated from code; construction belongs to runtime. */
 interface CodeProjectionDeclaration {
   readonly kind: "code";

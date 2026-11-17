@@ -1,3 +1,4 @@
+// Máscara de dinero en su moneda; conserva separadores, límites y centavos
 import { currencySymbol } from "../../fields/currency-symbol.ts";
 import { money as moneyField, shownMoney } from "../../fields/money-field.ts";
 import type { Format, Locale } from "./masks.ts";

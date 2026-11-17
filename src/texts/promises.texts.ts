@@ -1,6 +1,6 @@
+// How the checks that a program's promises derive are named, and what they say when a case cannot even start.
 import { closureTexts } from "./closures.texts.ts";
 import { checkDiagnostics } from "./diagnostics.texts.ts";
-// How the checks that a program's promises derive are named, and what they say when a case cannot even start.
 type Cut = Readonly<{ tool: string; action: string; reason: string }>;
 type Walked = Readonly<{ whole: number; paths: number; states: number; clipped: number; unavailable: readonly Cut[] }>;
 export const promiseTexts = {

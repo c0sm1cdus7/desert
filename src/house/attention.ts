@@ -1,3 +1,4 @@
+// Folds attention and wake references, names reminders, and offers attend and unattend acts.
 import { ids } from "./ids.ts";
 export const reminderId = (by: string, tool: string): string => `${ids.attention}${JSON.stringify([by, tool])}`;
 import { actCatalog } from "./own-acts.ts";

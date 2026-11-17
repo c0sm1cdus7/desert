@@ -1,3 +1,4 @@
+// Pliega actos abiertos y el primer dueño de cada despertar; conserva dueños de IDs anteriores y cancelados.
 import type { Event } from "../../journal/vocabulary.ts";
 import type { HouseState } from "../tool-contract.ts";
 /** The acts still open: an act stays until its result, so what it caused can be traced to it. */

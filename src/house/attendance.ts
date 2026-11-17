@@ -1,3 +1,4 @@
+// what an identity keeps in view, and the tool a target belongs to
 import { programCall } from "../fields/program-call.ts";
 import type { Event } from "../journal/vocabulary.ts";
 import type { Program, State, Tool, ToolRegistry } from "../tools/tool-contract.ts";

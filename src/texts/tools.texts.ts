@@ -1,3 +1,4 @@
+// why the house refuses an act, and the purposes of attend and unattend
 import { identityTexts } from "./identities.texts.ts";
 export { identityNameTexts } from "./identity-name.texts.ts";
 export const effectRefusalTexts = {

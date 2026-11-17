@@ -1,3 +1,4 @@
+// Casos de edición de kit que derivan ejecución, recorridos, permisos y valores actuales.
 import type { Case } from "../promises.ts";
 import type { Program } from "../tool-contract.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";

@@ -1,6 +1,6 @@
+// Unicode White_Space, Cc, Cf and Default_Ignorable_Code_Point, plus blank glyphs; ranges work without the u flag.
 import { Type, type TProperties } from "@sinclair/typebox";
 export const object = <T extends TProperties>(fields: T) => Type.Object(fields, { additionalProperties: false });
-// Unicode White_Space, Cc, Cf and Default_Ignorable_Code_Point, plus blank glyphs; ranges work without the u flag.
 export const visibleText = [
   "(?:[^\\u0000-\\u0020\\u007f-\\u00a0\\u00ad\\u034f\\u0600-\\u0605\\u061c\\u06dd\\u",
   "070f\\u0890-\\u0891\\u08e2\\u115f-\\u1160\\u1680\\u17b4-\\u17b5\\u180b-\\u180f\\u",

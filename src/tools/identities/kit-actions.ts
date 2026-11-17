@@ -1,3 +1,4 @@
+// Acciones declaradas de dar y sacar una herramienta o una acción mediante granted y kit-set.
 import { object } from "../../fields/visible-text.ts";
 import { oneOf, option } from "../../fields/fields.ts";
 import { allowedAct, mindTool } from "../../house/kit.ts";

@@ -1,3 +1,4 @@
+// Comprobación de valores iniciales calculados sobre los estados y destinos de cada caso.
 import { inspect } from "node:util";
 import { TypeGuard } from "@sinclair/typebox";
 import { fieldValidity } from "../../../fields/fields.ts";

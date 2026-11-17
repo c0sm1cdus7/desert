@@ -1,3 +1,4 @@
+// withReason: derived screen comparisons retain prior reasons when adding discarded-key advice
 import type { Screen } from "../../../surface/contract/contract.ts";
 /** A reason may change; the entire question, written value and navigation must stay identical. */
 export function withReason(screen: Screen, reason: string | undefined, ignored = false): Screen {

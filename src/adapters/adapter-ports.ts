@@ -1,3 +1,4 @@
+// Presta métodos por operación; valida datos públicos y revoca el resolvedor al terminar.
 import { Value } from "@sinclair/typebox/value";
 import type { SecretCustody, CredentialSession } from "../keychain/custody/secret-custody.ts";
 import type { PublicPorts } from "../tools/capabilities-contract.ts";

@@ -1,3 +1,4 @@
+// Each destination is a list assembled from catalog data and declared actions; unknown destinations stay errors.
 import { sceneReading } from "./scene-reading.ts";
 import { mindTool } from "../../house/kit.ts";
 import { MissingView } from "../../surface/contract/missing-view.ts";
@@ -45,7 +46,6 @@ function mindRows<X extends Program>(
     .filter(([name, act]) => act.under === kitMenu(tool) && name !== kitMenu(tool))
     .map(([name, act]) => start(name, target, { today: act.today?.(ports.state(), target, ports.now()) }));
 }
-// Each destination is a list assembled from catalog data and declared actions; unknown destinations stay errors.
 export function kitView<X extends Program>(
   ports: SurfacePorts<X>,
   contract: ProgramTool<X>,

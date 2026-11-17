@@ -1,3 +1,4 @@
+// Autoriza referencias por alcance y reserva una versión durante el uso del adaptador.
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { randomUUID } from "node:crypto";
 import { CustodyError } from "./house-keys.ts";

@@ -1,3 +1,4 @@
+// The house fact catalog, typed emissions and effects, including the legacy catalog for saved records.
 import { name, preference, scene, t, toolLimits } from "./own-acts.ts";
 import { wholeNumber } from "../fields/json-values.ts";
 import { Type } from "@sinclair/typebox";

@@ -2986,7 +2986,7 @@
     },
     {
       "id": 257,
-      "rule": "Cada archivo tiene como máximo 300 renglones y los textos suman como máximo 535 (incluye addressing.ts, código que lee textos, y los 2 renglones de capital.ts); cada archivo de producción tiene una descripción en el árbol.",
+      "rule": "Cada archivo tiene como máximo 300 renglones y los textos suman como máximo 542 (incluye addressing.ts, código que lee textos, los 2 renglones de capital.ts y las 7 cabeceras de limpiar 5); cada archivo de producción tiene una descripción en el árbol.",
       "from": "16/11 · reorden 1, mapa firmado",
       "guarantee": "spec",
       "evidence": [
@@ -3109,6 +3109,16 @@
         "src/checks/laws/program-laws.ts",
         "src/checks/laws/program-laws.spec.ts",
         "tests/program/registration.ts"
+      ]
+    },
+    {
+      "id": 267,
+      "rule": "Cada archivo de código de src/, salvo las pruebas, empieza en su primer renglón con un comentario // de una línea que dice para qué es. La ley atrapa archivos sin cabecera, con ella desplazada o sin texto.",
+      "from": "16/11 · limpiar 5, cabeceras de propósito",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/core-size.spec.ts",
+        "tests/laws/tree.json"
       ]
     }
   ]

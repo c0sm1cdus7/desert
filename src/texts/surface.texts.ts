@@ -1,3 +1,4 @@
+// terminal surface words: menu, keys, talk thread, house sections, errors
 export const surfaceTexts = {
   menu: "Menú",
   tooSmall: "Ventana muy chica",

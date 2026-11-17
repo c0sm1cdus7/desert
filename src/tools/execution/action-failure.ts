@@ -1,3 +1,4 @@
+// Distingue el motivo del corte de un defecto independiente antes de limpiar y registrar su diagnóstico.
 import type { HouseEvent } from "../../house/facts.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import type { Decision, Execution } from "../execute.ts";

@@ -1,3 +1,4 @@
+// Define los límites del socket y valida los mensajes entre cliente y servidor.
 import { wholeNumber } from "../../../fields/json-values.ts";
 import { actLimits } from "../../../house/own-acts.ts";
 /** Local house wire: equality includes the complete Node version because state uses v8 serialization. */

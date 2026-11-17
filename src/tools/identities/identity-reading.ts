@@ -1,3 +1,4 @@
+// Lista y objeto de identidades y mentes: nombre, administración, kit, última escena general y parte para quien lee.
 import { identityDisplayName, type House } from "../../house/members.ts";
 import { mindTool, allowedAct } from "../../house/kit.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";

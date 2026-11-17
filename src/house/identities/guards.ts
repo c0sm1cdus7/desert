@@ -1,3 +1,4 @@
+// Comprueba identificadores nuevos antes de crear o escribir, sin tocar la historia.
 import { identityTexts } from "../../texts/identities.texts.ts";
 import { checkIdentity } from "./emission-identity.ts";
 import type { Emission, Event, Foreign } from "../../journal/vocabulary.ts";

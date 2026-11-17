@@ -1,3 +1,4 @@
+// Convierte el resultado público de una acción en hechos, conservando su destinatario.
 import { programCall } from "../../fields/program-call.ts";
 import { effect } from "../../house/facts.ts";
 import { effectRefusal } from "./effect-authority.ts";

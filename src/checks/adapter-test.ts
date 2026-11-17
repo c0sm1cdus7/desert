@@ -1,3 +1,4 @@
+// Prueba adaptadores con material sintético, custodia cifrada temporal y permisos, esquemas y revocación reales.
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";

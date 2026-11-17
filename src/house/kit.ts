@@ -1,3 +1,4 @@
+// Whole-tool grants and action kits for identities and minds, with the same membership guards.
 import { ids } from "./ids.ts";
 import type { HouseEvent } from "./facts.ts";
 import type { House } from "./members.ts";

@@ -1,3 +1,4 @@
+// Produce efectos de vínculos cuya autoridad queda en la sesión que los emitió.
 import { effect } from "../house/facts.ts";
 import type { Emission } from "../journal/vocabulary.ts";
 import { credentialCommand, type CredentialOperations, type SecretRefs } from "../tools/capabilities-contract.ts";
