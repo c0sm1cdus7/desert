@@ -1867,3 +1867,23 @@ de `ProgramTool`, que sigue declarando otras necesidades del programa.
 la lista. El constructor de bajo nivel acepta `toolAct(input, ejecución, alcance, normalización, needs)`;
 `reading(acto)` también la conserva. Los actos anteriores siguen funcionando sin agregar una declaración.
 Este contrato comunica requisitos: elegir cartas y filtrar actos por capacidades corresponde al carril de mentes.
+
+## Cartas y adaptador de modelos
+
+El catálogo `src/adapters/models/catalog.ts` declara quince cartas: cada uno de los cinco modelos de Anthropic
+con esfuerzo `low`, `medium` o `high`. Todas ven imágenes; ninguna oye audio. `cardsFor` exige todas las capacidades
+de los actos y `lostActs` devuelve los actos que la carta no alcanza. El resultado del banco registra rol, casos,
+escenas, aprobación, costo, duración, fecha y huellas de casos, skill y textos del marco; empieza vacío.
+
+`costUsd` recibe tokens de entrada, escritura y lectura de caché y salida. Haiku usa el segundo precio si la suma
+de tokens de entrada supera 100.000. Los precios no informados figuran como `null`: una cantidad positiva con
+precio desconocido no se calcula. `withinCap` exige gasto y tope, y calcula la entrada al precio más alto posible
+entre entrada común, escritura y lectura, más la salida máxima; si necesita un precio desconocido, falla. Hoy no se
+conoce la escritura de caché de ninguna carta, de modo que no se puede autorizar una llamada con entrada positiva.
+El programa debe comprobar el tope antes de llamar; el transporte no lo comprueba por su cuenta.
+
+`requestBody` arma cuatro capas de sistema y un único mensaje de usuario; `callAnthropic` recibe una llave y un
+transporte inyectable. `readResponse` devuelve el primer bloque de texto JSON validado y el uso separado; informa
+rechazo, corte por máximo, JSON inválido, esquema inválido, fallo HTTP y transporte. Se reducen las restricciones que
+el proveedor no admite y se comprueban al leer. Los esquemas con vocabulario que el validador no reconoce fallan;
+la aceptación del esquema reducido por el servicio real queda sin comprobar hasta la llamada exterior.
