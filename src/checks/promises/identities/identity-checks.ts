@@ -19,6 +19,8 @@ import {
 import type { Case, Composition } from "../../../tools/promises.ts";
 import { effect } from "../../../house/facts.ts";
 import { identityTexts } from "../../../texts/identities.texts.ts";
+import { assistantText } from "../../../texts/assistant.texts.ts";
+import type { State } from "../../../tools/tool-contract.ts";
 import { toolTexts } from "../../../texts/tools.texts.ts";
 export function checkKitChange(tool: string, change: () => unknown): void {
   if (tool === "identities") throws(change, /Identidades/);
@@ -36,21 +38,37 @@ export function closeCoreSetup<X extends Program>(house: House<X>, tool: string,
     house.tools.act({ act: "unattend", input: { target } }, 0, by);
 }
 
-/** Scene rows remain writable by their owner, regardless of a rejected attempt to give the core a kit. */
-export function checkSceneRow(tool: string, act: string, by: string, target: string, row?: Choice): boolean {
-  if (tool !== "identities" || act !== "scene") return false;
+/** Personal actions retain their own availability rules even though Identidades has no assignable kit. */
+export function checkOwnRow<X extends Program>(
+  tool: string,
+  act: string,
+  state: State<X>,
+  target: string,
+  row?: Choice,
+): boolean {
+  if (tool !== "identities" || (act !== "scene" && act !== "delegate-assistant")) return false;
+  const owner = target.slice("identities/".length);
+  const reason = () => {
+    if (act === "scene") return owner === state.by ? undefined : identityTexts.ownScene;
+    if (!state.house.grants.has(owner)) return assistantText("absent", "es");
+    if (owner !== state.by) return assistantText("owner", "es");
+    return state.house.assistants.get(owner)?.enabled ? undefined : assistantText("disabled", "es");
+  };
+  const cause = reason();
   ok(row);
-  if (target === `identities/${by}`) {
+  if (cause === undefined) {
     ok(row.open);
     ok(!row.off);
   } else {
     ok(row.off);
-    ok(row.detail?.endsWith(identityTexts.ownScene));
+    ok(row.detail?.endsWith(cause));
     strictEqual(row.open, undefined);
   }
   return true;
 }
 export const isCoreScene = <X extends Program>(aim: Aim<X>) => aim.tool.id === "identities" && aim.name === "scene";
+export const isCorePersonal = <X extends Program>(aim: Aim<X>) =>
+  isCoreScene(aim) || (aim.tool.id === "identities" && aim.name === "delegate-assistant");
 export function withoutActionCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase: Case<X>): Check {
   return {
     name: label(aim, isCoreScene(aim) ? identityTexts.promises.sceneWithoutKit : said.outsideKit),
@@ -69,6 +87,19 @@ export function withoutActionCheck<X extends Program>(program: Composition<X>, a
           });
           strictEqual(done.status, "accepted");
           deepStrictEqual(house().tools.state().house.scenes.get(cast.member)?.data, kase.input);
+          return;
+        }
+        if (isCorePersonal(aim)) {
+          const done = await perform(house(), aim.tool.id, { ...kase, act: aim.name });
+          strictEqual(done.status, "accepted");
+          deepStrictEqual(
+            {
+              kit: house()
+                .tools.state()
+                .house.assistants.get(kase.by ?? cast.admin)?.kit,
+            },
+            kase.input,
+          );
           return;
         }
         const before = house().tools.state().through;

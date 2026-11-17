@@ -4,7 +4,7 @@ import type { Shown } from "../../../surface/bridge/ports/house-ports.ts";
 import { inspect } from "node:util";
 import { Type } from "@sinclair/typebox";
 import { mindTargetCauses } from "../identities/kit-checks.ts";
-import { withoutActionCheck, closeCoreSetup, isCoreScene } from "../identities/identity-checks.ts";
+import { withoutActionCheck, closeCoreSetup, isCorePersonal } from "../identities/identity-checks.ts";
 import { fieldValidity } from "../../../fields/fields.ts";
 import { openingChecks } from "./opening-checks.ts";
 import { alsoCauses } from "./also-causes.ts";
@@ -83,8 +83,8 @@ export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X
     ),
     refusal(
       said.notHeld,
-      { by: isCoreScene(aim) ? "absent" : unheld },
-      isCoreScene(aim) ? toolTexts.unassigned : kitReason,
+      { by: isCorePersonal(aim) ? "absent" : unheld },
+      isCorePersonal(aim) ? toolTexts.unassigned : kitReason,
     ),
     refusal(said.unseen, { by: core ? (kase.by ?? cast.admin) : cast.member, attends: false }, toolTexts.unattended),
     placeCheck(program, aim, kase),

@@ -73,6 +73,8 @@ it("creates with an optional name, shows the rule, removes and readmits through 
     term.press("s");
     await term.until("Sacada · luz");
     term.press("\x1b");
+    await term.until("entrada sin herramientas");
+    term.press("\x1b[A".repeat(20));
     await term.until("Sin herramientas.");
     term.press("r");
     await term.until("enter readmitir");

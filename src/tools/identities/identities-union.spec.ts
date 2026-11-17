@@ -13,14 +13,18 @@ const facts = (
   house: () => { journal: { replay: <S>(initial: S, step: (state: S, event: { kind: string }) => S) => S } },
 ) => house().journal.replay(0, (count, event) => count + Number(powers.has(event.kind)));
 
-it("only the scene opens to a member, through the single kit rule; other rows and actions say why", async () => {
+it("personal scene and assistant delegation keep their rules; administrative actions say why", async () => {
   await staged(kitProgram, async ({ house }) => {
     const acts = Object.keys(house().registry.find(tool => tool.id === "identities")?.acts ?? {});
     expect(acts.length).toBeGreaterThan(5);
     for (const act of acts.filter(each => each !== "scene" && each !== "new")) {
       const before = facts(house);
       const done = await perform(house(), "identities", { by: "beto", on: identityTarget("beto"), act, input: {} });
-      expect([act, done.status, done.reason]).toEqual([act, "rejected", toolTexts.kitRefusal("identities")]);
+      expect([act, done.status, done.reason]).toEqual([
+        act,
+        "rejected",
+        act === "delegate-assistant" ? "asistente sin habilitar" : toolTexts.kitRefusal("identities"),
+      ]);
       expect(facts(house)).toBe(before);
     }
     const created = await perform(house(), "identities", {

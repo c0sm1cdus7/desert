@@ -88,6 +88,18 @@ function fields(schema: unknown, ctx: Ctx, from: number, skip: readonly string[]
   }
   return { value, at: next };
 }
+/** Optional lists can be omitted; lists admitting zero items can finish before asking their first item. */
+function list(schema: TSchema, ctx: Ctx, from: number): Got {
+  if (!ctx.optional && at(schema, "minItems") !== 0) return items(schema, ctx, from);
+  const more = at(schema, "more");
+  const done = choiceOf(at(more, "done"));
+  const another = choiceOf(at(more, "another"));
+  const answer = ctx.answers[from];
+  if (answer === undefined)
+    return { ask: one(`${word(more, "ask")}${ctx.optional ? ctx.optionalMark : ""}`, [done, another]) };
+  if (answer === done.title) return { value: ctx.optional ? undefined : [], at: from + 1 };
+  return ctx.optional ? list(schema, { ...ctx, optional: false }, from + 1) : items(schema, ctx, from + 1);
+}
 function items(schema: TSchema, ctx: Ctx, from: number, before: readonly unknown[] = []): Got {
   const got = read(at(schema, "items"), { ...ctx, n: before.length + 1, optional: false }, from);
   if ("ask" in got) return got;
@@ -120,7 +132,7 @@ function read(schema: unknown, ctx: Ctx, from: number): Got {
   if (arms.length) return choice(schema, ctx, from);
   if (at(schema, "type") === "object") return fields(schema, ctx, from);
   if (at(schema, "some") !== undefined) return some(schema, ctx, from);
-  return at(schema, "type") === "array" ? items(schema, ctx, from) : leaf(schema, ctx, from);
+  return at(schema, "type") === "array" ? list(schema, ctx, from) : leaf(schema, ctx, from);
 }
 export type Asking = Readonly<{
   /** The next question, or null once everything it takes was answered. */

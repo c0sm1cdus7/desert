@@ -1,0 +1,96 @@
+import { expect, it } from "vitest";
+import { staged, perform } from "../../checks/promises/promised-stage.ts";
+import { shopProgram } from "../../../tests/support/shop.ts";
+import { effect } from "../../house/facts.ts";
+const program = { ...shopProgram, identities: true };
+const on = "identities/beto";
+const enable = { act: "enable-assistant", on, input: { name: "Nora" } };
+const kit = [{ tool: "sales", acts: ["register"] }];
+const domain = (effects: readonly { kind: string }[]) => effects.filter(e => e.kind.startsWith("assistant-"));
+it("el administrador distinto habilita y solo el titular delega", async () => {
+  await staged(program, async ({ house, reopen }) => {
+    expect(await perform(house(), "identities", enable)).toMatchObject({ status: "accepted" });
+    expect(house().tools.state().house.assistants.get("beto")).toMatchObject({ name: "Nora", kit: [] });
+    for (const by of ["ana", "carla"])
+      expect(await perform(house(), "identities", { act: "delegate-assistant", on, by, input: { kit } })).toMatchObject(
+        { status: "rejected", reason: "solo el titular del asistente" },
+      );
+    const done = await perform(house(), "identities", { act: "delegate-assistant", on, by: "beto", input: { kit } });
+    expect(done).toMatchObject({ status: "accepted" });
+    expect(domain(done.effects)).toMatchObject([
+      { kind: "assistant-kit-set", by: "beto", data: { owner: "beto", kit } },
+    ]);
+    reopen();
+    expect(house().tools.state().house.assistants.get("beto")?.kit).toEqual(kit);
+  });
+});
+it("rechaza delegación sin permiso, inexistente, repetida o de Identidades sin cambiar el kit", async () => {
+  await staged(program, async ({ house }) => {
+    await perform(house(), "identities", enable);
+    for (const bad of [
+      [{ tool: "missing", acts: ["register"] }],
+      [{ tool: "sales", acts: ["missing"] }],
+      [{ tool: "identities", acts: ["new"] }],
+      [...kit, ...kit],
+    ]) {
+      const done = await perform(house(), "identities", {
+        act: "delegate-assistant",
+        on,
+        by: "beto",
+        input: { kit: bad },
+      });
+      expect(done.status).toBe("rejected");
+      expect(domain(done.effects)).toEqual([]);
+    }
+    house().bus.emit(effect("kit-set", { holder: "beto", tool: "sales", acts: [] }, "ana"));
+    const done = await perform(house(), "identities", { act: "delegate-assistant", on, by: "beto", input: { kit } });
+    expect(done).toMatchObject({ status: "rejected", reason: "el titular no tiene ese acto" });
+    expect(house().tools.state().house.assistants.get("beto")?.kit).toEqual([]);
+  });
+});
+it("deshabilitar conserva el nombre, vacía el kit y habilitar otra vez no lo recupera", async () => {
+  await staged(program, async ({ house, reopen }) => {
+    await perform(house(), "identities", enable);
+    await perform(house(), "identities", { act: "delegate-assistant", on, by: "beto", input: { kit } });
+    expect(await perform(house(), "identities", { act: "disable-assistant", on, input: {} })).toMatchObject({
+      status: "accepted",
+    });
+    reopen();
+    expect(house().tools.state().house.assistants.get("beto")).toMatchObject({ name: "Nora", enabled: false, kit: [] });
+    expect(
+      await perform(house(), "identities", { act: "delegate-assistant", on, by: "beto", input: { kit } }),
+    ).toMatchObject({ status: "rejected" });
+    await perform(house(), "identities", enable);
+    expect(house().tools.state().house.assistants.get("beto")?.kit).toEqual([]);
+  });
+});
+it("las repeticiones no emiten hechos de asistente y no renombran uno habilitado", async () => {
+  await staged(program, async ({ house }) => {
+    await perform(house(), "identities", enable);
+    const same = await perform(house(), "identities", enable);
+    expect(same.status).toBe("accepted");
+    expect(domain(same.effects)).toEqual([]);
+    expect(await perform(house(), "identities", { ...enable, input: { name: "Otra" } })).toMatchObject({
+      status: "rejected",
+    });
+    for (let i = 0; i < 2; i++) {
+      const result = await perform(house(), "identities", {
+        act: "delegate-assistant",
+        on,
+        by: "beto",
+        input: { kit },
+      });
+      expect(result.status).toBe("accepted");
+      expect(domain(result.effects)).toHaveLength(i === 0 ? 1 : 0);
+    }
+  });
+});
+it("ninguna mente ni miembro administra asistentes y faltan los argumentos por su nombre", async () => {
+  await staged(program, async ({ house }) => {
+    for (const by of ["beto", "carla", "mind:sales", "assistant:beto"])
+      expect((await perform(house(), "identities", { ...enable, by })).status).toBe("rejected");
+    for (const act of ["enable-assistant", "delegate-assistant", "adopt-assistant"])
+      expect((await perform(house(), "identities", { act, on, input: {} })).status).toBe("rejected");
+    expect(house().tools.state().house.assistants.size).toBe(0);
+  });
+});

@@ -196,3 +196,35 @@ describe("a day that is usually today", () => {
     expect(asking(since, words).next([])?.initial).toBe("11112026");
   });
 });
+
+describe("lists that may be empty or omitted", () => {
+  const lines = { ...many(object({ what: text("Artículo", "Nombre") }), more), minItems: 0 };
+  for (const optional of [false, true]) {
+    const ask = asking(object({ lines: optional ? Type.Optional(lines) : lines, copies: count("Copias") }), words);
+    for (const value of [[], [{ what: "Café" }], [{ what: "Café" }, { what: "Filtro" }]])
+      it(`round trips ${value.length} items, optional=${optional}, without swallowing the next field`, () => {
+        const datum = { lines: value, copies: 2 };
+        const answers = ask.answers(datum);
+        for (let index = 0; index < answers.length; index++) expect(ask.next(answers.slice(0, index))).not.toBeNull();
+        expect(ask.next(answers)).toBeNull();
+        expect(ask.input(answers)).toEqual(datum);
+        expect(ask.sofar(answers)).toEqual(datum);
+        expect(ask.leading(datum)).toEqual(answers);
+      });
+  }
+  it("distinguishes an omitted optional list from an explicit empty list", () => {
+    const ask = asking(object({ lines: Type.Optional(lines) }), words);
+    expect(ask.next([])).toMatchObject({ ask: "Artículos (opcional)", options: [more.done, more.another] });
+    expect(ask.answers({})).toEqual(["Listo"]);
+    expect(ask.input(["Listo"])).toEqual({});
+    expect(ask.answers({ lines: [] })).toEqual(["Otro", "Listo"]);
+    expect(ask.input(["Otro", "Listo"])).toEqual({ lines: [] });
+  });
+  it("can omit an optional nonempty list while still requiring an item if included", () => {
+    const ask = asking(object({ lines: Type.Optional(many(line, more)) }), words);
+    expect(ask.input(ask.answers({}))).toEqual({});
+    expect(ask.next(["Otro"])).toMatchObject({ ask: "Artículo 1" });
+    const datum = { lines: told.lines };
+    expect(ask.input(ask.answers(datum))).toEqual(datum);
+  });
+});

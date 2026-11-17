@@ -1,7 +1,13 @@
 // What a person sees of what they cannot do, and what they may prefer not to see: checked for every tool and act.
 import { absentCheck, foreignReferences } from "./promised-read.ts";
 import { absentMindAction } from "../identities/kit-checks.ts";
-import { checkKitChange, checkForeignVisibility, checkSceneRow, isCoreScene } from "../identities/identity-checks.ts";
+import {
+  checkKitChange,
+  checkForeignVisibility,
+  checkOwnRow,
+  isCoreScene,
+  isCorePersonal,
+} from "../identities/identity-checks.ts";
 import { effect } from "../../../house/facts.ts";
 import { ok, strictEqual } from "node:assert/strict";
 import type { Shown } from "../../../surface/bridge/ports/house-ports.ts";
@@ -26,7 +32,7 @@ function foreignActions<X extends Program>(seat: Seat<X>, tool: ProgramTool<X>):
     for (const target of targets) {
       const found = actRow(seat, { tool, name, act }, target);
       if (absentMindAction(tool, name, target, found)) continue;
-      if (checkSceneRow(tool.id, name, seat.state().by, target, found?.row)) continue;
+      if (checkOwnRow(tool.id, name, seat.state(), target, found?.row)) continue;
       ok(found, said.notOffered(name));
       ok(found.row.off);
       ok(found.row.detail?.endsWith(toolTexts.kitRefusal(tool.id)));
@@ -70,7 +76,8 @@ function partialCheck<X extends Program>(program: Composition<X>, shown: Shown<X
       staged(program, async ({ house }) => {
         await given(house(), aim.tool.id, kase.given, kase.at);
         const acts = Object.keys(aim.tool.acts).filter(name => name !== aim.name);
-        const seat = seated(house(), cast.member, shown);
+        const by = isCorePersonal(aim) && !isCoreScene(aim) ? (kase.by ?? cast.admin) : cast.member;
+        const seat = seated(house(), by, shown);
         try {
           const others = Object.entries(aim.tool.acts).flatMap(([name, act]) => {
             if (name === aim.name) return [];
@@ -81,7 +88,7 @@ function partialCheck<X extends Program>(program: Composition<X>, shown: Shown<X
             return before ? [{ other, target, off: before.off, detail: before.detail }] : [];
           });
           checkKitChange(aim.tool.id, () =>
-            house().bus.emit(effect("kit-set", { holder: cast.member, tool: aim.tool.id, acts }, cast.admin)),
+            house().bus.emit(effect("kit-set", { holder: by, tool: aim.tool.id, acts }, cast.admin)),
           );
           for (const { other, target, off, detail } of others) {
             const row = actRow(seat, other, target)?.row;
@@ -90,7 +97,7 @@ function partialCheck<X extends Program>(program: Composition<X>, shown: Shown<X
           }
           const target = isCoreScene(aim) ? `identities/${cast.member}` : (kase.on ?? aim.tool.id);
           const row = actRow(seat, aim, target, undefined, caseOrigin(aim, kase));
-          if (checkSceneRow(aim.tool.id, aim.name, cast.member, target, row?.row)) return;
+          if (checkOwnRow(aim.tool.id, aim.name, seat.state(), target, row?.row)) return;
           ok(row, said.notOffered(aim.name));
           ok(row.row.off);
           ok(row.row.detail?.endsWith(toolTexts.kitRefusal(aim.tool.id)));

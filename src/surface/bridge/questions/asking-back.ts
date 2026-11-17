@@ -23,7 +23,7 @@ export const markedOf = (schema: unknown, values: unknown): string =>
     .map(arm => word(arm, "title"))
     .join(" · ");
 /** The same walk backwards: the answers a person would give to say this datum. */
-export function write(schema: unknown, value: unknown, words: AskWords): string[] {
+export function write(schema: unknown, value: unknown, words: AskWords, optional = false): string[] {
   const arms = armsOf(schema);
   const telling = arms.length ? tellingOf(arms) : undefined;
   const literal = (arm: unknown): unknown => (telling ? at(at(arm, "properties"), telling) : arm);
@@ -32,20 +32,34 @@ export function write(schema: unknown, value: unknown, words: AskWords): string[
     return [word(literal(picked), "title"), ...(telling ? written_(picked, value, words, [telling]) : [])];
   if (at(schema, "type") === "object") return written_(schema, value, words);
   if (at(schema, "some") !== undefined) return [markedOf(schema, value)];
+  if (at(schema, "type") === "array" && optional) {
+    const more = at(schema, "more");
+    return value === undefined
+      ? [word(at(more, "done"), "title")]
+      : [word(at(more, "another"), "title"), ...write(schema, value, words)];
+  }
   if (isList(value)) {
     const more = at(schema, "more");
     const follows = (index: number): string => word(at(more, index < value.length - 1 ? "another" : "done"), "title");
-    return value.flatMap((item, index) => [...write(at(schema, "items"), item, words), follows(index)]);
+    const opening = at(schema, "minItems") === 0 ? [word(at(more, value.length ? "another" : "done"), "title")] : [];
+    return [
+      ...opening,
+      ...value.flatMap((item, index) => [...write(at(schema, "items"), item, words), follows(index)]),
+    ];
   }
   if (value === undefined) return [""];
   return [formatOf(schema, words)?.typed(value) ?? plain(value)];
 }
 /** What a datum says of what was answered: itself, when it is one made of fields. */
 const answeredIn = (value: unknown): Readonly<Record<string, unknown>> => (isRecord(value) ? value : {});
+const optionalField = (schema: unknown, key: string, field: unknown): boolean => {
+  const required = at(schema, "required");
+  return !(isList(required) && required.includes(key)) && at(field, "when") === undefined;
+};
 const written_ = (schema: unknown, value: unknown, words: AskWords, skip: readonly string[] = []): string[] =>
   Object.entries(at(schema, "properties") ?? {})
     .filter(([key, field]) => !skip.includes(key) && isAsked(field, answeredIn(value), words.now()))
-    .flatMap(([key, field]) => write(field, at(value, key), words));
+    .flatMap(([key, field]) => write(field, at(value, key), words, optionalField(schema, key, field)));
 /** The answers to the first things a declaration asks, for as long as the datum says them: where it stops saying,
  * the questions begin. */
 export function leading(schema: unknown, value: unknown, words: AskWords): string[] {
@@ -53,7 +67,7 @@ export function leading(schema: unknown, value: unknown, words: AskWords): strin
   for (const [key, field] of Object.entries(at(schema, "properties") ?? {})) {
     if (!isAsked(field, answeredIn(value), words.now())) continue;
     if (at(value, key) === undefined) break;
-    answers.push(...write(field, at(value, key), words));
+    answers.push(...write(field, at(value, key), words, optionalField(schema, key, field)));
   }
   return answers;
 }

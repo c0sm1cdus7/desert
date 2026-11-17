@@ -7,12 +7,14 @@ import { carelessShown, knowingShown, markingShop, overMarked } from "../../../.
 describe("a program with a row that carries everything its act takes", () => {
   for (const check of programChecks(markingShop, knowingShown)) it(check.name, check.run);
 
-  it("fails the walk of a refusal its row could say and does not say", async () => {
-    expect(
-      await failing(
-        programChecks(markingShop, carelessShown),
-        "the act mark is not off exactly when its tool says why",
-      ),
-    ).toEqual([`${overMarked}, by keys`]);
+  const carelessChecks = programChecks(markingShop, carelessShown);
+  it("keeps exactly one walk for the refusal the careless screen hides", () => {
+    expect(carelessChecks.filter(check => check.name === `${overMarked}, by keys`)).toHaveLength(1);
   });
+  for (const check of carelessChecks)
+    it(`checks the careless screen · ${check.name}`, async () => {
+      expect(await failing([check], "the act mark is not off exactly when its tool says why")).toEqual(
+        check.name === `${overMarked}, by keys` ? [check.name] : [],
+      );
+    });
 });

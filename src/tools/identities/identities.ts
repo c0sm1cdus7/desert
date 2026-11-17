@@ -4,6 +4,7 @@ import type { Program, ToolRegistry } from "../tool-contract.ts";
 import { identitySkill } from "../../texts/tool-skills.texts.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import { identityScene } from "./identity-scene.ts";
+import { assistantActions } from "./assistant-actions.ts";
 import { identityActions } from "./identity-actions.ts";
 import { newIdentity } from "./new-identity.ts";
 import { identityReading, identityTarget, members } from "./identity-reading.ts";
@@ -25,6 +26,7 @@ export function identitiesTool<X extends Program>(registry: ToolRegistry<X>, run
       new: newIdentity<X>(registry, runner),
       ...identityActions<X>(runner, registry),
       ...kitActions(registry),
+      ...assistantActions(registry),
     },
   };
   core.add(tool);
