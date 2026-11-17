@@ -71,10 +71,11 @@ describe("the tree of src/", () => {
   // Modelos: +14 líneas exactas para explicar errores del catálogo y el proveedor.
   // Mente 3: +10 líneas exactas para el mensaje parametrizado de rechazo de contratos de mente.
   // Mente 4A: +86 líneas exactas para mensajes de asistentes, adopción, delegación y autoría.
-  it("keeps every file within 300 lines and the texts within 696", () => {
+  // Marco: +26 líneas exactas para instrucciones y rótulos del marco.
+  it("keeps every file within 300 lines and the texts within 722", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(696);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(722);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));
