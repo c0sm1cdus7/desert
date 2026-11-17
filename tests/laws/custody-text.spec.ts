@@ -35,9 +35,9 @@ function conversions(source: ts.SourceFile): string[] {
   return found;
 }
 it("la custodia no convierte material ni llaves a texto", () => {
-  const files = [...filesUnder(join(src, "keychain/custody")), ...filesUnder(join(src, "keychain/macos"))].filter(
-    file => !isSpec(file),
-  );
+  const files = ["custody", "macos", "cloud"]
+    .flatMap(folder => filesUnder(join(src, "keychain", folder)))
+    .filter(file => !isSpec(file));
   expect(files.flatMap(file => conversions(parsed(file)).map(value => `${file}: ${value}`))).toEqual([]);
 });
 it("la ley rechaza conversiones directas y calculadas del material", () => {

@@ -475,14 +475,71 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   borrador o final sin vínculo libera el provisional al cerrar el préstamo. Las escrituras directas antiguas
   por el bus conservan la retención para adopción explícita. No se deduplican posiciones por su valor.
 
+## Hospedar una casa en la nube
+
+La composición del programa abre una sola casa con `startCloudHouse(programa, carpeta, entorno, variable)` de
+`src/runtime/cloud-house.ts`. `programa` contiene las opciones habituales de `startHouse`, incluidos `by`,
+`creation`, vocabulario, registro, cálculos y adaptadores; la función compone `secretKeys` con la raíz recibida.
+Quien hospeda proporciona una variable de **64 caracteres hexadecimales**, exactamente 32 bytes, y conserva
+esa misma raíz para las reaperturas. El programa entrega el entorno explícitamente: ninguna función de llaves
+lee `process.env` por su cuenta. Una variable ausente, vacía o inválida impide abrir y el error nombra solo
+la variable, sin su valor.
+
+```ts
+import { startCloudHouse } from "./src/runtime/cloud-house.ts";
+import { environmentDoorKeys } from "./src/doors/socket/peers/environment-door-keys.ts";
+
+const llaves = environmentDoorKeys(process.env, [
+  { identity: "ana", door: "terminal", variable: "ANA_TERMINAL_KEY" },
+  { identity: "ana", door: "agente", variable: "ANA_AGENTE_KEY" },
+]);
+const casa = startCloudHouse(programa, carpeta, process.env, "HOUSE_ROOT_KEY");
+```
+
+`llaves` tiene el contrato existente `ReadonlyMap<string, DoorKey>`: cada llave acredita la identidad y la
+puerta declaradas por el programa. Cada variable contiene al menos 32 bytes, como hexadecimal de largo par
+(al menos 64 caracteres) o base64url canónico sin relleno (al menos 43). Los textos formados solo por dígitos
+hexadecimales de largo par y al menos 64 caracteres se interpretan como hexadecimal; los demás se validan
+como base64url. Las llaves repetidas se rechazan incluso si cambian mayúsculas
+o codificación; el error nombra la variable repetida. La autenticación de cada puerta sigue comprobando que
+la identidad pertenezca a la casa. La declaración y la raíz pertenecen a la composición confiable.
+
+Después de autenticar, la composición conecta esa identidad a `casa.ports(identidad, { recentLines: 20 })`.
+Son los `HousePorts` existentes para leer, observar y actuar. Ni la casa devuelta ni esos puertos entregan
+`close`, `stop`, diario, custodia o proveedor. Cerrar una conexión no cierra la casa. El proceso sigue vivo aun
+sin conexiones ni despertares pendientes; quien hospeda lo termina con SIGTERM o SIGINT. Esa salida cierra
+los recursos y borra la copia de la raíz. Una apertura fallida también la borra. No se modifica la apertura
+local ni el proveedor de macOS; esta entrada no instala ni publica una puerta de red.
+
+`RootHouseKeys(raíz, carpeta)` de `src/keychain/cloud/root-house-keys.ts` también sirve a la composición que
+necesita el proveedor explícito. Copia los 32 bytes recibidos; quien lo creó borra su entrada y llama `dispose()`
+cuando ya no queda ningún usuario de custodia. Cada préstamo deriva 32 bytes con HKDF-SHA256, sal fija
+`desert.house-custody.hkdf.v1` e `info` igual al nombre de cuenta. Cada llamada entrega un búfer nuevo que
+la custodia borra después del uso. `environmentRootKey(entorno, nombre)` devuelve bytes cuya propiedad pasa
+al llamador. Las cadenas originales del entorno no se pueden poner en cero; las llaves de puerta permanecen
+como cadenas en el mapa que exige su contrato. Los búferes temporales decodificados de las puertas sí se borran.
+
+`custody-keys.json`, dentro de la carpeta, guarda únicamente versión, nombres de cuentas y cabezas autenticadas.
+Se reemplaza mediante un temporal con modo 0600, sincronización y renombre; no guarda raíz, llaves derivadas
+ni material de custodia. Se relee en cada operación: otra instancia del proveedor ve lo confirmado. Un documento
+dañado falla sin reemplazarse; el escritor único sigue siendo el de la casa. Una cuenta ausente no se deriva
+con `create: false`. Olvidar poda la cuenta; olvidar la casa retira también su ancla y conserva las otras casas.
+
+**Límite aceptado para nube:** las cabezas están en el mismo disco que el diario. Retroceder solo el diario
+se detecta, pero restaurar juntos el diario y sus metadatos no se detecta. El paso 5 revisa esta diferencia con
+macOS. Además, conservar la raíz permite volver a derivar una cuenta conocida: olvidar su presencia no equivale
+al borrado criptográfico de una llave independiente del llavero. La copia del disco sola no trae la raíz;
+recuperar una casa requiere su raíz original y sus metadatos. Este paso no implementa rotación de la raíz.
+
 ## Custodia de credenciales · contrato de memoria, disco y cortes
 
 Un programa sin posiciones secretas y una casa sin material abre sin proveedor.
 
 Contrato de la custodia, incluida la aceptación y el mantenimiento con la casa cerrada. `Kregistro` solo autentica el registro y los sobres cifrados;
 `Ksecreto(ref)` cifra exclusivamente ese secreto. Cada llave es un elemento independiente del proveedor externo.
-El proveedor guarda además el ancla `(cantidad de renglones, último autenticador)` fuera de la carpeta,
-en un elemento propio de 81 bytes; la lista pública de cuentas vive en otro elemento.
+El proveedor de macOS guarda además el ancla `(cantidad de renglones, último autenticador)` fuera de la carpeta,
+en un elemento propio de 81 bytes; la lista pública de cuentas vive en otro elemento. El proveedor de nube
+guarda esos metadatos en la carpeta, con el límite de restauración completa explicado abajo.
 Un agregado es una escritura atómica: una fila o un lote completo con tamaño e índice autenticados.
 
 | Operación | En claro en el proceso y duración | Disco de la casa | Llavero | Si el proceso muere |

@@ -65,10 +65,11 @@ describe("the tree of src/", () => {
   // Moving the existing headers in generic-surface and promises adds no lines; the per-file limit stays 300.
   // MCP: +21 lines for its four fixed tools, orientation and protocol errors in the catalog.
   // MCP with a real client: +1 line telling the agent that amounts travel in cents.
-  it("keeps every file within 300 lines and the texts within 564", () => {
+  // Nube 1: +7 exact lines for cloud.texts.ts, three environment-key diagnostics and their purpose.
+  it("keeps every file within 300 lines and the texts within 571", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(564);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(571);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

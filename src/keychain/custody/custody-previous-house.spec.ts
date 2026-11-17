@@ -1,10 +1,11 @@
-import { afterEach, expect, it, vi } from "vitest";
+import { keyProviders, reopenKeys } from "../../../tests/support/key-providers.ts";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { DatabaseSync } from "node:sqlite";
 import { mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { Type, type TSchema } from "@sinclair/typebox";
-import { MemoryHouseKeys, type HouseKeyProvider } from "./house-keys.ts";
+import { type HouseKeyProvider } from "./house-keys.ts";
 import { SecretCustody } from "./secret-custody.ts";
 import { startHouse } from "../../runtime/house-runtime.ts";
 import type { HouseOptions } from "../../house/state.ts";
@@ -76,33 +77,37 @@ function previous(exposed = false) {
   vault.close();
   return home;
 }
-it("abre y cifra una casa escrita por ac07248, conserva hechos e ids y vuelve a abrir", () => {
-  const home = previous(),
-    keys = new MemoryHouseKeys();
-  expect(() => startHouse(home, options)).toThrow("E-CUSTODY-PROVIDER");
-  const house = startHouse(home, { ...options, secretKeys: keys });
-  opened.push(house);
-  expect(house.tools.state().house.admin).toBe("ana");
-  const facts = house.journal.replay<string[]>([], (all, event) => [...all, event.id]);
-  expect(facts.slice(0, fixture.events.length)).toEqual(fixture.events.map(event => event.id));
-  expect(containing(home, "ANTERIOR_SINTETICO")).toEqual([]);
-  house.close();
-  const file = join(home, "fixture.sqlite");
-  expect(containing(home, "ANTERIOR_SINTETICO")).toEqual([]);
-  const custody = new SecretCustody(file, realpathSync(home), keys);
-  opened.push(custody);
-  expect(custody.ids()).toEqual(fixture.material.map(row => row.id));
-  custody.close();
-  const reopened = startHouse(home, { ...options, secretKeys: keys });
-  opened.push(reopened);
-  expect(reopened.tools.state().house.admin).toBe("ana");
-});
-it("la revisión B rechaza historia expuesta antes de abrir o adoptar la bóveda anterior", () => {
-  const home = previous(true),
-    file = join(home, "fixture.sqlite"),
-    before = readFileSync(file);
-  expect(() => startHouse(home, { ...options, secretKeys: new MemoryHouseKeys() })).toThrow(
-    expect.objectContaining({ code: "E-SECRET-HISTORY" }),
-  );
-  expect(readFileSync(file)).toEqual(before);
+describe.each(keyProviders)("$name", provider => {
+  it("abre y cifra una casa escrita por ac07248, conserva hechos e ids y vuelve a abrir", () => {
+    const home = previous();
+    let keys: HouseKeyProvider = provider.open(home);
+    expect(() => startHouse(home, options)).toThrow("E-CUSTODY-PROVIDER");
+    const house = startHouse(home, { ...options, secretKeys: keys });
+    opened.push(house);
+    expect(house.tools.state().house.admin).toBe("ana");
+    const facts = house.journal.replay<string[]>([], (all, event) => [...all, event.id]);
+    expect(facts.slice(0, fixture.events.length)).toEqual(fixture.events.map(event => event.id));
+    expect(containing(home, "ANTERIOR_SINTETICO")).toEqual([]);
+    house.close();
+    const file = join(home, "fixture.sqlite");
+    expect(containing(home, "ANTERIOR_SINTETICO")).toEqual([]);
+    keys = reopenKeys(home, keys);
+    const custody = new SecretCustody(file, realpathSync(home), keys);
+    opened.push(custody);
+    expect(custody.ids()).toEqual(fixture.material.map(row => row.id));
+    custody.close();
+    keys = reopenKeys(home, keys);
+    const reopened = startHouse(home, { ...options, secretKeys: keys });
+    opened.push(reopened);
+    expect(reopened.tools.state().house.admin).toBe("ana");
+  });
+  it("la revisión B rechaza historia expuesta antes de abrir o adoptar la bóveda anterior", () => {
+    const home = previous(true),
+      file = join(home, "fixture.sqlite"),
+      before = readFileSync(file);
+    expect(() => startHouse(home, { ...options, secretKeys: provider.open(home) })).toThrow(
+      expect.objectContaining({ code: "E-SECRET-HISTORY" }),
+    );
+    expect(readFileSync(file)).toEqual(before);
+  });
 });
