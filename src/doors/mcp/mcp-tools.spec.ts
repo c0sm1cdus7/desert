@@ -71,6 +71,7 @@ it("acts with the socket book, accepts once and explains a refusal", async () =>
   const accepted = await h.call("actuar", args, h.beto);
   expect(JSON.parse(accepted.body)).toMatchObject({ result: { isError: false } });
   expect(accepted.body).toContain("Registrada · uno");
+  expect(JSON.parse(accepted.body)).toMatchObject({ result: { content: [{ text: "Registrada · uno" }] } });
   const rejected = await h.call("actuar", args, h.beto);
   expect(JSON.parse(rejected.body)).toMatchObject({ result: { isError: true } });
   expect(rejected.body).toContain("repeated");

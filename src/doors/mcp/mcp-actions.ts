@@ -41,6 +41,8 @@ export async function mcpAct<X extends Program>(
   if (result.tipo === "rechazo") return toolResult(result.motivo, true);
   if (result.tipo !== "resultado") return toolResult(said.failed, true);
   if (result.status !== "accepted") return toolResult(result.reason ?? said.failed, true);
-  const texts = result.efectos.map(event => event.data.text);
+  // The act's own result says what was done; the activity entry for the others repeats the same words.
+  const done = result.efectos.filter(event => event.kind === "act-done").map(event => event.data.text);
+  const texts = [...new Set(done.length ? done : result.efectos.map(event => event.data.text))];
   return toolResult(stripVTControlCharacters(house.tools.prepare(texts.join("\n") || said.accepted)));
 }

@@ -2986,7 +2986,7 @@
     },
     {
       "id": 257,
-      "rule": "Cada archivo tiene como máximo 300 renglones y los textos suman como máximo 542 (incluye addressing.ts, código que lee textos, los 2 renglones de capital.ts y las 7 cabeceras de limpiar 5); cada archivo de producción tiene una descripción en el árbol.",
+      "rule": "Cada archivo tiene como máximo 300 renglones y los textos suman como máximo 564 (incluye addressing.ts, código que lee textos, los 2 renglones de capital.ts, las 7 cabeceras de limpiar 5 y los 22 renglones de la puerta MCP); cada archivo de producción tiene una descripción en el árbol.",
       "from": "16/11 · reorden 1, mapa firmado",
       "guarantee": "spec",
       "evidence": [

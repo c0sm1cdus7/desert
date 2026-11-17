@@ -64,10 +64,11 @@ describe("the tree of src/", () => {
   // Cleanup 5: +7 purpose headers in capital, identity-name, journal, secrets, socket, surface and tools.
   // Moving the existing headers in generic-surface and promises adds no lines; the per-file limit stays 300.
   // MCP: +21 lines for its four fixed tools, orientation and protocol errors in the catalog.
-  it("keeps every file within 300 lines and the texts within 563", () => {
+  // MCP with a real client: +1 line telling the agent that amounts travel in cents.
+  it("keeps every file within 300 lines and the texts within 564", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(563);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(564);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));
