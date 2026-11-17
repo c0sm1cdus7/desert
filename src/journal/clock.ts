@@ -1,4 +1,4 @@
-// Schedule asynchronously at an absolute time; cancellation prevents delivery.
+// Time for the house: reminder delays, redraw interval and case instant; folds wake-ups and arms the next one.
 export const toolReminderLadder = { firstMs: 60_000, maxMs: 3_600_000, multiplier: 2 } as const;
 const maxTimerDelayMs = 2_147_483_647;
 /** How often a screen that shows time passing is drawn again. */
@@ -14,6 +14,7 @@ export const systemTime: TimeSource = {
     return () => clearTimeout(timer);
   },
 };
+// Schedule asynchronously at an absolute time; cancellation prevents delivery.
 export type TimeSource = { now(): number; wait(at: number, fire: () => void): () => void };
 export type Deadlines = ReadonlyMap<string, { readonly at: number; readonly cause: string; readonly seq: number }>;
 export function clockStep(state: Deadlines, event: Event): Deadlines {
