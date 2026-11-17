@@ -1,5 +1,5 @@
 import { houseActs } from "../house/scenes.ts";
-import { noCapabilities } from "../tools/execution/capabilities.ts";
+import { noCapabilities } from "../tools/execution/capability-lease.ts";
 import { Value } from "@sinclair/typebox/value";
 import { scene, sceneLimits } from "../house/own-acts.ts";
 import { Type } from "@sinclair/typebox";

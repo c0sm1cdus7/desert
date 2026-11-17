@@ -4,7 +4,7 @@ import type { Decision, Execution, ExecutionResult } from "../execute.ts";
 import type { Program } from "../tool-contract.ts";
 import type { ToolCapabilities } from "../capabilities-contract.ts";
 import { targetTool } from "../../house/attendance.ts";
-import { noCapabilities } from "./capabilities.ts";
+import { noCapabilities } from "./capability-lease.ts";
 import type { RunningAct } from "./running-acts.ts";
 type CapabilityOrigin = Pick<HouseEvent<"act">, "by"> & { data: { object: string } };
 /** Revocable capabilities last through completion, including drafts, synchronous throws and interruption. */

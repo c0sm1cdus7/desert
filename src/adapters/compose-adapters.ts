@@ -2,7 +2,7 @@
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { credentialEffects } from "./credential-effects.ts";
-import type { CapabilityFactory } from "../tools/execution/capabilities.ts";
+import type { CapabilityFactory } from "../tools/execution/capability-lease.ts";
 import type { CredentialScope } from "../tools/capabilities-contract.ts";
 import type { SecretCustody } from "../keychain/custody/secret-custody.ts";
 import { AdapterFailure, type AdapterComposition, type AdapterDeclaration } from "../tools/adapter-contract.ts";

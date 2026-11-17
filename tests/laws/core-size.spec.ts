@@ -67,10 +67,11 @@ describe("the tree of src/", () => {
   // MCP with a real client: +1 line telling the agent that amounts travel in cents.
   // Nube 1: +7 exact lines for cloud.texts.ts, three environment-key diagnostics and their purpose.
   // MCP budget: +1 line for the refusal of a wait past the per-identity bound.
-  it("keeps every file within 300 lines and the texts within 572", () => {
+  // Modelos: +14 líneas exactas para explicar errores del catálogo y el proveedor.
+  it("keeps every file within 300 lines and the texts within 586", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(572);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(586);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));
