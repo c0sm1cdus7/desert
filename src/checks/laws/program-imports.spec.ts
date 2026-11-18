@@ -66,3 +66,25 @@ it("rejects a declared distribution even before an import uses it", () => {
   const repo = lawRepository({ "package.json": manifest([{ kind: "distribution", name: "void" }]) });
   expect(programImports(repo)).toEqual(["desert.dependencies → void"]);
 });
+for (const entry of [
+  "runtime",
+  "runtime/cloud",
+  "componer",
+  "calculation",
+  "doors/terminal",
+  "doors/socket",
+  "doors/keys",
+  "doors/mcp",
+  "doors/mcp/handler",
+  "surface/house-router",
+])
+  it.each([
+    `import "desert/${entry}";`,
+    `export * from "desert/${entry}";`,
+    `type Host = import("desert/${entry}").Host;`,
+    `const host = import("desert/${entry}");`,
+    `const host = require("desert/${entry}");`,
+  ])("280: rejects kernel composition and cloud entries: %s", code => {
+    const repo = lawRepository({ "package.json": manifest(), "src/a.ts": code });
+    expect(programImports(repo)).toEqual([`src/a.ts → desert/${entry}`]);
+  });

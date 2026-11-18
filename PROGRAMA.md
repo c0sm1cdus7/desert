@@ -2139,8 +2139,18 @@ Los paquetes viven fuera de `node_modules`, fijados por commit, y se enlazan des
 `desert` como dependencia par y lo importa por sus `exports`; nunca instala una copia propia mediante alias.
 Las entradas públicas son `desert/programa`, `desert/componer`, `desert/messages`, `desert/fields`,
 `desert/fields/*`, `desert/journal`, `desert/runtime`, `desert/doors/terminal`, `desert/doors/socket`,
-`desert/doors/mcp`, `desert/testing`, `desert/laws`, `desert/program-types`, `desert/surface` y
-`desert/calculation`. Las rutas públicas de `fields/*` no llevan `.ts` en el especificador.
+`desert/doors/mcp`, `desert/testing`, `desert/laws`, `desert/program-types`, `desert/surface`,
+`desert/calculation`, `desert/surface/house-router`, `desert/runtime/cloud`, `desert/doors/keys` y
+`desert/doors/mcp/handler`. Las rutas públicas de `fields/*` no llevan `.ts` en el especificador.
+
+Para armar una distribución, `desert/surface/house-router` publica `houseRouter`, que arma la terminal local;
+`desert/runtime/cloud` publica `startCloudHouse`, que abre la casa de nube con la raíz del anfitrión;
+`desert/doors/keys` publica `environmentDoorKeys`, que lee las variables de llaves declaradas por la distribución;
+y `desert/doors/mcp/handler` publica `mcpDoor`, que se conecta con `serveMcp` de `desert/doors/mcp`.
+Estas entradas son del ensamblador de la distribución: publicarlas no habilita su importación desde programas.
+La ley 280 rechaza las entradas de arranque, composición, cálculo, puertas y router desde el código de un programa,
+también al reexportar, consultar tipos o importar dinámicamente. La frontera de secretos sigue auditando los nombres
+permitidos de las entradas de programa; no habilita lectores de llaves ni funciones de nube.
 
 ### La compuerta de un programa independiente
 

@@ -7,6 +7,16 @@ import { field, isRecord } from "../../fields/json-values.ts";
 import { codeFiles, fromRoot, isSpec, parsed, type Repository } from "./law-files.ts";
 import { importsIn } from "./imports.ts";
 
+// Public package visibility does not grant a program the host's composition or custody authority.
+const programEntries = new Set([
+  "desert/programa",
+  "desert/messages",
+  "desert/fields",
+  "desert/journal",
+  "desert/program-types",
+  "desert/surface",
+  "desert/testing",
+]);
 export type ProgramDependency = Readonly<{ kind: "contract" | "distribution"; name: string }>;
 export function programDependencies(value: unknown): readonly ProgramDependency[] {
   if (value === undefined) return [];
@@ -61,7 +71,8 @@ function allowedImport(
   file: string,
   specifier: string,
 ): boolean {
-  if (specifier.startsWith("desert/") && !specifier.split("/").includes("..")) return true;
+  if (specifier.startsWith("desert/"))
+    return programEntries.has(specifier) || /^desert\/fields\/[a-z][a-z0-9-]*$/u.test(specifier);
   if (specifier.startsWith(".")) {
     const target = resolve(dirname(file), specifier);
     return (

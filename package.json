@@ -111,13 +111,17 @@
     "./fields/*": "./src/fields/*.ts",
     "./journal": "./src/journal/vocabulary.ts",
     "./runtime": "./src/runtime/house-runtime.ts",
+    "./runtime/cloud": "./src/runtime/cloud-house.ts",
     "./doors/terminal": "./src/doors/terminal/boot.ts",
     "./doors/socket": "./src/doors/socket/server/server-process.ts",
+    "./doors/keys": "./src/doors/socket/peers/environment-door-keys.ts",
     "./doors/mcp": "./src/doors/mcp/mcp-http.ts",
+    "./doors/mcp/handler": "./src/doors/mcp/mcp-handler.ts",
     "./testing": "./src/testing.ts",
     "./laws": "./src/laws.ts",
     "./program-types": "./src/tools/tool-contract.ts",
     "./surface": "./src/surface/bridge/ports/house-ports.ts",
+    "./surface/house-router": "./src/surface/bridge/assembly/house-router.ts",
     "./calculation": "./src/runtime/calculation-version.ts"
   }
 }

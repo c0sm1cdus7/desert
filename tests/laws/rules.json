@@ -3284,13 +3284,15 @@
     },
     {
       "id": 280,
-      "rule": "Un programa es para DESERT: solo importa sus archivos, exports de desert o módulos pedidos por contrato; las distribuciones quedan fuera. La ley controla todas las formas de importación y componer rechaza dependencias declaradas de distribuciones.",
+      "rule": "Un programa es para DESERT: solo importa sus archivos, entradas públicas de programa de desert o módulos pedidos por contrato; las distribuciones, el arranque de casas, las llaves, las puertas y la nube quedan fuera. La ley controla todas las formas de importación y componer rechaza dependencias declaradas de distribuciones. La distribución puede armar su terminal local y su casa de nube mediante exports públicos desde paquetes enlazados fuera de node_modules, sin ampliar la frontera de secretos de los programas.",
       "from": "18/11 · distribuciones, núcleo paso 2",
       "guarantee": "spec",
       "evidence": [
         "src/checks/laws/program-imports.spec.ts",
         "src/runtime/distributions/compose.spec.ts",
-        "src/runtime/distributions/types.spec.ts"
+        "src/runtime/distributions/types.spec.ts",
+        "tests/laws/distribution-entries.spec.ts",
+        "src/runtime/distributions/entries.spec.ts"
       ]
     },
     {
