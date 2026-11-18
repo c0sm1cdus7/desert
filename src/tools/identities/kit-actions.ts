@@ -1,6 +1,6 @@
 // Acciones declaradas de dar y sacar una herramienta o una acción mediante granted y kit-set.
 import { holderKit } from "../../house/kit-history.ts";
-import { covers, herramientaDe, kitLayout } from "../../house/kit-selection.ts";
+import { actionSelection, covers, herramientaDe, kitLayout } from "../../house/kit-selection.ts";
 import { object } from "../../fields/visible-text.ts";
 import { oneOf, option } from "../../fields/fields.ts";
 import { allowedAct } from "../../house/kit.ts";
@@ -61,9 +61,7 @@ function kitAction<X extends Program>(tool: Tool<X>, key: string, otherMind: boo
 }
 function inherited(house: House, holder: string, program: string, action: string): boolean {
   return holderKit(house, holder).selections.some(
-    selection =>
-      selection.kind !== "action" &&
-      covers(selection, { kind: "action", program, tool: herramientaDe(program, action, house.kitLayout), action }),
+    selection => selection.kind !== "action" && covers(selection, actionSelection(program, action, house.kitLayout)),
   );
 }
 export function kitActions<X extends Program>(registry: ToolRegistry<X>): Readonly<Record<string, ProgramAct<X>>> {

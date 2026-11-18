@@ -2,7 +2,7 @@
 import { migrateKit } from "./kit-migration.ts";
 import type { House } from "./members.ts";
 import type { HouseEvent } from "./facts.ts";
-import { selectionKit, type SelectionKit, type Selection } from "./kit-selection.ts";
+import { actionSelection, selectionKit, type KitLayout, type SelectionKit, type Selection } from "./kit-selection.ts";
 export function holderKit(house: House, holder: string): SelectionKit {
   return migrateKit(storedHolderKit(house, holder), house.kitMigration);
 }
@@ -15,14 +15,15 @@ export function storedHolderKit(house: House, holder: string): SelectionKit {
     programs.flatMap(program => {
       const previous = house.kits.get(holder);
       const absent = own ? [] : undefined;
-      return historicalBranch(program, previous?.has(program) ? previous.get(program) : absent);
+      return historicalBranch(program, previous?.has(program) ? previous.get(program) : absent, house.kitLayout);
     }),
   );
 }
-function historicalBranch(program: string, acts?: readonly string[] | null): Selection[] {
+/** Old engine action names may carry their group prefix; the selection keeps the group and the local action. */
+function historicalBranch(program: string, acts?: readonly string[] | null, layout?: KitLayout): Selection[] {
   return acts === undefined || acts === null
     ? [{ kind: "tool", program, tool: program }]
-    : acts.map(action => ({ kind: "action", program, tool: program, action }));
+    : acts.map(action => actionSelection(program, action, layout));
 }
 export function selectionStep(house: House, event: HouseEvent): House {
   if (event.by !== house.admin) return house;
@@ -47,7 +48,7 @@ export function selectionStep(house: House, event: HouseEvent): House {
       const { tool, acts } = event.data;
       if (tool === "identities" || (own ? own !== tool : !house.grants.get(holder)?.includes(tool))) return house;
       const rest = storedHolderKit(house, holder).selections.filter(selection => selection.program !== tool);
-      selections.set(holder, selectionKit([...rest, ...historicalBranch(tool, acts)]));
+      selections.set(holder, selectionKit([...rest, ...historicalBranch(tool, acts, house.kitLayout)]));
     }
   } else return house;
   return { ...house, selections };
