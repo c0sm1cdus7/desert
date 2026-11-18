@@ -86,10 +86,11 @@ describe("the tree of src/", () => {
   // Reentrega: +3 líneas exactas para decir por qué no se guardó (o se cortó) el registro de aperturas.
   // Dist-v10: +2 líneas exactas para exigir la composición local de prueba sin atar el programa a una distro.
   // Dist-mentes-programa: +22 líneas exactas para reglas comunes, palabras del programa y aviso de indisponibilidad.
-  it("keeps every file within 300 lines and the texts within 992", () => {
+  // Mente de programa: +1 línea para decir que la atención la marca el código (decisión 28).
+  it("keeps every file within 300 lines and the texts within 993", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(992);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(993);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));
