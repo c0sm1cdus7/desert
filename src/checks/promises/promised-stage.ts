@@ -40,11 +40,18 @@ function open<X extends Program>(
   const assignments = [...holding, { identity: cast.outsider, tools: [] }];
   const creation = { admin: cast.admin, assignments };
   return {
-    ...startHouse<X>(home, { by: runner, creation, ...program, secretKeys }, time),
+    ...startHouse<X>(home, { by: runner, creation, ...withoutMinds(program), secretKeys }, time),
     pass,
     setTime,
     now: () => time.now(),
   };
+}
+/** A check that brings no model resources proves what the acts promise with every mind off: a mind is proven by its
+ * role's cases on the bench. A check that brings them keeps its minds. */
+function withoutMinds<X extends Program>(program: Composition<X>): Composition<X> {
+  return program.mentes && !("modelMinds" in program)
+    ? { ...program, mentes: { asistentes: false, programas: [] } }
+    : program;
 }
 export type House<X extends Program> = ReturnType<typeof open<X>>;
 type Stage<X extends Program> = Readonly<{ house: () => House<X>; reopen: () => void }>;
