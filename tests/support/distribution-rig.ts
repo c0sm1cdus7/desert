@@ -7,6 +7,7 @@ import { startTools } from "../../src/tools/start.ts";
 import { localPorts } from "../../src/runtime/house-runtime.ts";
 import type { Composition } from "../../src/tools/promises-contract.ts";
 import type { Program } from "../../src/tools/tool-contract.ts";
+import type { Event } from "../../src/journal/vocabulary.ts";
 export function distributionRig<X extends Program>(program: Composition<X>) {
   const journal = new SqliteJournal(":memory:", program.words);
   const bus = new Bus<X["fact"]>(
@@ -22,6 +23,7 @@ export function distributionRig<X extends Program>(program: Composition<X>) {
     return startTools({
       bus,
       registry: program.registry,
+      history: journal.replay<Event<X["fact"]>[]>([], (events, event) => [...events, event]),
       state,
       now: () => 1000,
       secrets: { capture: () => {}, scrub: <T>(value: T) => value },

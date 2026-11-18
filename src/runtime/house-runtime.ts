@@ -75,7 +75,7 @@ export function startHouse<X extends Program>(
     ...(options.process ? { process: options.process } : {}),
   };
   const resources = houseResources(home, options, time);
-  const { capabilities, protection, secrets, bus, stops, report, close, state, clock } = resources;
+  const { capabilities, protection, journal, secrets, bus, stops, report, close, state, clock } = resources;
   try {
     if (!state().house.admin) checkCreation(creation, by);
     protection.mark();
