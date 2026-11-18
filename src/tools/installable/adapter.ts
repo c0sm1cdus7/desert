@@ -79,21 +79,11 @@ export function installProgram<M extends ProgramMetadata>(meta: M, body: Program
   const tool: ProgramTool<Program> = {
     id: meta.id,
     name: body.palabras.name,
-    toolNames: Object.fromEntries(groups.map(group => [group.id, group.palabras.name])),
     purpose: body.purpose,
     skill: body.skill,
     facts: meta.hechos.map(f => f.nombre),
     groups,
-    reactions: Object.fromEntries(groups.flatMap(group => Object.entries(group.tool.reactions ?? {}))),
-    actionTools: Object.fromEntries(
-      groups.flatMap(group => Object.keys(group.tool.acts).map(action => [action, group.id])),
-    ),
-    menus: Object.fromEntries(groups.flatMap(group => Object.entries(group.tool.menus ?? {}))),
-    acts: Object.fromEntries(
-      groups.flatMap(group =>
-        Object.entries(group.tool.acts).map(([key, act]) => [key, { ...act, on: "thing" as const }]),
-      ),
-    ),
+    ...fromGroups(groups),
     targets: state => groups.flatMap(group => [group.folder, ...group.tool.targets(state)]),
     summary: state => body.summary(localState<LocalProgram<M>>(state, meta.id)),
     view: (state, target, limits) =>
@@ -111,6 +101,22 @@ export function installProgram<M extends ProgramMetadata>(meta: M, body: Program
     words: body.palabras,
     initial: meta.inicial(),
     step: foldProgram(meta, body),
+  };
+}
+/** What a program gathers from its tools: their names, reactions, menus and acts, each act on a thing. */
+function fromGroups(groups: readonly InstalledGroup[]) {
+  return {
+    toolNames: Object.fromEntries(groups.map(group => [group.id, group.palabras.name])),
+    reactions: Object.fromEntries(groups.flatMap(group => Object.entries(group.tool.reactions ?? {}))),
+    actionTools: Object.fromEntries(
+      groups.flatMap(group => Object.keys(group.tool.acts).map(action => [action, group.id])),
+    ),
+    menus: Object.fromEntries(groups.flatMap(group => Object.entries(group.tool.menus ?? {}))),
+    acts: Object.fromEntries(
+      groups.flatMap(group =>
+        Object.entries(group.tool.acts).map(([key, act]) => [key, { ...act, on: "thing" as const }]),
+      ),
+    ),
   };
 }
 function requiredGroup(group: InstalledGroup | undefined): InstalledGroup {
