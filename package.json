@@ -119,6 +119,7 @@
     "./doors/mcp": "./src/doors/mcp/mcp-http.ts",
     "./doors/mcp/handler": "./src/doors/mcp/mcp-handler.ts",
     "./testing": "./src/testing.ts",
+    "./program-gate": "./tests/program/gate.ts",
     "./laws": "./src/laws.ts",
     "./program-types": "./src/tools/tool-contract.ts",
     "./surface": "./src/surface/bridge/ports/house-ports.ts",

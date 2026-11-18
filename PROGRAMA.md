@@ -2139,7 +2139,7 @@ Los paquetes viven fuera de `node_modules`, fijados por commit, y se enlazan des
 `desert` como dependencia par y lo importa por sus `exports`; nunca instala una copia propia mediante alias.
 Las entradas públicas son `desert/programa`, `desert/componer`, `desert/messages`, `desert/fields`,
 `desert/fields/*`, `desert/journal`, `desert/runtime`, `desert/doors/terminal`, `desert/doors/socket`,
-`desert/doors/mcp`, `desert/testing`, `desert/laws`, `desert/program-types`, `desert/surface`,
+`desert/doors/mcp`, `desert/testing`, `desert/program-gate`, `desert/laws`, `desert/program-types`, `desert/surface`,
 `desert/calculation`, `desert/surface/house-router`, `desert/runtime/cloud`, `desert/doors/keys` y
 `desert/doors/mcp/handler`. Las rutas públicas de `fields/*` no llevan `.ts` en el especificador.
 
@@ -2185,6 +2185,12 @@ DESERT y los contratos que pide. Las partes `tests/program/*.checks.ts` de DESER
 en el runner:
 corren todos los `programChecks`, los diarios conservados, la frontera de secretos y las mismas leyes de código
 sobre la raíz del paquete independiente. No hay una selección de leyes reducida para programas instalables.
+
+Un paquete enlazado fuera de la base, que Vitest no puede recorrer a través del enlace, corre la misma compuerta con
+`desert/program-gate`: `programGate(raiz)` carga el programa con el cargador de la base (importaciones y frontera de
+secretos antes de evaluarlo), comprueba su código y devuelve los grupos de las partes: comprobaciones derivadas,
+diarios conservados, frontera de secretos y leyes del repositorio. El paquete registra cada comprobación de cada grupo
+como una prueba propia; no elige cuáles.
 
 Un programa importa únicamente `desert/...`, archivos propios dentro de sus raíces de código y módulos pedidos
 explícitamente por contrato. Para estos últimos, `metadata.dependencies` y `desert.dependencies` declaran la
