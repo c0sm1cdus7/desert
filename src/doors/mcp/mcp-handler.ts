@@ -160,8 +160,9 @@ function caller<X extends Program>(
     const { name, args } = toolCall(params);
     const reading = mcpReading(house, by, options.limits);
     const tool = typeof args.herramienta === "string" ? args.herramienta : undefined;
-    if (name === "leer") return reading.read(tool);
-    if (name === "acciones") return reading.actions(tool);
+    const target = typeof args.objetivo === "string" ? args.objetivo : undefined;
+    if (name === "leer") return reading.read(tool, target);
+    if (name === "acciones") return reading.actions(tool, target);
     if (name === "esperar" && typeof args.desde === "number" && typeof args.segundos === "number")
       return wait(house, waits, by, { desde: args.desde, segundos: args.segundos }, signal);
     if (name === "actuar" && tool !== undefined && typeof args.accion === "string")

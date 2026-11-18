@@ -4,8 +4,20 @@ export const mcpTexts = {
     "La casa reúne identidades y herramientas. leer muestra la escena, la parte y los avisos; " +
     "acciones muestra el kit y sus entradas; actuar hace un acto y esperar aguarda cambios. " +
     "Los importes van en centavos, como en una caja registradora: 4500 son 45,00.",
-  leer: { name: "leer", description: "Lee la casa de esta identidad o lo que muestra una herramienta." },
-  acciones: { name: "acciones", description: "Lista las acciones del kit, sus entradas y lo que hoy las impide." },
+  leer: {
+    name: "leer",
+    description:
+      "Lee la casa; con herramienta, lee el programa. Para bajar a una herramienta, repetí herramienta y " +
+      "pasá su id como objetivo (notas/notas); para leer un objeto, usá el id de esa lista como objetivo " +
+      "(notas/notas/<id>). Sin objetivo muestra la raíz. Todos leen los programas; el kit habilita las acciones.",
+  },
+  acciones: {
+    name: "acciones",
+    description:
+      "Lista acciones, entradas y motivos que las impiden. herramienta elige el programa; objetivo filtra " +
+      "su carpeta u objeto, con el mismo id que leer y actuar. Las acciones ajenas de programas se muestran " +
+      "apagadas por el kit.",
+  },
   actuar: { name: "actuar", description: "Hace una acción del kit sobre una herramienta o una de sus cosas." },
   esperar: { name: "esperar", description: "Aguarda un cambio posterior a desde, durante hasta 60 segundos." },
   parse: "El cuerpo no es JSON válido.",

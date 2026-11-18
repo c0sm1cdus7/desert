@@ -15,10 +15,9 @@ export function distributionRig<X extends Program>(program: Composition<X>) {
     write => journal.batch(write),
   );
   createHouse(bus, { admin: "ana", assignments: [{ identity: "ana", tools: program.registry.map(t => t.id) }] });
+  const initial = () => startState(program.slices, "ana", program.identities, program.registry);
   const resume = () => {
-    const state = journal.watch("tools", startState(program.slices, "ana", program.identities), (state, event) =>
-      toolsStep(state, event, program.slices),
-    );
+    const state = journal.watch("tools", initial(), (state, event) => toolsStep(state, event, program.slices));
     journal.restore();
     return startTools({
       bus,
@@ -30,8 +29,9 @@ export function distributionRig<X extends Program>(program: Composition<X>) {
     });
   };
   let tools = resume();
-  const house = () => ({ tools, bus, registry: program.registry, now: () => 1000 });
+  const house = () => ({ tools, bus, journal, registry: program.registry, now: () => 1000 });
   return {
+    house,
     state: () => tools.state(),
     ports: () => localPorts(house(), "ana", { recentLines: 20 }),
     act: (act: string, target: string, input: unknown = {}) => tools.act({ act, target, input }, 0, "ana"),

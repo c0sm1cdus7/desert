@@ -1836,13 +1836,20 @@ obligatoria entre pedidos. Un método desconocido recibe `-32601`; argumentos in
 
 Las herramientas publicadas son siempre `leer`, `acciones`, `actuar` y `esperar`:
 
-- `leer { herramienta?: string }` muestra la identidad, la secuencia `desde`, las escenas generales con la parte
+- `leer { herramienta?: string, objetivo?: string }` muestra la identidad, la secuencia `desde`, las escenas generales con la parte
   dirigida a quien lee, las herramientas asignadas y sus avisos. Con `herramienta`, muestra su lectura textual,
-  sin códigos de terminal. Usa `localPorts`, las lecturas de identidad y los avisos de la terminal.
-- `acciones { herramienta?: string }` muestra solo actos del kit: herramienta, identificador de la acción, nombre,
+  sin códigos de terminal. En un programa instalable, esa lectura lista sus herramientas con ids. Pasá uno como
+  `objetivo` (por ejemplo, `notas/notas`) para listar sus objetos; pasá el id de un objeto (`notas/notas/<id>`)
+  para leerlo. `objetivo` requiere `herramienta` y debe pertenecer a ese programa: destinos inexistentes o de otro
+  programa reciben un rechazo claro. Cualquier identidad presente puede leer un programa instalable aunque
+  no lo tenga en su kit. Usa `localPorts`, las lecturas de identidad y los avisos de la terminal.
+- `acciones { herramienta?: string, objetivo?: string }` muestra actos del kit: herramienta, identificador de la acción, nombre,
   propósito, si se hace sobre una herramienta o una cosa, objetivo, esquema TypeBox serializado como JSON Schema
   y motivo de indisponibilidad. Las posiciones secretas conservan `secret: true`. Si todavía no hay cosas, la
-  acción de cosa aparece con ese motivo y sin objetivo.
+  acción de cosa aparece con ese motivo y sin objetivo. En programas instalables muestra también las acciones
+  ajenas, apagadas con el motivo del kit. Cada acción aparece sólo en su carpeta u objetos correspondientes;
+  `objetivo` filtra por uno de esos mismos ids que aceptan `leer` y `actuar`, y requiere `herramienta`.
+  Los `Tool` comunes conservan el filtro por kit y su lectura sin objetivo. Ninguna lectura concede escritura.
 - `actuar { herramienta, accion, objetivo?, datos }` toma la herramienta como objetivo cuando no se indica otro.
   Atiende el objetivo y ejecuta mediante `requestBook`, el mismo camino del socket, con los chequeos de kit y el
   tope de datos de la casa. Devuelve el texto aceptado o el motivo del rechazo con `isError: true`. Los recibos

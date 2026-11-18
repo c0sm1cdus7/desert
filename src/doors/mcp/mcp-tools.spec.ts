@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
+import { mcpResult, mcpActions } from "../../../tests/support/mcp-results.ts";
 import { mcpHouse } from "../../../tests/support/mcp-house.ts";
 import { effect } from "../../house/facts.ts";
 import { actLimits } from "../../house/own-acts.ts";
@@ -64,6 +65,35 @@ it("lists only granted actions and respects a narrower kit at execution time", a
         .body,
     ),
   ).toMatchObject({ result: { isError: true } });
+});
+it("keeps ordinary Tool readings and action targets while accepting an explicit object", async () => {
+  const h = setup();
+  await h.call("actuar", { herramienta: "sales", accion: "register", datos: { sale: "venta", total: 100 } });
+  const tool = h.house.registry.find(tool => tool.id === "sales");
+  const target = tool?.targets(h.rig.state())[0];
+  if (!tool || !target) throw new Error("Missing sale target");
+  const response: unknown = JSON.parse((await h.call("leer", { herramienta: "sales", objetivo: target }, h.beto)).body);
+  expect(response).toMatchObject({
+    result: {
+      isError: false,
+      content: [
+        {
+          text: tool.view(h.rig.state(), target, { recentLines: 20, now: Date.now() }),
+        },
+      ],
+    },
+  });
+  expect((await h.call("leer", { herramienta: "sales", objetivo: "sales" })).body).toBe(
+    (await h.call("leer", { herramienta: "sales" })).body,
+  );
+  const actions = mcpActions(mcpResult((await h.call("acciones", { herramienta: "sales" }, h.beto)).body));
+  const filtered = mcpActions(
+    mcpResult((await h.call("acciones", { herramienta: "sales", objetivo: target }, h.beto)).body),
+  );
+  expect(filtered).toEqual(actions.filter(action => action.objetivo === target));
+  expect(JSON.parse((await h.call("leer", { herramienta: "sales", objetivo: target }, h.carla)).body)).toMatchObject({
+    result: { isError: true },
+  });
 });
 it("acts with the socket book, accepts once and explains a refusal", async () => {
   const h = setup();

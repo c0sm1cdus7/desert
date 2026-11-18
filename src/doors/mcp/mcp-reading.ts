@@ -1,8 +1,9 @@
-// La puerta agente lee los puertos y avisos de la terminal, y ofrece solo las acciones de su kit.
+// La puerta agente lee programas, carpetas y objetos como la terminal, con acciones sujetas al kit.
 import { stripVTControlCharacters } from "node:util";
 import { allowed, allowedAct } from "../../house/kit.ts";
+import { targetTool } from "../../house/attendance.ts";
 import { localPorts } from "../../runtime/house-runtime.ts";
-import type { Program, ViewLimits, Tool } from "../../tools/tool-contract.ts";
+import type { Program, ViewLimits, Tool, ToolAct } from "../../tools/tool-contract.ts";
 import type { HousePorts } from "../../surface/bridge/ports/house-ports.ts";
 import type { ProgramTool } from "../../tools/promises.ts";
 import { programOffered } from "../../tools/program-run.ts";
@@ -13,6 +14,7 @@ import { noticesOf } from "../../surface/bridge/views/notices.ts";
 import { identityReading, identityTarget } from "../../tools/identities/identity-reading.ts";
 import type { RequestHouse } from "../socket/requests/request-book.ts";
 import { mcpTexts as said } from "../../texts/mcp.texts.ts";
+import { toolTexts } from "../../texts/tools.texts.ts";
 import { toolResult } from "./mcp-protocol.ts";
 export type McpHouse<X extends Program> = RequestHouse<X> & Parameters<typeof localPorts<X>>[0];
 const declared = <X extends Program>(tool: Tool<X>): tool is ProgramTool<X> =>
@@ -41,25 +43,35 @@ function overview<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<
     avisos,
   };
 }
-function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X>[]) {
+function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X>[], on?: string) {
   const state = ports.state();
-  return tools.flatMap(tool =>
-    Object.entries(tool.acts)
-      .filter(([name]) => allowedAct(state.house, ports.me, tool.id, name))
-      .flatMap(([name, act]) => {
-        const targets = act.on === "thing" ? programCall(tool.targets.bind(tool), state) : [tool.id];
-        return (targets.length ? targets : [undefined]).map(target => ({
-          herramienta: tool.id,
-          accion: name,
-          nombre: isProgram(act) ? act.name : name,
-          sobre: act.on ?? "tool",
-          objetivo: target,
-          para: isProgram(act) ? act.purpose : tool.purpose,
-          entrada: act.input,
-          motivo: target === undefined ? said.noThings : programOffered(act, state, target, ports.now()),
-        }));
-      }),
-  );
+  return tools.flatMap(tool => {
+    const reason = (name: string, act: ToolAct<X>, target?: string) => {
+      if (!allowedAct(state.house, ports.me, tool.id, name)) return toolTexts.kitRefusal(tool.id);
+      return target === undefined ? said.noThings : programOffered(act, state, target, ports.now());
+    };
+    const groups = declared(tool) ? tool.groups : undefined;
+    const members: readonly Tool<X>[] = groups?.map(group => group.tool) ?? [tool];
+    return members.flatMap(group =>
+      Object.entries(group.acts)
+        .filter(([name]) => groups !== undefined || allowedAct(state.house, ports.me, tool.id, name))
+        .flatMap(([name, act]) => {
+          const targets = act.on === "thing" ? programCall(group.targets.bind(group), state) : [group.id];
+          return (targets.length ? targets : [undefined])
+            .filter(target => on === undefined || target === on)
+            .map(target => ({
+              herramienta: tool.id,
+              accion: name,
+              nombre: isProgram(act) ? act.name : name,
+              sobre: act.on ?? "tool",
+              objetivo: target,
+              para: isProgram(act) ? act.purpose : tool.purpose,
+              entrada: act.input,
+              motivo: reason(name, act, target),
+            }));
+        }),
+    );
+  });
 }
 export function mcpReading<X extends Program>(house: McpHouse<X>, by: string, limits: Omit<ViewLimits, "now">) {
   const ports = localPorts(house, by, limits);
@@ -71,21 +83,29 @@ export function mcpReading<X extends Program>(house: McpHouse<X>, by: string, li
     );
   const clean = (value: unknown) =>
     stripVTControlCharacters(house.tools.prepare(typeof value === "string" ? value : JSON.stringify(value)));
-  const read = (id?: string) => {
-    const tool = tools().find(tool => tool.id === id);
+  const readable = () =>
+    ports.registry.filter(tool => (declared(tool) && tool.groups !== undefined) || tools().includes(tool));
+  const matches = (id: string, target: string) => targetTool(ports.registry, ports.state(), target)?.id === id;
+  const read = (id?: string, target?: string) => {
+    if (id !== undefined && target !== undefined && !matches(id, target)) return toolResult(said.action, true);
+    const tool = readable().find(tool => tool.id === id);
     if (id !== undefined)
       return tool
-        ? toolResult(clean(programCall(tool.view.bind(tool), ports.state(), id, { ...limits, now: ports.now() })))
+        ? toolResult(
+            clean(programCall(tool.view.bind(tool), ports.state(), target ?? id, { ...limits, now: ports.now() })),
+          )
         : toolResult(said.tool, true);
     return toolResult(clean(overview(ports, tools())));
   };
-  const offered = (id?: string) => {
-    if (id !== undefined && !tools().some(tool => tool.id === id)) return toolResult(said.tool, true);
+  const offered = (id?: string, target?: string) => {
+    if (id !== undefined && target !== undefined && !matches(id, target)) return toolResult(said.action, true);
+    if (id !== undefined && !readable().some(tool => tool.id === id)) return toolResult(said.tool, true);
     return toolResult(
       clean(
         actions(
           ports,
-          tools().filter(tool => id === undefined || id === tool.id),
+          readable().filter(tool => id === undefined || id === tool.id),
+          target,
         ),
       ),
     );

@@ -79,7 +79,7 @@
     "doors/mcp/mcp-handler.ts": "Maneja HTTP y JSON-RPC sin sockets; cada pedido toma su identidad de la llave y usa los puertos de la casa.",
     "doors/mcp/mcp-http.ts": "Adaptador HTTP fino: presta un cuerpo perezoso al manejador y escucha solo donde el programa lo indica.",
     "doors/mcp/mcp-protocol.ts": "Los mensajes JSON-RPC y las cuatro herramientas fijas de la puerta MCP, sin sesión de transporte.",
-    "doors/mcp/mcp-reading.ts": "La puerta agente lee los puertos y avisos de la terminal, y ofrece solo las acciones de su kit.",
+    "doors/mcp/mcp-reading.ts": "La puerta agente lee programas, carpetas y objetos como la terminal, con acciones sujetas al kit.",
     "doors/socket/client/client-requests.ts": "Pedidos personales nuevos; solo observaciones automáticas comparten promesa; recupera cortes sin repetir.",
     "doors/socket/client/client-stream.ts": "Entrada con cinco segundos totales hasta el primer estado comprobado, además del plazo de marco.",
     "doors/socket/client/connection-state.ts": "Última vista recibida, reloj de la casa extrapolado y cuatro estados de conexión.",

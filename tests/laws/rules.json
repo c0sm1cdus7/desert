@@ -2996,7 +2996,7 @@
     },
     {
       "id": 257,
-      "rule": "Cada archivo tiene como máximo 300 renglones y los textos suman como máximo 586 (incluye addressing.ts, código que lee textos, los 2 renglones de capital.ts, las 7 cabeceras de limpiar 5, los 23 renglones de la puerta MCP, los 7 de las llaves de nube y los 14 de la skill tipada de Identidades); cada archivo de producción tiene una descripción en el árbol.",
+      "rule": "Cada archivo tiene como máximo 300 renglones y los textos suman como máximo 951, con los incrementos exactos y sus motivos registrados en core-size.spec.ts (12 renglones nuevos para orientar la lectura MCP de programas); cada archivo de producción tiene una descripción en el árbol.",
       "from": "16/11 · reorden 1, mapa firmado",
       "guarantee": "spec",
       "evidence": [
@@ -3135,7 +3135,7 @@
     },
     {
       "id": 268,
-      "rule": "La puerta MCP autentica cada pedido antes de leerlo con comparación SHA-256 de todas las llaves de agente. Limita bytes y tipo de cuerpo, negocia las tres versiones admitidas y mantiene cuatro herramientas fijas sin sesión MCP. Lee por los puertos de la terminal, ofrece solo actos del kit, actúa por el libro del socket y espera cambios hasta 60 segundos. No expone llaves ni recibos privados, y vuelve a comprobar la autorización tras leer y antes de responder. Salud es pública y no revela datos de la casa.",
+      "rule": "La puerta MCP autentica cada pedido antes de leerlo con comparación SHA-256 de todas las llaves de agente. Limita bytes y tipo de cuerpo, negocia las tres versiones admitidas y mantiene cuatro herramientas fijas sin sesión MCP. Lee por los puertos de la terminal, ofrece actos del kit y muestra apagados los ajenos de programas instalables, actúa por el libro del socket y espera cambios hasta 60 segundos. No expone llaves ni recibos privados, y vuelve a comprobar la autorización tras leer y antes de responder. Salud es pública y no revela datos de la casa.",
       "from": "16/11 · nube, MCP 1: puerta HTTP de agentes",
       "guarantee": "spec",
       "evidence": [
@@ -3311,6 +3311,16 @@
         "src/runtime/contracts/readings.spec.ts",
         "src/runtime/contracts/gate.spec.ts",
         "src/runtime/contracts/negatives.spec.ts"
+      ]
+    },
+    {
+      "id": 283,
+      "rule": "MCP permite leer un programa instalable, sus carpetas y sus objetos usando los ids de la terminal. leer y acciones aceptan objetivo dentro del programa indicado; rechazan destinos inexistentes o ajenos. Todas las identidades presentes leen los programas y sus acciones sin kit se muestran apagadas. acciones sólo publica destinos aplicables y actuar conserva sus permisos. Los Tool comunes mantienen su comportamiento anterior.",
+      "from": "18/11 · dist-mcp-leer, lectura de carpetas y objetos",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/mcp/mcp-program-reading.spec.ts",
+        "src/doors/mcp/mcp-tools.spec.ts"
       ]
     }
   ]
