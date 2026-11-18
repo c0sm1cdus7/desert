@@ -1,4 +1,4 @@
-// Decide despertares firmados desde mensajes, actos, respuestas y ciclos de journeys del diario.
+// Routes native requests and causal replies to the correct mind or journey.
 import { ruleWake } from "./rule-wake.ts";
 import { parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
@@ -24,22 +24,33 @@ function mentions(text: string, name: string): boolean {
   }
   return false;
 }
-/** Only a causal response to a request from this process resumes it; another journey keeps its own inbox. */
-function requested(policy: WakePolicy, event: Event, history: readonly Event[]): boolean {
+/** Replies resume the requesting process; fresh messages need a native action or turn origin. */
+function directed(policy: WakePolicy, event: Event, history: readonly Event[]): boolean {
+  if (
+    event.layer !== "house" ||
+    (event.kind !== "mind-message" && event.kind !== "mind-requested") ||
+    event.data.to !== policy.scope.actor
+  )
+    return false;
   const ancestors = new Set(event.cause);
+  let native = event.kind === "mind-message" && event.cause.length === 0;
   for (const previous of [...history].reverse()) {
     if (previous.seq >= event.seq || !ancestors.has(previous.id)) continue;
-    if (
-      previous.layer === "house" &&
-      previous.kind === "mind-message" &&
-      previous.by === policy.scope.actor &&
-      previous.process === policy.scope.process &&
-      previous.data.to === event.by
-    )
-      return true;
+    if (previous.layer === "house") {
+      if (previous.kind === "mind-message" && previous.by === policy.scope.actor && previous.data.to === event.by)
+        return previous.process === policy.scope.process;
+      if (
+        previous.by === event.by &&
+        ((event.kind === "mind-message" &&
+          previous.kind === "mind-turn-opened" &&
+          previous.data.turn === event.data.turn) ||
+          (previous.kind === "act" && previous.data.option === "message" && previous.data.object === event.data.to))
+      )
+        native = true;
+    }
     previous.cause.forEach(id => ancestors.add(id));
   }
-  return false;
+  return native && policy.scope.kind === "consciousness";
 }
 function lifecycle(policy: WakePolicy, event: Event, history: readonly Event[], now: number): boolean {
   if (event.layer !== "house" || event.by !== policy.scope.actor) return false;
@@ -64,11 +75,8 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   requireMind(mind, "policy.actor");
   if (lifecycle(policy, event, history, now) || ruleWake(policy.scope, event, history)) return true;
   if (event.by === policy.scope.actor) return false;
-  if (event.layer === "house" && event.kind === "mind-message")
-    return (
-      event.data.to === policy.scope.actor &&
-      (requested(policy, event, history) || (policy.scope.kind === "consciousness" && event.cause.length === 0))
-    );
+  if (event.layer === "house" && (event.kind === "mind-message" || event.kind === "mind-requested"))
+    return directed(policy, event, history);
   if (mind.kind === "tool" && policy.scope.kind === "consciousness")
     return event.layer === "house" && event.kind === "act" && policy.toolOf(event.data.object) === mind.tool;
   if (policy.scope.kind !== "consciousness") return false;

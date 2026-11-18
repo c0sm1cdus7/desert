@@ -49,37 +49,7 @@ describe("a program with acts on its things", () => {
   for (const check of promisedChecks(settlingShop, shopShown)) it(check.name, check.run);
   for (const check of walkedChecks(settlingShop, shopShown)) it(check.name, check.run);
   for (const check of walkedChecks(settlingShop, nestedShown)) it(`${check.name}, two views deep`, check.run);
-  const hidden = `${settledTwice}, hidden for who prefers not to see what cannot be done`;
-  const unavailable = `${settledTwice}, no empty first choice`;
-  it("a screen that lists none of its things fails what has to reach one that nothing else leads to", async () => {
-    /** A sale that still owes is reached from Attention; a settled one, from nowhere. */
-    expect(
-      await failing(walkedChecks(settlingShop, hidingShown), [
-        "no view of the tool leads to sales/s1",
-        "An unavailable action is missing",
-      ]),
-    ).toEqual([`${settledTwice}, by keys`, unavailable, hidden]);
-  });
-
   for (const check of walkedChecks(leavingShop, apartShown)) it(`${check.name}, leaving its list`, check.run);
-
-  it("a screen that takes what cannot be done off its list fails what that refusal promises to show", async () => {
-    expect(
-      await failing(walkedChecks(settlingShop, mutedShown), [
-        "the act settle is not on the list",
-        "An unavailable action is missing",
-      ]),
-    ).toEqual([`${settledTwice}, by keys`, unavailable, partialKit, hidden]);
-  });
-
-  it("a screen that shows what cannot be done to who prefers not to see it fails that, and nothing else", async () => {
-    expect(
-      await failing(walkedChecks(settlingShop, stubbornShown), [
-        "An unavailable action is shown",
-        "the act settle is not hidden exactly",
-      ]),
-    ).toEqual([unavailable, hidden]);
-  });
 
   it("offers an act on a thing where that thing is read, and never on a view that only groups them", async () => {
     await staged(settlingShop, async ({ house }) => {
@@ -161,12 +131,60 @@ describe("a program with acts on its things", () => {
     expect(why.length).toBeGreaterThan(0);
     expect(why.filter(said => !said.includes("sales says a bare number beside its name"))).toEqual([]);
   });
+});
 
-  it("a screen that does not say how its things are found fails every search for one, and nothing else", async () => {
-    const failed = await failing(walkedChecks(settlingShop, deafShown), "looking for s1 from a menu does not find it");
-    expect(failed.length).toBeGreaterThan(0);
-    expect(failed.every(name => name.endsWith("is found by its name from any menu"))).toBe(true);
-    expect(failed.filter(name => name.startsWith("sales ·")).length).toBe(failed.length);
+describe("screens that break reachability, refusal or search promises", () => {
+  const hidden = `${settledTwice}, hidden for who prefers not to see what cannot be done`;
+  const unavailable = `${settledTwice}, no empty first choice`;
+  for (const { name, shown, because, fails } of [
+    {
+      name: "a screen that lists none of its things fails what has to reach one that nothing else leads to",
+      shown: hidingShown,
+      because: ["no view of the tool leads to sales/s1", "An unavailable action is missing"],
+      /** A sale that still owes is reached from Attention; a settled one, from nowhere. */
+      fails: [`${settledTwice}, by keys`, unavailable, hidden],
+    },
+    {
+      name: "a screen that takes what cannot be done off its list fails what that refusal promises to show",
+      shown: mutedShown,
+      because: ["the act settle is not on the list", "An unavailable action is missing"],
+      fails: [`${settledTwice}, by keys`, unavailable, partialKit, hidden],
+    },
+    {
+      name: "a screen that shows what cannot be done to who prefers not to see it fails that, and nothing else",
+      shown: stubbornShown,
+      because: ["An unavailable action is shown", "the act settle is not hidden exactly"],
+      fails: [unavailable, hidden],
+    },
+  ])
+    describe(name, () => {
+      const failed: string[] = [];
+      // Each disk-backed walk gets its own timeout and diagnostic, including the walks that must pass.
+      for (const [index, check] of walkedChecks(settlingShop, shown).entries())
+        it(`${index + 1}. ${check.name}`, async () => {
+          failed.push(...(await failing([check], because)));
+        });
+      it("fails exactly the checks of what it broke, in order and with multiplicity", () => {
+        expect(failed).toEqual(fails);
+      });
+    });
+
+  describe("a screen that does not say how its things are found fails every search for one, and nothing else", () => {
+    const failed: string[] = [];
+    const checks = walkedChecks(settlingShop, deafShown);
+    const searches = checks
+      .filter(check => check.name.startsWith("sales ·") && check.name.endsWith("is found by its name from any menu"))
+      .map(check => check.name);
+    for (const [index, check] of checks.entries())
+      it(`${index + 1}. ${check.name}`, async () => {
+        failed.push(...(await failing([check], "looking for s1 from a menu does not find it")));
+      });
+    it("fails every search and nothing else, in order and with multiplicity", () => {
+      expect(failed.length).toBeGreaterThan(0);
+      expect(failed.every(name => name.endsWith("is found by its name from any menu"))).toBe(true);
+      expect(failed.filter(name => name.startsWith("sales ·")).length).toBe(failed.length);
+      expect(failed).toEqual(searches);
+    });
   });
 });
 

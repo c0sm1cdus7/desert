@@ -1,4 +1,5 @@
 // Comprueba y arranca herramientas, reacciones y atención; despacha actos y cierra el motor.
+import { mindMessageActs } from "./minds/message-act.ts";
 import { checkComposition, checkOwn } from "./execution/composed-authority.ts";
 import { attentionEffects } from "./attention-effects.ts";
 import { readonlyPorts } from "./boundaries/readonly-ports.ts";
@@ -21,7 +22,7 @@ const ownOf = <X extends Program>(ports: Starting<X>) => {
   const houseOwn = new WeakSet<OwnAct<X>>();
   const offered = houseActs(attendanceActs(ports.registry));
   const own = (state: State<X>) => {
-    const builtins = offered(state.by);
+    const builtins = [...offered(state.by), ...mindMessageActs(state)];
     builtins.forEach(act => houseOwn.add(act));
     const program = !isMindActor(state.by) ? programRule(() => ports.own?.(state) ?? []) : [];
     checkOwn(ports.registry, state, program);

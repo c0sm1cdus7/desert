@@ -35,6 +35,7 @@ export const houseEffects = (by: string) =>
     ...mindEffects(by),
     ...ruleEffects(by),
     ...deviceEffects(by),
+    effect("mind-requested", { to: "mind:sales", text: "Request" }, by),
     effect("house-created", {}, by),
     effect("granted", { identity: "beto", tools: ["sales", "payments"] }, by),
     effect("named", { identity: "beto", name: "Otro nombre" }, by),
