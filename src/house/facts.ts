@@ -10,6 +10,7 @@ import { assistantFacts } from "./assistants/assistant-facts.ts";
 import { journeyFacts } from "./minds/journey-facts.ts";
 import { mindFacts } from "./minds/mind-facts.ts";
 import { mindSettingsFacts } from "./minds/mind-settings.ts";
+import { mindBankFacts } from "./minds/mind-bank-facts.ts";
 import { modelCallFacts } from "./minds/model-call-facts.ts";
 const literals = <T extends string>(...values: T[]) => Type.Union(values.map(value => Type.Literal(value)));
 const text = Type.String();
@@ -24,6 +25,7 @@ export const mindHouseCatalog = {
   ...mindFacts,
   ...mindSettingsFacts,
   ...modelCallFacts,
+  ...mindBankFacts,
 };
 /** What every house writes, whatever program lives in it. */
 export const houseCatalog = {

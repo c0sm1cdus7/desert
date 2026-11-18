@@ -133,3 +133,16 @@ it("un argumento ausente nombra el campo que falta", () => {
     Reflect.apply(mindWakeDecision, undefined, [policy, message("Nora")]);
   }).toThrow("history");
 });
+
+it("un mensaje directo despierta la consciencia de programa sin despertar otras mentes", () => {
+  const direct = {
+    ...effect("mind-message", { turn: "t1", to: "mind:notes", text: "Revisá la nota" }, "mind:agenda"),
+    id: "direct",
+    seq: 1,
+    at: 0,
+  };
+  const notes = { ...policy, scope: { kind: "consciousness" as const, actor: "mind:notes" as const } };
+  expect(mindWakeDecision(notes, direct, [direct], 0)).toBe(true);
+  expect(mindWakeDecision(policy, direct, [direct], 0)).toBe(false);
+  expect(mindWakeDecision(notes, { ...direct, by: "mind:notes" }, [direct], 0)).toBe(false);
+});

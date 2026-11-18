@@ -117,8 +117,8 @@ export function startHouse<X extends Program>(
     if (!state().house.admin) createHouse(bus, creation);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
-    const ready = loadMinds(home, options, time, resources, contracts);
-    return runningHouse(home, registry, tools, time, resources, ready);
+    const minds = loadMinds(home, options, time, resources, contracts);
+    return runningHouse(home, registry, tools, time, resources, minds?.ready, minds?.notices);
   } catch (error) {
     if (!(error instanceof InvalidCreation)) report(error, "program", "program", "start");
     close();
@@ -132,6 +132,7 @@ function runningHouse<X extends Program>(
   time: TimeSource,
   resources: ReturnType<typeof houseResources<X>>,
   ready?: Promise<ModelMinds | undefined>,
+  mindNotices?: () => readonly string[],
 ) {
   const { bus, journal, close, notices, state } = resources;
   return {
@@ -143,6 +144,7 @@ function runningHouse<X extends Program>(
     close,
     ...(ready ? { minds: ready } : {}),
     storageNotices: notices.read,
+    ...(mindNotices ? { mindNotices } : {}),
     storageUnsaved: notices.unsaved,
     now: () => time.now(),
     cancelInheritedWake: (by: string, id: string) => cancelInheritedWake(state, bus, by, id),
@@ -203,33 +205,36 @@ function loadMinds<X extends Program>(
     active = false;
     minds?.close();
   });
-  return import("./minds/mind-runtime.ts")
-    .then(({ startModelMinds }) => {
-      if (!active) return undefined;
-      minds = startModelMinds(
-        mindHouse(home, options, time, resources, () => active, contracts),
-        switches,
-        config,
-      );
+  const houseActive = () => active;
+  const ready = import("./minds/mind-runtime.ts")
+    .then(async ({ startModelMinds }) => {
+      if (!houseActive()) return undefined;
+      const house = mindHouse(home, options, time, resources, () => active, contracts);
+      const { prepareProgramMinds } = await import("./minds/program-mind-bank.ts");
+      const prepared = await prepareProgramMinds(house, config, switches);
+      if (!houseActive()) return undefined;
+      minds = startModelMinds(house, switches, prepared);
       return minds;
     })
     .catch((error: unknown) => {
       resources.close();
       throw error;
     });
+  return { ready, notices: () => minds?.notices() ?? [] };
 }
 export type RunningHouse<X extends Program> = ReturnType<typeof startHouse<X>>;
 /** A surface in the house's own process reads it and acts in it as one identity, with no door in between; it
  * reads the same clock as the house. */
 export const localPorts = <X extends Program>(
   house: Pick<RunningHouse<X>, "tools" | "registry" | "bus" | "now"> &
-    Partial<Pick<RunningHouse<X>, "storageNotices" | "storageUnsaved">>,
+    Partial<Pick<RunningHouse<X>, "storageNotices" | "storageUnsaved" | "mindNotices">>,
   me: string,
   limits: Omit<ViewLimits, "now">,
   now: () => number = house.now,
 ): HousePorts<X> => ({
   me,
   openingNotices: () => [
+    ...(house.mindNotices?.() ?? []),
     ...(house.storageNotices?.().length ? [journalTexts.rebuilt] : []),
     ...(house.storageUnsaved?.() ?? []).map(journalTexts.unsavedRecord),
   ],

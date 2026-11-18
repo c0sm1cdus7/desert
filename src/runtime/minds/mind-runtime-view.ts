@@ -1,4 +1,5 @@
 // Proyecta destinos, permisos y datos visibles de la casa para cada alcance del pensamiento.
+import { programCommunication } from "./program-mind-communication.ts";
 import { allowedAct, present } from "../../house/kit.ts";
 import { identityView } from "../../house/members.ts";
 import { targetTool } from "../../house/attendance.ts";
@@ -32,22 +33,37 @@ export function runtimeView<X extends Program>(
     return acts.length ? [{ tool: tool.id, acts }] : [];
   });
   const parts = visibleTools(house, scope, state, kit);
-  const control: JourneyControlState = {
+  const control = controlFor(house, options, state, active, kit);
+  const menu = [
+    ...journeyMenu(
+      scope,
+      { ...control, menu: parts.available, communication: definition.communication },
+      options.language,
+    ),
+    ...(active ? programCommunication(scope, definition, options, state) : []),
+  ];
+  const activity = visibleActivity(house, options, scope, state, kit);
+  return { control, menu, ...parts, activity, state };
+}
+
+function controlFor<X extends Program>(
+  house: MindRuntimeHouse<X>,
+  options: MindRuntimeOptions,
+  state: State<X>,
+  active: boolean,
+  kit: JourneyControlState["kit"],
+): JourneyControlState {
+  return {
     active,
     kit,
     journeys: state.house.journeys,
+    ...(state.house.kitLayout ? { layout: state.house.kitLayout } : {}),
+    ...(state.house.kitMigration ? { migration: state.house.kitMigration } : {}),
     pending: [...state.processing.values()],
     through: state.through,
     now: house.time.now(),
     rulesVersion: options.rulesVersion(),
   };
-  const menu = journeyMenu(
-    scope,
-    { ...control, menu: parts.available, communication: definition.communication },
-    options.language,
-  );
-  const activity = visibleActivity(house, options, scope, state, kit);
-  return { control, menu, ...parts, activity, state };
 }
 
 function visibleActivity<X extends Program>(
@@ -63,7 +79,9 @@ function visibleActivity<X extends Program>(
     if (message && (!message.to || message.to === scope.actor)) return [{ id: event.id, text: message.text }];
     if (event.layer !== "house" || event.kind !== "tool-entry") return [];
     const tool = targetTool(registry, state, event.data.target)?.id ?? event.data.tool;
-    return kit.some(item => item.tool === tool) ? [{ id: event.id, text: event.data.text, covered: true }] : [];
+    return scope.actor === `mind:${tool}` || kit.some(item => item.tool === tool)
+      ? [{ id: event.id, text: event.data.text, covered: true }]
+      : [];
   });
 }
 function toolMenu<X extends Program>(
@@ -93,7 +111,7 @@ function visibleTools<X extends Program>(
     const ownProgram = scope.actor === `mind:${tool.id}`;
     if (tool.skill && (ownProgram || kit.some(item => item.tool === tool.id)))
       skills.push({ id: tool.id, skill: tool.skill });
-    if (!kit.some(item => item.tool === tool.id)) continue;
+    if (!ownProgram && !kit.some(item => item.tool === tool.id)) continue;
     for (const target of new Set([tool.id, ...tool.targets(state)])) {
       objects.push({ id: target, text: tool.view(state, target, { recentLines: 30, now: house.time.now() }) });
       available.push(...toolMenu(tool, target, state, house.execution.registry, house.time.now()));

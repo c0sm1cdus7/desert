@@ -36,42 +36,48 @@ function openCall<X extends Program>(house: MindRuntimeHouse<X>, request: ModelR
   const turn = house.execution.state().house.minds.turns.get(request.turn);
   return !!turn && !turn.closed;
 }
+function billingFor<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntimeOptions) {
+  const { execution } = house;
+  const billing = options.billing ?? {
+    bus: execution.bus,
+    calls: () => execution.state().house.modelCalls,
+    active: house.active,
+  };
+  return billing;
+}
 function accountPorts<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntimeOptions) {
   const { execution } = house;
+  const billing = billingFor(house, options);
   const call = (request: ModelRequest) => `${request.turn}:${request.number}`;
   const process = (request: ModelRequest) => execution.state().house.minds.turns.get(request.turn)?.opened.process;
-  const live = (request: ModelRequest) => openCall(house, request);
+  const live = (request: ModelRequest) => billing.active() && openCall(house, request);
   return {
     reserve: (request, maximumNanoUsd, cap) => {
       const scope = process(request);
       return !live(request)
         ? Promise.resolve(false)
-        : reserveModelCall(
-            budgetTransaction(execution.bus, () => execution.state().house.modelCalls),
-            cap,
-            {
-              call: call(request),
-              turn: request.turn,
-              number: request.number,
-              account: options.account,
-              maximumNanoUsd,
-              by: request.mind,
-              ...(scope ? { process: scope } : {}),
-            },
-          );
+        : reserveModelCall(budgetTransaction(billing.bus, billing.calls), cap, {
+            call: call(request),
+            turn: request.turn,
+            number: request.number,
+            account: options.account,
+            maximumNanoUsd,
+            by: request.mind,
+            ...(scope ? { process: scope } : {}),
+          });
     },
     start: request => {
       requireMind(live(request), "runtime.active");
-      execution.bus.emit(effect("model-call-started", { call: call(request) }, request.mind, [], process(request)));
+      billing.bus.emit(effect("model-call-started", { call: call(request) }, request.mind, [], process(request)));
       return Promise.resolve();
     },
     settle: (request, usage, cost) => {
-      if (house.active())
-        execution.bus.emit(settleModelCall(call(request), cost, usage, request.mind, process(request)));
+      if (billing.active())
+        billing.bus.emit(settleModelCall(call(request), cost, usage, request.mind, process(request)));
       return Promise.resolve();
     },
     uncertain: request => {
-      if (house.active()) execution.bus.emit(markUncertainCall(call(request), request.mind, process(request)));
+      if (billing.active()) billing.bus.emit(markUncertainCall(call(request), request.mind, process(request)));
       return Promise.resolve();
     },
   } satisfies Pick<Parameters<typeof callAssignedModel>[0], "reserve" | "start" | "settle" | "uncertain">;
@@ -87,5 +93,13 @@ export function runtimeModel<X extends Program>(house: MindRuntimeHouse<X>, opti
     capNanoUsd: options.capNanoUsd,
     maxInputTokens: options.maxInputTokens,
   });
-  return { model, card };
+  return {
+    model: (request: ModelRequest) => {
+      const reason = options.unavailable?.get(request.mind);
+      return reason === "no-key" || reason === "no-card" || reason === "cap"
+        ? Promise.resolve({ kind: "not-sent" as const, reason })
+        : model(request);
+    },
+    card,
+  };
 }

@@ -2288,3 +2288,48 @@ para acreditarla en otro proceso hay que volver a correr la compuerta. No hay fi
 devuelve `errors` completos con camino y `rows`. Sin ejecución, la fila dice «casos no comprobados».
 Las comprobaciones estructurales se pueden usar antes de ejecutar casos con `structuralContractErrors`;
 por sí solas no acreditan compatibilidad.
+
+## Mentes de programas compuestas y banco por rol (18/11)
+
+`componer` deriva `mindDefinitions` para los ids de `mentes.programas`: actor `mind:<id>`,
+rol `program:<id>`, reglas comunes de DESERT y palabras del programa y sus herramientas. La skill
+existente entra al marco. El programa no declara actor, reglas, proveedor ni carta.
+
+La distribución obtiene la configuración con `await distribucion.modelMinds({ key, transport,
+account, capNanoUsd, language })` y la pasa como `modelMinds` a `startHouse`, junto con
+`...distribucion.program` y sus opciones de apertura. Catálogo, huellas, mensajes, reglas de texto,
+versión de reglas y tamaño máximo del pedido los arma DESERT. El idioma no invalida un banco.
+`house.minds` resuelve cuando terminó la preparación; la casa ya está abierta mientras tanto.
+La API anterior de `MindRuntimeOptions` sigue disponible para composiciones manuales.
+
+Un programa aporta `mindCases` en el cuerpo de `programa`: cada caso tiene `id` y exactamente tres
+`scenes`. Cada escena declara `given` (hechos sintéticos), `kit` (acciones disponibles), `when`
+(acción que despierta al programa) y `check(events)` (comprobación sobre un diario inmutable).
+Se usa la identidad sintética `bank` como administradora de cada escena. Los casos no reciben
+la custodia ni los adaptadores de la casa viva. Las acciones, los contratos, el kit, el turno y el
+marco son los de DESERT. Un caso que depende de un servicio exterior debe representar esa entrada
+con hechos sintéticos; este banco no presta el servicio real. Cada escena tiene un límite de 36
+turnos; llegar al límite interrumpe el banco y no acredita una carta.
+
+Al abrir, el banco recorre las cartas capaces de todas las acciones del programa por costo de
+referencia creciente; empata por modelo y esfuerzo. Corre cada escena una vez y se frena en la
+primera carta que pasa todos los casos. Sin casos no se acredita ninguna. Guarda `mind-bank-tested`
+con el rol, carta, resultado, gasto, duración y huellas. Una reapertura reutiliza esa evidencia sólo
+si corresponden código, casos, skill y textos. Una carta ya asignada se conserva y, si cambió la
+huella, se vuelve a probar esa carta; el banco no cambia una elección del administrador.
+
+El banco y los turnos reservan y liquidan sobre la misma `account` del diario vivo. Cerrar, reabrir
+o reconstruir proyecciones no renueva `capNanoUsd`. Una llamada interrumpida conserva su reserva;
+una respuesta que llega después del cierre no la libera. No se registra un banco reprobado por
+falta de llave, saldo, respuesta del proveedor o interrupción.
+
+Cuando falta la llave, no alcanza el tope o no hay carta acreditada, la casa abre y deja el motivo en la escena pública
+de la mente y lo ofrece en `house.mindNotices()` y `localPorts.openingNotices()`. Después de corregir
+la configuración, reabrir prepara de nuevo la mente. No otorga un kit: la consciencia escribe escena
+general y partes por identidad, manda mensajes y abre journeys; sólo sus journeys hacen trabajo.
+El marco incluye los objetos y la actividad del programa propio incluso sin kit. El trabajo sigue
+exigiendo las acciones actuales del kit y las de su journey, con la estructura real de carpetas.
+Apagar pensamiento conserva el arranque determinista y la lectura de la historia.
+
+Los textos comunes nuevos están en `src/texts/program-mind.texts.ts`; antes de usar un transporte
+real, el dueño debe aprobarlos. Este corte se verificó exclusivamente con transportes sintéticos.

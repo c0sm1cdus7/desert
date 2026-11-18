@@ -11,6 +11,11 @@ import type { CompositionOptions, RequireValid } from "./validation-types.ts";
 import { declaredReactions } from "../../tools/boundaries/tool-reactions.ts";
 import { bindProgramContracts } from "./program-contracts.ts";
 import { distributionShown } from "./shown.ts";
+import type { InstalledProgram } from "../../tools/installable/runtime.ts";
+import { programMindDefinitions } from "./program-minds.ts";
+import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
+import type { ProgramMindResources } from "../minds/program-mind-options.ts";
+import type { MindRuntimeOptions } from "../minds/mind-runtime-options.ts";
 export type DistributionOf<T extends readonly InstallableProgram[]> = {
   fact: LocalProgram<T[number]>["fact"];
   tools: { readonly [P in T[number] as P["id"]]: ReturnType<P["inicial"]> };
@@ -22,6 +27,8 @@ export type DistributionOptions = CompositionOptions &
   }>;
 export type Distribution<X extends Program> = Readonly<{
   program: Composition<X>;
+  mindDefinitions: readonly MindDefinition[];
+  modelMinds: (resources: ProgramMindResources) => Promise<MindRuntimeOptions>;
   shown: Shown<X>;
   manifest: Readonly<{
     desert: number;
@@ -65,9 +72,23 @@ export function componer(options: DistributionOptions): Distribution<Program> {
     registry: installed.map(p => p.tool),
     words: vocabulary(Object.fromEntries(options.programas.flatMap(p => p.hechos.map(f => [f.nombre, f.forma])))),
   };
+  return finishDistribution(options, installed, program, calculation);
+}
+function finishDistribution(
+  options: DistributionOptions,
+  installed: readonly (InstalledProgram & { definition: InstallableProgram })[],
+  program: Composition<Program>,
+  calculation: ReturnType<typeof codeProjectionVersion>,
+): Distribution<Program> {
   const manifest = manifestOf(options);
   const mentes = manifest.mentes;
+  const mindDefinitions = programMindDefinitions(installed, mentes.programas);
   return {
+    mindDefinitions,
+    modelMinds: async resources => {
+      const { programMindOptions } = await import("../minds/program-mind-options.ts");
+      return programMindOptions(program, options.programas, mindDefinitions, resources);
+    },
     program,
     shown: distributionShown(installed, options.presentacion, options.atajoUnaHerramienta),
     manifest,

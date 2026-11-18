@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "vitest";
 import { lawRepository, lawOptions } from "../../../tests/support/law-repository.ts";
-import { codeFiles, filesUnder, fromRoot } from "./law-files.ts";
+import { codeFiles, filesUnder, fromRoot, parsed, withParsedFiles } from "./law-files.ts";
 import {
   importCycles,
   strayImports,
@@ -27,6 +27,44 @@ import {
   instructionFiles,
   uncoveredCode,
 } from "../../laws.ts";
+
+it("reuses unchanged syntax only within an inspection and reads edits immediately", () => {
+  const repo = lawRepository({});
+  const file = join(repo.root, "src/a.ts");
+  const first = withParsedFiles(() => {
+    const source = parsed(file);
+    expect(parsed(file)).toBe(source);
+    writeFileSync(file, 'import "./a.ts";');
+    expect(parsed(file)).not.toBe(source);
+    expect(importCycles(repo)).toEqual(["src/a.ts"]);
+    return parsed(file);
+  });
+  expect(withParsedFiles(() => parsed(file))).not.toBe(first);
+  expect(parsed(file)).not.toBe(first);
+});
+
+it("isolates overlapping inspections and releases the scope after failure", async () => {
+  const repo = lawRepository({});
+  const file = join(repo.root, "src/a.ts");
+  const inspect = () =>
+    withParsedFiles(async () => {
+      const source = parsed(file);
+      await Promise.resolve();
+      expect(parsed(file)).toBe(source);
+      return source;
+    });
+  const [first, second] = await Promise.all([inspect(), inspect()]);
+  expect(first).not.toBe(second);
+  let failed = first;
+  expect(() =>
+    withParsedFiles(() => {
+      failed = parsed(file);
+      expect(failed).not.toBe(first);
+      throw new Error("inspection failed");
+    }),
+  ).toThrow("inspection failed");
+  expect(parsed(file)).not.toBe(failed);
+});
 
 it("reads every declared folder, retaining specs while leaving hidden folders and installed packages out", () => {
   const repo = lawRepository({

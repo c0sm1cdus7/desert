@@ -452,6 +452,16 @@
     "house/kit-history.ts": "Conserva el alcance histórico de otorgamientos y restricciones al reconstruir selecciones.",
     "house/kit-migration.ts": "Aplica correspondencias versionadas y rechaza ámbitos ambiguos o identificadores retirados reutilizados.",
     "house/kit-selection.ts": "Describe selecciones positivas y expande carpetas contra las acciones instaladas.",
-    "house/kit-validation.ts": "Rechaza selecciones nuevas inexistentes o reservadas sin borrar las retiradas de la historia."
+    "house/kit-validation.ts": "Rechaza selecciones nuevas inexistentes o reservadas sin borrar las retiradas de la historia.",
+    "house/minds/mind-bank-facts.ts": "Conserva la evidencia del banco por rol, carta y huellas exactas en el diario de la casa.",
+    "runtime/distributions/program-minds.ts": "Deriva roles y reglas de las mentes elegidas sin cargar pensamiento ni proveedores.",
+    "runtime/minds/program-mind-availability.ts": "Explica por qué una mente no puede pensar al abrir y deja el aviso en su escena pública.",
+    "runtime/minds/program-mind-bank-scene.ts": "Corre una escena del banco con el motor y el runtime reales, estado aislado y la cuenta durable de la casa.",
+    "runtime/minds/program-mind-bank.ts": "Prueba cartas de menor a mayor costo, conserva su evidencia y asigna la primera que pasa el rol completo.",
+    "runtime/minds/program-mind-communication.ts": "Ofrece a la consciencia escena por identidad y mensajes explícitos sin conceder acciones de trabajo.",
+    "runtime/minds/program-mind-options.ts": "Arma los recursos del pensamiento desde la composición y conserva en la base catálogo y huellas.",
+    "texts/program-mind.texts.ts": "Define las reglas comunes de la mente de programa y sus avisos de disponibilidad.",
+    "tools/minds/program-mind-cases.ts": "Declara los casos del rol de un programa: tres escenas con preparación, despertar y comprobación del diario.",
+    "runtime/minds/program-mind-bank-house.ts": "Aísla el estado de cada escena del banco y conserva el motor, las transacciones y la protección de entradas."
   }
 }

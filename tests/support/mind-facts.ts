@@ -1,11 +1,32 @@
 // Ejemplos de cada hecho nuevo para probar esquemas y fronteras de efectos completos.
 import { effect } from "../../src/house/facts.ts";
+const bankEffect = (by: string) =>
+  effect(
+    "mind-bank-tested",
+    {
+      mind: "mind:sales",
+      card: "test",
+      version: "low",
+      result: {
+        role: "sales",
+        cases: 1,
+        scenes: 3,
+        passed: true,
+        costUsd: 0,
+        seconds: 0,
+        date: "2026-11-18",
+        fingerprint: { cases: "cases-v1", skill: "skill-v1", frameTexts: "texts-v1" },
+      },
+    },
+    by,
+  );
 export const mindEffects = (by: string) => [
   effect("assistant-enabled", { owner: "beto", name: "Nora" }, by),
   effect("assistant-disabled", { owner: "beto" }, by),
   effect("assistant-kit-set", { owner: "beto", kit: [{ tool: "sales", acts: ["forge"] }] }, by),
   effect("assistant-adopted", { owner: "beto", legacy: "nora" }, by),
   effect("mind-card-assigned", { mind: "assistant:beto", card: "test", version: "v1", capabilities: [] }, by),
+  bankEffect(by),
   effect("journey-opened", { goal: "Guardar una nota", kit: [] }, by, [], "j1"),
   effect("journey-plan-written", { steps: [{ id: "s1", text: "Anotar" }] }, by, [], "j1"),
   effect("journey-step-done", { step: "s1", note: "Anotada" }, by, [], "j1"),

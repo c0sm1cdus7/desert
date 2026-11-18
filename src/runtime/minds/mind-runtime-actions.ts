@@ -1,4 +1,5 @@
 // Encauza propuestas por los controles centrales de journeys o por el motor con autor y revisión del turno.
+import { applyProgramCommunication } from "./program-mind-communication.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import { execute } from "../../tools/execute.ts";
@@ -118,6 +119,10 @@ export function runtimeActions<X extends Program>(
     if (!house.active()) return { status: "interrupted", id: turn.id };
     const item = view().menu.find(item => item.act === proposal.act && item.target === proposal.target);
     if (!item) return { status: "rejected", id: turn.id };
+    if (item.tool === "mind") {
+      const event = applyProgramCommunication(house, proposal, turn.id, turn.scope);
+      return { status: event ? "accepted" : "rejected", id: event?.id ?? turn.id };
+    }
     const opened = house.execution.state().house.minds.turns.get(turn.id)?.opened;
     requireMind(opened, "runtime.turn");
     const cause = [opened.id];

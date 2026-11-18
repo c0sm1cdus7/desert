@@ -1,5 +1,6 @@
 // The code of a repository as a law reads it: its root and its code folders, each one present and holding code.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { join, relative, sep } from "node:path";
 import ts from "typescript";
 
@@ -29,8 +30,20 @@ export function codeFiles({ root, code }: Repository): string[] {
 
 export const isSpec = (path: string): boolean => path.endsWith(".spec.ts");
 export const fromRoot = (root: string, path: string): string => relative(root, path).split(sep).join("/");
-export const parsed = (path: string): ts.SourceFile =>
-  ts.createSourceFile(path, readFileSync(path, "utf8"), ts.ScriptTarget.Latest, true);
+const parsedFiles = new AsyncLocalStorage<Map<string, ts.SourceFile>>();
+
+/** Reuse syntax trees within one inspection, without keeping files alive or stale across inspections. */
+export const withParsedFiles = <T>(inspect: () => T): T => parsedFiles.run(new Map(), inspect);
+
+export function parsed(path: string): ts.SourceFile {
+  const text = readFileSync(path, "utf8");
+  const files = parsedFiles.getStore();
+  const known = files?.get(path);
+  if (known?.text === text) return known;
+  const source = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true);
+  files?.set(path, source);
+  return source;
+}
 
 /** Paths admitted by a law, each with the reason for that admission. A trailing slash names a folder. */
 export type Exemptions = Readonly<Record<string, string>>;

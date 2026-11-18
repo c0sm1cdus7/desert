@@ -33,7 +33,10 @@ export type ProgramGroup<X extends import("../tool-contract.ts").Program> = Omit
   "id" | "facts" | "skill" | "start" | "groups"
 > &
   Readonly<{ palabras: ProgramWords }>;
+import type { ProgramMindCase } from "../minds/program-mind-cases.ts";
+export type { ProgramMindCase, ProgramMindScene } from "../minds/program-mind-cases.ts";
 export type ProgramBody<M extends ProgramMetadata> = Readonly<{
+  mindCases?: readonly ProgramMindCase[];
   purpose: string;
   skill: Skill;
   palabras: ProgramWords;
@@ -49,6 +52,7 @@ export type ProgramBody<M extends ProgramMetadata> = Readonly<{
 export type InstallableProgram = ProgramMetadata &
   Readonly<{
     effects?: unknown;
+    mindCases?: readonly ProgramMindCase[];
     herramientas: Readonly<Record<string, Readonly<{ acts: Readonly<Record<string, unknown>>; effects?: unknown }>>>;
     install: () => InstalledProgram;
   }>;

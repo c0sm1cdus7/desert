@@ -9,9 +9,22 @@ import type { Execution } from "../../tools/execution-contract.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
 import type { FrameSource } from "./mind-frame.ts";
-import type { SupervisionPorts } from "./mind-ports.ts";
+import type { SupervisionPorts, TurnOutcome } from "./mind-ports.ts";
+import type { Composition } from "../../tools/promises-contract.ts";
+import type { ProgramMindCase } from "../../tools/minds/program-mind-cases.ts";
+import type { Bus } from "../../journal/bus.ts";
+import type { ModelCalls } from "../../house/minds/model-call-state.ts";
+export type MindBilling = Readonly<{
+  bus: Pick<Bus, "emit" | "together" | "confirmation">;
+  calls: () => ModelCalls;
+  active: () => boolean;
+}>;
 export type MindSwitches = Readonly<{ asistentes: boolean; programas: readonly string[] }>;
 export type MindRuntimeOptions = Readonly<{
+  programBank?: Readonly<{ program: Composition<Program>; cases: ReadonlyMap<string, readonly ProgramMindCase[]> }>;
+  billing?: MindBilling;
+  observeTurn?: (outcome: TurnOutcome) => void;
+  unavailable?: ReadonlyMap<string, import("../../texts/mind-turn.texts.ts").TurnStop>;
   language: Language;
   definitions: readonly MindDefinition[];
   catalog: readonly Card[];

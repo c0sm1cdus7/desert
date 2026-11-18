@@ -63,10 +63,13 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   requireMind(mind, "policy.actor");
   if (lifecycle(policy, event, history, now)) return true;
   if (event.by === policy.scope.actor) return false;
+  if (event.layer === "house" && event.kind === "mind-message")
+    return (
+      event.data.to === policy.scope.actor &&
+      (requested(policy, event, history) || (policy.scope.kind === "consciousness" && event.cause.length === 0))
+    );
   if (mind.kind === "tool" && policy.scope.kind === "consciousness")
     return event.layer === "house" && event.kind === "act" && policy.toolOf(event.data.object) === mind.tool;
-  if (event.layer === "house" && event.kind === "mind-message")
-    return event.data.to === policy.scope.actor && requested(policy, event, history);
   if (policy.scope.kind !== "consciousness") return false;
   const message = policy.message(event);
   return !!message && (message.to === policy.scope.actor || mentions(message.text, policy.name));

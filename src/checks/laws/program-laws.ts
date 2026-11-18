@@ -2,7 +2,7 @@
 import { join } from "node:path";
 import ts from "typescript";
 import { isRecord } from "../../fields/json-values.ts";
-import { codeFiles, fromRoot, type Repository } from "./law-files.ts";
+import { codeFiles, fromRoot, withParsedFiles, type Repository } from "./law-files.ts";
 import { importCycles } from "./cycles.ts";
 import { strayImports } from "./imports.ts";
 import { outsideAccess, outsideGlobals } from "./adapters.ts";
@@ -46,7 +46,7 @@ export async function programLaws(root: string): Promise<string[]> {
   const options = programLawOptions(root);
   const { repo, maxLines } = options;
   const readings = await readLint(repo);
-  return [
+  return withParsedFiles(() => [
     ...importCycles(repo),
     ...programImports(repo),
     ...strayImports(repo, options),
@@ -70,5 +70,5 @@ export async function programLaws(root: string): Promise<string[]> {
     ...hiddenRules(repo, { exempt: options.exemptRules }),
     ...instructionFiles(repo, options),
     ...messageCoverage(repo),
-  ];
+  ]);
 }

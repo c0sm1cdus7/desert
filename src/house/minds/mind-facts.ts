@@ -1,7 +1,6 @@
 // Declara los hechos públicos de turnos, consultas, revisiones, mensajes y escenas de proceso.
 import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
-import { mindActor } from "../../fields/mind-actor.ts";
 import { mindName } from "../assistants/assistant-facts.ts";
 import { mindText } from "./journey-facts.ts";
 const turn = { turn: mindName };
@@ -40,5 +39,5 @@ export const mindFacts = {
     applied: Type.Array(mindName, { uniqueItems: true }),
   }),
   "mind-scene": object({ ...turn, text: mindText }),
-  "mind-message": object({ ...turn, to: mindActor, text: mindText }),
+  "mind-message": object({ ...turn, to: mindName, text: mindText }),
 };

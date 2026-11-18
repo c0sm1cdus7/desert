@@ -1,6 +1,7 @@
 // Enciende el pensamiento pedido por la distribución sobre el diario reconstruido y lo apaga con la casa.
 import { randomUUID } from "node:crypto";
 import { Value } from "@sinclair/typebox/value";
+import { effect } from "../../house/facts.ts";
 import { mindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import { targetTool } from "../../house/attendance.ts";
@@ -16,6 +17,7 @@ import { runMindTurn } from "./mind-turn.ts";
 import { startMindSchedule, recoverMindSchedule, type MindSchedulePorts } from "./mind-schedule.ts";
 import { runtimeView } from "./mind-runtime-view.ts";
 import { runtimeFrame } from "./mind-runtime-frame.ts";
+import { programMindNotices } from "./program-mind-availability.ts";
 import { runtimeModel } from "./mind-runtime-model.ts";
 import { runtimeActions } from "./mind-runtime-actions.ts";
 import {
@@ -24,7 +26,7 @@ import {
   type MindRuntimeOptions,
   type MindSwitches,
 } from "./mind-runtime-options.ts";
-import type { TurnPorts } from "./mind-ports.ts";
+import type { TurnPorts, TurnWake } from "./mind-ports.ts";
 import { expandKit } from "../../house/kit-selection.ts";
 function validateRuntime<X extends Program>(
   house: MindRuntimeHouse<X>,
@@ -93,7 +95,21 @@ class HouseMindRuntime<X extends Program> {
       reviewReason: (scope, proposal) => this.reviewReason(scope, proposal),
       supervision: options.supervision ?? {},
       emit: emission => {
-        if (house.active()) house.execution.bus.emit(emission);
+        if (house.active()) {
+          house.execution.bus.emit(emission);
+          if (emission.kind === "mind-scene" && !emission.process)
+            house.execution.bus.emit(
+              effect(
+                "scene",
+                {
+                  general: emission.data.text,
+                  to: house.execution.state().house.scenes.get(emission.by)?.data.to ?? {},
+                },
+                emission.by,
+                emission.cause,
+              ),
+            );
+        }
       },
       execute: runtimeActions(house, options, switches),
     };
@@ -132,6 +148,11 @@ class HouseMindRuntime<X extends Program> {
           }));
       });
   };
+  private async run(ports: TurnPorts, wake: TurnWake) {
+    const outcome = await runMindTurn(ports, wake);
+    this.options.observeTurn?.(outcome);
+    return outcome;
+  }
   start() {
     const { house, options, switches } = this;
     const model = runtimeModel(house, options);
@@ -147,7 +168,7 @@ class HouseMindRuntime<X extends Program> {
       emit: emission => {
         house.execution.bus.emit(emission);
       },
-      run: wake => runMindTurn(ports, wake),
+      run: wake => this.run(ports, wake),
       failed: () => {
         this.live = false;
         house.failed(new Error(turnNotice.text(options.language, { reason: "internal" })));
@@ -158,6 +179,7 @@ class HouseMindRuntime<X extends Program> {
     const schedule = startMindSchedule(schedulePorts);
     return {
       flush: schedule.flush,
+      notices: () => programMindNotices(options),
       thread: frames.thread,
       compact: frames.compact,
       close: () => {

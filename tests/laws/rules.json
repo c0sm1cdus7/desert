@@ -46,30 +46,21 @@
       "rule": "Tres zonas que nunca se mueven (Barra, Contenido, Toolbar)",
       "from": "REGLAS §3",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/paint.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 6,
       "rule": "Barra y Toolbar de lado a lado con borde; Toolbar un solo riel",
       "from": "REGLAS §3",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/paint.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 7,
       "rule": "Contenido en columna de 76 centrada",
       "from": "REGLAS §3",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/paint.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 8,
@@ -132,20 +123,14 @@
       "rule": "El punto nunca late",
       "from": "REGLAS §4, §11",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/paint.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 15,
       "rule": "Enviar no es un estado",
       "from": "REGLAS §4",
       "guarantee": "type",
-      "evidence": [
-        "src/surface/contract/contract.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/surface/contract/contract.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 16,
@@ -159,20 +144,14 @@
       "rule": "La Barra muestra el nombre de la acción",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": [
-        "src/surface/router/resolve.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/surface/router/resolve.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 18,
       "rule": "Barra: elipsis en el título; icono y hora siempre se ven",
       "from": "REGLAS §14",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/paint.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 19,
@@ -272,10 +251,7 @@
       "rule": "Debajo de 60 columnas la izquierda queda ctrl o  ctrl c y caen los aids del primero al último",
       "from": "REGLAS §5, §14",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/paint.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 28,
@@ -386,20 +362,14 @@
       "rule": "Evento con cabecera; debajo todo con 1 celda de indent; sin cabecera sin indent; una fila en blanco entre eventos",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/thread.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/thread.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 40,
       "rule": "El Hilo arranca en la columna del chevron",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/thread.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/thread.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 41,
@@ -413,10 +383,7 @@
       "rule": "El ser pregunta con opciones y otra respuesta al final; esc después",
       "from": "REGLAS §7",
       "guarantee": "surface",
-      "evidence": [
-        "src/surface/session/talk.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/surface/session/talk.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 43,
@@ -505,10 +472,7 @@
       "rule": "…en el Hilo",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/thread.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/thread.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 51,
@@ -563,10 +527,7 @@
       "rule": "La pregunta pasa de texto 1 a texto 2 al responderse; la respuesta queda agregada, en texto 1, sin autor",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": [
-        "src/surface/acts/walk.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/surface/acts/walk.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 56,
@@ -607,10 +568,7 @@
       "rule": "Opción única: lista con ↑↓ y enter",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": [
-        "src/surface/router/step.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/surface/router/step.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 60,
@@ -666,10 +624,7 @@
       "rule": "Nada se ejecuta hasta el último input; durante los inputs solo se lee",
       "from": "REGLAS §9",
       "guarantee": "surface",
-      "evidence": [
-        "src/surface/router/step.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/surface/router/step.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 66,
@@ -710,10 +665,7 @@
       "rule": "El resultado se dice Verbo · Objeto · Detalle",
       "from": "REGLAS §9",
       "guarantee": "derived",
-      "evidence": [
-        "src/checks/promises/cases/promised.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/checks/promises/cases/promised.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 70,
@@ -815,10 +767,7 @@
       "rule": "Procesando, Barra y Toolbar los pone el contrato de superficie",
       "from": "REGLAS §9d",
       "guarantee": "surface",
-      "evidence": [
-        "src/surface/router/resolve.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/surface/router/resolve.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 80,
@@ -838,20 +787,14 @@
       "rule": "Todo color de la UI sale de la tabla de tokens",
       "from": "REGLAS §10, §17",
       "guarantee": "type",
-      "evidence": [
-        "src/surface/contract/tones.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/surface/contract/tones.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 82,
       "rule": "Valores hex y ANSI de la tabla",
       "from": "REGLAS §10",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/cells.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/cells.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 83,
@@ -889,10 +832,7 @@
       "rule": "Los títulos nunca laten",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/paint.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 87,
@@ -913,30 +853,21 @@
       "rule": "Cambiar de lugar es un corte seco",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/boot.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/boot.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 90,
       "rule": "La actividad se muestra con su propio dato (contador)",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": [
-        "src/surface/acts/walk.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/surface/acts/walk.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 91,
       "rule": "Late la palabra: fundido de 1,6 s, por pasos de color en la terminal",
       "from": "REGLAS §11",
       "guarantee": "surface",
-      "evidence": [
-        "src/surface/acts/walk.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/surface/acts/walk.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 92,
@@ -978,10 +909,7 @@
       "rule": "Las acciones destructivas piden confirmación",
       "from": "REGLAS §12",
       "guarantee": "compose",
-      "evidence": [
-        "src/tools/promises.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/tools/promises.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 97,
@@ -999,20 +927,14 @@
       "rule": "Terminal: contenido hasta 76, en angosto todo el ancho",
       "from": "REGLAS §14",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/paint.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 99,
       "rule": "Filas y menú: elipsis en dato o descripción; el nombre manda",
       "from": "REGLAS §14",
       "guarantee": "surface",
-      "evidence": [
-        "src/doors/terminal/thread.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/thread.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 100,
@@ -1053,10 +975,7 @@
       "rule": "LEYES 3: las acciones viven en un catálogo único",
       "from": "LEYES 3",
       "guarantee": "compose",
-      "evidence": [
-        "src/surface/bridge/assembly/house-tools.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
-      ]
+      "evidence": ["src/surface/bridge/assembly/house-tools.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 104,
@@ -1122,20 +1041,14 @@
       "rule": "LEYES 9: viaja el estado; un router único para todos los renderers",
       "from": "LEYES 9",
       "guarantee": "spec",
-      "evidence": [
-        "src/surface/router/router.spec.ts",
-        "src/surface/router/router.ts"
-      ]
+      "evidence": ["src/surface/router/router.spec.ts", "src/surface/router/router.ts"]
     },
     {
       "id": 110,
       "rule": "LEYES 10: un registro escrito solo para constancia no pide atención",
       "from": "LEYES 10",
       "guarantee": "derived",
-      "evidence": [
-        "src/checks/promises/cases/promised.ts",
-        "src/tools/start.ts"
-      ]
+      "evidence": ["src/checks/promises/cases/promised.ts", "src/tools/start.ts"]
     },
     {
       "id": 111,
@@ -1196,9 +1109,7 @@
       "rule": "El nombre de una acción es corto y en minúscula: un verbo sobre su cosa, y lo que confirma es un solo verbo",
       "from": "Franco 11/11",
       "guarantee": "compose",
-      "evidence": [
-        "src/tools/promises.ts"
-      ]
+      "evidence": ["src/tools/promises.ts"]
     },
     {
       "id": 117,
@@ -1216,10 +1127,7 @@
       "rule": "Lo que se escribió con forma (CUIT, DNI) se lee siempre con esa forma",
       "from": "Franco 11/11",
       "guarantee": "derived",
-      "evidence": [
-        "src/checks/promises/cases/promised-shapes.ts",
-        "src/checks/promises/cases/promised.ts"
-      ]
+      "evidence": ["src/checks/promises/cases/promised-shapes.ts", "src/checks/promises/cases/promised.ts"]
     },
     {
       "id": 119,
@@ -1271,10 +1179,7 @@
       "rule": "Una fila que ya lleva todo lo que su acción toma, y que la acción va a rechazar, está apagada diciendo por qué: a nadie se le ofrece lo que ya se sabe que no se puede",
       "from": "LEYES 4 · 11/11, sabotaje que sobrevivía en Equipo",
       "guarantee": "derived",
-      "evidence": [
-        "src/checks/promises/walk/promised-walk.ts",
-        "src/checks/promises/cases/promised-known.spec.ts"
-      ]
+      "evidence": ["src/checks/promises/walk/promised-walk.ts", "src/checks/promises/cases/promised-known.spec.ts"]
     },
     {
       "id": 124,
@@ -1331,10 +1236,7 @@
       "rule": "Por las otras puertas, la base rechaza lo igual a today antes de correr: no se escribe un hecho que no cambia nada.",
       "from": "11/11 · revisión de lógica: editar con los mismos valores dejaba marca de edición",
       "guarantee": "derived",
-      "evidence": [
-        "src/tools/promises.ts",
-        "src/checks/promises/cases/promised-laws.ts"
-      ]
+      "evidence": ["src/tools/promises.ts", "src/checks/promises/cases/promised-laws.ts"]
     },
     {
       "id": 128,
@@ -1352,10 +1254,7 @@
       "rule": "Un objeto abierto se lee siempre en los grupos que declaró su herramienta, en el mismo orden; un grupo sin nada lo dice. Un dato que ningún grupo tiene hace fallar la lectura",
       "from": "LEYES 14 · 11/11 · objetos: presentación y navegación",
       "guarantee": "spec",
-      "evidence": [
-        "src/surface/bridge/views/presented.ts",
-        "src/surface/bridge/views/presented.spec.ts"
-      ]
+      "evidence": ["src/surface/bridge/views/presented.ts", "src/surface/bridge/views/presented.spec.ts"]
     },
     {
       "id": 130,
@@ -1373,10 +1272,7 @@
       "rule": "Ninguna pantalla propia de un programa dibuja un objeto: lo dibuja la base con lo que la herramienta declaró",
       "from": "11/11 · objetos: presentación y navegación",
       "guarantee": "surface",
-      "evidence": [
-        "src/surface/bridge/assembly/house-tools.ts",
-        "src/surface/bridge/views/presented.ts"
-      ]
+      "evidence": ["src/surface/bridge/assembly/house-tools.ts", "src/surface/bridge/views/presented.ts"]
     },
     {
       "id": 132,
@@ -1406,10 +1302,7 @@
       "rule": "Un objeto nunca se elige para lo que se le hace a él mismo: no figura en la lista de la que elige una acción sobre ese objeto",
       "from": "11/11 · obra de Capibara: «unir» ofrecía a la misma identidad",
       "guarantee": "spec",
-      "evidence": [
-        "src/surface/bridge/acts/program-acts.ts",
-        "src/surface/bridge/acts/program-acts.spec.ts"
-      ]
+      "evidence": ["src/surface/bridge/acts/program-acts.ts", "src/surface/bridge/acts/program-acts.spec.ts"]
     },
     {
       "id": 135,
@@ -1466,10 +1359,7 @@
       "rule": "Todo objeto cierra con su Registro: todo lo que se le hizo, lo último primero, con quién y cuándo, leído del registro mismo. Nada de lo hecho sobre un objeto queda fuera de la vista",
       "from": "11/11 · ronda 1 de escépticos, pantallas M19: «Archivó» se perdía al volver a activar",
       "guarantee": "spec",
-      "evidence": [
-        "src/surface/bridge/assembly/house-tools.ts",
-        "src/doors/terminal/house-screens.spec.ts"
-      ]
+      "evidence": ["src/surface/bridge/assembly/house-tools.ts", "src/doors/terminal/house-screens.spec.ts"]
     },
     {
       "id": 140,
@@ -1510,11 +1400,7 @@
       "rule": "Quien administra una casa puede sacar a alguien de ella (nunca a sí mismo): lo que escribió queda y su acceso se va; y puede pasarle la administración a otro de los que están. Nadie más puede hacer ninguna de las dos cosas",
       "from": "11/11 · obra de Capibara: «sacar» un usuario solo le quitaba las herramientas",
       "guarantee": "spec",
-      "evidence": [
-        "src/house/members.ts",
-        "src/journal/vocabulary.ts",
-        "src/house/grants.spec.ts"
-      ]
+      "evidence": ["src/house/members.ts", "src/journal/vocabulary.ts", "src/house/grants.spec.ts"]
     },
     {
       "id": 144,
@@ -1545,10 +1431,7 @@
       "rule": "Lo que una acción pone a confirmar sabe qué día es: recibe el instante en que se pregunta",
       "from": "11/11 · obra de Capibara: la vista previa decía «Fecha de emisión hoy»",
       "guarantee": "type",
-      "evidence": [
-        "src/tools/promises.ts",
-        "src/surface/bridge/acts/program-acts.ts"
-      ]
+      "evidence": ["src/tools/promises.ts", "src/surface/bridge/acts/program-acts.ts"]
     },
     {
       "id": 147,
@@ -1568,10 +1451,7 @@
       "rule": "Lo que una herramienta lee de sí misma se lee en el instante de quien mira, igual que una cosa: ninguna herramienta tiene reloj propio",
       "from": "11/11 · obra de Capibara: Resumen no sabía qué día era «hoy»",
       "guarantee": "spec",
-      "evidence": [
-        "src/surface/bridge/views/any-tool.ts",
-        "src/surface/bridge/views/any-tool.spec.ts"
-      ]
+      "evidence": ["src/surface/bridge/views/any-tool.ts", "src/surface/bridge/views/any-tool.spec.ts"]
     },
     {
       "id": 149,
@@ -1589,10 +1469,7 @@
       "rule": "La barra de una acción sobre una cosa dice qué se hace y a cuál: «Corregir · s1»",
       "from": "11/11 · ronda 1 de escépticos: «Productos» en la barra no decía a quién se le daba",
       "guarantee": "spec",
-      "evidence": [
-        "src/surface/bridge/acts/program-acts.ts",
-        "src/checks/promises/cases/promised-menus.spec.ts"
-      ]
+      "evidence": ["src/surface/bridge/acts/program-acts.ts", "src/checks/promises/cases/promised-menus.spec.ts"]
     },
     {
       "id": 151,
@@ -1613,20 +1490,14 @@
       "rule": "Lo que una acción rechaza en una pregunta queda en esa pregunta también en el recorrido derivado de cada caso: no se pregunta ni se confirma nada más",
       "from": "11/11 · obra de Capibara: un rechazo a mitad de camino seguía escribiendo en la misma pregunta",
       "guarantee": "derived",
-      "evidence": [
-        "src/checks/promises/walk/promised-walk.ts",
-        "tests/support/charging-shop.ts"
-      ]
+      "evidence": ["src/checks/promises/walk/promised-walk.ts", "tests/support/charging-shop.ts"]
     },
     {
       "id": 153,
       "rule": "Una acción que no pregunta nada se confirma diciendo para qué es (y que no se deshace, si no se deshace): lo que se hace y a qué cosa ya lo dice la barra, y no se repite",
       "from": "12/11 · obra de Capibara: «Deshacer entrega · Envío 1» se leía dos veces, en la barra y en la confirmación",
       "guarantee": "spec",
-      "evidence": [
-        "src/surface/bridge/acts/asked-act.ts",
-        "src/checks/promises/cases/promised-sure.spec.ts"
-      ]
+      "evidence": ["src/surface/bridge/acts/asked-act.ts", "src/checks/promises/cases/promised-sure.spec.ts"]
     },
     {
       "id": 154,
@@ -1649,10 +1520,7 @@
       "rule": "Un día es un día del calendario: uno que no existe (el 30 de febrero) se rechaza donde se escribe y por cualquier otra puerta antes de que la acción corra",
       "from": "12/11 · ronda 2 de escépticos de Capibara: un cobro del «45/13/2025» se guardaba y las reglas lo ignoraban",
       "guarantee": "spec",
-      "evidence": [
-        "src/fields/fields.ts",
-        "src/surface/bridge/questions/asking-days.spec.ts"
-      ]
+      "evidence": ["src/fields/fields.ts", "src/surface/bridge/questions/asking-days.spec.ts"]
     },
     {
       "id": 156,
@@ -1696,20 +1564,14 @@
       "rule": "Desde el Menú, buscar encuentra también las herramientas por su nombre, vivan donde vivan, antes de lo que cada una encuentra",
       "from": "12/11 · ronda 2 de escépticos de Capibara: buscar «fis» no encontraba Fiscal",
       "guarantee": "spec",
-      "evidence": [
-        "src/surface/menus/finding.ts",
-        "src/doors/terminal/house-keys.spec.ts"
-      ]
+      "evidence": ["src/surface/menus/finding.ts", "src/doors/terminal/house-keys.spec.ts"]
     },
     {
       "id": 160,
       "rule": "Lo que una acción contesta en varias líneas dice qué hizo en la primera («Verbo · Objeto · Detalle»); lo demás es lo que muestra y se lee como se escribió: también se promete en los casos",
       "from": "12/11 · lanes de Capibara: un impreso y un catálogo importado no se podían prometer en un caso porque la respuesta tenía más de una línea",
       "guarantee": "spec",
-      "evidence": [
-        "src/checks/promises/cases/promised.ts",
-        "src/tools/own-words.spec.ts"
-      ]
+      "evidence": ["src/checks/promises/cases/promised.ts", "src/tools/own-words.spec.ts"]
     },
     {
       "id": 161,
@@ -1728,10 +1590,7 @@
       "rule": "Lo que se contestó se lee al lado de lo que se preguntó; debajo, cuando lo preguntado es un bloque de varias líneas: la respuesta nunca se lee como el final del último renglón del bloque",
       "from": "12/11 · caminando Capibara: después de emitir, la vista previa terminaba en «fisco de prueba emitir»",
       "guarantee": "spec",
-      "evidence": [
-        "src/surface/acts/walk.ts",
-        "src/surface/acts/walk.spec.ts"
-      ]
+      "evidence": ["src/surface/acts/walk.ts", "src/surface/acts/walk.spec.ts"]
     },
     {
       "id": 163,
@@ -1812,10 +1671,7 @@
       "rule": "En una fila que se elige el nombre se lee entero y lo que se corta es lo de al lado; en una fila que se lee, el dato se lee entero y lo que se corta es su nombre",
       "from": "12/11 · tres lanes de Capibara lo resolvieron por separado contando columnas (el número de un comprobante, el nombre de una norma, un pedido de canal se cortaban a doce letras)",
       "guarantee": "spec",
-      "evidence": [
-        "src/doors/terminal/thread.ts",
-        "src/surface/router/resolve.spec.ts"
-      ]
+      "evidence": ["src/doors/terminal/thread.ts", "src/surface/router/resolve.spec.ts"]
     },
     {
       "id": 169,
@@ -1853,10 +1709,7 @@
       "rule": "Buscar encuentra lo que empieza una palabra, y un número por como se lee («15» encuentra 00000015): lo escrito en el medio de una palabra no encuentra nada",
       "from": "12/11 · escéptico de pantallas, ronda 3: buscar «Ana» traía primero «canales» y «persona humana»",
       "guarantee": "spec",
-      "evidence": [
-        "src/surface/menus/finding.ts",
-        "src/doors/terminal/house-search.spec.ts"
-      ]
+      "evidence": ["src/surface/menus/finding.ts", "src/doors/terminal/house-search.spec.ts"]
     },
     {
       "id": 172,
@@ -1938,12 +1791,7 @@
       "rule": "El código de run solo termina hecho o rechazado por una causa literal de outside, con un dato opcional tras punto medio. Una causa interna no compila; si llega en ejecución, la base lanza un defecto visible. Los rechazos previos siguen en refuses.",
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "type",
-      "evidence": [
-        "src/tools/outside.ts",
-        "src/tools/promises.ts",
-        "src/tools/execute.ts",
-        "src/tools/outside.spec.ts"
-      ]
+      "evidence": ["src/tools/outside.ts", "src/tools/promises.ts", "src/tools/execute.ts", "src/tools/outside.spec.ts"]
     },
     {
       "id": 179,
@@ -2907,10 +2755,7 @@
       "rule": "La respuesta perdida después de escribir se consulta sin un segundo efecto, también tras matar el proceso. Un corte antes o dentro de la transacción deja ningún efecto; entre efectos y respuesta deja el efecto entero y un resultado consultable o interrumpido con referencia a Actividad. Un pedido registrado sin empezar no queda en curso al reiniciar.",
       "from": "14/11 · casa-servidor · paso 2",
       "guarantee": "spec",
-      "evidence": [
-        "src/house/socket-crash.spec.ts",
-        "src/doors/socket/wire/socket-client-neighbors.spec.ts"
-      ]
+      "evidence": ["src/house/socket-crash.spec.ts", "src/doors/socket/wire/socket-client-neighbors.spec.ts"]
     },
     {
       "id": 250,
@@ -3001,29 +2846,21 @@
       "rule": "Cada archivo tiene como máximo 300 renglones y los textos suman como máximo 951, con los incrementos exactos y sus motivos registrados en core-size.spec.ts (12 renglones nuevos para orientar la lectura MCP de programas); cada archivo de producción tiene una descripción en el árbol.",
       "from": "16/11 · reorden 1, mapa firmado",
       "guarantee": "spec",
-      "evidence": [
-        "tests/laws/core-size.spec.ts",
-        "tests/laws/tree.json"
-      ]
+      "evidence": ["tests/laws/core-size.spec.ts", "tests/laws/tree.json"]
     },
     {
       "id": 258,
       "rule": "Cada carpeta de src agrupa al menos dos archivos de código; solo la raíz espera su index.ts.",
       "from": "16/11 · reorden 1, mapa firmado",
       "guarantee": "spec",
-      "evidence": [
-        "tests/laws/core-size.spec.ts",
-        "tests/laws/tree.json"
-      ]
+      "evidence": ["tests/laws/core-size.spec.ts", "tests/laws/tree.json"]
     },
     {
       "id": 259,
       "rule": "Cada dependencia de producción va a su capa o a una inferior; las excepciones ascendentes se nombran por archivo y destino y no se admiten nuevas ni obsoletas.",
       "from": "16/11 · reorden 1, mapa firmado",
       "guarantee": "spec",
-      "evidence": [
-        "tests/laws/layers.spec.ts"
-      ]
+      "evidence": ["tests/laws/layers.spec.ts"]
     },
     {
       "id": 260,
@@ -3130,10 +2967,7 @@
       "rule": "Cada archivo de código de src/, salvo las pruebas, empieza en su primer renglón con un comentario // de una línea que dice para qué es. La ley atrapa archivos sin cabecera, con ella desplazada o sin texto.",
       "from": "16/11 · limpiar 5, cabeceras de propósito",
       "guarantee": "spec",
-      "evidence": [
-        "tests/laws/core-size.spec.ts",
-        "tests/laws/tree.json"
-      ]
+      "evidence": ["tests/laws/core-size.spec.ts", "tests/laws/tree.json"]
     },
     {
       "id": 268,
@@ -3256,31 +3090,21 @@
       "rule": "El Menú agrupa Programas y conserva Sistema. Cada programa abre Herramientas y cada herramienta sus acciones, incluso si es única. Solo atajoUnaHerramienta explícito salta el nivel intermedio.",
       "from": "18/11 · distribuciones, núcleo paso 2",
       "guarantee": "spec",
-      "evidence": [
-        "src/runtime/distributions/surface.spec.ts",
-        "src/checks/distribution-terminal.spec.ts"
-      ]
+      "evidence": ["src/runtime/distributions/surface.spec.ts", "src/checks/distribution-terminal.spec.ts"]
     },
     {
       "id": 278,
       "rule": "La distribución transmite mentes al registro efectivo. Apagar asistentes retira sus actos de terminal, MCP y kit; apagar pensamiento conserva arranque determinista e historia sin cargar turno, cartas ni modelos.",
       "from": "18/11 · distribuciones, núcleo paso 2",
       "guarantee": "spec",
-      "evidence": [
-        "src/runtime/distributions/minds.spec.ts",
-        "src/tools/identities/identities.ts"
-      ]
+      "evidence": ["src/runtime/distributions/minds.spec.ts", "src/tools/identities/identities.ts"]
     },
     {
       "id": 279,
       "rule": "Un programa independiente declara su programa y su distribución de prueba. La compuerta comprueba el artefacto instalado y ejecuta los mismos programChecks, fronteras y leyes de código sobre el paquete.",
       "from": "18/11 · distribuciones, núcleo paso 2",
       "guarantee": "spec",
-      "evidence": [
-        "tests/laws/standalone-program.spec.ts",
-        "tests/program/load.ts",
-        "tests/program/registration.ts"
-      ]
+      "evidence": ["tests/laws/standalone-program.spec.ts", "tests/program/load.ts", "tests/program/registration.ts"]
     },
     {
       "id": 280,
@@ -3301,10 +3125,7 @@
       "rule": "Las listas vacías y opcionales de asistentes se recorren como un hilo de acción, con opciones sin Entrada, regreso por esc y confirmación final; se comprueban en la terminal real de 100×30 y 40×16.",
       "from": "18/11 · distribuciones, núcleo paso 2",
       "guarantee": "spec",
-      "evidence": [
-        "src/checks/distribution-terminal.spec.ts",
-        "src/surface/bridge/questions/asking.spec.ts"
-      ]
+      "evidence": ["src/checks/distribution-terminal.spec.ts", "src/surface/bridge/questions/asking.spec.ts"]
     },
     {
       "id": 282,
@@ -3327,10 +3148,7 @@
       "rule": "MCP permite leer un programa instalable, sus carpetas y sus objetos usando los ids de la terminal. leer y acciones aceptan objetivo dentro del programa indicado; rechazan destinos inexistentes o ajenos. Todas las identidades presentes leen los programas y sus acciones sin kit se muestran apagadas. acciones sólo publica destinos aplicables y actuar conserva sus permisos. Los Tool comunes mantienen su comportamiento anterior.",
       "from": "18/11 · dist-mcp-leer, lectura de carpetas y objetos",
       "guarantee": "spec",
-      "evidence": [
-        "src/doors/mcp/mcp-program-reading.spec.ts",
-        "src/doors/mcp/mcp-tools.spec.ts"
-      ]
+      "evidence": ["src/doors/mcp/mcp-program-reading.spec.ts", "src/doors/mcp/mcp-tools.spec.ts"]
     },
     {
       "id": 284,
@@ -3368,6 +3186,34 @@
         "tests/laws/program-entry-values.spec.ts",
         "tests/laws/program-entry-load.spec.ts",
         "tests/program/load.ts"
+      ]
+    },
+    {
+      "id": 287,
+      "rule": "La composición deriva una definición por programa prendido, su actor, rol, reglas y palabras. La base arma catálogo, huellas y recursos del turno; la distribución entrega sólo llave, transporte, cuenta, tope e idioma. Una casa creada sin pensamiento puede prenderlo al reabrir sin perder sus datos.",
+      "from": "18/11 · dist-mentes-programa",
+      "guarantee": "spec",
+      "evidence": [
+        "src/runtime/distributions/program-minds.spec.ts",
+        "src/runtime/distributions/program-mind-journeys.spec.ts"
+      ]
+    },
+    {
+      "id": 288,
+      "rule": "El programa aporta casos de tres escenas. El banco usa el turno, marco y motor reales con estado aislado; prueba por costo creciente y se frena en la primera carta que pasa todas las escenas. Conserva evidencia por huella y cuenta el gasto del banco en el diario de la casa; una interrupción no certifica un rechazo del rol.",
+      "from": "18/11 · dist-mentes-programa",
+      "guarantee": "spec",
+      "evidence": ["src/runtime/minds/program-mind-bank.spec.ts", "src/runtime/minds/program-mind-neighbors.spec.ts"]
+    },
+    {
+      "id": 289,
+      "rule": "Sin llave, con tope insuficiente o sin carta acreditada, la casa abre y explica por qué la mente no piensa. Reservas y gasto sobreviven reaperturas y recálculos. La consciencia escribe escenas y mensajes; sólo sus journeys ejecutan trabajo y únicamente con el kit vigente, incluidas las carpetas de programas instalables.",
+      "from": "18/11 · dist-mentes-programa",
+      "guarantee": "spec",
+      "evidence": [
+        "src/runtime/minds/program-mind-bank.spec.ts",
+        "src/runtime/minds/program-mind-neighbors.spec.ts",
+        "src/runtime/distributions/program-mind-journeys.spec.ts"
       ]
     }
   ]
