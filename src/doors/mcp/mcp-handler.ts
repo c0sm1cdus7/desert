@@ -159,20 +159,20 @@ function caller<X extends Program>(
     if (method !== "tools/call") throw new RpcError(-32601, said.method);
     const { name, args } = toolCall(params);
     const reading = mcpReading(house, by, options.limits);
-    const tool = typeof args.herramienta === "string" ? args.herramienta : undefined;
+    const program = typeof args.programa === "string" ? args.programa : undefined;
     const target = typeof args.objetivo === "string" ? args.objetivo : undefined;
-    if (name === "leer") return reading.read(tool, target);
-    if (name === "acciones") return reading.actions(tool, target);
+    if (name === "leer") return reading.read(program, target);
+    if (name === "acciones") return reading.actions(program, target);
     if (name === "esperar" && typeof args.desde === "number" && typeof args.segundos === "number")
       return wait(house, waits, by, { desde: args.desde, segundos: args.segundos }, signal);
-    if (name === "actuar" && tool !== undefined && typeof args.accion === "string")
+    if (name === "actuar" && program !== undefined && typeof args.accion === "string")
       return mcpAct(
         house,
         book,
         by,
-        tool,
+        program,
         args.accion,
-        typeof args.objetivo === "string" ? args.objetivo : tool,
+        typeof args.objetivo === "string" ? args.objetivo : program,
         args.datos,
       );
     throw new RpcError(-32602, said.params);

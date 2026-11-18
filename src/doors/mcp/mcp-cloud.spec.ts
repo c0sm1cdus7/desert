@@ -32,11 +32,11 @@ it("serves the MCP door from a cloud house opened with its root key and door key
         Buffer.from(JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } })),
       ],
     });
-  const acted = await call("actuar", { herramienta: "sales", accion: "register", datos: { sale: "nube", total: 100 } });
+  const acted = await call("actuar", { programa: "sales", accion: "register", datos: { sale: "nube", total: 100 } });
   expect(JSON.parse(acted.body)).toMatchObject({
     result: { isError: false, content: [{ text: "Registrada · nube" }] },
   });
-  const read = await call("leer", { herramienta: "sales" });
+  const read = await call("leer", { programa: "sales" });
   expect(read.body).toContain("nube");
   await door.close();
 });

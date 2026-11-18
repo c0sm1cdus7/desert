@@ -1834,23 +1834,32 @@ la versión indicados por el programa, `{ tools: { listChanged: false } }` y la 
 `ping` devuelve `{}`; `notifications/*` recibe `202` sin cuerpo. No hay `Mcp-Session-Id` ni una inicialización
 obligatoria entre pedidos. Un método desconocido recibe `-32601`; argumentos inválidos, `-32602`.
 
-Las herramientas publicadas son siempre `leer`, `acciones`, `actuar` y `esperar`:
+Las herramientas MCP publicadas son siempre `leer`, `acciones`, `actuar` y `esperar`. La casa reúne
+identidades y programas; cada programa tiene herramientas con acciones. El parámetro que elige el programa se
+llama `programa`. Mandar `herramienta` en cualquiera de las tres primeras recibe `-32602` con el nombre nuevo,
+incluso si también se manda `programa`: no hay alias de compatibilidad.
 
-- `leer { herramienta?: string, objetivo?: string }` muestra la identidad, la secuencia `desde`, las escenas generales con la parte
-  dirigida a quien lee, las herramientas asignadas y sus avisos. Con `herramienta`, muestra su lectura textual,
-  sin códigos de terminal. En un programa instalable, esa lectura lista sus herramientas con ids. Pasá uno como
-  `objetivo` (por ejemplo, `notas/notas`) para listar sus objetos; pasá el id de un objeto (`notas/notas/<id>`)
-  para leerlo. `objetivo` requiere `herramienta` y debe pertenecer a ese programa: destinos inexistentes o de otro
-  programa reciben un rechazo claro. Cualquier identidad presente puede leer un programa instalable aunque
-  no lo tenga en su kit. Usa `localPorts`, las lecturas de identidad y los avisos de la terminal.
-- `acciones { herramienta?: string, objetivo?: string }` muestra actos del kit: herramienta, identificador de la acción, nombre,
-  propósito, si se hace sobre una herramienta o una cosa, objetivo, esquema TypeBox serializado como JSON Schema
-  y motivo de indisponibilidad. Las posiciones secretas conservan `secret: true`. Si todavía no hay cosas, la
-  acción de cosa aparece con ese motivo y sin objetivo. En programas instalables muestra también las acciones
-  ajenas, apagadas con el motivo del kit. Cada acción aparece sólo en su carpeta u objetos correspondientes;
-  `objetivo` filtra por uno de esos mismos ids que aceptan `leer` y `actuar`, y requiere `herramienta`.
-  Los `Tool` comunes conservan el filtro por kit y su lectura sin objetivo. Ninguna lectura concede escritura.
-- `actuar { herramienta, accion, objetivo?, datos }` toma la herramienta como objetivo cuando no se indica otro.
+- `leer { programa?: string, objetivo?: string }` muestra la identidad, la secuencia `desde`, las escenas generales
+  con la parte dirigida a quien lee, los `programas` asignados y sus avisos (cada aviso identifica su `programa`).
+  Con `programa`, muestra su lectura textual, sin códigos de terminal. En un programa instalable, esa lectura
+  lista sus herramientas con ids. Por ejemplo: `leer { programa: "notas" }` lista las carpetas;
+  `leer { programa: "notas", objetivo: "notas/notas" }` lista los objetos de esa herramienta;
+  `leer { programa: "notas", objetivo: "notas/notas/<id>" }` lee el objeto. `objetivo` requiere `programa` y debe
+  pertenecer a él: destinos inexistentes o de otro programa reciben un rechazo claro. Cualquier identidad presente
+  puede leer un programa instalable aunque no lo tenga en su kit. Las piezas del sistema se leen igual:
+  `leer { programa: "identities" }` lista Identidades; `objetivo: "identities/ana"` lee a Ana.
+  Usa `localPorts`, las lecturas de identidad y los avisos de la terminal.
+- `acciones { programa?: string, objetivo?: string }` muestra `programa`, `herramienta` (id de la carpeta, como
+  `notas/notas`), `accion` (identificador ejecutable, como `notas/add`), nombre, propósito, si se hace sobre una
+  herramienta o una cosa, objetivo, esquema TypeBox serializado como JSON Schema y motivo de indisponibilidad.
+  Las posiciones secretas conservan `secret: true`. Si todavía no hay cosas, la acción de cosa aparece con ese
+  motivo y sin objetivo. En programas instalables muestra también las acciones ajenas, apagadas con el motivo
+  del kit. Cada acción aparece sólo en su carpeta u objetos correspondientes; `objetivo` filtra por uno de esos
+  mismos ids que aceptan `leer` y `actuar`, y requiere `programa`. Las piezas sin grupos, como Identidades,
+  conservan su id de raíz como `herramienta`. Los `Tool` comunes conservan el filtro por kit y su lectura sin
+  objetivo. Ninguna lectura concede escritura.
+- `actuar { programa, accion, objetivo?, datos }` toma el programa como objetivo cuando no se indica otro.
+  Para ejecutar una acción publicada, copiá sus campos `programa`, `accion` y `objetivo`, y agregá `datos`.
   Atiende el objetivo y ejecuta mediante `requestBook`, el mismo camino del socket, con los chequeos de kit y el
   tope de datos de la casa. Devuelve el texto aceptado o el motivo del rechazo con `isError: true`. Los recibos
   privados no se exponen por esta puerta. Cada llamada es un acto nuevo: el ID JSON-RPC correlaciona la respuesta,

@@ -5,12 +5,12 @@ import { object } from "../../fields/visible-text.ts";
 import { isRecord } from "../../fields/json-values.ts";
 import { mcpTexts as said } from "../../texts/mcp.texts.ts";
 const name = Type.String({ minLength: 1, maxLength: 256 });
-const selection = object({ herramienta: Type.Optional(name), objetivo: Type.Optional(name) });
+const selection = object({ programa: Type.Optional(name), objetivo: Type.Optional(name) });
 export const mcpInputs = {
   leer: selection,
   acciones: selection,
   actuar: object({
-    herramienta: name,
+    programa: name,
     accion: name,
     objetivo: Type.Optional(name),
     datos: Type.Record(Type.String(), Type.Unknown()),
@@ -54,9 +54,11 @@ export function toolCall(params: unknown): { name: keyof typeof mcpInputs; args:
   if (name !== "leer" && name !== "acciones" && name !== "actuar" && name !== "esperar")
     throw new RpcError(-32602, said.params);
   const args: unknown = params.arguments ?? {};
+  if (name !== "esperar" && isRecord(args) && Object.hasOwn(args, "herramienta"))
+    throw new RpcError(-32602, said.programParameter);
   if (
     !isRecord(args) ||
-    (args.objetivo !== undefined && args.herramienta === undefined) ||
+    (args.objetivo !== undefined && args.programa === undefined) ||
     !Value.Check(mcpInputs[name], args)
   )
     throw new RpcError(-32602, said.params);

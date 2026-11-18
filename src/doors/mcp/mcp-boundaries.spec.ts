@@ -27,11 +27,11 @@ it("shows unavailable actions and thing actions even before any things exist", a
     },
     paymentsTool,
   ]);
-  const before = await h.call("acciones", { herramienta: "sales" });
+  const before = await h.call("acciones", { programa: "sales" });
   expect(before.body).toContain("Closed");
   expect(before.body).toContain("modify");
   expect(before.body).toContain("thing");
-  const denied = await h.call("actuar", { herramienta: "sales", accion: "register", datos: { sale: "x", total: 1 } });
+  const denied = await h.call("actuar", { programa: "sales", accion: "register", datos: { sale: "x", total: 1 } });
   expect(JSON.parse(denied.body)).toMatchObject({ result: { isError: true } });
   expect(denied.body).toContain("Closed");
 });
@@ -50,7 +50,7 @@ it("reads needs with the same per-identity filtering and removes terminal codes"
   const home = await h.call("leer", {}, h.beto);
   expect(home.body).toContain("De Beto");
   expect(home.body).not.toContain("De Ana");
-  const reading = await h.call("leer", { herramienta: "sales" }, h.beto);
+  const reading = await h.call("leer", { programa: "sales" }, h.beto);
   expect(JSON.parse(reading.body)).toMatchObject({ result: { content: [{ text: "Ventas" }] } });
 });
 it("rejects unknown targets and invalid tool arguments without exposing exceptions", async () => {
@@ -64,19 +64,19 @@ it("rejects unknown targets and invalid tool arguments without exposing exceptio
     },
     paymentsTool,
   ]);
-  const read = await h.call("leer", { herramienta: "sales" });
+  const read = await h.call("leer", { programa: "sales" });
   expect(JSON.parse(read.body)).toMatchObject({ error: { code: -32603 } });
   expect(read.body.includes(secret)).toBe(false);
   for (const [name, args] of [
     ["esperar", { desde: -1, segundos: 0 }],
     ["esperar", { desde: 0, segundos: -1 }],
-    ["actuar", { herramienta: "sales", accion: "register", datos: [] }],
+    ["actuar", { programa: "sales", accion: "register", datos: [] }],
     ["sincronizar", {}],
-    ["leer", { herramienta: "sales", extra: true }],
+    ["leer", { programa: "sales", extra: true }],
   ] as const) {
     expect(JSON.parse((await h.call(name, args)).body)).toMatchObject({ error: { code: -32602 } });
   }
-  const call = await h.call("actuar", { herramienta: "sales", accion: "register", objetivo: "absent", datos: {} });
+  const call = await h.call("actuar", { programa: "sales", accion: "register", objetivo: "absent", datos: {} });
   expect(JSON.parse(call.body)).toMatchObject({ result: { isError: true } });
 });
 it("accepts exactly the byte bound, rejects broken UTF-8, and checks auth before size", async () => {

@@ -29,7 +29,7 @@ function scene<X extends Program>(ports: HousePorts<X>, identity: string) {
 function overview<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X>[]) {
   const state = ports.state();
   const avisos = tools.filter(declared).map(tool => ({
-    herramienta: tool.id,
+    programa: tool.id,
     ...noticesOf({ ...ports, act: value => ports.act(value, state.through) }, tool, {
       name: tool.id,
       titleOf: target => target,
@@ -39,7 +39,7 @@ function overview<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<
     identidad: ports.me,
     desde: state.through,
     escenas: [...state.house.scenes.keys()].map(identity => scene(ports, identity)),
-    herramientas: tools.map(({ id, purpose }) => ({ id, para: purpose })),
+    programas: tools.map(({ id, purpose }) => ({ id, para: purpose })),
     avisos,
   };
 }
@@ -60,7 +60,8 @@ function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X
           return (targets.length ? targets : [undefined])
             .filter(target => on === undefined || target === on)
             .map(target => ({
-              herramienta: tool.id,
+              programa: tool.id,
+              herramienta: group.id,
               accion: name,
               nombre: isProgram(act) ? act.name : name,
               sobre: act.on ?? "tool",

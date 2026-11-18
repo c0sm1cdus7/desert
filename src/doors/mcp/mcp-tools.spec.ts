@@ -18,7 +18,7 @@ it("reads the identity's scene and addressed part, tools and terminal notices", 
   h.rig.bus.emit(
     effect("scene", { general: "El almacén abre", to: { beto: "Ordenar ventas", ana: "Parte ajena" } }, "ana"),
   );
-  await h.call("actuar", { herramienta: "sales", accion: "register", datos: { sale: "pendiente", total: 100 } });
+  await h.call("actuar", { programa: "sales", accion: "register", datos: { sale: "pendiente", total: 100 } });
   const response = await h.call("leer", {}, h.beto);
   expect(response.body).toContain("El almacén abre");
   expect(response.body).toContain("Ordenar ventas");
@@ -29,14 +29,14 @@ it("reads the identity's scene and addressed part, tools and terminal notices", 
 });
 it("reads a tool through the same view and never emits terminal escapes", async () => {
   const h = setup();
-  await h.call("actuar", { herramienta: "sales", accion: "register", datos: { sale: "venta", total: 100 } });
-  const response = await h.call("leer", { herramienta: "sales" });
+  await h.call("actuar", { programa: "sales", accion: "register", datos: { sale: "venta", total: 100 } });
+  const response = await h.call("leer", { programa: "sales" });
   const result: unknown = JSON.parse(response.body);
   expect(result).toMatchObject({
     result: { content: [{ text: h.house.registry[0]?.view(h.rig.state(), "sales", { recentLines: 20, now: 0 }) }] },
   });
   expect(response.body.includes("\u001b")).toBe(false);
-  expect(JSON.parse((await h.call("leer", { herramienta: "payments" }, h.beto)).body)).toMatchObject({
+  expect(JSON.parse((await h.call("leer", { programa: "payments" }, h.beto)).body)).toMatchObject({
     result: { isError: true },
   });
 });
@@ -52,7 +52,7 @@ it("lists only granted actions and respects a narrower kit at execution time", a
   const before = h.rig.state().through;
   const denied = await h.call(
     "actuar",
-    { herramienta: "payments", accion: "receive", datos: { payment: "x", amount: 1 } },
+    { programa: "payments", accion: "receive", datos: { payment: "x", amount: 1 } },
     h.beto,
   );
   expect(JSON.parse(denied.body)).toMatchObject({ result: { isError: true } });
@@ -61,18 +61,17 @@ it("lists only granted actions and respects a narrower kit at execution time", a
   expect((await h.call("acciones", {}, h.beto)).body).not.toContain("register");
   expect(
     JSON.parse(
-      (await h.call("actuar", { herramienta: "sales", accion: "register", datos: { sale: "x", total: 1 } }, h.beto))
-        .body,
+      (await h.call("actuar", { programa: "sales", accion: "register", datos: { sale: "x", total: 1 } }, h.beto)).body,
     ),
   ).toMatchObject({ result: { isError: true } });
 });
 it("keeps ordinary Tool readings and action targets while accepting an explicit object", async () => {
   const h = setup();
-  await h.call("actuar", { herramienta: "sales", accion: "register", datos: { sale: "venta", total: 100 } });
+  await h.call("actuar", { programa: "sales", accion: "register", datos: { sale: "venta", total: 100 } });
   const tool = h.house.registry.find(tool => tool.id === "sales");
   const target = tool?.targets(h.rig.state())[0];
   if (!tool || !target) throw new Error("Missing sale target");
-  const response: unknown = JSON.parse((await h.call("leer", { herramienta: "sales", objetivo: target }, h.beto)).body);
+  const response: unknown = JSON.parse((await h.call("leer", { programa: "sales", objetivo: target }, h.beto)).body);
   expect(response).toMatchObject({
     result: {
       isError: false,
@@ -83,21 +82,21 @@ it("keeps ordinary Tool readings and action targets while accepting an explicit 
       ],
     },
   });
-  expect((await h.call("leer", { herramienta: "sales", objetivo: "sales" })).body).toBe(
-    (await h.call("leer", { herramienta: "sales" })).body,
+  expect((await h.call("leer", { programa: "sales", objetivo: "sales" })).body).toBe(
+    (await h.call("leer", { programa: "sales" })).body,
   );
-  const actions = mcpActions(mcpResult((await h.call("acciones", { herramienta: "sales" }, h.beto)).body));
+  const actions = mcpActions(mcpResult((await h.call("acciones", { programa: "sales" }, h.beto)).body));
   const filtered = mcpActions(
-    mcpResult((await h.call("acciones", { herramienta: "sales", objetivo: target }, h.beto)).body),
+    mcpResult((await h.call("acciones", { programa: "sales", objetivo: target }, h.beto)).body),
   );
   expect(filtered).toEqual(actions.filter(action => action.objetivo === target));
-  expect(JSON.parse((await h.call("leer", { herramienta: "sales", objetivo: target }, h.carla)).body)).toMatchObject({
+  expect(JSON.parse((await h.call("leer", { programa: "sales", objetivo: target }, h.carla)).body)).toMatchObject({
     result: { isError: true },
   });
 });
 it("acts with the socket book, accepts once and explains a refusal", async () => {
   const h = setup();
-  const args = { herramienta: "sales", accion: "register", datos: { sale: "uno", total: 100 } };
+  const args = { programa: "sales", accion: "register", datos: { sale: "uno", total: 100 } };
   const accepted = await h.call("actuar", args, h.beto);
   expect(JSON.parse(accepted.body)).toMatchObject({ result: { isError: false } });
   expect(accepted.body).toContain("Registrada · uno");
@@ -112,14 +111,14 @@ it("acts with the socket book, accepts once and explains a refusal", async () =>
 it("cannot cross a target into another tool or bypass the act size limit", async () => {
   const h = setup();
   const crossed = await h.call("actuar", {
-    herramienta: "sales",
+    programa: "sales",
     accion: "receive",
     objetivo: "payments",
     datos: { payment: "x", amount: 1 },
   });
   expect(JSON.parse(crossed.body)).toMatchObject({ result: { isError: true } });
   const tooBig = await h.call("actuar", {
-    herramienta: "sales",
+    programa: "sales",
     accion: "register",
     datos: { sale: "x".repeat(actLimits.inputBytes), total: 1 },
   });
