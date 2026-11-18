@@ -1,5 +1,5 @@
 import { isBuiltin } from "node:module";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { isAbsolute, dirname, join, resolve, sep } from "node:path";
 import ts from "typescript";
 import { boundaryImports } from "./secret-syntax.ts";
@@ -10,6 +10,9 @@ export function compilerOptions(root: string): ts.CompilerOptions {
   const result = ts.readConfigFile(config, path => readFileSync(path, "utf8"));
   return ts.parseJsonConfigFileContent(result.config, ts.sys, root).options;
 }
+/** A package reached through a linked `node_modules` is read by its own path, as the base and its sources are. */
+const linkedPackage = (file: string): string =>
+  file.includes(`${sep}node_modules${sep}`) && existsSync(file) ? realpathSync(file) : file;
 /** Follow local imports, aliases and reexports even outside src and in specs. Engine/public API is a leaf. */
 export function programSourceGraph(
   root: string,
@@ -38,7 +41,7 @@ export function programSourceGraph(
       let local: string | undefined;
       if (edge.specifier.startsWith(".")) local = resolve(dirname(file), edge.specifier);
       else if (isAbsolute(edge.specifier)) local = edge.specifier;
-      const target = resolved ?? local;
+      const target = resolved !== undefined ? linkedPackage(resolved) : local;
       if (target) aliases[`${file}\0${edge.specifier}`] = target;
       if (target && inside(join(base, "src"), target)) continue;
       if (publicModules[edge.specifier]) continue;
