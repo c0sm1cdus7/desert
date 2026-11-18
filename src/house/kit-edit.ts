@@ -1,5 +1,6 @@
 // Edita selecciones positivas sobre el estado vigente y abre solamente las carpetas afectadas.
 import {
+  actionSelection,
   covers,
   herramientaDe,
   selectionKit,
@@ -28,8 +29,12 @@ export function editKit(
       if (branch.kind === "action")
         siblings.push(
           ...actions
-            .filter(action => action !== branch.action && herramientaDe(branch.program, action, layout) === branch.tool)
-            .map(action => ({ kind: "action" as const, program: branch.program, tool: branch.tool, action })),
+            .filter(
+              action =>
+                !covers(branch, actionSelection(branch.program, action, layout)) &&
+                herramientaDe(branch.program, action, layout) === branch.tool,
+            )
+            .map(action => actionSelection(branch.program, action, layout)),
         );
       return siblings;
     }),

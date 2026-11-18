@@ -20,13 +20,17 @@ async function run(by = "beto", denied = false) {
         "kit-set",
         {
           holder: by,
-          tool: "documentos/fiscal",
-          acts: [],
+          version: 2,
+          kit: { version: 2, selections: [{ kind: "program", program: "ventas" }] },
         },
         "ana",
       ),
     );
-  const started = engine.act({ act: "facturar", target: "ventas/facturacion", input: { venta: "v1" } }, 0, by);
+  const started = engine.act(
+    { act: "facturacion/facturar", target: "ventas/facturacion", input: { venta: "v1" } },
+    0,
+    by,
+  );
   const result = started.status === "processing" ? await started.completion : started;
   const events = house.events();
   engine.stop();
@@ -39,8 +43,8 @@ describe("the contractual action port", () => {
     expect(result.value).toEqual({ status: "accepted", value: { id: "v1" } });
     expect(events.filter(event => event.kind === "documentos/emitido").map(event => event.by)).toEqual(["beto"]);
     const acts = events.filter(event => event.kind === "act");
-    const parent = acts.find(event => event.data.option === "facturar");
-    const child = acts.find(event => event.data.option === "emitir");
+    const parent = acts.find(event => event.data.option === "facturacion/facturar");
+    const child = acts.find(event => event.data.option === "fiscal/emitir");
     expect(child?.cause).toContain(parent?.id);
   });
   it("does not inherit the provider's or administrator's permissions", async () => {

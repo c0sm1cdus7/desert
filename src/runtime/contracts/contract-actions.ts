@@ -19,7 +19,7 @@ export function contractAction(
       const slash = have.ruta.lastIndexOf("/");
       const result = await invocation.execute({
         target: `${provider}/${have.ruta.slice(0, slash)}`,
-        act: have.ruta.slice(slash + 1),
+        act: have.ruta,
         input: safe,
       });
       if (result.coreFailure) return coreFailure(result.coreFailure);

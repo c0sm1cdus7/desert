@@ -19,7 +19,7 @@ function setup(override?: () => ActResult<Demo> | Promise<ActResult<Demo>>) {
   for (const target of ["ventas/facturacion", "documentos/fiscal"])
     engine.act({ act: "attend", input: { target } }, 0, "beto");
   const act = (sale = "v1") =>
-    engine.act({ act: "facturar", target: "ventas/facturacion", input: { venta: sale } }, 0, "beto");
+    engine.act({ act: "facturacion/facturar", target: "ventas/facturacion", input: { venta: sale } }, 0, "beto");
   return {
     ...house,
     engine,
@@ -67,7 +67,13 @@ describe("core failures stay distinct from business refusals", () => {
     try {
       const started = rig.act();
       expect(started.status).toBe("processing");
-      rig.ports.bus.emit(effect("kit-set", { holder: "beto", tool: "documentos/fiscal", acts: [] }, "ana"));
+      rig.ports.bus.emit(
+        effect(
+          "kit-set",
+          { version: 2, holder: "beto", kit: { version: 2, selections: [{ kind: "program", program: "ventas" }] } },
+          "ana",
+        ),
+      );
       finish?.({ status: "accepted", value: { id: "v1", numero: "1" } });
       const result = started.status === "processing" ? await started.completion : started;
       expect(result.value).toEqual({ status: "core-failure", reason: "interrupted" });
@@ -98,12 +104,12 @@ describe("core failures stay distinct from business refusals", () => {
     const house = contractHouse();
     let retained: ContractPort | undefined;
     const registry = house.ports.registry.map(tool =>
-      tool.id !== "ventas/facturacion"
+      tool.id !== "ventas"
         ? tool
         : {
             ...tool,
             acts: {
-              facturar: toolAct<Demo, ReturnType<typeof Type.Null>>(Type.Null(), (_input, context) => {
+              "facturacion/facturar": toolAct<Demo, ReturnType<typeof Type.Null>>(Type.Null(), (_input, context) => {
                 retained = context.contracts?.["documentos-fiscales"];
                 return { status: "accepted" };
               }),
@@ -119,7 +125,7 @@ describe("core failures stay distinct from business refusals", () => {
     });
     try {
       engine.act({ act: "attend", input: { target: "ventas/facturacion" } }, 0, "beto");
-      engine.act({ act: "facturar", target: "ventas/facturacion", input: null }, 0, "beto");
+      engine.act({ act: "facturacion/facturar", target: "ventas/facturacion", input: null }, 0, "beto");
       expect(await retained?.actions.emitir?.({ venta: "v1" })).toEqual({
         status: "core-failure",
         reason: "interrupted",

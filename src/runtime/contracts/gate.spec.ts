@@ -1,6 +1,6 @@
 import { required } from "../../../tests/support/distribution-contracts.ts";
 import { describe, expect, it } from "vitest";
-import { contractHouse, documents, sales } from "../../../tests/support/distribution-contracts.ts";
+import { contractSelections, contractHouse, documents, sales } from "../../../tests/support/distribution-contracts.ts";
 import { runContractCases } from "./contract-gate.ts";
 import { validateContractPrograms } from "./validate-contracts.ts";
 const build = { core: "core-commit", executor: "executor-commit" };
@@ -10,7 +10,7 @@ const options = () => ({
   consumer: "ventas",
   contract: "documentos-fiscales",
   build,
-  prepare: () => contractHouse(),
+  prepare: (preparation: unknown) => contractHouse(undefined, ":memory:", contractSelections(preparation)),
 });
 describe("consumer cases at the provider gate", () => {
   it("executes real calls, notices, reads and idempotence and fingerprints the evidence", async () => {
@@ -63,7 +63,8 @@ describe("consumer cases at the provider gate", () => {
     const setup = options();
     const failed = await runContractCases({
       ...setup,
-      prepare: () => contractHouse(() => ({ status: "inconclusive" })),
+      prepare: preparation =>
+        contractHouse(() => ({ status: "inconclusive" }), ":memory:", contractSelections(preparation)),
     });
     expect(failed.evidence[0]?.result).toBe("failed");
     expect(validateContractPrograms(setup.programs, build, failed.evidence, failed.verify).errors).toHaveLength(1);

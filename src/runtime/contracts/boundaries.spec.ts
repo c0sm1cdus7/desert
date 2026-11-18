@@ -11,7 +11,7 @@ it.each(["notas", "documentos"])("19/20 does not lend the undeclared contract %s
   try {
     const runtime = createContractRuntime([sales(), documents()], house.ports, house.history);
     const scope = runtime.open("ventas", {
-      tool: "ventas/facturacion",
+      tool: "ventas",
       by: "beto",
       execute: () => Promise.resolve({ status: "inconclusive" }),
     });
@@ -27,7 +27,7 @@ it("cannot acquire inherited members or mutate the installed contract through re
   try {
     const runtime = createContractRuntime([consumer, documents()], house.ports, house.history);
     const scope = runtime.open("ventas", {
-      tool: "ventas/facturacion",
+      tool: "ventas",
       by: "beto",
       execute: () => Promise.resolve({ status: "accepted", value: { id: "v1", numero: "1" } }),
     });

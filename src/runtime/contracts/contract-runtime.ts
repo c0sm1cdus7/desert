@@ -21,8 +21,8 @@ function checkBindings<X extends Program>(programs: readonly ContractPackage[], 
   const errors = structuralContractErrors(programs);
   for (const program of programs)
     for (const [tool, actions] of Object.entries(program.herramientas)) {
-      const bound = ports.registry.find(each => each.id === `${program.id}/${tool}`);
-      const missing = actions.filter(action => !bound || !Object.hasOwn(bound.acts, action));
+      const bound = ports.registry.find(each => each.id === program.id);
+      const missing = actions.filter(action => !bound || !Object.hasOwn(bound.acts, `${tool}/${action}`));
       errors.push(...missing.map(action => `${program.id}/${tool}/${action}:ruta-sin-ejecutor`));
     }
   if (errors.length) throw new ContractCompositionError(errors);
@@ -79,11 +79,6 @@ export function createContractRuntime<X extends Program>(
     return { contracts: Object.freeze(contracts), cut: cut() };
   };
   const context: ContractFactory = invocation =>
-    open(
-      programs.find(program =>
-        Object.keys(program.herramientas).some(tool => `${program.id}/${tool}` === invocation.tool),
-      )?.id ?? "",
-      invocation,
-    );
+    open(programs.find(program => program.id === invocation.tool)?.id ?? "", invocation);
   return { context, open, cut };
 }

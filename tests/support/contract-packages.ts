@@ -57,7 +57,13 @@ const consumerCases = (): readonly ContractCase[] => [
   {
     id: "emitir-y-leer",
     actor: "beto",
-    prepare: { grants: ["documentos/fiscal", "ventas/facturacion"] },
+    prepare: {
+      version: 2,
+      selections: [
+        { kind: "tool", program: "documentos", tool: "fiscal" },
+        { kind: "tool", program: "ventas", tool: "facturacion" },
+      ],
+    },
     steps: [
       {
         kind: "action",

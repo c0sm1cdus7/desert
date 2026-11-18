@@ -16,12 +16,16 @@ function start(path = ":memory:") {
   for (const by of ["beto", "ana"])
     for (const tool of house.ports.registry) engine.act({ act: "attend", input: { target: tool.id } }, 0, by);
   const act = async (by: string, sale: string) => {
-    const result = engine.act({ act: "facturar", target: "ventas/facturacion", input: { venta: sale } }, 0, by);
+    const result = engine.act(
+      { act: "facturacion/facturar", target: "ventas/facturacion", input: { venta: sale } },
+      0,
+      by,
+    );
     return result.status === "processing" ? await result.completion : result;
   };
   const scope = () =>
     runtime.open("ventas", {
-      tool: "ventas/facturacion",
+      tool: "ventas",
       by: "beto",
       execute: async action => {
         const result = engine.act(action, 0, "beto");

@@ -21,7 +21,7 @@ export function readingRig(provider = documents()) {
   for (const tool of house.ports.registry) engine.act({ act: "attend", input: { target: tool.id } }, 0, "beto");
   const access = () =>
     runtime.open("ventas", {
-      tool: "ventas/facturacion",
+      tool: "ventas",
       by: "beto",
       execute: async act => {
         const result = engine.act(act, house.ports.state().through, "beto");
@@ -123,7 +123,7 @@ describe("contractual reads", () => {
         reason: "defect",
       });
       expect(keys).toEqual(["fiscal"]);
-      expect(rig.ports.state().tools["documentos/fiscal"].size).toBe(1);
+      expect(rig.ports.state().tools.documentos.fiscal.size).toBe(1);
     } finally {
       rig.stop();
     }

@@ -1,20 +1,17 @@
 // Reports every runtime composition problem with a stable reason and path before building any maps.
+import { distributionContractIssues } from "./program-contracts.ts";
+import { contractTexts } from "../../texts/contracts.texts.ts";
 import { distributionTexts } from "../../texts/distributions.texts.ts";
 import { DESERT_CONTRACT } from "../../tools/installable/program.ts";
 import type { CompositionOptions } from "./validation-types.ts";
 export type CompositionIssue = Readonly<{
   path: string;
-  reason: keyof typeof distributionTexts.reasons;
+  reason: string;
 }>;
 export class CompositionError extends Error {
   readonly issues: readonly CompositionIssue[];
   constructor(issues: readonly CompositionIssue[]) {
-    super(
-      [
-        distributionTexts.failed,
-        ...issues.map(issue => `${issue.path}: ${distributionTexts.reasons[issue.reason]}`),
-      ].join("\n"),
-    );
+    super([distributionTexts.failed, ...issues.map(issueText)].join("\n"));
     this.name = "CompositionError";
     this.issues = Object.freeze(issues.map(issue => Object.freeze({ ...issue })));
   }
@@ -54,5 +51,13 @@ export function diagnostico(options: CompositionOptions): readonly CompositionIs
     minds.add(id);
   }
   if (options.mentes.asistentes && !options.identidades) add("mentes/asistentes", "asistentes-requiere-identidades");
+  issues.push(...distributionContractIssues(options.programas, options.contratos));
   return [...new Map(issues.map(issue => [`${issue.path}:${issue.reason}`, issue])).values()];
+}
+
+function issueText(issue: CompositionIssue): string {
+  const message =
+    Object.entries(distributionTexts.reasons).find(([reason]) => reason === issue.reason)?.[1] ??
+    `${contractTexts.invalidComposition} (${issue.reason})`;
+  return `${issue.path}: ${message}`;
 }

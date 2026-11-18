@@ -225,6 +225,7 @@
     "runtime/contracts/project-value.ts": "Valida y recorta datos JSON al esquema pedido, incluyendo objetos anidados y uniones.",
     "runtime/contracts/schema-inclusion.ts": "Compara inclusiones de esquemas admitidos, con recorte de campos de lectura.",
     "runtime/contracts/validate-contracts.ts": "Entrega a componer todos los motivos con camino y filas que separan inclusión de casos ejecutados.",
+    "runtime/distributions/program-contracts.ts": "Adapta las mitades declaradas en programas instalables para comprobarlas con sus artefactos y evidencia.",
     "runtime/distributions/compose.ts": "Composes independently declared programs into the existing engine, surface and code-derived manifest.",
     "runtime/distributions/diagnostics.ts": "Reports every runtime composition problem with a stable reason and path before building any maps.",
     "runtime/distributions/shown.ts": "Presents program folders and each group's own words through the existing surface contract.",

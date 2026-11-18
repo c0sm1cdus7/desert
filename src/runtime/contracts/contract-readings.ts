@@ -17,9 +17,9 @@ export type ReadingScope<X extends Program> = Readonly<{
   allowed: () => boolean;
 }>;
 function ownState<X extends Program>(provider: ContractPackage, state: State<X>) {
-  return readonlyState(
-    Object.fromEntries(Object.keys(provider.herramientas).map(tool => [tool, state.tools[`${provider.id}/${tool}`]])),
-  );
+  const own = state.tools[provider.id];
+  if (own === null || typeof own !== "object" || Array.isArray(own)) throw new Error(contractTexts.invalidValue);
+  return readonlyState(Object.fromEntries(Object.entries(own)));
 }
 function readObject<X extends Program>(
   provider: ContractPackage,

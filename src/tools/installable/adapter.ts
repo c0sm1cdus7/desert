@@ -66,13 +66,15 @@ export function installProgram<M extends ProgramMetadata>(meta: M, body: Program
   const groups = Object.entries(body.herramientas).map(([name, group]) => groupTool(meta.id, name, group));
   const find = (state: State<Program>, target: string) =>
     groups.find(group => group.folder === target || group.tool.targets(state).includes(target));
-  const ownWords = programVocabulary(meta);
   const tool: ProgramTool<Program> = {
     id: meta.id,
     purpose: body.purpose,
     skill: body.skill,
     facts: meta.hechos.map(f => f.nombre),
     groups,
+    actionTools: Object.fromEntries(
+      groups.flatMap(group => Object.keys(group.tool.acts).map(action => [action, group.id])),
+    ),
     menus: Object.fromEntries(groups.flatMap(group => Object.entries(group.tool.menus ?? {}))),
     acts: Object.fromEntries(
       groups.flatMap(group =>
@@ -95,11 +97,7 @@ export function installProgram<M extends ProgramMetadata>(meta: M, body: Program
     groups,
     words: body.palabras,
     initial: meta.inicial(),
-    step: (_own, event, before) => {
-      const state = localState<LocalProgram<M>>(before, meta.id);
-      if (event.layer === "program" && !meta.hechos.some(fact => fact.nombre === event.kind)) return state.tools.own;
-      return body.plegar(state.tools.own, ownWords.read(event), state);
-    },
+    step: foldProgram(meta, body),
   };
 }
 function requiredGroup(group: InstalledGroup | undefined): InstalledGroup {
@@ -112,4 +110,13 @@ function programVocabulary<M extends ProgramMetadata>(
 ): import("../../journal/vocabulary.ts").Vocabulary<LocalProgram<M>["fact"]>;
 function programVocabulary(meta: ProgramMetadata) {
   return vocabulary(Object.fromEntries(meta.hechos.map(fact => [fact.nombre, fact.forma])));
+}
+
+function foldProgram<M extends ProgramMetadata>(meta: M, body: ProgramBody<M>): InstalledProgram["step"] {
+  const ownWords = programVocabulary(meta);
+  return (_own, event, before) => {
+    const state = localState<LocalProgram<M>>(before, meta.id);
+    if (event.layer === "program" && !meta.hechos.some(fact => fact.nombre === event.kind)) return state.tools.own;
+    return body.plegar(state.tools.own, ownWords.read(event), state);
+  };
 }
