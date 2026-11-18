@@ -1601,6 +1601,28 @@ reciben `{ value: "yes" | "no" }`. No hay una acción pública que permita escri
 Las confirmaciones declaradas pueden devolver `undefined` cuando esa respuesta no necesita confirmación.
 `JourneyAccess` admite `layout` y `migration` para resolver carpetas e historia con el mismo catálogo que el motor.
 
+### Palabras del kit y Atención (18/11)
+
+El alta pide **Programas** por su nombre declarado. En la ficha, **Kit** distingue la selección guardada:
+«2 programas», «1 programa · 2 acciones» o «1 programa · 1 herramienta · 1 acción». Seleccionar acciones
+sueltas no las convierte en carpeta. Una ficha vacía dice «Sin acciones». El enlace `programas` explica
+«acciones que puede hacer».
+
+Los programas instalables llevan `palabras.name` al registro como `Tool.name` y los nombres de sus herramientas
+como `Tool.toolNames`. El kit, sus títulos, las confirmaciones, el resultado guardado y las mentes usan esos nombres;
+los ids conservan su función en destinos y permisos. Las composiciones anteriores pueden declarar esos dos campos
+sin cambiar sus ids. Una fila de acción respeta las minúsculas de las reglas de terminal.
+
+Dar o sacar una carpeta confirma «Kit · Nombre de la carpeta · Titular», con `dar`, `sacar` y `volver`.
+El valor actual queda apagado; `volver` no escribe. Una carpeta parcial permite ambas operaciones.
+El comando sigue recibiendo `{ value: "yes" | "no" }`; solo cambian los rótulos de su pregunta.
+El identificador vacío muestra un ejemplo corto, sin regla ni error; la regla aparece al escribir un valor inválido.
+
+La fila del programa conserva el resumen y suma «Requiere atención» cuando Atención tiene un destino pendiente.
+Las novedades no silenciosas de otra identidad aparecen allí hasta leer su destino, también después de reabrir.
+Abrir solo el programa no da por leídos sus objetos. Los avisos propios que piden atención también se muestran;
+Actividad sigue reservada a lo de otras identidades. Los cambios de Identidades permanecen en Actividad.
+
 ### Escena propia desde Identidades (paso 5d)
 
 La composición sigue pidiendo únicamente `identities: true`; no incorpora otro proceso, estado ni herramienta.

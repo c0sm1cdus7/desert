@@ -91,7 +91,10 @@ it("clears activity when a member with no actions opens it and redistributes dir
     ).find(t => t.id === "sales");
     expect(beto?.notices?.().news).toHaveLength(1);
     expect(beto?.notices?.().needs).toHaveLength(0);
-    expect(carla?.notices?.().needs).toHaveLength(1);
+    expect(carla?.notices?.().needs).toEqual([
+      { title: "Ventas", detail: "pendiente" },
+      { title: "noticia", detail: "ana" },
+    ]);
     beto?.rendered?.("sales");
     expect(beto?.notices?.().news).toHaveLength(0);
     expect(rig.state().attentionBy.get("beto")?.has("sales")).not.toBe(true);

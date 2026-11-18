@@ -1,4 +1,4 @@
-// Acciones declaradas de dar y sacar una herramienta o una acción mediante granted y kit-set.
+// Declara cómo dar y sacar programas, herramientas y acciones del kit con nombres visibles.
 import { holderKit } from "../../house/kit-history.ts";
 import { actionSelection, covers, herramientaDe, kitLayout } from "../../house/kit-selection.ts";
 import { object } from "../../fields/visible-text.ts";
@@ -10,10 +10,17 @@ import { toolTexts } from "../../texts/tools.texts.ts";
 import { programAct, type ProgramAct } from "../promises.ts";
 import type { Program, Tool, ToolRegistry } from "../tool-contract.ts";
 import { targetIdentity } from "./identity-reading.ts";
-import { actionName, kitAct, kitCatalog, kitMenu, kitProblem, kitDatum } from "./kit-catalog.ts";
+import { actionName, kitAct, kitCatalog, kitMenu, kitProblem, kitDatum, folderName } from "./kit-catalog.ts";
 import { kitEffects } from "./kit-effects.ts";
 import { kitCases } from "./kit-cases.ts";
-const input = object({ value: oneOf(words.given, option("yes", "sí", "s"), option("no", "no", "n")) });
+const kitInput = (folder: boolean) =>
+  object({
+    value: oneOf(
+      words.given,
+      option("yes", folder ? words.give : words.yes, folder ? "d" : "s"),
+      option("no", folder ? words.take : words.no, folder ? "s" : "n"),
+    ),
+  });
 function kitToday(
   house: House,
   holder: string,
@@ -31,10 +38,14 @@ function kitToday(
 }
 function kitAction<X extends Program>(tool: Tool<X>, key: string, otherMind: boolean, action?: string, group?: string) {
   const actions = Object.keys(tool.acts);
+  const input = kitInput(action === undefined);
+  const label = action === undefined ? folderName(tool, group) : actionName(tool.acts[action], action);
+  const folderLevel = group === undefined ? "program" : "tool";
+  const saved = words.saved(label, action !== undefined ? "action" : folderLevel);
   return programAct<X, typeof input>({
-    name: action === undefined ? (group ?? tool.id) : actionName(tool.acts[action], action),
+    name: label.toLowerCase(),
     enter: "guardar",
-    purpose: words.tools.toLowerCase(),
+    purpose: words.kitPurpose,
     key,
     on: "thing",
     leaves: false,
@@ -53,10 +64,10 @@ function kitAction<X extends Program>(tool: Tool<X>, key: string, otherMind: boo
         }),
     run: ({ value }, { state: { house }, by, target }) => ({
       status: "accepted",
-      text: words.saved(tool.id),
+      text: saved,
       effects: kitEffects(house, by, targetIdentity(target), tool, action, value === "yes", group),
     }),
-    cases: kitCases<X>(tool.id, action, false, group),
+    cases: kitCases<X>(tool.id, action, false, group, saved),
   });
 }
 function inherited(house: House, holder: string, program: string, action: string): boolean {
@@ -96,7 +107,11 @@ export const kitMenus = <X extends Program>(registry: ToolRegistry<X>) =>
       ];
       return [tool.id, ...groups.map(group => `${tool.id}/${group}`)].map(id => [
         kitMenu(id),
-        { name: id, purpose: words.tools.toLowerCase(), key: "" },
+        {
+          name: folderName(tool, id === tool.id ? undefined : id.slice(tool.id.length + 1)).toLowerCase(),
+          purpose: words.kitPurpose,
+          key: "",
+        },
       ]);
     }),
   );

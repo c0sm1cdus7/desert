@@ -24,6 +24,8 @@ export function kitTerminal(home = mkdtempSync(join(tmpdir(), "kit-terminal-")),
   };
   const press = async (bytes: string, text: string) => {
     term.press(bytes);
+    // Escape settles after 50 ms; the result may already contain the next screen's action name.
+    if (bytes === "\x1b") await term.rest(80);
     return term.until(text);
   };
   return {

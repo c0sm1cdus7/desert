@@ -13,7 +13,7 @@ import type { ProgramTool } from "../promises.ts";
 import type { Program } from "../tool-contract.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import { identityTarget, targetIdentity, members } from "./identity-reading.ts";
-import { kitCatalog, kitDatum, kitMenu } from "./kit-catalog.ts";
+import { kitCatalog, kitDatum, kitMenu, programName, folderName } from "./kit-catalog.ts";
 const mind = (target: string) => mindTool(targetIdentity(target));
 function holderList(plain: Tool) {
   const listed = plain.view().flatMap(stack => stack.rows);
@@ -42,7 +42,7 @@ function unavailableRows<X extends Program>({ ports }: ViewContext<X>, owner: st
 }
 function programRows<X extends Program>({ ports }: ViewContext<X>, holder: string): ViewRow[] {
   return kitCatalog(ports.registry).map(tool => ({
-    title: tool.id,
+    title: programName(tool),
     detail: kitDatum(ports.state().house, targetIdentity(holder), tool.id, Object.keys(tool.acts)),
     opens: menuTarget(holder, kitMenu(tool.id)),
   }));
@@ -62,21 +62,27 @@ function branchView<X extends Program>(ctx: ViewContext<X>, target: string, bran
   const folders =
     group === undefined
       ? groups.map(group => ({
-          title: group,
+          title: folderName(tool, group),
           detail: kitDatum(ports.state().house, targetIdentity(holder), tool.id, Object.keys(tool.acts), group),
           opens: menuTarget(holder, kitMenu(`${program}/${group}`)),
         }))
       : [];
   const acts = Object.entries(contract.acts)
     .filter(([, act]) => act.under === kitMenu(branch))
-    .map(([name, act]) => start(name, holder, { today: act.today?.(ports.state(), holder, ports.now()) }));
+    .map(([name, act]) =>
+      start(
+        name,
+        holder,
+        name.slice(4).includes(":") ? { today: act.today?.(ports.state(), holder, ports.now()) } : {},
+      ),
+    );
   const scene =
     own && !menu
       ? sceneReading(plain.view(target)).filter(stack => stack.title === words.sceneTitle && stack.rows.length > 0)
       : [];
   return [
     ...scene,
-    section(group ?? tool.id, [...notices, ...folders], words.emptyActions),
+    section(folderName(tool, group), [...notices, ...folders], words.emptyActions),
     section(words.actions, acts, words.emptyActions),
   ];
 }

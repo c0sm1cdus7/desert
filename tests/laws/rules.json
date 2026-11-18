@@ -3312,6 +3312,17 @@
         "src/runtime/contracts/gate.spec.ts",
         "src/runtime/contracts/negatives.spec.ts"
       ]
+    },
+    {
+      "id": 283,
+      "rule": "El kit nombra programas, herramientas y acciones por su nivel y sus nombres declarados, cuenta selecciones sin convertir acciones en carpetas y confirma la carpeta y su titular con dar, sacar y volver. El identificador vacío no muestra regla ni error. El menú conserva la cantidad y Atención lleva a la novedad pendiente hasta leer su destino.",
+      "from": "18/11 · dist-palabras · paseo local P1 a P7",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/distribution-words-terminal.spec.ts",
+        "src/tools/identities/kit-words.spec.ts",
+        "src/surface/bridge/views/notices.spec.ts"
+      ]
     }
   ]
 }

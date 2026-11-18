@@ -112,8 +112,14 @@ function menuRow(tool: Tool): Choice {
     tool.conversation && !tool.conversationAt
       ? startTalk(tool.id)
       : { kind: "view", tool: tool.id, ...(tool.entryTarget ? { target: tool.entryTarget } : {}), at: 0 };
-  const asks = tool.calls?.() === true || (tool.notices?.().needs.length ?? 0) > 0;
-  return { ...row, ...(asks ? { detail: said.attention, tone: "wait" } : { detail: tool.summary() }), open };
+  const asks = tool.notices ? tool.notices().needs.length > 0 : tool.calls?.() === true;
+  return {
+    ...row,
+    ...(asks
+      ? { detail: [tool.summary(), said.attention].filter(Boolean).join(" · "), tone: "wait" }
+      : { detail: tool.summary() }),
+    open,
+  };
 }
 /** What a tool says a person should know of, as rows that lead to what each is about. */
 const noticeRows = (tool: Tool, notices: readonly Notice[], tone?: Tone): Choice[] =>

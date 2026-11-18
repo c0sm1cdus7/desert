@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 261. Deudas: 22.
+Leyes: 262. Deudas: 22.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -268,3 +268,4 @@ Leyes: 261. Deudas: 22.
 | 280 | Un programa es para DESERT: solo importa sus archivos, exports de desert o módulos pedidos por contrato; las distribuciones quedan fuera. La ley controla todas las formas de importación y componer rechaza dependencias declaradas de distribuciones. | 18/11 · distribuciones, núcleo paso 2 | una spec a mano | `src/checks/laws/program-imports.spec.ts` `src/runtime/distributions/compose.spec.ts` `src/runtime/distributions/types.spec.ts` |
 | 281 | Las listas vacías y opcionales de asistentes se recorren como un hilo de acción, con opciones sin Entrada, regreso por esc y confirmación final; se comprueban en la terminal real de 100×30 y 40×16. | 18/11 · distribuciones, núcleo paso 2 | una spec a mano | `src/checks/distribution-terminal.spec.ts` `src/surface/bridge/questions/asking.spec.ts` |
 | 282 | Los contratos comparan mitades independientes, resuelven un proveedor y rechazan ciclos. Las llamadas conservan actor, permisos y fallos centrales; las lecturas recortan campos al pedido en un corte exacto del core. Los casos viajan desde el consumidor y sólo su ejecución real acredita compatibilidad para las huellas comprobadas. | 18/11 · dist-contratos, contratos de dos mitades | una spec a mano | `src/runtime/contracts/ports.spec.ts` `src/runtime/contracts/failures.spec.ts` `src/runtime/contracts/readings.spec.ts` `src/runtime/contracts/gate.spec.ts` `src/runtime/contracts/negatives.spec.ts` |
+| 283 | El kit nombra programas, herramientas y acciones por su nivel y sus nombres declarados, cuenta selecciones sin convertir acciones en carpetas y confirma la carpeta y su titular con dar, sacar y volver. El identificador vacío no muestra regla ni error. El menú conserva la cantidad y Atención lleva a la novedad pendiente hasta leer su destino. | 18/11 · dist-palabras · paseo local P1 a P7 | una spec a mano | `src/checks/distribution-words-terminal.spec.ts` `src/tools/identities/kit-words.spec.ts` `src/surface/bridge/views/notices.spec.ts` |

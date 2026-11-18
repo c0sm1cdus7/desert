@@ -112,38 +112,59 @@ describe("the terminal, on a program's house", () => {
     expect(await press(`${escape}${escape}`)).toContain("[v] ventas | 1 venta");
   });
 
-  it("says a tool requires attention when someone else wrote in it, until it is opened", async () => {
-    const { rig, router, press } = open();
-    rig.attend("beto", "sales");
-    rig.act("beto", "register", { sale: "s7", total: 70 }, "sales");
-    expect(shown(router).some(line => line.includes("Requiere atención"))).toBe(true);
-    expect(await press("v")).toContain("[2] s7 | $ 0,70");
-    expect((await press(escape)).some(line => line.includes("Requiere atención"))).toBe(false);
-  });
-
-  it("opens every menu with what needs someone to act and what the others did, until each is opened", async () => {
-    const { rig, router, press } = open();
-    const lists = ["Atención", "Sin pendientes.", "Actividad", "Sin novedades."];
-    expect(shown(router)).toEqual(expect.arrayContaining(lists));
-    rig.attend("beto", "sales");
-    rig.act("beto", "register", { sale: "s7", total: 70 }, "sales");
-    rig.act("ana", "register", { sale: "s8", total: 80 }, "sales", rig.state().through);
-    expect(shown(router)).toEqual(expect.arrayContaining(["Actividad", "[1] Registrada · s7 | beto"]));
-    expect(shown(router).some(line => line.includes("· s8"))).toBe(false);
-    expect(await press("v")).toEqual(
-      expect.arrayContaining(["Actividad", "[1] Registrada · s7 | beto", "[2] s7 | $ 0,70"]),
-    );
-    expect((await press("1"))[0]).toContain("s7");
-    const back = await press(escape);
-    expect(back).toEqual(expect.arrayContaining(["Actividad", "Sin novedades.", "[1] s7 | $ 0,70"]));
-    expect(shown(open("beto").router)).toEqual(expect.arrayContaining(lists));
-  });
-
   it("leaves when the person asks to, and not before", () => {
     const { router } = open();
     expect(keysOf("\r").every(key => router.send(key))).toBe(true);
     expect(keysOf("\x03").every(key => router.send(key))).toBe(false);
   });
+});
+
+describe("unread activity in Attention and Activity", () => {
+  it("keeps a tool's attention and count until the unread destination is opened", async () => {
+    const { rig, router, press } = open();
+    rig.attend("beto", "sales");
+    rig.act("beto", "register", { sale: "s7", total: 70 }, "sales");
+    expect(shown(router)).toContain("[v] ventas | 1 venta · Requiere atención");
+    expect(await press("v")).toEqual(
+      expect.arrayContaining(["Atención", "[1] Registrada · s7 | beto", "[3] s7 | $ 0,70"]),
+    );
+    expect(await press(escape)).toContain("[v] ventas | 1 venta · Requiere atención");
+    await press("v");
+    expect((await press("1"))[0]).toContain("s7");
+    expect(await press(escape)).toEqual(expect.arrayContaining(["Sin pendientes.", "Sin novedades."]));
+    const menu = await press(escape);
+    expect(menu).toContain("[v] ventas | 1 venta");
+    expect(menu.some(line => line.includes("Requiere atención"))).toBe(false);
+  });
+
+  it.each(["1", "2"])(
+    "clears Attention and Activity after opening their shared destination through row %s",
+    async key => {
+      const { rig, router, press } = open();
+      const lists = ["Atención", "Sin pendientes.", "Actividad", "Sin novedades."];
+      expect(shown(router)).toEqual(expect.arrayContaining(lists));
+      rig.attend("beto", "sales");
+      rig.act("beto", "register", { sale: "s7", total: 70 }, "sales");
+      rig.act("ana", "register", { sale: "s8", total: 80 }, "sales", rig.state().through);
+      expect(shown(router)).toEqual(
+        expect.arrayContaining(["Atención", "[1] Registrada · s7 | beto", "Actividad", "[2] Registrada · s7 | beto"]),
+      );
+      expect(shown(router).some(line => line.includes("· s8"))).toBe(false);
+      expect(await press("v")).toEqual(
+        expect.arrayContaining([
+          "Atención",
+          "[1] Registrada · s7 | beto",
+          "Actividad",
+          "[2] Registrada · s7 | beto",
+          "[3] s7 | $ 0,70",
+        ]),
+      );
+      expect((await press(key))[0]).toContain("s7");
+      const back = await press(escape);
+      expect(back).toEqual(expect.arrayContaining([...lists, "[1] s7 | $ 0,70"]));
+      expect(shown(open("beto").router)).toEqual(expect.arrayContaining(lists));
+    },
+  );
 });
 
 describe("a thing that does not fit on the terminal", () => {

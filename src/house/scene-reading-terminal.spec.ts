@@ -20,7 +20,7 @@ it("a 4000-character scene, wide characters and addressed text can be read in a 
     term.press("i");
     await term.until("beto");
     term.press("2");
-    await term.until("herramientas");
+    await term.until("[h] programas");
     let sawGeneral = false,
       sawPart = false,
       sawCount = false;

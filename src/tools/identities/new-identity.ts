@@ -1,4 +1,4 @@
-// Preguntas y ejecución del alta: identificador literal validado, nombre opcional y herramientas enteras en un lote.
+// Preguntas y ejecución del alta: identificador validado, nombre opcional y programas enteros en un lote.
 import { programKit } from "../../house/kit-selection.ts";
 import { newIdentityCases } from "./new-identity-cases.ts";
 import { Type } from "@sinclair/typebox";
@@ -8,7 +8,7 @@ import { text, textLimit, someOf, option } from "../../fields/fields.ts";
 import { identityNameProblem } from "../../house/identities/identity-name.ts";
 import { effect } from "../../house/facts.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
-import { identityNameTexts } from "../../texts/tools.texts.ts";
+import { programName } from "./kit-catalog.ts";
 import { programAct } from "../promises.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";
 import { identityTarget, members } from "./identity-reading.ts";
@@ -16,12 +16,13 @@ function identityInput<X extends Program>(catalog: ToolRegistry<X>) {
   return object({
     identity: Type.String({
       title: words.identifier,
-      placeholder: identityNameTexts.rule,
+      placeholder: words.identifierExample,
+      minLength: 1,
       maxLength: 120,
       verbatim: true,
     }),
     name: Type.Optional({ ...text(words.display, words.optional), ...t(textLimit) }),
-    tools: someOf(words.tools, "none", ...catalog.map(tool => option(tool.id, tool.id, ""))),
+    tools: someOf(words.programs, "none", ...catalog.map(tool => option(tool.id, programName(tool), ""))),
   });
 }
 export function newIdentity<X extends Program>(registry: ToolRegistry<X>, runner: string) {

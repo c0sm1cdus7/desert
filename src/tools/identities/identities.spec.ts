@@ -52,7 +52,7 @@ it("every member reads every identity and kit but only the administrator can act
         .flatMap(stack => stack.rows)
         .some(row => row.title === "Luz"),
     ).toBe(true);
-    expect(core?.view(on).some(stack => stack.title === "kit" && stack.rows.length > 0)).toBe(true);
+    expect(core?.view(on).some(stack => stack.title === "Kit" && stack.rows.length > 0)).toBe(true);
     expect(core?.acts.new?.off?.()).toBe("solo quien administra");
     for (const act of ["remove", "readmit", "hand"])
       expect(core?.actsOn?.[act]?.off?.(on)).toBe("solo quien administra");
@@ -68,13 +68,14 @@ it("every member reads every identity and kit but only the administrator can act
         ).toMatchObject({ status: "rejected", reason: "solo quien administra" });
   });
 });
-it("rejects invalid identifiers and states their one rule in the question", async () => {
+it("rejects invalid identifiers and keeps their rule out of the empty question", async () => {
   await staged(program, async ({ house }) => {
     const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), shopShown).find(
       tool => tool.id === "identities",
     );
     expect(JSON.stringify(core?.acts.new?.next([]))).toContain("Identificador");
-    expect(JSON.stringify(core?.acts.new?.next([]))).toContain(identityNameTexts.rule);
+    expect(JSON.stringify(core?.acts.new?.next([]))).not.toContain(identityNameTexts.rule);
+    expect(core?.acts.new?.next([])).toMatchObject({ placeholder: "lucia" });
     for (const identity of ["Ana", "mind:identities", "house", " a", "a".repeat(65), "a:b", "a\u200b"])
       expect(await perform(house(), "identities", { ...create, input: { ...create.input, identity } })).toMatchObject({
         status: "rejected",
