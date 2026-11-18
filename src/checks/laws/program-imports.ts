@@ -15,8 +15,9 @@ const programEntries = new Set([
   "desert/journal",
   "desert/program-types",
   "desert/surface",
-  "desert/testing",
 ]);
+export const isProgramEntry = (specifier: string): boolean =>
+  programEntries.has(specifier) || /^desert\/fields\/[a-z][a-z0-9-]*$/u.test(specifier);
 export type ProgramDependency = Readonly<{ kind: "contract" | "distribution"; name: string }>;
 export function programDependencies(value: unknown): readonly ProgramDependency[] {
   if (value === undefined) return [];
@@ -74,8 +75,7 @@ function allowedImport(
   file: string,
   specifier: string,
 ): boolean {
-  if (specifier.startsWith("desert/"))
-    return programEntries.has(specifier) || /^desert\/fields\/[a-z][a-z0-9-]*$/u.test(specifier);
+  if (specifier.startsWith("desert/")) return isProgramEntry(specifier);
   if (specifier.startsWith(".")) {
     const target = resolve(dirname(file), specifier);
     return (

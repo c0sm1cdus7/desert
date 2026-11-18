@@ -5,6 +5,7 @@ import { field } from "../contract/json.ts";
 import { secretBoundaryViolations, virtualProgram } from "./secret-boundaries.ts";
 import { secretPublicApi } from "./secret-public-api.ts";
 import { inside, programSourceGraph } from "./program-source-graph.ts";
+import { programEntryExports, programEntryFiles } from "./program-entry-exports.ts";
 import { registryOrigins } from "./registry-origins.ts";
 import { programImports } from "../../src/checks/laws/program-imports.ts";
 import { programLawOptions } from "../../src/checks/laws/program-law-options.ts";
@@ -98,26 +99,24 @@ export function programSecretBoundaries(root: string): string[] {
     if (imports.length) return imports;
   }
   if (typeof entry !== "string") return ["missing desert.program"];
-  const main = resolve(root, entry);
-  const publicModules = secretPublicApi(base);
-  const graph = programSourceGraph(root, main, base, publicModules);
-  const files = Object.keys(graph.sources);
-  const sources = {
-    ...Object.fromEntries(production(join(base, "src")).map(file => [file, readFileSync(file, "utf8")])),
-    ...graph.sources,
-  };
-  const adapters = files.filter(file => inside(join(root, "src/adapters"), file));
-  const tools = files.filter(file => file !== main && !adapters.includes(file));
+  const { main, publicModules, graph, files, sources } = programGraph(root, entry, distribution);
+  const adapters = distribution ? files.filter(file => inside(join(root, "src/adapters"), file)) : [];
+  const tools = files.filter(file => (!distribution || file !== main) && !adapters.includes(file));
+  const inspected = virtualProgram(sources, graph.aliases);
   return [
     ...graph.failures,
+    ...(!distribution ? programEntryExports(inspected, base, programEntryFiles(base)) : []),
     ...registryOrigins(
-      virtualProgram(sources, graph.aliases),
+      inspected,
       main,
       new Set([main, ...adapters]),
       distribution ? undefined : join(base, "src/tools/installable/program.ts"),
     ),
     ...secretBoundaryViolations(sources, {
-      composition: [main, ...compositionFiles.map(file => join(base, file))],
+      composition: [...(distribution ? [main] : []), ...compositionFiles.map(file => join(base, file))],
+      ...(!distribution
+        ? { programDeclaration: { file: main, constructor: join(base, "src/tools/installable/program.ts") } }
+        : {}),
       adapters,
       custody: Object.keys(sources).filter(file => inside(join(base, "src"), file)),
       publicTypes: [],
@@ -126,4 +125,27 @@ export function programSecretBoundaries(root: string): string[] {
       aliases: graph.aliases,
     }),
   ];
+}
+
+function programPublicModules(distribution: boolean) {
+  return Object.fromEntries(
+    Object.entries(secretPublicApi(base)).filter(
+      ([entry]) => distribution || (entry !== "desert/testing" && entry !== join(base, "src/testing.ts")),
+    ),
+  );
+}
+function programSources(graph: Readonly<Record<string, string>>) {
+  return {
+    ...Object.fromEntries(production(join(base, "src")).map(file => [file, readFileSync(file, "utf8")])),
+    ...graph,
+  };
+}
+
+function programGraph(root: string, entry: string, distribution: boolean) {
+  const main = resolve(root, entry);
+  const publicModules = programPublicModules(distribution);
+  const graph = programSourceGraph(root, main, base, publicModules);
+  const files = Object.keys(graph.sources);
+  const sources = programSources(graph.sources);
+  return { main, publicModules, graph, files, sources };
 }

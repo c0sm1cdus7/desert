@@ -1,5 +1,6 @@
 import ts from "typescript";
 import { selectionEscapes } from "./secret-selection.ts";
+import { programDirectory, type ProgramDeclaration } from "./program-declaration.ts";
 import { forbiddenKeys } from "./secret-keys.ts";
 export interface BoundaryImport {
   specifier: string;
@@ -67,7 +68,11 @@ const globals = new Set([
   "navigator",
 ]);
 /** A member named fetch is harmless; an ambient capability, including an alias of it, is not. */
-export function boundaryEscapes(source: ts.SourceFile, checker: ts.TypeChecker): string[] {
+export function boundaryEscapes(
+  source: ts.SourceFile,
+  checker: ts.TypeChecker,
+  declaration?: ProgramDeclaration,
+): string[] {
   const found: string[] = [];
   const visit = (node: ts.Node): void => {
     if (ts.isIdentifier(node) && globals.has(node.text) && !ownName(node)) {
@@ -76,7 +81,7 @@ export function boundaryEscapes(source: ts.SourceFile, checker: ts.TypeChecker):
         found.push(`${sourcePosition(node)} → ${node.text}`);
     }
     const rules = [...forbiddenKeys(node, checker), ...selectionEscapes(node, checker)];
-    if (ts.isMetaProperty(node)) rules.push(node.getText());
+    if (ts.isMetaProperty(node) && !programDirectory(node, checker, declaration)) rules.push(node.getText());
     for (const rule of new Set(rules)) found.push(`${sourcePosition(node)} → ${rule}`);
     ts.forEachChild(node, visit);
   };

@@ -3,7 +3,9 @@ import ts from "typescript";
 import { boundaryEscapes, boundaryImports } from "./secret-syntax.ts";
 import { factoryLeaks } from "./secret-types.ts";
 import { trackConversions } from "./secret-expression.ts";
+import type { ProgramDeclaration } from "./program-declaration.ts";
 export interface SecretBoundaryPolicy {
+  programDeclaration?: ProgramDeclaration;
   composition: readonly string[];
   adapters: readonly string[];
   custody: readonly string[];
@@ -131,13 +133,14 @@ function walkSources(
       found.push(`${exampleChain(file, parents)} → missing source`);
       return;
     }
-    for (const escape of boundaryEscapes(source, checker)) found.push(`${exampleChain(file, parents)}:${escape}`);
+    for (const escape of boundaryEscapes(source, checker, policy.programDeclaration))
+      found.push(`${exampleChain(file, parents)}:${escape}`);
     for (const edge of boundaryImports(source)) {
       const target = targetOf(file, edge.specifier);
       const allowed = publicModules[target ?? edge.specifier];
       if (allowed && edge.names.length && edge.names.every(name => allowed.includes(name))) continue;
       if (target && publicTypes.has(target)) continue;
-      if (!target || privileged.has(target) || allowed)
+      if (!target || privileged.has(target) || target === policy.programDeclaration?.file || allowed)
         found.push(`${exampleChain(file, parents)}:${edge.position} → ${edge.specifier}`);
       else if (!seen.has(target)) {
         parents.set(target, file);

@@ -3284,7 +3284,7 @@
     },
     {
       "id": 280,
-      "rule": "Un programa es para DESERT: solo importa sus archivos, entradas públicas de programa de desert o módulos pedidos por contrato; las distribuciones, el arranque de casas, las llaves, las puertas y la nube quedan fuera. La ley alcanza a todo paquete que declara desert.program, salvo desert.kind: distribution; faltar desert.testDistribution falla con motivo y no apaga imports ni secretos. El cargador comprueba ambas fronteras antes de evaluar el programa o su distribución de prueba. La ley controla todas las formas de importación y componer rechaza dependencias declaradas de distribuciones. La distribución puede armar su terminal local y su casa de nube mediante exports públicos desde paquetes enlazados fuera de node_modules, sin ampliar la frontera de secretos de los programas.",
+      "rule": "Un programa es para DESERT: solo importa sus archivos, entradas públicas de programa de desert o módulos pedidos por contrato; las distribuciones, el arranque de casas, las llaves, las puertas y la nube quedan fuera. La ley alcanza a todo paquete que declara desert.program, salvo desert.kind: distribution; faltar desert.testDistribution falla con motivo y no apaga imports ni secretos. El cargador comprueba ambas fronteras antes de evaluar el programa o su distribución de prueba. La ley controla todas las formas de importación y componer rechaza dependencias declaradas de distribuciones. La distribución puede armar su terminal local y su casa de nube mediante exports públicos desde paquetes enlazados fuera de node_modules, sin ampliar la frontera de secretos de los programas. El principal se inspecciona como código de programa: sólo puede usar import.meta.dirname en codigo del constructor programa real. desert/testing queda reservado a las pruebas; estos rechazos ocurren antes de evaluar el programa o su distribución de prueba.",
       "from": "18/11 · distribuciones, núcleo paso 2",
       "guarantee": "spec",
       "evidence": [
@@ -3292,7 +3292,8 @@
         "src/runtime/distributions/compose.spec.ts",
         "src/runtime/distributions/types.spec.ts",
         "tests/laws/distribution-entries.spec.ts",
-        "src/runtime/distributions/entries.spec.ts"
+        "src/runtime/distributions/entries.spec.ts",
+        "tests/laws/program-entry-boundaries.spec.ts"
       ]
     },
     {
@@ -3352,6 +3353,17 @@
         "src/surface/bridge/views/author-name.spec.ts",
         "src/surface/bridge/views/author-thread.spec.ts",
         "src/doors/mcp/mcp-author.spec.ts"
+      ]
+    },
+    {
+      "id": 286,
+      "rule": "Ninguna entrada permitida a programas expone capacidades del anfitrión. Se inspeccionan los exports reales del paquete, incluidos fields/*, alias, reexports encadenados y namespaces, por nombre y por origen de los valores, sin evaluar los módulos. La compuerta de la base y la carga de programas rechazan una exposición.",
+      "from": "18/11 · dist-v10b · cierre de entradas del anfitrión",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/program-entry-exports.ts",
+        "tests/laws/program-entry-exports.spec.ts",
+        "tests/laws/program-secret-boundaries.ts"
       ]
     }
   ]

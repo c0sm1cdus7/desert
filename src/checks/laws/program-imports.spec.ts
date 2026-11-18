@@ -72,6 +72,7 @@ it("rejects a declared distribution even before an import uses it", () => {
 });
 for (const testDistribution of [false, true])
   for (const entry of [
+    "testing",
     "runtime",
     "runtime/cloud",
     "componer",

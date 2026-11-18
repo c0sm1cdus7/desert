@@ -2153,6 +2153,22 @@ también al reexportar, consultar tipos, usar `require` o importar dinámicament
 declare `desert.program`, salvo que declare exactamente `desert.kind: "distribution"`. La ausencia de
 `testDistribution` es una falla con motivo; no apaga ninguna frontera. La frontera de secretos sigue auditando los nombres
 permitidos de las entradas de programa; no habilita lectores de llaves ni funciones de nube.
+`desert/testing` queda reservado a las pruebas: ningún archivo productivo del programa puede importarlo ni
+reexportarlo, incluido su principal. Las pruebas pueden seguir usándolo.
+
+La ley 286 recorre los exports reales de las entradas admitidas (incluido cada `fields/*`), siguiendo alias,
+reexports encadenados, `export *` y namespaces sin evaluar módulos. Rechaza valores que abren o componen casas,
+puertas, terminales, routers, llaves o custodia. Además de los nombres de arranque conocidos, rechaza valores cuyo
+origen está en runtime, doors, keychain, storage, adapters, checks, ensamblado de superficie o router: renombrarlos
+no les quita esa capacidad. La comprobación corre también antes de cargar un programa independiente.
+
+El principal de un programa pasa la misma inspección de secretos que sus herramientas; no recibe privilegios
+de composición. Puede declarar `programa({ ...metadata, codigo: [import.meta.dirname] }, {...})` y reexportar
+`program` con otro nombre, como `export { program as notas }`. La excepción de `import.meta.dirname` sólo vale
+dentro de `codigo`, en el primer argumento del constructor real de DESERT y en el principal declarado.
+Leer `import.meta` en otros lugares, usar `resolve` o `filename`, o pasar `codigo` a otra función no queda autorizado.
+La distribución declarada con `kind: "distribution"` conserva su composición privilegiada.
+Esta inspección estática cierra estas rutas conocidas; no constituye aislamiento de JavaScript hostil.
 
 ### La compuerta de un programa independiente
 
