@@ -1,4 +1,6 @@
 // A declared action as questions and confirmation, preserving the receiver of each program method.
+import { executionDestination } from "./execution-destination.ts";
+import { rulePresentation } from "./rule-presentation.ts";
 import { capital } from "../../../texts/capital.ts";
 import { currencyQuestions } from "../questions/currency-defect.ts";
 import { programCall } from "../../../fields/program-call.ts";
@@ -44,6 +46,22 @@ function confirmation<X extends Program>(ports: SurfacePorts<X>, act: ProgramAct
     return taken === 0 ? { ask: capital(act.purpose), kind: "confirm", ...confirm, ...unsafe } : null;
   };
 }
+type Next = (answers: readonly string[], target?: string) => Field | null;
+function nextQuestion<X extends Program>(
+  asks: Next,
+  destination: ReturnType<typeof executionDestination<X>>,
+  sure: Next,
+  ask: Asking,
+  presentation: () => { notice: string } | undefined,
+): Next {
+  return (answers, target) => {
+    const confirmation = () => sure(answers.slice(0, ask.taken(answers)), target);
+    const field =
+      asks(answers, target) ?? (destination.required ? destination.next(answers, confirmation) : sure(answers, target));
+    const notice = presentation()?.notice;
+    return field && notice ? { ...field, ask: `${field.ask} · ${notice}` } : field;
+  };
+}
 export type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["things"]> }> &
   /** The day an instant falls on, as the program's country counts them, when the program says how. */
   Readonly<{ day: ((at: number) => string) | undefined }> &
@@ -62,6 +80,8 @@ export function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, 
     next: currencyQuestions(declared.next, (error, target) => ports.defect(error, tool, target ?? tool, name)),
   };
   const title = act.title ?? capital(act.name);
+  const destination = executionDestination(ports, act, name, ask);
+  const presentation = () => rulePresentation(tool, name, ports.state);
   const sure = confirmation(ports, act, ask, tool);
   const asks = offeredOn(act, ask, ports.state, tool, ports.now, () => hides(ports.state().house, ports.me, "off"));
   const walk = {
@@ -70,14 +90,22 @@ export function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, 
     verb: act.enter,
     key: act.key,
     /** The bar says what is done and, on a thing, to which. */
-    title: (target?: string): string => (target === undefined ? title : `${title} · ${asked.titled(tool, target)}`),
-    next: (answers: readonly string[], target?: string): Field | null => asks(answers, target) ?? sure(answers, target),
+    title: (target?: string): string => {
+      const currentTitle = presentation() ? capital(presentation()?.name ?? act.name) : title;
+      return target === undefined ? currentTitle : `${currentTitle} · ${asked.titled(tool, target)}`;
+    },
+    next: nextQuestion(asks, destination, sure, ask, presentation),
     stops: (answers: readonly string[], target?: string): string | undefined =>
       declaredCause(
         act.refuses,
         programCall(act.stops?.bind(act), ask.sofar(answers), ports.state(), target ?? tool, ports.now()),
       ),
-    run: (answers: readonly string[], target: string) => programResult(ports, target, name, ask.submit(answers)),
+    run: (answers: readonly string[], target: string) => {
+      const problem = destination.problem(answers);
+      return problem
+        ? Promise.resolve({ ok: false as const, reason: problem })
+        : programResult(ports, target, name, ask.submit(answers), destination.selected(answers));
+    },
   };
   return { name, act, ask, walk };
 }

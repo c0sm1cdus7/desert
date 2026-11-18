@@ -1,4 +1,5 @@
 // The acts of a program's tool as a surface offers them: each asked from its declaration, where it stands.
+import { presentedRuleAction } from "./rule-presentation.ts";
 import { walked, type Asked } from "./asked-act.ts";
 import { OutsideDefect, programCall } from "../../../fields/program-call.ts";
 import { hides } from "../../../house/members.ts";
@@ -98,6 +99,15 @@ const offersOf =
  * The right of an act is never empty. */
 const beside = (act: Readonly<{ undoable: boolean; purpose: string }>): string =>
   act.undoable ? act.purpose : generic.irreversible;
+function liveRuleAction<X extends Program>(ports: SurfacePorts<X>, tool: string, name: string, walk: ToolAct): ToolAct {
+  if (tool !== "rules") return walk;
+  return Object.defineProperties(
+    walk,
+    Object.getOwnPropertyDescriptors(
+      presentedRuleAction(tool, name, ports.state, { label: walk.label, verb: walk.verb }, walk.listed ?? (() => true)),
+    ),
+  );
+}
 /** Every act of a tool as the surface offers it: on the tool itself, on one of its things, or under a menu. */
 export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, asked: Asked) {
   /** Which hiding preference applies to the identity reading this tool. */
@@ -111,10 +121,20 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
         actionOff(act, ports.state(), tool.id, tool.id, ports.now(), () => walk.next([]), undefined, name);
       const listed = (): boolean => off() === undefined || !hides(ports.state().house, ports.me, "off");
       const datum = (): string => programCall(act.datum?.bind(act), ports.state(), tool.id) ?? beside(act);
-      const next: ToolAct["next"] = answers => walk.next(answers);
       /** What changes a datum is taken from the row of that datum, not from among the actions. */
       const scope = act.changes === undefined ? "all" : "row";
-      return [name, { ...walk, scope, off, listed, datum, next, run: answers => walk.run(answers, tool.id) }];
+      return [
+        name,
+        liveRuleAction(ports, tool.id, name, {
+          ...walk,
+          scope,
+          off,
+          listed,
+          datum,
+          next: answers => walk.next(answers),
+          run: answers => walk.run(answers, tool.id),
+        }),
+      ];
     });
   const onThing = entries
     .filter(({ act }) => act.on === "thing")

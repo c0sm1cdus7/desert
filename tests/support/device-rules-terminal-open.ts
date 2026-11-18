@@ -1,4 +1,4 @@
-// A real terminal submits a remote action to a synthetic device with a fixed destination.
+// A real terminal chooses a synthetic device before the common mechanical guard runs.
 import { generateKeyPairSync } from "node:crypto";
 import { createDeviceProcess } from "../../src/doors/devices/device-process.ts";
 import { writeFileSync } from "node:fs";
@@ -57,20 +57,7 @@ house.bus.emit(
   ),
 );
 const ports = localPorts(house, "ana", { recentLines: 20 });
-// The host supplies the chosen destination; the terminal form remains the production form.
-const router = houseRouter(
-  {
-    ...ports,
-    act: (value, through) =>
-      ports.act(
-        value.target === "sales" && value.act === "register"
-          ? { ...value, destination: { kind: "device", device: "mac" } }
-          : value,
-        through,
-      ),
-  },
-  shopShown,
-);
+const router = houseRouter(ports, shopShown);
 await startTerminal(process.stdout, process.stdin, router);
 writeFileSync(
   join(home, "result.json"),

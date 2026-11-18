@@ -513,6 +513,9 @@
     "doors/mcp/invitation-http.ts": "Redeem outside MCP with a bounded body, a uniform refusal and no cacheable credential responses.",
     "doors/mcp/mcp-sessions.ts": "Abort open HTTP work as soon as its live credential is revoked, with one house subscription.",
     "fields/text-addressing.ts": "addresses: whether a text speaks to whoever reads it, by its pronouns, orders and verbs of the second person A verb said to one person ends as these do; so do a few words that are no verb at all. What one person did ends as these do: «cambiaste», «pediste». Whether a text speaks to whoever reads it: by its pronouns, the orders it gives, or a verb said to one person.",
-    "texts/addressing.ts": "Preserve the addressing entry while field analysis owns the implementation."
+    "texts/addressing.ts": "Preserve the addressing entry while field analysis owns the implementation.",
+    "surface/bridge/acts/execution-destination.ts": "Adds live destination choices and confirms the selected place before an action runs.",
+    "surface/bridge/acts/rule-presentation.ts": "Presents rule writes according to current authority throughout the form.",
+    "tools/rules/simulation-public-input.ts": "Removes schema-declared secret positions before simulation requests reach public records."
   }
 }
