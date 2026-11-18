@@ -3339,6 +3339,18 @@
         "src/tools/identities/kit-words.spec.ts",
         "src/surface/bridge/views/notices.spec.ts"
       ]
+    },
+    {
+      "id": 285,
+      "rule": "Atención, Actividad, Registro y las cabeceras de los hilos muestran el nombre de quien escribió; sin nombre muestran su id. Sacar una identidad conserva su nombre al reabrir. Las mentes usan el nombre declarado del programa y los asistentes conservan nombre y titular. La presentación no cambia autorías, destinos, texto libre ni los ids que lee MCP.",
+      "from": "18/11 · dist-autor · paseo local P10",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/author-terminal.spec.ts",
+        "src/surface/bridge/views/author-name.spec.ts",
+        "src/surface/bridge/views/author-thread.spec.ts",
+        "src/doors/mcp/mcp-author.spec.ts"
+      ]
     }
   ]
 }

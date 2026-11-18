@@ -4,6 +4,7 @@ import { genericTexts as generic } from "../../../texts/generic-surface.texts.ts
 import type { Program } from "../../../tools/tool-contract.ts";
 import type { Tool } from "../../contract/shown-tool.ts";
 import type { SurfacePorts } from "../ports/house-ports.ts";
+import { authorName } from "./author-name.ts";
 import { firstLine } from "./notices.ts";
 /** An instant as the journal keeps it, for a program that does not say how its country writes one. */
 const plainMoment = (at: number): string => new Date(at).toISOString().slice(0, 16).replace("T", " ");
@@ -18,7 +19,7 @@ export const recordOf =
       .entries.filter(({ data }) => (data.target === target || data.made?.includes(target)) && data.draft !== true);
     const rows = done.toReversed().map(entry => ({
       title: firstLine(entry.data.text),
-      detail: `${entry.data.author} · ${programCall(moment, entry.at)}`,
+      detail: `${authorName(ports)(entry.data.author)} · ${programCall(moment, entry.at)}`,
       still: true,
     }));
     return rows.length ? [{ ...generic.record, reads: true as const, rows }] : [];

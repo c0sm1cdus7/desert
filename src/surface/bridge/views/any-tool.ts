@@ -1,4 +1,5 @@
 // A program's tool on a surface when it brings no screen of its own: its rows come from what its view reads.
+import { authorName } from "./author-name.ts";
 import { capital } from "../../../texts/capital.ts";
 import { toolIndex } from "./tool-index.ts";
 import { MissingView } from "../../contract/missing-view.ts";
@@ -70,10 +71,10 @@ export function anyToolScreen<X extends Program>(
   const read = (): string =>
     programCall(tool.view.bind(tool), ports.state(), tool.id, { ...ports.limits, now: ports.now() });
   /** What the tool reads of its own goes first, in its stacks: the first line of its view. Its things follow. */
-  const itself = () => (stacks.length ? ownView(stacks, read(), tool.id, changing) : []);
+  const itself = () => (stacks.length ? ownView(stacks, read(), tool.id, changing, authorName(ports)) : []);
   const listed = (): string => (stacks.length ? read().split("\n").slice(1).join("\n") : read());
   /** What the tool itself reads on its list: a datum an act changes is the row that starts that act. */
-  const own = (): ViewRow[] => rowsIn(listed(), label, changing);
+  const own = (): ViewRow[] => rowsIn(listed(), label, changing, authorName(ports));
   const thing = thingView(ports, tool, lists?.presents ?? []);
   const menuOf = (target?: string) => menuAt(tool, () => indexed().targets, target);
   return {

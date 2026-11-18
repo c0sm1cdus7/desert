@@ -301,6 +301,8 @@
     "surface/bridge/questions/local-calendar.ts": "Reloj y calendario compartidos por una acción; un calendario ausente es un defecto de declaración",
     "surface/bridge/questions/money-question.ts": "Aplica la moneda a una sola pregunta sin cambiar el formato del país ni otras preguntas",
     "surface/bridge/questions/secret-reason.ts": "secretReason: why an invalid secret does not advance, from its schema bounds alone, never its material; out of asking-parts in the union",
+    "surface/bridge/views/author-name.ts": "Resuelve la autoría visible desde la casa y los programas sin cambiar los identificadores guardados.",
+    "surface/bridge/views/author-thread.ts": "Presenta el autor de las cabeceras de los hilos y conserva sus tonos, horas, mensajes y destinos.",
     "surface/bridge/views/any-tool.ts": "anyToolScreen: a tool without a screen of its own; its rows from its view, its menus from its acts",
     "surface/bridge/views/notices.ts": "noticesOf: what of a tool needs someone to act, and what the others wrote since this identity looked",
     "surface/bridge/views/presented.ts": "presented, thingView: one thing in the stacks its tool declared, what it names numbered to be opened",
