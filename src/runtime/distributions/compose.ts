@@ -8,6 +8,8 @@ import type { Shown } from "../../surface/bridge/ports/house-ports.ts";
 import { DESERT_CONTRACT, type InstallableProgram, type LocalProgram } from "../../tools/installable/program.ts";
 import { CompositionError, diagnostico } from "./diagnostics.ts";
 import type { CompositionOptions, RequireValid } from "./validation-types.ts";
+import { declaredReactions } from "../../tools/boundaries/tool-reactions.ts";
+import { bindProgramContracts } from "./program-contracts.ts";
 import { distributionShown } from "./shown.ts";
 export type DistributionOf<T extends readonly InstallableProgram[]> = {
   fact: LocalProgram<T[number]>["fact"];
@@ -37,6 +39,7 @@ export function componer(options: DistributionOptions): Distribution<Program> {
   const issues = diagnostico(options);
   if (issues.length) throw new CompositionError(issues);
   const installed = options.programas.map(program => ({ definition: program, ...program.install() }));
+  declaredReactions({ registry: installed.map(p => p.tool) });
   const roots = [
     fileURLToPath(new URL("../../", import.meta.url)),
     ...options.presentacion.codigo,
@@ -48,6 +51,10 @@ export function componer(options: DistributionOptions): Distribution<Program> {
     step: Object.fromEntries(installed.map(p => [p.definition.id, p.step])),
   };
   const program: Composition<Program> = {
+    contractSetup: bindProgramContracts(
+      options.programas,
+      installed.map(p => p.tool),
+    ),
     identities: options.identidades,
     mentes: Object.freeze({
       asistentes: options.mentes.asistentes,

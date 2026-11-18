@@ -1,6 +1,7 @@
 import "../../tests/support/upgrade-vault.ts";
 import { join } from "node:path";
-import { expect, it } from "vitest";
+import { readFileSync, statSync } from "node:fs";
+import { expect, it, vi } from "vitest";
 import { home, open, program, seed, matches } from "../../tests/support/upgrade-support.ts";
 import { SqliteJournal } from "./journal-store.ts";
 import { storageNotices } from "./storage-notices.ts";
@@ -10,6 +11,7 @@ it("keeps rebuild notices on the opening instance and never as facts", async () 
   const path = home();
   await seed(path);
   const current = program("shop/2", 2);
+  const warning = vi.spyOn(process, "emitWarning");
   const house = open(path, current);
   try {
     expect(house.storageNotices()).toHaveLength(2);
@@ -21,8 +23,18 @@ it("keeps rebuild notices on the opening instance and never as facts", async () 
       ),
     ).toBe(0);
     matches(house, current);
+    expect(warning).not.toHaveBeenCalled();
+    const log = join(path, "storage-notices.jsonl");
+    expect(
+      readFileSync(log, "utf8")
+        .trim()
+        .split("\n")
+        .map((line): unknown => JSON.parse(line)),
+    ).toEqual(house.storageNotices().map(notice => ({ code: "SAVED_FOLD_REBUILT", ...notice })));
+    expect(statSync(log).mode & 0o777).toBe(0o600);
   } finally {
     house.close();
+    warning.mockRestore();
   }
   const again = open(path, current);
   try {

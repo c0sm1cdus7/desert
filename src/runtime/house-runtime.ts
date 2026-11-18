@@ -1,4 +1,5 @@
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
+import { journalTexts } from "../texts/journal.texts.ts";
 import type { Event } from "../journal/vocabulary.ts";
 import { checkKitMigration } from "../house/kit-migration.ts";
 import { programKit } from "../house/kit-selection.ts";
@@ -73,6 +74,17 @@ function composed<X extends Program>(given: ModelHouseOptions<X>): ModelHouseOpt
   checkComposedCreation(options);
   return options;
 }
+function houseContracts<X extends Program>(options: HouseOptions<X>, resources: ReturnType<typeof houseResources<X>>) {
+  const { state, journal } = resources;
+  const { slices, by, identities, registry, kitMigration } = options;
+  return options.contractSetup?.({
+    state,
+    registry,
+    slices,
+    initial: startState(slices, by, identities, registry, kitMigration),
+    events: () => journal.replay<Event<X["fact"]>[]>([], (events, event) => [...events, event]),
+  });
+}
 export function startHouse<X extends Program>(
   home: string,
   options: ModelHouseOptions<X>,
@@ -90,7 +102,9 @@ export function startHouse<X extends Program>(
     if (!state().house.admin) checkCreation(creation, by);
     protection.mark();
     protection.attach(secrets, state);
+    const contracts = houseContracts(options, resources);
     const tools = startTools({
+      ...(contracts ? { contracts } : {}),
       ...ports,
       ...capabilities(state),
       bus,
@@ -103,7 +117,7 @@ export function startHouse<X extends Program>(
     if (!state().house.admin) createHouse(bus, creation);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
-    const ready = loadMinds(home, options, time, resources);
+    const ready = loadMinds(home, options, time, resources, contracts);
     return runningHouse(home, registry, tools, time, resources, ready);
   } catch (error) {
     if (!(error instanceof InvalidCreation)) report(error, "program", "program", "start");
@@ -139,6 +153,7 @@ function mindHouse<X extends Program>(
   time: TimeSource,
   resources: ReturnType<typeof houseResources<X>>,
   active: () => boolean,
+  contracts?: import("../tools/contract-port.ts").ContractFactory,
 ) {
   const { capabilities, state, bus, secrets, journal, report, close } = resources;
   return {
@@ -146,6 +161,7 @@ function mindHouse<X extends Program>(
     time,
     active,
     execution: {
+      ...(contracts ? { contracts } : {}),
       ...capabilities(state),
       bus,
       registry: options.registry,
@@ -175,6 +191,7 @@ function loadMinds<X extends Program>(
   options: ModelHouseOptions<X>,
   time: TimeSource,
   resources: ReturnType<typeof houseResources<X>>,
+  contracts?: import("../tools/contract-port.ts").ContractFactory,
 ) {
   const switches = options.mentes;
   const config = options.modelMinds;
@@ -189,7 +206,7 @@ function loadMinds<X extends Program>(
     .then(({ startModelMinds }) => {
       if (!active) return undefined;
       minds = startModelMinds(
-        mindHouse(home, options, time, resources, () => active),
+        mindHouse(home, options, time, resources, () => active, contracts),
         switches,
         config,
       );
@@ -204,12 +221,13 @@ export type RunningHouse<X extends Program> = ReturnType<typeof startHouse<X>>;
 /** A surface in the house's own process reads it and acts in it as one identity, with no door in between; it
  * reads the same clock as the house. */
 export const localPorts = <X extends Program>(
-  house: Pick<RunningHouse<X>, "tools" | "registry" | "bus" | "now">,
+  house: Pick<RunningHouse<X>, "tools" | "registry" | "bus" | "now"> & Partial<Pick<RunningHouse<X>, "storageNotices">>,
   me: string,
   limits: Omit<ViewLimits, "now">,
   now: () => number = house.now,
 ): HousePorts<X> => ({
   me,
+  openingNotices: () => (house.storageNotices?.().length ? [journalTexts.rebuilt] : []),
   limits,
   registry: house.registry,
   state: () => identityView(house.tools.state(), me),

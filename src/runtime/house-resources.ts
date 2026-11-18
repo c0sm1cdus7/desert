@@ -122,7 +122,7 @@ export function houseResources<X extends Program>(home: string, options: HouseOp
   const compose = houseAdapters(options);
   const protection = protectedHouse(home, options);
   mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
-  const notices = storageNotices();
+  const notices = storageNotices(home);
   const journal = houseJournal(join(home, "journal.sqlite"), options.words, notices.warn);
   guardJournal(journal, by);
   const { credentials, secrets, state, clock } = restoredCustody(home, options, journal, time);

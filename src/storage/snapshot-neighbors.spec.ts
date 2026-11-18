@@ -54,7 +54,8 @@ it.each(["missing", "different sequence"])("also explains discarded compatible s
     const b = next.watch<readonly string[]>("b", [], fold);
     next.restore();
     expect([a(), b()]).toEqual([["before"], ["before"]]);
-    expect(warning).toHaveBeenCalledWith(expect.stringContaining("dependent group"), expect.any(Object));
+    expect(next.restoration().warnings.some(warning => warning.reason.includes("dependent group"))).toBe(true);
+    expect(warning).not.toHaveBeenCalled();
   } finally {
     warning.mockRestore();
   }

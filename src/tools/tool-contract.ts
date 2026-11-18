@@ -3,7 +3,7 @@
 export type ViewLimits = Readonly<{ recentLines: number }> &
   /** The instant of the reading, for what a tool reads by the day: what is due today. */
   Readonly<{ now: number }>;
-import type { ContractAccess, ContractFailureReason } from "./contract-port.ts";
+import type { ContractAccess, ContractFailureReason, ContractFactory } from "./contract-port.ts";
 import type { Capability } from "../fields/capabilities.ts";
 import type { Skill } from "../fields/messages.ts";
 import type { DeepReadonly } from "../journal/readonly-state.ts";
@@ -34,6 +34,16 @@ export type Slices<X extends Program> = Readonly<{
     ) => DeepReadonly<X["tools"][K]>;
   };
 }>;
+/** Runtime-owned wiring receives the house's real state and confirmed history at opening. */
+export type ContractSetup<X extends Program> = (
+  source: Readonly<{
+    state: () => State<X>;
+    registry: ToolRegistry<X>;
+    initial: State<X>;
+    slices: Slices<X>;
+    events: () => readonly Event<X["fact"]>[];
+  }>,
+) => ContractFactory;
 /** Legacy provider contract, only for explicit adoption; never part of action or startup capabilities. */
 export interface KeyStore {
   hosts?(provider: string): Promise<readonly string[]>;

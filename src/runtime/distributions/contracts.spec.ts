@@ -80,3 +80,18 @@ it("reports missing providers and invalid offered routes through composition", (
     missing,
   ]);
 });
+it("rejects both routes of a cycle when composing independently valid halves", () => {
+  const empty = { acciones: {}, objetos: {}, avisos: {} };
+  const options = {
+    ...contractOptions,
+    programas: [
+      { ...salesProgram, ofrece: { "ventas-publicas": { ...empty, version: "1.0.0" } } },
+      { ...documentProgram, pide: { "ventas-publicas": { ...empty, casos: [] } } },
+    ],
+  } as const;
+  expect(diagnostico(options).filter(issue => issue.reason === "ciclo")).toEqual([
+    { path: "ventas-[documentos-fiscales]->documentos-[ventas-publicas]->ventas", reason: "ciclo" },
+    { path: "documentos-[ventas-publicas]->ventas-[documentos-fiscales]->documentos", reason: "ciclo" },
+  ]);
+  expect(() => componer(options)).toThrow(CompositionError);
+});

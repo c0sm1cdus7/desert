@@ -8,7 +8,7 @@ import type { Vocabulary } from "../journal/vocabulary.ts";
 import type { SoFar } from "./so-far.ts";
 import type { ProgramOutside, ProgramRun } from "./promises.ts";
 import type { RunResult } from "./outside.ts";
-import type { ActContext, Program, Reach, Slices, State, Tool, ToolAct } from "./tool-contract.ts";
+import type { ActContext, ContractSetup, Program, Reach, Slices, State, Tool, ToolAct } from "./tool-contract.ts";
 /** Something that already happened before a case: an act of the program, by one of the house's identities. */
 export type Did = Readonly<{ act: string; input: unknown; on?: string; by?: string }>;
 /** What a case says came before it: each thing someone did and, when the case is about what time does, the whole
@@ -106,6 +106,7 @@ export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
 /** A program, whole: what DESERT needs to run it and to check everything it promises. */
 export type Composition<X extends Program> = AdapterComposition &
   Readonly<{
+    contractSetup?: ContractSetup<X>;
     identities?: boolean;
     kitMigration?: KitMigration;
     mentes?: Readonly<{ asistentes: boolean; programas: readonly string[] }>;

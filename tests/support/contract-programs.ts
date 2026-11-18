@@ -109,6 +109,27 @@ export const salesProgram = programa(salesMetadata, {
       ...group,
       palabras: words("Facturación", "f"),
       acts: {
+        leer: programAct<Sales, ReturnType<typeof input>>({
+          name: "leer",
+          enter: "leer",
+          purpose: "leer el comprobante y sus avisos",
+          key: "l",
+          on: "tool",
+          undoable: true,
+          input: input(),
+          run: (value, context) => {
+            const port = context.contracts?.["documentos-fiscales"];
+            if (!port || !context.cut) throw new Error("Missing contractual context");
+            return {
+              status: "accepted",
+              value: {
+                reading: port.objects.comprobante?.read(value.venta, context.cut),
+                notices: port.notices.emitido?.(context.cut),
+              },
+            };
+          },
+          cases: [{ promise: "Lee sin comprobante previo", input: { venta: "v1" }, then: { says: "", facts: [] } }],
+        }),
         facturar: programAct<Sales, ReturnType<typeof input>>({
           name: "facturar",
           enter: "facturar",

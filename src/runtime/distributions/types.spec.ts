@@ -26,6 +26,14 @@ export type Assistants = CompositionErrors<typeof assistants>;
 const distro = { ...base, programas: [{ ...p, dependencies: [{ kind: "distribution", name: "void" }] }] } as const;
 export type Distro = CompositionErrors<typeof distro>;
 export type Reactions = CompositionErrors<typeof reactions>;
+// Both halves are runtime data: this type does not compare schemas or traverse contracts.
+const runtime = { ...base, programas: [{
+  ...p,
+  ofrece: { loop: { version: "1", acciones: {}, objetos: {}, avisos: {} } },
+  pide: { loop: { acciones: {}, objetos: {}, avisos: {}, casos: [] } },
+}] } as const;
+export type RuntimeCycle = CompositionErrors<typeof runtime>;
+componer(runtime);
 componer(contract); componer(ids); componer(facts); componer(foreign);
 componer(mind); componer(assistants); componer(reactions); componer(distro);
 declare const state: State<Sample>;
@@ -76,6 +84,7 @@ state.tools.own.count = 42;
     Assistants: ["mentes/asistentes:asistentes-requiere-identidades"],
     Distro: ["notas/dependencies/void:dependencia-distribucion"],
     Reactions: ["notas/effects:reacciones-no-soportadas"],
+    RuntimeCycle: [],
   });
   const diagnostics = ts.getPreEmitDiagnostics(program);
   expect(diagnostics.map(d => ({ file: d.file?.fileName, code: d.code }))).toEqual([

@@ -55,7 +55,8 @@ it.each([
   try {
     const current = open(file);
     expect(watch(current)()).toEqual(["a0"]);
-    expect(warning).toHaveBeenCalledWith(expect.stringContaining(`sales discarded: ${reason}`), expect.any(Object));
+    expect(current.restoration().warnings).toContainEqual({ name: "sales", reason });
+    expect(warning).not.toHaveBeenCalled();
     current.close();
     warning.mockClear();
     const next = open(file);
@@ -65,6 +66,7 @@ it.each([
     expect(state()).toEqual(["a0"]);
     expect(reduce).not.toHaveBeenCalled();
     expect(warning).not.toHaveBeenCalled();
+    expect(next.restoration().warnings).toEqual([]);
   } finally {
     warning.mockRestore();
   }
