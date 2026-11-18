@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 253. Deudas: 23.
+Leyes: 254. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -260,3 +260,4 @@ Leyes: 253. Deudas: 23.
 | 272 | Turnos, consultas, revisiones, mensajes, escenas y journeys se reconstruyen desde hechos cerrados. Los journeys conservan autor y proceso en actos anidados; un cierre, una consulta repetida o una transición inválida no reabren trabajo. La adopción conserva las autorías históricas. | 17/11 · mente 3, contratos y autoridad | una spec a mano | `src/house/minds/mind-state.spec.ts` `src/house/minds/journey-state.spec.ts` `src/house/minds/mind-recovery.spec.ts` `src/tools/execute.ts` |
 | 273 | La respuesta de una mente contiene scene, consulta y acts, con entradas cerradas derivadas del menú. La validación local conserva límites, destinos, permisos y alcance; el modelo no elige autor ni proceso. El puerto de revisión declara propuesta, motivo y versión de reglas sin ejecutar un supervisor. | 17/11 · mente 3, contratos y autoridad | una spec a mano | `src/tools/minds/mind-answer.spec.ts` `src/tools/minds/mind-answer.ts` `src/tools/minds/mind-contract.ts` `src/tools/minds/mind-review.ts` |
 | 274 | Los hechos de llamadas conservan reservas, envío, liquidación y resultado incierto. La incertidumbre retiene la reserva y bloquea otro envío del mismo turno; cancelar antes de enviar libera la reserva sin consumir un intento físico. Mente y supervisor comparten el contrato de doce intentos por turno. | 17/11 · mente 3, contratos y autoridad | una spec a mano | `src/house/minds/model-call-state.ts` `src/house/minds/mind-state.spec.ts` `src/house/minds/mind-recovery.spec.ts` |
+| 275 | Los contratos comparan mitades independientes, resuelven un proveedor y rechazan ciclos. Las llamadas conservan actor, permisos y fallos centrales; las lecturas recortan campos al pedido en un corte exacto del core. Los casos viajan desde el consumidor y sólo su ejecución real acredita compatibilidad para las huellas comprobadas. | 18/11 · dist-contratos, contratos de dos mitades | una spec a mano | `src/runtime/contracts/ports.spec.ts` `src/runtime/contracts/failures.spec.ts` `src/runtime/contracts/readings.spec.ts` `src/runtime/contracts/gate.spec.ts` `src/runtime/contracts/negatives.spec.ts` |

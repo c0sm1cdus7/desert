@@ -3,7 +3,7 @@ import type { ActResult, Program } from "./tool-contract.ts";
 import { OutsideDefect } from "../fields/program-call.ts";
 export type RunResult<X extends Program, O extends readonly string[]> =
   | Extract<ActResult<X>, { status: "accepted" }>
-  | Readonly<{ status: "rejected"; reason: O[number] | `${O[number]} · ${string}` }>;
+  | Readonly<{ status: "rejected"; value?: unknown; reason: O[number] | `${O[number]} · ${string}` }>;
 export const outsideCause = (outside: readonly string[], reason: string): string | undefined =>
   outside.find(cause => reason === cause || reason.startsWith(`${cause} · `));
 

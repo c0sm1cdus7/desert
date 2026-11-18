@@ -51,6 +51,7 @@ function scopedCapabilities<X extends Program>(ports: Execution<X>, origin: Capa
   parent?.addEventListener("abort", abort, { once: true });
   if (parent?.aborted) abort();
   const close = () => {
+    active.closed = true;
     parent?.removeEventListener("abort", abort);
     if (active.origin) ports.running?.delete(active.origin.id);
     lease?.close();

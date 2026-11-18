@@ -30,8 +30,8 @@ export const performAct = <X extends Program>(
     return finish(ports, act, failed(error));
   }
   if (!(result instanceof Promise)) return finish(ports, act, result);
-  const completion = result.catch(failed).then(decision => {
-    if (!ports.live()) return rejected(toolTexts.interrupted);
+  const completion = result.catch(failed).then((decision): Decision<X> => {
+    if (!ports.live()) return { status: "interrupted", reason: toolTexts.interrupted, effects: [] };
     const done = finish(ports, act, decision);
     if (actNews({ ...done, output: done.status === "accepted" && done.output }))
       ports.bus.emit(effect("stimulus", { tool }, act.by, [act.id], act.process));

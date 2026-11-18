@@ -3,6 +3,7 @@
 export type ViewLimits = Readonly<{ recentLines: number }> &
   /** The instant of the reading, for what a tool reads by the day: what is due today. */
   Readonly<{ now: number }>;
+import type { ContractAccess, ContractFailureReason } from "./contract-port.ts";
 import type { Capability } from "../fields/capabilities.ts";
 import type { Skill } from "../fields/messages.ts";
 import type { DeepReadonly } from "../journal/readonly-state.ts";
@@ -41,6 +42,8 @@ export interface KeyStore {
   remove(provider: string): Promise<void>;
 }
 type Effects<X extends Program> = Readonly<{
+  value?: unknown;
+  coreFailure?: ContractFailureReason;
   effects?: readonly Emission<X["fact"]>[];
   cleanupPending?: true;
   anchorPending?: true;
@@ -57,6 +60,7 @@ export type ActResult<X extends Program> =
 /** "world" when the act leaves the house; everything else stays in it. */
 export type Reach = "house" | "world";
 export type ActContext<X extends Program> = ToolCapabilities &
+  Partial<ContractAccess> &
   Readonly<{
     state: State<X>;
     by: string;

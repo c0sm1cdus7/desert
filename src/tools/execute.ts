@@ -1,4 +1,5 @@
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
+import type { ContractFailureReason } from "./contract-port.ts";
 import { hasSecretInput } from "./inputs/secret-input.ts";
 import { rejected, performAct } from "./execution/perform-act.ts";
 import { runningSignal } from "./execution/running-acts.ts";
@@ -25,6 +26,7 @@ import { isMindActor } from "../fields/mind-actor.ts";
 import { journeyAllows } from "../house/minds/journey-state.ts";
 type Origin = HouseEvent<"act">;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
+  Readonly<{ value?: unknown; coreFailure?: ContractFailureReason }> &
   Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &
   Readonly<{ private?: string | undefined; output?: boolean; cleanupPending?: true; anchorPending?: true }>;
 type Processing<X extends Program> = Readonly<{ status: "processing"; effects: readonly []; reason?: string }> &
@@ -72,22 +74,19 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   if (!offered && !isMindActor(by) && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
   return programOffered(act, state, target, ports.now());
 }
-const decide = <X extends Program>(
+function actionContext<X extends Program>(
   ports: Execution<X>,
-  value: Act,
   origin: Origin,
+  found: ReturnType<typeof resolve<X>>,
+  act: ToolAct<X>,
   capabilities: ToolCapabilities,
-): Decision<X> | Perform<X> => {
+): ActContext<X> {
   const { by, id } = origin;
   const { object: target, through = 0 } = origin.data;
-  const found = resolve(ports, by, target, value.act);
-  const { state, offered, tool, act } = found;
-  const refused = refusal(ports, origin, found);
-  if (refused !== undefined || !act) return rejected(refused ?? toolTexts.unknown);
   const { ports: publicPorts, credentials } = capabilities;
   const context: ActContext<X> = {
-    state,
-    signal: runningSignal(ports, origin, offered ? undefined : tool?.id, act.reach),
+    state: found.state,
+    signal: runningSignal(ports, origin, found.offered ? undefined : found.tool?.id, act.reach),
     by,
     target,
     at: ports.now(),
@@ -97,6 +96,32 @@ const decide = <X extends Program>(
     id,
     execute: nested => executeNested(ports, origin, nested),
   };
+  Object.assign(
+    context,
+    ports.contracts?.({
+      tool: found.tool?.id ?? "",
+      by,
+      signal: context.signal,
+      execute: nested => executeNested(ports, origin, nested),
+      alive: () => ports.live() && ports.active?.closed !== true,
+    }),
+  );
+  return context;
+}
+const decide = <X extends Program>(
+  ports: Execution<X>,
+  value: Act,
+  origin: Origin,
+  capabilities: ToolCapabilities,
+): Decision<X> | Perform<X> => {
+  const { by } = origin;
+  const { object: target, through = 0 } = origin.data;
+  const found = resolve(ports, by, target, value.act);
+  const { state, offered, tool, act } = found;
+  const refused = refusal(ports, origin, found);
+  if (refused !== undefined || !act)
+    return { ...rejected(refused ?? toolTexts.unknown), coreFailure: act ? "forbidden" : "invalid-reference" };
+  const context = actionContext(ports, origin, found, act, capabilities);
   const draft = !offered && programCall(tool?.draft?.bind(tool), state, through, value.input, target, context.at);
   if (draft) {
     const text = toolTexts.draft;
@@ -119,7 +144,7 @@ async function executeNested<X extends Program>(
   const { by, id, process } = origin;
   const tool = targetTool(ports.registry, identityView(ports.state(), by), nested.target ?? "");
   const unknown: ActResult<X> = { status: "rejected", reason: toolTexts.unknown };
-  if (!tool) return unknown;
+  if (!tool) return { ...unknown, coreFailure: "invalid-reference" };
   const parent = process ? (ports.state().house.journeys.get(process)?.opened ?? process) : undefined;
   const cause = [id, ...(parent ? [parent] : [])];
   const started = execute(ports, nested, origin.data.through ?? 0, by, cause);
@@ -132,8 +157,11 @@ async function executeNested<X extends Program>(
       status: result.status === "interrupted" ? "interrupted" : "rejected",
       reason: result.reason ?? toolTexts.invalid,
     };
+  const failure: ContractFailureReason | undefined = result.defect ? "defect" : result.coreFailure;
   return {
     ...done,
+    ...(result.value !== undefined ? { value: result.value } : {}),
+    ...(failure ? { coreFailure: failure } : {}),
     ...(result.cleanupPending ? { cleanupPending: true } : {}),
     ...(result.anchorPending ? { anchorPending: true } : {}),
   };

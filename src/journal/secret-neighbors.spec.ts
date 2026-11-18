@@ -135,9 +135,15 @@ it("un corte mientras espera conserva el plegado y el reinicio interrumpe la acc
       }),
   );
   const started = rig.set({ value: "dato-pendiente" });
+  expect(started.status).toBe("processing");
   expect(has(rig.house.tools.state(), "dato-pendiente")).toBe(false);
   rig.restart();
   release();
-  if (started.status === "processing") expect((await started.completion).status).toBe("rejected");
+  if (started.status === "processing")
+    expect(await started.completion).toMatchObject({
+      status: "interrupted",
+      reason: "acción interrumpida",
+      effects: [],
+    });
   expect(has(rig.facts(), "dato-pendiente") || has(rig.house.tools.state(), "dato-pendiente")).toBe(false);
 });

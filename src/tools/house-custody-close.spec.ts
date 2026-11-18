@@ -1,6 +1,7 @@
 // Revisor (cuarta, conducta). La regla 208 promete: cerrar durante un uso borra los búferes y el uso rechaza con
 // E-CUSTODY-DENIED. Con el paso 4, cada comprobación de la custodia mira antes la exclusión del registro. En una casa
 // de startHouse, ¿qué recibe un uso cuando la casa se cierra en medio? Datos inventados.
+// El uso conserva E-CUSTODY-DENIED; la acción que lo esperaba informa la interrupción de la casa.
 import { expect, it } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { adapterHouse } from "../../tests/support/adapter-house.ts";
@@ -67,7 +68,7 @@ it("N8: cerrar la casa durante un uso: el uso rechaza con E-CUSTODY-DENIED y los
   const zeroed = seen?.every(byte => byte === 0);
   release();
   const result = await pending;
-  expect(result.status).toBe("rejected");
+  expect(result).toMatchObject({ status: "interrupted", reason: "acción interrumpida", effects: [] });
   expect(zeroed).toBe(true);
   expect(outcome).toMatchObject({ code: "E-CUSTODY-DENIED" });
 });
