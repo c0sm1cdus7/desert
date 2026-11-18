@@ -114,7 +114,7 @@ it("interrupts a mind across a restart without repeating its in-flight action", 
   rig.restart();
   rig.boot();
   release();
-  expect(await settle(started)).toMatchObject({ status: "rejected", reason: "acción interrumpida" });
+  expect(await settle(started)).toMatchObject({ status: "interrupted", reason: "acción interrumpida", effects: [] });
   expect(runs).toBe(1);
   expect(rig.state().processing.size).toBe(0);
   expect(rig.facts().findLast(event => event.kind === "act-result")).toMatchObject({

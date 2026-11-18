@@ -1,4 +1,5 @@
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
+import type { ContractFailureReason } from "./contract-port.ts";
 import { hasSecretInput } from "./inputs/secret-input.ts";
 import { rejected, performAct } from "./execution/perform-act.ts";
 import { runningSignal } from "./execution/running-acts.ts";
@@ -25,6 +26,7 @@ import { isMindActor, parseMindActor } from "../fields/mind-actor.ts";
 import { journeyAllows } from "../house/minds/journey-state.ts";
 type Origin = HouseEvent<"act">;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
+  Readonly<{ value?: unknown; coreFailure?: ContractFailureReason }> &
   Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &
   Readonly<{ private?: string | undefined; output?: boolean; cleanupPending?: true; anchorPending?: true }>;
 type Processing<X extends Program> = Readonly<{ status: "processing"; effects: readonly []; reason?: string }> &
@@ -94,7 +96,8 @@ const decide = <X extends Program>(
   const found = resolve(ports, by, target, value.act);
   const { state, offered, tool, act } = found;
   const refused = refusal(ports, origin, found);
-  if (refused !== undefined || !act) return rejected(refused ?? toolTexts.unknown);
+  if (refused !== undefined || !act)
+    return { ...rejected(refused ?? toolTexts.unknown), coreFailure: act ? "forbidden" : "invalid-reference" };
   const context = actionContext(ports, origin, found, capabilities);
   const draft = !offered && programCall(tool?.draft?.bind(tool), state, through, value.input, target, context.at);
   if (draft) {
@@ -127,7 +130,7 @@ function actionContext<X extends Program>(
   const { by, id } = origin;
   const { object: target, through = 0 } = origin.data;
   const { ports: publicPorts, credentials } = capabilities;
-  return {
+  const context: ActContext<X> = {
     state,
     signal: runningSignal(ports, origin, offered ? undefined : tool?.id, act?.reach ?? "house"),
     by,
@@ -139,6 +142,19 @@ function actionContext<X extends Program>(
     id,
     ...(origin.data.reaction ? {} : { execute: (nested: Act) => executeNested(ports, origin, nested) }),
   };
+  // A reaction runs alone: it gets no nested execution and no contract port.
+  if (origin.data.reaction) return context;
+  Object.assign(
+    context,
+    ports.contracts?.({
+      tool: tool?.id ?? "",
+      by,
+      signal: context.signal,
+      execute: nested => executeNested(ports, origin, nested),
+      alive: () => ports.live() && ports.active?.closed !== true,
+    }),
+  );
+  return context;
 }
 async function reviewWorld<X extends Program>(
   ports: Execution<X>,
@@ -189,7 +205,7 @@ async function executeNested<X extends Program>(
   const { by, id, process } = origin;
   const tool = targetTool(ports.registry, identityView(ports.state(), by), nested.target ?? "");
   const unknown: ActResult<X> = { status: "rejected", reason: toolTexts.unknown };
-  if (!tool) return unknown;
+  if (!tool) return { ...unknown, coreFailure: "invalid-reference" };
   const parent = process ? (ports.state().house.journeys.get(process)?.opened ?? process) : undefined;
   const cause = [id, ...(parent ? [parent] : [])];
   const started = execute(ports, nested, origin.data.through ?? 0, by, cause);
@@ -202,8 +218,11 @@ async function executeNested<X extends Program>(
       status: result.status === "interrupted" ? "interrupted" : "rejected",
       reason: result.reason ?? toolTexts.invalid,
     };
+  const failure: ContractFailureReason | undefined = result.defect ? "defect" : result.coreFailure;
   return {
     ...done,
+    ...(result.value !== undefined ? { value: result.value } : {}),
+    ...(failure ? { coreFailure: failure } : {}),
     ...(result.cleanupPending ? { cleanupPending: true } : {}),
     ...(result.anchorPending ? { anchorPending: true } : {}),
   };

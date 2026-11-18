@@ -1,6 +1,8 @@
 // Aplica correspondencias versionadas y rechaza ámbitos ambiguos o identificadores retirados reutilizados.
 import { selectionProblem } from "./kit-validation.ts";
 import {
+  actionSelection,
+  kitLayout,
   covers,
   selectionKit,
   selectionPath,
@@ -43,12 +45,7 @@ export function checkKitMigration(migration: KitMigration, registry: readonly Ki
     throw new Error("Invalid kit migration target");
   for (const program of registry)
     for (const action of Object.keys(program.acts ?? {})) {
-      const selection: Selection = {
-        kind: "action",
-        program: program.id,
-        tool: program.actionTools?.[action] ?? program.id,
-        action,
-      };
+      const selection = actionSelection(program.id, action, kitLayout(registry));
       if (migration.retired.some(retired => covers(retired, selection)) || actions.includes(selectionPath(selection)))
         throw new Error("Retired kit identifier reused");
     }

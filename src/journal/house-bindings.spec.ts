@@ -128,7 +128,7 @@ it("cerrar durante una operación revoca su continuación sin dejar un vínculo"
   await new Promise(resolve => setImmediate(resolve));
   rig.close();
   finish();
-  expect((await pending).status).toBe("rejected");
+  expect(await pending).toMatchObject({ status: "interrupted", reason: "acción interrumpida", effects: [] });
   rig.restart();
   expect(JSON.stringify(rig.facts())).not.toContain("credential-bound");
 });

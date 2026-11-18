@@ -80,10 +80,11 @@ describe("the tree of src/", () => {
   // Reacciones: +3 líneas exactas para declaración inválida, pendiente visible y migración de effects.
   // Dist-kit: +9 líneas exactas para carpetas, herencia, retiradas y explicación de administración.
   // Distribuciones paso 2: +2 líneas exactas para rechazar dependencias de distribuciones y señalar su ruta.
-  it("keeps every file within 300 lines and the texts within 929", () => {
+  // Contratos: +10 líneas exactas para diagnósticos de valores, composición y casos ejecutados.
+  it("keeps every file within 300 lines and the texts within 939", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(929);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(939);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

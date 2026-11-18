@@ -41,9 +41,22 @@ export const covers = (parent: Selection, child: Selection): boolean =>
     (child.kind !== "program" &&
       parent.tool === child.tool &&
       (parent.kind === "tool" || (child.kind === "action" && parent.action === child.action))));
+/** Engine routes keep the group prefix; journal selections store the local action segment. */
+export const actionName = (tool: string, action: string): string =>
+  action.startsWith(`${tool}/`) ? action.slice(tool.length + 1) : action;
+export const actionSelection = (
+  program: string,
+  action: string,
+  layout: KitLayout = {},
+): Extract<Selection, { kind: "action" }> => {
+  const tool = herramientaDe(program, action, layout);
+  return { kind: "action", program, tool, action: actionName(tool, action) };
+};
 export const selects = (kit: SelectionKit, program: string, tool: string, action: string): boolean =>
   program !== "identities" &&
-  kit.selections.some(selection => covers(selection, { kind: "action", program, tool, action }));
+  kit.selections.some(selection =>
+    covers(selection, { kind: "action", program, tool, action: actionName(tool, action) }),
+  );
 export function expandKit(kit: SelectionKit, registry: readonly KitProgram[]) {
   const layout = kitLayout(registry);
   return registry.flatMap(program => {
@@ -58,15 +71,6 @@ export const explicitKit = (
   kit: readonly Readonly<{ tool: string; acts: readonly string[] }>[],
   layout: KitLayout = {},
 ): SelectionKit =>
-  selectionKit(
-    kit.flatMap(({ tool, acts }) =>
-      acts.map(action => ({
-        kind: "action" as const,
-        program: tool,
-        tool: herramientaDe(tool, action, layout),
-        action,
-      })),
-    ),
-  );
+  selectionKit(kit.flatMap(({ tool, acts }) => acts.map(action => actionSelection(tool, action, layout))));
 export const programKit = (programs: readonly string[]): SelectionKit =>
   selectionKit(programs.map(program => ({ kind: "program", program })));

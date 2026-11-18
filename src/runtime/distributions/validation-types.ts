@@ -1,7 +1,9 @@
 // Computes every static composition reason independently, including widened metadata and repeated tuples.
 import type { InstallableProgram, ProgramMetadata } from "../../tools/installable/program.ts";
+import type { ContractualProgram, ContractCertification } from "./program-contracts.ts";
 export type CompositionOptions = Readonly<{
-  programas: readonly InstallableProgram[];
+  programas: readonly ContractualProgram[];
+  contratos?: ContractCertification;
   identidades: boolean;
   mentes: Readonly<{ asistentes: boolean; programas: readonly string[] }>;
 }>;

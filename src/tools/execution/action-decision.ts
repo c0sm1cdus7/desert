@@ -37,16 +37,20 @@ function decisionOf<X extends Program>(
   validate: () => string | undefined,
 ): Decision<X> {
   const notice = {
+    ...(result.coreFailure ? { coreFailure: result.coreFailure } : {}),
     ...(result.cleanupPending ? { cleanupPending: true as const } : {}),
     ...(result.anchorPending ? { anchorPending: true as const } : {}),
   };
   const reason = result.status === "accepted" ? programCall(act.reject?.bind(act), context, result) : undefined;
   const invalid = validate();
-  if (invalid || reason) return { status: "rejected", reason: invalid ?? reason ?? "", effects: [], ...notice };
+  if (invalid || reason)
+    return { status: "rejected", reason: invalid ?? reason ?? "", effects: [], coreFailure: "forbidden", ...notice };
+  const value = result.value === undefined ? {} : { value: result.value };
   if ("reason" in result)
-    return { status: result.status, reason: result.reason, effects: result.effects ?? [], ...notice };
-  if (result.status === "inconclusive") return { status: "inconclusive", effects: result.effects ?? [], ...notice };
-  if (tool === undefined) return { status: "accepted", effects: result.effects ?? [], ...notice };
+    return { status: result.status, reason: result.reason, effects: result.effects ?? [], ...value, ...notice };
+  if (result.status === "inconclusive")
+    return { status: "inconclusive", effects: result.effects ?? [], ...value, ...notice };
+  if (tool === undefined) return { status: "accepted", effects: result.effects ?? [], ...value, ...notice };
   const { by, target: original } = context;
   const { effects = [], private: receipt, cleanupPending, anchorPending } = result;
   const target = result.target ?? original;
@@ -55,6 +59,7 @@ function decisionOf<X extends Program>(
   const entry = entryEffect(tool, target, by, result);
   return {
     status: "accepted",
+    ...value,
     effects: [...effects, done, entry],
     private: receipt,
     ...(cleanupPending ? { cleanupPending } : {}),

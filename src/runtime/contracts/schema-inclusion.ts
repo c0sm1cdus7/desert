@@ -25,7 +25,7 @@ const keys: Record<string, string[]> = {
 };
 function supported(schema: Shape): boolean {
   const kind = schema[Kind];
-  const allowed = keys[kind];
+  const allowed = Object.hasOwn(keys, kind) ? keys[kind] : undefined;
   if (!allowed || Object.keys(schema).some(key => !common.includes(key) && !allowed.includes(key))) return false;
   if (kind === "Object" && schema.additionalProperties !== undefined && schema.additionalProperties !== false)
     return false;
@@ -82,24 +82,27 @@ function checkObject(source: Shape, target: Shape, path: string, mode: Mode): st
     requiredTarget = new Set(target.required ?? []);
   const errors: string[] = [];
   for (const name of Object.keys(mode === "entrada" ? sp : tp)) {
-    if (!(name in (mode === "entrada" ? tp : sp)))
+    if (!Object.hasOwn(mode === "entrada" ? tp : sp, name))
       errors.push(`${path}.${name}:${mode === "entrada" ? "campo-no-admitido" : "campo-no-ofrecido"}`);
   }
   for (const name of requiredTarget)
-    if (!requiredSource.has(name) && name in tp) errors.push(`${path}.${name}:puede-faltar`);
+    if (!requiredSource.has(name) && Object.hasOwn(tp, name)) errors.push(`${path}.${name}:puede-faltar`);
   for (const name of Object.keys(sp))
-    if (sp[name] && tp[name]) errors.push(...check(sp[name], tp[name], `${path}.${name}`, mode));
+    if (sp[name] && tp[name] && Object.hasOwn(tp, name))
+      errors.push(...check(sp[name], tp[name], `${path}.${name}`, mode));
   return [...new Set(errors)];
 }
-function unsupported(schema: Shape, path: string): string[] {
-  if (!supported(schema)) return [`${path}:esquema-no-soportado`];
+function unsupported(schema: Shape, path: string, depth = 0): string[] {
+  if (depth > 32 || !supported(schema)) return [`${path}:esquema-no-soportado`];
   if (schema[Kind] === "Object")
-    return Object.entries(schema.properties ?? {}).flatMap(([name, value]) => unsupported(value, `${path}.${name}`));
+    return Object.entries(schema.properties ?? {}).flatMap(([name, value]) =>
+      unsupported(value, `${path}.${name}`, depth + 1),
+    );
   if (schema[Kind] === "Array")
-    return schema.items ? unsupported(schema.items, `${path}[]`) : [`${path}:esquema-no-soportado`];
+    return schema.items ? unsupported(schema.items, `${path}[]`, depth + 1) : [`${path}:esquema-no-soportado`];
   if (schema[Kind] === "Union")
     return schema.anyOf?.length
-      ? schema.anyOf.flatMap(value => unsupported(value, path))
+      ? schema.anyOf.flatMap(value => unsupported(value, path, depth + 1))
       : [`${path}:esquema-no-soportado`];
   return [];
 }

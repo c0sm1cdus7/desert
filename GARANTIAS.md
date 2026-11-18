@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 260. Deudas: 22.
+Leyes: 261. Deudas: 22.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -267,3 +267,4 @@ Leyes: 260. Deudas: 22.
 | 279 | Un programa independiente declara su programa y su distribución de prueba. La compuerta comprueba el artefacto instalado y ejecuta los mismos programChecks, fronteras y leyes de código sobre el paquete. | 18/11 · distribuciones, núcleo paso 2 | una spec a mano | `tests/laws/standalone-program.spec.ts` `tests/program/load.ts` `tests/program/registration.ts` |
 | 280 | Un programa es para DESERT: solo importa sus archivos, exports de desert o módulos pedidos por contrato; las distribuciones quedan fuera. La ley controla todas las formas de importación y componer rechaza dependencias declaradas de distribuciones. | 18/11 · distribuciones, núcleo paso 2 | una spec a mano | `src/checks/laws/program-imports.spec.ts` `src/runtime/distributions/compose.spec.ts` `src/runtime/distributions/types.spec.ts` |
 | 281 | Las listas vacías y opcionales de asistentes se recorren como un hilo de acción, con opciones sin Entrada, regreso por esc y confirmación final; se comprueban en la terminal real de 100×30 y 40×16. | 18/11 · distribuciones, núcleo paso 2 | una spec a mano | `src/checks/distribution-terminal.spec.ts` `src/surface/bridge/questions/asking.spec.ts` |
+| 282 | Los contratos comparan mitades independientes, resuelven un proveedor y rechazan ciclos. Las llamadas conservan actor, permisos y fallos centrales; las lecturas recortan campos al pedido en un corte exacto del core. Los casos viajan desde el consumidor y sólo su ejecución real acredita compatibilidad para las huellas comprobadas. | 18/11 · dist-contratos, contratos de dos mitades | una spec a mano | `src/runtime/contracts/ports.spec.ts` `src/runtime/contracts/failures.spec.ts` `src/runtime/contracts/readings.spec.ts` `src/runtime/contracts/gate.spec.ts` `src/runtime/contracts/negatives.spec.ts` |

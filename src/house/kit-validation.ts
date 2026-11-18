@@ -1,6 +1,14 @@
 // Rechaza selecciones nuevas inexistentes o reservadas sin borrar las retiradas de la historia.
 import { effectRefusalTexts } from "../texts/tools.texts.ts";
-import { herramientaDe, kitLayout, selectionPath, type KitProgram, type SelectionKit } from "./kit-selection.ts";
+import {
+  actionSelection,
+  covers,
+  herramientaDe,
+  kitLayout,
+  selectionPath,
+  type KitProgram,
+  type SelectionKit,
+} from "./kit-selection.ts";
 export function selectionProblem(kit: SelectionKit, registry: readonly KitProgram[]): string | undefined {
   const paths = kit.selections.map(selectionPath);
   if (new Set(paths).size !== paths.length) return effectRefusalTexts.repeatedActs;
@@ -15,7 +23,7 @@ export function selectionProblem(kit: SelectionKit, registry: readonly KitProgra
       return effectRefusalTexts.unknownAct;
     if (
       selection.kind === "action" &&
-      (!actions.includes(selection.action) || herramientaDe(program.id, selection.action, layout) !== selection.tool)
+      !actions.some(action => covers(selection, actionSelection(program.id, action, layout)))
     )
       return effectRefusalTexts.unknownAct;
   }
