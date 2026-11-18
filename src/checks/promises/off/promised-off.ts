@@ -1,6 +1,9 @@
 // What a person sees of what they cannot do, and what they may prefer not to see: checked for every tool and act.
 import { absentCheck, foreignReferences } from "./promised-read.ts";
 import { absentMindAction } from "../identities/kit-checks.ts";
+import { actionTargets } from "../identities/group-checks.ts";
+import { actionSelection, selectionKit } from "../../../house/kit-selection.ts";
+import { holderKit } from "../../../house/kit-history.ts";
 import {
   checkKitChange,
   checkForeignVisibility,
@@ -28,7 +31,7 @@ export { prefer } from "./promised-preferences.ts";
 /** The unheld tool remains readable and its actions remain in place with the kit reason. */
 function foreignActions<X extends Program>(seat: Seat<X>, tool: ProgramTool<X>): void {
   for (const [name, act] of Object.entries(tool.acts)) {
-    const targets = act.on === "tool" ? [tool.id] : tool.targets(seat.state());
+    const targets = actionTargets({ tool, name, act }, seat.state());
     for (const target of targets) {
       const found = actRow(seat, { tool, name, act }, target);
       if (absentMindAction(tool, name, target, found)) continue;
@@ -69,6 +72,11 @@ function foreignCheck<X extends Program>(program: Composition<X>, shown: Shown<X
   return { name: `${tool.id} · ${promise}`, run };
 }
 /** A tool stays usable while a single action is removed from its holder's kit. */
+function partialKit<X extends Program>(seat: Seat<X>, tool: string, by: string, acts: readonly string[]) {
+  const state = seat.state().house;
+  const rest = holderKit(state, by).selections.filter(selection => selection.program !== tool);
+  return selectionKit([...rest, ...acts.map(name => actionSelection(tool, name, state.kitLayout))]);
+}
 function partialCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
   return {
     name: label(aim, isCoreScene(aim) ? identityTexts.promises.sceneKitRetained : said.partialKit),
@@ -81,14 +89,15 @@ function partialCheck<X extends Program>(program: Composition<X>, shown: Shown<X
         try {
           const others = Object.entries(aim.tool.acts).flatMap(([name, act]) => {
             if (name === aim.name) return [];
-            const target = act.on === "tool" ? aim.tool.id : aim.tool.targets(seat.state())[0];
+            const target = actionTargets({ tool: aim.tool, name, act }, seat.state())[0];
             if (target === undefined) return [];
             const other = { tool: aim.tool, name, act };
             const before = actRow(seat, other, target)?.row;
             return before ? [{ other, target, off: before.off, detail: before.detail }] : [];
           });
+          const kit = partialKit(seat, aim.tool.id, by, acts);
           checkKitChange(aim.tool.id, () =>
-            house().bus.emit(effect("kit-set", { holder: by, tool: aim.tool.id, acts }, cast.admin)),
+            house().bus.emit(effect("kit-set", { version: 2, holder: by, kit }, cast.admin)),
           );
           for (const { other, target, off, detail } of others) {
             const row = actRow(seat, other, target)?.row;

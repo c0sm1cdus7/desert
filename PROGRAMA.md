@@ -2019,6 +2019,13 @@ Los hechos pertenecen al espacio de nombres del programa. Los rechazos de destin
 se comprueban por ejecución y ausencia de filas sobre cada destino ajeno; el autor no necesita inventar
 un rechazo de negocio para ese límite.
 
+Quien no tiene un programa puede abrir y leer sus objetos. Las acciones de cada objeto siguen visibles,
+apagadas con el motivo del kit, aunque además exijan ser su autora. Quien tiene la acción ve el motivo de
+autoría cuando corresponde. La preferencia de esconder lo ajeno retira el programa del Menú; al desactivarla
+vuelve. La compuerta recorre cada acción en los destinos de su herramienta: una acción sobre objetos no se
+exige en la carpeta ni en objetos de otra herramienta. El chequeo de kit parcial usa selecciones V2 y conserva
+las demás acciones y programas.
+
 `componer`, de `desert/componer`, recibe `programas`, `identidades`, `mentes` y `presentacion`. La presentación
 incluye el país en `locale` y las rutas de cálculo en `codigo`. Devuelve `program`, `shown`, `manifest`,
 `calculation` y `mentes`. Rechaza ids y hechos repetidos, hechos ajenos, contratos DESERT distintos, mentes

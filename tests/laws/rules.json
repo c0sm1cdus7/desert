@@ -2656,13 +2656,15 @@
     },
     {
       "id": 224,
-      "rule": "Una acción fuera del kit de quien mira sale apagada diciendo por qué.",
+      "rule": "Una acción fuera del kit de quien mira sale apagada diciendo por qué. En programas instalables se comprueba en la carpeta o los objetos de su herramienta, sin confundir destinos de otras herramientas ni filtrar por autoría; el recorte parcial se escribe como kit V2.",
       "from": "14/11 · casa-contrato · decisiones del dueño",
       "guarantee": "derived",
       "evidence": [
         "src/checks/promises/off/promised-off.ts",
         "src/surface/bridge/acts/action-off.ts",
-        "src/checks/promises/kit-core.spec.ts"
+        "src/checks/promises/kit-core.spec.ts",
+        "src/checks/promises/identities/group-checks.ts",
+        "src/checks/promises/off/installable-objects.spec.ts"
       ]
     },
     {
