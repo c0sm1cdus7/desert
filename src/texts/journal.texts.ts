@@ -34,6 +34,7 @@ export const journalTexts = {
   rebuilt: "Reconstruido · Estado de la casa",
   unsavedRecord: (cause: string) => `Sin guardar · Registro de aperturas · ${cause}`,
   notOwnRecord: "no es un archivo propio de la casa",
+  incompleteRecord: "escritura incompleta",
   opening: "Sistema",
   continue: "continuar",
   unreadableFold: "truncated or unreadable format",

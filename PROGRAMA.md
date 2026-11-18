@@ -2120,8 +2120,9 @@ de motivos. Correspondencia:
 - 19 y 20 (leer una dependencia no pedida o al proveedor): ya no son motivos de tipo; la lectura los rechaza al
   correr, en `src/runtime/contracts/readings.spec.ts` («cannot invent cuts, name undeclared dependencies…»).
 - 21 y 22 (asistentes sin identidades, mente ausente): errores estáticos en `types.spec.ts`.
-- 23 (kit de la mente con una acción inexistente): el kit de una mente se da al correr, no al componer; una acción
-  inexistente no da nada, en `src/house/adversaria.spec.ts` («A3: unknown acts grant nothing…»).
+- 23 (kit de la mente con una acción inexistente): el kit de una mente se da al correr, no al componer; con
+  `mind:desk`, una acción inexistente no da nada, se rechaza y sigue así al reabrir, en
+  `src/house/mind-kit-unknown.spec.ts`.
 
 Límite: cada negativo se prueba aislado sobre el positivo; las combinaciones, solo donde una prueba lo dice («lists
 three independent incompatible fields»).

@@ -83,11 +83,11 @@ describe("the tree of src/", () => {
   // Contratos: +10 líneas exactas para diagnósticos de valores, composición y casos ejecutados.
   // MCP por programa: +12 líneas exactas para explicar objetivos de carpetas y objetos y acciones ajenas apagadas.
   // Dist-palabras: +14 líneas exactas para contar niveles y nombrar la confirmación de carpetas y su titular.
-  // Reentrega: +2 líneas exactas para decir por qué no se guardó el registro de aperturas.
-  it("keeps every file within 300 lines and the texts within 967", () => {
+  // Reentrega: +3 líneas exactas para decir por qué no se guardó (o se cortó) el registro de aperturas.
+  it("keeps every file within 300 lines and the texts within 968", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(967);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(968);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));
