@@ -1,5 +1,6 @@
 // A thing on a surface: what it is and what it has, in the stacks its tool declared. Always the same stacks, in the
 // same order; one with nothing in it says so. A program gives the reading; it never draws the thing.
+import { authorDatum, authorName } from "./author-name.ts";
 import { field, plain } from "../../../fields/json-values.ts";
 import { OutsideDefect, programCall } from "../../../fields/program-call.ts";
 import type { ProgramTool } from "../../../tools/promises.ts";
@@ -37,14 +38,25 @@ function rowsOf(value: unknown, label: string, where: string, changed?: (shown: 
 }
 type Shown = ReturnType<Tool["view"]>;
 /** A reading in the stacks declared for it. A datum no stack holds is a defect of the program. */
-function stacked(stacks: readonly Presented[], reading: Reading, where: string, changing?: Changing): Shown {
+function stacked(
+  stacks: readonly Presented[],
+  reading: Reading,
+  where: string,
+  changing?: Changing,
+  name = (actor: string) => actor,
+): Shown {
   const held = new Set(stacks.flatMap(stack => Object.keys(stack.reads)));
   const loose = Object.keys(reading).filter(key => !held.has(key));
   if (loose.length)
     throw new OutsideDefect(new Error(`${where} reads ${loose.join(", ")} and no stack of its presentation holds it`));
   return stacks.map(stack => {
     const rows = Object.entries(stack.reads).flatMap(([key, label]) =>
-      rowsOf(reading[key], label, `${where}.${key}`, changing && (shown => changing(key, shown))),
+      rowsOf(
+        authorDatum(key, reading[key], name),
+        label,
+        `${where}.${key}`,
+        changing && (shown => changing(key, shown)),
+      ),
     );
     return { title: stack.title, rows, empty: stack.empty };
   });
@@ -70,13 +82,21 @@ const readingOf = (view: string, where: string): Reading => {
 };
 /** What a tool reads of its own, in the stacks declared for it: a datum an act changes is the row that starts that
  * act, and what it names of another thing opens it. */
-export const ownView = (stacks: readonly Presented[], view: string, where: string, changing: Changing): Shown =>
-  stacked(stacks, readingOf(view, where), where, changing);
+export const ownView = (
+  stacks: readonly Presented[],
+  view: string,
+  where: string,
+  changing: Changing,
+  name = (actor: string) => actor,
+): Shown => stacked(stacks, readingOf(view, where), where, changing, name);
 /** What a tool reads of one of its things, as stacks: asked of the tool each time, as whoever looks reads it. */
 export const thingView =
   <X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, stacks: readonly Presented[]) =>
   (target: string): Shown => {
     if (!stacks.length) throw new OutsideDefect(new Error(`${tool.id} does not say how its things are presented`));
     const view = programCall(tool.view.bind(tool), ports.state(), target, { ...ports.limits, now: ports.now() });
-    return presented(stacks, readingOf(view, target), target);
+    const reading = Object.fromEntries(
+      Object.entries(readingOf(view, target)).map(([key, value]) => [key, authorDatum(key, value, authorName(ports))]),
+    );
+    return presented(stacks, reading, target);
   };

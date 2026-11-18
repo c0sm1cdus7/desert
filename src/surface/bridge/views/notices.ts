@@ -23,11 +23,15 @@ function unseen<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>,
   }
   return [...latest.values()].sort((one, other) => other.seq - one.seq);
 }
-function entryNotice(tool: string, data: ReturnType<typeof unseen>[number]["data"]): Notice {
+function entryNotice(
+  tool: string,
+  data: ReturnType<typeof unseen>[number]["data"],
+  name: (actor: string) => string,
+): Notice {
   const leads = data.target === tool ? {} : { opens: data.target };
   return {
     title: firstLine(data.text),
-    detail: data.diagnostic ? firstLine(data.diagnostic) : data.author,
+    detail: data.diagnostic ? firstLine(data.diagnostic) : name(data.author),
     ...leads,
   };
 }
@@ -56,6 +60,7 @@ export function noticesOf<X extends Program>(
   ports: SurfacePorts<X>,
   tool: ProgramTool<X>,
   shown: Pick<Tool, "titleOf" | "name">,
+  name: (actor: string) => string = actor => actor,
 ) {
   const mine = (): boolean => holdsAny(ports.state().house, ports.me, tool.id, Object.keys(tool.acts));
   return {
@@ -65,11 +70,11 @@ export function noticesOf<X extends Program>(
             ...declaredNeeds(ports, tool, shown),
             ...(tool.id === "identities"
               ? []
-              : unseen(ports, tool, true).map(entry => entryNotice(tool.id, entry.data))),
+              : unseen(ports, tool, true).map(entry => entryNotice(tool.id, entry.data, name))),
           ]
         : [],
       news: ports.state().house.grants.has(ports.me)
-        ? unseen(ports, tool).map(entry => entryNotice(tool.id, entry.data))
+        ? unseen(ports, tool).map(entry => entryNotice(tool.id, entry.data, name))
         : [],
       quiet: hides(ports.state().house, ports.me, "empty"),
     }),

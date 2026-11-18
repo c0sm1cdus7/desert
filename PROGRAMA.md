@@ -1529,6 +1529,19 @@ la propia identidad (6c), y
 `identityDisplayName` devuelve el identificador cuando falta el nombre. Sacar conserva el nombre y la identidad en
 `removed`; readmitir con herramientas vacías la devuelve sin herramientas ni kit.
 
+### Autoría en la superficie humana (18/11)
+
+Atención, Actividad, avisos y Registro muestran el nombre de la identidad, con el identificador como respaldo
+cuando no tiene nombre. Sacarla conserva el último nombre, también después de reabrir. Las mentes se leen como
+«mente de» más el nombre declarado del programa, igual que en Identidades; los asistentes conservan su nombre
+y el de su titular. Cambiar un nombre actualiza la lectura sin reescribir hechos ni cambiar destinos o permisos.
+
+Las lecturas genéricas presentan los campos `by` y `author` como nombres en listas y fichas. Conservá los ids en
+los datos; `id`, destinos, `detail` y texto libre no se traducen. En un hilo, el primer span de `Said.who` contiene
+el autor: la superficie resuelve ese id y conserva los otros spans (dispositivo, hora y estado), estilos y foco.
+Las referencias que arma la Entrada usan esa cabecera. Una cita ya escrita por el programa sigue siendo texto
+libre. La puerta MCP conserva los ids en avisos y lecturas, sin adoptar esta presentación humana.
+
 ### Identidades del core (pasos 5b y 5d)
 
 `identities: true` en la composición incorpora `identities` al registro de ejecución. Sin ese pedido no existe.

@@ -1,4 +1,6 @@
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
+import { authorName } from "../views/author-name.ts";
+import { authorThread } from "../views/author-thread.ts";
 import { kitScreen } from "../../../tools/identities/kit-screen.ts";
 import { withIdentityWords } from "../../../tools/identities/identity-reading.ts";
 import { observedPorts } from "../ports/observed-ports.ts";
@@ -207,6 +209,8 @@ function declaredTools<X extends Program>(registry: readonly HouseTool<X>[]) {
   if (undeclared.length) throw new Error(`Acts without their declaration in ${undeclared.join(", ")}`);
   return registry.filter(isProgramTool);
 }
+const namedScreen = <X extends Program>(...args: Parameters<typeof builtScreen<X>>) =>
+  authorThread(builtScreen(...args), authorName(args[1]));
 export function houseTools<X extends Program>(ports: HousePorts<X>, given: Shown<X>): readonly Tool[] {
   const shown = withIdentityWords(ports.registry, given);
   const seen = new Map<string, number>();
@@ -220,10 +224,10 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, given: Shown
   });
   const own: Tool[] = built.map(({ contract, words, acts, start }) => {
     const mine = (): boolean => allowed(ports.state().house, ports.me, contract.id);
-    const screen = builtScreen(shown.screens?.[contract.id], observed, contract, words, acts, start);
+    const screen = namedScreen(shown.screens?.[contract.id], observed, contract, words, acts, start);
     const tool = kitScreen(observed, contract, withThings(observed, contract, { words, shown }, screen), start);
     const calls = () => ports.state().attention.has(contract.id);
-    const { notices, seen: looked } = noticesOf(observed, contract, tool);
+    const { notices, seen: looked } = noticesOf(observed, contract, tool, authorName(ports));
     /** What the other tools offer on a thing of this one: only on a thing, never on a view that groups them. */
     const others = built.filter(other => other.contract.id !== contract.id || contract.groups !== undefined);
     const alsoOn = (target: string): ViewRow[] => {
