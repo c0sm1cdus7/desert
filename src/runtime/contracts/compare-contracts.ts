@@ -5,7 +5,7 @@ import { schemaInclusion } from "./schema-inclusion.ts";
 export function compareContracts(request: ContractInterface, offer: ContractInterface, path: string): string[] {
   const errors: string[] = [];
   for (const [name, need] of Object.entries(request.acciones)) {
-    const have = offer.acciones[name],
+    const have = Object.hasOwn(offer.acciones, name) ? offer.acciones[name] : undefined,
       base = `${path}/acciones/${name}`;
     if (!have) {
       errors.push(`${base}:ausente`);
@@ -16,7 +16,7 @@ export function compareContracts(request: ContractInterface, offer: ContractInte
     errors.push(...schemaInclusion(have.rechazos, need.rechazos, `${base}/rechazos`, "lectura"));
   }
   for (const [name, need] of Object.entries(request.objetos)) {
-    const have = offer.objetos[name],
+    const have = Object.hasOwn(offer.objetos, name) ? offer.objetos[name] : undefined,
       base = `${path}/objetos/${name}`;
     if (!have) {
       errors.push(`${base}:ausente`);
@@ -26,7 +26,7 @@ export function compareContracts(request: ContractInterface, offer: ContractInte
     errors.push(...schemaInclusion(have.datos, need.datos, `${base}/datos`, "lectura"));
   }
   for (const [name, need] of Object.entries(request.avisos)) {
-    const have = offer.avisos[name],
+    const have = Object.hasOwn(offer.avisos, name) ? offer.avisos[name] : undefined,
       base = `${path}/avisos/${name}`;
     if (!have) {
       errors.push(`${base}:ausente`);

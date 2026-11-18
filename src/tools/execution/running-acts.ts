@@ -14,6 +14,7 @@ export type RunningAct = {
   tool?: string;
   reach?: Reach;
   writing: boolean;
+  closed?: boolean;
 };
 /** The scope exists before capabilities are lent; the accepted act pins its identity before it starts. */
 export function runningSignal<X extends Program>(

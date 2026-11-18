@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 255. Deudas: 22.
+Leyes: 256. Deudas: 22.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -262,3 +262,4 @@ Leyes: 255. Deudas: 22.
 | 274 | Los hechos de llamadas conservan reservas, envío, liquidación y resultado incierto. La incertidumbre retiene la reserva y bloquea otro envío del mismo turno; cancelar antes de enviar libera la reserva sin consumir un intento físico. Mente y supervisor comparten el contrato de doce intentos por turno. | 17/11 · mente 3, contratos y autoridad | una spec a mano | `src/house/minds/model-call-state.ts` `src/house/minds/mind-state.spec.ts` `src/house/minds/mind-recovery.spec.ts` |
 | 275 | Las reacciones ejecutan acciones propias como la mente del programa, con kit vigente y autoridad de efectos. Marca y recibo se confirman juntos; el par reacción y aviso deduplica y recupera pendientes con motivo visible, sin pensamiento ni carta. | 18/11 · distribuciones, dist-2 §4, H3 | una spec a mano | `src/tools/reactions-audit.spec.ts` `src/tools/reactions.spec.ts` `src/tools/reactions-neighbors.spec.ts` `src/tools/reactions-retry.spec.ts` `src/runtime/house-reactions.spec.ts` `src/tools/boundaries/tool-reactions.ts` `src/tools/failures/finish.ts` |
 | 276 | Los hechos granted, kit-set, assistant-kit-set y journey-opened se escriben en V2. El lector conserva las formas históricas, restricciones retenidas, pertenencia, autores y causas sin reescribir el diario. Restaurar proyecciones y plegar completo reconstruyen los mismos permisos; asistentes y journeys los cruzan con autoridad vigente. Las correspondencias de ids son explícitas y versionadas, sin inferir permisos por rótulos. | 18/11 · dist-kit · dist-1 D | una spec a mano | `src/house/kit-history.spec.ts` `src/house/kit-folders.spec.ts` `src/house/kit-migration.ts` `src/house/kit-emission.ts` |
+| 277 | Los contratos comparan mitades independientes, resuelven un proveedor y rechazan ciclos. Las llamadas conservan actor, permisos y fallos centrales; las lecturas recortan campos al pedido en un corte exacto del core. Los casos viajan desde el consumidor y sólo su ejecución real acredita compatibilidad para las huellas comprobadas. | 18/11 · dist-contratos, contratos de dos mitades | una spec a mano | `src/runtime/contracts/ports.spec.ts` `src/runtime/contracts/failures.spec.ts` `src/runtime/contracts/readings.spec.ts` `src/runtime/contracts/gate.spec.ts` `src/runtime/contracts/negatives.spec.ts` |

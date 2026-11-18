@@ -3245,6 +3245,19 @@
         "src/house/kit-migration.ts",
         "src/house/kit-emission.ts"
       ]
+    },
+    {
+      "id": 277,
+      "rule": "Los contratos comparan mitades independientes, resuelven un proveedor y rechazan ciclos. Las llamadas conservan actor, permisos y fallos centrales; las lecturas recortan campos al pedido en un corte exacto del core. Los casos viajan desde el consumidor y sólo su ejecución real acredita compatibilidad para las huellas comprobadas.",
+      "from": "18/11 · dist-contratos, contratos de dos mitades",
+      "guarantee": "spec",
+      "evidence": [
+        "src/runtime/contracts/ports.spec.ts",
+        "src/runtime/contracts/failures.spec.ts",
+        "src/runtime/contracts/readings.spec.ts",
+        "src/runtime/contracts/gate.spec.ts",
+        "src/runtime/contracts/negatives.spec.ts"
+      ]
     }
   ]
 }

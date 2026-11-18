@@ -2000,3 +2000,39 @@ Quien construya `House` a mano parte de `emptyHouse` o agrega `assistants`, `min
 y `modelCalls`. Quedan reservados los nombres de hechos enumerados y el prefijo `assistant:`; una identidad
 histórica con ese prefijo no adquiere derechos de asistente ni de identidad al plegar. Los registros y sus
 credenciales no se renombran: la composición debe resolver esa colisión explícitamente antes de adoptar la base.
+
+## Contratos de dos mitades (18/11)
+
+Cada programa publica su propia oferta y su propio pedido (`ContractPackage`). Las acciones ofrecidas
+vinculan una ruta local `herramienta/acción` con esquemas de entrada, salida y rechazo. Las herramientas
+instaladas usan el id `programa/herramienta`. `createContractRuntime(programas, puertos, historial)` comprueba
+las mitades y las rutas instaladas; su función `context` se entrega como `contracts` a `startTools`.
+El contexto de la acción recibe `contracts["documentos-fiscales"].actions.emitir(entrada)` y `cut`.
+La llamada conserva actor, causa y proceso y pasa por el ejecutor común, incluidos permisos vigentes,
+interrupción y autoridad de efectos. El puerto prestado deja de servir al terminar la acción.
+
+Una acción contractual devuelve `value` tanto al aceptar como al rechazar por negocio. El puerto valida ese
+valor y recorta la respuesta al esquema pedido. Los fallos del core usan `status: "core-failure"`, separados
+del rechazo de negocio: `forbidden`, `interrupted`, `invalid-reference`, `defect` e `inconclusive`.
+El apagado y los resultados anidados inconclusos conservan su condición; no se convierten en rechazos.
+
+Los proyectores reciben sólo un mapa inmutable del estado propio del proveedor y una clave, sin ejecutor
+ni adaptadores. Deben ser puros. `objects.nombre.read(clave, cut)` recorta también objetos anidados, listas
+y uniones. `contractHistory(inicial, slices, hechosConfirmados)` reconstruye el corte exacto por el plegado;
+no reemplaza un corte ausente por lo último. Durante un pliegue corresponde el corte anterior al evento;
+para reaccionar a un aviso corresponde el corte que trae ese aviso. El acceso exige pertenencia actual a
+la casa, aunque el corte sea anterior. Las referencias incluyen proveedor y artefacto: `readReference`
+rechaza redirigir una referencia histórica a otra instalación. Migrarlas requiere trabajo explícito.
+
+El pedido lleva casos declarativos: preparación, actor, acciones, lecturas y avisos esperados.
+`runContractCases` recibe los artefactos, las huellas de core y ejecutor y una fábrica de casas aisladas con
+adaptadores falsos. La fábrica interpreta la preparación declarada; nunca debe abrir una casa viva. La
+compuerta valida primero el alcance del caso y después lo corre por el motor y el puerto real. Devuelve
+evidencia con huellas de artefactos, oferta, pedido, caso y observaciones, junto con su verificador local.
+Una fila serializada sirve como evidencia para inspeccionar, pero no prueba por sí sola que se ejecutó:
+para acreditarla en otro proceso hay que volver a correr la compuerta. No hay firma remota implementada.
+
+`validateContractPrograms(programas, build, evidencias, verificar)` es la unión que debe llamar `componer`:
+devuelve `errors` completos con camino y `rows`. Sin ejecución, la fila dice «casos no comprobados».
+Las comprobaciones estructurales se pueden usar antes de ejecutar casos con `structuralContractErrors`;
+por sí solas no acreditan compatibilidad. No se modificó la composición de distribuciones en este carril.

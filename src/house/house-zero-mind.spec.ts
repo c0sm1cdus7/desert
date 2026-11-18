@@ -48,7 +48,7 @@ it("restart closes a mind act in flight as interrupted, without writing its late
   expect(act).toBeDefined();
   rig.restart();
   release();
-  expect(await pending).toMatchObject({ status: "rejected", reason: toolTexts.interrupted });
+  expect(await pending).toMatchObject({ status: "interrupted", reason: toolTexts.interrupted });
   const results = rig.facts().filter(event => event.kind === "act-result" && event.data.act === act?.id);
   expect(results).toHaveLength(1);
   expect(results[0]).toMatchObject({ by: "mind:desk", data: { status: "interrupted", reason: toolTexts.interrupted } });
