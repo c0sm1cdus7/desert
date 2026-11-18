@@ -21,11 +21,11 @@ it("real terminal grants one action, cuts a running act, removes the whole tool 
     expect(await t.untilFile("observed.json", "Procesando")).toContain("Procesando");
     await t.press("\x1b", "esperar");
     await t.press("t", "Kit");
-    await t.press("n", "Guardado");
+    await t.press("s", "Guardado");
     expect(await t.untilFile("result.json", "interrupted")).toContain("sacada");
     expect(await t.untilFile("observed.json", "sacada")).toContain("sacada");
     expect(await t.probe("beto", "register", { sale: "dos", total: 200 }, "rejected")).toContain("fuera del kit");
-    expect(await t.untilFile("observed.json", "fuera del kit")).toContain("0 herramientas");
+    expect(await t.untilFile("observed.json", "fuera del kit")).toContain("0 acciones");
     await t.press("\x1b", "registrar");
     expect(t.term.screen().join("\n")).toContain("no");
   } finally {
@@ -99,11 +99,11 @@ it("real terminal removes partial tools, persists whole grants and protects admi
     await t.press("\x1b", "registrar");
     await t.press("t", "Kit");
     expect(t.term.screen().join("\n")).not.toContain("actual");
-    await t.press("n", "Guardado");
+    await t.press("s", "Guardado");
     expect(await t.probe("beto", "register", { sale: "cortada", total: 100 }, "rejected")).toContain("fuera del kit");
     await t.press("\x1b", "registrar");
     await t.press("t", "actual");
-    await t.press("s", "Guardado");
+    await t.press("d", "Guardado");
     await t.term.close();
     const again = kitTerminal(t.home, "beto");
     try {

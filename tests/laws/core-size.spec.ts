@@ -82,10 +82,11 @@ describe("the tree of src/", () => {
   // Distribuciones paso 2: +2 líneas exactas para rechazar dependencias de distribuciones y señalar su ruta.
   // Contratos: +10 líneas exactas para diagnósticos de valores, composición y casos ejecutados.
   // MCP por programa: +12 líneas exactas para explicar objetivos de carpetas y objetos y acciones ajenas apagadas.
-  it("keeps every file within 300 lines and the texts within 951", () => {
+  // Dist-palabras: +14 líneas exactas para contar niveles y nombrar la confirmación de carpetas y su titular.
+  it("keeps every file within 300 lines and the texts within 965", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(951);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(965);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

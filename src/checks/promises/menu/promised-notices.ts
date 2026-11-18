@@ -1,4 +1,5 @@
 // The two lists every menu opens with, checked for every program: what needs someone to act, and what the others did.
+import { holdsAny } from "../../../house/kit.ts";
 import { effect } from "../../../house/facts.ts";
 import { errorIn } from "../../read-screen.ts";
 import { firstLine } from "../../../surface/bridge/views/notices.ts";
@@ -93,6 +94,27 @@ function checkPartialAttention<X extends Program>(
   house.bus.emit(effect("kit-set", { holder: cast.member, tool, acts: null }, cast.admin));
   deepStrictEqual(told(tool), mine, said.needRecipient(tool, cast.member));
 }
+/** The journal supplies unread attention independently of a program's promised business needs. */
+function unreadNeeds<X extends Program>(house: import("../promised-stage.ts").House<X>, tool: string, by: string) {
+  const state = house.tools.state();
+  const declared = house.registry.find(known => known.id === tool);
+  if (!declared || tool === "identities" || !holdsAny(state.house, by, tool, Object.keys(declared.acts))) return [];
+  const destinations = new Set([tool, ...declared.targets(state)]);
+  const read = state.looked.get(by);
+  const entries = state.entries.filter(
+    ({ data, seq }) =>
+      data.tool === tool &&
+      destinations.has(data.target) &&
+      !data.silent &&
+      !data.draft &&
+      (data.author !== by || data.attention) &&
+      seq > (read?.get(data.target) ?? 0),
+  );
+  return entries
+    .filter((entry, index) => !entries.slice(index + 1).some(later => later.data.target === entry.data.target))
+    .reverse()
+    .map(({ data }) => ({ target: data.target, why: firstLine(data.diagnostic ?? data.author) }));
+}
 /** What a case promises needs someone to act is in Attention for who holds the tool, on the Menu and on the tool's
  * own menu: the thing, saying why, on a row that leads to it. */
 function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
@@ -114,9 +136,12 @@ function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>,
               .filter(row => row.open?.kind === "view" && row.open.tool === tool)
               .map(row => ({ target: row.opens ?? tool, why: row.detail }));
           try {
-            const mine = promised
-              .filter(need => need.to === undefined || need.to === by)
-              .map(({ target, why }) => ({ target, why }));
+            const mine = [
+              ...promised
+                .filter(need => need.to === undefined || need.to === by)
+                .map(({ target, why }) => ({ target, why })),
+              ...unreadNeeds(house(), tool, by),
+            ];
             deepStrictEqual(told(tool), mine, said.needRecipient(tool, by));
             deepStrictEqual(told(), mine, said.needRecipient(tool, by));
             checkPartialAttention(by, house(), tool, told, mine);

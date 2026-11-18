@@ -27,6 +27,7 @@ export function kitCases<X extends Program>(
   act?: string,
   mindOnly = false,
   group?: string,
+  saved = words.saved(tool),
 ): readonly [KitCase<X>, ...KitCase<X>[]] {
   const on = mindOnly ? `identities/mind:${tool}` : "identities/carla";
   const first = {
@@ -34,7 +35,7 @@ export function kitCases<X extends Program>(
     on,
     input: { value: "yes" },
   };
-  const done = { says: words.saved(tool), facts: [] };
+  const done = { says: saved, facts: [] };
   const cases: [KitCase<X>, ...KitCase<X>[]] = [
     { promise: words.promises.kitRowGiven, on, input: { value: "yes" }, then: done },
     { promise: words.promises.kitRowTaken, on, given: [first], input: { value: "no" }, then: done },
@@ -54,7 +55,7 @@ export function kitCases<X extends Program>(
     },
   ];
   if (!mindOnly) cases.push(...protectedCases<X>(on));
-  cases.push(...additionalCases<X>(tool, act, on, first, mindOnly));
+  cases.push(...additionalCases<X>(tool, act, on, first, mindOnly, saved));
   return cases;
 }
 
@@ -64,9 +65,10 @@ function additionalCases<X extends Program>(
   on: string,
   first: { act: string; on: string; input: { value: string } },
   mindOnly: boolean,
+  saved: string,
 ): KitCase<X>[] {
   const cases: KitCase<X>[] = [];
-  const done = { says: words.saved(tool), facts: [] };
+  const done = { says: saved, facts: [] };
   if (act !== undefined)
     cases.push({
       promise: words.promises.inheritedActionTaken,

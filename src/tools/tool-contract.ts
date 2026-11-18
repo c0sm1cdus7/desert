@@ -96,6 +96,8 @@ export interface ToolAct<X extends Program> extends Readonly<{ input: TSchema; r
   reject?(context: ActContext<X>, result: Accepted<X>): string | undefined;
 }
 export interface Tool<X extends Program> extends Readonly<{ id: string; purpose: string }> {
+  readonly name?: string;
+  readonly toolNames?: Readonly<Record<string, string>>;
   readonly actionTools?: Readonly<Record<string, string>>;
   /** Guidance read by the mind working with this tool; tools without a mind may omit it. */
   readonly skill?: Skill;

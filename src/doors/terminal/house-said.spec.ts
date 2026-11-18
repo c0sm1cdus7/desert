@@ -61,8 +61,18 @@ describe("the record of a thing another thing's act made", () => {
       made: ["sales/s1"],
     };
     rig.bus.emit(effect("tool-entry", brought, "beto"));
-    /** What beto wrote is news once; then the sale is the first row again. */
-    expect(await press("")).toEqual(expect.arrayContaining(["[1] Traídas · 1 | beto", "[2] s1 | $ 15,00"]));
+    /** The unread act appears in Attention and Activity; reading its destination clears both. */
+    expect(await press("")).toEqual(
+      expect.arrayContaining([
+        "Atención",
+        "[1] Traídas · 1 | beto",
+        "Actividad",
+        "[2] Traídas · 1 | beto",
+        "[3] s1 | $ 15,00",
+      ]),
+    );
+    /** Its destination is this menu, already rendered: the sale is the first row again. */
+    expect(await press("")).toEqual(expect.arrayContaining(["Sin pendientes.", "Sin novedades.", "[1] s1 | $ 15,00"]));
     await press("1");
     const record = router.screen({ rows: 30 }).body;
     const done = record.kind === "list" ? record.stacks.at(-1)?.rows.map(row => row.title) : [];

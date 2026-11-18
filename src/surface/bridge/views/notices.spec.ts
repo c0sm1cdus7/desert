@@ -85,3 +85,37 @@ it("a manually supplied mind grant cannot hide a need from identities", () => {
   });
   expect(notices.notices().needs).toEqual([{ title: "Ventas", detail: "Pendiente" }]);
 });
+
+it("keeps unread destinations in Attention across the program menu and replay, without silent or own activity", () => {
+  const rig = shopRig();
+  rigs.push(rig);
+  rig.attend("ana", "sales");
+  expect(rig.act("ana", "register", { sale: "s1", total: 1500 }, "sales")).toMatchObject({ status: "accepted" });
+  rig.act("ana", "register", { sale: "s2", total: 2000 }, "sales");
+  const put = (target: string, text: string, extra: { silent?: boolean; attention?: boolean } = {}, author = "ana") =>
+    rig.bus.emit(effect("tool-entry", { tool: "sales", target, text, author, ...extra }, author));
+  put("sales/s1", "Primera novedad");
+  put("sales/s1", "Última novedad");
+  put("sales/s1", "Solo registro", { silent: true });
+  put("sales/s2", "Mi pendiente", { attention: true }, "beto");
+  const ports = rig.ports("beto", () => 5000);
+  const read = noticesOf(
+    { ...ports, act: value => ports.act(value, 0) },
+    { ...salesTool, needs: () => [] },
+    {
+      name: "Ventas",
+      titleOf: target => target,
+    },
+  );
+  const pending = () => read.notices().needs;
+  expect(pending().map(row => row.title)).toEqual(["Mi pendiente", "Última novedad"]);
+  expect(read.notices().news.some(row => row.title === "Mi pendiente")).toBe(false);
+  read.seen("sales");
+  expect(pending().map(row => row.opens)).toEqual(["sales/s2", "sales/s1"]);
+  rig.restart();
+  expect(pending().map(row => row.title)).toEqual(["Mi pendiente", "Última novedad"]);
+  read.seen("sales/s1");
+  expect(pending().map(row => row.title)).toEqual(["Mi pendiente"]);
+  read.seen("sales/s2");
+  expect(pending()).toEqual([]);
+});

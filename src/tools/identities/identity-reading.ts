@@ -5,15 +5,20 @@ import { mindTool, allowedAct } from "../../house/kit.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import type { ToolWords } from "../../surface/bridge/ports/house-ports.ts";
 import type { ToolRegistry, Program } from "../tool-contract.ts";
-import { kitCatalog, kitDatum } from "./kit-catalog.ts";
+import { kitCatalog, kitDatum, programName, actionName } from "./kit-catalog.ts";
 export const identityTarget = (identity: string) => `identities/${identity}`;
 export const targetIdentity = (target: string) => target.slice("identities/".length);
 export const members = (house: House) => [...new Set([...house.grants.keys(), ...house.removed])];
 function identityDatum(house: House, identity: string): string {
   if (house.removed.has(identity)) return words.removed;
+  const selections = holderKit(house, identity).selections;
   return identity === house.admin
     ? words.admin
-    : words.count(new Set(holderKit(house, identity).selections.map(selection => selection.program)).size);
+    : words.count(
+        selections.filter(selection => selection.kind === "program").length,
+        selections.filter(selection => selection.kind === "tool").length,
+        selections.filter(selection => selection.kind === "action").length,
+      );
 }
 export const identityWords: ToolWords = {
   name: words.name,
@@ -28,7 +33,7 @@ export const identityWords: ToolWords = {
       empty: words.emptyData,
       reads: { identifier: words.identifier, name: words.display, state: words.state },
     },
-    { title: "kit", empty: words.emptyKit, reads: { kit: words.tools } },
+    { title: words.given, empty: words.emptyKit, reads: { kit: words.programs } },
     { title: words.sceneTitle, empty: words.emptyScene, reads: { general: words.general, addressed: words.addressed } },
   ],
 };
@@ -37,7 +42,9 @@ function identityList<X extends Program>(house: House, registry: ToolRegistry<X>
     .map(identity =>
       JSON.stringify({
         id: identityTarget(identity),
-        text: mindTool(identity) ? words.mind(mindTool(identity) ?? "") : identityDisplayName(house, identity),
+        text: mindTool(identity)
+          ? words.mind(registry.find(tool => tool.id === mindTool(identity))?.name ?? mindTool(identity) ?? "")
+          : identityDisplayName(house, identity),
         detail:
           house.scenes.get(identity)?.data.general ??
           (mindTool(identity)
@@ -68,11 +75,22 @@ export function identityReading<X extends Program>(
     return JSON.stringify({
       ...reading,
       identifier: identity,
-      name: words.mind(tool.id),
+      name: words.mind(programName(tool)),
       state: kitDatum(house, identity, tool.id, Object.keys(tool.acts)),
-      kit: Object.keys(tool.acts).map(act => `${act} · ${allowedAct(house, identity, tool.id, act) ? "sí" : words.no}`),
+      kit: Object.keys(tool.acts).map(
+        act => `${actionName(tool.acts[act], act)} · ${allowedAct(house, identity, tool.id, act) ? "sí" : words.no}`,
+      ),
     });
-  const kit = registry
+  return JSON.stringify({
+    ...reading,
+    identifier: identity,
+    name: identityDisplayName(house, identity),
+    state: identityDatum(house, identity),
+    kit: identityKit(house, identity, registry),
+  });
+}
+function identityKit<X extends Program>(house: House, identity: string, registry: ToolRegistry<X>): string[] {
+  return registry
     .filter(tool => tool.id !== "identities")
     .flatMap(tool => {
       const has =
@@ -81,15 +99,8 @@ export function identityReading<X extends Program>(
           holderKit(house, identity).selections.some(selection => selection.program === tool.id));
       if (!has) return [];
       const detail = kitDatum(house, identity, tool.id, Object.keys(tool.acts));
-      return [`${tool.id} · ${detail}`];
+      return [`${programName(tool)} · ${detail}`];
     });
-  return JSON.stringify({
-    ...reading,
-    identifier: identity,
-    name: identityDisplayName(house, identity),
-    state: identityDatum(house, identity),
-    kit,
-  });
 }
 /** The core piece brings its own words when the composition asked for it. */
 export const withIdentityWords = <S extends { words: Readonly<Record<string, ToolWords>> }>(

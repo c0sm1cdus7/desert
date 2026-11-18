@@ -72,6 +72,8 @@ it("runs the witnesses for law 255", () => {
       "run",
       "--configLoader",
       "runner",
+      "--maxWorkers",
+      "1",
       "--project",
       "specs",
       ...witnesses,

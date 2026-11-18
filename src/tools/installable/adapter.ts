@@ -78,6 +78,8 @@ export function installProgram<M extends ProgramMetadata>(meta: M, body: Program
     groups.find(group => group.folder === target || group.tool.targets(state).includes(target));
   const tool: ProgramTool<Program> = {
     id: meta.id,
+    name: body.palabras.name,
+    toolNames: Object.fromEntries(groups.map(group => [group.id, group.palabras.name])),
     purpose: body.purpose,
     skill: body.skill,
     facts: meta.hechos.map(f => f.nombre),

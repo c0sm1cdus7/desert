@@ -3,7 +3,7 @@ import { holderKit } from "../../house/kit-history.ts";
 import { covers, herramientaDe } from "../../house/kit-selection.ts";
 import { allowedAct, mindTool } from "../../house/kit.ts";
 import type { House } from "../../house/members.ts";
-import type { Program, ToolRegistry } from "../tool-contract.ts";
+import type { Program, Tool, ToolRegistry } from "../tool-contract.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 export const kitMenu = (tool: string) => `kit:${tool}`;
 export const kitAct = (tool: string, act?: string) => `${kitMenu(tool)}${act === undefined ? "" : `:${act}`}`;
@@ -33,3 +33,9 @@ export function actionName(action: unknown, fallback: string): string {
   const name: unknown = action && typeof action === "object" ? Reflect.get(action, "name") : undefined;
   return typeof name === "string" ? name : fallback;
 }
+
+export const programName = <X extends Program>(tool: Tool<X>) => tool.name ?? tool.id;
+export const folderName = <X extends Program>(tool: Tool<X>, group?: string) =>
+  group === undefined
+    ? programName(tool)
+    : (tool.toolNames?.[group] ?? (group === tool.id ? programName(tool) : group));
