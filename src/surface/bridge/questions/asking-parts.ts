@@ -147,7 +147,7 @@ const secretField = (schema: TSchema, ctx: Ctx): Field => ({
 });
 const literalText = (schema: TSchema) => (at(schema, "verbatim") === true ? { verbatim: true as const } : {});
 export function written(schema: TSchema, ctx: Ctx): Field {
-  if (schema.secret === true) return secretField(schema, ctx);
+  if (schema.secret === true || schema.concealed === true) return secretField(schema, ctx);
   ctx = moneyQuestion(schema, ctx);
   const of = at(schema, "of");
   if (typeof of === "string") return picked(schema, ctx, of);

@@ -1,4 +1,5 @@
 // The public result of a program action: its words and destination, without technical diagnostics.
+import type { ExecutionDestination } from "../../../fields/device-protocol.ts";
 import type { Decision } from "../../../tools/execute.ts";
 import type { Emission } from "../../../journal/vocabulary.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
@@ -22,8 +23,9 @@ export async function programResult<X extends Program>(
   target: string,
   name: string,
   input: unknown,
+  destination?: ExecutionDestination,
 ): Promise<Result> {
-  const done = await attendAndAct(ports, target, name, input).catch((error: unknown): Decision<X> => ({
+  const done = await attendAndAct(ports, target, name, input, destination).catch((error: unknown): Decision<X> => ({
     status: "rejected" as const,
     reason: ports.defect(error, target, target, name),
     effects: [],

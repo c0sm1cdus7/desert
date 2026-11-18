@@ -14,6 +14,10 @@ it("blocks a device action confirmed by the admin through a real terminal", asyn
   try {
     await terminal.until("[v] ventas");
     terminal.press("vrs1\r1500\r");
+    await terminal.until("Dónde corre");
+    terminal.press("1");
+    await terminal.until("Ejecutar en");
+    terminal.press("\r");
     expect((await terminal.until(rulesTexts.blocked)).join("\n")).toContain(rulesTexts.blocked);
     await terminal.close();
     expect(JSON.parse(readFileSync(join(home, "result.json"), "utf8"))).toEqual({

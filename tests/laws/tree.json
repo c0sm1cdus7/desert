@@ -500,6 +500,9 @@
     "texts/devices.texts.ts": "Textos del registro, autenticación y ejecución de dispositivos.",
     "tools/execution/device-execution.ts": "Selecciona el lugar declarado y despacha por el puerto del core después de los controles comunes.",
     "tools/execution/nested-execution.ts": "Conserva actor, journey y destino de acciones anidadas al volver al ejecutor común.",
-    "tools/minds/device-answer.ts": "Limita la elección de una propuesta a los destinos compatibles ofrecidos por la casa."
+    "tools/minds/device-answer.ts": "Limita la elección de una propuesta a los destinos compatibles ofrecidos por la casa.",
+    "surface/bridge/acts/execution-destination.ts": "Adds live destination choices and confirms the selected place before an action runs.",
+    "surface/bridge/acts/rule-presentation.ts": "Presents rule writes according to current authority throughout the form.",
+    "tools/rules/simulation-public-input.ts": "Removes schema-declared secret positions before simulation requests reach public records."
   }
 }

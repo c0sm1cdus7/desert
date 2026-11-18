@@ -1,4 +1,5 @@
 // What a program promises of each act: the causes it may refuse with, and cases that say what happens. Specs derive.
+import { registerNormalizer } from "./inputs/prepared-input.ts";
 import { executionSchema } from "./inputs/secret-input.ts";
 import { declaredCause } from "./execution/program-causes.ts";
 import { programRule, OutsideDefect } from "../fields/program-call.ts";
@@ -88,6 +89,7 @@ export function programAct<X extends Program, S extends TSchema, const O extends
     run: body(declared),
     ...(declared.needs === undefined ? {} : { needs: declared.needs }),
   };
+  registerNormalizer(act, value => value, "identity");
   const promised = {
     ...offeredBy(declared),
     refuses,

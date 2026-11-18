@@ -1,4 +1,5 @@
 // What a bridge needs from a running house, and the two moves every bridge makes: settle an act, attend then act.
+import type { ExecutionDestination } from "../../../fields/device-protocol.ts";
 import type { Act } from "../../../house/own-acts.ts";
 import type { ViewLimits, Program, State, ToolRegistry } from "../../../tools/tool-contract.ts";
 import type { ExecutionResult } from "../../../tools/execute.ts";
@@ -89,9 +90,12 @@ export async function attendAndAct<X extends Program>(
   target: string,
   act: string,
   input: unknown,
+  destination?: ExecutionDestination,
 ) {
   const attended = await settle(ports.act({ act: "attend", input: { target } }));
-  return attended.status === "accepted" ? settle(ports.act({ act, target, input })) : attended;
+  return attended.status === "accepted"
+    ? settle(ports.act({ act, target, input, ...(destination ? { destination } : {}) }))
+    : attended;
 }
 export const section = (title: string, rows: readonly ViewRow[], empty = "") => ({ title, rows, empty });
 /** Where a tool is opened from: its section of the Menu, or the tool it lives in. */

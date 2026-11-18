@@ -1,6 +1,7 @@
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
 import { executeNested } from "./execution/nested-execution.ts";
 import { destinationProblem, deviceRun, executionReach } from "./execution/device-execution.ts";
+import { publicSimulationInput } from "./rules/simulation-public-input.ts";
 import { normalizedInput, withPreparedInput } from "./inputs/prepared-input.ts";
 import { reviewWorld } from "./execution/review-world.ts";
 import { MechanicalRuleFailure } from "./rules/rule-failure.ts";
@@ -198,6 +199,20 @@ export function execute<X extends Program>(
   reaction?: Origin["data"]["reaction"],
 ): ExecutionResult<X> {
   if (!Value.Check(actEnvelope, value)) return rejected(toolTexts.invalid);
+  const safeValue =
+    value.target === "rules" && value.act === "simulate"
+      ? { ...value, input: publicSimulationInput(value.input, ports.state(), ports.registry) }
+      : value;
+  return executePublic(ports, safeValue, through, by, cause, reaction);
+}
+function executePublic<X extends Program>(
+  ports: Execution<X>,
+  value: Act,
+  through: number,
+  by: string,
+  cause: readonly string[],
+  reaction?: Origin["data"]["reaction"],
+): ExecutionResult<X> {
   const key = JSON.stringify([value.target, value.act, value.input, value.destination]);
   if (ports.chain?.includes(key)) return rejected(toolTexts.unknown);
   const chain = [...(ports.chain ?? []), key];
