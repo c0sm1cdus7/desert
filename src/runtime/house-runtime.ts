@@ -235,7 +235,10 @@ function loadMinds<X extends Program>(
       if (!houseActive()) return undefined;
       const house = mindHouse(home, options, time, resources, () => active, devices, contracts);
       const { prepareProgramMinds } = await import("./minds/program-mind-bank.ts");
-      const prepared = await prepareProgramMinds(house, config, switches);
+      const { fundModelMinds } = await import("./minds/model-spending-account.ts");
+      if (!houseActive()) return undefined;
+      const funded = fundModelMinds(home, config, resources.stops);
+      const prepared = await prepareProgramMinds(house, funded, switches);
       if (!houseActive()) return undefined;
       minds = startModelMinds(house, switches, prepared);
       return minds;

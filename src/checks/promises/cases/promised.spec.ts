@@ -29,11 +29,20 @@ import { shopShown } from "../../../../tests/support/shop.ts";
 const partialKit = "sales · settle · shows an action outside a partial kit";
 /** The names of the checks that fail, in the order they ran. */
 describe("a program that breaks a promise", () => {
-  it.each(brokenShops)("$name: fails exactly the checks of what it broke", async ({ program, fails, because }) => {
-    expect(
-      await failing([...promisedChecks(program, shopShown), ...walkedChecks(program, shopShown)], because),
-    ).toEqual(fails);
-  });
+  for (const { name, program, fails, because } of brokenShops)
+    describe(name, () => {
+      const checks = [...promisedChecks(program, shopShown), ...walkedChecks(program, shopShown)];
+      const failed: string[] = [];
+      // Each check owns its disk-backed house and timeout; keep both passing and failing checks.
+      for (const [index, check] of checks.entries())
+        it(`${index + 1}. ${check.name}`, async () => {
+          failed.push(...(await failing([check], because)));
+        });
+      // Distinct checks can share a name; compare actual failures with their original order and multiplicity.
+      it("fails exactly the checks of what it broke", () => {
+        expect(failed).toEqual(fails);
+      });
+    });
 });
 
 describe("a program with acts on its things", () => {

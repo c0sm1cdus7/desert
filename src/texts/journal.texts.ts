@@ -50,8 +50,7 @@ export const journalTexts = {
   discardFoldsSql: "delete from snapshots",
   upgradeMismatch: (name: string) => `${name}: projectionVersion differs from the calculations`,
   invalidEvent: "Invalid event envelope or unknown kind",
-  unreadable: (seq: number, kind: string) =>
-    `This house's journal holds a fact this program does not read: #${seq} ${kind}`,
+  unreadable: (seq: number, k: string) => `This house's journal holds a fact this program does not read: #${seq} ${k}`,
   executionOnly: "Hecho reservado a la ejecución; usar act en el arranque",
   mindRolledBack: "Acción rechazada: se deshizo la escritura que la pidió",
   mindChain: "Acción rechazada: la cadena de esta mente llegó a 32 actos",
@@ -62,6 +61,7 @@ export const journalTexts = {
     "create table if not exists writer (id integer primary key, nonce blob); " +
     "insert or replace into writer values (1, randomblob(32))",
   reopenedMismatch: "Reopened state differs from the complete journal fold",
+  spendingUnavailable: "No se puede escribir en la cuenta de modelos; revisá si otra casa la tiene abierta.",
   locked: "This house is already open in a running process",
   kindTaken: (kinds: readonly string[]) => `The house already writes these kinds: ${kinds.join(", ")}`,
 } as const;

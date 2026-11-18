@@ -1,4 +1,5 @@
-// Une cartas certificadas, reservas atómicas y liquidaciones del puente al diario vivo de la casa.
+// Connects certified cards to atomic reservations and settlements in the selected billing journal.
+import { billingAccount, billingFor } from "./mind-billing.ts";
 import { effect } from "../../house/facts.ts";
 import type { MindActor } from "../../fields/mind-actor.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -36,18 +37,10 @@ function openCall<X extends Program>(house: MindRuntimeHouse<X>, request: ModelR
   const turn = house.execution.state().house.minds.turns.get(request.turn);
   return !!turn && !turn.closed;
 }
-function billingFor<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntimeOptions) {
-  const { execution } = house;
-  const billing = options.billing ?? {
-    bus: execution.bus,
-    calls: () => execution.state().house.modelCalls,
-    active: house.active,
-  };
-  return billing;
-}
 function accountPorts<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntimeOptions) {
   const { execution } = house;
   const billing = billingFor(house, options);
+  const transact = budgetTransaction(billing.bus, billing.calls, account => billingAccount(billing, account));
   const call = (request: ModelRequest) => `${request.turn}:${request.number}`;
   const process = (request: ModelRequest) => execution.state().house.minds.turns.get(request.turn)?.opened.process;
   const live = (request: ModelRequest) => billing.active() && openCall(house, request);
@@ -56,7 +49,7 @@ function accountPorts<X extends Program>(house: MindRuntimeHouse<X>, options: Mi
       const scope = process(request);
       return !live(request)
         ? Promise.resolve(false)
-        : reserveModelCall(budgetTransaction(billing.bus, billing.calls), cap, {
+        : reserveModelCall(transact, cap, {
             call: call(request),
             turn: request.turn,
             number: request.number,

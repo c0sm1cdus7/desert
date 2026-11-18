@@ -1,8 +1,8 @@
-// Prueba cartas de menor a mayor costo, conserva su evidencia y asigna la primera que pasa el rol completo.
+// Tests cards in cost order against the selected billing account and assigns the first passing card.
 import type { Card, BankResult } from "../../adapters/models/catalog.ts";
 import type { TurnStop } from "../../texts/mind-turn.texts.ts";
 import { effect } from "../../house/facts.ts";
-import { modelAccount } from "../../house/minds/model-call-state.ts";
+import { billingAccount, billingFor } from "./mind-billing.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
 import type { ProgramMindCase, ProgramMindScene } from "../../tools/minds/program-mind-cases.ts";
@@ -33,11 +33,7 @@ export async function prepareProgramMinds<X extends Program>(
     definitions: options.definitions.filter(definition => enabledMind(switches, definition.actor)),
   };
   const catalog = options.catalog.map(card => ({ ...card, results: [...card.results] }));
-  const billing: MindBilling = {
-    bus: house.execution.bus,
-    calls: () => house.execution.state().house.modelCalls,
-    active: house.active,
-  };
+  const billing = billingFor(house, options);
   const unavailable = new Map<string, TurnStop>();
   for (const definition of options.definitions) {
     if (!house.active()) break;
@@ -106,7 +102,7 @@ async function bankRole<X extends Program>(role: Role<X>): Promise<Card | TurnSt
     if (!house.active()) return undefined;
     const result = previousResult(role, card) ?? (await testCard(role, card, cases));
     if (typeof result === "string") return result;
-    // Las cartas de esta apertura son copias; el catálogo global nunca se modifica.
+    // This opening owns its card copies; the global catalog stays unchanged.
     card.results = [...card.results, result];
     if (result.passed) return card;
   }
@@ -136,7 +132,7 @@ async function testCard<X extends Program>(
   cases: readonly ProgramMindCase[],
 ): Promise<BankResult | TurnStop> {
   const { house, options, definition, billing } = role;
-  const account = modelAccount(billing.calls(), options.account);
+  const account = billingAccount(billing, options.account);
   const maximum = maximumProgramCall(card, options.maxInputTokens);
   if (account.spentNanoUsd + account.reservedNanoUsd + maximum > options.capNanoUsd) return "cap";
   const began = Date.now();
@@ -156,7 +152,7 @@ async function testCard<X extends Program>(
     ...trial,
     passed,
     seconds: (Date.now() - began) / 1000,
-    costUsd: (modelAccount(billing.calls(), options.account).spentNanoUsd - account.spentNanoUsd) / 1e9,
+    costUsd: (billingAccount(billing, options.account).spentNanoUsd - account.spentNanoUsd) / 1e9,
   };
   if (!house.active()) return "interrupted";
   recordResult(role, card, result);

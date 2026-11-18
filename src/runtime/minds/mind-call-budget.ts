@@ -1,4 +1,4 @@
-// Comprueba reservas contra el tope y construye hechos de liquidación e incertidumbre.
+// Checks atomic reservations against the total cap and records settlement or uncertainty.
 import { effect } from "../../house/facts.ts";
 import { modelAccount, type ModelAccount, type ModelCalls } from "../../house/minds/model-call-state.ts";
 import type { Bus } from "../../journal/bus.ts";
@@ -62,15 +62,19 @@ function reservationEffect(reservation: Reservation) {
   const { by, process, ...data } = reservation;
   return effect("model-call-reserved", data, by, [], process);
 }
-/** La lectura, la decisión y el hecho comparten la transacción del diario. */
-export function budgetTransaction(bus: Pick<Bus, "together" | "emit" | "confirmation">, calls: () => ModelCalls) {
+/** Reading, deciding and writing share the same journal transaction. */
+export function budgetTransaction(
+  bus: Pick<Bus, "together" | "emit" | "confirmation">,
+  calls: () => ModelCalls,
+  balance: (account: string) => ModelAccount = account => modelAccount(calls(), account),
+) {
   return (account: string, decide: (current: ModelAccount) => ReturnType<typeof reservationEffect> | undefined) => {
     const confirmed = bus.confirmation();
     return Promise.resolve().then(
       () =>
         confirmed() &&
         bus.together(() => {
-          const event = decide(modelAccount(calls(), account));
+          const event = decide(balance(account));
           if (!event) return false;
           bus.emit(event);
           return true;
