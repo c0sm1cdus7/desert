@@ -25,6 +25,7 @@ import {
   type MindSwitches,
 } from "./mind-runtime-options.ts";
 import type { TurnPorts } from "./mind-ports.ts";
+import { expandKit } from "../../house/kit-selection.ts";
 function validateRuntime<X extends Program>(
   house: MindRuntimeHouse<X>,
   switches: MindSwitches,
@@ -116,7 +117,9 @@ class HouseMindRuntime<X extends Program> {
               kind: "journey",
               actor: each.actor,
               process: journey.id,
-              kit: journey.kit.map(item => ({ tool: item.tool, acts: [...item.acts] })),
+              kit: (journey.selections ? expandKit(journey.selections, house.execution.registry) : journey.kit).map(
+                item => ({ tool: item.tool, acts: [...item.acts] }),
+              ),
             });
         return scopes
           .filter(scope => recover || this.view(scope).control.active)
