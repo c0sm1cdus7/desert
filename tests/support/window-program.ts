@@ -24,6 +24,7 @@ export const windowProgram = shopWith(
     },
     payments: {
       only: true,
+      reactions: {},
       acts: {
         charge: {
           ...charge,

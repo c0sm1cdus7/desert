@@ -29,16 +29,18 @@ const folded = {
     },
   },
 };
-const reacted = (kind = "sale-registered") => ({
+const observed = (kind = "sale-registered") => ({
   ...shopProgram,
   registry: [
     paymentsTool,
     {
       ...salesTool,
-      effects: (_state: unknown, event: { kind: string }) => {
-        if (event.kind === kind) throw new Error("effects stack");
-        return [];
-      },
+      start: (
+        ports: import("../../tools/startup-contract.ts").ToolStartup<import("../../../tests/support/shop.ts").Shop>,
+      ) =>
+        ports.bus.on(event => {
+          if (event.kind === kind) throw new Error("program observer stack");
+        }),
     },
   ],
 });
@@ -58,27 +60,27 @@ const listened = {
   ],
 };
 const tested = (mode: string) => {
-  if (mode === "effects") return reacted();
-  if (mode === "effects initial") return reacted("act");
-  if (mode === "effects started") return reacted("act-started");
-  if (mode === "effects result") return reacted("act-result");
+  if (mode === "program observer") return observed();
+  if (mode === "program observer initial") return observed("act");
+  if (mode === "program observer started") return observed("act-started");
+  if (mode === "program observer result") return observed("act-result");
   if (mode === "program listener") return listened;
   if (mode === "fold") return folded;
   if (mode === "lost fold") return folded;
   return mode === "program" || mode === "lost" ? broken : shopProgram;
 };
 const publicReason = (mode: string) => {
-  if (mode.startsWith("effects")) return "E-PROG-1";
-  if (["program", "effects", "fold", "escaped program", "program listener"].includes(mode)) return "E-PROG-1";
+  if (mode.startsWith("program observer")) return "E-PROG-1";
+  if (["program", "program observer", "fold", "escaped program", "program listener"].includes(mode)) return "E-PROG-1";
   if (mode === "port") return "servicio sin respuesta";
   return mode === "port without cause" ? toolTexts.disconnected : "E-BASE-1";
 };
 for (const mode of [
   "program",
-  "effects",
-  "effects initial",
-  "effects started",
-  "effects result",
+  "program observer",
+  "program observer initial",
+  "program observer started",
+  "program observer result",
   "program listener",
   "fold",
   "journal",
@@ -142,7 +144,7 @@ for (const mode of [
         if (publicReason(mode) !== "E-PROG-1") expect(screen).not.toContain("E-PROG-1");
         const record = JSON.stringify(house().tools.state().entries);
         if (mode === "program listener") expect(record).toContain("program listener diagnostic");
-        if (mode.startsWith("effects")) expect(record).toContain("effects stack");
+        if (mode.startsWith("program observer")) expect(record).toContain("program observer stack");
         if (mode === "fold") expect(record).toContain("fold stack");
         if (mode === "program") expect(record).toContain("internal stack");
         if (mode === "raw port") {

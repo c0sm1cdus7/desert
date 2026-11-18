@@ -37,7 +37,13 @@ export const houseCatalog = {
   scene,
   "kit-set": object({ holder: name, tool: name, acts: Type.Union([names, Type.Null()]) }),
   boot: object({}),
-  act: object({ object: name, option: name, input: Type.Unknown(), through: Type.Optional(wholeNumber) }),
+  act: object({
+    object: name,
+    option: name,
+    input: Type.Unknown(),
+    through: Type.Optional(wholeNumber),
+    reaction: Type.Optional(object({ id: name, notice: name })),
+  }),
   "act-started": object({ act: name, object: name, option: name }),
   "act-result": object({
     act: name,

@@ -3,7 +3,6 @@ import { salesStep, paymentsStep } from "./shop-folds.ts";
 import { Type } from "@sinclair/typebox";
 import { object } from "../../src/fields/visible-text.ts";
 import { money, shownMoney, text } from "../../src/fields/fields.ts";
-import { effect } from "../../src/house/facts.ts";
 import { vocabulary, type Emission, type Event, type ProgramFacts } from "../../src/journal/vocabulary.ts";
 import { programAct, type ProgramTool } from "../../src/tools/promises.ts";
 import type { Shown, SurfaceWords } from "../../src/surface/bridge/ports/house-ports.ts";
@@ -142,14 +141,28 @@ export const paymentsTool: ProgramTool<Shop> = {
         },
       ],
     }),
+    notice: programAct<Shop, (typeof shopCatalog)["payment-received"]>({
+      name: "avisar",
+      enter: "avisar",
+      undoable: true,
+      purpose: "avisar pagos sin venta",
+      key: "u",
+      on: "tool",
+      input: shopCatalog["payment-received"],
+      run: (input, { state }) =>
+        state.tools.sales.has(input.sale ?? "")
+          ? { status: "accepted", silent: true }
+          : { status: "accepted", text: `Avisado · Pago sin venta · ${input.payment}`, attention: true },
+      cases: [
+        {
+          promise: "un pago sin venta pide atención",
+          input: { payment: "p2", amount: 100 },
+          then: { says: "Avisado · Pago sin venta · p2", facts: [] },
+        },
+      ],
+    }),
   },
-  /** A payment that matches no sale asks for attention, even from whoever received it. */
-  effects: (state, event) => {
-    if (event.kind !== "payment-received" || state.tools.sales.has(event.data.sale ?? "")) return [];
-    const text = `Unmatched ${event.data.payment}`;
-    const data = { tool: "payments", target: "payments", author: event.by, text, attention: true };
-    return [effect("tool-entry", data, event.by, [event.id])];
-  },
+  reactions: { unmatched: { when: "payment-received", act: "notice" } },
 };
 export const shopRegistry: ToolRegistry<Shop> = [salesTool, paymentsTool];
 /** The shop, whole: what its promises are checked on. */

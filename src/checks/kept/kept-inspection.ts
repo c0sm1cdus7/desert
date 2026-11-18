@@ -49,6 +49,7 @@ function inspectionTools<X extends Program>(
   );
   const tools = startTools<X>({
     ...program,
+    history: journal.replay<ReturnType<typeof journal.append>[]>([], (events, event) => [...events, event]),
     bus,
     secrets,
     state,

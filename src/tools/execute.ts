@@ -60,6 +60,7 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   if (!present(ports.registry, state.house, by) || (process && !ports.process(process, by)))
     return toolTexts.unassigned;
   if (!act) return toolTexts.unknown;
+  if (origin.data.reaction && act.reach !== "house") return toolTexts.invalid;
   if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option, ports.registry)))
     return toolTexts.kitRefusal(tool?.id ?? "");
   if (!offered && tool && elsewhere(act, tool, target)) return toolTexts.unknown;
@@ -127,7 +128,7 @@ function actionContext<X extends Program>(
     ports: publicPorts,
     credentials,
     id,
-    execute: nested => executeNested(ports, origin, nested),
+    ...(origin.data.reaction ? {} : { execute: (nested: Act) => executeNested(ports, origin, nested) }),
   };
 }
 async function reviewWorld<X extends Program>(
@@ -204,13 +205,14 @@ export function execute<X extends Program>(
   through: number,
   by: string,
   cause: readonly string[] = [],
+  reaction?: Origin["data"]["reaction"],
 ): ExecutionResult<X> {
   if (!Value.Check(actEnvelope, value)) return rejected(toolTexts.invalid);
   const key = JSON.stringify([value.target, value.act, value.input]);
   if (ports.chain?.includes(key)) return rejected(toolTexts.unknown);
   const chain = [...(ports.chain ?? []), key];
   const work = (ports: Execution<X>, input: unknown, valid: boolean, capabilities: ToolCapabilities) =>
-    executeScoped({ ...ports, chain }, { ...value, input }, through, by, cause, capabilities, valid);
+    executeScoped({ ...ports, chain }, { ...value, input }, through, by, cause, capabilities, valid, reaction);
   const schema = resolve(ports, by, value.target ?? ids.self, value.act).act?.input;
   const plain = !hasSecretInput(schema);
   return usingCapabilities(ports, { by, data: { object: value.target ?? ids.self } }, (scoped, capabilities) =>
@@ -233,12 +235,21 @@ function executeScoped<X extends Program>(
   cause: readonly string[],
   capabilities: ToolCapabilities,
   valid: boolean,
+  reaction?: Origin["data"]["reaction"],
 ): ExecutionResult<X> {
   const journeys = ports.state().house.journeys;
   const journey = [...journeys.values()].find(each => cause.includes(each.opened));
-  const process = ports.mindScope?.process ?? journey?.id ?? cause.find(id => ports.process(id));
+  const process = reaction
+    ? undefined
+    : (ports.mindScope?.process ?? journey?.id ?? cause.find(id => ports.process(id)));
   if (ports.mindScope && ports.mindScope.actor !== by) return rejected(toolTexts.unassigned);
-  const data = { object: value.target ?? ids.self, option: value.act, input: value.input, through };
+  const data = {
+    object: value.target ?? ids.self,
+    option: value.act,
+    input: value.input,
+    through,
+    ...(reaction ? { reaction } : {}),
+  };
   const started = startAct(ports, effect("act", data, by, cause, process));
   if (started.failed) return started.failed;
   const act = started.act;

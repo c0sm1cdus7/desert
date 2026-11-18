@@ -52,7 +52,7 @@ it("rev3-camino: an inner kit, its list and reflected references cannot be chang
   expect(() => Reflect.deleteProperty(state.house, "admin")).toThrow(TypeError);
   expect(rig.state().house.kits.get("mind:desk")?.get("desk")).toEqual([]);
 });
-for (const door of ["view", "act", "effects", "summary", "surface"] as const)
+for (const door of ["view", "act", "reactions", "summary", "surface"] as const)
   it(`${door} refuses every authority mutation`, async () => {
     const seen: string[] = [];
     const check = (state: State<Shop>) => {
@@ -75,14 +75,7 @@ for (const door of ["view", "act", "effects", "summary", "surface"] as const)
       },
       view: door === "view" ? check : mind.tool.view.bind(mind.tool),
       summary: door === "summary" ? check : mind.tool.summary.bind(mind.tool),
-      ...(door === "effects"
-        ? {
-            effects: (state: State<Shop>) => {
-              check(state);
-              return [];
-            },
-          }
-        : {}),
+      ...(door === "reactions" ? { reactions: { checked: { when: "boot" as const, act: "check" } } } : {}),
     };
     const rig = shopRig({ registry: [...shopRegistry, tool] });
     rigs.push(rig);
@@ -92,7 +85,11 @@ for (const door of ["view", "act", "effects", "summary", "surface"] as const)
     } else if (door === "view") tool.view(rig.ports("ana", Date.now).state(), "desk", { recentLines: 20, now: 0 });
     else if (door === "summary") tool.summary(rig.state());
     else if (door === "surface") check(rig.ports("ana", Date.now).state());
-    else rig.boot();
+    else {
+      rig.bus.emit(effect("kit-set", { holder: "mind:desk", tool: "desk", acts: ["check"] }, "ana"));
+      rig.boot();
+      await rig.tools().recoverReactions();
+    }
     expect(seen).toEqual(expect.arrayContaining(Object.keys(attacks)));
     expect(rig.state().house.admin).toBe("ana");
     expect(await mind.act("write")).toMatchObject({ status: "rejected", reason: toolTexts.outsideKit });

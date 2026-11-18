@@ -1,4 +1,4 @@
-// A program's result writes atomically; a broken fold or listener remains a diagnostic, never a refusal string.
+// Escribe lotes atómicos con causas del core; los hechos de una reacción apuntan al aviso original.
 import { failureOrigin } from "../boundaries/failure-origin.ts";
 import type { Emission } from "../../journal/vocabulary.ts";
 import type { HouseEvent } from "../../house/facts.ts";
@@ -16,7 +16,11 @@ export function writtenEffects<X extends Program>(
     const write = () =>
       effects.forEach(each => {
         if (!ports.credentialEffects?.apply(each, accepted))
-          ports.bus.emit({ ...made(each), process: act.process, cause: [act.id] });
+          ports.bus.emit({
+            ...made(each),
+            process: act.process,
+            cause: act.data.reaction && each.layer === "program" ? [act.data.reaction.notice] : [act.id],
+          });
       });
     ports.bus.together(() => (ports.credentialEffects ? ports.credentialEffects.together(write) : write()));
     return undefined;
