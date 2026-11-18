@@ -75,9 +75,11 @@ const offersOf =
       const given =
         also?.tool === other ? programCall(also.with.bind(also), ports.state(), target, ports.now()) : undefined;
       if (!also || given === undefined) return [];
-      const row = { key: act.key, title: also.name ?? act.name, act: name, on: { tool } };
+      const destination = act.folder ?? tool;
+      const on = destination === tool ? { tool } : { tool, target: destination };
+      const row = { key: act.key, title: also.name ?? act.name, act: name, on };
       const fixed = ask.leading(given);
-      const why = actionOff(act, ports.state(), tool, tool, ports.now(), () => walk.next(fixed), target, name);
+      const why = actionOff(act, ports.state(), tool, destination, ports.now(), () => walk.next(fixed), target, name);
       /** Off, it says why; and it is not there for who prefers not to see what cannot be done. */
       if (why !== undefined && hides(ports.state().house, ports.me, "off")) return [];
       if (why !== undefined) return [{ ...row, detail: why, off: true }];

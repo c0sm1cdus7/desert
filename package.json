@@ -102,5 +102,22 @@
       "data": {},
       "maxLines": 300
     }
+  },
+  "exports": {
+    "./programa": "./src/tools/installable/program.ts",
+    "./componer": "./src/runtime/distributions/compose.ts",
+    "./messages": "./src/fields/messages.ts",
+    "./fields": "./src/fields/fields.ts",
+    "./fields/*": "./src/fields/*.ts",
+    "./journal": "./src/journal/vocabulary.ts",
+    "./runtime": "./src/runtime/house-runtime.ts",
+    "./doors/terminal": "./src/doors/terminal/boot.ts",
+    "./doors/socket": "./src/doors/socket/server/server-process.ts",
+    "./doors/mcp": "./src/doors/mcp/mcp-http.ts",
+    "./testing": "./src/testing.ts",
+    "./laws": "./src/laws.ts",
+    "./program-types": "./src/tools/tool-contract.ts",
+    "./surface": "./src/surface/bridge/ports/house-ports.ts",
+    "./calculation": "./src/runtime/calculation-version.ts"
   }
 }

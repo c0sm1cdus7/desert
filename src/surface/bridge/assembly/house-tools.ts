@@ -65,24 +65,59 @@ function auditPlaces<X extends Program>(tools: readonly ProgramTool<X>[], shown:
     if (same.length) throw new Error(`Two rows of ${outer} take the same key: ${same.join(", ")}`);
   }
 }
+/** Group metadata covers the engine actions exactly; it cannot hide an action from the ordinary audits. */
+function groupedTools<X extends Program>(tool: ProgramTool<X>): readonly ProgramTool<X>[] {
+  if (!tool.groups) return [tool];
+  const groups = tool.groups.map(group => group.tool);
+  const actions = groups.flatMap(group => Object.keys(group.acts));
+  const sameNames = JSON.stringify([...actions].sort()) === JSON.stringify(Object.keys(tool.acts).sort());
+  if (!sameNames || repeated(groups.map(group => group.id)).length)
+    throw new Error(`Group coverage differs from the installed actions of ${tool.id}`);
+  for (const group of groups) {
+    for (const [name, act] of Object.entries(group.acts)) {
+      const installed = tool.acts[name];
+      if (!installed || installed.on !== "thing" || installed.folder !== group.id || !sameAction(installed, act))
+        throw new Error(`Group action ${name} differs from its installed action`);
+    }
+  }
+  return groups;
+}
+function sameAction(left: object, right: object): boolean {
+  const keys = (value: object) =>
+    Object.keys(value)
+      .filter(key => key !== "on")
+      .sort();
+  return (
+    JSON.stringify(keys(left)) === JSON.stringify(keys(right)) &&
+    keys(left).every(key => {
+      const a: unknown = Reflect.get(left, key);
+      const b: unknown = Reflect.get(right, key);
+      return a === b;
+    })
+  );
+}
 /** Every option is reached by a key of its own where it is offered: two with the same key is a defect. */
 function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown<X>): void {
   const wordless = tools.filter(tool => !shown.words[tool.id]).map(tool => tool.id);
   if (wordless.length) throw new Error(`No words for the tools ${wordless.join(", ")}`);
   auditPlaces(tools, shown);
   if (tools.some(tool => tool.id === preferencesPlace.id)) throw new Error(`A tool takes the name of Preferences`);
-  tools.forEach(auditActs);
+  const declarations = tools.flatMap(groupedTools);
+  declarations.forEach(auditActs);
   auditFields(tools, shown);
-  tools.forEach(tool => auditData(tool, ownReads(shown.words[tool.id])));
-  for (const tool of tools) {
+  tools.forEach(tool => {
+    if (tool.groups) tool.groups.forEach(group => auditData(group.tool, ownReads(group.palabras)));
+    else auditData(tool, ownReads(shown.words[tool.id]));
+  });
+  for (const tool of declarations) {
     const also = tools.flatMap(other => Object.values(other.acts).filter(act => act.also?.tool === tool.id));
     const own = Object.values(tool.acts).filter(act => act.on === "thing" && act.under === undefined);
     const keys = repeated([...own, ...Object.values(tool.menus ?? {}), ...also].map(option => option.key));
     if (keys.length) throw new Error(`Two acts on a thing of ${tool.id} take the same key: ${keys.join(", ")}`);
   }
-  const astray = tools.flatMap(tool =>
+  const astray = declarations.flatMap(tool =>
     Object.values(tool.acts)
-      .filter(act => act.also && (act.on !== "tool" || !tools.some(other => other.id === act.also?.tool)))
+      .filter(act => act.also && (act.on !== "tool" || !declarations.some(other => other.id === act.also?.tool)))
       .map(act => `${tool.id} ${act.name}`),
   );
   if (astray.length)
@@ -139,7 +174,15 @@ function withThings<X extends Program>(
 ): Tool {
   const declared = thingView(ports, contract, listsOf(words)?.presents ?? []);
   const record = recordOf(ports, shown.moment?.bind(shown));
-  const thing = (target: string) => [...declared(target), ...record(target)];
+  const thing = (target: string) => {
+    const group = contract.groups?.find(
+      group =>
+        group.tool.id === target || programCall(group.tool.targets.bind(group.tool), ports.state()).includes(target),
+    );
+    if (group?.tool.id === target) return [...screen.view(target), ...record(target)];
+    const read = group ? thingView(ports, group.tool, listsOf(group.palabras)?.presents ?? []) : declared;
+    return [...read(target), ...record(target)];
+  };
   const isThing = (target?: string): target is string =>
     target !== undefined && programCall(contract.targets.bind(contract), ports.state()).includes(target);
   /** Its things are its own, whatever screen shows it: a row of any tool that names one of them leads here. */
@@ -181,11 +224,12 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, given: Shown
     const calls = () => ports.state().attention.has(contract.id);
     const { notices, seen: looked } = noticesOf(observed, contract, tool);
     /** What the other tools offer on a thing of this one: only on a thing, never on a view that groups them. */
-    const others = built.filter(other => other.contract.id !== contract.id);
-    const alsoOn = (target: string): ViewRow[] =>
-      programCall(contract.targets.bind(contract), ports.state()).includes(target)
-        ? others.flatMap(other => other.offers(contract.id, target))
-        : [];
+    const others = built.filter(other => other.contract.id !== contract.id || contract.groups !== undefined);
+    const alsoOn = (target: string): ViewRow[] => {
+      if (!programCall(contract.targets.bind(contract), ports.state()).includes(target)) return [];
+      const group = contract.groups?.find(group => group.tool.targets(ports.state()).includes(target));
+      return others.flatMap(other => other.offers(group?.tool.id ?? contract.id, target));
+    };
     return {
       ...tool,
       notices,

@@ -1,4 +1,5 @@
 // The declarations a program supplies once, shared by execution, surfaces and derived checks.
+import type { ProgramWords } from "../fields/installable-words.ts";
 import type { AdapterComposition } from "./adapter-contract.ts";
 import type { CalculationVersion } from "./calculation-contract.ts";
 import type { Static, TSchema } from "@sinclair/typebox";
@@ -80,6 +81,8 @@ export type Also<X extends Program> = Readonly<{
 export type Menu = Readonly<{ name: string; purpose: string; key: string }>;
 export type ProgramAct<X extends Program, O extends readonly string[] = readonly string[]> = Omit<ToolAct<X>, "run"> &
   Readonly<{ run: ProgramRun<X, O> }> &
+  /** The folder an installed group acts on, while authority remains with the owning engine tool. */
+  Readonly<{ folder?: string }> &
   Offered &
   Readonly<{ refuses: readonly string[]; outside: ProgramOutside<O>; cases: readonly Case<X>[] }> &
   /** What is put before the person to confirm, once everything was answered, when the act wants that. */
@@ -89,6 +92,8 @@ export type ProgramAct<X extends Program, O extends readonly string[] = readonly
   SoFar<X>;
 export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
   Readonly<{ acts: Readonly<Record<string, ProgramAct<X>>>; menus?: Readonly<Record<string, Menu>> }> &
+  /** Installed groups retain their local presentation and action placement under one engine owner. */
+  Readonly<{ groups?: readonly Readonly<{ tool: ProgramTool<X>; palabras: ProgramWords }>[] }> &
   /** Whether one of its things takes nothing new any more (archived, canceled): a question that picks among its
    * things does not offer it. */
   Readonly<{ closed?: (state: State<X>, target: string, at: number) => boolean }> &
