@@ -1,5 +1,5 @@
 import "../../../../tests/support/upgrade-vault.ts";
-import { expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { directedShop } from "../../../../tests/support/directed-shop.ts";
 import { shopShown } from "../../../../tests/support/shop.ts";
 import { noticeChecks } from "./promised-notices.ts";
@@ -43,16 +43,21 @@ it("12: detects a need absent only from its recipient's view", async () => {
   await expect(checks[0]?.run()).rejects.toThrow(/beto/);
 });
 
-it.each(["nadie", "mind:sales", "carla"])(
+describe.each(["nadie", "mind:sales", "carla"])(
   "adversarial attention: rejects an invisible promised recipient %s",
-  async to => {
+  to => {
     const program = directedShop(true, to);
     const checks = [...promisedChecks(program, shopShown), ...noticeChecks(program, shopShown)];
     const failed: { name: string; reason: string }[] = [];
+    // A derived check opens its own house; time and report it separately from the other checks.
     for (const check of checks)
-      await check.run().catch((error: unknown) => failed.push({ name: check.name, reason: String(error) }));
-    expect(failed).toHaveLength(1);
-    expect(failed[0]?.name).toBe(`${stillOwing}, in Attention with why`);
-    expect(failed[0]?.reason).toContain(to);
+      it(check.name, async () => {
+        await check.run().catch((error: unknown) => failed.push({ name: check.name, reason: String(error) }));
+      });
+    afterAll(() => {
+      expect(failed).toHaveLength(1);
+      expect(failed[0]?.name).toBe(`${stillOwing}, in Attention with why`);
+      expect(failed[0]?.reason).toContain(to);
+    });
   },
 );

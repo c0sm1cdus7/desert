@@ -1,4 +1,5 @@
 // A house: tool grants, action kits, shared scenes, preferences and reading.
+import { emptyDoors, doorStep, type DoorState } from "./doors/door-state.ts";
 import { systemTool } from "./system-tools.ts";
 import { emptyRules, rulesStep, type RulesState } from "./rules/rule-state.ts";
 import { emptyDevices, deviceStep, type DeviceState } from "./devices/device-state.ts";
@@ -24,6 +25,7 @@ type Assignment = Readonly<{ identity: string; tools: readonly string[] }>;
 export type Creation = Readonly<{ admin: string; assignments: readonly Assignment[] }>;
 export type House = Readonly<{
   admin: string;
+  doors: DoorState;
   rules: RulesState;
   devices: DeviceState;
   selections?: ReadonlyMap<string, SelectionKit>;
@@ -54,6 +56,7 @@ type Attentions = ReadonlyMap<string, Attention>;
 const noAttention: Attentions = new Map();
 export const emptyHouse: House = {
   admin: "",
+  doors: emptyDoors,
   rules: emptyRules,
   devices: emptyDevices,
   assistants: new Map(),
@@ -71,6 +74,7 @@ export const emptyHouse: House = {
 export function houseStep(state: House, event: Event): House {
   if (event.layer !== "house" || namesMind(event)) return state;
   state = { ...state, rules: rulesStep(state.rules, event, state.admin) };
+  state = doorStep(state, event);
   state = deviceStep(state, event);
   state = mindHouseStep(state, event);
   state = sceneStep(state, event);

@@ -14,7 +14,6 @@ import { mcpTexts } from "../../texts/mcp.texts.ts";
 import { mcpDoor } from "./mcp-handler.ts";
 import { serveMcp } from "./mcp-http.ts";
 import type { DoorKey } from "../socket/peers/socket-peer.ts";
-
 const archive = programa(
   {
     id: "archivo",
@@ -43,11 +42,11 @@ const archive = programa(
   },
 );
 const options = { ...sampleOptions, programas: [...sampleOptions.programas, archive] } as const;
-
 describe.each(["handler", "HTTP"])("installed program reading through MCP %s", transport => {
   const composition = componer(options);
   let rig: ReturnType<typeof distributionRig<DistributionOf<typeof options.programas>>>;
   let door: ReturnType<typeof mcpDoor>;
+  let replayCredential = "";
   let server: Awaited<ReturnType<typeof serveMcp>> | undefined;
   let send: (method: string, params?: unknown, identity?: string) => Promise<string>;
   beforeEach(async () => {
@@ -63,6 +62,7 @@ describe.each(["handler", "HTTP"])("installed program reading through MCP %s", t
         return [identity, key];
       }),
     );
+    replayCredential = credentials.get("martin") ?? "";
     door = mcpDoor(rig.house(), keys, { name: "Prueba", version: "1", limits: { recentLines: 20 } });
     if (transport === "HTTP") server = await serveMcp(door, { host: "127.0.0.1", port: 0 });
     send = async (method, params, identity = "ana") => {
@@ -102,13 +102,13 @@ describe.each(["handler", "HTTP"])("installed program reading through MCP %s", t
   };
   const read = (objetivo?: string, identity?: string) =>
     call("leer", { programa: "notas", ...(objetivo === undefined ? {} : { objetivo }) }, identity);
-
-  const access = () => ({ rig, door, send, call, read, composition });
+  const access = () => ({ rig, door, send, call, read, composition, replayCredential });
   readingCases(access);
   actionCases(access);
   replayCases(access);
 });
 type Context = Readonly<{
+  replayCredential: string;
   rig: ReturnType<typeof distributionRig<DistributionOf<typeof options.programas>>>;
   door: ReturnType<typeof mcpDoor>;
   send: (method: string, params?: unknown, identity?: string) => Promise<string>;
@@ -235,7 +235,7 @@ function actionCases(access: () => Context) {
 }
 function replayCases(access: () => Context) {
   it("keeps reading after a partial grant, revocation and replay without restoring write permission", async () => {
-    const { rig, door, call } = access();
+    const { rig, door, call, replayCredential } = access();
     rig.house().bus.emit(
       effect(
         "kit-set",
@@ -265,7 +265,7 @@ function replayCases(access: () => Context) {
       .bus.emit(effect("kit-set", { version: 2, holder: "martin", kit: { version: 2, selections: [] } }, "ana"));
     await door.close();
     rig.restart();
-    const replayKey = randomUUID();
+    const replayKey = replayCredential;
     const reopened = mcpDoor(
       rig.house(),
       new Map<string, DoorKey>([[replayKey, { identity: "martin", door: "agente" }]]),

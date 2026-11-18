@@ -13,7 +13,11 @@ import type { ActContext, ContractSetup, Program, Reach, Slices, State, Tool, To
 export type Did = Readonly<{ act: string; input: unknown; on?: string; by?: string }>;
 /** What a case says came before it: each thing someone did and, when the case is about what time does, the whole
  * days that passed before what comes next. */
-export type Step = Did | Readonly<{ days: number }>;
+export type Step =
+  | Did
+  | Readonly<{ days: number }>
+  /** Synthetic host provisioning for cases of core door administration; no material is declared. */
+  | Readonly<{ doorKey: Readonly<{ id: string; identity: string; door: "agente" | "terminal" }> }>;
 /** A fact of the program as a case promises it: its kind and everything it says. */
 export type Told<X extends Program> = X["fact"] extends infer F
   ? F extends Readonly<{ kind: infer K; data: infer D }>

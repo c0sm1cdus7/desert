@@ -224,3 +224,31 @@ describe("what decides an act", () => {
     expect(reads("carla")).toEqual(["Resultado"]);
   });
 });
+
+it("keeps a private receipt out of diagnostics when its public effects cannot be written", () => {
+  const receipt = "synthetic-private-receipt";
+  const whisper = toolAct<Shop, typeof nothing>(nothing, () => ({
+    status: "accepted",
+    text: "Public",
+    private: receipt,
+  }));
+  const rig = open(tool("desk", { whisper }));
+  const output: unknown[] = [];
+  const logged = vi.spyOn(console, "error").mockImplementation((...values: unknown[]) => {
+    output.push(values);
+  });
+  const stop = rig.bus.on(event => {
+    if (event.layer === "house" && event.kind === "act-done") {
+      stop();
+      throw new Error("Synthetic write failure");
+    }
+  });
+  try {
+    const result = rig.act("ana", "whisper", {}, "desk");
+    expect(result.status).not.toBe("accepted");
+    expect(JSON.stringify([result, rig.facts(), output]).includes(receipt)).toBe(false);
+  } finally {
+    stop();
+    logged.mockRestore();
+  }
+});

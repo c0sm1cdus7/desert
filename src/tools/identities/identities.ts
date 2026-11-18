@@ -1,4 +1,5 @@
 // The optional core piece uses declarations for reading and actions, and keeps nothing outside House.
+import { doorActions } from "./door-actions.ts";
 import { rulesRegistry } from "../rules/rules.ts";
 import type { ProgramTool } from "../promises.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";
@@ -30,6 +31,7 @@ export function identitiesTool<X extends Program>(
       scene: identityScene<X>(),
       new: newIdentity<X>(registry, runner),
       ...identityActions<X>(runner, registry),
+      ...doorActions<X>(),
       ...kitActions(registry),
       ...(assistants ? assistantActions(registry) : {}),
     },

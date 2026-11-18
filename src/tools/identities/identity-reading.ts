@@ -1,4 +1,5 @@
 // Lista y objeto de identidades y mentes: nombre, administración, kit, última escena general y parte para quien lee.
+import { doorTexts } from "../../texts/doors.texts.ts";
 import { systemTool } from "../../house/system-tools.ts";
 import { holderKit } from "../../house/kit-history.ts";
 import { identityDisplayName, type House } from "../../house/members.ts";
@@ -34,6 +35,7 @@ export const identityWords: ToolWords = {
       empty: words.emptyData,
       reads: { identifier: words.identifier, name: words.display, state: words.state },
     },
+    { title: doorTexts.keys, empty: words.emptyData, reads: { doorKeys: doorTexts.keys } },
     { title: words.given, empty: words.emptyKit, reads: { kit: words.programs } },
     { title: words.sceneTitle, empty: words.emptyScene, reads: { general: words.general, addressed: words.addressed } },
   ],
@@ -88,6 +90,7 @@ export function identityReading<X extends Program>(
     name: identityDisplayName(house, identity),
     state: identityDatum(house, identity),
     kit: identityKit(house, identity, registry),
+    ...doorReading(house, identity),
   });
 }
 function identityKit<X extends Program>(house: House, identity: string, registry: ToolRegistry<X>): string[] {
@@ -111,3 +114,15 @@ export const withIdentityWords = <S extends { words: Readonly<Record<string, Too
   registry.some(tool => tool.id === "identities")
     ? { ...shown, words: { ...shown.words, identities: identityWords } }
     : shown;
+
+function doorReading(house: House, identity: string) {
+  const keys = [...house.doors.keys.values()].filter(key => key.identity === identity);
+  return keys.length
+    ? {
+        doorKeys: keys.map(key => {
+          const door = key.door === "agente" ? doorTexts.agent : doorTexts.terminal;
+          return `${key.id} · ${door} · ${key.revoked ? doorTexts.retired : doorTexts.active}`;
+        }),
+      }
+    : {};
+}

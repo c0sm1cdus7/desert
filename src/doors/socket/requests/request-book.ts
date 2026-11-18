@@ -106,7 +106,10 @@ function actRequest<X extends Program>(
       done = { tipo: "resultado", id, status: "interrupted", reason: socketTexts.interrupted, efectos: [] };
     }
     const final = requests.get(key);
-    if (final) final.result = done;
+    if (final) {
+      const { private: _receipt, ...publicResult } = done;
+      final.result = publicResult;
+    }
     return done;
   };
   return act;

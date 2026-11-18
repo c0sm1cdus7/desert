@@ -1,4 +1,5 @@
 // Comprueba y arranca herramientas, reacciones y atención; despacha actos y cierra el motor.
+import { scrubDoorValue } from "../house/doors/door-material.ts";
 import { checkComposition, checkOwn } from "./execution/composed-authority.ts";
 import { attentionEffects } from "./attention-effects.ts";
 import { readonlyPorts } from "./boundaries/readonly-ports.ts";
@@ -77,7 +78,7 @@ export function startTools<X extends Program>(ports: Starting<X>) {
     pendingReactions: reactions.pending,
     prepare: <T>(value: T): T => {
       secrets.capture(value, registry, read());
-      return secrets.scrub(value);
+      return scrubDoorValue(secrets.scrub(value), read().house.doors);
     },
     act: (value: unknown, through: number, by: string, cause: readonly string[] = []) =>
       execute(running, value, through, by, cause),

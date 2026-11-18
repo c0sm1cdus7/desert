@@ -1,4 +1,5 @@
 // One live house owns all sessions; the same byte protocol can be checked on in-memory duplex streams.
+import { liveDoorKeys } from "../peers/live-door-keys.ts";
 import { socketLimits } from "../wire/protocol.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
 import type { Duplex } from "node:stream";
@@ -12,9 +13,10 @@ import { houseShutdown } from "./house-drain.ts";
 type DoorOptions = Readonly<{ shutdown?: () => void; report?: (text: string) => void }>;
 export function houseDoor<X extends Program>(
   house: RunningHouse<X>,
-  keys: ReadonlyMap<string, DoorKey>,
+  founders?: ReadonlyMap<string, DoorKey>,
   options: DoorOptions = {},
 ) {
+  const keys = liveDoorKeys(house, founders);
   const peers = new Set<Peer>();
   const pending = new Set<Promise<void>>();
   const book = requestBook(house);

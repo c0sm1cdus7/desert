@@ -1,4 +1,5 @@
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
+import { seedDoorKeys } from "./door-access.ts";
 import { createDeviceRuntime, type DeviceRuntime } from "./devices/device-runtime.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 import type { Event } from "../journal/vocabulary.ts";
@@ -114,6 +115,7 @@ export function startHouse<X extends Program>(
     stops.push(() => devices.close());
     const tools = startHouseTools(options, resources, ports, devices, contracts, time);
     if (!state().house.admin) createHouse(bus, creation);
+    seedDoorKeys(bus, () => state().house, options.founderDoorKeys);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
     const minds = loadMinds(home, options, time, resources, devices, contracts);

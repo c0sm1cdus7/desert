@@ -1,4 +1,5 @@
 // Abre diario, plegados y custodia, valida identidades, presta adaptadores autorizados y cierra los recursos.
+import { scrubDoorValue } from "../house/doors/door-material.ts";
 import { CustodyError } from "../keychain/custody/house-keys.ts";
 import { closeResources } from "../tools/boundaries/close-resources.ts";
 import { defectReporter } from "../tools/failures/defect-reporter.ts";
@@ -126,10 +127,11 @@ export function houseResources<X extends Program>(home: string, options: HouseOp
   const journal = houseJournal(join(home, "journal.sqlite"), options.words, notices.warn);
   guardJournal(journal, by);
   const { credentials, secrets, state, clock } = restoredCustody(home, options, journal, time);
+  const write = (value: Emission<X["fact"]>) => secrets.write(scrubDoorValue(value, state().house.doors));
   const bus = busOf<X>(
     journal,
     time,
-    emission => credentials.write(checkIdentity(emission, by), value => secrets.write(value)),
+    emission => credentials.write(checkIdentity(emission, by), write),
     credentials.transaction,
   );
   credentials.publish(entry => bus.emit(entry));
@@ -138,7 +140,7 @@ export function houseResources<X extends Program>(home: string, options: HouseOp
     registry,
     by,
     entry => journal.append(entry, time.now()),
-    value => secrets.scrub(value),
+    value => scrubDoorValue(secrets.scrub(value), state().house.doors),
   );
   const close = closing(stops, [bus, journal, secrets], report);
   return {

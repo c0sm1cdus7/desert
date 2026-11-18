@@ -1,4 +1,5 @@
 // The house fact catalog, typed emissions and effects, including the legacy catalog for saved records.
+import { doorFacts } from "./doors/door-facts.ts";
 import { ruleFacts } from "./rules/rule-facts.ts";
 import { deviceFacts } from "./devices/device-facts.ts";
 import { executionDestination } from "../fields/device-protocol.ts";
@@ -33,6 +34,7 @@ export const mindHouseCatalog = {
 /** What every house writes, whatever program lives in it. */
 export const houseCatalog = {
   ...deviceFacts,
+  ...doorFacts,
   "house-created": object({}),
   granted: Type.Union([
     object({ identity: name, tools: names }),

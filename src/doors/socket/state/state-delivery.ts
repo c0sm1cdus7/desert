@@ -46,7 +46,14 @@ export function stateDelivery<X extends Program>(house: RunningHouse<X>, peers: 
 function isMember<X extends Program>(house: RunningHouse<X>, peer: Peer): boolean {
   const key = peer.key();
   if (!key || !peer.live()) return false;
-  if (!isMindActor(key.identity) && present(house.registry, house.tools.state().house, key.identity)) return true;
+  const current = house.tools.state().house;
+  if (
+    !isMindActor(key.identity) &&
+    present(house.registry, current, key.identity) &&
+    key.id !== undefined &&
+    current.doors.keys.get(key.id)?.revoked === false
+  )
+    return true;
   peer.end({ tipo: "cortado", motivo: socketTexts.removed });
   return false;
 }

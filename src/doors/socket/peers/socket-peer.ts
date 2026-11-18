@@ -7,7 +7,7 @@ import { peerWriter } from "./peer-writer.ts";
 import { connectPeer } from "./peer-input.ts";
 import { serverFrame } from "../wire/frame.ts";
 
-export type DoorKey = Readonly<{ identity: string; door: "terminal" | "agente" }>;
+export type DoorKey = Readonly<{ identity: string; door: "terminal" | "agente"; id?: string }>;
 export type Peer = ReturnType<typeof socketPeer>;
 type Welcome = Extract<ClientMessage, { tipo: "hola" }>;
 export const helloFailure = (hello: Welcome): string | undefined => {

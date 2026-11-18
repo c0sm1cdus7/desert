@@ -15,6 +15,11 @@ export type HouseOptions<X extends Program> = AdapterComposition &
   Partial<Pick<Execution<X>, "own" | "process">> &
   Readonly<{
     secretKeys?: HouseKeyProvider;
+    founderDoorKeys?: Readonly<{
+      read: () => ReadonlyMap<string, import("./doors/door-material.ts").DoorIdentity>;
+      present: () => boolean;
+      warn?: (message: string) => void;
+    }>;
     contractSetup?: ContractSetup<X>;
     identities?: boolean;
     kitMigration?: KitMigration;

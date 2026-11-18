@@ -1,4 +1,5 @@
 // Where a derived check runs: a real house on disk at a fixed instant, its three people, an act done as anyone does.
+import { issueDoorKey } from "../../house/doors/door-material.ts";
 import { MemoryHouseKeys } from "../../keychain/custody/house-keys.ts";
 import { ok } from "node:assert/strict";
 import { join } from "node:path";
@@ -108,6 +109,12 @@ export async function given<X extends Program>(
 ): Promise<void> {
   if (at !== undefined) house.setTime(at);
   for (const step of steps) {
+    if ("doorKey" in step) {
+      const { id, identity, door } = step.doorKey;
+      const { fact } = issueDoorKey(identity, door, house.tools.state().house.admin);
+      house.bus.emit({ ...fact, data: { ...fact.data, id } });
+      continue;
+    }
     if ("days" in step) {
       house.pass(step.days);
       continue;

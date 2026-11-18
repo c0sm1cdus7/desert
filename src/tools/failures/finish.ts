@@ -72,9 +72,9 @@ export function finish<X extends Program>(ports: Execution<X>, act: HouseEvent<"
       act,
       !safe.defect && failure.error instanceof OutsideDefect
         ? failure.error
-        : new BaseFailure({ failure, original: safe }),
+        : new BaseFailure({ failure, original: publicDecision(safe) }),
     );
-    if (safe.defect) lostDiagnostic(safe, done);
+    if (safe.defect) lostDiagnostic(publicDecision(safe), done);
     const lost = writtenEffects(ports, act, done.effects);
     if (lost !== undefined) {
       done = failedDecision(ports, act, new BaseFailure({ lost, original: done }));
@@ -90,4 +90,9 @@ export function finish<X extends Program>(ports: Execution<X>, act: HouseEvent<"
     return failed;
   }
   return done;
+}
+
+function publicDecision<X extends Program>(decision: Decision<X>): Decision<X> {
+  const { private: _private, ...publicPart } = decision;
+  return publicPart;
 }

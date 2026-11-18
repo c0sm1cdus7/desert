@@ -1,4 +1,6 @@
-// Preguntas y ejecución del alta: identificador validado, nombre opcional y programas enteros en un lote.
+// Create an identity and deliver its single-use invitation only in the private receipt.
+import { issueInvitation } from "../../house/doors/door-material.ts";
+import { doorTexts } from "../../texts/doors.texts.ts";
 import { systemTool } from "../../house/system-tools.ts";
 import { programKit } from "../../house/kit-selection.ts";
 import { newIdentityCases } from "./new-identity-cases.ts";
@@ -41,15 +43,20 @@ export function newIdentity<X extends Program>(registry: ToolRegistry<X>, runner
         ? undefined
         : (identityNameProblem(identity, runner) ??
           (members(state.house).includes(identity) ? words.repeated : undefined)),
-    run: ({ identity, name, tools }, { by }) => ({
-      status: "accepted",
-      text: words.created(name ?? identity),
-      target: identityTarget(identity),
-      effects: [
-        effect("granted", { version: 2, identity, kit: programKit(tools) }, by),
-        ...(name === undefined ? [] : [effect("named", { identity, name }, by)]),
-      ],
-    }),
+    run: ({ identity, name, tools }, { by, at }) => {
+      const invitation = issueInvitation(identity, "agente", by, at);
+      return {
+        private: doorTexts.receipt(invitation.code),
+        status: "accepted",
+        text: words.created(name ?? identity),
+        target: identityTarget(identity),
+        effects: [
+          effect("granted", { version: 2, identity, kit: programKit(tools) }, by),
+          ...(name === undefined ? [] : [effect("named", { identity, name }, by)]),
+          invitation.fact,
+        ],
+      };
+    },
     cases: newIdentityCases<X>(tools),
   });
 }

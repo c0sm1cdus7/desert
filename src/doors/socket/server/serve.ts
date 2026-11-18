@@ -9,7 +9,7 @@ const serving = new WeakSet<object>();
 export async function serveHouse<X extends Program>(
   house: RunningHouse<X>,
   home: string,
-  keys: ReadonlyMap<string, DoorKey>,
+  keys?: ReadonlyMap<string, DoorKey>,
 ) {
   if (serving.has(house)) throw new Error("This house already has a socket server");
   house.journal.batch(() => undefined);

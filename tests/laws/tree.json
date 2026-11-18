@@ -337,7 +337,6 @@
     "surface/session/window.ts": "long lists windowed around the chosen row; must, foundAt",
     "testing.ts": "Entrada estable para pruebas de programas: garantías, casas, recorridos y tipos públicos.",
     "texts/addressing.texts.ts": "addressingTexts: the pronouns, orders and look-alike words by which a text is known to address its reader The words that speak to whoever reads: a surface says what is so, and addresses nobody. What is said to someone to make them do it. Words that end as a verb said to one person does, and are no verb at all. Words that end as what one person did, and say it of no one: «existe», «contraste».",
-    "texts/addressing.ts": "addresses: whether a text speaks to whoever reads it, by its pronouns, orders and verbs of the second person A verb said to one person ends as these do; so do a few words that are no verb at all. What one person did ends as these do: «cambiaste», «pediste». Whether a text speaks to whoever reads it: by its pronouns, the orders it gives, or a verb said to one person.",
     "texts/assistant.texts.ts": "Reúne mensajes de administración, delegación, adopción y autoría visible de asistentes.",
     "texts/capital.ts": "Escribe un nombre con mayúscula inicial sin cambiar el resto.",
     "texts/closures.texts.ts": "Mensajes de cierres por causa, dato o construcción y de entradas sin camino. How a case closes, or the positive evidence its screen failed to supply.",
@@ -355,7 +354,7 @@
     "texts/mcp.texts.ts": "Palabras de la puerta MCP: herramientas, orientación, resultados y errores del protocolo.",
     "texts/mind-contracts.texts.ts": "Explica los rechazos de contratos, autoridad y transiciones de las mentes.",
     "texts/mind-frame.texts.ts": "Declara las instrucciones y los rótulos que la casa usa al armar el marco de una mente.",
-    "texts/mind-models.texts.ts": "Explica a las personas la asignación de cartas y los límites de gasto.",
+    "texts/mind-models.texts.ts": "Explain model assignment and spending limits with the shared parameterless text declaration.",
     "texts/mind-turn.texts.ts": "Explica cierres, correcciones y revisiones del turno en el idioma de la casa.",
     "texts/model.texts.ts": "Mensajes de fallas del catálogo y del adaptador de modelos.",
     "texts/promises.texts.ts": "the names of the checks a program's promises derive",
@@ -500,6 +499,20 @@
     "texts/devices.texts.ts": "Textos del registro, autenticación y ejecución de dispositivos.",
     "tools/execution/device-execution.ts": "Selecciona el lugar declarado y despacha por el puerto del core después de los controles comunes.",
     "tools/execution/nested-execution.ts": "Conserva actor, journey y destino de acciones anidadas al volver al ejecutor común.",
-    "tools/minds/device-answer.ts": "Limita la elección de una propuesta a los destinos compatibles ofrecidos por la casa."
+    "tools/minds/device-answer.ts": "Limita la elección de una propuesta a los destinos compatibles ofrecidos por la casa.",
+    "house/doors/door-facts.ts": "Door credentials and invitations persist only fingerprints, never their bearer material.",
+    "house/doors/door-state.ts": "Fold door access and consume invitations without storing any bearer material.",
+    "house/doors/door-material.ts": "Generate unpredictable bearer material and compare only its domain-separated fingerprint.",
+    "runtime/door-access.ts": "The host seeds founders lazily; every door resolves and redeems against the live journal projection.",
+    "runtime/redeem-door.ts": "Redeem on the person's machine and atomically persist a credential without displaying it.",
+    "runtime/redeem-door-cli.ts": "A local redemption entry reads a short code from stdin and never prints response bodies or credentials.",
+    "texts/doors.texts.ts": "Spanish words for invitation delivery, credential recovery and host setup.",
+    "tools/identities/door-actions.ts": "Admin-only invitation recovery and key revocation use the normal identity action engine.",
+    "tools/identities/door-cases.ts": "Declared cases cover identity door administration and its refusal boundaries.",
+    "doors/socket/peers/live-door-keys.ts": "Adapt legacy founder maps once; authentication always reads the house's current fingerprint state.",
+    "doors/mcp/invitation-http.ts": "Redeem outside MCP with a bounded body, a uniform refusal and no cacheable credential responses.",
+    "doors/mcp/mcp-sessions.ts": "Abort open HTTP work as soon as its live credential is revoked, with one house subscription.",
+    "fields/text-addressing.ts": "addresses: whether a text speaks to whoever reads it, by its pronouns, orders and verbs of the second person A verb said to one person ends as these do; so do a few words that are no verb at all. What one person did ends as these do: «cambiaste», «pediste». Whether a text speaks to whoever reads it: by its pronouns, the orders it gives, or a verb said to one person.",
+    "texts/addressing.ts": "Preserve the addressing entry while field analysis owns the implementation."
   }
 }

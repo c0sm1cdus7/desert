@@ -20,18 +20,25 @@ export function header(request: McpRequest, name: string): string | undefined {
   const value = found[0]?.[1];
   return found.length === 1 && typeof value === "string" ? value : undefined;
 }
-export function authenticate(request: McpRequest, keys: ReadonlyMap<string, DoorKey>): DoorKey | undefined {
+export function authenticate(
+  request: McpRequest,
+  keys: ReadonlyMap<string, DoorKey> | Readonly<{ get: (material: string) => DoorKey | undefined }>,
+): DoorKey | undefined {
   const authorization = header(request, "authorization");
   const bearer = authorization?.match(/^Bearer ([^\s]+)$/i)?.[1];
-  const digest = createHash("sha256")
-    .update(bearer ?? "")
-    .digest();
-  let found: DoorKey | undefined;
-  for (const [token, key] of keys) {
-    const matches = timingSafeEqual(digest, createHash("sha256").update(token).digest());
-    if (matches && bearer !== undefined && key.door === "agente") found = key;
+  if (Symbol.iterator in keys) {
+    const digest = createHash("sha256")
+      .update(bearer ?? "")
+      .digest();
+    let found: DoorKey | undefined;
+    for (const [token, key] of keys) {
+      const matches = timingSafeEqual(digest, createHash("sha256").update(token).digest());
+      if (matches && bearer !== undefined && key.door === "agente") found = key;
+    }
+    return found;
   }
-  return found;
+  const key = bearer === undefined ? undefined : keys.get(bearer);
+  return key?.door === "agente" ? key : undefined;
 }
 export function bodyFailure(request: McpRequest): McpResponse | undefined {
   const length = header(request, "content-length");

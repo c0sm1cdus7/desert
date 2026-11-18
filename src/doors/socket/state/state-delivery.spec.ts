@@ -20,7 +20,11 @@ it("N03: a terminal behind the cached delta receives a full state", async () => 
     if (!Buffer.isBuffer(value)) headers.push(readServer(value));
   });
   pair[0].on("data", (bytes: Buffer) => reader.push(bytes));
-  peer.enter({ identity: "ana", door: "terminal" });
+  const key = [...f.house().tools.state().house.doors.keys.values()].find(
+    key => key.identity === "ana" && key.door === "terminal",
+  );
+  if (!key) throw new Error("Missing fixture credential");
+  peer.enter(key);
   try {
     delivery.sendState(peer, true);
     const previous = peer.seq();

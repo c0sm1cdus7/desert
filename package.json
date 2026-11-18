@@ -14,7 +14,8 @@
     "test": "vitest run --project specs",
     "laws": "vitest run --project laws",
     "gate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm laws",
-    "rules": "node tests/laws/write-rules.ts"
+    "rules": "node tests/laws/write-rules.ts",
+    "redeem": "node src/runtime/redeem-door-cli.ts"
   },
   "devDependencies": {
     "@types/node": "24.19.2",
@@ -126,6 +127,8 @@
     "./surface/house-router": "./src/surface/bridge/assembly/house-router.ts",
     "./calculation": "./src/runtime/calculation-version.ts",
     "./doors/device": "./src/doors/devices/device-door.ts",
-    "./doors/device-process": "./src/doors/devices/device-process.ts"
+    "./doors/device-process": "./src/doors/devices/device-process.ts",
+    "./doors/redeem": "./src/runtime/redeem-door.ts",
+    "./doors/redeem-cli": "./src/runtime/redeem-door-cli.ts"
   }
 }

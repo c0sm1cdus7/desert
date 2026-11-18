@@ -55,17 +55,11 @@ export const reviewNotice = defineMessage({
   parameters: object({ passed: Type.Boolean() }),
   texts: { es: ({ passed }) => (passed ? "La propuesta pasó la revisión." : "No se pudo revisar la propuesta.") },
 });
-
 export const invalidNotice = defineMessage({
   id: "mind.turn.invalid",
   kind: "text",
   parameters: object({
-    reason: Type.Union([
-      Type.Literal("json"),
-      Type.Literal("schema"),
-      Type.Literal("max_tokens"),
-      Type.Literal("refusal"),
-    ]),
+    reason: Type.Union((["json", "schema", "max_tokens", "refusal"] as const).map(reason => Type.Literal(reason))),
   }),
   texts: {
     es: ({ reason }) =>

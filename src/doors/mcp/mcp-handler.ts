@@ -1,4 +1,8 @@
 // Maneja HTTP y JSON-RPC sin sockets; cada pedido toma su identidad de la llave y usa los puertos de la casa.
+import { mcpSessions, abortableResponse } from "./mcp-sessions.ts";
+import { liveDoorKeys } from "../socket/peers/live-door-keys.ts";
+import { redeemHttp } from "./invitation-http.ts";
+import type { DoorAccess } from "../../runtime/door-access.ts";
 import { Value } from "@sinclair/typebox/value";
 import { executionDestination } from "../../fields/device-protocol.ts";
 import { isMindActor } from "../../fields/mind-actor.ts";
@@ -22,9 +26,13 @@ const json = (value: unknown): McpResponse => ({
 });
 export function mcpDoor<X extends Program>(
   house: McpHouse<X>,
-  keys: ReadonlyMap<string, DoorKey>,
-  options: McpOptions,
+  keysOrOptions: ReadonlyMap<string, DoorKey> | McpOptions,
+  givenOptions?: McpOptions,
 ) {
+  const founders = "get" in keysOrOptions ? keysOrOptions : undefined;
+  const options = "get" in keysOrOptions ? givenOptions : keysOrOptions;
+  if (!options) throw new Error("Missing MCP options");
+  const keys = liveDoorKeys(house, founders);
   if (
     !options.name ||
     !options.version ||
@@ -37,7 +45,8 @@ export function mcpDoor<X extends Program>(
   const pending = new Set<Promise<McpResponse>>();
   const waits = new Map<string, number>();
   const call = caller(house, book, options, waits);
-  const dispatch = dispatcher(house, keys, controller.signal, call);
+  const sessions = mcpSessions(changed => house.bus.on(changed));
+  const dispatch = dispatcher(house, keys, controller.signal, call, sessions.track);
   const handle = (request: McpRequest) => {
     const work = dispatch(request);
     pending.add(work);
@@ -49,6 +58,7 @@ export function mcpDoor<X extends Program>(
   };
   const close = async () => {
     controller.abort();
+    sessions.close();
     await Promise.allSettled([...pending]);
     book.stop();
   };
@@ -56,13 +66,16 @@ export function mcpDoor<X extends Program>(
 }
 function dispatcher<X extends Program>(
   house: McpHouse<X>,
-  keys: ReadonlyMap<string, DoorKey>,
+  keys: DoorAccess,
   closing: AbortSignal,
   call: (by: string, method: string, params: unknown, signal: AbortSignal) => Promise<unknown>,
+  track: ReturnType<typeof mcpSessions>["track"],
 ) {
   // Each identity gets the socket's rolling window of requests, whatever connection or key it comes through.
   const budgets = new Map<string, ReturnType<typeof requestBudget>>();
   return async (request: McpRequest): Promise<McpResponse> => {
+    if (request.method === "POST" && request.path === "/door/invitations/redeem")
+      return closing.aborted ? empty(503) : redeemHttp(keys, request);
     if (request.method === "GET" && request.path === "/salud")
       return { status: 200, headers: { "Content-Type": "text/plain" }, body: said.health };
     if (request.method === "GET" && request.path === "/mcp") return empty(405, { Allow: "POST" });
@@ -75,17 +88,38 @@ function dispatcher<X extends Program>(
     if (!budget.take(false)) return empty(429, { "Retry-After": "1" });
     const failed = bodyFailure(request);
     if (failed) return failed;
-    const signal = request.signal ? AbortSignal.any([closing, request.signal]) : closing;
-    return protocol(
-      request,
-      (method, params) => call(by, method, params, signal),
-      house,
-      keys,
-      () => identityOf(house, keys, request) === by,
-    );
+    return authorizedRequest(house, keys, request, by, closing, call, track);
   };
 }
-function identityOf<X extends Program>(house: McpHouse<X>, keys: ReadonlyMap<string, DoorKey>, request: McpRequest) {
+async function authorizedRequest<X extends Program>(
+  house: McpHouse<X>,
+  keys: DoorAccess,
+  request: McpRequest,
+  by: string,
+  closing: AbortSignal,
+  call: (by: string, method: string, params: unknown, signal: AbortSignal) => Promise<unknown>,
+  track: ReturnType<typeof mcpSessions>["track"],
+) {
+  const revoked = new AbortController();
+  const stop = track(revoked, () => identityOf(house, keys, request) === by);
+  const signal = AbortSignal.any([closing, revoked.signal, ...(request.signal ? [request.signal] : [])]);
+  try {
+    return await abortableResponse(
+      protocol(
+        request,
+        (method, params) => call(by, method, params, signal),
+        house,
+        keys,
+        () => identityOf(house, keys, request) === by,
+      ),
+      signal,
+      () => empty(identityOf(house, keys, request) === by ? 503 : 401),
+    );
+  } finally {
+    stop();
+  }
+}
+function identityOf<X extends Program>(house: McpHouse<X>, keys: DoorAccess, request: McpRequest) {
   const key = authenticate(request, keys);
   return key && !isMindActor(key.identity) && present(house.registry, house.tools.state().house, key.identity)
     ? key.identity
@@ -95,7 +129,7 @@ async function protocol<X extends Program>(
   request: McpRequest,
   call: (method: string, params: unknown) => Promise<unknown>,
   house: McpHouse<X>,
-  keys: ReadonlyMap<string, DoorKey>,
+  keys: DoorAccess,
   authorized: () => boolean,
 ): Promise<McpResponse> {
   let id: RpcId = null;
@@ -129,16 +163,12 @@ async function protocol<X extends Program>(
     );
   }
 }
-function publicResult<X extends Program>(
-  house: McpHouse<X>,
-  keys: ReadonlyMap<string, DoorKey>,
-  value: unknown,
-): unknown {
+function publicResult<X extends Program>(house: McpHouse<X>, keys: DoorAccess, value: unknown): unknown {
   const clean = house.tools.prepare(value);
   const redact = (value: unknown): unknown => {
     if (typeof value === "string") {
       let text = value;
-      for (const key of keys.keys()) if (key) text = text.split(key).join(said.redacted);
+      text = text.replace(/[A-Za-z0-9_+-]{8,}={0,2}/g, token => (keys.get(token) ? said.redacted : token));
       return text;
     }
     if (Array.isArray(value)) return value.map(redact);

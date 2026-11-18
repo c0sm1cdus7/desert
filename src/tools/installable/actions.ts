@@ -11,7 +11,9 @@ const targetOf = (id: string, group: string, target?: string) =>
   target === undefined || target === group ? folderOf(id, group) : objectOf(id, group, target);
 function casesOf<X extends Program>(id: string, group: string, cases: readonly Case<X>[]): readonly Case<Program>[] {
   const step = (each: Step): Step =>
-    "days" in each ? each : { ...each, act: `${group}/${each.act}`, on: targetOf(id, group, each.on) };
+    "days" in each || "doorKey" in each
+      ? each
+      : { ...each, act: `${group}/${each.act}`, on: targetOf(id, group, each.on) };
   return cases.map(each => ({
     ...each,
     on: targetOf(id, group, each.on),

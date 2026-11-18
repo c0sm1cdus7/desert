@@ -1,57 +1,41 @@
-// Explica a las personas la asignación de cartas y los límites de gasto.
-import { defineMessage } from "../fields/messages.ts";
+// Explain model assignment and spending limits with the shared parameterless text declaration.
+import { defineMessage as message } from "../fields/messages.ts";
 import { object } from "../fields/visible-text.ts";
-export const mindModelAdmin = defineMessage({
+const plain = { kind: "text", parameters: object({}) } as const;
+export const mindModelAdmin = message({
   id: "mind.model.admin",
-  kind: "text",
-  parameters: object({}),
+  ...plain,
   texts: { es: "Solo quien administra puede asignar la carta" },
 });
-export const mindModelCard = defineMessage({
+export const mindModelCard = message({
   id: "mind.model.card",
-  kind: "text",
-  parameters: object({}),
+  ...plain,
   texts: { es: "La carta no está aprobada para esta mente" },
 });
-export const mindModelTarget = defineMessage({
+export const mindModelTarget = message({
   id: "mind.model.target",
-  kind: "text",
-  parameters: object({}),
+  ...plain,
   texts: { es: "No hay un asistente habilitado en este destino" },
 });
-export const mindModelAssigned = defineMessage({
-  id: "mind.model.assigned",
-  kind: "text",
-  parameters: object({}),
-  texts: { es: "Carta asignada" },
-});
-export const mindModelCap = defineMessage({
+export const mindModelAssigned = message({ id: "mind.model.assigned", ...plain, texts: { es: "Carta asignada" } });
+export const mindModelCap = message({
   id: "mind.model.cap",
-  kind: "text",
-  parameters: object({}),
+  ...plain,
   texts: { es: "No alcanza el tope de gasto configurado" },
 });
-export const mindModelKey = defineMessage({
-  id: "mind.model.key",
-  kind: "text",
-  parameters: object({}),
-  texts: { es: "Falta la llave del proveedor" },
-});
-export const mindModelNoCard = defineMessage({
+export const mindModelKey = message({ id: "mind.model.key", ...plain, texts: { es: "Falta la llave del proveedor" } });
+export const mindModelNoCard = message({
   id: "mind.model.no-card",
-  kind: "text",
-  parameters: object({}),
+  ...plain,
   texts: { es: "Falta una carta aprobada para esta mente" },
 });
-export const mindModelPrice = defineMessage({
+export const mindModelPrice = message({
   id: "mind.model.price",
-  kind: "text",
-  parameters: object({}),
+  ...plain,
   texts: { es: "No se puede calcular el precio de la llamada" },
 });
-export const mindModelUncertain = defineMessage({
+export const mindModelUncertain = message({
   id: "mind.model.uncertain",
-  kind: "text",
-  parameters: object({}),
+  ...plain,
   texts: { es: "No se conoce el resultado de la llamada" },
 });

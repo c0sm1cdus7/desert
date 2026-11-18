@@ -1,3 +1,5 @@
+import { effect } from "../../house/facts.ts";
+import { findDoorKey } from "../../house/doors/door-material.ts";
 import { randomUUID } from "node:crypto";
 import { afterEach, expect, it, vi } from "vitest";
 import { mcpHouse } from "../../../tests/support/mcp-house.ts";
@@ -137,7 +139,9 @@ it("rechecks a revoked credential after a slow body, before reading the house", 
     path: "/mcp",
     headers: { authorization: `Bearer ${h.beto}`, "content-type": "application/json" },
     body: function* () {
-      h.keys.delete(h.beto);
+      const key = findDoorKey(h.rig.state().house.doors, h.beto);
+      if (!key) throw new Error("Missing fixture credential");
+      h.rig.bus.emit(effect("door-key-revoked", { key: key.id }, "ana"));
       yield Buffer.from(JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "leer" } }));
     },
   });
