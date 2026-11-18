@@ -25,6 +25,15 @@ type InspectionProgram<X extends Program> = Omit<HouseOptions<X>, "by" | "creati
 const denied = (): never => {
   throw new InspectionUnavailable(said.inspectionWrite);
 };
+const inspectionDevices = {
+  register: denied,
+  accept: denied,
+  retire: denied,
+  authentication: denied,
+  connect: denied,
+  available: denied,
+  close: denied,
+};
 function inspectionTools<X extends Program>(
   program: InspectionProgram<X>,
   journal: ReturnType<typeof houseJournal<X["fact"]>>,
@@ -88,7 +97,10 @@ async function inspectCopy<X extends Program, R>(
       // The copy's folder stands for home; cancelling an inherited wake would write, so it is denied like any write.
       const house = { home: dirname(file), bus, journal, tools, registry: program.registry, close };
       const quiet = { storageNotices: () => [], storageUnsaved: () => [] };
-      return await use({ ...house, ...quiet, now: () => now, cancelInheritedWake: denied }, now);
+      return await use(
+        { ...house, ...quiet, devices: inspectionDevices, now: () => now, cancelInheritedWake: denied },
+        now,
+      );
     } finally {
       close();
     }

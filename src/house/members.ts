@@ -1,6 +1,7 @@
 // A house: tool grants, action kits, shared scenes, preferences and reading.
 import { systemTool } from "./system-tools.ts";
 import { emptyRules, rulesStep, type RulesState } from "./rules/rule-state.ts";
+import { emptyDevices, deviceStep, type DeviceState } from "./devices/device-state.ts";
 import type { KitMigration } from "./kit-migration.ts";
 import { selectionStep } from "./kit-history.ts";
 import { programKit, type KitLayout, type SelectionKit } from "./kit-selection.ts";
@@ -24,6 +25,7 @@ export type Creation = Readonly<{ admin: string; assignments: readonly Assignmen
 export type House = Readonly<{
   admin: string;
   rules: RulesState;
+  devices: DeviceState;
   selections?: ReadonlyMap<string, SelectionKit>;
   kitLayout?: KitLayout;
   kitMigration?: KitMigration;
@@ -53,6 +55,7 @@ const noAttention: Attentions = new Map();
 export const emptyHouse: House = {
   admin: "",
   rules: emptyRules,
+  devices: emptyDevices,
   assistants: new Map(),
   mindAssignments: new Map(),
   minds: emptyMindState,
@@ -68,6 +71,7 @@ export const emptyHouse: House = {
 export function houseStep(state: House, event: Event): House {
   if (event.layer !== "house" || namesMind(event)) return state;
   state = { ...state, rules: rulesStep(state.rules, event, state.admin) };
+  state = deviceStep(state, event);
   state = mindHouseStep(state, event);
   state = sceneStep(state, event);
   state = selectionStep(state, event);

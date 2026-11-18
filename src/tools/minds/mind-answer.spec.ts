@@ -82,3 +82,22 @@ it("cierra también los objetos dentro de entradas de tuplas", () => {
   expect(Value.Check(schema, proposal({ values: [{ text: "Hola" }] }))).toBe(true);
   expect(Value.Check(schema, proposal({ values: [{ text: "Hola", extra: true }] }))).toBe(false);
 });
+
+it("requires a destination offered to the journey and rejects a different or missing machine", () => {
+  const remoteMenu: MindMenu = menu.map(item => ({
+    ...item,
+    destinations: [
+      { kind: "device", device: "mac" },
+      { kind: "device", device: "vm" },
+    ],
+  }));
+  for (const device of ["mac", "vm", "absent", undefined]) {
+    const value = {
+      ...answer,
+      acts: answer.acts.map(act => ({ ...act, ...(device ? { destination: { kind: "device", device } } : {}) })),
+    };
+    const valid = device === "mac" || device === "vm";
+    expect(Value.Check(answerSchema(remoteMenu), value)).toBe(valid);
+    expect(validateAnswer(value, { ...context, menu: remoteMenu }).ok).toBe(valid);
+  }
+});

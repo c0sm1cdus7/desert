@@ -1056,7 +1056,7 @@ Al actualizar un programa:
 
 ## Lo que la base todavía no hace (lo que un programa va a pedir)
 
-- La puerta para otros dispositivos, la de agentes y muchas organizaciones en un servidor.
+- El transporte remoto cifrado de dispositivos y muchas organizaciones en un servidor.
 - Una acción que hoy solo puede rechazar (exige al menos un caso aceptado).
 - Dar un paso en memoria como operación de la base (Capibara lo arma con piezas para recorrer todos los caminos).
 - Separar en la acción los motivos que dependen de lo que se responde de los que dependen del estado.
@@ -2413,3 +2413,68 @@ resultados mecánicos del diario por causa e id/versión para incluirlos en la r
 convertir un freno en permiso, repetir el acto aprobado ni perder las comprobaciones posteriores
 a una espera. No se agrega un intérprete de código ni aislamiento contra JavaScript hostil:
 los efectos externos de programas deben usar las capacidades declaradas del core.
+
+## Dispositivos del core: registro y ejecución (18/11, paso 1)
+
+Cada identidad provisiona su dispositivo. El dueño queda en `device-registered`; su dueño o quien administra
+la casa lo acepta y lo retira. `device-connected` registra la sesión y el inventario declarado por el proceso:
+herramienta, versión exacta y acciones instaladas. Desconectar, retirar o sacar al dueño corta la conexión;
+no concede ni quita acciones del kit de quien usa la máquina. El dispositivo no aparece en Identidades,
+no recibe kit, no piensa y no crea journeys.
+
+`startHouse` entrega `house.devices` al anfitrión para registrar, aceptar, retirar y consultar máquinas.
+La identidad que se pasa a sus operaciones de administración debe venir de una sesión autenticada de la casa,
+igual que el actor que el anfitrión pasa al ejecutor. `createDeviceDoor`, exportada por `desert/doors/device`,
+autentica al dispositivo por separado: un desafío aleatorio Ed25519, de un solo uso y con treinta segundos de
+vigencia, contra la clave pública registrada y aceptada. Devuelve solamente el cierre de esa conexión;
+no devuelve una sesión de identidad ni acceso administrativo. La clave privada queda en el proceso local.
+
+Una acción declara `execution: { at: "house" }`, `{ at: "device", tool: "shell", version: "1" }` o
+`{ at: "either", tool: "shell", version: "1" }`. Omitir la declaración conserva las acciones anteriores en
+la casa. `programAct` conserva esa declaración. El inventario nombra la ruta completa de la acción del programa,
+por ejemplo `shell/run`; la versión identifica el contrato de ejecución de la herramienta instalada.
+
+Al usar una acción para dispositivo o ambos, el pedido lleva una elección explícita:
+`destination: { kind: "house" }` o `destination: { kind: "device", device: "mi-mac" }`.
+`house.devices.available(programa, acción)` devuelve las máquinas conectadas compatibles; no filtra por dueño.
+El motor aplica presencia, kit vigente, journey, entrada y revisión exterior antes del despacho. Una declaración
+que permite dispositivos se considera exterior también si declara `reach: "house"`; no elude la revisión.
+Socket conserva la elección y la incluye al deduplicar pedidos. MCP muestra `execution` y `destinations` en
+`acciones` y acepta `destination` en `actuar`. Las propuestas de journeys reciben destinos compatibles en su menú
+y en el esquema de respuesta; una máquina ausente o no ofrecida se rechaza.
+
+`createDeviceProcess`, exportada por `desert/doors/device-process`, recibe implementaciones locales agrupadas
+por herramienta y versión. Su endpoint anuncia el inventario, valida pedidos, rechaza ids de ejecución repetidos
+y devuelve un resultado validado. No recibe el estado de la casa, ejecutores anidados, credenciales ni capacidad
+de emitir hechos. El código del programa y el journey siguen en la casa. Este módulo implementa el proceso
+mediante un puerto de mensajes; el anfitrión conecta ese puerto a la puerta técnica. Este paso se verifica con
+endpoints simulados: no instala un servicio del sistema ni abre un transporte remoto en la Mac.
+
+Cada intento escribe `device-execution-started` con actor, programa, acción, journey cuando existe,
+dispositivo y sesión. Un recibo comprobado escribe `device-execution-result` con estado y referencia;
+MCP puede mostrar esa referencia. Si se pierde contacto, se retira el dispositivo, se cierra la casa o el proceso
+no entrega un resultado comprobable, queda `device-execution-unknown` y la acción devuelve `inconclusive`,
+con el motivo. No se envía otra vez ni se elige otra máquina. Una respuesta tardía de la sesión cortada no cambia
+ese registro. Reabrir conserva la historia, desconecta las sesiones anteriores y marca como desconocidos los
+intentos sin recibo; reconstruir el diario no ejecuta acciones. Un turno con ese resultado se interrumpe y explica
+la incertidumbre, sin ejecutar los actos siguientes.
+
+El paso 1 no transporta llaves: rechaza entradas declaradas secretas para ejecución remota y no presta
+el llavero de la casa. El sobre cifrado, la entrega y depuración de llaves por acción corresponden al paso 2.
+Shell, Claude y Codex pertenecen al futuro programa Agentes y no se incorporan aquí. Las acciones existentes
+sin `execution` no requieren cambios; quien construye estados de casa manualmente parte de `emptyHouse`,
+que ahora incluye `devices`. La inspección de diarios guardados deniega todas las operaciones de dispositivos.
+
+## Mechanical rules and device dispatch (18/11, step 1 union)
+
+The common executor checks current rules before review and device dispatch for every actor.
+After review waits, it resolves authority and evaluates current rules again; the dispatch callback
+also checks rules immediately before sending, including after the internal send queue.
+If that final check refuses, the recorded attempt is rejected with a `core:<execution>`
+reference: it identifies a core refusal before sending, not a device receipt. A blocking rule cannot become review permission.
+Actions that support devices count as external even when their local reach says `house`.
+A rule activated after dispatch cannot rewrite an external receipt or an unknown result.
+
+The public rule condition schema does not expose execution destinations. `destination` belongs
+to the act envelope, not the action input, and the core projections remain `admin`, `actor`,
+`actorKind`, `isAdmin`, and `inJourney`. This union does not extend that public contract.

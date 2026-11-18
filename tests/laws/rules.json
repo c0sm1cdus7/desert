@@ -3241,7 +3241,9 @@
         "src/doors/mcp/mechanical-rules.spec.ts",
         "src/runtime/contracts/mechanical-rule-contract.spec.ts",
         "src/runtime/distributions/mechanical-rule-journeys.spec.ts",
-        "src/surface/formats/number-format.spec.ts"
+        "src/surface/formats/number-format.spec.ts",
+        "src/runtime/devices/device-rules.spec.ts",
+        "src/doors/terminal/device-rules-pty.spec.ts"
       ]
     },
     {
@@ -3253,6 +3255,29 @@
         "src/tools/rules/rules.spec.ts",
         "src/runtime/minds/rule-wake.spec.ts",
         "src/runtime/distributions/mechanical-rule-journeys.spec.ts"
+      ]
+    },
+    {
+      "id": 293,
+      "rule": "Cada dispositivo tiene dueño, aceptación, inventario y conexión registrados. Su puerta autentica la máquina con un desafío propio de un solo uso: no crea una identidad, una mente ni un kit. Retirar la máquina o sacar a su dueño cierra su conexión.",
+      "from": "18/11 · core-dispositivos paso 1",
+      "guarantee": "spec",
+      "evidence": ["src/runtime/devices/device-runtime.spec.ts", "src/doors/devices/device-door.spec.ts"]
+    },
+    {
+      "id": 294,
+      "rule": "La acción declara casa, dispositivo o ambos y el actor elige el destino al usarla. El motor conserva actor, programa, acción y journey, exige su kit y un inventario compatible, y registra la referencia del resultado. Una desconexión o cierre conserva el resultado desconocido sin reintento ni cambio de máquina. El paso 1 no presta llaves de la casa.",
+      "from": "18/11 · core-dispositivos paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/runtime/devices/device-runtime.spec.ts",
+        "src/runtime/devices/device-neighbors.spec.ts",
+        "src/doors/devices/device-door.spec.ts",
+        "src/doors/devices/device-process.spec.ts",
+        "src/runtime/devices/device-minds.spec.ts",
+        "src/runtime/minds/mind-turn.spec.ts",
+        "src/runtime/devices/device-rules.spec.ts",
+        "src/doors/terminal/device-rules-pty.spec.ts"
       ]
     }
   ]

@@ -1,4 +1,5 @@
 // Internal engine capabilities never cross Tool.start or an action context.
+import type { DeviceDispatch } from "./execution/device-execution.ts";
 import type { ContractFactory } from "./contract-port.ts";
 import type { TSchema } from "@sinclair/typebox";
 import type { Bus } from "../journal/bus.ts";
@@ -12,6 +13,7 @@ export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: 
   Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
   Readonly<{
     contracts?: ContractFactory;
+    devices?: DeviceDispatch;
     mindScope?: MindScope;
     review?: ReviewPort;
     houseOwn?: (act: OwnAct<X>) => boolean;

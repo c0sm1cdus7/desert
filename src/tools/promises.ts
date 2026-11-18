@@ -83,7 +83,8 @@ export function programAct<X extends Program, S extends TSchema, const O extends
   const said = soFar<X>(input, declared);
   const act = {
     input,
-    reach: reach ?? "house",
+    reach: reach ?? (declared.execution && declared.execution.at !== "house" ? "world" : "house"),
+    ...(declared.execution ? { execution: declared.execution } : {}),
     run: body(declared),
     ...(declared.needs === undefined ? {} : { needs: declared.needs }),
   };

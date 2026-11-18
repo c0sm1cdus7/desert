@@ -1,4 +1,5 @@
 // Define los límites del socket y valida los mensajes entre cliente y servidor.
+import { executionDestination } from "../../../fields/device-protocol.ts";
 import { wholeNumber } from "../../../fields/json-values.ts";
 import { actLimits } from "../../../house/own-acts.ts";
 /** Local house wire: equality includes the complete Node version because state uses v8 serialization. */
@@ -36,6 +37,7 @@ const clientProtocol = Type.Union([
     act: name,
     target: Type.Optional(name),
     input: Type.Unknown(),
+    destination: Type.Optional(executionDestination),
     through: wholeNumber,
   }),
   object({ ...tag("leer"), ...id, qué: name, desde: Type.Optional(wholeNumber) }),

@@ -98,7 +98,7 @@ async function applyAct<X extends Program>(
     cause,
   );
   const done = result.status === "processing" ? await result.completion : result;
-  if (!house.active()) return { status: "interrupted", id: turn.id };
+  if (!house.active() && done.status !== "inconclusive") return { status: "interrupted", id: turn.id };
   const origin = house
     .history()
     .find(
@@ -108,7 +108,7 @@ async function applyAct<X extends Program>(
         event.kind === "act" &&
         cause.every(id => event.cause.includes(id)),
     );
-  const status = done.status === "interrupted" ? "interrupted" : "rejected";
+  const status = done.status === "interrupted" || done.status === "inconclusive" ? done.status : "rejected";
   return { status: done.status === "accepted" ? "accepted" : status, id: origin?.id ?? turn.id };
 }
 export function runtimeActions<X extends Program>(

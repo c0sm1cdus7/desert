@@ -21,7 +21,14 @@ export async function reviewWorld<X extends Program>(
     reason: "world" as const,
     scope,
     through: ports.state().through,
-    acts: [{ act: value.act, target: origin.data.object, input: value.input }],
+    acts: [
+      {
+        act: value.act,
+        target: origin.data.object,
+        input: value.input,
+        ...(value.destination ? { destination: value.destination } : {}),
+      },
+    ],
   };
   const result = await ports.review.review(request);
   if (result.outcome !== "passed" || result.proposal !== origin.id || result.through !== request.through)

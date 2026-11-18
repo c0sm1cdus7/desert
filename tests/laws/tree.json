@@ -487,6 +487,19 @@
     "tools/rules/rule-failure.ts": "Transporta un freno mecánico desde una capacidad hasta el resultado del acto sin convertirlo en defecto.",
     "tools/rules/rule-form.ts": "Agrega preguntas de superficie a los mismos datos tipados y despliega combinaciones acotadas.",
     "tools/rules/rule-simulation.ts": "Simula casos explícitos sin ejecutar acciones ni escribir cambios de vigencia.",
-    "tools/rules/rules.ts": "Reglas es una pieza reservada del core que comparte acciones y lectura entre todas las superficies."
+    "tools/rules/rules.ts": "Reglas es una pieza reservada del core que comparte acciones y lectura entre todas las superficies.",
+    "doors/devices/device-door.ts": "Autentica una máquina con desafíos Ed25519 de un solo uso sin crear una sesión de identidad.",
+    "doors/devices/device-process.ts": "Ejecuta acciones instaladas y devuelve recibos; no interpreta encargos ni crea journeys.",
+    "fields/device-protocol.ts": "Declara destinos, inventarios y mensajes de ejecución sin identidad ni capacidades de la casa.",
+    "house/devices/device-facts.ts": "Define hechos del registro, conexiones y ejecuciones de dispositivos en el diario común.",
+    "house/devices/device-state.ts": "Reconstruye dueños, inventarios y resultados sin convertir dispositivos en actores.",
+    "runtime/devices/device-connections.ts": "Mantiene sesiones vivas y corta pendientes al desconectar, retirar o perder al dueño.",
+    "runtime/devices/device-dispatch.ts": "Conserva el intento y su referencia; un corte termina la espera con resultado desconocido sin reintento.",
+    "runtime/devices/device-registration.ts": "Valida alta y administración por identidad y conserva los datos públicos de autenticación.",
+    "runtime/devices/device-runtime.ts": "Administra dispositivos del dueño y conexiones técnicas separadas de las sesiones de identidad.",
+    "texts/devices.texts.ts": "Textos del registro, autenticación y ejecución de dispositivos.",
+    "tools/execution/device-execution.ts": "Selecciona el lugar declarado y despacha por el puerto del core después de los controles comunes.",
+    "tools/execution/nested-execution.ts": "Conserva actor, journey y destino de acciones anidadas al volver al ejecutor común.",
+    "tools/minds/device-answer.ts": "Limita la elección de una propuesta a los destinos compatibles ofrecidos por la casa."
   }
 }

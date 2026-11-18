@@ -196,6 +196,7 @@ it("un registro escrito por la custodia sola (3e69d44) se pliega igual en el ár
     kitLayout,
     identities,
     rules,
+    devices,
     ...older
   } = house;
   expect(Object.hasOwn(older, "channels")).toBe(false);
@@ -203,6 +204,7 @@ it("un registro escrito por la custodia sola (3e69d44) se pliega igual en el ár
   expect(folded({ ...rest, house: older })).toEqual({ ...previous.fold, house: previousHouse });
   expect(identities).toBe(false);
   expect(rules).toEqual({ versions: new Map(), active: new Map(), approved: new Map(), retired: new Map() });
+  expect(devices).toEqual({ devices: new Map(), executions: new Map() });
   expect(kitLayout).toEqual({});
   expect(selections).toEqual(
     new Map([

@@ -1,4 +1,6 @@
 // Maneja HTTP y JSON-RPC sin sockets; cada pedido toma su identidad de la llave y usa los puertos de la casa.
+import { Value } from "@sinclair/typebox/value";
+import { executionDestination } from "../../fields/device-protocol.ts";
 import { isMindActor } from "../../fields/mind-actor.ts";
 import { present } from "../../house/kit.ts";
 import type { Program, ViewLimits } from "../../tools/tool-contract.ts";
@@ -174,6 +176,7 @@ function caller<X extends Program>(
         args.accion,
         typeof args.objetivo === "string" ? args.objetivo : program,
         args.datos,
+        Value.Check(executionDestination, args.destination) ? args.destination : undefined,
       );
     throw new RpcError(-32602, said.params);
   };

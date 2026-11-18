@@ -1,4 +1,5 @@
 // Los mensajes JSON-RPC y las cuatro herramientas fijas de la puerta MCP, sin sesión de transporte.
+import { executionDestination } from "../../fields/device-protocol.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { object } from "../../fields/visible-text.ts";
@@ -14,6 +15,7 @@ export const mcpInputs = {
     accion: name,
     objetivo: Type.Optional(name),
     datos: Type.Record(Type.String(), Type.Unknown()),
+    destination: Type.Optional(executionDestination),
   }),
   esperar: object({
     desde: Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER }),

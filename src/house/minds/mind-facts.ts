@@ -1,10 +1,14 @@
 // Declara los hechos públicos de turnos, consultas, revisiones, mensajes y escenas de proceso.
+import { executionDestination } from "../../fields/device-protocol.ts";
 import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
 import { mindName } from "../assistants/assistant-facts.ts";
 import { mindText } from "./journey-facts.ts";
 const turn = { turn: mindName };
-const proposals = Type.Array(object({ act: mindName, target: mindName, input: Type.Unknown() }), { maxItems: 32 });
+const proposals = Type.Array(
+  object({ act: mindName, target: mindName, input: Type.Unknown(), destination: Type.Optional(executionDestination) }),
+  { maxItems: 32 },
+);
 export const mindFacts = {
   "mind-turn-opened": object({ ...turn, wake: Type.Array(mindName, { uniqueItems: true }) }),
   "mind-answer-invalid": object({

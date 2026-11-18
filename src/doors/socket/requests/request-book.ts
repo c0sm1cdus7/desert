@@ -81,9 +81,9 @@ function actRequest<X extends Program>(
   lookup: (by: string, id: string) => ResultMessage | undefined,
 ) {
   const act = async (by: string, request: RequestAct): Promise<ServerMessage> => {
-    const { act, input, target, through, id } = request;
+    const { id } = request;
     if (!jsonData(request)) return { tipo: "rechazo", id, motivo: socketTexts.invalidData };
-    const content = requestContent({ object: target ?? ids.self, option: act, input, through });
+    const content = requestFingerprint(request);
     const key = requestKey(by, id);
     const saved = requests.get(key);
     if (saved && saved.content !== content) return { tipo: "rechazo", id, motivo: socketTexts.reused };
@@ -92,10 +92,7 @@ function actRequest<X extends Program>(
     requests.set(key, { id: key, content, effects: [] });
     let done: ResultMessage;
     try {
-      const started = house.tools.act({ act, input, ...(target ? { target } : {}) }, through, by, [
-        key,
-        `socket-content:${content}`,
-      ]);
+      const started = runRequest(house, by, request, [key, `socket-content:${content}`]);
       const result = started.status === "processing" ? await started.completion : started;
       done = {
         tipo: "resultado",
@@ -113,4 +110,30 @@ function actRequest<X extends Program>(
     return done;
   };
   return act;
+}
+
+function runRequest<X extends Program>(
+  house: RequestHouse<X>,
+  by: string,
+  request: RequestAct,
+  cause: readonly string[],
+) {
+  const { act, input, target, through, destination } = request;
+  return house.tools.act(
+    { act, input, ...(target ? { target } : {}), ...(destination ? { destination } : {}) },
+    through,
+    by,
+    cause,
+  );
+}
+
+function requestFingerprint(request: RequestAct) {
+  const { act, input, target, through, destination } = request;
+  return requestContent({
+    object: target ?? ids.self,
+    option: act,
+    input,
+    through,
+    ...(destination ? { destination } : {}),
+  });
 }

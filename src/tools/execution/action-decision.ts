@@ -78,7 +78,7 @@ export function checkedDecision<X extends Program>(
   input?: unknown,
 ): Decision<X> {
   const origin = ports.state().acts.get(context.id ?? "");
-  if (origin && act.reach !== "world" && result.status === "accepted") {
+  if (origin && origin.data.destination?.kind !== "device" && act.reach !== "world" && result.status === "accepted") {
     const blocked = mechanicalRules(ports, origin, { tool: tool?.id ?? context.target, act: option }, act.input, input);
     if (blocked) return blocked;
   }

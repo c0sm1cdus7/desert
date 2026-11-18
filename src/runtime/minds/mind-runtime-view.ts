@@ -1,4 +1,6 @@
 // Proyecta destinos, permisos y datos visibles de la casa para cada alcance del pensamiento.
+import { deviceChoices } from "../../house/devices/device-state.ts";
+import type { ExecutionDestination } from "../../fields/device-protocol.ts";
 import { programCommunication } from "./program-mind-communication.ts";
 import { allowedAct, present } from "../../house/kit.ts";
 import { identityView } from "../../house/members.ts";
@@ -95,7 +97,24 @@ function toolMenu<X extends Program>(
     if (!allowedAct(state.house, state.by, tool.id, act, registry)) return [];
     if (value.on && (value.on === "tool") !== (target === tool.id)) return [];
     if (programOffered(value, state, target, now) !== undefined) return [];
-    return [{ tool: tool.id, act, target, input: value.input, scope: "work" as const }];
+    const destinations: readonly ExecutionDestination[] | undefined =
+      value.execution && value.execution.at !== "house"
+        ? [
+            ...(value.execution.at === "either" ? [{ kind: "house" as const }] : []),
+            ...deviceChoices(state.house, value.execution, act).map(({ kind, device }) => ({ kind, device })),
+          ]
+        : undefined;
+    if (destinations?.length === 0) return [];
+    return [
+      {
+        tool: tool.id,
+        act,
+        target,
+        input: value.input,
+        scope: "work" as const,
+        ...(destinations ? { destinations } : {}),
+      },
+    ];
   });
 }
 function visibleTools<X extends Program>(

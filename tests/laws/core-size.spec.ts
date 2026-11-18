@@ -88,10 +88,11 @@ describe("the tree of src/", () => {
   // Dist-mentes-programa: +22 líneas exactas para reglas comunes, palabras del programa y aviso de indisponibilidad.
   // Mente de programa: +1 línea para decir que la atención la marca el código (decisión 28).
   // Core Reglas: +128 líneas exactas para acciones, condiciones, simulación y esperas sin supervisor.
-  it("keeps every file within 300 lines and the texts within 1121", () => {
+  // Devices add 16 lines to Rules' 128: the shared baseline is 993, so the combined budget is 1137.
+  it("keeps every file within 300 lines and the texts within 1137", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1121);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1137);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

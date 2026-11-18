@@ -35,6 +35,7 @@ export const performAct = <X extends Program>(
   }
   if (!(result instanceof Promise)) return finish(ports, act, result);
   const completion = result.catch(failed).then((decision): Decision<X> => {
+    if (!ports.live() && decision.status === "inconclusive") return decision;
     if (!ports.live()) return { status: "interrupted", reason: toolTexts.interrupted, effects: [] };
     const done = finish(ports, act, decision);
     if (actNews({ ...done, output: done.status === "accepted" && done.output }))

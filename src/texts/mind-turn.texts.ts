@@ -15,6 +15,7 @@ const reasons = {
   rejected: "La propuesta no pasó la revisión después de la única corrección.",
   "review-failed": "No se pudo completar la revisión de la propuesta.",
   "review-stale": "La aprobación ya no corresponde a las reglas vigentes.",
+  "act-uncertain": "El resultado del acto no se conoce. El turno se detuvo sin repetirlo ni cambiar de dispositivo.",
   "act-failed": "Un acto no terminó; los actos siguientes quedaron sin ejecutar.",
   inactive: "El turno se interrumpió porque su alcance dejó de estar activo.",
   permission: "El permiso cambió antes de aplicar la propuesta.",
