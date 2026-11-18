@@ -39,7 +39,12 @@ for (const who of ["identity", "mind"])
     rig.bus().emit(effect("kit-set", { holder: "mind:vault", tool: "vault", acts: ["write"] }, "ana"));
     revoke = () => {
       if (who === "identity") rig.bus().emit(effect("granted", { identity: "ana", tools: ["sales"] }, "ana"));
-      else rig.options.registry.pop();
+      else {
+        const registry = rig.registry();
+        const index = registry.findIndex(tool => tool.id === "vault");
+        if (index < 0) throw new Error("fixture: vault is not installed");
+        Array.prototype.splice.call(registry, index, 1);
+      }
     };
     const result = who === "mind" ? await mind.act() : await rig.act("write");
     // Since the kit, losing the tool mid-act cuts it first (interrupted · sacada); the adapter is never opened.
@@ -56,10 +61,13 @@ it("a mind cannot borrow another tool's adapters when targets differ between the
     }),
   });
   const rig = adapterHouse(mind.tool.acts, { ...mind.tool, targets: () => ["shared"] }, declared);
-  const sales = rig.options.registry[0];
+  const registry = rig.registry();
+  const sales = registry[0];
   if (!sales) throw new Error("fixture");
   // The house view reads as its runner ("shop" since the kit: an identity is never the house's name).
-  rig.options.registry[0] = { ...sales, targets: state => (state.by === "shop" ? ["shared"] : []) };
+  Object.assign(registry, {
+    0: { ...sales, targets: (state: { by: string }) => (state.by === "shop" ? ["shared"] : []) },
+  });
   rig.bus().emit(effect("kit-set", { holder: "mind:vault", tool: "vault", acts: ["write"] }, "ana"));
   expect((await mind.act("write", {}, "shared")).status).toBe("rejected");
   expect(open).not.toHaveBeenCalled();

@@ -3215,6 +3215,45 @@
         "src/runtime/minds/program-mind-neighbors.spec.ts",
         "src/runtime/distributions/program-mind-journeys.spec.ts"
       ]
+    },
+    {
+      "id": 290,
+      "rule": "Reglas es del core: conserva todas las versiones, mantiene borradores ajenos sin efecto hasta aprobación y aplica lo del admin al guardarlo. Las condiciones son datos tipados de un catálogo cerrado sobre campos declarados o proyecciones públicas; rechaza código, rutas ajenas y campos secretos. Retirar nunca borra una versión.",
+      "from": "17/11 12:44–12:56 y 18/11 · core-reglas, paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/house/rules/rule-state.spec.ts",
+        "src/house/rules/rule-predicate.spec.ts",
+        "src/tools/rules/rules.spec.ts",
+        "src/tools/rules/rule-authority.spec.ts"
+      ]
+    },
+    {
+      "id": 291,
+      "rule": "El control mecánico obliga a todo actor, también al admin a mano, terminal, MCP, mente, journey, comunicación, llamada anidada y contrato. Un freno no se transforma en permiso del supervisor. Tras una espera, revalida antes del efecto mediado por el core; evalúa la entrada normalizada que usa la acción y conserva resultados por versión.",
+      "from": "17/11 12:46–12:53 y dist-3 §2 · core-reglas, paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/rules/rule-execution.spec.ts",
+        "src/tools/rules/rule-authority.spec.ts",
+        "src/doors/terminal/mechanical-rules.spec.ts",
+        "src/doors/terminal/mechanical-rules-pty.spec.ts",
+        "src/doors/mcp/mechanical-rules.spec.ts",
+        "src/runtime/contracts/mechanical-rule-contract.spec.ts",
+        "src/runtime/distributions/mechanical-rule-journeys.spec.ts",
+        "src/surface/formats/number-format.spec.ts"
+      ]
+    },
+    {
+      "id": 292,
+      "rule": "Sin supervisor, lo que pide juicio queda sin ejecutar con aviso y resultado durable. Aprobar o cambiar la vigencia despierta a la mente o journey que quedó frenado, incluso después de reconstruir la historia; nunca reintenta el acto por sí solo. Simular muestra casos que pasan y frenan sin ejecutar el acto ni modificar la vigencia.",
+      "from": "17/11 12:44 y 12:56 · core-reglas, paso 1",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/rules/rules.spec.ts",
+        "src/runtime/minds/rule-wake.spec.ts",
+        "src/runtime/distributions/mechanical-rule-journeys.spec.ts"
+      ]
     }
   ]
 }

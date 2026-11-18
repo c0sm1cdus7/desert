@@ -1,4 +1,5 @@
 // toolAct and ownAct bound to their schema; reading, accepted, rejected
+import { inputPrepared, registerNormalizer } from "./inputs/prepared-input.ts";
 import type { Capability } from "../fields/capabilities.ts";
 import { executionSchema } from "./inputs/secret-input.ts";
 import type { Static, TSchema } from "@sinclair/typebox";
@@ -19,17 +20,19 @@ export function toolAct<X extends Program, S extends TSchema>(
   normalize: (value: unknown) => unknown = value => value,
   needs?: readonly Capability[],
 ): ToolAct<X> {
-  return {
+  const act: ToolAct<X> = {
     input,
     reach,
     ...(needs === undefined ? {} : { needs }),
     run: (value, context) => {
-      const prepared = normalize(value);
+      const prepared = inputPrepared(context) ? value : normalize(value);
       /** What its schema admits, and nothing finer than its fields carry: no door sends what a person cannot write. */
       const held = Value.Check(executionSchema(input), prepared) && fine(executionSchema(input), prepared);
       return held ? perform(prepared, context) : rejected(toolTexts.invalid);
     },
   };
+  registerNormalizer(act, normalize);
+  return act;
 }
 export const ownAct = <X extends Program, S extends TSchema>(
   object: string,

@@ -1,4 +1,5 @@
 // Lista y objeto de identidades y mentes: nombre, administración, kit, última escena general y parte para quien lee.
+import { systemTool } from "../../house/system-tools.ts";
 import { holderKit } from "../../house/kit-history.ts";
 import { identityDisplayName, type House } from "../../house/members.ts";
 import { mindTool, allowedAct } from "../../house/kit.ts";
@@ -91,7 +92,7 @@ export function identityReading<X extends Program>(
 }
 function identityKit<X extends Program>(house: House, identity: string, registry: ToolRegistry<X>): string[] {
   return registry
-    .filter(tool => tool.id !== "identities")
+    .filter(tool => !systemTool(tool.id))
     .flatMap(tool => {
       const has =
         !house.removed.has(identity) &&

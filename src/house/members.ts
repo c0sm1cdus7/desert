@@ -1,4 +1,6 @@
 // A house: tool grants, action kits, shared scenes, preferences and reading.
+import { systemTool } from "./system-tools.ts";
+import { emptyRules, rulesStep, type RulesState } from "./rules/rule-state.ts";
 import type { KitMigration } from "./kit-migration.ts";
 import { selectionStep } from "./kit-history.ts";
 import { programKit, type KitLayout, type SelectionKit } from "./kit-selection.ts";
@@ -21,6 +23,7 @@ type Assignment = Readonly<{ identity: string; tools: readonly string[] }>;
 export type Creation = Readonly<{ admin: string; assignments: readonly Assignment[] }>;
 export type House = Readonly<{
   admin: string;
+  rules: RulesState;
   selections?: ReadonlyMap<string, SelectionKit>;
   kitLayout?: KitLayout;
   kitMigration?: KitMigration;
@@ -49,6 +52,7 @@ type Attentions = ReadonlyMap<string, Attention>;
 const noAttention: Attentions = new Map();
 export const emptyHouse: House = {
   admin: "",
+  rules: emptyRules,
   assistants: new Map(),
   mindAssignments: new Map(),
   minds: emptyMindState,
@@ -63,6 +67,7 @@ export const emptyHouse: House = {
 };
 export function houseStep(state: House, event: Event): House {
   if (event.layer !== "house" || namesMind(event)) return state;
+  state = { ...state, rules: rulesStep(state.rules, event, state.admin) };
   state = mindHouseStep(state, event);
   state = sceneStep(state, event);
   state = selectionStep(state, event);
@@ -129,7 +134,7 @@ function grantedMember(state: House, event: HouseEvent<"granted">): House {
     "version" in event.data
       ? [...new Set(event.data.kit.selections.map(selection => selection.program))]
       : event.data.tools
-  ).filter(tool => tool !== "identities");
+  ).filter(tool => !systemTool(tool));
   const grants = new Map(state.grants).set(event.data.identity, tools);
   const removed = new Set(state.removed);
   removed.delete(event.data.identity);

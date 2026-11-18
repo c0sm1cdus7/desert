@@ -1,4 +1,5 @@
 // The optional core piece uses declarations for reading and actions, and keeps nothing outside House.
+import { rulesRegistry } from "../rules/rules.ts";
 import type { ProgramTool } from "../promises.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";
 import { identitySkill } from "../../texts/tool-skills.texts.ts";
@@ -46,5 +47,5 @@ export function coreRegistry<X extends Program>(
   if (found.some(tool => !core.has(tool)) || found.length > 1) throw new Error("identities is reserved for the base");
   if (!enabled && found.length) throw new Error("Identities requires the composition's request");
   const ordinary = registry.filter(tool => tool.id !== "identities");
-  return enabled ? [...ordinary, identitiesTool<X>(ordinary, runner, assistants)] : registry;
+  return rulesRegistry(enabled ? [...ordinary, identitiesTool<X>(ordinary, runner, assistants)] : registry);
 }

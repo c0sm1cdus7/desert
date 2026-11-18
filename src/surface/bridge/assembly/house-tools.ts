@@ -1,4 +1,5 @@
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
+import { withRulesWords } from "../views/rules-words.ts";
 import { authorName } from "../views/author-name.ts";
 import { authorThread } from "../views/author-thread.ts";
 import { kitScreen } from "../../../tools/identities/kit-screen.ts";
@@ -212,7 +213,7 @@ function declaredTools<X extends Program>(registry: readonly HouseTool<X>[]) {
 const namedScreen = <X extends Program>(...args: Parameters<typeof builtScreen<X>>) =>
   authorThread(builtScreen(...args), authorName(args[1]));
 export function houseTools<X extends Program>(ports: HousePorts<X>, given: Shown<X>): readonly Tool[] {
-  const shown = withIdentityWords(ports.registry, given);
+  const shown = withRulesWords(ports.registry, withIdentityWords(ports.registry, given));
   const seen = new Map<string, number>();
   const observed = observedPorts(ports, seen);
   const tools = declaredTools(ports.registry);

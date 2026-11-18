@@ -1,5 +1,9 @@
 // Reference spelling and nested secret declarations are shared with storage protection.
-import { hasSecretInput, referencePattern } from "./secret-input.ts";
+import { executionSchema, hasSecretInput, referencePattern } from "./secret-input.ts";
+import { Type } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
+import { deepFreeze } from "../../journal/vocabulary.ts";
+import { isRecord } from "../../fields/json-values.ts";
 import { expect, it } from "vitest";
 
 it("referencePattern matches only a complete lowercase hexadecimal secret reference", () => {
@@ -42,4 +46,30 @@ it("hasSecretInput finds exact true marks through objects and array children, bu
     [{ secret: true }],
   ])
     expect(hasSecretInput(schema)).toBe(false);
+});
+
+it("no conserva una preparación vieja si cambia una rama del esquema", () => {
+  const schema = Type.Object({ value: Type.Number() });
+  Object.freeze(schema);
+  expect(Value.Check(executionSchema(schema), { value: 1 })).toBe(true);
+  Object.assign(schema.properties.value, { minimum: 2 });
+  expect(Value.Check(executionSchema(schema), { value: 1 })).toBe(false);
+});
+
+it("detecta una posición que pasa a ser privada bajo una raíz congelada", () => {
+  const schema = Object.freeze(Type.Object({ value: Type.String() }));
+  expect(hasSecretInput(schema)).toBe(false);
+  Object.assign(schema.properties.value, { secret: true });
+  expect(hasSecretInput(schema)).toBe(true);
+});
+
+it("una preparación compartida no permite cambiar lo que acepta la siguiente ejecución", () => {
+  const schema = Type.Object({ value: Type.Number({ minimum: 2 }) });
+  deepFreeze(schema);
+  const prepared = executionSchema(schema);
+  const properties: unknown = Reflect.get(prepared, "properties");
+  if (!isRecord(properties) || !isRecord(properties.value)) throw new Error("Missing prepared field");
+  const field = properties.value;
+  expect(() => Object.assign(field, { minimum: 0 })).toThrow();
+  expect(Value.Check(executionSchema(schema), { value: 1 })).toBe(false);
 });

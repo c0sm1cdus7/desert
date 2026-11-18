@@ -1,11 +1,13 @@
 // What an act says of what was answered so far, before it runs: why it cannot go on, and which things it takes.
 import { isRecord } from "../fields/json-values.ts";
+import { isImmutableSchema } from "../fields/schema-shape.ts";
 import { executionSchema } from "./inputs/secret-input.ts";
 import { programCall } from "../fields/program-call.ts";
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import type { Program, State } from "./tool-contract.ts";
 type Answered = Readonly<Record<string, unknown>>;
+const partialSchemas = new WeakMap<TSchema, TSchema>();
 /** For each tool an act narrows, why it does not take a thing, or nothing when it does. */
 type Among = Readonly<Record<string, (thing: string) => string | undefined>>;
 /** Asked after each answer, with the fields answered whole until then. A surface says it early; the act still
@@ -21,7 +23,8 @@ export type SoFar<X extends Program> = Readonly<{
  * else a surface may give is not asked about. */
 export function soFar<X extends Program>(input: TSchema, said: SoFar<X>): SoFar<X> {
   const { stops, among } = said;
-  const partial = Type.Partial(executionSchema(input));
+  const partial = partialSchemas.get(input) ?? Type.Partial(executionSchema(input));
+  if (isImmutableSchema(input)) partialSchemas.set(input, partial);
   const asked: NonNullable<SoFar<X>["stops"]> = (answered, state, target, at) =>
     Value.Check(partial, answered) ? stops?.call(said, answered, state, target, at) : undefined;
   const narrowed: NonNullable<SoFar<X>["among"]> = (answered, state, target, at) =>

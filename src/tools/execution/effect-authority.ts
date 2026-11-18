@@ -1,4 +1,5 @@
 // Validate the complete returned batch before the engine adds its own execution facts.
+import { ruleEffectProblem } from "../rules/rule-effects.ts";
 import { storedHolderKit } from "../../house/kit-history.ts";
 import { selectionPath, selectionKit } from "../../house/kit-selection.ts";
 import { selectionProblem } from "../../house/kit-validation.ts";
@@ -88,6 +89,12 @@ export function effectRefusal<X extends Program>(
     }
     if (each.layer !== "house") return refuse(effectRefusalTexts.houseFact);
     if (each.kind === "tool-entry" && each.data.author !== context.by) return refuse(effectRefusalTexts.otherAuthor);
+    if (each.kind.startsWith("rule-")) {
+      const why = ruleEffectProblem(ports, house, each, context, tool);
+      if (why) return refuse(why);
+      house = houseStep(house, { ...each, id: "validation", seq: 0, at: context.at });
+      continue;
+    }
     if (source !== "house") {
       if (source === "own" || !corePiece(tool?.id) || !house.identities) return refuse(effectRefusalTexts.houseFact);
       const why = coreAuthority(ports, house, each, context, tool);

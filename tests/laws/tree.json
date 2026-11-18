@@ -1,5 +1,6 @@
 {
   "files": {
+    "fields/schema-shape.ts": "Valida esquemas y recuerda sólo los que no pueden cambiar en ninguna de sus ramas.",
     "adapters/adapter-ports.ts": "Presta métodos por operación; valida datos públicos y revoca el resolvedor al terminar.",
     "adapters/compose-adapters.ts": "Fija permisos y vistas iniciales sin lecturas hasta el uso; transmite avisos y cierra préstamos con cambios.",
     "adapters/credential-effects.ts": "Produce efectos de vínculos cuya autoridad queda en la sesión que los emitió.",
@@ -462,6 +463,30 @@
     "runtime/minds/program-mind-options.ts": "Arma los recursos del pensamiento desde la composición y conserva en la base catálogo y huellas.",
     "texts/program-mind.texts.ts": "Define las reglas comunes de la mente de programa y sus avisos de disponibilidad.",
     "tools/minds/program-mind-cases.ts": "Declara los casos del rol de un programa: tres escenas con preparación, despertar y comprobación del diario.",
-    "runtime/minds/program-mind-bank-house.ts": "Aísla el estado de cada escena del banco y conserva el motor, las transacciones y la protección de entradas."
+    "runtime/minds/program-mind-bank-house.ts": "Aísla el estado de cada escena del banco y conserva el motor, las transacciones y la protección de entradas.",
+    "house/rules/rule-facts.ts": "Conserva versiones, aprobaciones, retiros y resultados mecánicos en hechos del core.",
+    "house/rules/rule-fields.ts": "Resuelve solamente campos escalares explícitos del esquema y proyecciones públicas del core.",
+    "house/rules/rule-predicate.ts": "Valida cada condición contra campos declarados y la evalúa con datos y reloj verificables.",
+    "house/rules/rule-schema.ts": "Declara condiciones cerradas y versiones de reglas como datos, sin expresiones ejecutables.",
+    "house/rules/rule-state.ts": "Reconstruye versiones inmutables, vigencia y retiros desde hechos sin borrar ninguna propuesta.",
+    "house/system-tools.ts": "Distingue piezas reservadas del core de programas que se otorgan en un kit.",
+    "runtime/minds/rule-controls.ts": "Aplica el control mecánico común a los controles de journeys antes y después de sus esperas.",
+    "runtime/minds/rule-wake.ts": "Una vigencia nueva despierta procesos frenados por esa regla; nunca vuelve a ejecutar sus actos.",
+    "surface/bridge/views/rules-words.ts": "Presenta Reglas en el menú del sistema con sus palabras propias y sin configuración de la distribución.",
+    "surface/formats/number-format.ts": "Permite escribir números finitos con signo y decimales sin imponer la máscara de cantidades positivas.",
+    "texts/rules.texts.ts": "Palabras compartidas de Reglas, sus condiciones, versiones y esperas de juicio.",
+    "tools/execution/action-draft.ts": "Reconoce el borrador de un acto antes de pedir revisión o permitir efectos.",
+    "tools/execution/mechanical-rules.ts": "Controla reglas vigentes para todo actor y deja resultados durables antes de habilitar el acto.",
+    "tools/execution/review-world.ts": "Revisa una salida de mente y vuelve al control común con permisos y reglas actuales tras la espera.",
+    "tools/execution/rule-capabilities.ts": "Revalida reglas al usar cada capacidad después de una espera, antes del efecto externo.",
+    "tools/inputs/prepared-input.ts": "Comparte la normalización del acto con su control mecánico y evita repetirla al ejecutar el cuerpo.",
+    "tools/minds/communication-inputs.ts": "Publica los datos de comunicación de la mente para validarlos y aplicar reglas del core.",
+    "tools/rules/rule-actions.ts": "Define escrituras y consultas de reglas con autoridad actual y validación contra acciones instaladas.",
+    "tools/rules/rule-core-actions.ts": "Publica esquemas de actos propios y controles de journeys para condiciones del catálogo del core.",
+    "tools/rules/rule-effects.ts": "Impide que programas o actos propios falsifiquen reglas y valida el acto concreto del core.",
+    "tools/rules/rule-failure.ts": "Transporta un freno mecánico desde una capacidad hasta el resultado del acto sin convertirlo en defecto.",
+    "tools/rules/rule-form.ts": "Agrega preguntas de superficie a los mismos datos tipados y despliega combinaciones acotadas.",
+    "tools/rules/rule-simulation.ts": "Simula casos explícitos sin ejecutar acciones ni escribir cambios de vigencia.",
+    "tools/rules/rules.ts": "Reglas es una pieza reservada del core que comparte acciones y lectura entre todas las superficies."
   }
 }

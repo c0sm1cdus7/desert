@@ -33,6 +33,7 @@ export function adapterHouse(
   return {
     path,
     options,
+    registry: () => house.registry,
     act,
     facts: () => house.journal.replay<unknown[]>([], (events, event) => [...events, event]),
     restart: () => {

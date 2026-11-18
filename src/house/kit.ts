@@ -1,4 +1,5 @@
 // Whole-tool grants and action kits for identities and minds, with the same membership guards.
+import { systemTool } from "./system-tools.ts";
 import { journeyAllows } from "./minds/journey-state.ts";
 import { holderKit } from "./kit-history.ts";
 import { herramientaDe, kitLayout, selects } from "./kit-selection.ts";
@@ -11,7 +12,7 @@ import type { House } from "./members.ts";
 import { allowed, identityAllowedAct } from "./identities/identity-permissions.ts";
 export { allowed } from "./identities/identity-permissions.ts";
 export const assigned = (house: House, by: string, tools: readonly string[]): string[] =>
-  tools.filter(tool => tool !== "identities" && allowed(house, by, tool));
+  tools.filter(tool => !systemTool(tool) && allowed(house, by, tool));
 
 /** The journal name of a tool's mind; an empty suffix does not name a tool. */
 export const mindOf = (tool: string): string => `${ids.mind}${tool}`;
@@ -24,7 +25,7 @@ export const present = (registry: readonly { id: string }[], house: House, by: s
     return house.assistants.get(actor.owner)?.enabled === true && house.grants.has(actor.owner);
   if (isMindActor(by) && !actor) return false;
   const own = mindTool(by);
-  return own === undefined ? house.grants.has(by) : own !== "identities" && registry.some(tool => tool.id === own);
+  return own === undefined ? house.grants.has(by) : !systemTool(own) && registry.some(tool => tool.id === own);
 };
 /** Who may use a tool's adapters while acting: an identity holding the tool, or the mind of that very tool. */
 export function holds(registry: MindTools, house: House, by: string, tool: string): boolean {
@@ -88,7 +89,7 @@ export function kitStep(state: House, event: HouseEvent): House {
 /** Current installed actions; journeys intersect this result again at every execution boundary. */
 export function effectiveKit(house: House, by: string, registry: MindTools, process?: string) {
   return registry
-    .filter(program => program.id !== "identities")
+    .filter(program => !systemTool(program.id))
     .flatMap(program => {
       const acts = Object.keys(program.acts ?? {}).filter(
         action =>

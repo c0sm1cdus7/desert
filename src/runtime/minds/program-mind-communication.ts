@@ -1,7 +1,8 @@
 // Ofrece a la consciencia escena por identidad y mensajes explícitos sin conceder acciones de trabajo.
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { scene } from "../../house/own-acts.ts";
+import { communicationInputs } from "../../tools/minds/communication-inputs.ts";
+const { scene, message } = communicationInputs;
 import { effect } from "../../house/facts.ts";
 import { mindText } from "../../house/minds/journey-facts.ts";
 import { object } from "../../fields/visible-text.ts";
@@ -9,7 +10,6 @@ import type { MindDefinition, MindScope } from "../../tools/minds/mind-contract.
 import type { MindMenu, ProposedAct } from "../../tools/minds/mind-answer.ts";
 import type { Program, State } from "../../tools/tool-contract.ts";
 import type { MindRuntimeHouse, MindRuntimeOptions } from "./mind-runtime-options.ts";
-const message = object({ to: Type.String(), text: mindText });
 export function programCommunication<X extends Program>(
   scope: MindScope,
   definition: MindDefinition,

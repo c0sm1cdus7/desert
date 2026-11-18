@@ -8,9 +8,11 @@ type Field = Readonly<Record<string, unknown>>;
 const isField = (value: unknown): value is Field =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 /** Every field of what an act takes, however deep it stands. */
-const fieldsIn = (schema: unknown): readonly Field[] => {
-  if (Array.isArray(schema)) return schema.flatMap(fieldsIn);
-  return isField(schema) ? [schema, ...Object.values(schema).flatMap(fieldsIn)] : [];
+const fieldsIn = (schema: unknown, seen = new WeakSet<object>()): readonly Field[] => {
+  if (Array.isArray(schema)) return schema.flatMap(child => fieldsIn(child, seen));
+  if (!isField(schema) || seen.has(schema)) return [];
+  seen.add(schema);
+  return [schema, ...Object.values(schema).flatMap(child => fieldsIn(child, seen))];
 };
 /** Only a thing field uses empty as metadata; a program can still have a datum named empty. */
 function emptyReason(field: Field, where: string): void {

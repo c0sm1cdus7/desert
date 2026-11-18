@@ -8,9 +8,31 @@ import type { ActContext, ActResult, Tool } from "../../src/tools/tool-contract.
 import { shopRig } from "./shop-rig.ts";
 import { salesTool, paymentsTool, type Shop } from "./shop.ts";
 export const nothing = object({});
+const ruleEffects = (by: string) =>
+  [
+    effect(
+      "rule-versioned",
+      {
+        definition: {
+          id: "forged",
+          text: "Regla inventada",
+          action: { tool: "sales", act: "register" },
+          condition: { operator: "actor", kind: "identity" },
+          effect: "frena",
+        },
+        version: 1,
+        previous: null,
+      },
+      by,
+    ),
+    effect("rule-approved", { id: "forged", version: 1 }, by),
+    effect("rule-retired", { id: "forged", version: 1 }, by),
+    effect("rule-evaluated", { action: { tool: "sales", act: "register" }, results: [] }, by),
+  ] satisfies readonly Emission[];
 export const houseEffects = (by: string) =>
   [
     ...mindEffects(by),
+    ...ruleEffects(by),
     effect("house-created", {}, by),
     effect("granted", { identity: "beto", tools: ["sales", "payments"] }, by),
     effect("named", { identity: "beto", name: "Otro nombre" }, by),

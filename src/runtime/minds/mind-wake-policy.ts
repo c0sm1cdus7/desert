@@ -1,4 +1,5 @@
 // Decide despertares firmados desde mensajes, actos, respuestas y ciclos de journeys del diario.
+import { ruleWake } from "./rule-wake.ts";
 import { parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import type { Event } from "../../journal/vocabulary.ts";
@@ -61,7 +62,7 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   requireMind(Number.isSafeInteger(now) && now >= 0, "now");
   const mind = parseMindActor(policy.scope.actor);
   requireMind(mind, "policy.actor");
-  if (lifecycle(policy, event, history, now)) return true;
+  if (lifecycle(policy, event, history, now) || ruleWake(policy.scope, event, history)) return true;
   if (event.by === policy.scope.actor) return false;
   if (event.layer === "house" && event.kind === "mind-message")
     return (

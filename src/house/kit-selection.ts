@@ -1,4 +1,5 @@
 // Describe selecciones positivas y expande carpetas contra las acciones instaladas.
+import { systemTool } from "./system-tools.ts";
 import { Type, type Static } from "@sinclair/typebox";
 import { object } from "../fields/visible-text.ts";
 const segment = Type.String({ minLength: 1, pattern: "^[^/]+$" });
@@ -53,7 +54,7 @@ export const actionSelection = (
   return { kind: "action", program, tool, action: actionName(tool, action) };
 };
 export const selects = (kit: SelectionKit, program: string, tool: string, action: string): boolean =>
-  program !== "identities" &&
+  !systemTool(program) &&
   kit.selections.some(selection =>
     covers(selection, { kind: "action", program, tool, action: actionName(tool, action) }),
   );

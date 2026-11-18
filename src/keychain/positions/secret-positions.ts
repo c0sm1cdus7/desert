@@ -17,7 +17,7 @@ class SecretSchemaError extends Error {
   }
 }
 export function checkSecrets(schema: unknown): void {
-  if (!isRecord(schema)) return;
+  if (!isRecord(schema) || !hasSecretInput(schema)) return;
   if (schema.secret === true && (schema.type !== "string" || schema.anyOf || schema.allOf || schema.not))
     throw new SecretSchemaError();
   if (hasSecretInput(schema) && (schema.allOf || schema.$ref || schema.not || schema.patternProperties))

@@ -1,4 +1,5 @@
 // The house fact catalog, typed emissions and effects, including the legacy catalog for saved records.
+import { ruleFacts } from "./rules/rule-facts.ts";
 import { selectionKitSchema } from "./kit-selection.ts";
 import { name, preference, scene, t, toolLimits } from "./own-acts.ts";
 import { wholeNumber } from "../fields/json-values.ts";
@@ -82,6 +83,7 @@ export const houseCatalog = {
   "wake-at": object({ id: name, at: Type.Union([wholeNumber, Type.Null()]) }),
   woke: object({ id: name }),
   ...mindHouseCatalog,
+  ...ruleFacts,
 };
 /** Only version two may cross the writer boundary; the reader retains both shapes. */
 export const currentHouseCatalog = {

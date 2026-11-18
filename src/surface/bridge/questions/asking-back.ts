@@ -1,6 +1,6 @@
 // The walk of an act's questions backwards: the answers that say a datum; and that every field of it can be asked.
 import { at, isList, isRecord, plain } from "../../../fields/json-values.ts";
-import { TypeGuard } from "@sinclair/typebox";
+import { isSchema } from "../../../fields/schema-shape.ts";
 import { isAsked } from "../../../fields/fields.ts";
 import type { Option } from "../../contract/contract.ts";
 import {
@@ -76,23 +76,32 @@ function distinct(options: readonly Option[]): void {
   const keys = options.map(option => option.key);
   if (new Set(keys).size !== keys.length) throw new Error(`Two options take the same key: ${keys.join(", ")}`);
 }
-const auditFields = (schema: unknown, ctx: Ctx, skip: readonly string[] = []): void => {
+type Audited = Readonly<{ required: WeakSet<object>; optional: WeakSet<object> }>;
+const auditFields = (schema: unknown, ctx: Ctx, seen: Audited, skip: readonly string[] = []): void => {
   const required = at(schema, "required");
   const needed = isList(required) ? required : [];
   Object.entries(at(schema, "properties") ?? {})
     .filter(([key]) => !skip.includes(key))
-    .forEach(([key, field]) => audit(field, { ...ctx, optional: !needed.includes(key) }));
+    .forEach(([key, field]) => audit(field, { ...ctx, optional: !needed.includes(key) }, seen));
 };
 /** Every field of a declaration can be asked: its question, its mask or placeholder, each option with its key. */
-export function audit(schema: unknown, ctx: Ctx): void {
-  if (!TypeGuard.IsSchema(schema)) throw new Error("A field has no declaration");
+export function audit(
+  schema: unknown,
+  ctx: Ctx,
+  seen: Audited = { required: new WeakSet(), optional: new WeakSet() },
+): void {
+  if (!isSchema(schema)) throw new Error("A field has no declaration");
+  // Shared branches are checked once per optionality, within this reading's context.
+  const checked = ctx.optional ? seen.optional : seen.required;
+  if (checked.has(schema)) return;
+  checked.add(schema);
   const arms = armsOf(schema);
   const telling = arms.length ? tellingOf(arms) : undefined;
   if (arms.length) {
     titleOf(schema, ctx);
     distinct(arms.map(arm => choiceOf(telling ? at(at(arm, "properties"), telling) : arm)));
-    if (telling) arms.forEach(arm => auditFields(arm, ctx, [telling]));
-  } else if (at(schema, "type") === "object") auditFields(schema, ctx);
+    if (telling) arms.forEach(arm => auditFields(arm, ctx, seen, [telling]));
+  } else if (at(schema, "type") === "object") auditFields(schema, ctx, seen);
   else if (at(schema, "some") !== undefined) {
     titleOf(schema, ctx);
     armsOf(at(schema, "items")).forEach(arm => word(arm, "title"));
@@ -100,6 +109,6 @@ export function audit(schema: unknown, ctx: Ctx): void {
     const more = at(schema, "more");
     asked(word(more, "ask"));
     distinct([choiceOf(at(more, "done")), choiceOf(at(more, "another"))]);
-    audit(at(schema, "items"), ctx);
+    audit(at(schema, "items"), ctx, seen);
   } else written(schema, ctx);
 }

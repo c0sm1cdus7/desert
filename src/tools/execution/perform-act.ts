@@ -1,4 +1,5 @@
 // Ejecuta el cuerpo anunciado, clasifica fallas y cierra resultados síncronos o pendientes con sus avisos.
+import { MechanicalRuleFailure } from "../rules/rule-failure.ts";
 import { effect, type HouseEvent } from "../../house/facts.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import { identityView } from "../../house/members.ts";
@@ -22,7 +23,10 @@ export const performAct = <X extends Program>(
     return finish(ports, act, actionFailure(ports, act, error));
   }
   /** Program failures have one public message and a separate support record. */
-  const failed = (error: unknown): Decision<X> => actionFailure(ports, act, error);
+  const failed = (error: unknown): Decision<X> =>
+    error instanceof MechanicalRuleFailure
+      ? { status: "rejected", coreFailure: "forbidden", reason: error.reason, effects: error.effects }
+      : actionFailure(ports, act, error);
   let result: Decision<X> | Promise<Decision<X>>;
   try {
     result = perform();

@@ -1,4 +1,5 @@
 // Conserva el alcance histórico de otorgamientos y restricciones al reconstruir selecciones.
+import { systemTool } from "./system-tools.ts";
 import { migrateKit } from "./kit-migration.ts";
 import type { House } from "./members.ts";
 import type { HouseEvent } from "./facts.ts";
@@ -38,15 +39,13 @@ export function selectionStep(house: House, event: HouseEvent): House {
     if (holder === house.admin || holder.startsWith("assistant:") || (!own && !house.grants.has(holder))) return house;
     if ("version" in event.data) {
       if (
-        event.data.kit.selections.some(
-          selection => selection.program === "identities" || (own && own !== selection.program),
-        )
+        event.data.kit.selections.some(selection => systemTool(selection.program) || (own && own !== selection.program))
       )
         return house;
       selections.set(holder, event.data.kit);
     } else {
       const { tool, acts } = event.data;
-      if (tool === "identities" || (own ? own !== tool : !house.grants.get(holder)?.includes(tool))) return house;
+      if (systemTool(tool) || (own ? own !== tool : !house.grants.get(holder)?.includes(tool))) return house;
       const rest = storedHolderKit(house, holder).selections.filter(selection => selection.program !== tool);
       selections.set(holder, selectionKit([...rest, ...historicalBranch(tool, acts, house.kitLayout)]));
     }
@@ -64,7 +63,7 @@ function grantSelections(house: House, event: HouseEvent<"granted">, selections:
       identity,
       selectionKit(
         event.data.tools
-          .filter(program => program !== "identities")
+          .filter(program => !systemTool(program))
           .flatMap(program =>
             held.includes(program)
               ? prior.filter(selection => selection.program === program)

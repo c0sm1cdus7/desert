@@ -3,7 +3,8 @@ import { at, isList, isRecord } from "../../../fields/json-values.ts";
 import { checkMoneyScreen } from "../../formats/invalid-money.ts";
 import { questionMaterial } from "../../../tools/inputs/question-material.ts";
 import { answeredInput } from "../../../tools/inputs/secret-input.ts";
-import { TypeGuard, type TSchema } from "@sinclair/typebox";
+import type { TSchema } from "@sinclair/typebox";
+import { isSchema } from "../../../fields/schema-shape.ts";
 import { isAsked } from "../../../fields/fields.ts";
 import type { Field, Option } from "../../contract/contract.ts";
 import { audit, leading, markedOf, write } from "./asking-back.ts";
@@ -125,7 +126,7 @@ function some(schema: TSchema, ctx: Ctx, from: number): Got {
   return { value: values, at: from + 1 };
 }
 function read(schema: unknown, ctx: Ctx, from: number): Got {
-  if (!TypeGuard.IsSchema(schema)) throw new Error("A field has no declaration");
+  if (!isSchema(schema)) throw new Error("A field has no declaration");
   const arms = armsOf(schema);
   const telling = arms.length ? tellingOf(arms) : undefined;
   if (telling) return shapes(schema, ctx, from, telling);

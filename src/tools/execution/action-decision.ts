@@ -1,4 +1,5 @@
 // Convierte el resultado público de una acción en hechos, conservando su destinatario.
+import { mechanicalRules } from "./mechanical-rules.ts";
 import { programCall } from "../../fields/program-call.ts";
 import { effect } from "../../house/facts.ts";
 import { effectRefusal } from "./effect-authority.ts";
@@ -74,7 +75,13 @@ export function checkedDecision<X extends Program>(
   tool: Tool<X> | undefined,
   offered: OwnAct<X> | undefined,
   option: string,
+  input?: unknown,
 ): Decision<X> {
+  const origin = ports.state().acts.get(context.id ?? "");
+  if (origin && act.reach !== "world" && result.status === "accepted") {
+    const blocked = mechanicalRules(ports, origin, { tool: tool?.id ?? context.target, act: option }, act.input, input);
+    if (blocked) return blocked;
+  }
   const source = offered ? "own" : "tool";
   const house = offered && ports.houseOwn?.(offered) === true;
   return {

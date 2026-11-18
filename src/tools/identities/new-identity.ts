@@ -1,4 +1,5 @@
 // Preguntas y ejecución del alta: identificador validado, nombre opcional y programas enteros en un lote.
+import { systemTool } from "../../house/system-tools.ts";
 import { programKit } from "../../house/kit-selection.ts";
 import { newIdentityCases } from "./new-identity-cases.ts";
 import { Type } from "@sinclair/typebox";
@@ -26,7 +27,7 @@ function identityInput<X extends Program>(catalog: ToolRegistry<X>) {
   });
 }
 export function newIdentity<X extends Program>(registry: ToolRegistry<X>, runner: string) {
-  const catalog = registry.filter(tool => tool.id !== "identities");
+  const catalog = registry.filter(tool => !systemTool(tool.id));
   const input = identityInput(catalog);
   const tools = catalog.map(tool => tool.id);
   return programAct<X, typeof input>({

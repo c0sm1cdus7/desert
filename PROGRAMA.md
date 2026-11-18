@@ -2333,3 +2333,83 @@ Apagar pensamiento conserva el arranque determinista y la lectura de la historia
 
 Los textos comunes nuevos están en `src/texts/program-mind.texts.ts`; antes de usar un transporte
 real, el dueño debe aprobarlos. Este corte se verificó exclusivamente con transportes sintéticos.
+
+## Reglas mecánicas del core (18/11, paso 1)
+
+Al abrir la casa, DESERT agrega `rules` como pieza del sistema. La terminal ofrece Reglas;
+MCP usa las mismas acciones. No se instala como programa, no se otorga en un kit y no tiene
+mente en este paso. Toda identidad presente puede proponer, consultar y simular. Sólo el
+admin actual puede guardar, aprobar o retirar. Una propuesta escrita por el admin también
+vale al guardarla: no se le pide otra aprobación.
+
+Las acciones son `propose` y `save` con una definición; `approve` y `retire` con
+`{ id, version }`; `consult` con `{}`; y `simulate` con `{ id, version, samples }`.
+`samples` contiene un arreglo JSON de casos `{ actor, input, now, inJourney? }`, con tiempo
+en milisegundos UTC. Se valida cada entrada contra el esquema de la acción y se devuelve
+`passed`, `frena` o `requiere-supervisor` por caso, sin ejecutar el acto simulado.
+
+Una definición, por ejemplo, es:
+
+```json
+{
+  "id": "tope",
+  "text": "No registrar ventas mayores a diez",
+  "action": { "tool": "sales", "act": "register" },
+  "condition": {
+    "operator": "gt",
+    "field": { "source": "input", "path": "total" },
+    "value": 10
+  },
+  "effect": "frena"
+}
+```
+
+El ejemplo no instala una regla. La condición admite sólo `equal`, `in`, `gt`, `gte`, `lt`,
+`lte`, `schedule`, `actor`, `all`, `any` y `not`. Igualdad y pertenencia usan valores con
+etiqueta: `{ kind: "text" | "number" | "boolean", value }` o `{ kind: "null" }`.
+`all` y `any` reciben `conditions`; `not`, `condition`. El formulario compartido despliega
+hasta tres niveles de combinación; cada grupo admite hasta dieciséis condiciones.
+No se ejecuta texto ni JavaScript.
+
+Un campo de entrada debe estar declarado explícitamente en el esquema de la acción;
+se admiten propiedades escalares anidadas mediante puntos. No se permiten campos secretos,
+prototipos, rutas de colecciones, referencias de esquema sin resolver ni propiedades abiertas.
+Un campo de una unión debe existir en todas sus variantes. Las proyecciones públicas disponibles
+son `admin`, `actor`, `actorKind`, `isAdmin` e `inJourney`, con `source: "core"`.
+El actor y el admin se toman del contexto vigente, nunca de un dato que declare el llamador.
+`actor` recibe `kind: "identity" | "program" | "assistant"` y un `id` opcional.
+`schedule` recibe minutos `from` y `until`, `offsetMinutes` respecto de UTC y `days`
+(domingo = 0). Incluye el inicio y excluye el fin; un tramo nocturno pertenece al día de inicio.
+Los números con signo, incluidos husos negativos, se pueden escribir desde la terminal.
+
+Las referencias de acción usan el id de registro y su clave de acción; una acción de una
+herramienta instalable conserva su clave completa. Los actos propios se nombran con `tool: "me"`,
+los controles con `tool: "journey"` y la comunicación de mentes con `tool: "mind"`.
+La condición se valida al guardar, al aprobar y al ejecutar; si un esquema instalado deja de
+admitir una regla vigente, esa regla frena hasta que se la corrija o retire.
+
+El diario conserva `rule-versioned`, `rule-approved` y `rule-retired`. De ellos se reconstruyen
+el historial y la versión vigente. Un borrador ajeno no reemplaza la versión aprobada.
+Retirar quita vigencia, no borra versiones. Una versión que ya fue aprobada no vuelve a
+aprobarse: para recuperar su contenido se guarda una versión nueva. Las acciones de programas
+no pueden falsificar esos hechos ni `rule-evaluated`.
+
+El ejecutor controla toda acción, también manual, anidada y contractual. Evalúa la entrada
+normalizada una sola vez y registra resultados por id y versión en `rule-evaluated`, con causa
+al acto o turno. `frena` tiene prioridad y no consulta para obtener una excepción. Tras una
+revisión vuelve al control común; antes de usar un adaptador, cambiar un vínculo o llamar otra
+acción revalida la autoridad y las reglas. Antes de publicar hechos de una acción local que
+esperó también vuelve a comprobarlas. Los controles de journeys se comprueban antes y después
+de sus esperas, y la comunicación de las mentes antes de publicar.
+
+En este paso `requiere-supervisor` deja un aviso de atención y un resultado durable; el intento
+termina sin efecto con `status: "rejected"` y motivo de espera. No queda una promesa de ejecución
+pendiente ni hay reintento automático. La aprobación de un borrador, el guardado del admin y el
+retiro despiertan al actor o journey que había quedado frenado por esa regla. La mente decide
+qué hacer con el estado actual; una persona puede volver a intentar su acto.
+
+El supervisor y la mente de Reglas corresponden al paso 2. Ese integrador puede leer los
+resultados mecánicos del diario por causa e id/versión para incluirlos en la revisión; no debe
+convertir un freno en permiso, repetir el acto aprobado ni perder las comprobaciones posteriores
+a una espera. No se agrega un intérprete de código ni aislamiento contra JavaScript hostil:
+los efectos externos de programas deben usar las capacidades declaradas del core.

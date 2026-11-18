@@ -1,4 +1,5 @@
 // A field with a format takes only the keys that fit it and shows its shape: the same on every renderer.
+import { numberFormat } from "./number-format.ts";
 import { money } from "./money-format.ts";
 import { quantityDecimals } from "../../fields/fields.ts";
 import type { Mask } from "../contract/contract.ts";
@@ -10,7 +11,7 @@ export type Locale = Readonly<{ currency: string; thousands: string; decimal: st
 export type Format = Mask &
   Readonly<{ currency?: string; inCurrency?(symbol: string): Format }> &
   Readonly<{ value(typed: string): unknown; typed(value: unknown): string; keyboard: "digits" | "decimal" | "text" }>;
-export type FormatName = "money" | "quantity" | "count" | "day";
+export type FormatName = "money" | "quantity" | "count" | "day" | "number";
 const digits = /^\d+$/;
 /** How many: digits, and one decimal mark after at least one digit. */
 const quantity = (locale: Locale): Format => ({
@@ -67,13 +68,14 @@ const day = (locale: Locale): Format => ({
 });
 /** The closed catalog of formats: every renderer knows these, and which keyboard each one wants. */
 export const formats = (locale: Locale): Readonly<Record<FormatName, Format>> => ({
+  number: numberFormat(locale),
   money: money(locale),
   quantity: quantity(locale),
   count,
   day: day(locale),
 });
 export const isFormat = (name: unknown): name is FormatName =>
-  name === "money" || name === "quantity" || name === "count" || name === "day";
+  name === "money" || name === "quantity" || name === "count" || name === "day" || name === "number";
 /** A shape filled with the digits there are: what stands between them is written only once a digit follows. */
 const filled = (shape: string, typed: string): string => {
   let [at, out] = [0, ""];
