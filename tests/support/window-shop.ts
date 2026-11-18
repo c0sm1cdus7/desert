@@ -53,6 +53,7 @@ const salesWith = (reads: number[], needs: number) => {
 const payments = {
   ...must(makingRegistry.find(tool => tool.id === "payments")),
   acts: { pay },
+  reactions: {},
   view: () => JSON.stringify({ sale: { id: "sales/s1", text: "Primera venta" } }),
 };
 export function windowShop(count = 41, recentLines = 40, needs = 1) {

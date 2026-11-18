@@ -35,7 +35,15 @@ const resume = (bus: Bus<ShopFact>, journal: Journal, registry: ToolRegistry<Sho
   );
   journal.restore();
   const now = () => testTime.now();
-  const tools = startTools({ ...ports, bus, registry, state, now, secrets: plain });
+  const tools = startTools({
+    ...ports,
+    bus,
+    registry,
+    state,
+    now,
+    secrets: plain,
+    history: journal.replay<ShopEvent[]>([], (events, event) => [...events, event]),
+  });
   const stopClock = startClock(bus, testTime, journal.replay<Deadlines>(new Map(), clockStep), runner);
   return { tools, stop: () => [tools.stop, stopClock].forEach(stop => stop()) };
 };

@@ -32,7 +32,7 @@ const act = programAct<Shop, typeof input>({
     { promise: "keeps the set", input: { marks: ["a", "b"] }, then: { refused: toolTexts.unchanged } },
   ],
 });
-const program = { ...shopProgram, registry: [salesTool, { ...paymentsTool, acts: { mark: act } }] };
+const program = { ...shopProgram, registry: [salesTool, { ...paymentsTool, acts: { mark: act }, reactions: {} }] };
 for (const check of programChecks(program, shopShown)) it(check.name, check.run);
 it("keeps the current marks without Enter or a refusal, then submits a changed set", () =>
   staged(program, async ({ house }) => {

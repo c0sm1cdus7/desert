@@ -25,4 +25,4 @@ const count = programAct<Shop, typeof input>({
   ],
 });
 /** Its payments count and do nothing else: receiving is not among their acts. */
-export const countingShop = shopWith({ payments: { acts: { count }, only: true } });
+export const countingShop = shopWith({ payments: { acts: { count }, only: true, reactions: {} } });

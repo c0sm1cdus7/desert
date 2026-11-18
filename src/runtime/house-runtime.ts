@@ -1,4 +1,5 @@
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
+import type { Event } from "../journal/vocabulary.ts";
 import { checkComposition } from "../tools/execution/composed-authority.ts";
 import { coreRegistry } from "../tools/identities/identities.ts";
 import { houseResources } from "./house-resources.ts";
@@ -67,6 +68,7 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
       bus,
       secrets,
       registry,
+      history: journal.replay<Event<X["fact"]>[]>([], (events, event) => [...events, event]),
       state,
       now: () => time.now(),
     });

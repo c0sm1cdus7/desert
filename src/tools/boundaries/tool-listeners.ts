@@ -1,9 +1,7 @@
-// A program's startup, returned cleanup, and event reactions remain its code after registration.
+// Conserva la frontera del programa al arrancar sus oyentes y cerrar sus recursos.
 import { startProgram } from "./tool-startup.ts";
-import type { Emission, Event } from "../../journal/vocabulary.ts";
 import type { Execution } from "../execute.ts";
-import type { Program, State, ToolRegistry } from "../tool-contract.ts";
-import { programRule } from "../../fields/program-call.ts";
+import type { Program, ToolRegistry } from "../tool-contract.ts";
 import { closeResources } from "./close-resources.ts";
 export function startPrograms<X extends Program>(registry: ToolRegistry<X>, ports: Execution<X>) {
   const shutdown: (() => void)[] = [];
@@ -15,8 +13,3 @@ export function startPrograms<X extends Program>(registry: ToolRegistry<X>, port
   }
   return () => closeResources(shutdown);
 }
-export const programEffects = <X extends Program>(
-  registry: ToolRegistry<X>,
-  state: State<X>,
-  event: Event<X["fact"]>,
-) => registry.flatMap((tool): Emission<X["fact"]>[] => [...programRule(() => tool.effects?.(state, event) ?? [])]);

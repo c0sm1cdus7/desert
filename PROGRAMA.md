@@ -87,6 +87,38 @@ kit o administración pasan a las acciones del core; una acción que necesita ot
 `context.execute`, con el mismo actor y sus permisos, o deja un hecho propio que las otras partes pueden leer.
 La tienda de prueba declara los hechos de Ventas y Pagos; saldar escribe `sale-settled`, que ambas partes leen.
 
+## Reacciones deterministas
+
+Una reacción se declara en `Tool.reactions` con un id estable y `{ when: "tipo-de-aviso", act: "acción-propia" }`.
+El motor entrega los datos del aviso como entrada a esa acción, sobre la herramienta que la declara. En este
+contrato de la base esa herramienta identifica al programa y a su actor `mind:<id>`; el ensamblado de programas
+con varias herramientas debe conservar ese dueño al adaptar la declaración. La suscripción no concede permisos:
+la mente necesita el kit vigente de la acción. No requiere pensamiento ni carta de modelo.
+
+El aviso confirmado agenda un acto posterior, sin heredar el proceso de quien lo produjo. Revocar al autor humano
+del aviso no revoca a la mente; revocar la acción de la mente impide la marca. El ejecutor común comprueba presencia, destino, entrada, condiciones y
+propiedad de efectos. El acto lleva el aviso como causa; los hechos de programa de la reacción llevan esa misma
+causa directa y autor `mind:<id>`. La correlación entre acto, reacción y aviso queda en `act.data.reaction`.
+
+Las reacciones usan acciones locales (`reach: "house"`). No reciben `context.execute`: la marca y el recibo de
+finalización tienen que entrar juntos, sin escrituras anidadas adelantadas. Un rechazo no confirma efectos de
+programa. Su motivo queda en `act-result`, en una entrada visible de Actividad «Reacción pendiente» y en
+`tools.pendingReactions()`. Un defecto conserva además su diagnóstico habitual.
+
+El par (id de herramienta e id de reacción, id del aviso) deduplica. El motor confirma los efectos y `act-result`
+en una transacción; repetir la entrega o reabrir no repite una reacción aceptada. Reconstruir pliegues no ejecuta
+acciones. Después de restaurar, el arranque recupera pendientes; también se reintenta al cambiar el kit o con
+`tools.recoverReactions()`. Un aviso nuevo no reintenta los rechazos de avisos anteriores: conservan su motivo
+visible hasta esa recuperación. Una falla de almacenamiento revierte marca y recibo. Si el aviso se revierte, tampoco
+se ejecuta su trabajo diferido. Las acciones pendientes vuelven a comprobar el permiso al terminar una espera.
+
+Al migrar, reemplazá `Tool.effects` por una acción propia y una declaración en `reactions`, y otorgá explícitamente
+su kit a la mente. Una declaración vieja `effects` no se ejecuta y deja un diagnóstico de migración. Conservá los
+ids de reacción entre versiones. Los hechos anteriores se leen intactos; un aviso histórico sin recibo de esta
+reacción se considera pendiente, por lo que la acción debe comprobar también su correlación de negocio antes de
+marcar. Los consumidores directos de `startTools` entregan `history` con el diario restaurado completo; tanto la
+casa como la inspección de copias y el banco de pruebas usan esa misma entrada.
+
 ## Una acción
 
 - `on: "tool"` (crea o actúa sobre la herramienta) o `on: "thing"` (sobre un objeto). `under: "<menú>"` la pone
@@ -231,7 +263,7 @@ La tienda de prueba declara los hechos de Ventas y Pagos; saldar escribe `sale-s
   también sin `today` y antes de ocultar las filas apagadas. Las garantías derivadas comprueban esa unicidad.
 - Una causa de `offered`, `also.off`, `stops`, `wrong` o `among` que no pertenece a `refuses` ni a las causas de la base es un
   defecto del programa: `E-PROG-1`, con diagnóstico en el registro. Lo mismo vale si una regla lanza, falla una
-  lectura de pantalla o el pliegue escrito por el programa, incluidas sus reacciones (`effects`), el arranque,
+  lectura de pantalla o el pliegue escrito por el programa, incluidas las acciones de sus reacciones, el arranque,
   sus escuchas y el cierre que devuelve. Los callbacks de una pantalla personalizada conservan ese origen;
   las operaciones que la base le presta conservan el suyo. El resultado no muestra el detalle técnico.
 - Si falla el diario, el disco o una escucha interna de la base, se ve `E-BASE-1 · Falló la base` y se registra

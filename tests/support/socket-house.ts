@@ -19,6 +19,7 @@ function program(hold?: Promise<void>) {
   const delayed = {
     ...paymentsTool,
     acts: {
+      ...paymentsTool.acts,
       receive: {
         ...receive,
         run: async (...args: Parameters<typeof receive.run>) => {

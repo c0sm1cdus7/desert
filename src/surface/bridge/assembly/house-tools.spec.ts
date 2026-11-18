@@ -34,7 +34,7 @@ describe("a program's tools, composed for a surface", () => {
     const tools = composed([salesTool, paymentsTool])();
     expect(tools.map(tool => [tool.id, tool.place.key, Object.keys(tool.acts)])).toEqual([
       ["sales", "v", ["register"]],
-      ["payments", "p", ["receive"]],
+      ["payments", "p", ["receive", "notice"]],
       ["preferences", ",", ["off", "foreign", "empty"]],
     ]);
   });

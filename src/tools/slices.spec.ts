@@ -1,5 +1,6 @@
 // Each tool keeps its own part of the state, moved by the program's facts; the house keeps only what is its own.
 import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
+import { effect } from "../house/facts.ts";
 import { identityView } from "../house/members.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import type { Slices, State } from "./tool-contract.ts";
@@ -14,47 +15,50 @@ const open = (...args: Parameters<typeof shopRig>) => {
   rigs.push(rig);
   return rig;
 };
-const trade = (rig: ReturnType<typeof shopRig>) => {
+const trade = async (rig: ReturnType<typeof shopRig>) => {
+  rig.bus.emit(effect("kit-set", { holder: "mind:payments", tool: "payments", acts: ["notice"] }, "ana"));
   for (const target of ["sales", "payments"]) rig.attend("ana", target);
   rig.act("ana", "register", { sale: "s1", total: 1500 }, "sales");
   rig.act("ana", "receive", { payment: "p1", amount: 1500, sale: "s1" }, "payments");
   rig.act("ana", "receive", { payment: "p2", amount: 100 }, "payments");
+  await rig.tools().recoverReactions();
 };
 
 describe("what each tool keeps", () => {
-  it("moves with the program's facts, one tool reading another's part as it was before the fact", () => {
+  it("moves with the program's facts, one tool reading another's part as it was before the fact", async () => {
     const rig = open();
-    trade(rig);
+    await trade(rig);
     expect(rig.state().tools.sales).toEqual(new Map([["s1", { total: 1500, paid: 1500, by: "ana" }]]));
     expect(rig.state().tools.payments).toEqual({ received: 1600, unmatched: ["p2"] });
     expect(
       rig
         .tools()
         .state()
-        .entries.map(entry => entry.data.text),
-    ).toEqual(["Registrada · s1", "Recibido · p1", "Unmatched p2", "Recibido · p2"]);
+        .entries.filter(entry => !entry.data.silent)
+        .map(entry => entry.data.text),
+    ).toEqual(["Registrada · s1", "Recibido · p1", "Recibido · p2", "Avisado · Pago sin venta · p2"]);
   });
 
-  it("writes a program's facts as caused by the act that made them", () => {
+  it("writes a program's facts as caused by the act that made them", async () => {
     const rig = open();
-    trade(rig);
+    await trade(rig);
     const act = rig.facts().find(event => event.kind === "act" && event.data.option === "register");
     const fact = rig.facts().find(event => event.kind === "sale-registered");
     expect(fact).toMatchObject({ layer: "program", by: "ana", cause: [act?.id], data: { sale: "s1", total: 1500 } });
   });
 
-  it("lets a tool call for attention over a fact of its own, even from whoever caused it", () => {
+  it("lets a tool call for attention over a fact of its own, even from whoever caused it", async () => {
     const rig = open();
-    trade(rig);
+    await trade(rig);
     const called = rig.facts().filter(event => event.kind === "stimulus" && event.data.tool === "payments");
-    expect(called.map(event => event.by)).toEqual(["beto", "ana", "beto", "beto"]);
+    expect(called.map(event => event.by)).toEqual(["beto", "beto", "ana", "beto"]);
     expect(identityView(rig.state(), "beto").attention.has("payments")).toBe(true);
     expect(identityView(rig.state(), "ana").attention.has("payments")).toBe(false);
   });
 
-  it("is the same after a restart and after folding the whole journal again", () => {
+  it("is the same after a restart and after folding the whole journal again", async () => {
     const rig = open();
-    trade(rig);
+    await trade(rig);
     const before = rig.state();
     rig.restart();
     expect(rig.state()).toEqual(before);

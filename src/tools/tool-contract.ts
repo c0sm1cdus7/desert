@@ -92,7 +92,8 @@ export interface Tool<X extends Program> extends Readonly<{ id: string; purpose:
   view(state: State<X>, target: string, limits: ViewLimits): string;
   viewData?(state: State<X>, target: string): unknown;
   summary(state: State<X>): string;
-  effects?(state: State<X>, event: Event<X["fact"]>): readonly Emission<X["fact"]>[];
+  /** Stable reaction ids bind a notice kind to an own action; its input is the notice data. */
+  readonly reactions?: Readonly<Record<string, Readonly<{ when: Event<X["fact"]>["kind"]; act: string }>>>;
   draft?(state: State<X>, through: number, input: unknown, target: string, at: number): string | undefined;
 }
 export type ToolRegistry<X extends Program> = readonly Tool<X>[];

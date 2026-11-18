@@ -124,5 +124,5 @@ const seeded = {
 /** Its sales and payments take money in another currency, in place of what the shop's own do. */
 export const moneyRegistry = shopWith({
   sales: { acts: { seed: seeded, register, edit, credit }, only: true },
-  payments: { acts: { receive }, only: true },
+  payments: { acts: { receive }, only: true, reactions: {} },
 }).registry;

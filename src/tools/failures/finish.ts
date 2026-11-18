@@ -1,4 +1,5 @@
-// Writing a result and its diagnostic cannot turn a storage failure into a program defect or silence it.
+// Confirma cada reacción junto a su resultado y conserva los diagnósticos de las fallas de escritura.
+import { toolTexts } from "../../texts/tools.texts.ts";
 import { OutsideDefect, BaseFailure } from "../../fields/program-call.ts";
 import { effect, type HouseEvent } from "../../house/facts.ts";
 import type { Decision, Execution } from "../execute.ts";
@@ -19,12 +20,51 @@ const reportLost = <X extends Program>(ports: Execution<X>, act: HouseEvent<"act
 const failedDecision = <X extends Program>(ports: Execution<X>, act: HouseEvent<"act">, error: unknown) =>
   ports.secrets.scrub(executionFailure(ports.registry, ports.state(), act, ports.secrets.scrub(error)));
 
+function reactionDecision<X extends Program>(act: HouseEvent<"act">, decision: Decision<X>): Decision<X> {
+  if (act.data.reaction && decision.status !== "accepted") {
+    const data = {
+      tool: act.data.object,
+      target: act.data.object,
+      author: act.by,
+      attention: true,
+      text: toolTexts.reactionPending(act.data.reaction.id, decision.reason ?? toolTexts.interrupted),
+    };
+    decision = {
+      ...decision,
+      effects: [...decision.effects.filter(each => each.layer === "house"), effect("tool-entry", data, act.by)],
+    };
+  }
+  return decision;
+}
+const receipt = <X extends Program>(act: HouseEvent<"act">, done: Decision<X>) =>
+  effect(
+    "act-result",
+    {
+      act: act.id,
+      status: done.status,
+      reason: done.reason ?? "",
+      ...(done.defect ? { defect: true as const } : {}),
+      ...(done.status === "accepted" && done.output ? { output: true } : {}),
+    },
+    act.by,
+    [act.id],
+    act.process,
+  );
 export function finish<X extends Program>(ports: Execution<X>, act: HouseEvent<"act">, decision: Decision<X>) {
   decision = cutDecision(ports, decision);
+  decision = reactionDecision(act, decision);
   const safe = ports.secrets.scrub(decision);
   if (!ports.live()) return safe;
   if (ports.active) ports.active.writing = true;
-  const failure = writtenEffects(ports, act, decision.effects, decision.status === "accepted");
+  // A reaction's receipt is inseparable from its effects, including a failure after the last effect.
+  const atomic = act.data.reaction !== undefined;
+  const failure = writtenEffects(
+    ports,
+    act,
+    atomic ? [...decision.effects, receipt(act, safe)] : decision.effects,
+    decision.status === "accepted",
+  );
+  if (atomic && failure === undefined) return safe;
   let done: Decision<X> = safe;
   if (failure !== undefined) {
     done = failedDecision(
@@ -42,10 +82,7 @@ export function finish<X extends Program>(ports: Execution<X>, act: HouseEvent<"
     }
   }
   done = cutDecision(ports, done);
-  const output = done.status === "accepted" && done.output ? { output: true } : {};
-  const defect = done.defect ? { defect: true as const } : {};
-  const data = { ...defect, act: act.id, status: done.status, reason: done.reason ?? "", ...output };
-  const result = writtenEffects(ports, act, [effect("act-result", data, act.by, [act.id], act.process)]);
+  const result = writtenEffects(ports, act, [receipt(act, done)]);
   if (result !== undefined) {
     const failed = failedDecision(ports, act, result.error);
     const lost = writtenEffects(ports, act, failed.effects);

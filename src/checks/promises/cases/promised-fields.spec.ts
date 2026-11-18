@@ -46,13 +46,23 @@ describe("a program with a field that knows what is wrong", () => {
       return Promise.resolve();
     }));
 
-  it("fails the cases of an act that does not declare the cause its field refuses with", async () => {
-    const failed = await failing(programChecks(undeclaredShop, shopShown), name =>
-      name.includes("promises a case")
-        ? "Declared causes differ from the cases"
-        : "E-PROG-1 · Falló el programa · anotar",
-    );
-    expect(failed).toContain(wrongName);
-    expect(failed).toContain("payments · note · promises a case for what it does and for each cause it refuses with");
-  });
+  const requiredFailures = [
+    wrongName,
+    "payments · note · promises a case for what it does and for each cause it refuses with",
+  ];
+  const checks = programChecks(undeclaredShop, shopShown);
+  for (const name of requiredFailures)
+    it(`includes the failing check ${name}`, () => {
+      expect(checks.some(check => check.name === name)).toBe(true);
+    });
+  for (const check of checks)
+    it(`checks the undeclared cause: ${check.name}`, async () => {
+      const failed = await failing(
+        [check],
+        check.name.includes("promises a case")
+          ? "Declared causes differ from the cases"
+          : "E-PROG-1 · Falló el programa · anotar",
+      );
+      if (requiredFailures.includes(check.name)) expect(failed).toContain(check.name);
+    });
 });

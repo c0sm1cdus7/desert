@@ -1,8 +1,10 @@
-// The house's own state and each tool's, folded together; attention as a perpetual, replayable ladder.
+// Comprueba y arranca herramientas, reacciones y atención; despacha actos y cierra el motor.
 import { checkComposition, checkOwn } from "./execution/composed-authority.ts";
 import { attentionEffects } from "./attention-effects.ts";
 import { readonlyPorts } from "./boundaries/readonly-ports.ts";
-import { startPrograms, programEffects } from "./boundaries/tool-listeners.ts";
+import { startPrograms } from "./boundaries/tool-listeners.ts";
+import { startReactions } from "./boundaries/tool-reactions.ts";
+import type { Event } from "../journal/vocabulary.ts";
 import { interrupt, watchRunning } from "./execution/running-acts.ts";
 import { programRule } from "../fields/program-call.ts";
 import { identityView } from "../house/members.ts";
@@ -13,7 +15,8 @@ import type { OwnAct, Program, State } from "./tool-contract.ts";
 import { attendanceActs } from "../house/attention.ts";
 /** What a program hands the engine; a program without processes or acts of its own leaves those out. */
 type Starting<X extends Program> = Omit<Execution<X>, "live" | "own" | "process"> &
-  Partial<Pick<Execution<X>, "own" | "process">>;
+  Partial<Pick<Execution<X>, "own" | "process">> &
+  Readonly<{ history: readonly Event<X["fact"]>[] }>;
 const ownOf = <X extends Program>(ports: Starting<X>) => {
   const houseOwn = new WeakSet<OwnAct<X>>();
   const offered = houseActs(attendanceActs(ports.registry));
@@ -35,10 +38,22 @@ const processOf =
     const journey = ports.state().house.journeys.get(id);
     return journey ? !journey.closed && (by === undefined || journey.by === by) : (ports.process?.(id, by) ?? false);
   };
+function watchAttention<X extends Program>(ports: Execution<X>) {
+  let state = ports.state();
+  const cut = watchRunning(ports);
+  return ports.bus.on(event => {
+    cut(event);
+    const effects = [];
+    for (const by of state.house.grants.keys())
+      effects.push(...attentionEffects(identityView(state, by), ports.registry, event));
+    state = ports.state();
+    effects.forEach(effect => ports.bus.emit(effect));
+    if (event.layer === "house" && event.kind === "boot") interrupt(ports, state);
+  });
+}
 export function startTools<X extends Program>(ports: Starting<X>) {
-  const { bus, registry, secrets, state: read } = readonlyPorts(ports);
-  let state = read();
-  checkComposition(registry, state, ports.own);
+  const { registry, secrets, state: read } = readonlyPorts(ports);
+  checkComposition(registry, read(), ports.own);
   let live = true;
   const running: Execution<X> = {
     ...readonlyPorts(ports),
@@ -47,19 +62,19 @@ export function startTools<X extends Program>(ports: Starting<X>) {
     process: processOf(ports),
     ...ownOf(ports),
   };
-  const shutdown = startPrograms(registry, running);
-  const cut = watchRunning(running);
-  const stop = bus.on(event => {
-    cut(event);
-    const effects = programEffects(registry, state, event);
-    for (const by of state.house.grants.keys())
-      effects.push(...attentionEffects(identityView(state, by), registry, event));
-    state = read();
-    effects.forEach(effect => bus.emit(effect));
-    if (event.layer === "house" && event.kind === "boot") interrupt(running, state);
-  });
+  const reactions = startReactions(running, ports.history);
+  let shutdown: () => void;
+  try {
+    shutdown = startPrograms(registry, running);
+  } catch (error) {
+    reactions.stop();
+    throw error;
+  }
+  const stop = watchAttention(running);
   return {
     state: read,
+    recoverReactions: reactions.recover,
+    pendingReactions: reactions.pending,
     prepare: <T>(value: T): T => {
       secrets.capture(value, registry, read());
       return secrets.scrub(value);
@@ -71,6 +86,7 @@ export function startTools<X extends Program>(ports: Starting<X>) {
     stop: () => {
       live = false;
       stop();
+      reactions.stop();
       shutdown();
     },
   };

@@ -3210,6 +3210,21 @@
         "src/house/minds/mind-recovery.spec.ts"
       ],
       "from": "17/11 · mente 3, contratos y autoridad"
+    },
+    {
+      "id": 275,
+      "rule": "Las reacciones ejecutan acciones propias como la mente del programa, con kit vigente y autoridad de efectos. Marca y recibo se confirman juntos; el par reacción y aviso deduplica y recupera pendientes con motivo visible, sin pensamiento ni carta.",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/reactions-audit.spec.ts",
+        "src/tools/reactions.spec.ts",
+        "src/tools/reactions-neighbors.spec.ts",
+        "src/tools/reactions-retry.spec.ts",
+        "src/runtime/house-reactions.spec.ts",
+        "src/tools/boundaries/tool-reactions.ts",
+        "src/tools/failures/finish.ts"
+      ],
+      "from": "18/11 · distribuciones, dist-2 §4, H3"
     }
   ]
 }
