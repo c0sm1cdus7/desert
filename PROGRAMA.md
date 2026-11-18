@@ -20,10 +20,10 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 
 ## Lo que la base hace con eso
 
-- **La organización** (`house`): quién administra, qué herramientas enteras tiene cada usuario, sus preferencias. Quien
+- **La organización** (`house`): quién administra, quién pertenece, las selecciones de kit de cada identidad y sus preferencias. Quien
   administra da y quita herramientas (`granted`), saca a alguien (`removed`) y pasa la administración (`handed`):
   la base pliega esos hechos y cuida sus reglas; los escriben sus actos propios y sus piezas del core.
-  `kit-set` suma el recorte de acciones; `scene` guarda la última descripción de cada identidad o mente.
+  `kit-set` reemplaza la selección del titular; `scene` guarda la última descripción de cada identidad o mente.
 - **El registro**: solo se agrega; cada hecho con autor e instante; el estado es el registro plegado.
 - **La superficie**: Menú, lista de cada herramienta, objeto abierto y pregunta; un router único para cualquier
   dibujante (hoy la terminal). Cada identidad puede leer y buscar todas las herramientas y sus objetos; las acciones
@@ -72,11 +72,10 @@ El registro conserva el pedido, el inicio y el rechazo de la ejecución. Un acto
 lo escrito; no se deshace el mundo exterior. Los comandos opacos que devuelve `context.credentials` siguen siendo
 pedidos a la custodia: solo su préstamo original los reconoce; una copia de una entrada no tiene esa autoridad.
 
-Un `kit-set` exige titular presente (o mente de herramienta existente), herramienta dada, acciones declaradas
-sin repeticiones. La mente solo recibe el kit de su herramienta; administración no recibe recortes.
-Se admiten `null`, `[]` y subconjuntos válidos. Si un lote primero da la herramienta, puede después darle el kit;
-si primero la saca, el kit posterior rechaza todo. La autoridad se vuelve a leer al terminar un acto pendiente.
-Los registros anteriores se siguen leyendo: esta validación no reescribe hechos ni agrega un filtro al plegado de kits.
+Un `kit-set` V2 exige titular presente (o mente de programa existente) y selecciones declaradas sin repeticiones.
+Una selección positiva nombra un programa, una herramienta o una acción. La mente permanece en su propio programa;
+quien administra no recibe recortes. Quitar la última acción conserva la pertenencia. La autoridad se vuelve a
+leer al terminar una espera. Los hechos históricos siguen leyéndose con su alcance original, sin reescribirlos.
 
 Un acto `own` no puede tener el mismo objeto y nombre que una acción declarada de una herramienta: falla al
 componer, con ambos nombres. Se comprueba el puerto para cada identidad presente y también cada oferta que produce
@@ -1382,7 +1381,9 @@ Terminar una espera o cortar su conexión libera el lugar. Los actos y `chau` qu
 La prueba del costo compara bytes y cantidad de envíos, con un envío de estado por terminal y pago; alterna
 el camino local y remoto para informar sus tiempos y relación, sin un umbral de milisegundos dependiente de la máquina.
 
-## El kit, la escena y el destinatario de la atención (14/11)
+## El kit, la escena y el destinatario de la atención (historia del 14/11)
+
+La forma vigente del kit es V2, documentada más abajo. Este apartado conserva la interpretación de los hechos anteriores.
 
 `granted` conserva su sentido: dar una herramienta entera. `kit-set` toma `{ holder, tool, acts }`, escrito por
 quien administra: con una lista deja solo esas acciones; con `[]` ninguna, manteniendo la herramienta; con `null`
@@ -1517,45 +1518,56 @@ El campo declarado `verbatim: true` conserva espacios y saltos al escribir, pega
 Identificador lo usa para rechazar el valor completo con la regla compartida; los campos comunes conservan su
 normalización anterior. No es una composición ni un control nuevos.
 
-### Herramientas y acciones de identidades y mentes (paso 5c)
+### Kit por carpetas y hechos V2 (18/11)
 
-En Identidades, la ficha de una identidad abre `herramientas`: una fila por herramienta del catálogo con `todas`,
-`n de total` o `no`. Cada herramienta abre su fila entera (`t`) y una por acción. El menú admite nueve filas de edición en total. Cada fila abre su propio
-Hilo con `sí` y `no`; el valor actual queda apagado como `actual`. Dar la herramienta entera escribe `granted` y
-`kit-set` con `acts: null`; sacarla escribe `granted` sin ella. Una acción usa `kit-set`; si la identidad no tenía
-la herramienta, primero la recibe en el mismo lote. El resto de las herramientas y sus recortes se conserva.
-`kit-effects.ts` arma ese lote. No cambian el significado de los hechos, la ejecución ni la versión del cálculo.
+En Identidades se recorren programas, herramientas y acciones con listas, flechas, Enter y Esc.
+Los números son atajos para las primeras nueve acciones, sin limitar las filas. Cada carpeta dice
+«Todo, también lo nuevo», «Algunas acciones» o «Sin acciones». Una acción heredada lo indica;
+al quitarla se confirma que esa carpeta será reemplazada por hermanas y acciones restantes y dejará de recibir
+acciones nuevas en esa rama. La edición usa el estado vigente y conserva las otras ramas, incluidas selecciones retiradas.
+La ficha de quien administra explica que este kit no lo restringe. Escena, atender y preferir son actos propios,
+fuera del catálogo otorgable. La mente recibe escena; atender y preferir siguen siendo de identidades.
 
-Una herramienta parcialmente dada no equivale ni a darla entera ni a sacarla: su fila entera dice `n de total`
-y permite elegir ambos extremos, también con `0 de total` si conserva la herramienta sin acciones. En ese caso
-ninguno dice `actual`; las filas de cada acción sí tienen su valor
-actual. Así se puede quitar la herramienta parcial o completarla sin tocar las acciones una por una.
+`Selection` usa identificadores en inglés: `{ kind: "program", program }`, `{ kind: "tool", program, tool }`
+o `{ kind: "action", program, tool, action }`. `SelectionKit` es `{ version: 2, selections }`.
+Una carpeta sigue siendo carpeta aunque tenga una sola acción; enumerar todas las acciones nunca la convierte en carpeta.
+`effectiveKit(house, actor, registry, process?)` devuelve acciones instaladas y vigentes. Para un asistente cruza
+su delegación, el permiso actual del dueño y las capacidades de su carta. Para un journey también cruza el alcance
+del proceso y conserva su cierre y autor. Administrar no convierte al asistente propio en administrador.
+Al pasar la administración, una selección V2 se conserva para cuando su titular deje de administrar;
+los hechos históricos mantienen la limpieza de restricciones antiguas que ya tenía `handed`.
 
-El stack Mentes es provisorio y abre directamente las acciones propias de `mind:<herramienta>`, sin fila para dar
-la herramienta entera. La base ya reconoce ese actor para cada herramienta del catálogo; Identidades queda afuera.
-Una mente parte sin acciones; si la herramienta no declara ninguna, dice `Sin acciones.`. Su lectura como objeto
-también dice el kit actual; no recibe `granted`, ni se saca,
-readmite o recibe administración. El lugar puede moverse sin cambiar los hechos ni las acciones de edición.
+El puerto transitorio es `herramientaDe(program, action, layout)` en `house/kit-selection.ts`.
+Cada `Tool` actual representa un programa; `actionTools` declara la herramienta de cada acción. Sin ese mapa,
+la herramienta histórica tiene el mismo id que el programa. El integrador debe conectar el adaptador de programas
+instalables con este mapa, y pasar registro y correspondencias a los cálculos. El mapa entra en la huella de proyección.
 
-Todos los miembros leen los menús; las ediciones ajenas quedan apagadas con `solo quien administra`. La fila de
-quien administra dice `todas` y sus acciones `administra · todas`. Se consulta el permiso otra vez al confirmar.
-Los menús abiertos leen el estado actual: una acción revocada queda `fuera del kit` y lo que corre se corta mediante
-la garantía del paso 4. Dos ediciones de acciones distintas conservan lo que la otra ya escribió.
+Solo se escriben estas formas: `granted { version: 2, identity, kit }`, `kit-set { version: 2, holder, kit }`,
+`assistant-kit-set { version: 2, owner, kit }` y `journey-opened { version: 2, goal, kit }`.
+`granted` incorpora o reincorpora y establece la selección; `kit-set` no incorpora miembros.
+`house.selections` guarda las selecciones. Las claves de `grants` conservan pertenencia; sus valores y `kits`
+son compatibilidad histórica, no el permiso vigente: consultá `holderKit`, `allowedAct` o `effectiveKit`.
+Los estados de asistentes y journeys tienen `selections`; su campo `kit` conserva únicamente las listas históricas.
 
-Los actos del core se generan como `kit:<herramienta>` y `kit:<herramienta>:<acción>` y toman `{ value: "yes" | "no" }`.
-Nunca se ofrece un `kit-set` libre ni nombres fuera del catálogo. `programChecks` deriva los casos de esas filas,
-y además prueba los destinos de mente que no corresponden: deben faltar de la pantalla y rechazarse sin efectos.
-`tests/support/kit-program.ts` agrega una acción pendiente solo para comprobar el corte, sin proveedores reales.
+El lector conserva los hechos originales, con id, autor, causas y proceso. Un `granted { identity, tools }`
+antiguo retiene las restricciones de ámbitos conservados y elimina las retiradas. Un `kit-set` antiguo con `null`
+da solo su herramienta histórica, nunca un programa nuevo con herramientas hermanas; una lista, incluso vacía,
+da únicamente esas acciones. Las listas antiguas de asistentes y journeys tampoco se convierten en carpetas.
+El escritor acepta pedidos antiguos como adaptación de llamadas existentes y los convierte contra el diario vigente
+antes de anexar V2; no modifica ningún registro anterior. Los productores del core ya entregan V2 directamente.
+La versión del cálculo de la base es `desert/9`; una proyección vieja se reconstruye.
 
-Deuda de la ley 2: para una identidad, una herramienta con nueve acciones requeriría diez filas contando la
-herramienta entera. Ese menú no se construye; la fila dice `menú pendiente · más de nueve acciones`.
-Para su mente, las nueve acciones sí caben, porque no recibe una fila de herramienta; con diez no se construye
-ninguno de los dos menús. Los bordes de ocho, nueve y diez acciones están en `identity-kit-neighbors.spec.ts` y
-`identity-kit-readers.spec.ts`; las derivadas del caso de nueve, en `identity-kit-limit-derived.spec.ts`.
-La herramienta entera tiene `t`; las acciones usan números. Los actos que solo caben para la mente rechazan
-una llamada sobre una identidad, además de no ofrecerse allí.
-No hay cambio exigido al programa original que no pide Identidades (`tests/support/shop-program.ts`); una composición
-que ya la pide recibe estos menús automáticamente. No se inspeccionaron programas externos a esta copia.
+La composición admite `kitMigration`, con versión, `scopes`, `actions` y `retired`. `scopes` declara el alcance
+herramienta antigua → herramienta de un programa nuevo; `actions` declara renombres o movimientos de igual significado
+dentro del mismo programa. No se infiere nada por rótulos ni se traslada autoridad entre publicadores.
+Las correspondencias ambiguas, destinos encadenados y reutilización de ids retirados se rechazan. Conservá
+permanentemente las correspondencias y retiros al publicar nuevas versiones. Sin correspondencia, una selección
+retirada no habilita acciones y la pantalla dice «ya no está disponible»; el diario conserva su selección.
+
+Las acciones de edición son `kit:<programa>`, `kit:<programa>/<herramienta>` y `kit:<programa>:<acción>`;
+reciben `{ value: "yes" | "no" }`. No hay una acción pública que permita escribir ids arbitrarios.
+Las confirmaciones declaradas pueden devolver `undefined` cuando esa respuesta no necesita confirmación.
+`JourneyAccess` admite `layout` y `migration` para resolver carpetas e historia con el mismo catálogo que el motor.
 
 ### Escena propia desde Identidades (paso 5d)
 

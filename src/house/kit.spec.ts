@@ -1,3 +1,4 @@
+import { holderKit } from "./kit-history.ts";
 import { afterEach, expect, it } from "vitest";
 import { object } from "../fields/visible-text.ts";
 import { toolAct } from "../tools/act-definition.ts";
@@ -33,7 +34,9 @@ it("2: gives identities every act by default, then only the admin's kit, across 
   kit(rig, "stranger", null);
   kit(rig, "beto", null, "missing");
   expect(rig.state().house.kits.has("stranger")).toBe(false);
-  expect(rig.state().house.kits.get("beto")?.has("missing")).toBe(false);
+  expect(holderKit(rig.state().house, "beto").selections.some(selection => selection.program === "missing")).toBe(
+    false,
+  );
 });
 
 it("3: removes kits on departure and on tool withdrawal, but preserves a retained tool's kit", () => {
@@ -41,16 +44,16 @@ it("3: removes kits on departure and on tool withdrawal, but preserves a retaine
   kit(rig, "beto", ["say"]);
   kit(rig, "beto", [], "other");
   grant(rig, "beto", ["desk"]);
-  expect(rig.state().house.kits.get("beto")?.has("other")).toBe(false);
+  expect(holderKit(rig.state().house, "beto").selections.some(selection => selection.program === "other")).toBe(false);
   expect(allowedAct(rig.state().house, "beto", "desk", "open")).toBe(false);
   grant(rig, "beto", []);
   grant(rig, "beto", ["desk"]);
   expect(allowedAct(rig.state().house, "beto", "desk", "open")).toBe(true);
   kit(rig, "beto", []);
   rig.bus.emit(effect("removed", { identity: "beto" }, "beto"));
-  expect(rig.state().house.kits.has("beto")).toBe(true);
+  expect(rig.state().house.selections?.has("beto")).toBe(true);
   rig.bus.emit(effect("removed", { identity: "beto" }, "ana"));
-  expect(rig.state().house.kits.has("beto")).toBe(false);
+  expect(rig.state().house.selections?.has("beto")).toBe(false);
   grant(rig, "beto", ["desk"]);
   rig.restart();
   expect(allowedAct(rig.state().house, "beto", "desk", "open")).toBe(true);

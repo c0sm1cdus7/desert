@@ -30,8 +30,10 @@ type Options = Readonly<{ registry?: ToolRegistry<Shop>; grants?: Readonly<Recor
 type Journal = SqliteJournal<ShopFact>;
 /** Fold the journal, then listen: a restart reads history before it attaches new observers. */
 const resume = (bus: Bus<ShopFact>, journal: Journal, registry: ToolRegistry<Shop>, ports: Options) => {
-  const state = journal.watch("tools", startState<Shop>(shopSlices, runner, ports.identities), (state, event) =>
-    toolsStep<Shop>(state, event, shopSlices),
+  const state = journal.watch(
+    "tools",
+    startState<Shop>(shopSlices, runner, ports.identities, registry),
+    (state, event) => toolsStep<Shop>(state, event, shopSlices),
   );
   journal.restore();
   const now = () => testTime.now();

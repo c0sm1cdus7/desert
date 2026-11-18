@@ -1,10 +1,12 @@
-// Lote de granted y kit-set calculado sobre el estado vigente; conserva las otras acciones y herramientas.
-import { allowedAct, mindTool } from "../../house/kit.ts";
+// Guarda selecciones V2 calculadas sobre el estado vigente y conserva las ramas ajenas a la edición.
+import { migrateKit } from "../../house/kit-migration.ts";
+import { holderKit, storedHolderKit } from "../../house/kit-history.ts";
+import { editKit } from "../../house/kit-edit.ts";
+import { herramientaDe, kitLayout, selectionKit, type Selection } from "../../house/kit-selection.ts";
 import type { House } from "../../house/members.ts";
 import { effect } from "../../house/facts.ts";
 import type { Emission } from "../../journal/vocabulary.ts";
 import type { Program, Tool } from "../tool-contract.ts";
-// One batch, computed at execution time: another open editor's changes remain in the current kit.
 export function kitEffects<X extends Program>(
   house: House,
   by: string,
@@ -12,27 +14,17 @@ export function kitEffects<X extends Program>(
   tool: Tool<X>,
   action: string | undefined,
   yes: boolean,
+  group?: string,
 ): Emission<X["fact"]>[] {
-  const held = house.grants.get(holder) ?? [];
-  const actions = Object.keys(tool.acts);
-  const effects: Emission<X["fact"]>[] = [];
-  if (action === undefined) {
-    effects.push(
-      effect(
-        "granted",
-        {
-          identity: holder,
-          tools: yes ? [...new Set([...held, tool.id])] : held.filter(id => id !== tool.id),
-        },
-        by,
-      ),
-    );
-    if (yes) effects.push(effect("kit-set", { holder, tool: tool.id, acts: null }, by));
-  } else {
-    const acts = actions.filter(act => (act === action ? yes : allowedAct(house, holder, tool.id, act)));
-    if (mindTool(holder) === undefined && !held.includes(tool.id))
-      effects.push(effect("granted", { identity: holder, tools: [...held, tool.id] }, by));
-    effects.push(effect("kit-set", { holder, tool: tool.id, acts }, by));
-  }
-  return effects;
+  const layout = kitLayout([tool]);
+  let branch: Selection = { kind: "program", program: tool.id };
+  if (group !== undefined) branch = { kind: "tool", program: tool.id, tool: group };
+  if (action !== undefined)
+    branch = { kind: "action", program: tool.id, tool: herramientaDe(tool.id, action, layout), action };
+  const retired = storedHolderKit(house, holder).selections.filter(
+    selection => !migrateKit(selectionKit([selection]), house.kitMigration).selections.length,
+  );
+  const changed = editKit(holderKit(house, holder), branch, yes, Object.keys(tool.acts), layout);
+  const kit = selectionKit([...changed.selections, ...retired]);
+  return [effect("kit-set", { version: 2, holder, kit }, by)];
 }

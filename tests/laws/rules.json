@@ -1,5 +1,5 @@
 {
-  "debts": 23,
+  "debts": 22,
   "rules": [
     {
       "id": 1,
@@ -2959,8 +2959,8 @@
     },
     {
       "id": 229,
-      "rule": "Desde Identidades, quien administra da o saca herramientas enteras y acciones de cada identidad, y solo acciones propias a cada mente. El catálogo genera los actos: nada inexistente se ofrece. Quien administra tiene todas sin recorte; los demás leen menús con acciones apagadas. Cada cambio conserva los otros recortes, viaja al instante y usa el corte de la casa ya existente.",
-      "from": "14/11 · casa-kit paso 5c",
+      "rule": "Desde Identidades, quien administra otorga programas, herramientas o acciones. Las carpetas incluyen acciones futuras; las listas explícitas no se convierten en carpetas. Cada mente queda en su programa. La edición conserva ramas ajenas y explica la pérdida de herencia al retirar un descendiente. La administración no se recorta y los actos propios no se otorgan.",
+      "from": "18/11 · dist-kit · dist-1 C y dist-2 §5",
       "guarantee": "spec",
       "evidence": [
         "src/tools/identities/kit-actions.ts",
@@ -2974,15 +2974,23 @@
         "src/checks/identity-kit-limit-derived.spec.ts",
         "src/tools/identities/identities-derived.spec.ts",
         "src/checks/identity-kit-terminal.spec.ts",
-        "src/checks/promises/identities/kit-checks.ts"
+        "src/checks/promises/identities/kit-checks.ts",
+        "src/tools/identities/kit-navigation.spec.ts",
+        "src/house/kit-exceptions.spec.ts",
+        "src/house/kit-folders.spec.ts"
       ]
     },
     {
       "id": 230,
-      "rule": "Un menú de kit con más de nueve filas de edición requiere una forma aprobada que cumpla la tecla de cada opción.",
+      "rule": "El kit se recorre en listas de programas, herramientas y acciones sin límite de nueve; los atajos son opcionales y toda acción se alcanza con navegación. Cada carpeta distingue Todo, también lo nuevo, Algunas acciones y Sin acciones.",
       "from": "LEYES 2 · casa-kit paso 5c",
-      "guarantee": "debt",
-      "debt": "Caso: sales con nueve acciones action0…action8 requiere diez filas para una identidad, contando la herramienta entera; ese menú y sus ediciones para identidades no se ofrecen. La mente puede editar sus nueve acciones. Con diez acciones no se construye ningún menú. La fila pendiente dice menú pendiente · más de nueve acciones. Aprobar una composición y teclas para superar ese límite. Bordes en identity-kit-neighbors.spec.ts e identity-kit-readers.spec.ts; derivadas en identity-kit-limit-derived.spec.ts."
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/identities/kit-navigation.spec.ts",
+        "src/checks/promises/identity-kit-neighbors.spec.ts",
+        "src/checks/promises/identity-kit-readers.spec.ts",
+        "src/checks/identity-kit-limit-derived.spec.ts"
+      ]
     },
     {
       "id": 257,
@@ -3210,6 +3218,18 @@
         "src/house/minds/mind-recovery.spec.ts"
       ],
       "from": "17/11 · mente 3, contratos y autoridad"
+    },
+    {
+      "id": 275,
+      "rule": "Los hechos granted, kit-set, assistant-kit-set y journey-opened se escriben en V2. El lector conserva las formas históricas, restricciones retenidas, pertenencia, autores y causas sin reescribir el diario. Restaurar proyecciones y plegar completo reconstruyen los mismos permisos; asistentes y journeys los cruzan con autoridad vigente. Las correspondencias de ids son explícitas y versionadas, sin inferir permisos por rótulos.",
+      "from": "18/11 · dist-kit · dist-1 D",
+      "guarantee": "spec",
+      "evidence": [
+        "src/house/kit-history.spec.ts",
+        "src/house/kit-folders.spec.ts",
+        "src/house/kit-migration.ts",
+        "src/house/kit-emission.ts"
+      ]
     }
   ]
 }

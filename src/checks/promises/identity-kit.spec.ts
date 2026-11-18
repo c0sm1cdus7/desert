@@ -1,3 +1,4 @@
+import { holderKit } from "../../house/kit-history.ts";
 import { expect, it } from "vitest";
 import { perform, staged } from "./promised-stage.ts";
 import { localPorts } from "../../runtime/house-runtime.ts";
@@ -39,8 +40,12 @@ it("cuts one action, preserves other tools and cuts, grants whole tools, and sur
     expect((await perform(house(), "identities", change("kit:sales", "yes"))).status).toBe("accepted");
     expect(allowedAct(house().tools.state().house, "carla", "sales", "register")).toBe(true);
     await perform(house(), "identities", change("kit:sales", "no"));
-    expect(house().tools.state().house.grants.get("carla")).toEqual(["payments"]);
-    expect(house().tools.state().house.kits.get("carla")?.has("sales")).toBe(false);
+    expect([
+      ...new Set(holderKit(house().tools.state().house, "carla").selections.map(selection => selection.program)),
+    ]).toEqual(["payments"]);
+    expect(
+      holderKit(house().tools.state().house, "carla").selections.some(selection => selection.program === "sales"),
+    ).toBe(false);
     reopen();
     expect(allowedAct(house().tools.state().house, "carla", "sales", "wait")).toBe(false);
   });

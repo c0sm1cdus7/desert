@@ -11,6 +11,7 @@ import { Value } from "@sinclair/typebox/value";
 import { MacOSHouseKeys } from "../keychain/macos/macos-house-keys.ts";
 import { ids } from "../house/ids.ts";
 import { mindOf } from "../house/kit.ts";
+import { explicitKit, programKit, selectionKit } from "../house/kit-selection.ts";
 import { effect } from "../house/facts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { toolAct } from "../tools/act-definition.ts";
@@ -141,10 +142,14 @@ it("casa con custodia: kits, mente, actos con y sin credencial, escenas; cierra 
   const { house } = rig.house.tools.state();
   expect([...house.scenes.keys()].sort()).toEqual(["ana", mind]);
   expect(house.scenes.get(mind)?.data.to).toEqual({ ana: "Tu firma está" });
-  expect(folded(house.kits)).toEqual([
-    ["beto", [["vault", ["sign", "use"]]]],
-    [mind, [["vault", ["plain"]]]],
-  ]);
+  expect(house.kits.size).toBe(0);
+  expect(house.selections).toEqual(
+    new Map([
+      ["ana", programKit(["sales", "payments", "vault"])],
+      ["beto", explicitKit([{ tool: "vault", acts: ["sign", "use"] }])],
+      [mind, explicitKit([{ tool: "vault", acts: ["plain"] }])],
+    ]),
+  );
 });
 
 it("un registro escrito por la custodia sola (3e69d44) se pliega igual en el árbol unido", async () => {
@@ -177,10 +182,32 @@ it("un registro escrito por la custodia sola (3e69d44) se pliega igual en el ár
   ]);
   const { house, wakeOwners, ...rest } = rig.house.tools.state();
   expect([...wakeOwners]).toEqual([['attention:["beto","vault"]', "beto"]]);
-  const { kits, scenes, names, removed, assistants, mindAssignments, minds, journeys, modelCalls, ...older } = house;
+  const {
+    kits,
+    scenes,
+    names,
+    removed,
+    assistants,
+    mindAssignments,
+    minds,
+    journeys,
+    modelCalls,
+    selections,
+    kitLayout,
+    identities,
+    ...older
+  } = house;
   expect(Object.hasOwn(older, "channels")).toBe(false);
   const previousHouse = Object.fromEntries(Object.entries(previous.fold.house).filter(([key]) => key !== "channels"));
   expect(folded({ ...rest, house: older })).toEqual({ ...previous.fold, house: previousHouse });
+  expect(identities).toBe(false);
+  expect(kitLayout).toEqual({});
+  expect(selections).toEqual(
+    new Map([
+      ["ana", selectionKit(["sales", "payments", "vault"].map(program => ({ kind: "tool", program, tool: program })))],
+      ["beto", selectionKit([{ kind: "tool", program: "vault", tool: "vault" }])],
+    ]),
+  );
   expect([kits.size, scenes.size, names.size, removed.size]).toEqual([0, 0, 0, 0]);
   expect([assistants.size, mindAssignments.size, journeys.size, modelCalls.size]).toEqual([0, 0, 0, 0]);
   expect(minds).toEqual({ turns: new Map(), scenes: new Map(), messages: [] });

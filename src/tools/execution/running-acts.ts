@@ -37,7 +37,15 @@ function withdrawn<X extends Program>(ports: Execution<X>, active: RunningAct, h
   if (
     origin.process &&
     house.journeys.has(origin.process) &&
-    !journeyAllows(house.journeys, origin.process, origin.by, tool, origin.data.option)
+    !journeyAllows(
+      house.journeys,
+      origin.process,
+      origin.by,
+      tool,
+      origin.data.option,
+      house.kitLayout,
+      house.kitMigration,
+    )
   )
     return true;
   return !allowedAct(house, origin.by, tool, origin.data.option, ports.registry);

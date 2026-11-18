@@ -1,3 +1,4 @@
+import { holderKit } from "./kit-history.ts";
 import { expect, it } from "vitest";
 import { Value } from "@sinclair/typebox/value";
 import { scene } from "./own-acts.ts";
@@ -12,7 +13,11 @@ it("preserves both other kits when administration passes, even after reopening",
     kit(rig, "beto", ["say"]);
     kit(rig, "carla", []);
     const before = rig.state().house;
-    const kits = new Map(before.kits).set("ana", new Map([["desk", ["say"]]]));
+    const kits = new Map([
+      ["ana", new Map([["desk", ["say"]]])],
+      ["beto", new Map([["desk", ["say"]]])],
+      ["carla", new Map([["desk", []]])],
+    ]);
     const folded = houseStep(
       { ...before, kits },
       { ...effect("handed", { to: "beto" }, "ana"), seq: 1, id: "1", at: 0 },
@@ -22,12 +27,14 @@ it("preserves both other kits when administration passes, even after reopening",
     expect(folded.kits.get("carla")).toEqual(kits.get("carla"));
     rig.bus.emit(effect("handed", { to: "beto" }, "ana"));
     kit(rig, "ana", [], "desk", "beto");
-    expect(rig.state().house.kits.get("carla")?.get("desk")).toEqual([]);
+    expect(holderKit(rig.state().house, "carla").selections).toEqual([]);
     rig.bus.emit(effect("handed", { to: "carla" }, "beto"));
     for (const check of [() => {}, () => rig.restart()]) {
       check();
       expect(rig.state().house.kits.has("carla")).toBe(false);
-      expect(rig.state().house.kits.get("ana")?.get("desk")).toEqual([]);
+      expect(holderKit(rig.state().house, "ana").selections.some(selection => selection.program === "desk")).toBe(
+        false,
+      );
     }
   } finally {
     rig.close();

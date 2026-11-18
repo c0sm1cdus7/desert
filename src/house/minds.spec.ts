@@ -1,3 +1,4 @@
+import { holderKit } from "./kit-history.ts";
 import { afterEach, expect, it } from "vitest";
 import { mindOf, mindTool, allowedAct } from "./kit.ts";
 import { effect } from "./facts.ts";
@@ -41,7 +42,7 @@ it("5: a mind's nested acts inherit its own tool and narrowed kit", async () => 
   const rig = open();
   kit(rig, mind, ["nested", "away"]);
   kit(rig, mind, null, "other");
-  expect(rig.state().house.kits.get(mind)?.has("other")).toBe(false);
+  expect(holderKit(rig.state().house, mind).selections.some(selection => selection.program === "other")).toBe(false);
   expect(rig.act(mind, "say", {}, "other")).toMatchObject({ reason: toolTexts.outsideKit });
   for (const act of ["nested", "away"])
     expect(await settle(rig.act(mind, act, {}, "desk"))).toMatchObject({ reason: toolTexts.outsideKit });

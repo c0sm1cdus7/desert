@@ -1,3 +1,4 @@
+import { holderKit } from "../house/kit-history.ts";
 import { afterEach, expect, it } from "vitest";
 import { effect } from "../house/facts.ts";
 import { settle } from "../surface/bridge/ports/house-ports.ts";
@@ -50,7 +51,10 @@ it("un lote del core se valida en orden y entero: alta y kit sí, baja y kit no"
     const result = await settle(rig.act("ana", "forge", {}, "identities"));
     expect(result.status).toBe(remove ? "rejected" : "accepted");
     if (remove) expect(rig.state().house).toEqual(before);
-    else expect(rig.state().house.kits.get("carla")?.get("sales")).toEqual(["register"]);
+    else
+      expect(holderKit(rig.state().house, "carla").selections).toEqual([
+        { kind: "action", program: "sales", tool: "sales", action: "register" },
+      ]);
   }
 });
 it("pasar la administración dentro del lote no habilita seguir dando", async () => {
@@ -109,7 +113,12 @@ it("el rechazo nuevo no reescribe hechos históricos", () => {
   const before = rig.facts();
   rig.restart();
   expect(rig.facts()).toEqual(before);
-  expect(rig.state().house.kits.get("beto")?.get("sales")).toEqual(["fantasma"]);
+  expect(holderKit(rig.state().house, "beto").selections).toContainEqual({
+    kind: "action",
+    program: "sales",
+    tool: "sales",
+    action: "fantasma",
+  });
   expect(rig.state().tools.payments.received).toBe(100);
 });
 it("una mente de core inexistente no recibe la excepción de identidad", async () => {

@@ -76,10 +76,11 @@ describe("the tree of src/", () => {
   // Mente 2D: +29 líneas exactas para el mensaje de propósitos de los seis controles de journey.
   // Mente 2E: +57 líneas exactas para diagnósticos y asignación de cartas y gasto.
   // Unión de la etapa 2: +12 líneas exactas para la capa de la casa del marco (cómo leer, contestar y consultar).
-  it("keeps every file within 300 lines and the texts within 898", () => {
+  // Dist-kit: +9 líneas exactas para carpetas, herencia, retiradas y explicación de administración.
+  it("keeps every file within 300 lines and the texts within 907", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(898);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(907);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

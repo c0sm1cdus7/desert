@@ -9,9 +9,8 @@ it("an empty action catalog offers the identity's whole tool and shows an empty 
     const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), boundaryShown).find(
       tool => tool.id === "identities",
     );
-    expect(core?.view("identities/mind:sales")).toEqual([
-      { title: "mente de sales", rows: [], empty: "Sin acciones." },
-    ]);
+    expect(core?.view("identities/mind:sales")[0]).toEqual({ title: "sales", rows: [], empty: "Sin acciones." });
+    expect(core?.view("identities/mind:sales").at(-1)?.rows).toHaveLength(1);
     expect(
       (
         await perform(house(), "identities", {
@@ -21,7 +20,7 @@ it("an empty action catalog offers the identity's whole tool and shows an empty 
         })
       ).status,
     ).toBe("accepted");
-    expect(core?.view("identities/carla#tools")[0]?.rows[0]?.detail).toBe("todas");
+    expect(core?.view("identities/carla#tools")[0]?.rows[0]?.detail).toBe("Todo, también lo nuevo");
     expect(
       (
         await perform(house(), "identities", {
@@ -31,19 +30,20 @@ it("an empty action catalog offers the identity's whole tool and shows an empty 
         })
       ).status,
     ).toBe("accepted");
-    expect(core?.view("identities/carla#tools")[0]?.rows[0]?.detail).toBe("no");
+    expect(core?.view("identities/carla#tools")[0]?.rows[0]?.detail).toBe("Sin acciones");
   });
 });
-it("nine mind actions fit with no whole-tool row; a tenth produces only the debt", async () => {
+it("nine and ten mind actions remain reachable with an explicit folder row", async () => {
   for (const count of [9, 10])
     await staged(kitBoundary(count), ({ house }) => {
       const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), boundaryShown).find(
         tool => tool.id === "identities",
       );
-      const stacks = core?.view("identities/mind:sales");
-      expect(stacks?.[0]?.rows).toHaveLength(count === 9 ? 9 : 0);
-      expect(stacks?.[0]?.rows.some(row => row.key === "t")).toBe(false);
-      if (count === 10) expect(stacks?.[0]?.empty).toBe("menú pendiente · más de nueve acciones");
+      const stacks = core?.view("identities/mind:sales#kit:sales/sales");
+      const rows = stacks?.flatMap(stack => stack.rows);
+      expect(rows).toHaveLength(count + 1);
+      expect(rows?.some(row => row.key === "t")).toBe(true);
+      expect(JSON.stringify(stacks)).not.toContain("menú pendiente");
       return Promise.resolve();
     });
 });
@@ -58,9 +58,11 @@ it("every open reader sees identity and mind data change, including the direct o
           "accepted",
         );
       for (const core of readers) {
-        expect(core?.view("identities/carla#tools")[0]?.rows[0]?.detail).toBe(value === "yes" ? "1 de 2" : "no");
+        expect(core?.view("identities/carla#tools")[0]?.rows[0]?.detail).toBe(
+          value === "yes" ? "Algunas acciones" : "Sin acciones",
+        );
         expect(core?.view().find(stack => stack.title === "Mentes")?.rows[0]?.detail).toBe(
-          value === "yes" ? "1 de 2" : "no",
+          value === "yes" ? "Algunas acciones" : "Sin acciones",
         );
       }
       const declared = house().registry.find(tool => tool.id === "identities");
@@ -70,7 +72,7 @@ it("every open reader sees identity and mind data change, including the direct o
       expect(reading).toEqual({
         identifier: "mind:sales",
         name: "mente de sales",
-        state: value === "yes" ? "1 de 2" : "no",
+        state: value === "yes" ? "Algunas acciones" : "Sin acciones",
         kit: [`register · ${value === "yes" ? "sí" : "no"}`, "wait · no"],
       });
     }
@@ -89,17 +91,22 @@ it("unknown or foreign mind menus never offer a kit edit", async () => {
       "identities/inventada#tools",
     ])
       expect(() => core?.view(target)).toThrow();
-    expect(core?.view("identities/mind:sales#kit:sales")[0]?.rows.map(row => row.key)).toEqual(["1", "2"]);
+    expect(
+      core
+        ?.view("identities/mind:sales#kit:sales/sales")
+        .at(-1)
+        ?.rows.map(row => row.key),
+    ).toEqual(["t", "1", "2"]);
     return Promise.resolve();
   });
 });
-it("the whole-tool row counts toward nine while the mind can still receive its ninth action", async () => {
+it("identities and minds both receive the ninth action through a navigable tool folder", async () => {
   await staged(kitBoundary(9), async ({ house }) => {
     const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), boundaryShown).find(
       tool => tool.id === "identities",
     );
-    expect(core?.view("identities/carla#tools")[0]?.rows[0]?.off).toBe(true);
-    expect(() => core?.view("identities/carla#kit:sales")).toThrow();
+    expect(core?.view("identities/carla#tools")[0]?.rows[0]?.opens).toBe("identities/carla#kit:sales");
+    expect(core?.view("identities/carla#kit:sales")[0]?.rows[0]?.opens).toBe("identities/carla#kit:sales/sales");
     expect(
       (
         await perform(house(), "identities", {
@@ -107,8 +114,8 @@ it("the whole-tool row counts toward nine while the mind can still receive its n
           on: "identities/carla",
           input: { value: "yes" },
         })
-      ).reason,
-    ).toBe("solo acciones propias");
+      ).status,
+    ).toBe("accepted");
     expect(
       (
         await perform(house(), "identities", {

@@ -8,7 +8,9 @@ import type { Program, State } from "../../tools/tool-contract.ts";
 import { startState, toolsStep } from "../../house/state.ts";
 import type { HouseFolds } from "../../runtime/house-projections.ts";
 export function checkCalculations<X extends Program>(journal: SqliteJournal<X["fact"]>, folds: HouseFolds<X>) {
-  const initial: State<X> = structuredClone(startState<X>(folds.slices, folds.by, folds.identities));
+  const initial: State<X> = structuredClone(
+    startState<X>(folds.slices, folds.by, folds.identities, folds.registry, folds.kitMigration),
+  );
   return journal.replay(initial, (state, event) => {
     checkStateInput(event);
     const before: State<X> = structuredClone(state);

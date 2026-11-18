@@ -1,5 +1,7 @@
 import { afterEach, expect, it } from "vitest";
 import { effect } from "../house/facts.ts";
+import { holderKit } from "../house/kit-history.ts";
+import { allowedAct } from "../house/kit.ts";
 import { settle } from "../surface/bridge/ports/house-ports.ts";
 import { effectRig } from "../../tests/support/effect-authority.ts";
 const rigs: { close(): void }[] = [];
@@ -49,7 +51,15 @@ it.each([[], ["register"], null])("el core da un kit válido %# y se conserva al
   rigs.push(rig);
   expect((await settle(rig.act("ana", "forge", {}, "identities"))).status).toBe("accepted");
   rig.restart();
-  for (const by of ["beto", "mind:sales"]) expect(rig.state().house.kits.get(by)?.get("sales")).toEqual(acts);
+  for (const by of ["beto", "mind:sales"]) {
+    const selections =
+      acts === null
+        ? [{ kind: "tool", program: "sales", tool: "sales" }]
+        : acts.map(action => ({ kind: "action", program: "sales", tool: "sales", action }));
+    expect(holderKit(rig.state().house, by)).toEqual({ version: 2, selections });
+    expect(allowedAct(rig.state().house, by, "sales", "register")).toBe(acts === null || acts.includes("register"));
+    expect(allowedAct(rig.state().house, by, "sales", "new-action")).toBe(acts === null);
+  }
 });
 it("el core tampoco puede falsificar el autor", async () => {
   const rig = effectRig(

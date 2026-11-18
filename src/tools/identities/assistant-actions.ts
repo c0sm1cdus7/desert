@@ -1,4 +1,5 @@
 // Declara los actos de habilitación, retiro, delegación y adopción atómica de asistentes.
+import { explicitKit, kitLayout } from "../../house/kit-selection.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { object } from "../../fields/visible-text.ts";
@@ -27,7 +28,7 @@ function kitProblem<X extends Program>(house: House, owner: string, kit: Delegat
     if (tool === "identities") return w("reserved");
     const declared = registry.find(entry => entry.id === tool);
     if (!declared || acts.some(act => !Object.hasOwn(declared.acts, act))) return w("unknown");
-    if (acts.some(act => !identityAllowedAct(house, owner, tool, act))) return w("permission");
+    if (acts.some(act => !identityAllowedAct(house, owner, tool, act, kitLayout(registry)))) return w("permission");
   }
   return undefined;
 }
@@ -141,11 +142,16 @@ function delegateAssistant<X extends Program>(cases: Cases<X>["delegate"], regis
       Value.Check(delegatedKit, kit) ? kitProblem(house, targetIdentity(target), kit, registry) : undefined,
     run: ({ kit }, { by, target, state: { house } }) => {
       const owner = targetIdentity(target);
-      const same = JSON.stringify(house.assistants.get(owner)?.kit) === JSON.stringify(kit);
+      const same =
+        JSON.stringify(
+          house.assistants.get(owner)?.selections ?? explicitKit(house.assistants.get(owner)?.kit ?? []),
+        ) === JSON.stringify(explicitKit(kit, house.kitLayout));
       return {
         status: "accepted",
         text: w(same ? "unchanged" : "delegated"),
-        effects: same ? [] : [effect("assistant-kit-set", { owner, kit }, by)],
+        effects: same
+          ? []
+          : [effect("assistant-kit-set", { version: 2, owner, kit: explicitKit(kit, house.kitLayout) }, by)],
       };
     },
     cases,
@@ -208,7 +214,9 @@ function adoptionResult<X extends Program>(
     ...(house.grants.has(legacy) ? [effect("removed", { identity: legacy }, by)] : []),
     effect("assistant-enabled", { owner, name }, by),
     effect("assistant-adopted", { owner, legacy }, by),
-    ...(by === owner && kit !== undefined ? [effect("assistant-kit-set", { owner, kit }, by)] : []),
+    ...(by === owner && kit !== undefined
+      ? [effect("assistant-kit-set", { version: 2, owner, kit: explicitKit(kit, house.kitLayout) }, by)]
+      : []),
   ];
   return { status: "accepted" as const, text: w(by !== owner ? "adoptedPending" : "adopted"), effects };
 }

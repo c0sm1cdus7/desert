@@ -12,8 +12,14 @@ function identityIn(emission: HouseEmission): string | undefined {
 export function checkIdentity<P extends Foreign>(emission: Emission<P>, runner: string): Emission<P> {
   if (
     emission.layer === "house" &&
-    ((emission.kind === "granted" && emission.data.tools.includes("identities")) ||
-      (emission.kind === "kit-set" && emission.data.tool === "identities"))
+    ((emission.kind === "granted" &&
+      ("version" in emission.data
+        ? emission.data.kit.selections.some(selection => selection.program === "identities")
+        : emission.data.tools.includes("identities"))) ||
+      (emission.kind === "kit-set" &&
+        ("version" in emission.data
+          ? emission.data.kit.selections.some(selection => selection.program === "identities")
+          : emission.data.tool === "identities")))
   )
     throw new Error(identityTexts.reserved);
   const identity = emission.layer === "house" ? identityIn(emission) : undefined;

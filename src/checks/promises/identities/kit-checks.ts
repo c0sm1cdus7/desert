@@ -12,7 +12,7 @@ function foreignMindTarget<X extends Program>(tool: ProgramTool<X>, act: string,
     return menu?.startsWith("kit:") === true && tool.acts[menu] === undefined;
   }
   const own = target.slice("identities/mind:".length);
-  return !act.startsWith(`kit:${own}:`);
+  return act !== `kit:${own}` && !act.startsWith(`kit:${own}:`) && !act.startsWith(`kit:${own}/`);
 }
 /** Absence is mandatory here, not a bypass: another tool's actions and identity lifecycle must never be offered. */
 export function absentMindAction<X extends Program>(

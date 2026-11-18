@@ -1,4 +1,6 @@
 // Append-only facts; replay folds the complete journal without publishing effects.
+import { emptyHouse, houseStep } from "../house/members.ts";
+import { currentKitEmission, historicalKitEmission } from "../house/kit-emission.ts";
 import { verifiedAfter, restorationOf } from "./verify-saved.ts";
 import { ProjectionGroup } from "../journal/projections.ts";
 import { derivedId, stored, readFact } from "./journal-record.ts";
@@ -109,6 +111,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   append(emission: Emission<P>, at: number): Event<P> {
     if (!this.restored && this.folds === "restore") this.restore();
     return this.batch(() => {
+      if (historicalKitEmission(emission)) emission = currentKitEmission(emission, this.replay(emptyHouse, houseStep));
       const position = this.db.prepare("select coalesce(max(seq), 0) + 1 as seq from events").get();
       const count = this.db
         .prepare("select count(*) as ordinal from events where kind = ? and by = ? and cause = ?")
@@ -116,6 +119,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
       if (typeof position?.seq !== "number" || typeof count?.ordinal !== "number")
         throw new Error(journalTexts.invalidEvent);
       const id = derivedId(emission, count.ordinal);
+      // Validate the persisted shape: protected positions already contain references, not original material.
       const event = this.words.read({ ...stored(emission), seq: position.seq, id, at });
       const { seq, kind, by, cause, data, process } = event;
       this.lease.check();

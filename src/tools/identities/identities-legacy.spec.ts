@@ -54,8 +54,11 @@ it("reads historical invalid identifiers and refuses new handovers or readmissio
           core
             ?.view("identities/Ana vieja")
             .flatMap(stack => stack.rows)
-            .some(row => row.detail === "sales · todas"),
+            .some(row => row.detail === "sales · Algunas acciones"),
         ).toBe(true);
+        expect(core?.view("identities/Ana vieja#kit:sales").flatMap(stack => stack.rows)).toContainEqual(
+          expect.objectContaining({ title: "sales", detail: "Todo, también lo nuevo" }),
+        );
         expect(
           core
             ?.view()

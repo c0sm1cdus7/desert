@@ -1,4 +1,7 @@
 // A house: tool grants, action kits, shared scenes, preferences and reading.
+import type { KitMigration } from "./kit-migration.ts";
+import { selectionStep } from "./kit-history.ts";
+import { programKit, type KitLayout, type SelectionKit } from "./kit-selection.ts";
 import { mindHouseStep } from "./minds/mind-house-state.ts";
 import { sceneStep } from "./scenes.ts";
 import { readonlyState } from "../journal/readonly-state.ts";
@@ -16,7 +19,12 @@ import { type ModelCalls } from "./minds/model-call-state.ts";
 export { checkCreation, checkIdentity, guardJournal, InvalidCreation } from "./identities/guards.ts";
 type Assignment = Readonly<{ identity: string; tools: readonly string[] }>;
 export type Creation = Readonly<{ admin: string; assignments: readonly Assignment[] }>;
-export type House = Readonly<{ admin: string }> &
+export type House = Readonly<{
+  admin: string;
+  selections?: ReadonlyMap<string, SelectionKit>;
+  kitLayout?: KitLayout;
+  kitMigration?: KitMigration;
+}> &
   Readonly<{
     assistants: ReadonlyMap<string, AssistantState>;
     mindAssignments: ReadonlyMap<string, MindAssignment>;
@@ -57,6 +65,7 @@ export function houseStep(state: House, event: Event): House {
   if (event.layer !== "house" || namesMind(event)) return state;
   state = mindHouseStep(state, event);
   state = sceneStep(state, event);
+  state = selectionStep(state, event);
   state = kitStep(state, event);
   if (event.kind === "house-created" && !state.admin) {
     const grants = new Map([[event.by, []]]);
@@ -66,13 +75,7 @@ export function houseStep(state: House, event: Event): House {
     const rest = (state.hides.get(event.by) ?? []).filter(what => what !== event.data.hide);
     return { ...state, hides: new Map(state.hides).set(event.by, event.data.on ? [...rest, event.data.hide] : rest) };
   }
-  if (event.kind === "granted" && event.by === state.admin) {
-    const tools = event.data.tools.filter(tool => tool !== "identities");
-    const grants = new Map(state.grants).set(event.data.identity, tools);
-    const removed = new Set(state.removed);
-    removed.delete(event.data.identity);
-    return { ...state, grants, removed };
-  }
+  if (event.kind === "granted" && event.by === state.admin) return grantedMember(state, event);
   /** Who administers the house takes someone out of it, never itself: what they wrote stays, their access goes. */
   if (event.kind === "removed" && event.by === state.admin && event.data.identity !== state.admin) {
     const grants = new Map(state.grants);
@@ -105,7 +108,8 @@ export const identityView = <S extends HouseView>(state: S, by: string): S =>
   });
 export function createHouse(bus: HouseBus, { admin: by, assignments }: Creation): void {
   bus.emit(effect("house-created", {}, by));
-  for (const { identity, tools } of assignments) bus.emit(effect("granted", { identity, tools: [...tools] }, by));
+  for (const { identity, tools } of assignments)
+    bus.emit(effect("granted", { version: 2, identity, kit: programKit(tools) }, by));
 }
 /** The name shown for an identity defaults to its identifier. */
 export const identityDisplayName = (house: House, identity: string): string => house.names.get(identity) ?? identity;
@@ -118,4 +122,16 @@ function namesMind(event: HouseEvent): boolean {
   if (event.kind === "granted") return isMindActor(event.data.identity);
   if (event.kind === "handed") return isMindActor(event.data.to);
   return false;
+}
+
+function grantedMember(state: House, event: HouseEvent<"granted">): House {
+  const tools = (
+    "version" in event.data
+      ? [...new Set(event.data.kit.selections.map(selection => selection.program))]
+      : event.data.tools
+  ).filter(tool => tool !== "identities");
+  const grants = new Map(state.grants).set(event.data.identity, tools);
+  const removed = new Set(state.removed);
+  removed.delete(event.data.identity);
+  return { ...state, grants, removed };
 }

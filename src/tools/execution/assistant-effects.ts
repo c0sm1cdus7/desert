@@ -1,4 +1,7 @@
 // Restringe los hechos administrativos del asistente a su acto concreto y a su titular o administrador.
+import { kitLayout } from "../../house/kit-selection.ts";
+import { selectionProblem } from "../../house/kit-validation.ts";
+import { identityAllowedAct } from "../../house/identities/identity-permissions.ts";
 import { isMindActor, parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import { houseStep, type House } from "../../house/members.ts";
@@ -29,13 +32,7 @@ export function assistantEffect<X extends Program>(
   requireMind(!isMindActor(context.by) && context.target === `identities/${event.data.owner}`, "assistant.target");
   if (event.kind === "assistant-kit-set") {
     requireMind(context.by === event.data.owner, "assistant.owner");
-    requireMind(
-      event.data.kit.every(({ tool, acts }) => {
-        const declared = registry.find(each => each.id === tool);
-        return declared && acts.every(act => Object.hasOwn(declared.acts, act));
-      }),
-      "assistant.kit",
-    );
+    checkDelegation(house, event, registry);
   }
   houseStep(house, { ...event, id: "validation", seq: 0, at: context.at });
   return event.kind === "assistant-kit-set";
@@ -54,4 +51,25 @@ function cardEffect<X extends Program>(
   requireMind(context.target === target, "card.target");
   requireMind(actor.kind !== "tool" || registry.some(tool => tool.id === actor.tool), "card.tool");
   return true;
+}
+
+function checkDelegation<X extends Program>(
+  house: House,
+  event: HouseEmission<"assistant-kit-set">,
+  registry: ToolRegistry<X>,
+): void {
+  requireMind(
+    "version" in event.data
+      ? !selectionProblem(event.data.kit, registry) &&
+          event.data.kit.selections.every(
+            selection =>
+              selection.kind !== "action" ||
+              identityAllowedAct(house, event.data.owner, selection.program, selection.action, kitLayout(registry)),
+          )
+      : event.data.kit.every(({ tool, acts }) => {
+          const declared = registry.find(each => each.id === tool);
+          return declared && acts.every(act => Object.hasOwn(declared.acts, act));
+        }),
+    "assistant.kit",
+  );
 }
