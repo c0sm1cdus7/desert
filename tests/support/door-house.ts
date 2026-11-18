@@ -1,4 +1,5 @@
 // A temporary real journal, synthetic founders and a controllable clock for door lifecycle tests.
+import { solveInvitationProof } from "../../src/runtime/invitation-proof.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { startHouse } from "../../src/runtime/house-runtime.ts";
@@ -45,11 +46,12 @@ export function invitationCode(result: { private?: string | undefined }): string
   return code;
 }
 export function redemptionRequest(code: string) {
+  const proof = solveInvitationProof(code);
   return {
     method: "POST",
     path: "/door/invitations/redeem",
     headers: { "content-type": "application/json" },
-    body: () => [Buffer.from(JSON.stringify({ code }))],
+    body: () => [Buffer.from(JSON.stringify({ code, proof }))],
   };
 }
 export function rpcRequest(key: string, message: unknown = { jsonrpc: "2.0", id: 1, method: "ping" }) {

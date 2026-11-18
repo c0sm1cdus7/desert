@@ -3,6 +3,7 @@ import { issueDoorKey, findDoorKey, invitationFingerprint, type DoorIdentity } f
 import type { House } from "../house/members.ts";
 import type { HouseBus } from "../journal/vocabulary.ts";
 import { effect } from "../house/facts.ts";
+import { invitationAttempts } from "./invitation-proof.ts";
 import { doorTexts } from "../texts/doors.texts.ts";
 export type DoorBus = HouseBus & Readonly<{ together: <T>(write: () => T) => T }>;
 const accesses = new WeakMap<object, ReturnType<typeof createDoorAccess>>();
@@ -39,43 +40,40 @@ export function doorAccess(bus: DoorBus, state: () => House, now: () => number) 
   return access;
 }
 function createDoorAccess(bus: DoorBus, state: () => House, now: () => number) {
-  // A house-wide limit also bounds attacks spread over connections or forged forwarding headers.
-  let window = now();
-  let attempts = 0;
-  let redeeming = false;
+  const redeem = createRedeemer(bus, state, now);
   return {
     get(material: string) {
       const house = state();
       const key = findDoorKey(house.doors, material);
       return key && house.grants.has(key.identity) ? key : undefined;
     },
-    redeem(code: string): Readonly<{ status: number; key?: string }> {
-      const at = now();
-      if (at >= window + 60_000) {
-        window = at;
-        attempts = 0;
-      }
-      if (++attempts > 10) return { status: 429 };
-      if (redeeming) return { status: 400 };
-      const house = state();
-      const invitation = matchingInvitation(house, code, at);
-      if (!invitation || !house.grants.has(invitation.identity)) return { status: 400 };
-      redeeming = true;
-      try {
-        const issued = issueDoorKey(invitation.identity, invitation.door, house.admin);
-        const committed = bus.together(() => {
-          if (now() >= invitation.expires) return false;
-          bus.emit(issued.fact);
-          bus.emit(
-            effect("door-invitation-redeemed", { invitation: invitation.id, key: issued.fact.data.id }, house.admin),
-          );
-          return true;
-        });
-        return committed ? { status: 200, key: issued.material } : { status: 400 };
-      } finally {
-        redeeming = false;
-      }
-    },
+    attempt: invitationAttempts(redeem, now, () => state().doors.invitations),
+    redeem,
+  };
+}
+function createRedeemer(bus: DoorBus, state: () => House, now: () => number) {
+  let redeeming = false;
+  return (code: string): Readonly<{ status: number; key?: string }> => {
+    const at = now();
+    if (redeeming) return { status: 400 };
+    const house = state();
+    const invitation = matchingInvitation(house, code, at);
+    if (!invitation || !house.grants.has(invitation.identity)) return { status: 400 };
+    redeeming = true;
+    try {
+      const issued = issueDoorKey(invitation.identity, invitation.door, house.admin);
+      const committed = bus.together(() => {
+        if (now() >= invitation.expires) return false;
+        bus.emit(issued.fact);
+        bus.emit(
+          effect("door-invitation-redeemed", { invitation: invitation.id, key: issued.fact.data.id }, house.admin),
+        );
+        return true;
+      });
+      return committed ? { status: 200, key: issued.material } : { status: 400 };
+    } finally {
+      redeeming = false;
+    }
   };
 }
 function matchingInvitation(house: House, code: string, at: number) {

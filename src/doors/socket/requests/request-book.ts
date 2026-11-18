@@ -80,8 +80,9 @@ function actRequest<X extends Program>(
   requests: Map<string, Saved>,
   lookup: (by: string, id: string) => ResultMessage | undefined,
 ) {
-  const act = async (by: string, request: RequestAct): Promise<ServerMessage> => {
+  const act = async (by: string, request: RequestAct, signal?: AbortSignal): Promise<ServerMessage> => {
     const { id } = request;
+    if (signal?.aborted) return { tipo: "rechazo", id, motivo: socketTexts.unavailable };
     if (!jsonData(request)) return { tipo: "rechazo", id, motivo: socketTexts.invalidData };
     const content = requestFingerprint(request);
     const key = requestKey(by, id);
@@ -92,7 +93,7 @@ function actRequest<X extends Program>(
     requests.set(key, { id: key, content, effects: [] });
     let done: ResultMessage;
     try {
-      const started = runRequest(house, by, request, [key, `socket-content:${content}`]);
+      const started = runRequest(house, by, request, [key, `socket-content:${content}`], signal);
       const result = started.status === "processing" ? await started.completion : started;
       done = {
         tipo: "resultado",
@@ -120,6 +121,7 @@ function runRequest<X extends Program>(
   by: string,
   request: RequestAct,
   cause: readonly string[],
+  signal?: AbortSignal,
 ) {
   const { act, input, target, through, destination } = request;
   return house.tools.act(
@@ -127,6 +129,7 @@ function runRequest<X extends Program>(
     through,
     by,
     cause,
+    signal,
   );
 }
 

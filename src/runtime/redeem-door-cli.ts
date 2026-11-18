@@ -1,4 +1,5 @@
 // A local redemption entry reads a short code from stdin and never prints response bodies or credentials.
+import { RedemptionFailure } from "./redemption-destination.ts";
 import { redeemToFile } from "./redeem-door.ts";
 import { doorTexts } from "../texts/doors.texts.ts";
 export async function redeemCommand(args: readonly string[], input: AsyncIterable<Uint8Array>): Promise<number> {
@@ -21,8 +22,8 @@ export async function redeemCommand(args: readonly string[], input: AsyncIterabl
     await redeemToFile(address, code.trim(), { file, ...(mode === "--claude" ? { name } : {}) });
     process.stderr.write(`${doorTexts.saved}\n`);
     return 0;
-  } catch {
-    process.stderr.write(`${doorTexts.failed}\n`);
+  } catch (error) {
+    process.stderr.write(`${error instanceof RedemptionFailure ? error.message : doorTexts.failed}\n`);
     return 1;
   }
 }

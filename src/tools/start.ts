@@ -80,8 +80,8 @@ export function startTools<X extends Program>(ports: Starting<X>) {
       secrets.capture(value, registry, read());
       return scrubDoorValue(secrets.scrub(value), read().house.doors);
     },
-    act: (value: unknown, through: number, by: string, cause: readonly string[] = []) =>
-      execute(running, value, through, by, cause),
+    act: (value: unknown, through: number, by: string, cause: readonly string[] = [], authorization?: AbortSignal) =>
+      execute({ ...running, ...(authorization ? { authorization } : {}) }, value, through, by, cause),
     reach: (by: string, act: Readonly<{ object: string; option: string }>) =>
       actReach(running, by, act.object, act.option),
     stop: () => {

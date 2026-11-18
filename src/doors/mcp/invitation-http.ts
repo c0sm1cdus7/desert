@@ -4,6 +4,7 @@ import { doorTexts } from "../../texts/doors.texts.ts";
 import { header, type McpRequest, type McpResponse } from "./mcp-access.ts";
 export async function redeemHttp(access: DoorAccess, request: McpRequest): Promise<McpResponse> {
   let code = "";
+  let proof: unknown;
   try {
     if (header(request, "content-type")?.split(";")[0]?.trim() !== "application/json") throw new Error("content-type");
     let size = 0;
@@ -14,13 +15,16 @@ export async function redeemHttp(access: DoorAccess, request: McpRequest): Promi
       chunks.push(chunk);
     }
     const value: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks)));
-    if (value && typeof value === "object" && "code" in value && typeof value.code === "string") code = value.code;
+    if (value && typeof value === "object" && "code" in value && typeof value.code === "string") {
+      code = value.code;
+      proof = "proof" in value ? value.proof : undefined;
+    }
   } catch {
     /* Malformed input consumes the same bounded attempt budget. */
   }
   if (request.signal?.aborted) code = "";
   try {
-    const result = access.redeem(code);
+    const result = access.attempt(code, proof);
     return {
       status: result.status,
       headers: {

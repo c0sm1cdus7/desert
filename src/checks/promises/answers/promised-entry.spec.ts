@@ -1,5 +1,5 @@
 // A compiling surface that turns a field's live reason into an Error must fail the derived walk.
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { checkingShop, wrongName } from "../../../../tests/support/checking-shop.ts";
 import { shopShown, type Shop } from "../../../../tests/support/shop.ts";
 import { anyToolScreen } from "../../../surface/bridge/views/any-tool.ts";
@@ -39,15 +39,20 @@ const shouting: Shown<Shop> = {
   },
 };
 describe("a question never marks an input error", () => {
-  it("fails only the case whose question shows an Error, with a variant that compiles", async () => {
+  describe("fails only the case whose question shows an Error, with a variant that compiles", () => {
     const failed: string[] = [];
+    afterAll(() => expect(failed).toEqual([`${wrongName}, by keys`]));
+    // Each walk opens and rebuilds a house; keep its timeout and diagnostic independent of the other walks.
     for (const check of walkedChecks(checkingShop, shouting))
-      await check.run().catch((error: unknown) => {
-        expect(error, check.name).toBeInstanceOf(Error);
-        expect(error instanceof Error && error.message, check.name).toContain("A question presents a refusal as Error");
-        failed.push(check.name);
+      it(check.name, async () => {
+        await check.run().catch((error: unknown) => {
+          expect(error, check.name).toBeInstanceOf(Error);
+          expect(error instanceof Error && error.message, check.name).toContain(
+            "A question presents a refusal as Error",
+          );
+          failed.push(check.name);
+        });
       });
-    expect(failed).toEqual([`${wrongName}, by keys`]);
   });
 });
 

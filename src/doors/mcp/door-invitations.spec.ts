@@ -65,7 +65,7 @@ it("rejects expired, reused and invented codes alike and limits attempts across 
     expect((await first.handle(redemptionRequest(used))).status).toBe(200);
     const failures = await Promise.all([expired, used, "invented"].map(code => first.handle(redemptionRequest(code))));
     expect(failures.every(response => response.status === 400 && response.body === failures[0]?.body)).toBe(true);
-    for (let attempt = 0; attempt < 6; attempt++)
+    for (let attempt = 0; attempt < 9; attempt++)
       expect((await first.handle(redemptionRequest("wrong"))).status).toBe(400);
     expect((await second.handle(redemptionRequest("wrong"))).status).toBe(429);
     h.advance(60_000);
@@ -90,7 +90,7 @@ it("consumes an invitation atomically when concurrent requests race", async () =
     await door.close();
   }
 });
-it("delivers an invitation only on the original request and never through MCP readings or receipts", async () => {
+it("delivers an invitation only on the original request including MCP, but never through later readings", async () => {
   const h = setup(),
     book = requestBook(h.house()),
     door = h.door();
@@ -128,7 +128,7 @@ it("delivers an invitation only on the original request and never through MCP re
     );
     expect(response.status).toBe(200);
     expect(response.body.includes(code)).toBe(false);
-    expect(/[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}/.test(response.body)).toBe(false);
+    expect(/[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}/.test(response.body)).toBe(true);
     expect(h.history().includes(code)).toBe(false);
     expect((await h.act("invite", { door: "agente" }, "identities/beto", "beto")).status).toBe("rejected");
     expect((await h.act("revoke-key", { key: "missing" }, "identities/beto", "beto")).status).toBe("rejected");
@@ -187,5 +187,42 @@ it("cuts an authenticated HTTP request even when its body has stopped arriving",
   } finally {
     release();
     await door.close();
+  }
+});
+it("cuts only the revoked socket key while two keys of the same identity are waiting", async () => {
+  const h = setup(),
+    door = houseDoor(h.house(), undefined, { report: () => {} });
+  const pairs = [duplexPair(), duplexPair()];
+  try {
+    const peers = [];
+    const keys: string[] = [];
+    for (const [client, server] of pairs) {
+      const key = h.access().redeem(invitationCode(await h.act("invite", { door: "terminal" }, "identities/beto"))).key;
+      if (!key) throw new Error("Missing synthetic socket key");
+      keys.push(key);
+      const peer = await probe(client);
+      peers.push(peer);
+      door.accept(server);
+      peer.hello(key);
+      expect(await peer.until(() => peer.messages.some(message => message.tipo === "bienvenida"))).toBe(true);
+      peer.send({ tipo: "esperar", id: "wait", hasta: h.house().now() + 60_000 });
+    }
+    await new Promise(resolve => setImmediate(resolve));
+    await h.act("revoke-key", { key: h.access().get(keys[0] ?? "")?.id }, "identities/beto");
+    const first = peers[0],
+      second = peers[1];
+    if (!first || !second) throw new Error("Missing peers");
+    expect(await first.until(() => first.messages.some(message => message.tipo === "cortado"))).toBe(true);
+    second.send({ tipo: "leer", id: "after", qué: "catalogo" });
+    expect(
+      await second.until(() => second.messages.some(message => message.tipo === "respuesta" && message.id === "after")),
+    ).toBe(true);
+    expect(second.messages.some(message => message.tipo === "cortado")).toBe(false);
+  } finally {
+    pairs.forEach(([client, server]) => {
+      client.destroy();
+      server.destroy();
+    });
+    door.cancel();
   }
 });

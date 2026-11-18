@@ -35,7 +35,7 @@ export const identityWords: ToolWords = {
       empty: words.emptyData,
       reads: { identifier: words.identifier, name: words.display, state: words.state },
     },
-    { title: doorTexts.keys, empty: words.emptyData, reads: { doorKeys: doorTexts.keys } },
+    { title: doorTexts.key.many, empty: words.emptyData, reads: { doorKeys: doorTexts.key.many } },
     { title: words.given, empty: words.emptyKit, reads: { kit: words.programs } },
     { title: words.sceneTitle, empty: words.emptyScene, reads: { general: words.general, addressed: words.addressed } },
   ],
@@ -120,8 +120,8 @@ function doorReading(house: House, identity: string) {
   return keys.length
     ? {
         doorKeys: keys.map(key => {
-          const door = key.door === "agente" ? doorTexts.agent : doorTexts.terminal;
-          return `${key.id} · ${door} · ${key.revoked ? doorTexts.retired : doorTexts.active}`;
+          const door = key.door === "agente" ? doorTexts.doors.agent : doorTexts.doors.terminal;
+          return `${key.id} · ${door} · ${key.revoked ? doorTexts.status.retired : doorTexts.status.active}`;
         }),
       }
     : {};

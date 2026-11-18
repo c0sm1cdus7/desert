@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync, symlinkSync } from "node:fs";
 import { join } from "node:path";
 import { randomBytes } from "node:crypto";
+import { doorTexts } from "../texts/doors.texts.ts";
 import { redeemToFile } from "./redeem-door.ts";
 import { redeemCommand } from "./redeem-door-cli.ts";
 const homes: string[] = [];
@@ -84,4 +85,11 @@ it("never prints hostile response errors and preserves the previous configuratio
   expect(await redeemCommand(["https://example.invalid", "--claude", file, "--name", "house"], input())).toBe(1);
   expect(readFileSync(file, "utf8")).toBe(original);
   expect(output.some(text => text.includes(material))).toBe(false);
+});
+it.each([400, 503])("distinguishes a definite refusal from an uncertain server result (%s)", async status => {
+  const file = join(setup(), "credential");
+  vi.stubGlobal("fetch", () => Promise.resolve(new Response("hostile body", { status })));
+  await expect(redeemToFile("http://127.0.0.1", "ABCD-2345", { file })).rejects.toThrow(
+    status === 400 ? doorTexts.denied : doorTexts.failed,
+  );
 });
