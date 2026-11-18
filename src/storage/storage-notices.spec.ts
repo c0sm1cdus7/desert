@@ -1,8 +1,11 @@
 import "../../tests/support/upgrade-vault.ts";
 import { join } from "node:path";
-import { readFileSync, statSync } from "node:fs";
-import { expect, it, vi } from "vitest";
-import { home, open, program, seed, matches } from "../../tests/support/upgrade-support.ts";
+import { linkSync, mkdirSync, mkdtempSync, readFileSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { describe, expect, it, vi } from "vitest";
+import { home, open, program, seed, matches, type House } from "../../tests/support/upgrade-support.ts";
+import { localPorts } from "../runtime/house-runtime.ts";
+import { journalTexts } from "../texts/journal.texts.ts";
 import { SqliteJournal } from "./journal-store.ts";
 import { storageNotices } from "./storage-notices.ts";
 import type { Shop } from "../../tests/support/shop.ts";
@@ -62,4 +65,49 @@ it("ten storage openings, alternating identities, preserve exactly the same fact
       journal.close();
     }
   }
+});
+describe("the record of openings never stops an opening and never writes outside the house", () => {
+  const log = (path: string) => join(path, "storage-notices.jsonl");
+  const facts = (house: House) => house.journal.replay(0, n => n + 1);
+  const cases: [string, (path: string, outside: string) => void, string][] = [
+    ["a record that cannot be written", path => writeFileSync(log(path), "", { mode: 0o400 }), "EACCES"],
+    ["a record that is a link elsewhere", (path, outside) => symlinkSync(outside, log(path)), "ELOOP"],
+    ["a record that is a hard link", (path, outside) => linkSync(outside, log(path)), journalTexts.notOwnRecord],
+    ["a record that is a folder", path => mkdirSync(log(path)), "EISDIR"],
+  ];
+  it.each(cases)(
+    "%s: the house opens, rebuilds, keeps its facts and says why the record was not kept",
+    async (_, make, cause) => {
+      const path = home();
+      await seed(path);
+      const before = open(path);
+      const count = facts(before);
+      before.close();
+      const outside = join(mkdtempSync(join(tmpdir(), "outside-")), "ajeno.txt");
+      writeFileSync(outside, "SOLO-DATO-SINTETICO\n");
+      make(path, outside);
+      const current = program("shop/2", 2);
+      const house = open(path, current);
+      try {
+        expect(house.storageNotices()).toHaveLength(2);
+        expect(house.storageUnsaved()).toEqual([cause]);
+        expect(localPorts(house, "ana", { recentLines: 20 }).openingNotices?.()).toEqual([
+          journalTexts.rebuilt,
+          journalTexts.unsavedRecord(cause),
+        ]);
+        matches(house, current);
+        expect(facts(house)).toBe(count + 1);
+      } finally {
+        house.close();
+      }
+      expect(readFileSync(outside, "utf8")).toBe("SOLO-DATO-SINTETICO\n");
+      const again = open(path, current);
+      try {
+        expect(again.storageNotices()).toEqual([]);
+        expect(facts(again)).toBe(count + 2);
+      } finally {
+        again.close();
+      }
+    },
+  );
 });

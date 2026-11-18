@@ -2098,6 +2098,21 @@ y «does not accept evidence from another executor or copied rows». `src/runtim
 comprueba los negativos contractuales aislados. Que TypeScript acepte una llamada no acredita esas condiciones;
 la composición debe ejecutarse y puede rechazarla antes de abrir la casa.
 
+**El generador del esbozo queda retirado.** `negativos.py` y sus 24 archivos `neg-*.ts` del esbozo `dist-2` no se
+entregan ni se mantienen: los sustituyen pruebas versionadas que corren con la compuerta y comparan el conjunto exacto
+de motivos. Correspondencia:
+- 01 a 10, 13 a 18 y 24 (ciclo, con sus dos recorridos): negativos al componer en
+  `src/runtime/contracts/negatives.spec.ts`; 11 y 12, en la misma prueba («11 new case and 12 evidence for another
+  offer»). 13 a 16 también son errores estáticos en `src/runtime/distributions/types.spec.ts`.
+- 19 y 20 (leer una dependencia no pedida o al proveedor): ya no son motivos de tipo; la lectura los rechaza al
+  correr, en `src/runtime/contracts/readings.spec.ts` («cannot invent cuts, name undeclared dependencies…»).
+- 21 y 22 (asistentes sin identidades, mente ausente): errores estáticos en `types.spec.ts`.
+- 23 (kit de la mente con una acción inexistente): el kit de una mente se da al correr, no al componer; una acción
+  inexistente no da nada, en `src/house/adversaria.spec.ts` («A3: unknown acts grant nothing…»).
+
+Límite: cada negativo se prueba aislado sobre el positivo; las combinaciones, solo donde una prueba lo dice («lists
+three independent incompatible fields»).
+
 `mentes: { asistentes: false, programas: [] }` conserva el arranque determinista `mind:<programa>` y el plegado
 de hechos históricos. No inicia pensamiento ni carga módulos de turno, catálogo de cartas o adaptadores de
 modelos. `asistentes: false` retira del registro efectivo habilitar, deshabilitar, delegar y adoptar asistentes:

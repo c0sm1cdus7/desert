@@ -87,7 +87,8 @@ async function inspectCopy<X extends Program, R>(
       bus.emit(effect("boot", {}, runner));
       // The copy's folder stands for home; cancelling an inherited wake would write, so it is denied like any write.
       const house = { home: dirname(file), bus, journal, tools, registry: program.registry, close };
-      return await use({ ...house, storageNotices: () => [], now: () => now, cancelInheritedWake: denied }, now);
+      const quiet = { storageNotices: () => [], storageUnsaved: () => [] };
+      return await use({ ...house, ...quiet, now: () => now, cancelInheritedWake: denied }, now);
     } finally {
       close();
     }

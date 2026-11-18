@@ -1,6 +1,6 @@
 import "../../../tests/support/upgrade-vault.ts";
 import { join } from "node:path";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { expect, it } from "vitest";
 import { realTerminal } from "../../checks/real-terminal.ts";
@@ -59,3 +59,18 @@ it.each(["version", "format"])(
   },
   15000,
 );
+it("says inside the terminal when the record of openings could not be kept, and still opens", async () => {
+  const path = home();
+  await seed(path);
+  writeFileSync(join(path, "storage-notices.jsonl"), "", { mode: 0o400 });
+  const terminal = realTerminal([process.execPath, "tests/support/storage-terminal.ts", path, "shop/2"]);
+  try {
+    await terminal.until("Reconstruido");
+    await terminal.until("Sin guardar · Registro de aperturas · EACCES");
+    terminal.press("\r");
+    await terminal.until("Menú");
+    expect(terminal.written()).not.toMatch(/StorageNotice|SAVED_FOLD_REBUILT|trace-warnings|Warning:|Saved fold/);
+  } finally {
+    await terminal.close();
+  }
+}, 15000);

@@ -32,6 +32,8 @@ export const journalTexts = {
   identityInsert: "insert or ignore into journal_identity values (1, ?)",
   identityRead: "select id from journal_identity where singleton = 1",
   rebuilt: "Reconstruido · Estado de la casa",
+  unsavedRecord: (cause: string) => `Sin guardar · Registro de aperturas · ${cause}`,
+  notOwnRecord: "no es un archivo propio de la casa",
   opening: "Sistema",
   continue: "continuar",
   unreadableFold: "truncated or unreadable format",

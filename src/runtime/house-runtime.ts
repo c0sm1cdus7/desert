@@ -143,6 +143,7 @@ function runningHouse<X extends Program>(
     close,
     ...(ready ? { minds: ready } : {}),
     storageNotices: notices.read,
+    storageUnsaved: notices.unsaved,
     now: () => time.now(),
     cancelInheritedWake: (by: string, id: string) => cancelInheritedWake(state, bus, by, id),
   };
@@ -221,13 +222,17 @@ export type RunningHouse<X extends Program> = ReturnType<typeof startHouse<X>>;
 /** A surface in the house's own process reads it and acts in it as one identity, with no door in between; it
  * reads the same clock as the house. */
 export const localPorts = <X extends Program>(
-  house: Pick<RunningHouse<X>, "tools" | "registry" | "bus" | "now"> & Partial<Pick<RunningHouse<X>, "storageNotices">>,
+  house: Pick<RunningHouse<X>, "tools" | "registry" | "bus" | "now"> &
+    Partial<Pick<RunningHouse<X>, "storageNotices" | "storageUnsaved">>,
   me: string,
   limits: Omit<ViewLimits, "now">,
   now: () => number = house.now,
 ): HousePorts<X> => ({
   me,
-  openingNotices: () => (house.storageNotices?.().length ? [journalTexts.rebuilt] : []),
+  openingNotices: () => [
+    ...(house.storageNotices?.().length ? [journalTexts.rebuilt] : []),
+    ...(house.storageUnsaved?.() ?? []).map(journalTexts.unsavedRecord),
+  ],
   limits,
   registry: house.registry,
   state: () => identityView(house.tools.state(), me),
