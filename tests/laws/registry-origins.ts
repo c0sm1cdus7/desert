@@ -1,4 +1,7 @@
+import { realpathSync } from "node:fs";
 import ts from "typescript";
+/** One file reached through a link and by its own path is the same constructor. */
+const sameFile = (a: string, b: string): boolean => a === b || realpathSync(a) === realpathSync(b);
 function unwrapped(node: ts.Node): ts.Node {
   if (ts.isVariableDeclaration(node) && node.initializer) return unwrapped(node.initializer);
   if (ts.isPropertyAssignment(node)) return unwrapped(node.initializer);
@@ -146,7 +149,7 @@ class RegistryTrace {
     seen.add(node);
     if (ts.isCallExpression(node)) {
       const declaration = this.checker.getResolvedSignature(node)?.declaration;
-      if (declaration?.getSourceFile().fileName === constructor && node.arguments[1])
+      if (declaration && sameFile(declaration.getSourceFile().fileName, constructor) && node.arguments[1])
         return this.groups(node.arguments[1], "herramientas");
       return this.fail(node, "unrecognized program constructor");
     }
