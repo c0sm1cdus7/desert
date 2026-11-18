@@ -264,3 +264,14 @@ it("la llamada doce permite terminar y una consulta sin lugar para continuar no 
     expect(f.execute).toHaveBeenCalledTimes(consultation ? 0 : 1);
   }
 });
+
+it("stops on an unknown action result without calling it failed or running the following action", async () => {
+  const f = fixture([ok({ ...answer, acts: [act, act] })]);
+  const execute = vi.fn<TurnPorts["execute"]>(() => Promise.resolve({ status: "inconclusive", id: "uncertain-act" }));
+  expect(await runMindTurn({ ...f.ports, execute }, wake)).toMatchObject({
+    outcome: "interrupted",
+    reason: "act-uncertain",
+    calls: 1,
+  });
+  expect(execute).toHaveBeenCalledOnce();
+});

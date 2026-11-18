@@ -1,4 +1,6 @@
 // The house fact catalog, typed emissions and effects, including the legacy catalog for saved records.
+import { deviceFacts } from "./devices/device-facts.ts";
+import { executionDestination } from "../fields/device-protocol.ts";
 import { selectionKitSchema } from "./kit-selection.ts";
 import { name, preference, scene, t, toolLimits } from "./own-acts.ts";
 import { wholeNumber } from "../fields/json-values.ts";
@@ -29,6 +31,7 @@ export const mindHouseCatalog = {
 };
 /** What every house writes, whatever program lives in it. */
 export const houseCatalog = {
+  ...deviceFacts,
   "house-created": object({}),
   granted: Type.Union([
     object({ identity: name, tools: names }),
@@ -51,6 +54,7 @@ export const houseCatalog = {
     option: name,
     input: Type.Unknown(),
     through: Type.Optional(wholeNumber),
+    destination: Type.Optional(executionDestination),
     reaction: Type.Optional(object({ id: name, notice: name })),
   }),
   "act-started": object({ act: name, object: name, option: name }),

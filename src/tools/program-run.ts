@@ -29,12 +29,13 @@ export function runProgram<X extends Program>(
   act: ToolAct<X>,
   value: unknown,
   context: ActContext<X>,
+  remote?: () => Promise<ActResult<X>>,
 ): ActResult<X> | Promise<ActResult<X>> {
   context.signal?.throwIfAborted();
-  if (!isProgram(act)) return act.run(value, context);
+  if (!isProgram(act)) return remote ? remote() : act.run(value, context);
   const reason = before(act, value, context);
   if (reason !== undefined) return { status: "rejected", reason };
-  return outsideRun(act.outside, () => act.run(value, context));
+  return remote ? remote() : outsideRun(act.outside, () => act.run(value, context));
 }
 
 /** An origin-specific disabled cause is declared just like a tool's own availability rule. */

@@ -1,4 +1,6 @@
 // Construye respuestas cerradas desde el menú y comprueba propuesta, destino, alcance y permiso vigente.
+import { executionDestination, type ExecutionDestination } from "../../fields/device-protocol.ts";
+import { destinationFields, destinationAllowed } from "./device-answer.ts";
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { object } from "../../fields/visible-text.ts";
@@ -6,7 +8,7 @@ import { mindText } from "../../house/minds/journey-facts.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import { closedAnswerInput } from "./answer-schema.ts";
 import type { MindScope } from "./mind-contract.ts";
-export type ProposedAct = Readonly<{ act: string; target: string; input: unknown }>;
+export type ProposedAct = Readonly<{ act: string; target: string; input: unknown; destination?: ExecutionDestination }>;
 export type MindAnswer = Readonly<{
   scene: string;
   consulta: Readonly<{ question: string }> | null;
@@ -17,6 +19,7 @@ export type MindMenu = readonly Readonly<{
   act: string;
   target: string;
   input: TSchema;
+  destinations?: readonly ExecutionDestination[];
   scope: "communication" | "open" | "work" | "control";
 }>[];
 export type AnswerFault = Readonly<{ code: string; path: string }>;
@@ -30,13 +33,26 @@ export type AnswerContext = Readonly<{
 const shape = object({
   scene: mindText,
   consulta: Type.Union([object({ question: mindText }), Type.Null()]),
-  acts: Type.Array(object({ act: Type.String(), target: Type.String(), input: Type.Unknown() }), { maxItems: 32 }),
+  acts: Type.Array(
+    object({
+      act: Type.String(),
+      target: Type.String(),
+      input: Type.Unknown(),
+      destination: Type.Optional(executionDestination),
+    }),
+    { maxItems: 32 },
+  ),
 });
 /** The model adapter reduces transport-only constraints; this schema retains the complete local contract. */
 export function answerSchema(menu: MindMenu): TSchema {
   requireMind(Array.isArray(menu), "menu");
   const acts = menu.map((item: MindMenu[number]) =>
-    object({ act: Type.Literal(item.act), target: Type.Literal(item.target), input: closedAnswerInput(item.input) }),
+    object({
+      act: Type.Literal(item.act),
+      target: Type.Literal(item.target),
+      input: closedAnswerInput(item.input),
+      ...destinationFields(item.destinations),
+    }),
   );
   return object({
     scene: mindText,
@@ -67,6 +83,7 @@ export function validateAnswer(
     if (!item) faults.push({ code: "menu", path });
     else if (!Value.Check(closedAnswerInput(item.input), act.input))
       faults.push({ code: "input", path: `${path}/input` });
+    else if (!destinationAllowed(item.destinations, act.destination)) faults.push({ code: "destination", path });
     else if (!permittedScope(context, item)) faults.push({ code: "scope", path });
     else if (!context.allowed(act)) faults.push({ code: "permission", path });
   });

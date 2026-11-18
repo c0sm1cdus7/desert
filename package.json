@@ -124,6 +124,8 @@
     "./program-types": "./src/tools/tool-contract.ts",
     "./surface": "./src/surface/bridge/ports/house-ports.ts",
     "./surface/house-router": "./src/surface/bridge/assembly/house-router.ts",
-    "./calculation": "./src/runtime/calculation-version.ts"
+    "./calculation": "./src/runtime/calculation-version.ts",
+    "./doors/device": "./src/doors/devices/device-door.ts",
+    "./doors/device-process": "./src/doors/devices/device-process.ts"
   }
 }

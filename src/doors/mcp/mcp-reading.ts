@@ -1,4 +1,5 @@
 // La puerta agente lee programas, carpetas y objetos como la terminal, con acciones sujetas al kit.
+import { deviceChoices } from "../../house/devices/device-state.ts";
 import { stripVTControlCharacters } from "node:util";
 import { allowed, allowedAct } from "../../house/kit.ts";
 import { targetTool } from "../../house/attendance.ts";
@@ -68,6 +69,15 @@ function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X
               objetivo: target,
               para: isProgram(act) ? act.purpose : tool.purpose,
               entrada: act.input,
+              ...(act.execution
+                ? {
+                    execution: act.execution,
+                    destinations: [
+                      ...(act.execution.at !== "device" ? [{ kind: "house" }] : []),
+                      ...deviceChoices(state.house, act.execution, name),
+                    ],
+                  }
+                : {}),
               motivo: reason(name, act, target),
             }));
         }),

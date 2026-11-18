@@ -1,4 +1,6 @@
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
+import { executeNested } from "./execution/nested-execution.ts";
+import { destinationProblem, deviceRun, executionReach } from "./execution/device-execution.ts";
 import type { ContractFailureReason } from "./contract-port.ts";
 import { hasSecretInput } from "./inputs/secret-input.ts";
 import { rejected, performAct } from "./execution/perform-act.ts";
@@ -51,7 +53,7 @@ const resolve = <X extends Program>(ports: Resolving<X>, by: string, target: str
 };
 /** Whether an act would leave the house; an act that resolves to nothing never runs. */
 export const actReach = <X extends Program>(ports: Resolving<X>, by: string, target: string, option: string) =>
-  resolve(ports, by, target, option).act?.reach ?? "house";
+  executionReach(resolve(ports, by, target, option).act);
 /** An act that says where it stands is done there: on its tool itself, or on one of its tool's things. */
 const elsewhere = <X extends Program>(act: ToolAct<X>, tool: Tool<X>, target: string): boolean =>
   act.on !== undefined && (act.on === "tool") !== (target === tool.id);
@@ -62,7 +64,9 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   if (!present(ports.registry, state.house, by) || (process && !ports.process(process, by)))
     return toolTexts.unassigned;
   if (!act) return toolTexts.unknown;
-  if (origin.data.reaction && act.reach !== "house") return toolTexts.invalid;
+  const destination = destinationProblem(act.execution, origin.data.destination);
+  if (destination) return destination;
+  if (origin.data.reaction && executionReach(act) !== "house") return toolTexts.invalid;
   if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option, ports.registry)))
     return toolTexts.kitRefusal(tool?.id ?? "");
   if (!offered && tool && elsewhere(act, tool, target)) return toolTexts.unknown;
@@ -91,8 +95,10 @@ const decide = <X extends Program>(
   capabilities: ToolCapabilities,
   reviewed = false,
 ): Decision<X> | Perform<X> => {
-  const { by } = origin;
-  const { object: target, through = 0 } = origin.data;
+  const {
+    by,
+    data: { object: target, through = 0 },
+  } = origin;
   const found = resolve(ports, by, target, value.act);
   const { state, offered, tool, act } = found;
   const refused = refusal(ports, origin, found);
@@ -111,15 +117,11 @@ const decide = <X extends Program>(
     };
     return { status: "draft", reason: toolTexts.draft, draft: value.input, effects: [effect("tool-entry", data, by)] };
   }
-  if (!reviewed && act.reach === "world" && ports.review && parseMindActor(by))
+  if (!reviewed && executionReach(act) === "world" && ports.review && parseMindActor(by))
     return () => reviewWorld(ports, value, origin, capabilities, context.signal);
-  return () => {
-    const result = runProgram(act, value.input, context);
-    const finish = (result: ActResult<X>): Decision<X> =>
-      checkedDecision(ports, result, act, context, tool, offered, value.act);
-    return result instanceof Promise ? result.then(finish) : finish(result);
-  };
+  return () => runSelected(ports, value, origin, found, context);
 };
+
 function actionContext<X extends Program>(
   ports: Execution<X>,
   origin: Origin,
@@ -132,7 +134,7 @@ function actionContext<X extends Program>(
   const { ports: publicPorts, credentials } = capabilities;
   const context: ActContext<X> = {
     state,
-    signal: runningSignal(ports, origin, offered ? undefined : tool?.id, act?.reach ?? "house"),
+    signal: runningSignal(ports, origin, offered ? undefined : tool?.id, executionReach(act)),
     by,
     target,
     at: ports.now(),
@@ -140,7 +142,7 @@ function actionContext<X extends Program>(
     ports: publicPorts,
     credentials,
     id,
-    ...(origin.data.reaction ? {} : { execute: (nested: Act) => executeNested(ports, origin, nested) }),
+    ...(origin.data.reaction ? {} : { execute: (nested: Act) => executeNested(ports, origin, nested, execute) }),
   };
   // A reaction runs alone: it gets no nested execution and no contract port.
   if (origin.data.reaction) return context;
@@ -150,7 +152,7 @@ function actionContext<X extends Program>(
       tool: tool?.id ?? "",
       by,
       signal: context.signal,
-      execute: nested => executeNested(ports, origin, nested),
+      execute: nested => executeNested(ports, origin, nested, execute),
       alive: () => ports.live() && ports.active?.closed !== true,
     }),
   );
@@ -170,7 +172,14 @@ async function reviewWorld<X extends Program>(
     reason: "world" as const,
     scope,
     through: ports.state().through,
-    acts: [{ act: value.act, target: origin.data.object, input: value.input }],
+    acts: [
+      {
+        act: value.act,
+        target: origin.data.object,
+        input: value.input,
+        ...(value.destination ? { destination: value.destination } : {}),
+      },
+    ],
   };
   const result = await ports.review.review(request);
   if (result.outcome !== "passed" || result.proposal !== origin.id || result.through !== request.through)
@@ -196,37 +205,6 @@ function processScope<X extends Program>(ports: Execution<X>, origin: Origin) {
     ? { kind: "journey" as const, actor: mind, process: journey.id, kit: journey.kit }
     : { kind: "consciousness" as const, actor: mind };
 }
-async function executeNested<X extends Program>(
-  ports: Execution<X>,
-  origin: Origin,
-  nested: Act,
-): Promise<ActResult<X>> {
-  if (ports.active?.controller.signal.aborted) return { status: "interrupted", reason: toolTexts.withdrawn };
-  const { by, id, process } = origin;
-  const tool = targetTool(ports.registry, identityView(ports.state(), by), nested.target ?? "");
-  const unknown: ActResult<X> = { status: "rejected", reason: toolTexts.unknown };
-  if (!tool) return { ...unknown, coreFailure: "invalid-reference" };
-  const parent = process ? (ports.state().house.journeys.get(process)?.opened ?? process) : undefined;
-  const cause = [id, ...(parent ? [parent] : [])];
-  const started = execute(ports, nested, origin.data.through ?? 0, by, cause);
-  const result = started.status === "processing" ? await started.completion : started;
-  let done: ActResult<X>;
-  if (result.status === "accepted") done = { status: "accepted" };
-  else if (result.status === "inconclusive") done = { status: "inconclusive" };
-  else
-    done = {
-      status: result.status === "interrupted" ? "interrupted" : "rejected",
-      reason: result.reason ?? toolTexts.invalid,
-    };
-  const failure: ContractFailureReason | undefined = result.defect ? "defect" : result.coreFailure;
-  return {
-    ...done,
-    ...(result.value !== undefined ? { value: result.value } : {}),
-    ...(failure ? { coreFailure: failure } : {}),
-    ...(result.cleanupPending ? { cleanupPending: true } : {}),
-    ...(result.anchorPending ? { anchorPending: true } : {}),
-  };
-}
 export function execute<X extends Program>(
   ports: Execution<X>,
   value: unknown,
@@ -236,13 +214,14 @@ export function execute<X extends Program>(
   reaction?: Origin["data"]["reaction"],
 ): ExecutionResult<X> {
   if (!Value.Check(actEnvelope, value)) return rejected(toolTexts.invalid);
-  const key = JSON.stringify([value.target, value.act, value.input]);
+  const key = JSON.stringify([value.target, value.act, value.input, value.destination]);
   if (ports.chain?.includes(key)) return rejected(toolTexts.unknown);
   const chain = [...(ports.chain ?? []), key];
   const work = (ports: Execution<X>, input: unknown, valid: boolean, capabilities: ToolCapabilities) =>
     executeScoped({ ...ports, chain }, { ...value, input }, through, by, cause, capabilities, valid, reaction);
   const schema = resolve(ports, by, value.target ?? ids.self, value.act).act?.input;
   const plain = !hasSecretInput(schema);
+  if (!plain && value.destination?.kind === "device") return rejected(toolTexts.invalid);
   return usingCapabilities(ports, { by, data: { object: value.target ?? ids.self } }, (scoped, capabilities) =>
     ports.secrets.scope
       ? ports.secrets.scope(
@@ -276,6 +255,7 @@ function executeScoped<X extends Program>(
     option: value.act,
     input: value.input,
     through,
+    ...(value.destination ? { destination: value.destination } : {}),
     ...(reaction ? { reaction } : {}),
   };
   const started = startAct(ports, effect("act", data, by, cause, process));
@@ -293,4 +273,24 @@ function executeScoped<X extends Program>(
     }
     return typeof decision === "function" ? performAct(ports, act, decision) : finish(ports, act, decision);
   }
+}
+
+function runSelected<X extends Program>(
+  ports: Execution<X>,
+  value: Act,
+  origin: Origin,
+  found: ReturnType<typeof resolve<X>>,
+  context: ActContext<X>,
+): Decision<X> | Promise<Decision<X>> {
+  const { act, tool, offered } = found;
+  if (!act) return rejected(toolTexts.unknown);
+  const result = runProgram(
+    act,
+    value.input,
+    context,
+    deviceRun(act, value.input, context, origin, tool?.id ?? origin.data.object, ports.devices),
+  );
+  const finish = (result: ActResult<X>): Decision<X> =>
+    checkedDecision(ports, result, act, context, tool, offered, value.act);
+  return result instanceof Promise ? result.then(finish) : finish(result);
 }

@@ -6,6 +6,7 @@ export const sceneLimits = { general: 4000, each: 1000, identities: 64, name: 16
 /** One bound for the JSON data of one act, whatever door it enters by: the act and its target and input. */
 export const actLimits = { inputBytes: 1024 * 1024 } as const;
 
+import { executionDestination } from "../fields/device-protocol.ts";
 import { Type, type Static } from "@sinclair/typebox";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { object, visibleText } from "../fields/visible-text.ts";
@@ -44,5 +45,10 @@ export const actCatalog = {
   unattend: { input: target, purpose: toolTexts.unattend },
   prefer: { input: preference, purpose: toolTexts.prefer },
 };
-export const actEnvelope = object({ act: name, target: Type.Optional(name), input: Type.Unknown() });
+export const actEnvelope = object({
+  act: name,
+  target: Type.Optional(name),
+  input: Type.Unknown(),
+  destination: Type.Optional(executionDestination),
+});
 export type Act = Static<typeof actEnvelope>;

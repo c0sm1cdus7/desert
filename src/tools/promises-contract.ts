@@ -119,6 +119,7 @@ export type Declared<X extends Program, S extends TSchema, O extends readonly st
   input: S;
   reach?: Reach;
   needs?: ToolAct<X>["needs"];
+  execution?: ToolAct<X>["execution"];
   output?: boolean;
 }> &
   /** No act without its purpose, its key and its words: an option nobody can explain or reach is not an option. */

@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 268. Deudas: 22.
+Leyes: 270. Deudas: 22.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -275,3 +275,5 @@ Leyes: 268. Deudas: 22.
 | 287 | La composición deriva una definición por programa prendido, su actor, rol, reglas y palabras. La base arma catálogo, huellas y recursos del turno; la distribución entrega sólo llave, transporte, cuenta, tope e idioma. Una casa creada sin pensamiento puede prenderlo al reabrir sin perder sus datos. | 18/11 · dist-mentes-programa | una spec a mano | `src/runtime/distributions/program-minds.spec.ts` `src/runtime/distributions/program-mind-journeys.spec.ts` |
 | 288 | El programa aporta casos de tres escenas. El banco usa el turno, marco y motor reales con estado aislado; prueba por costo creciente y se frena en la primera carta que pasa todas las escenas. Conserva evidencia por huella y cuenta el gasto del banco en el diario de la casa; una interrupción no certifica un rechazo del rol. | 18/11 · dist-mentes-programa | una spec a mano | `src/runtime/minds/program-mind-bank.spec.ts` `src/runtime/minds/program-mind-neighbors.spec.ts` |
 | 289 | Sin llave, con tope insuficiente o sin carta acreditada, la casa abre y explica por qué la mente no piensa. Reservas y gasto sobreviven reaperturas y recálculos. La consciencia escribe escenas y mensajes; sólo sus journeys ejecutan trabajo y únicamente con el kit vigente, incluidas las carpetas de programas instalables. | 18/11 · dist-mentes-programa | una spec a mano | `src/runtime/minds/program-mind-bank.spec.ts` `src/runtime/minds/program-mind-neighbors.spec.ts` `src/runtime/distributions/program-mind-journeys.spec.ts` |
+| 290 | Cada dispositivo tiene dueño, aceptación, inventario y conexión registrados. Su puerta autentica la máquina con un desafío propio de un solo uso: no crea una identidad, una mente ni un kit. Retirar la máquina o sacar a su dueño cierra su conexión. | 18/11 · core-dispositivos paso 1 | una spec a mano | `src/runtime/devices/device-runtime.spec.ts` `src/doors/devices/device-door.spec.ts` |
+| 291 | La acción declara casa, dispositivo o ambos y el actor elige el destino al usarla. El motor conserva actor, programa, acción y journey, exige su kit y un inventario compatible, y registra la referencia del resultado. Una desconexión o cierre conserva el resultado desconocido sin reintento ni cambio de máquina. El paso 1 no presta llaves de la casa. | 18/11 · core-dispositivos paso 1 | una spec a mano | `src/runtime/devices/device-runtime.spec.ts` `src/runtime/devices/device-neighbors.spec.ts` `src/doors/devices/device-door.spec.ts` `src/doors/devices/device-process.spec.ts` `src/runtime/devices/device-minds.spec.ts` `src/runtime/minds/mind-turn.spec.ts` |

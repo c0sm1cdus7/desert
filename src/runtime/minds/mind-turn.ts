@@ -45,7 +45,8 @@ class MindTurnRun {
   private finish(reason?: TurnStop): TurnOutcome {
     this.caller.close();
     const outcome = reason ? "failed" : "done";
-    const interrupted = reason === "uncertain" || reason === "inactive" || reason === "interrupted";
+    const interrupted =
+      reason === "uncertain" || reason === "act-uncertain" || reason === "inactive" || reason === "interrupted";
     const result: TurnOutcome = {
       outcome: interrupted ? "interrupted" : outcome,
       calls: this.caller.calls(),
@@ -133,6 +134,7 @@ class MindTurnRun {
       if (current.rulesVersion !== version) return "review-stale";
       if (!this.ports.allowed(this.turn.scope, act)) return "permission";
       const result = await this.ports.execute(act, { turn: this.turn, review: this.review });
+      if (result.status === "inconclusive") return "act-uncertain";
       if (result.status !== "accepted") return "act-failed";
       requireMind(result.id && !this.applied.includes(result.id), "act.id");
       this.applied.push(result.id);

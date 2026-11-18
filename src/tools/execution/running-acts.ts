@@ -5,6 +5,7 @@ import { allowedAct, present } from "../../house/kit.ts";
 import { houseStep, type House } from "../../house/members.ts";
 import { effect, type HouseEvent } from "../../house/facts.ts";
 import type { Event } from "../../journal/vocabulary.ts";
+import { deviceTexts } from "../../texts/devices.texts.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import type { Decision, Execution } from "../execute.ts";
 import type { Program, Reach, State } from "../tool-contract.ts";
@@ -67,10 +68,15 @@ export function watchRunning<X extends Program>(ports: Execution<X>) {
     cutRunning(ports, event, house);
   };
 }
-/** An act that had started when the house stopped never got its result: on boot it is closed as interrupted. */
+/** On boot, unfinished local acts are interrupted; remote attempts retain their unknown outcome. */
 export function interrupt<X extends Program>({ bus }: Execution<X>, state: State<X>): void {
   for (const [act, started] of state.processing) {
-    const data = { act, status: "interrupted" as const, reason: toolTexts.interrupted };
+    const remote = state.acts.get(act)?.data.destination?.kind === "device";
+    const data = {
+      act,
+      status: remote ? ("inconclusive" as const) : ("interrupted" as const),
+      reason: remote ? deviceTexts.closed : toolTexts.interrupted,
+    };
     bus.emit(effect("act-result", data, started.by, [act], started.process));
   }
 }
@@ -78,6 +84,7 @@ export function interrupt<X extends Program>({ bus }: Execution<X>, state: State
 export function cutDecision<X extends Program>(ports: Execution<X>, decision: Decision<X>): Decision<X> {
   const active = ports.active;
   if (!active || !withdrawn(ports, active)) return decision;
+  if (active.origin?.data.destination?.kind === "device" && decision.status === "inconclusive") return decision;
   if (active.writing || (active.reach === "world" && decision.status === "accepted"))
     return { ...decision, reason: toolTexts.withdrawn };
   return {

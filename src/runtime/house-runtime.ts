@@ -1,4 +1,5 @@
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
+import { createDeviceRuntime, type DeviceRuntime } from "./devices/device-runtime.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 import type { Event } from "../journal/vocabulary.ts";
 import { checkKitMigration } from "../house/kit-migration.ts";
@@ -82,7 +83,7 @@ function houseContracts<X extends Program>(options: HouseOptions<X>, resources: 
     registry,
     slices,
     initial: startState(slices, by, identities, registry, kitMigration),
-    events: () => journal.replay<Event<X["fact"]>[]>([], (events, event) => [...events, event]),
+    events: () => houseHistory<X>(journal),
   });
 }
 export function startHouse<X extends Program>(
@@ -97,33 +98,54 @@ export function startHouse<X extends Program>(
     ...(options.process ? { process: options.process } : {}),
   };
   const resources = houseResources(home, options, time);
-  const { capabilities, protection, journal, secrets, bus, stops, report, close, state, clock } = resources;
+  const { protection, secrets, bus, stops, report, close, state, clock } = resources;
   try {
     if (!state().house.admin) checkCreation(creation, by);
     protection.mark();
     protection.attach(secrets, state);
     const contracts = houseContracts(options, resources);
-    const tools = startTools({
-      ...(contracts ? { contracts } : {}),
-      ...ports,
-      ...capabilities(state),
+    const devices = createDeviceRuntime(
       bus,
-      secrets,
+      () => state().house,
       registry,
-      history: journal.replay<Event<X["fact"]>[]>([], (events, event) => [...events, event]),
-      state,
-      now: () => time.now(),
-    });
+      by,
+      value => secrets.scrub(value),
+    );
+    stops.push(() => devices.close());
+    const tools = startHouseTools(options, resources, ports, devices, contracts, time);
     if (!state().house.admin) createHouse(bus, creation);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
-    const minds = loadMinds(home, options, time, resources, contracts);
-    return runningHouse(home, registry, tools, time, resources, minds?.ready, minds?.notices);
+    const minds = loadMinds(home, options, time, resources, devices, contracts);
+    return runningHouse(home, registry, tools, time, resources, devices, minds?.ready, minds?.notices);
   } catch (error) {
     if (!(error instanceof InvalidCreation)) report(error, "program", "program", "start");
     close();
     throw error;
   }
+}
+function startHouseTools<X extends Program>(
+  options: HouseOptions<X>,
+  resources: ReturnType<typeof houseResources<X>>,
+  ports: Partial<Pick<import("../tools/execute.ts").Execution<X>, "own" | "process">>,
+  devices: DeviceRuntime,
+  contracts: import("../tools/contract-port.ts").ContractFactory | undefined,
+  time: TimeSource,
+) {
+  const { capabilities, state, bus, secrets, journal } = resources;
+  const { registry } = options;
+  return startTools({
+    devices: devices.dispatch,
+    ...(contracts ? { contracts } : {}),
+    ...ports,
+    ...capabilities(state),
+    bus,
+    secrets,
+    registry,
+    history: houseHistory<X>(journal),
+    state,
+    now: () => time.now(),
+  });
 }
 function runningHouse<X extends Program>(
   home: string,
@@ -131,15 +153,18 @@ function runningHouse<X extends Program>(
   tools: ReturnType<typeof startTools<X>>,
   time: TimeSource,
   resources: ReturnType<typeof houseResources<X>>,
+  devices: DeviceRuntime,
   ready?: Promise<ModelMinds | undefined>,
   mindNotices?: () => readonly string[],
 ) {
   const { bus, journal, close, notices, state } = resources;
+  const { dispatch: _dispatch, ...deviceAccess } = devices;
   return {
     home,
     bus,
     journal,
     tools,
+    devices: deviceAccess,
     registry,
     close,
     ...(ready ? { minds: ready } : {}),
@@ -156,6 +181,7 @@ function mindHouse<X extends Program>(
   time: TimeSource,
   resources: ReturnType<typeof houseResources<X>>,
   active: () => boolean,
+  devices: DeviceRuntime,
   contracts?: import("../tools/contract-port.ts").ContractFactory,
 ) {
   const { capabilities, state, bus, secrets, journal, report, close } = resources;
@@ -164,6 +190,7 @@ function mindHouse<X extends Program>(
     time,
     active,
     execution: {
+      devices: devices.dispatch,
       ...(contracts ? { contracts } : {}),
       ...capabilities(state),
       bus,
@@ -178,11 +205,7 @@ function mindHouse<X extends Program>(
         return !!journey && !journey.closed && (by === undefined || journey.by === by);
       },
     },
-    history: () =>
-      journal.replay<ReturnType<typeof journal.append>[]>([], (events, event) => {
-        events.push(event);
-        return events;
-      }),
+    history: () => houseHistory<X>(journal),
     failed: (error: Error) => {
       report(error, "program", "program", "minds");
       close();
@@ -194,6 +217,7 @@ function loadMinds<X extends Program>(
   options: ModelHouseOptions<X>,
   time: TimeSource,
   resources: ReturnType<typeof houseResources<X>>,
+  devices: DeviceRuntime,
   contracts?: import("../tools/contract-port.ts").ContractFactory,
 ) {
   const switches = options.mentes;
@@ -209,7 +233,7 @@ function loadMinds<X extends Program>(
   const ready = import("./minds/mind-runtime.ts")
     .then(async ({ startModelMinds }) => {
       if (!houseActive()) return undefined;
-      const house = mindHouse(home, options, time, resources, () => active, contracts);
+      const house = mindHouse(home, options, time, resources, () => active, devices, contracts);
       const { prepareProgramMinds } = await import("./minds/program-mind-bank.ts");
       const prepared = await prepareProgramMinds(house, config, switches);
       if (!houseActive()) return undefined;
@@ -255,3 +279,10 @@ export type {
 } from "../tools/adapter-contract.ts";
 
 export { maintainHouseCustody, type CustodyMaintenance } from "./house-custody-maintenance.ts";
+
+function houseHistory<X extends Program>(journal: ReturnType<typeof houseResources<X>>["journal"]) {
+  return journal.replay<Event<X["fact"]>[]>([], (events, event) => {
+    events.push(event);
+    return events;
+  });
+}

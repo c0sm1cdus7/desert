@@ -62,6 +62,7 @@ function coreAuthority<X extends Program>(
   }
   if (
     (each.kind.startsWith("mind-") && each.kind !== "mind-card-assigned") ||
+    each.kind.startsWith("device-") ||
     each.kind.startsWith("journey-") ||
     each.kind.startsWith("model-call-")
   )

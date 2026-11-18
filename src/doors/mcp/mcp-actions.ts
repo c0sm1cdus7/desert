@@ -1,4 +1,5 @@
 // Actuar entra por el libro del socket, con atención previa, límites y kit verificados por la casa.
+import type { ExecutionDestination } from "../../fields/device-protocol.ts";
 import { randomUUID } from "node:crypto";
 import { stripVTControlCharacters } from "node:util";
 import { allowedAct } from "../../house/kit.ts";
@@ -17,6 +18,7 @@ export async function mcpAct<X extends Program>(
   action: string,
   target: string,
   input: unknown,
+  destination?: ExecutionDestination,
 ) {
   const state = house.tools.state();
   const declared = targetTool(house.registry, state, target);
@@ -34,6 +36,7 @@ export async function mcpAct<X extends Program>(
     tipo: "acto",
     id: randomUUID(),
     act: action,
+    ...(destination ? { destination } : {}),
     target,
     input,
     through: house.tools.state().through,
