@@ -1,3 +1,4 @@
+import { explicitKit } from "../../house/kit-selection.ts";
 import { expect, it, vi } from "vitest";
 import { object } from "../../fields/visible-text.ts";
 import { text } from "../../fields/fields.ts";
@@ -102,7 +103,7 @@ it("Railway: Franco adopta nora con conversación y notas, conserva autoría y p
       { kind: "removed", by: "franco", data: { identity: "nora" } },
       { kind: "assistant-enabled", by: "franco", data: { owner: "franco", name: "Nora" } },
       { kind: "assistant-adopted", by: "franco", data: { owner: "franco", legacy: "nora" } },
-      { kind: "assistant-kit-set", by: "franco", data: { owner: "franco", kit } },
+      { kind: "assistant-kit-set", by: "franco", data: { version: 2, owner: "franco", kit: explicitKit(kit) } },
     ]);
     reopen();
     expect(house().tools.state().house.grants.has("nora")).toBe(false);
@@ -111,7 +112,8 @@ it("Railway: Franco adopta nora con conversación y notas, conserva autoría y p
       name: "Nora",
       enabled: true,
       legacy: "nora",
-      kit,
+      kit: [],
+      selections: explicitKit(kit),
     });
     expect(
       house().journal.replay<unknown[]>([], (events, e) => (e.kind === "nota-anotada" ? [...events, e] : events)),

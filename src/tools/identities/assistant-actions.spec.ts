@@ -1,3 +1,4 @@
+import { explicitKit } from "../../house/kit-selection.ts";
 import { expect, it } from "vitest";
 import { staged, perform } from "../../checks/promises/promised-stage.ts";
 import { shopProgram } from "../../../tests/support/shop.ts";
@@ -18,10 +19,10 @@ it("el administrador distinto habilita y solo el titular delega", async () => {
     const done = await perform(house(), "identities", { act: "delegate-assistant", on, by: "beto", input: { kit } });
     expect(done).toMatchObject({ status: "accepted" });
     expect(domain(done.effects)).toMatchObject([
-      { kind: "assistant-kit-set", by: "beto", data: { owner: "beto", kit } },
+      { kind: "assistant-kit-set", by: "beto", data: { version: 2, owner: "beto", kit: explicitKit(kit) } },
     ]);
     reopen();
-    expect(house().tools.state().house.assistants.get("beto")?.kit).toEqual(kit);
+    expect(house().tools.state().house.assistants.get("beto")?.selections).toEqual(explicitKit(kit));
   });
 });
 it("rechaza delegación sin permiso, inexistente, repetida o de Identidades sin cambiar el kit", async () => {

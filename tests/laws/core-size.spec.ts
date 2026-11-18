@@ -78,10 +78,11 @@ describe("the tree of src/", () => {
   // Unión de la etapa 2: +12 líneas exactas para la capa de la casa del marco (cómo leer, contestar y consultar).
   // Distribuciones paso 1: +17 líneas exactas para diagnósticos de composición y rótulos de carpetas.
   // Reacciones: +3 líneas exactas para declaración inválida, pendiente visible y migración de effects.
-  it("keeps every file within 300 lines and the texts within 918", () => {
+  // Dist-kit: +9 líneas exactas para carpetas, herencia, retiradas y explicación de administración.
+  it("keeps every file within 300 lines and the texts within 927", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(918);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(927);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

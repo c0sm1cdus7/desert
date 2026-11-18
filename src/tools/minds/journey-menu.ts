@@ -1,4 +1,7 @@
 // Ofrece comunicación o trabajo autorizado y controles propios según el estado de cada journey.
+import type { KitMigration } from "../../house/kit-migration.ts";
+import { journeyAllows } from "../../house/minds/journey-state.ts";
+import type { KitLayout } from "../../house/kit-selection.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import type { Language } from "../../fields/languages.ts";
@@ -23,6 +26,8 @@ export type JourneyControl = keyof typeof journeyInputs;
 /** These are current effective permissions, not the kit previously shown to the model. */
 export type JourneyAccess = Readonly<{
   journeys: Journeys;
+  layout?: KitLayout;
+  migration?: KitMigration;
   kit: DelegatedKit;
   active: boolean;
   pending: readonly Readonly<{ by: string; process?: string | undefined }>[];
@@ -105,5 +110,9 @@ function permittedItem(
   if (!kitIncludes(state.kit, item.tool, item.act)) return false;
   if (scope.kind === "consciousness")
     return state.communication.some(each => each.tool === item.tool && each.act === item.act);
-  return !!journey && kitIncludes(journey.kit, item.tool, item.act) && kitIncludes(scope.kit, item.tool, item.act);
+  return (
+    !!journey &&
+    journeyAllows(state.journeys, journey.id, scope.actor, item.tool, item.act, state.layout, state.migration) &&
+    kitIncludes(scope.kit, item.tool, item.act)
+  );
 }

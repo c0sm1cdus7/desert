@@ -1,4 +1,7 @@
 // Validate the complete returned batch before the engine adds its own execution facts.
+import { storedHolderKit } from "../../house/kit-history.ts";
+import { selectionPath, selectionKit } from "../../house/kit-selection.ts";
+import { selectionProblem } from "../../house/kit-validation.ts";
 import { isMindActor } from "../../fields/mind-actor.ts";
 import { MindContractError } from "../../fields/mind-errors.ts";
 import { assistantEffect } from "./assistant-effects.ts";
@@ -13,6 +16,19 @@ const corePiece = (id: string | undefined): boolean => id === "identities";
 export const coreSelf = (tool: string | undefined, by: string, target: string): boolean =>
   corePiece(tool) && !isMindActor(by) && target === `identities/${by}`;
 function invalidKit<X extends Program>(ports: Execution<X>, event: HouseEmission<"kit-set">) {
+  if ("version" in event.data) {
+    const { holder, kit } = event.data;
+    const house = ports.state().house;
+    if (holder === house.admin || holder.startsWith("assistant:")) return effectRefusalTexts.adminKit;
+    if (!present(ports.registry, house, holder)) return effectRefusalTexts.absentHolder;
+    const own = mindTool(holder);
+    if (own && kit.selections.some(selection => selection.program !== own)) return effectRefusalTexts.unassignedTool;
+    const previous = new Set(storedHolderKit(house, holder).selections.map(selectionPath));
+    return selectionProblem(
+      selectionKit(kit.selections.filter(selection => !previous.has(selectionPath(selection)))),
+      ports.registry,
+    );
+  }
   const { holder, tool, acts } = event.data;
   const house = ports.state().house;
   const declared = ports.registry.find(each => each.id === tool);

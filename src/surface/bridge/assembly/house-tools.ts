@@ -31,7 +31,8 @@ import { recordOf } from "../views/record.ts";
 /** Only a tool whose acts say how they are offered can be shown: an act without its declaration is a defect. */
 const isProgramTool = <X extends Program>(tool: HouseTool<X>): tool is ProgramTool<X> =>
   Object.values(tool.acts).every(act => "name" in act && "enter" in act && "key" in act && "cases" in act);
-const repeated = (keys: readonly string[]): string[] => keys.filter((key, index) => keys.indexOf(key) !== index);
+const repeated = (keys: readonly string[]): string[] =>
+  keys.filter((key, index) => key !== "" && keys.indexOf(key) !== index);
 /** What can be changed is changed where it is read: an act that is named as a datum its tool reads is taken from
  * the row of that datum. Listed among the actions it would say the datum twice. */
 function auditData<X extends Program>(tool: ProgramTool<X>, reads: Readonly<Record<string, string>>): void {

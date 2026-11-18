@@ -6,7 +6,8 @@ it("real terminal grants one action, cuts a running act, removes the whole tool 
     await t.term.until("Menú");
     await t.press("i", "Mentes");
     await t.press("2", "pasar la administración");
-    await t.press("h", "Herramientas");
+    await t.press("h", "Programas");
+    await t.press("1", "Sales");
     await t.press("1", "registrar");
     await t.press("1", "actual");
     await t.press("s", "Guardado");
@@ -19,7 +20,7 @@ it("real terminal grants one action, cuts a running act, removes the whole tool 
     await t.probe("beto", "wait", {}, "processing");
     expect(await t.untilFile("observed.json", "Procesando")).toContain("Procesando");
     await t.press("\x1b", "esperar");
-    await t.press("t", "actual");
+    await t.press("t", "Kit");
     await t.press("n", "Guardado");
     expect(await t.untilFile("result.json", "interrupted")).toContain("sacada");
     expect(await t.untilFile("observed.json", "sacada")).toContain("sacada");
@@ -39,12 +40,13 @@ it("real terminal gives and takes a mind action; the process changes from reject
       "fuera del kit",
     );
     await t.press("i", "Mentes");
-    await t.press("3", "registrar");
-    expect(t.term.screen().join("\n")).not.toContain("[t]");
+    await t.press("3", "sales");
+    await t.press("1", "registrar");
+    expect(t.term.screen().join("\n")).toContain("[t]");
     await t.press("1", "actual");
     await t.press("s", "Guardado");
     expect(await t.probe("mind:sales", "register", { sale: "durante", total: 100 })).toContain("accepted");
-    expect(await t.untilFile("observed.json", "1 de 2")).toContain("mente de sales");
+    expect(await t.untilFile("observed.json", "Algunas acciones")).toContain("mente de sales");
     await t.press("\x1b", "registrar");
     await t.press("1", "actual");
     await t.press("n", "Guardado");
@@ -61,8 +63,9 @@ it("real terminal lets a reader open menus but change nothing and an administrat
     await t.term.until("Menú");
     await t.press("i", "Mentes");
     await t.press("1", "pasar la administración");
-    await t.press("h", "Herramientas");
-    expect(t.term.screen().join("\n")).toContain("todas");
+    await t.press("h", "Programas");
+    expect(t.term.screen().join("\n")).toContain("Todo, también lo nuevo");
+    await t.press("1", "Sales");
     await t.press("1", "registrar");
     expect(t.term.screen().join("\n")).toContain("solo quien administra");
     await t.press("1", "registrar");
@@ -78,7 +81,8 @@ it("real terminal removes partial tools, persists whole grants and protects admi
     await t.term.until("Menú");
     await t.press("i", "Mentes");
     await t.press("1", "pasar la administración");
-    await t.press("h", "Herramientas");
+    await t.press("h", "Programas");
+    await t.press("1", "Sales");
     await t.press("1", "registrar");
     expect(t.term.screen().join("\n")).toContain("administra · todas");
     await t.press("1", "registrar");
@@ -86,7 +90,8 @@ it("real terminal removes partial tools, persists whole grants and protects admi
     await t.press("\x0f", "Menú");
     await t.press("i", "Mentes");
     await t.press("2", "pasar la administración");
-    await t.press("h", "Herramientas");
+    await t.press("h", "Programas");
+    await t.press("1", "Sales");
     await t.press("1", "registrar");
     expect(t.term.screen().join("\n")).not.toContain("kit-set");
     await t.press("1", "actual");
@@ -104,17 +109,21 @@ it("real terminal removes partial tools, persists whole grants and protects admi
     try {
       await again.term.until("Menú");
       await again.press("i", "Mentes");
-      await again.press("2", "pasar la administración");
-      await again.press("h", "Herramientas");
-      expect(again.term.screen().join("\n")).toContain("todas");
+      await again.press(" beto", "› beto");
+      await again.press("\r", "pasar la administración");
+      await again.press("h", "Programas");
+      expect(again.term.screen().join("\n")).toContain("Algunas acciones");
+      await again.press("1", "Sales");
+      expect(again.term.screen().join("\n")).toContain("Todo, también lo nuevo");
       await again.press("1", "registrar");
       expect(again.term.screen().join("\n")).toContain("solo quien administra");
       await again.press("\x0f", "Menú");
       await again.press("i", "Mentes");
       await again.press(" mente de sales", "› mente de sales");
-      await again.press("\r", "registrar");
+      await again.press("\r", "sales");
+      await again.press("1", "registrar");
       expect(again.term.screen().join("\n")).toContain("solo quien administra");
-      expect(again.term.screen().join("\n")).not.toContain("[t]");
+      expect(again.term.screen().join("\n")).toContain("[t]");
     } finally {
       await again.term.close();
     }

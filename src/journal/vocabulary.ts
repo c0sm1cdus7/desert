@@ -6,6 +6,7 @@ import { Value } from "@sinclair/typebox/value";
 import { object, visibleText } from "../fields/visible-text.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 import {
+  currentHouseCatalog,
   name,
   type HouseEmission,
   names,
@@ -70,11 +71,7 @@ export type Vocabulary<P extends Foreign> = Readonly<{
   read(value: unknown): Event<P>;
 }>;
 const currentSchema = (program: Catalog, fields: Readonly<Record<string, TSchema>>) =>
-  Type.Union([
-    ...arms("house", previousHouseCatalog, fields),
-    ...arms("program", program, fields),
-    ...arms("house", mindHouseCatalog, fields),
-  ]);
+  Type.Union([...arms("house", currentHouseCatalog, fields), ...arms("program", program, fields)]);
 
 /** A program's kinds; none takes a name the house already writes. */
 type Own<C extends Catalog> = C & Readonly<Partial<Record<HouseKind, never>>>;

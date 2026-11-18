@@ -1,4 +1,5 @@
 // Acciones declaradas de sacar, readmitir sin herramientas y pasar la administración, con disponibilidad actual.
+import { programKit } from "../../house/kit-selection.ts";
 import { object } from "../../fields/visible-text.ts";
 import { identityDisplayName, type House } from "../../house/members.ts";
 import { mindTool } from "../../house/kit.ts";
@@ -51,7 +52,7 @@ function readmitIdentity<X extends Program>(runner: string, registry: ToolRegist
     run: (_, { by, state, target }) => ({
       status: "accepted",
       text: words.readmitted(identityDisplayName(state.house, targetIdentity(target))),
-      effects: [effect("granted", { identity: targetIdentity(target), tools: [] }, by)],
+      effects: [effect("granted", { version: 2, identity: targetIdentity(target), kit: programKit([]) }, by)],
     }),
     cases: readmitCases,
   });

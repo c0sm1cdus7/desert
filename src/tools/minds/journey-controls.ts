@@ -1,4 +1,6 @@
 // Valida controles de journeys y devuelve sus hechos al turno después de la revisión que corresponda.
+import { selectionProblem } from "../../house/kit-validation.ts";
+import { expandKit, explicitKit } from "../../house/kit-selection.ts";
 import { randomUUID } from "node:crypto";
 import { Type, type Static, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -37,8 +39,12 @@ const reviewShape = object({
   outcome: Type.Union([Type.Literal("passed"), Type.Literal("rejected"), Type.Literal("failed")]),
 });
 function inputOf<T extends TSchema>(schema: T, input: unknown, control: JourneyControl): Static<T> {
+  const diagnostic =
+    control === "open"
+      ? journeyInputs.open.anyOf[typeof input === "object" && input && "version" in input ? 1 : 0]
+      : schema;
   if (!Value.Check(schema, input)) {
-    const error = Value.Errors(schema, input).First();
+    const error = Value.Errors(diagnostic, input).First();
     requireMind(false, `journey.${control}.input${error?.path ?? ""}`);
   }
   const copy = structuredClone(input);
@@ -119,17 +125,34 @@ export async function openJourney(context: JourneyControlContext, input: unknown
   const c = contextOf(context);
   requireMind(c.turn.scope.kind === "consciousness", "scope.kind");
   const data = inputOf(journeyInputs.open, input, "open");
+  if (!("version" in data))
+    requireMind(new Set(data.kit.map(item => item.tool)).size === data.kit.length, "journey.kit");
   const process = `journey:${randomUUID()}`;
   return reviewed(c, "open", data, state => {
+    const registry = state.kit.map(item => ({
+      id: item.tool,
+      acts: Object.fromEntries(item.acts.map(action => [action, {}])),
+      ...(state.layout?.[item.tool] ? { actionTools: state.layout[item.tool] } : {}),
+    }));
+    if ("version" in data) requireMind(!selectionProblem(data.kit, registry), "journey.kit");
+    const kit = "version" in data ? expandKit(data.kit, registry) : data.kit;
     requireMind(
-      data.kit.every(item => item.acts.every(act => kitIncludes(state.kit, item.tool, act))),
+      kit.every(item => item.acts.every(act => kitIncludes(state.kit, item.tool, act))),
       "journey.kit",
     );
     requireMind(
-      data.kit.every(item => state.kit.some(each => each.tool === item.tool)),
+      kit.every(item => state.kit.some(each => each.tool === item.tool)),
       "journey.kit",
     );
-    return checked(state, [effect("journey-opened", data, c.turn.scope.actor, c.cause, process)]);
+    return checked(state, [
+      effect(
+        "journey-opened",
+        { version: 2, goal: data.goal, kit: "version" in data ? data.kit : explicitKit(data.kit, state.layout) },
+        c.turn.scope.actor,
+        c.cause,
+        process,
+      ),
+    ]);
   });
 }
 export function writeJourneyPlan(context: JourneyControlContext, input: unknown): readonly HouseEmission[] {

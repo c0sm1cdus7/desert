@@ -32,14 +32,14 @@ export function kitScreen<X extends Program>(
     actsOn,
     menusOn: {
       tools: {
-        label: words.tools.toLowerCase(),
-        purpose: words.tools.toLowerCase(),
+        label: words.programs.toLowerCase(),
+        purpose: words.programs.toLowerCase(),
         key: "h",
         listed: identity,
         opens: toolsMenu,
       },
     },
-    titleOf: target => (target.endsWith("#tools") ? words.tools : (plain.titleOf?.(target) ?? target)),
+    titleOf: target => (target.endsWith("#tools") ? words.programs : (plain.titleOf?.(target) ?? target)),
     view: kitView(ports, contract, plain, start),
   };
 }

@@ -1,4 +1,5 @@
 // Declara la habilitación, delegación y adopción histórica de un asistente.
+import { selectionKitSchema } from "../kit-selection.ts";
 import { Type, type Static } from "@sinclair/typebox";
 import { object, visibleText } from "../../fields/visible-text.ts";
 import { assistantOwner } from "../../fields/mind-actor.ts";
@@ -8,7 +9,10 @@ export type DelegatedKit = ReadonlyArray<Readonly<{ tool: string; acts: readonly
 export const assistantFacts = {
   "assistant-enabled": object({ owner: assistantOwner, name: mindName }),
   "assistant-disabled": object({ owner: assistantOwner }),
-  "assistant-kit-set": object({ owner: assistantOwner, kit: delegatedKit }),
+  "assistant-kit-set": Type.Union([
+    object({ owner: assistantOwner, kit: delegatedKit }),
+    object({ version: Type.Literal(2), owner: assistantOwner, kit: selectionKitSchema }),
+  ]),
   "assistant-adopted": object({ owner: assistantOwner, legacy: assistantOwner }),
 };
 export type AssistantEnabled = Static<(typeof assistantFacts)["assistant-enabled"]>;

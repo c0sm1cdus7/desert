@@ -1,7 +1,8 @@
 // Fixed adversarial cases: each observation has an assertion, without providers or external services.
 import { afterEach, expect, it } from "vitest";
 import { object } from "../fields/visible-text.ts";
-import { effect } from "./facts.ts";
+import { effect, type HouseEvent, type HouseEmission } from "./facts.ts";
+import { holderKit } from "./kit-history.ts";
 import { allowedAct } from "./kit.ts";
 import { emptyHouse, houseStep } from "./members.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
@@ -55,29 +56,41 @@ it("A1: only identities receive program own acts; a mind receives its scene", as
   expect(rig.state().house.scenes.has("beto")).toBe(false);
 });
 
-it("A2: taking administration clears every old kit, also after handing it back and restarting", () => {
-  const rig = open();
-  kit(rig, "beto", []);
-  kit(rig, "beto", [], "other");
-  const before = rig.state().house;
-  rig.bus.emit(effect("handed", { to: "beto" }, "beto"));
-  expect(rig.state().house.kits.get("beto")?.size).toBe(2);
-  rig.bus.emit(effect("handed", { to: "beto" }, "ana"));
-  expect(rig.state().house.kits.has("beto")).toBe(false);
+it("A2: taking administration clears every historical kit, also after handing it back and replaying", () => {
+  const events: HouseEvent[] = [];
+  let house = emptyHouse;
+  const append = (event: HouseEmission) => {
+    const fact = { ...event, id: String(events.length), seq: events.length + 1, at: events.length };
+    events.push(fact);
+    house = houseStep(house, fact);
+  };
+  append(effect("house-created", {}, "ana"));
+  for (const identity of ["ana", "beto"]) append(effect("granted", { identity, tools: ["desk", "other"] }, "ana"));
+  for (const tool of ["desk", "other"]) append(effect("kit-set", { holder: "beto", tool, acts: [] }, "ana"));
+  const before = house;
+  append(effect("handed", { to: "beto" }, "beto"));
+  expect(house.kits.get("beto")?.size).toBe(2);
+  append(effect("handed", { to: "beto" }, "ana"));
+  expect(house.kits.has("beto")).toBe(false);
   expect(before.kits.get("beto")?.size).toBe(2);
-  expect(allowedAct(rig.state().house, "beto", "desk", "open")).toBe(true);
-  rig.restart();
-  rig.bus.emit(effect("handed", { to: "ana" }, "beto"));
-  rig.restart();
-  for (const tool of ["desk", "other"]) expect(allowedAct(rig.state().house, "beto", tool, "open")).toBe(true);
-  kit(rig, "beto", []);
-  expect(allowedAct(rig.state().house, "beto", "desk", "open")).toBe(false);
+  expect(allowedAct(house, "beto", "desk", "open")).toBe(true);
+  expect(events.reduce(houseStep, emptyHouse)).toEqual(house);
+  append(effect("handed", { to: "ana" }, "beto"));
+  house = events.reduce(houseStep, emptyHouse);
+  for (const tool of ["desk", "other"]) expect(allowedAct(house, "beto", tool, "open")).toBe(true);
+  append(effect("kit-set", { holder: "beto", tool: "desk", acts: [] }, "ana"));
+  expect(allowedAct(house, "beto", "desk", "open")).toBe(false);
 });
 
 it("A3: unknown acts grant nothing, premature kits are ignored, and the last kit wins", () => {
   const rig = open();
   kit(rig, "beto", ["inexistente"]);
-  expect(rig.state().house.kits.get("beto")?.get("desk")).toEqual(["inexistente"]);
+  expect(holderKit(rig.state().house, "beto").selections).toContainEqual({
+    kind: "action",
+    program: "desk",
+    tool: "desk",
+    action: "inexistente",
+  });
   expect(allowedAct(rig.state().house, "beto", "desk", "open")).toBe(false);
   grant(rig, "carla", []);
   kit(rig, "carla", ["say"]);
@@ -101,7 +114,9 @@ it("A5: direct facts preserve the documented folding boundary", () => {
   rig.bus.emit(effect("preferred", { hide: "off", on: true }, "mind:desk"));
   expect(() => rig.bus.emit(effect("scene", { general: "" }, "ana"))).toThrow();
   expect(rig.state().house.scenes.has("mind:nada")).toBe(true);
-  expect(rig.state().house.kits.has("mind:nada")).toBe(true);
+  expect(holderKit(rig.state().house, "mind:nada").selections).toEqual([
+    { kind: "tool", program: "nada", tool: "nada" },
+  ]);
   expect(rig.state().house.kits.has("beto")).toBe(false);
   expect(rig.state().attendance.get("mind:desk")).toEqual(["desk"]);
   expect(rig.state().house.hides.has("mind:desk")).toBe(false);
@@ -164,7 +179,7 @@ it("A8: a mind's effects cannot grant itself identity privileges or escape its t
   const h = rig.state().house;
   expect(h.grants.has("mind:desk")).toBe(false);
   expect(h.admin).toBe("ana");
-  expect(h.kits.get("mind:desk")?.has("other")).toBe(false);
+  expect(holderKit(h, "mind:desk").selections.some(selection => selection.program === "other")).toBe(false);
   expect(await settle(rig.act("mind:desk", "away", {}, "desk"))).toMatchObject({ reason: toolTexts.outsideKit });
 });
 
@@ -189,5 +204,7 @@ it("A10: direct kit facts retain their existing unbounded action list", () => {
     "beto",
     Array.from({ length: 5000 }, (_, i) => `a${i}`),
   );
-  expect(rig.state().house.kits.get("beto")?.get("desk")).toHaveLength(5000);
+  expect(
+    holderKit(rig.state().house, "beto").selections.filter(selection => selection.program === "desk"),
+  ).toHaveLength(5000);
 });

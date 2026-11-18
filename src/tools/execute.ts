@@ -67,7 +67,16 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   if (
     process &&
     state.house.journeys.has(process) &&
-    (!tool || !journeyAllows(state.house.journeys, process, by, tool.id, origin.data.option))
+    (!tool ||
+      !journeyAllows(
+        state.house.journeys,
+        process,
+        by,
+        tool.id,
+        origin.data.option,
+        state.house.kitLayout,
+        state.house.kitMigration,
+      ))
   )
     return toolTexts.outsideKit;
   if (!offered && !isMindActor(by) && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;

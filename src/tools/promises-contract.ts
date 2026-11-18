@@ -1,5 +1,6 @@
 // The declarations a program supplies once, shared by execution, surfaces and derived checks.
 import type { ProgramWords } from "../fields/installable-words.ts";
+import type { KitMigration } from "../house/kit-migration.ts";
 import type { AdapterComposition } from "./adapter-contract.ts";
 import type { CalculationVersion } from "./calculation-contract.ts";
 import type { Static, TSchema } from "@sinclair/typebox";
@@ -106,6 +107,7 @@ export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
 export type Composition<X extends Program> = AdapterComposition &
   Readonly<{
     identities?: boolean;
+    kitMigration?: KitMigration;
     projectionVersion: CalculationVersion;
     words: Vocabulary<X["fact"]>;
     registry: readonly ProgramTool<X>[];
@@ -121,7 +123,7 @@ export type Declared<X extends Program, S extends TSchema, O extends readonly st
   Offered &
   /** What is put before the person to confirm: said from what they answered, from what the house keeps, and from
    * the thing it is done to (the tool itself, for an act on the tool). */
-  Readonly<{ confirms?: (input: Static<S>, state: State<X>, target: string, at: number) => string }> &
+  Readonly<{ confirms?: (input: Static<S>, state: State<X>, target: string, at: number) => string | undefined }> &
   Readonly<{ today?: (state: State<X>, target: string, at: number) => Static<S> | undefined }> &
   Readonly<{ also?: Also<X>; datum?: Datum<X> }> &
   SoFar<X> &

@@ -1,3 +1,4 @@
+import { holderKit } from "./kit-history.ts";
 import { member, mutate } from "../../tests/support/state-mutations.ts";
 import { afterEach, expect, it } from "vitest";
 import { effect } from "./facts.ts";
@@ -12,6 +13,8 @@ const rigs: ReturnType<typeof shopRig>[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
 const attacks = {
   kits: (s: State<Shop>) => mutate(s.house.kits, "set", "mind:desk", new Map([["desk", null]])),
+  selections: (s: State<Shop>) =>
+    mutate(member(s.house, "selections"), "set", "mind:desk", { version: 2, selections: [] }),
   admin: (s: State<Shop>) => Object.assign(s.house, { admin: "beto" }),
   grants: (s: State<Shop>) => mutate(s.house.grants, "set", "eve", ["desk"]),
   wakeOwners: (s: State<Shop>) => mutate(s.wakeOwners, "set", "other:zero", "mind:desk"),
@@ -37,20 +40,22 @@ it("rev3-camino: an inner kit, its list and reflected references cannot be chang
   rigs.push(rig);
   rig.bus.emit(effect("kit-set", { holder: "mind:desk", tool: "desk", acts: [] }, "ana"));
   const state = mind.startup().state();
-  const kit = state.house.kits.get("mind:desk");
+  const kit = state.house.selections?.get("mind:desk");
   if (!kit) throw new Error("Missing test kit");
-  expect(() => mutate(kit, "set", "desk", ["write"])).toThrow(TypeError);
-  expect(() => mutate(member(Object.fromEntries(kit), "desk"), "push", "write")).toThrow(TypeError);
-  expect(() => Map.prototype.set.call(state.house.kits, "mind:desk", new Map([["desk", null]]))).toThrow(TypeError);
-  state.house.kits.forEach((inner, _key, map) => {
+  expect(() => Object.assign(kit, { version: 1 })).toThrow(TypeError);
+  expect(() => mutate(member(kit, "selections"), "push", { kind: "program", program: "desk" })).toThrow(TypeError);
+  expect(() => Map.prototype.set.call(state.house.selections, "mind:desk", { version: 2, selections: [] })).toThrow(
+    TypeError,
+  );
+  state.house.selections?.forEach((inner, _key, map) => {
     expect(() => mutate(map, "clear")).toThrow(TypeError);
-    expect(() => mutate(inner, "clear")).toThrow(TypeError);
+    expect(() => mutate(inner.selections, "push", { kind: "program", program: "desk" })).toThrow(TypeError);
   });
   const house = member(Object.getOwnPropertyDescriptor(state, "house"), "value");
   expect(() => Object.assign(house, { admin: "beto" })).toThrow(TypeError);
   expect(() => Reflect.setPrototypeOf(state.house, {})).toThrow(TypeError);
   expect(() => Reflect.deleteProperty(state.house, "admin")).toThrow(TypeError);
-  expect(rig.state().house.kits.get("mind:desk")?.get("desk")).toEqual([]);
+  expect(holderKit(rig.state().house, "mind:desk").selections).toEqual([]);
 });
 for (const door of ["view", "act", "reactions", "summary", "surface"] as const)
   it(`${door} refuses every authority mutation`, async () => {

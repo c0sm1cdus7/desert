@@ -1,4 +1,6 @@
 // Starts and folds the house with its program slices; declares the options passed when opening it.
+import type { KitMigration } from "./kit-migration.ts";
+import { kitLayout } from "./kit-selection.ts";
 import type { CalculationVersion } from "../tools/calculation-contract.ts";
 import type { HouseKeyProvider } from "../keychain/custody/house-keys.ts";
 import { type Creation, emptyHouse, houseStep, type Attention } from "./members.ts";
@@ -11,7 +13,7 @@ export type HouseOptions<X extends Program> = AdapterComposition &
   Readonly<{ by: string; projectionVersion: CalculationVersion; creation: Creation }> &
   Readonly<{ words: Vocabulary<X["fact"]>; registry: ToolRegistry<X>; slices: Slices<X> }> &
   Partial<Pick<Execution<X>, "own" | "process">> &
-  Readonly<{ secretKeys?: HouseKeyProvider; identities?: boolean }>;
+  Readonly<{ secretKeys?: HouseKeyProvider; identities?: boolean; kitMigration?: KitMigration }>;
 import { readonlyState, stateResult } from "../journal/readonly-state.ts";
 import { openActs } from "../tools/execution/open-acts.ts";
 import { programRule } from "../fields/program-call.ts";
@@ -35,9 +37,15 @@ export const emptyHouseState: HouseState = initial({
   through: 0,
 });
 /** Where a house starts for one identity: nothing in the house yet, and each tool as it begins. */
-export const startState = <X extends Program>(slices: Slices<X>, by: string, identities = false): State<X> => ({
+export const startState = <X extends Program>(
+  slices: Slices<X>,
+  by: string,
+  identities = false,
+  registry: ToolRegistry<X> = [],
+  kitMigration?: KitMigration,
+): State<X> => ({
   ...emptyHouseState,
-  house: identities ? { ...emptyHouse, identities: true } : emptyHouse,
+  house: { ...emptyHouse, identities, kitLayout: kitLayout(registry), ...(kitMigration ? { kitMigration } : {}) },
   by,
   tools: slices.initial,
 });

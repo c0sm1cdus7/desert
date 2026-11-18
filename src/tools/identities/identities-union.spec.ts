@@ -1,4 +1,5 @@
 // The union of Identities (5a–5d) with the kit repairs (6a–6c), on the real core piece through startHouse.
+import { effectiveKit } from "../../house/kit.ts";
 import { expect, it } from "vitest";
 import { perform, staged } from "../../checks/promises/promised-stage.ts";
 import { keysTo, seated, type } from "../../checks/promises/promised-keys.ts";
@@ -51,11 +52,16 @@ it("kits given from Identities pass the house's kit validation; removed and admi
     const give = (holder: string, act: string, value: "yes" | "no") =>
       perform(house(), "identities", { on: identityTarget(holder), act: kitAct("sales", act), input: { value } });
     expect((await give("beto", "wait", "no")).status).toBe("accepted");
-    const kit = house().tools.state().house.kits.get("beto")?.get("sales");
+    const kit =
+      effectiveKit(house().tools.state().house, "beto", house().registry).find(item => item.tool === "sales")?.acts ??
+      [];
     expect(kit).not.toContain("wait");
-    expect(new Set(kit).size).toBe(kit?.length);
+    expect(new Set(kit).size).toBe(kit.length);
     expect((await give("mind:sales", "wait", "yes")).status).toBe("accepted");
-    expect(house().tools.state().house.kits.get("mind:sales")?.get("sales")).toEqual(["wait"]);
+    expect(
+      effectiveKit(house().tools.state().house, "mind:sales", house().registry).find(item => item.tool === "sales")
+        ?.acts,
+    ).toEqual(["wait"]);
     expect((await give("ana", "wait", "no")).status).toBe("rejected");
     const removed = await perform(house(), "identities", { on: identityTarget("carla"), act: "remove", input: {} });
     expect(removed.status).toBe("accepted");

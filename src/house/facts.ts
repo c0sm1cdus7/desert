@@ -1,4 +1,5 @@
 // The house fact catalog, typed emissions and effects, including the legacy catalog for saved records.
+import { selectionKitSchema } from "./kit-selection.ts";
 import { name, preference, scene, t, toolLimits } from "./own-acts.ts";
 import { wholeNumber } from "../fields/json-values.ts";
 import { Type } from "@sinclair/typebox";
@@ -27,7 +28,10 @@ export const mindHouseCatalog = {
 /** What every house writes, whatever program lives in it. */
 export const houseCatalog = {
   "house-created": object({}),
-  granted: object({ identity: name, tools: names }),
+  granted: Type.Union([
+    object({ identity: name, tools: names }),
+    object({ version: Type.Literal(2), identity: name, kit: selectionKitSchema }),
+  ]),
   named: object({ identity: name, name: t(toolLimits.text) }),
   /** Someone leaves the house: from then on nothing of it is theirs. Only who administers it says so. */
   removed: object({ identity: name }),
@@ -35,7 +39,10 @@ export const houseCatalog = {
   handed: object({ to: name }),
   preferred: preference,
   scene,
-  "kit-set": object({ holder: name, tool: name, acts: Type.Union([names, Type.Null()]) }),
+  "kit-set": Type.Union([
+    object({ holder: name, tool: name, acts: Type.Union([names, Type.Null()]) }),
+    object({ version: Type.Literal(2), holder: name, kit: selectionKitSchema }),
+  ]),
   boot: object({}),
   act: object({
     object: name,
@@ -73,6 +80,14 @@ export const houseCatalog = {
   "wake-at": object({ id: name, at: Type.Union([wholeNumber, Type.Null()]) }),
   woke: object({ id: name }),
   ...mindHouseCatalog,
+};
+/** Only version two may cross the writer boundary; the reader retains both shapes. */
+export const currentHouseCatalog = {
+  ...houseCatalog,
+  granted: houseCatalog.granted.anyOf[1],
+  "kit-set": houseCatalog["kit-set"].anyOf[1],
+  "assistant-kit-set": assistantFacts["assistant-kit-set"].anyOf[1],
+  "journey-opened": journeyFacts["journey-opened"].anyOf[1],
 };
 export type HouseKind = keyof typeof houseCatalog;
 export type HouseEmission<K extends HouseKind = HouseKind> = Extract<Facts<typeof houseCatalog, "house">, { kind: K }>;

@@ -1,5 +1,7 @@
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
 import type { Event } from "../journal/vocabulary.ts";
+import { checkKitMigration } from "../house/kit-migration.ts";
+import { programKit } from "../house/kit-selection.ts";
 import { checkComposition } from "../tools/execution/composed-authority.ts";
 import { coreRegistry } from "../tools/identities/identities.ts";
 import { houseResources } from "./house-resources.ts";
@@ -24,11 +26,15 @@ function ownerless<X extends Program>({ slices, registry }: HouseOptions<X>): st
 }
 function checkComposedCreation<X extends Program>(options: HouseOptions<X>) {
   const { by, registry, creation } = options;
-  const initial = startState(options.slices, by, options.identities);
+  const initial = startState(options.slices, by, options.identities, options.registry);
   const creationFacts = [
     effect("house-created", {}, creation.admin),
     ...creation.assignments.map(assignment =>
-      effect("granted", { identity: assignment.identity, tools: [...assignment.tools] }, creation.admin),
+      effect(
+        "granted",
+        { version: 2, identity: assignment.identity, kit: programKit(assignment.tools) },
+        creation.admin,
+      ),
     ),
   ];
   const preview = creationFacts.reduce(
@@ -58,6 +64,7 @@ function composed<X extends Program>(given: ModelHouseOptions<X>): ModelHouseOpt
     );
     requireMind(!(asistentes || programas.length) || options.modelMinds, "mentes.options");
   }
+  if (options.kitMigration) checkKitMigration(options.kitMigration, options.registry);
   if (!options.by) throw new Error("An explicit identity is required");
   if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
   checkComposedCreation(options);

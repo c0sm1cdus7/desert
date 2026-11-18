@@ -15,8 +15,8 @@ vi.mock("../runtime/projection-version.ts", async importOriginal => {
 afterEach(() => {
   version.old = "desert/3";
 });
-// desert/3 is the house before both; desert/4 the mind alone; desert/6 the kit alone. The union folds as desert/7.
-it.each(["desert/3", "desert/4", "desert/6"])(
+// Rebuild pre-union folds and desert/8, the last version before folder selections.
+it.each(["desert/3", "desert/4", "desert/6", "desert/8"])(
   "rebuilds %s saved folds and retains the first owner of an old wake id",
   old => {
     version.old = old;
@@ -24,7 +24,7 @@ it.each(["desert/3", "desert/4", "desert/6"])(
     rig.house().bus.emit(effect("wake-at", { id: "old-name", at: null }, "mind:desk"));
     rig.house().close();
     version.old = undefined;
-    expect(baseProjectionVersion).toBe("desert/8");
+    expect(baseProjectionVersion).toBe("desert/9");
     rig.restart();
     expect(
       rig

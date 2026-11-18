@@ -1,3 +1,4 @@
+import { explicitKit, programKit } from "../../house/kit-selection.ts";
 import { expect, it, vi } from "vitest";
 import { type HouseEmission, type HouseEvent } from "../../house/facts.ts";
 import { journeyStep, type Journeys } from "../../house/minds/journey-state.ts";
@@ -75,7 +76,12 @@ it("abre con un ID generado, revisión y autor fijo; no emite hasta que el turno
   expect(result.review.outcome).toBe("passed");
   expect(r.events).toEqual([]);
   expect(result.facts).toHaveLength(1);
-  expect(result.facts[0]).toMatchObject({ kind: "journey-opened", by: actor, cause: ["cause"], data: { kit } });
+  expect(result.facts[0]).toMatchObject({
+    kind: "journey-opened",
+    by: actor,
+    cause: ["cause"],
+    data: { version: 2, kit: explicitKit(kit) },
+  });
   expect(result.facts[0]?.process).not.toBe(actor);
   expect(result.facts[0]?.process).toMatch(/^journey:/);
   expect(r.review.review).toHaveBeenCalledOnce();
@@ -257,4 +263,13 @@ it("también rechaza el cierre desde consciencia y el proceso sin journey", asyn
   const absent = { ...c, turn: { ...c.turn, scope: { ...c.turn.scope, process: "absent" } } };
   expect(() => writeJourneyPlan(absent, { steps: [{ id: "s", text: "Anotar" }] })).toThrow("active");
   await expect(desistJourney(absent, { reason: "No existe", references: [] })).rejects.toThrow("active");
+});
+
+it("opens a folder journey in V2 without freezing its action list", async () => {
+  const r = rig();
+  const kit = programKit(["notes"]);
+  const result = await openJourney(r.context, { version: 2, goal: "Anotar", kit });
+  expect(result.facts[0]).toMatchObject({ kind: "journey-opened", data: { version: 2, goal: "Anotar", kit } });
+  r.apply(result.facts);
+  expect([...r.state.journeys.values()][0]?.selections).toEqual(kit);
 });

@@ -1,3 +1,4 @@
+import { explicitKit } from "../kit-selection.ts";
 import { afterEach, expect, it } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
@@ -45,7 +46,9 @@ it("Martín y el administrador no delegan a Nora por Franco; Franco sí", async 
   expect(
     (await settle(rig.act("franco", "delegate-assistant", { acts: ["register"] }, "identities/franco"))).status,
   ).toBe("accepted");
-  expect(rig.state().house.assistants.get("franco")?.kit).toEqual([{ tool: "sales", acts: ["register"] }]);
+  expect(rig.state().house.assistants.get("franco")?.selections).toEqual(
+    explicitKit([{ tool: "sales", acts: ["register"] }]),
+  );
 });
 it("rechaza actos desconocidos, permisos ausentes y hechos escondidos en otro acto", async () => {
   const rig = open(({ by }, acts) => [

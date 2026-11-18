@@ -1,4 +1,6 @@
 // Reconstruye journeys sin cambiar su autor ni volver a abrir un proceso cerrado.
+import { migrateKit, type KitMigration } from "../kit-migration.ts";
+import { selects, herramientaDe, explicitKit, type KitLayout, type SelectionKit } from "../kit-selection.ts";
 import { Value } from "@sinclair/typebox/value";
 import { parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
@@ -11,6 +13,7 @@ export type JourneyState = Readonly<{
   by: string;
   goal: string;
   kit: DelegatedKit;
+  selections?: SelectionKit;
   opened: string;
   steps: readonly JourneyPlanStep[];
   planned: boolean;
@@ -34,8 +37,19 @@ export function journeyStep(state: Journeys, event: HouseEvent): Journeys {
   const previous = state.get(event.process);
   if (event.kind === "journey-opened") {
     requireMind(!previous, "journey.opened");
-    requireMind(new Set(event.data.kit.map(each => each.tool)).size === event.data.kit.length, "journey.kit");
-    const next = { id: event.process, by: event.by, ...event.data, opened: event.id, steps: [], planned: false };
+    const kit = "version" in event.data ? [] : event.data.kit;
+    requireMind(new Set(kit.map(each => each.tool)).size === kit.length, "journey.kit");
+    const selections = "version" in event.data ? event.data.kit : explicitKit(kit);
+    const next = {
+      id: event.process,
+      by: event.by,
+      goal: event.data.goal,
+      kit,
+      selections,
+      opened: event.id,
+      steps: [],
+      planned: false,
+    };
     return new Map(state).set(event.process, next);
   }
   requireMind(previous && previous.by === event.by && !previous.closed, "journey.active");
@@ -62,12 +76,25 @@ function advanceJourney(
   return { ...previous, closed: event };
 }
 /** The engine, including nested acts, checks this scope against the current fold. */
-export function journeyAllows(state: Journeys, process: string, by: string, tool: string, act: string): boolean {
+export function journeyAllows(
+  state: Journeys,
+  process: string,
+  by: string,
+  tool: string,
+  act: string,
+  layout?: KitLayout,
+  migration?: KitMigration,
+): boolean {
   const journey = state.get(process);
   return (
     !!journey &&
     !journey.closed &&
     journey.by === by &&
-    journey.kit.some(each => each.tool === tool && each.acts.includes(act))
+    selects(
+      migrateKit(journey.selections ?? explicitKit(journey.kit), migration),
+      tool,
+      herramientaDe(tool, act, layout),
+      act,
+    )
   );
 }

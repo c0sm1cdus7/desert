@@ -1,4 +1,7 @@
 // Reconstruye asistentes y cruza su delegación con el permiso actual y la capacidad asignada.
+import { migrateKit } from "../kit-migration.ts";
+import { holderKit } from "../kit-history.ts";
+import { covers, expandKit, explicitKit, kitLayout, type SelectionKit } from "../kit-selection.ts";
 import { Value } from "@sinclair/typebox/value";
 import type { Capability } from "../../fields/capabilities.ts";
 import { assistantOf, isMindActor } from "../../fields/mind-actor.ts";
@@ -12,10 +15,12 @@ export type AssistantState = Readonly<{
   name: string;
   enabled: boolean;
   kit: DelegatedKit;
+  selections?: SelectionKit;
   legacy?: string;
 }>;
 export type MindTools = readonly Readonly<{
   id: string;
+  actionTools?: Readonly<Record<string, string>>;
   acts?: Readonly<Record<string, Readonly<{ needs?: readonly Capability[] }>>>;
 }>[];
 export function assistantOfIdentity(house: House, owner: string): AssistantState | undefined {
@@ -29,13 +34,16 @@ export function effectiveAssistantKit(house: House, owner: string, registry: Min
   const assistant = house.assistants.get(owner);
   const assignment = house.mindAssignments.get(assistantOf(owner));
   if (!assistant?.enabled || !house.grants.has(owner) || !assignment) return [];
-  return assistant.kit.flatMap(({ tool, acts }) => {
+  return expandKit(
+    migrateKit(assistant.selections ?? explicitKit(assistant.kit), house.kitMigration),
+    registry,
+  ).flatMap(({ tool, acts }) => {
     const declared = registry.find(each => each.id === tool);
     const permitted = acts.filter(act => {
       const definition = declared?.acts && Object.hasOwn(declared.acts, act) ? declared.acts[act] : undefined;
       return (
         definition !== undefined &&
-        identityAllowedAct(house, owner, tool, act) &&
+        identityAllowedAct(house, owner, tool, act, kitLayout(registry)) &&
         (definition.needs ?? []).every(need => assignment.capabilities.includes(need))
       );
     });
@@ -60,7 +68,14 @@ export function assistantStep(house: House, event: HouseEvent): House {
   let next: AssistantState;
   if (event.kind === "assistant-enabled") {
     requireMind(!previous?.enabled || previous.name === event.data.name, "assistant.name");
-    next = { ...previous, owner, name: event.data.name, enabled: true, kit: previous?.enabled ? previous.kit : [] };
+    next = {
+      ...previous,
+      owner,
+      name: event.data.name,
+      enabled: true,
+      kit: previous?.enabled ? previous.kit : [],
+      selections: previous?.enabled ? (previous.selections ?? explicitKit(previous.kit)) : explicitKit([]),
+    };
   } else {
     requireMind(previous, "assistant");
     next = changedAssistant(house, previous, event);
@@ -72,20 +87,8 @@ function changedAssistant(
   previous: AssistantState,
   event: HouseEvent<"assistant-disabled" | "assistant-kit-set" | "assistant-adopted">,
 ): AssistantState {
-  if (event.kind === "assistant-disabled") return { ...previous, enabled: false, kit: [] };
-  if (event.kind === "assistant-kit-set") {
-    requireMind(previous.enabled, "assistant.enabled");
-    const { kit } = event.data;
-    requireMind(new Set(kit.map(each => each.tool)).size === kit.length, "kit.tools");
-    requireMind(
-      kit.every(
-        ({ tool, acts }) =>
-          tool !== "identities" && acts.every(act => identityAllowedAct(house, previous.owner, tool, act)),
-      ),
-      "kit.permission",
-    );
-    return { ...previous, kit };
-  }
+  if (event.kind === "assistant-disabled") return { ...previous, enabled: false, kit: [], selections: explicitKit([]) };
+  if (event.kind === "assistant-kit-set") return delegatedAssistant(house, previous, event);
   const { legacy } = event.data;
   requireMind(
     legacy !== previous.owner && legacy !== house.admin && house.removed.has(legacy) && !house.grants.has(legacy),
@@ -97,4 +100,38 @@ function changedAssistant(
     "adoption.collision",
   );
   return { ...previous, legacy };
+}
+
+function delegatedAssistant(
+  house: House,
+  previous: AssistantState,
+  event: HouseEvent<"assistant-kit-set">,
+): AssistantState {
+  requireMind(previous.enabled, "assistant.enabled");
+  if ("version" in event.data) {
+    requireMind(
+      event.data.kit.selections.every(
+        selection =>
+          selection.program !== "identities" &&
+          (previous.owner === house.admin ||
+            (selection.kind === "action"
+              ? identityAllowedAct(house, previous.owner, selection.program, selection.action)
+              : holderKit(house, previous.owner).selections.some(
+                  parent => covers(parent, selection) || covers(selection, parent),
+                ))),
+      ),
+      "kit.permission",
+    );
+    return { ...previous, kit: [], selections: event.data.kit };
+  }
+  const { kit } = event.data;
+  requireMind(new Set(kit.map(each => each.tool)).size === kit.length, "kit.tools");
+  requireMind(
+    kit.every(
+      ({ tool, acts }) =>
+        tool !== "identities" && acts.every(act => identityAllowedAct(house, previous.owner, tool, act)),
+    ),
+    "kit.permission",
+  );
+  return { ...previous, kit, selections: explicitKit(kit) };
 }

@@ -1,4 +1,5 @@
 // Preguntas y ejecución del alta: identificador literal validado, nombre opcional y herramientas enteras en un lote.
+import { programKit } from "../../house/kit-selection.ts";
 import { newIdentityCases } from "./new-identity-cases.ts";
 import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
@@ -43,7 +44,7 @@ export function newIdentity<X extends Program>(registry: ToolRegistry<X>, runner
       text: words.created(name ?? identity),
       target: identityTarget(identity),
       effects: [
-        effect("granted", { identity, tools }, by),
+        effect("granted", { version: 2, identity, kit: programKit(tools) }, by),
         ...(name === undefined ? [] : [effect("named", { identity, name }, by)]),
       ],
     }),

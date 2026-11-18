@@ -34,7 +34,8 @@ const starter =
     const on = act.on === "tool" ? { tool } : { tool, target };
     /** A row that names itself is held to what the name of an act is held to: what a row says, in lower case. */
     const title = how.title === undefined ? act.name : programCall(worded, { name: how.title }).name;
-    const row = { key: how.key ?? act.key, title, act: name, on };
+    const key = how.key ?? act.key;
+    const row = { ...(key ? { key } : {}), title, act: name, on };
     if (how.today === undefined) return { ...row, ...(how.detail ? { detail: how.detail } : {}) };
     const answers = ask.answers(how.today);
     const [from, until] = how.asks ?? [0];

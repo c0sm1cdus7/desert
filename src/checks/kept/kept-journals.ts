@@ -25,8 +25,9 @@ type Kept<X extends Program> = Readonly<{ program: Composition<X>; shown: Shown<
  * each tool, each thing of each tool. */
 function read<X extends Program>({ program, shown }: Kept<X>, house: ReturnType<typeof startHouse<X>>, now: number) {
   const runner = house.tools.state().by;
-  const again = house.journal.replay(startState<X>(program.slices, runner, program.identities), (state, event) =>
-    toolsStep<X>(state, event, program.slices),
+  const again = house.journal.replay(
+    startState<X>(program.slices, runner, program.identities, program.registry, program.kitMigration),
+    (state, event) => toolsStep<X>(state, event, program.slices),
   );
   deepStrictEqual(again.tools, stateResult(house.tools.state().tools));
   const admin = house.tools.state().house.admin;

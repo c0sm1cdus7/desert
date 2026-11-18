@@ -1,3 +1,4 @@
+import { explicitKit } from "../../house/kit-selection.ts";
 import { expect, it, vi } from "vitest";
 import { effect, type HouseEmission } from "../../house/facts.ts";
 import { journeyStep } from "../../house/minds/journey-state.ts";
@@ -170,7 +171,7 @@ it("retiene una copia de la propuesta mientras el puerto espera", async () => {
   input.kit[0]?.acts.push("delete");
   release?.();
   const result = await pending;
-  expect(result.facts[0]?.data).toEqual({ goal: "Original", kit });
+  expect(result.facts[0]?.data).toEqual({ version: 2, goal: "Original", kit: explicitKit(kit) });
   expect(r.review.review.mock.calls[0]?.[0].acts[0]?.input).toEqual({ goal: "Original", kit });
 });
 it("los hechos devueltos permiten que un lote deshecho se reconstruya sin cierre", async () => {

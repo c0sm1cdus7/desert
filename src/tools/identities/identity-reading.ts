@@ -1,4 +1,5 @@
 // Lista y objeto de identidades y mentes: nombre, administración, kit, última escena general y parte para quien lee.
+import { holderKit } from "../../house/kit-history.ts";
 import { identityDisplayName, type House } from "../../house/members.ts";
 import { mindTool, allowedAct } from "../../house/kit.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
@@ -10,7 +11,9 @@ export const targetIdentity = (target: string) => target.slice("identities/".len
 export const members = (house: House) => [...new Set([...house.grants.keys(), ...house.removed])];
 function identityDatum(house: House, identity: string): string {
   if (house.removed.has(identity)) return words.removed;
-  return identity === house.admin ? words.admin : words.count(house.grants.get(identity)?.length ?? 0);
+  return identity === house.admin
+    ? words.admin
+    : words.count(new Set(holderKit(house, identity).selections.map(selection => selection.program)).size);
 }
 export const identityWords: ToolWords = {
   name: words.name,
@@ -73,10 +76,11 @@ export function identityReading<X extends Program>(
     .filter(tool => tool.id !== "identities")
     .flatMap(tool => {
       const has =
-        !house.removed.has(identity) && (identity === house.admin || house.grants.get(identity)?.includes(tool.id));
+        !house.removed.has(identity) &&
+        (identity === house.admin ||
+          holderKit(house, identity).selections.some(selection => selection.program === tool.id));
       if (!has) return [];
-      const acts = identity === house.admin ? null : house.kits.get(identity)?.get(tool.id);
-      const detail = acts == null ? words.all : words.partial(acts.length, Object.keys(tool.acts).length);
+      const detail = kitDatum(house, identity, tool.id, Object.keys(tool.acts));
       return [`${tool.id} · ${detail}`];
     });
   return JSON.stringify({
