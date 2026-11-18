@@ -3357,13 +3357,17 @@
     },
     {
       "id": 286,
-      "rule": "Ninguna entrada permitida a programas expone capacidades del anfitrión. Se inspeccionan los exports reales del paquete, incluidos fields/*, alias, reexports encadenados y namespaces, por nombre y por origen de los valores, sin evaluar los módulos. La compuerta de la base y la carga de programas rechazan una exposición.",
-      "from": "18/11 · dist-v10b · cierre de entradas del anfitrión",
+      "rule": "La ley 286 recorre referencias de valor en declaraciones TypeScript alcanzables desde los exports reales de entradas de programa (fields/* incluido): alias, reexports, namespaces, paréntesis, satisfies, as, !, aserciones, objetos/arreglos anidados y propagados, desestructuración, funciones, clases, getters y helpers. Rechaza capacidades del anfitrión por nombre u origen y muestra export, camino y origen; símbolos o referencias sin resolver, imports dinámicos y eval/Function/require ambientales fallan con motivo. Corre en la base y en loadProgram antes de evaluar las entradas del consumidor. Recorre todas las ramas y miembros; no prueba alcanzabilidad. No garantiza posiciones de tipo, implementaciones ambientales .d.ts, argumentos futuros del llamador, mutaciones fuera de declaraciones alcanzadas, efectos laterales de módulos, propiedades globales resueltas en ejecución ni generación/reflexión oculta en APIs ambientales: límites explícitos y probados en PROGRAMA.md. No es aislamiento de JavaScript hostil.",
+      "from": "18/11 · dist-v10b y dist-v11 · origen de valores envueltos",
       "guarantee": "spec",
       "evidence": [
         "tests/laws/program-entry-exports.ts",
         "tests/laws/program-entry-exports.spec.ts",
-        "tests/laws/program-secret-boundaries.ts"
+        "tests/laws/program-secret-boundaries.ts",
+        "tests/laws/program-entry-values.ts",
+        "tests/laws/program-entry-values.spec.ts",
+        "tests/laws/program-entry-load.spec.ts",
+        "tests/program/load.ts"
       ]
     }
   ]

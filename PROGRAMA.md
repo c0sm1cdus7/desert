@@ -2156,11 +2156,31 @@ permitidos de las entradas de programa; no habilita lectores de llaves ni funcio
 `desert/testing` queda reservado a las pruebas: ningún archivo productivo del programa puede importarlo ni
 reexportarlo, incluido su principal. Las pruebas pueden seguir usándolo.
 
-La ley 286 recorre los exports reales de las entradas admitidas (incluido cada `fields/*`), siguiendo alias,
-reexports encadenados, `export *` y namespaces sin evaluar módulos. Rechaza valores que abren o componen casas,
-puertas, terminales, routers, llaves o custodia. Además de los nombres de arranque conocidos, rechaza valores cuyo
-origen está en runtime, doors, keychain, storage, adapters, checks, ensamblado de superficie o router: renombrarlos
-no les quita esa capacidad. La comprobación corre también antes de cargar un programa independiente.
+La ley 286 inspecciona referencias de valor en las declaraciones TypeScript alcanzables desde los exports reales
+de las entradas admitidas (incluido cada `fields/*`), sin evaluar módulos. Sigue alias, reexports encadenados,
+`export *`, namespaces, paréntesis, `satisfies`, `as`, aserciones de tipo y `!`. Recorre objetos y arreglos anidados,
+propagaciones y desestructuraciones (también defaults y rest), y los cuerpos, parámetros con valor inicial,
+miembros y herencia de funciones, clases, métodos y getters. Sigue los helpers referenciados y corta los ciclos.
+Inspecciona todas las ramas y todo el contenedor: puede rechazar un miembro seguro si comparte origen con otro
+reservado; no intenta demostrar que una rama sea inalcanzable.
+
+Rechaza los nombres de arranque conocidos y los valores cuyo origen está en runtime, doors, keychain, storage,
+adapters, checks, ensamblado de superficie o router, aunque se renombren o envuelvan. El diagnóstico muestra la
+entrada, el export, las envolturas con archivo y línea, y el archivo y símbolo de origen. Un símbolo sin declaración
+o una referencia de valor sin resolver se rechaza con motivo; también se rechazan imports dinámicos y referencias
+al `eval`, `Function` o `require` ambientales. La misma inspección corre en `loadProgram` antes de importar tanto
+el principal como la distribución de prueba del consumidor.
+
+**Alcance preciso de la ley 286:** es un recorrido estático de referencias de valor, no un análisis del heap ni de
+los efectos de ejecutar JavaScript. Las posiciones de tipo no transportan valores. Las implementaciones de APIs
+ambientales (`.d.ts`, incluidas bibliotecas externas y APIs estándar) y los valores que entrega quien llama a un
+parámetro sin inicializador quedan fuera de esta garantía: se inspeccionan los argumentos presentes en las
+llamadas alcanzables, pero no se infieren llamadas futuras ni implementaciones que no están en las fuentes.
+Tampoco se garantiza el origen introducido por mutaciones fuera de las declaraciones alcanzadas (por ejemplo,
+`Object.assign(box, { run: host })` en otra sentencia del módulo después de declarar `box = {}`), por efectos
+laterales de otros módulos, por propiedades globales resueltas en ejecución, ni por código generado o reflexión
+ocultos dentro de esas APIs ambientales. Las pruebas de la ley hacen explícitas estas hojas y el límite de
+mutación. Esto no habilita esas rutas en programas: siguen sujetas a las fronteras de imports y secretos.
 
 El principal de un programa pasa la misma inspección de secretos que sus herramientas; no recibe privilegios
 de composición. Puede declarar `programa({ ...metadata, codigo: [import.meta.dirname] }, {...})` y reexportar

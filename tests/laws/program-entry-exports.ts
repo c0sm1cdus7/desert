@@ -4,6 +4,7 @@ import ts from "typescript";
 import { field, isRecord } from "../../src/fields/json-values.ts";
 import { isProgramEntry } from "../../src/checks/laws/program-imports.ts";
 import { filesUnder } from "../support/sources.ts";
+import { EntryValues } from "./program-entry-values.ts";
 
 /** Expand the package's actual export map, including every currently allowed fields subpath. */
 export function programEntryFiles(base: string): Readonly<Record<string, string>> {
@@ -27,36 +28,6 @@ export function programEntryFiles(base: string): Readonly<Record<string, string>
   );
 }
 
-// These values start or assemble host execution, even when exported under another name.
-const hostNames = new Set([
-  "startHouse",
-  "localPorts",
-  "maintainHouseCustody",
-  "startCloudHouse",
-  "environmentDoorKeys",
-  "mcpDoor",
-  "serveMcp",
-  "houseRouter",
-  "houseTools",
-  "startRouter",
-  "startTerminal",
-  "componer",
-  "startTools",
-  "startClock",
-  "createHouse",
-  "MemoryHouseKeys",
-]);
-const hostFolders = [
-  "runtime/",
-  "doors/",
-  "keychain/",
-  "storage/",
-  "adapters/",
-  "checks/",
-  "surface/bridge/assembly/",
-  "surface/router/",
-];
-
 /** Resolve symbols without evaluating modules; aliases, stars and namespace barrels retain their origins. */
 export function programEntryExports(
   program: ts.Program,
@@ -72,25 +43,10 @@ export function programEntryExports(
       found.add(`${entry} → cannot inspect exports`);
       continue;
     }
-    const visit = (symbol: ts.Symbol, path: string, seen: ReadonlySet<ts.Symbol>): void => {
-      if (seen.has(symbol)) return;
-      const next = new Set([...seen, symbol]);
-      if (symbol.flags & ts.SymbolFlags.Alias) return visit(checker.getAliasedSymbol(symbol), path, next);
-      const declarations = symbol.flags & ts.SymbolFlags.Value ? (symbol.declarations ?? []) : [];
-      for (const declaration of declarations) {
-        const origin = relative(join(base, "src"), declaration.getSourceFile().fileName);
-        if (hostNames.has(symbol.name) || hostFolders.some(folder => origin.startsWith(folder)))
-          found.add(`${entry} → ${path} → ${origin}:${symbol.name}`);
-        if (ts.isVariableDeclaration(declaration) && declaration.initializer) {
-          const value = checker.getSymbolAtLocation(declaration.initializer);
-          if (value) visit(value, path, next);
-        }
-      }
-      if (symbol.flags & ts.SymbolFlags.Module)
-        for (const member of checker.getExportsOfModule(symbol)) visit(member, `${path}.${member.name}`, next);
-      if (!symbol.declarations?.length) found.add(`${entry} → ${path} → cannot inspect export`);
-    };
-    for (const symbol of checker.getExportsOfModule(module)) visit(symbol, symbol.name, new Set());
+    for (const symbol of checker.getExportsOfModule(module)) {
+      const values = new EntryValues(checker, base, path => found.add(`${entry} → ${path}`));
+      values.symbol(symbol, symbol.name);
+    }
   }
   return [...found];
 }
