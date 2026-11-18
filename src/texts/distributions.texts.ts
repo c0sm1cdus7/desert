@@ -1,9 +1,11 @@
 // Explains composition failures and names the program's folders in the surface.
 export const distributionTexts = {
+  dependencyImport: (name: string) => `desert.dependencies → ${name}`,
   failed: "No se pudo componer la distribución",
   groups: "Herramientas",
   empty: "Sin herramientas",
   reasons: {
+    "dependencia-distribucion": "La dependencia declarada corresponde a una distribución.",
     "contrato-desert": "El programa habla otra versión del contrato de DESERT.",
     "id-repetido": "Hay dos programas con el mismo id.",
     "hecho-repetido": "El hecho está declarado más de una vez.",

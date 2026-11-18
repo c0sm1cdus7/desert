@@ -1,5 +1,6 @@
 import { strayImports } from "./imports.ts";
 import { lawRepository, baseImportOptions } from "../../../tests/support/law-repository.ts";
+import { symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
@@ -56,4 +57,44 @@ it("catches dependencies across a program and the current base adapter roots", (
   ]);
   expect(strayImports(repo, { ...options, adapterUsers: { "src/a.ts": "Composition" } })).toEqual([]);
   expect(strayImports(repo, { ...options, adapterUsers: { "gone.ts": "Composition" } })).toContain("gone.ts");
+});
+
+it("resolves repeated imports by their directory and rereads compiler paths on the next inspection", () => {
+  const repo = lawRepository({
+    "src/a.ts": 'import "./value.ts"; import "value";',
+    "src/b.ts": 'import "./value.ts"; import "value";',
+    "src/value.ts": "export {};",
+    "src/nested/a.ts": 'import "./value.ts";',
+    "src/nested/value.ts": 'import "../../outside.ts";',
+    "outside.ts": "export {};",
+  });
+  const options = { base: null, adapters: [], adapterUsers: {} };
+  const configure = (target: string): void =>
+    writeFileSync(
+      join(repo.root, "tsconfig.json"),
+      JSON.stringify({ compilerOptions: { paths: { value: [join(repo.root, target)] } } }),
+    );
+  configure("./src/value.ts");
+  expect(strayImports(repo, options)).toEqual(["src/nested/value.ts → ../../outside.ts"]);
+  configure("./outside.ts");
+  expect(strayImports(repo, options)).toEqual([
+    "src/a.ts → value",
+    "src/b.ts → value",
+    "src/nested/value.ts → ../../outside.ts",
+  ]);
+});
+
+it("rechecks physical boundaries when a link changes between inspections", () => {
+  const repo = lawRepository({
+    "src/a.ts": 'import "./linked.ts";',
+    "src/value.ts": "export {};",
+    "outside.ts": "export {};",
+  });
+  const link = join(repo.root, "src/linked.ts");
+  const options = { base: null, adapters: [], adapterUsers: {} };
+  symlinkSync(join(repo.root, "src/value.ts"), link);
+  expect(strayImports(repo, options)).toEqual([]);
+  unlinkSync(link);
+  symlinkSync(join(repo.root, "outside.ts"), link);
+  expect(strayImports(repo, options)).toEqual(["src/a.ts → ./linked.ts"]);
 });

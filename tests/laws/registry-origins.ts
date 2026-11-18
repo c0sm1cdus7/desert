@@ -36,7 +36,7 @@ class RegistryTrace {
     const node = unwrapped(input);
     if (seen.has(node)) return this.fail(node, "unresolved registry cycle");
     seen.add(node);
-    if (ts.isIdentifier(node) || ts.isPropertyAccessExpression(node)) {
+    if (ts.isIdentifier(node) || ts.isPropertyAccessExpression(node) || ts.isShorthandPropertyAssignment(node)) {
       const values = this.values(node);
       if (values.length) {
         values.forEach(value => this.origin(value, new Set(seen)));
@@ -140,6 +140,41 @@ class RegistryTrace {
     if (values.length) return values.forEach(value => this.composition(value, new Set(seen)));
     this.fail(node, "cannot trace composition registry");
   }
+  installable(input: ts.Node, constructor: string, seen = new Set<ts.Node>()): void {
+    const node = unwrapped(input);
+    if (seen.has(node)) return this.fail(node, "cannot trace installable program");
+    seen.add(node);
+    if (ts.isCallExpression(node)) {
+      const declaration = this.checker.getResolvedSignature(node)?.declaration;
+      if (declaration?.getSourceFile().fileName === constructor && node.arguments[1])
+        return this.groups(node.arguments[1], "herramientas");
+      return this.fail(node, "unrecognized program constructor");
+    }
+    const values = this.values(node);
+    if (values.length) return values.forEach(value => this.installable(value, constructor, new Set(seen)));
+    this.fail(node, "cannot trace installable program");
+  }
+  groups(input: ts.Node, property?: string, seen = new Set<ts.Node>()): void {
+    const node = unwrapped(input);
+    if (seen.has(node)) return this.fail(node, "cannot trace program tools");
+    seen.add(node);
+    if (ts.isObjectLiteralExpression(node)) {
+      if (property) {
+        const entry = node.properties.find(item => item.name?.getText() === property);
+        if (entry) return this.groups(entry);
+        const spread = node.properties.filter(ts.isSpreadAssignment).at(-1);
+        if (spread) return this.groups(spread.expression, property, seen);
+        return this.fail(node, "missing program tools");
+      }
+      node.properties.forEach(item =>
+        ts.isSpreadAssignment(item) ? this.groups(item.expression, undefined, new Set(seen)) : this.origin(item),
+      );
+      return;
+    }
+    const values = this.values(node);
+    if (values.length) return values.forEach(value => this.groups(value, property, new Set(seen)));
+    this.fail(node, "cannot trace program tools");
+  }
   tools(source: ts.SourceFile): void {
     const visit = (node: ts.Node): void => {
       if (ts.isObjectLiteralExpression(node)) {
@@ -153,14 +188,21 @@ class RegistryTrace {
   }
 }
 /** Trace registry values without executing code; composition is trusted, not protected against later mutation. */
-export function registryOrigins(program: ts.Program, main: string, privileged: ReadonlySet<string>): string[] {
+export function registryOrigins(
+  program: ts.Program,
+  main: string,
+  privileged: ReadonlySet<string>,
+  constructor?: string,
+): string[] {
   const trace = new RegistryTrace(program, privileged);
   const source = program.getSourceFile(main);
   if (!source) return [`${main}: missing composition`];
   const symbol = trace.checker.getSymbolAtLocation(source);
   const exported = symbol && trace.checker.getExportsOfModule(symbol).find(item => item.name === "program");
   if (!exported) trace.fail(source, "missing exported program");
-  for (const declaration of exported ? trace.declarations(exported) : []) trace.composition(declaration);
+  for (const declaration of exported ? trace.declarations(exported) : [])
+    if (constructor) trace.installable(declaration, constructor);
+    else trace.composition(declaration);
   for (const file of privileged) {
     const source = program.getSourceFile(file);
     if (source) trace.tools(source);

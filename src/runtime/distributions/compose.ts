@@ -15,6 +15,7 @@ export type DistributionOf<T extends readonly InstallableProgram[]> = {
 };
 export type DistributionOptions = CompositionOptions &
   Readonly<{
+    atajoUnaHerramienta?: boolean;
     presentacion: Omit<Shown<Program>, "words" | "screens"> & Readonly<{ codigo: readonly [string, ...string[]] }>;
   }>;
 export type Distribution<X extends Program> = Readonly<{
@@ -48,6 +49,10 @@ export function componer(options: DistributionOptions): Distribution<Program> {
   };
   const program: Composition<Program> = {
     identities: options.identidades,
+    mentes: Object.freeze({
+      asistentes: options.mentes.asistentes,
+      programas: Object.freeze([...options.mentes.programas]),
+    }),
     projectionVersion: calculation,
     slices,
     registry: installed.map(p => p.tool),
@@ -55,7 +60,13 @@ export function componer(options: DistributionOptions): Distribution<Program> {
   };
   const manifest = manifestOf(options);
   const mentes = manifest.mentes;
-  return { program, shown: distributionShown(installed, options.presentacion), manifest, calculation, mentes };
+  return {
+    program,
+    shown: distributionShown(installed, options.presentacion, options.atajoUnaHerramienta),
+    manifest,
+    calculation,
+    mentes,
+  };
 }
 function manifestOf(options: DistributionOptions) {
   const mentes = Object.freeze({

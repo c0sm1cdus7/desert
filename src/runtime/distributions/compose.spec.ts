@@ -22,6 +22,11 @@ describe("installable composition", () => {
   const empty = { ...sampleProgram, hechos: [] };
   const negatives: readonly [string, CompositionOptions, readonly ReturnType<typeof issue>[]][] = [
     [
+      "distribution dependency",
+      { ...sampleOptions, programas: [{ ...sampleProgram, dependencies: [{ kind: "distribution", name: "void" }] }] },
+      [issue("notas/dependencies/void", "dependencia-distribucion")],
+    ],
+    [
       "contract",
       { ...sampleOptions, programas: [{ ...sampleProgram, desert: 2 }] },
       [issue("notas/desert", "contrato-desert")],

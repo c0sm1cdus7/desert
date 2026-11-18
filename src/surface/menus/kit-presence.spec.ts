@@ -32,7 +32,7 @@ it("withdraws every reading immediately and writes no acts for an absent person"
       );
       const menu = stacksOf({ kind: "menu", at: 0 }, tools);
       expect(menu.flatMap(s => s.rows).filter(r => r.detail === "sin acceso")).toHaveLength(2);
-      expect(menu.find(s => s.title === "Herramientas")?.rows.some(r => r.open)).toBe(false);
+      expect(menu.find(s => s.title === "Programas")?.rows.some(r => r.open)).toBe(false);
       const sales = tools.find(t => t.id === "sales");
       expect(sales?.notices?.().news).toEqual([]);
       expect(findable({ kind: "menu", at: 0 }, tools)).toBe(false);

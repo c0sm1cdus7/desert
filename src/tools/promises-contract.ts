@@ -108,6 +108,7 @@ export type Composition<X extends Program> = AdapterComposition &
   Readonly<{
     identities?: boolean;
     kitMigration?: KitMigration;
+    mentes?: Readonly<{ asistentes: boolean; programas: readonly string[] }>;
     projectionVersion: CalculationVersion;
     words: Vocabulary<X["fact"]>;
     registry: readonly ProgramTool<X>[];

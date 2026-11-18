@@ -89,9 +89,9 @@ const opensFrom = (tools: readonly Tool[], tool: string, { target, rows }: Reach
   );
 /** The rows a person opens, one after another, from a tool's own view down to one of its things: found the way
  * they would find it, by what each view lists. Nothing when no view of the tool leads there. */
-function pathTo(tools: readonly Tool[], tool: string, on: string): readonly number[] | undefined {
+function pathTo(tools: readonly Tool[], tool: string, on: string, entry?: string): readonly number[] | undefined {
   const seen = new Set<string>();
-  let edge: readonly Reached[] = [{ rows: [] }];
+  let edge: readonly Reached[] = [{ rows: [], ...(entry === undefined ? {} : { target: entry }) }];
   while (edge.length) {
     const deeper = edge.flatMap(from => opensFrom(tools, tool, from)).filter(to => !seen.has(to.target));
     const found = deeper.find(to => to.target === on);
@@ -111,9 +111,11 @@ export function keysTo<X extends Program>(shown: Shown<X>, tool: string): string
 export function goTo<X extends Program>({ router, tools, shown }: Seat<X>, tool: string, on: string): void {
   const words = shown.words[tool];
   type(router, keysTo(shown, tool));
-  strictEqual(router.screen(view).title, words?.name);
-  if (on === tool) return;
-  const rows = pathTo(tools, tool, on);
+  const surface = tools.find(item => item.id === tool);
+  const entry = surface?.entryTarget;
+  strictEqual(router.screen(view).title, entry ? surface.titleOf?.(entry) : words?.name);
+  if (on === tool || on === entry) return;
+  const rows = pathTo(tools, tool, on, entry);
   if (rows) openRows(router, rows);
   else findOld(router, tools, tool, on);
 }

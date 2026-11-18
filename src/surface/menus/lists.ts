@@ -109,7 +109,9 @@ function menuRow(tool: Tool): Choice {
   const why = tool.off?.();
   if (why !== undefined) return { ...row, detail: why, off: true };
   const open: Place =
-    tool.conversation && !tool.conversationAt ? startTalk(tool.id) : { kind: "view", tool: tool.id, at: 0 };
+    tool.conversation && !tool.conversationAt
+      ? startTalk(tool.id)
+      : { kind: "view", tool: tool.id, ...(tool.entryTarget ? { target: tool.entryTarget } : {}), at: 0 };
   const asks = tool.calls?.() === true || (tool.notices?.().needs.length ?? 0) > 0;
   return { ...row, ...(asks ? { detail: said.attention, tone: "wait" } : { detail: tool.summary() }), open };
 }
@@ -156,7 +158,7 @@ function listedAt(place: Picture, tools: readonly Tool[]): readonly Listed[] {
     const listed = tools.filter(tool => tool.listed?.() !== false);
     const sections = (["tools", "system"] as const)
       .map(section => ({
-        title: said.sections[section],
+        title: section === "tools" ? said.sections.programs : said.sections[section],
         rows: listed.filter(tool => tool.place.section === section).map(menuRow),
       }))
       .filter(stack => stack.rows.length);

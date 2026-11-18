@@ -13,7 +13,12 @@ export type HouseOptions<X extends Program> = AdapterComposition &
   Readonly<{ by: string; projectionVersion: CalculationVersion; creation: Creation }> &
   Readonly<{ words: Vocabulary<X["fact"]>; registry: ToolRegistry<X>; slices: Slices<X> }> &
   Partial<Pick<Execution<X>, "own" | "process">> &
-  Readonly<{ secretKeys?: HouseKeyProvider; identities?: boolean; kitMigration?: KitMigration }>;
+  Readonly<{
+    secretKeys?: HouseKeyProvider;
+    identities?: boolean;
+    kitMigration?: KitMigration;
+    mentes?: Readonly<{ asistentes: boolean; programas: readonly string[] }>;
+  }>;
 import { readonlyState, stateResult } from "../journal/readonly-state.ts";
 import { openActs } from "../tools/execution/open-acts.ts";
 import { programRule } from "../fields/program-call.ts";

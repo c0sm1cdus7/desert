@@ -11,7 +11,11 @@ import { identityReading, identityTarget, members } from "./identity-reading.ts"
 import { kitActions, kitMenus } from "./kit-actions.ts";
 import { kitCatalog } from "./kit-catalog.ts";
 const core = new WeakSet<object>();
-export function identitiesTool<X extends Program>(registry: ToolRegistry<X>, runner: string): ProgramTool<X> {
+export function identitiesTool<X extends Program>(
+  registry: ToolRegistry<X>,
+  runner: string,
+  assistants = true,
+): ProgramTool<X> {
   const tool: ProgramTool<X> = {
     id: "identities",
     purpose: words.purpose,
@@ -26,16 +30,21 @@ export function identitiesTool<X extends Program>(registry: ToolRegistry<X>, run
       new: newIdentity<X>(registry, runner),
       ...identityActions<X>(runner, registry),
       ...kitActions(registry),
-      ...assistantActions(registry),
+      ...(assistants ? assistantActions(registry) : {}),
     },
   };
   core.add(tool);
   return tool;
 }
-export function coreRegistry<X extends Program>(registry: ToolRegistry<X>, runner: string, enabled = false) {
+export function coreRegistry<X extends Program>(
+  registry: ToolRegistry<X>,
+  runner: string,
+  enabled = false,
+  assistants = true,
+) {
   const found = registry.filter(tool => tool.id === "identities");
   if (found.some(tool => !core.has(tool)) || found.length > 1) throw new Error("identities is reserved for the base");
   if (!enabled && found.length) throw new Error("Identities requires the composition's request");
   const ordinary = registry.filter(tool => tool.id !== "identities");
-  return enabled ? [...ordinary, identitiesTool<X>(ordinary, runner)] : registry;
+  return enabled ? [...ordinary, identitiesTool<X>(ordinary, runner, assistants)] : registry;
 }

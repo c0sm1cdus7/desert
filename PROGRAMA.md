@@ -2000,3 +2000,82 @@ Quien construya `House` a mano parte de `emptyHouse` o agrega `assistants`, `min
 y `modelCalls`. Quedan reservados los nombres de hechos enumerados y el prefijo `assistant:`; una identidad
 histórica con ese prefijo no adquiere derechos de asistente ni de identidad al plegar. Los registros y sus
 credenciales no se renombran: la composición debe resolver esa colisión explícitamente antes de adoptar la base.
+
+## Programas instalables y distribuciones (18/11)
+
+DESERT es el sistema operativo. Una distribución reúne versiones exactas de programas y elige sus mentes.
+Un programa agrupa herramientas; cada herramienta agrupa acciones. La terminal entra por **Menú › Programas**,
+conserva **Sistema** y, al abrir un programa, muestra la pila **Herramientas**. Una sola herramienta conserva
+los tres niveles. `componer({ ..., atajoUnaHerramienta: true })` abre directamente esa herramienta desde el Menú;
+el interruptor es opcional y viene apagado. No cambia sus acciones, destinos ni permisos.
+
+`programa(metadata, body)` se importa de `desert/programa`. La metadata declara `id`, `version`, `desert`,
+`codigo`, `hechos` e `inicial`; el cuerpo declara `purpose`, `skill`, `palabras`, `herramientas`, `plegar` y
+`summary`. Cada herramienta lleva sus palabras, lecturas y acciones creadas con `programAct`, con sus casos.
+La entrada de metadata mantiene sus herramientas en archivos propios; la frontera de secretos rastrea
+`programa` hasta esas declaraciones y conserva separadas composición, herramientas y adaptadores.
+El programa recibe su estado bajo `tools.own`; el adaptador conserva los destinos de sus herramientas y objetos.
+Los hechos pertenecen al espacio de nombres del programa. Los rechazos de destino que agrega el adaptador
+se comprueban por ejecución y ausencia de filas sobre cada destino ajeno; el autor no necesita inventar
+un rechazo de negocio para ese límite.
+
+`componer`, de `desert/componer`, recibe `programas`, `identidades`, `mentes` y `presentacion`. La presentación
+incluye el país en `locale` y las rutas de cálculo en `codigo`. Devuelve `program`, `shown`, `manifest`,
+`calculation` y `mentes`. Rechaza ids y hechos repetidos, hechos ajenos, contratos DESERT distintos, mentes
+inexistentes o repetidas, asistentes sin identidades y dependencias de distribuciones. Los diagnósticos incluyen
+cada camino y motivo. Este corte todavía rechaza `effects` de programas instalables: no los ejecuta por fuera
+del motor ni presenta las reacciones como resueltas.
+
+`mentes: { asistentes: false, programas: [] }` conserva el arranque determinista `mind:<programa>` y el plegado
+de hechos históricos. No inicia pensamiento ni carga módulos de turno, catálogo de cartas o adaptadores de
+modelos. `asistentes: false` retira del registro efectivo habilitar, deshabilitar, delegar y adoptar asistentes:
+no aparecen en la terminal ni en MCP y no se agregan al kit. La elección se conserva en `program.mentes` y en
+el manifiesto. Habilitar nombres en `programas` declara la selección para el ensamblador de pensamiento; esta
+API no configura transportes ni inicia llamadas por sí sola. Las composiciones anteriores que omiten `mentes`
+conservan su comportamiento de Identidades, por compatibilidad.
+
+Los paquetes viven fuera de `node_modules`, fijados por commit, y se enlazan desde ahí. Un programa declara a
+`desert` como dependencia par y lo importa por sus `exports`; nunca instala una copia propia mediante alias.
+Las entradas públicas son `desert/programa`, `desert/componer`, `desert/messages`, `desert/fields`,
+`desert/fields/*`, `desert/journal`, `desert/runtime`, `desert/doors/terminal`, `desert/doors/socket`,
+`desert/doors/mcp`, `desert/testing`, `desert/laws`, `desert/program-types`, `desert/surface` y
+`desert/calculation`. Las rutas públicas de `fields/*` no llevan `.ts` en el especificador.
+
+### La compuerta de un programa independiente
+
+El paquete declara dónde exporta su programa y dónde compone la distribución que lo prueba:
+
+```json
+{
+  "name": "notas",
+  "peerDependencies": { "desert": "0.1.0" },
+  "desert": {
+    "program": "src/program.ts",
+    "testDistribution": "tests/distribution.ts",
+    "dependencies": [],
+    "laws": {
+      "code": ["src"], "base": "paquetes/desert", "adapters": [], "adapterUsers": {},
+      "mayTalkOutside": {}, "catalog": ["src/texts/"], "exemptWords": {}, "exemptRules": {},
+      "data": {}, "maxLines": 300
+    }
+  }
+}
+```
+
+`src/program.ts` exporta `program`, el resultado de `programa`. La distribución de prueba exporta `program`,
+`shown` y `manifest`, obtenidos de `componer`. El cargador comprueba que su manifiesto contiene el id, la versión
+y la huella del código del programa declarado. Los paquetes sin `testDistribution` mantienen la entrada de
+composición anterior. Las partes `tests/program/*.checks.ts` de DESERT siguen siendo obligatorias en el runner:
+corren todos los `programChecks`, los diarios conservados, la frontera de secretos y las mismas leyes de código
+sobre la raíz del paquete independiente. No hay una selección de leyes reducida para programas instalables.
+
+Un programa importa únicamente `desert/...`, archivos propios dentro de sus raíces de código y módulos pedidos
+explícitamente por contrato. Para estos últimos, `metadata.dependencies` y `desert.dependencies` declaran la
+misma lista de `{ "kind": "contract", "name": "paquete/modulo-publico" }`: se admite ese módulo exacto,
+no los internos del paquete. Esta lista controla importaciones; no sustituye las ofertas, pedidos, casos ni
+compatibilidad de contratos. Una dependencia `{ "kind": "distribution", "name": "void" }` impide componer.
+Los paquetes de distribución se identifican con `desert.kind: "distribution"`; la ley también rechaza uno de
+ellos presentado como módulo de contrato. Controla importaciones estáticas, reexportaciones, consultas de tipos,
+`require` e importaciones dinámicas; no admite especificadores dinámicos, alias privados ni escapes por enlaces.
+La distribución de prueba vive fuera de las raíces productivas y puede importar el programa; el programa no
+puede importarla. La ley corre antes de evaluar esa distribución.

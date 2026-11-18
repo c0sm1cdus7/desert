@@ -11,6 +11,7 @@ import type { InstalledProgram } from "./runtime.ts";
 export const DESERT_CONTRACT = 1;
 export type FactDefinition = Readonly<{ nombre: string; forma: TSchema }>;
 export type ProgramMetadata = Readonly<{
+  dependencies?: readonly Readonly<{ kind: "contract" | "distribution"; name: string }>[];
   id: string;
   version: `${number}.${number}.${number}`;
   desert: number;

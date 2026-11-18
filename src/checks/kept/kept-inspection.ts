@@ -66,7 +66,10 @@ async function inspectCopy<X extends Program, R>(
   const { runner, last } = journalKept(file);
   ok(runner, said.keptEmpty);
   // Composed as a live house composes it: the core pieces it asked for, and the guard on every new identity name.
-  const program = { ...given, registry: coreRegistry(given.registry, runner, given.identities) };
+  const program = {
+    ...given,
+    registry: coreRegistry(given.registry, runner, given.identities, given.mentes?.asistentes),
+  };
   checkReopenedState<X>(file, { ...program, by: runner });
   const journal = houseJournal(file, program.words),
     now = last + 1;

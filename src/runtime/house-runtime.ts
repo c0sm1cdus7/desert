@@ -51,7 +51,10 @@ function checkComposedCreation<X extends Program>(options: HouseOptions<X>) {
 }
 /** The composition as the house runs it, checked before anything opens. */
 function composed<X extends Program>(given: ModelHouseOptions<X>): ModelHouseOptions<X> {
-  const options = { ...given, registry: coreRegistry(given.registry, given.by, given.identities) };
+  const options = {
+    ...given,
+    registry: coreRegistry(given.registry, given.by, given.identities, given.mentes?.asistentes),
+  };
   requireProjectionVersion(options.projectionVersion);
   if (options.mentes) {
     const { asistentes, programas } = options.mentes;
