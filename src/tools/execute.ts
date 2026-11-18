@@ -124,13 +124,14 @@ async function executeNested<X extends Program>(
   const cause = [id, ...(parent ? [parent] : [])];
   const started = execute(ports, nested, origin.data.through ?? 0, by, cause);
   const result = started.status === "processing" ? await started.completion : started;
-  const done: ActResult<X> =
-    result.status === "accepted"
-      ? { status: "accepted" }
-      : {
-          status: result.status === "interrupted" ? "interrupted" : "rejected",
-          reason: result.reason ?? toolTexts.invalid,
-        };
+  let done: ActResult<X>;
+  if (result.status === "accepted") done = { status: "accepted" };
+  else if (result.status === "inconclusive") done = { status: "inconclusive" };
+  else
+    done = {
+      status: result.status === "interrupted" ? "interrupted" : "rejected",
+      reason: result.reason ?? toolTexts.invalid,
+    };
   return {
     ...done,
     ...(result.cleanupPending ? { cleanupPending: true } : {}),

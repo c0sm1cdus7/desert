@@ -166,6 +166,38 @@ describe("what decides an act", () => {
     expect(rig.facts().filter(event => event.kind === "act" && event.data.option === "loop")).toHaveLength(1);
   });
 
+  it("preserves inconclusive and interrupted results from nested acts", async () => {
+    const rig = open(
+      tool("desk", {
+        uncertain: toolAct(nothing, () => ({ status: "inconclusive" })),
+        stopped: toolAct(nothing, () => ({ status: "interrupted", reason: "corte" })),
+        call: toolAct(
+          nothing,
+          async (_input, context) =>
+            (await context.execute?.({ act: "uncertain", target: "desk", input: {} })) ?? {
+              status: "rejected",
+              reason: "missing",
+            },
+        ),
+        callStopped: toolAct(
+          nothing,
+          async (_input, context) =>
+            (await context.execute?.({ act: "stopped", target: "desk", input: {} })) ?? {
+              status: "rejected",
+              reason: "missing",
+            },
+        ),
+      }),
+    );
+    const uncertain = rig.act("ana", "call", {}, "desk");
+    expect(uncertain.status === "processing" && (await uncertain.completion).status).toBe("inconclusive");
+    const stopped = rig.act("ana", "callStopped", {}, "desk");
+    expect(stopped.status === "processing" && (await stopped.completion)).toMatchObject({
+      status: "interrupted",
+      reason: "corte",
+    });
+  });
+
   it("shows a private receipt only to the actor and never writes it to the journal", () => {
     const whisper = toolAct<Shop, typeof nothing>(nothing, () =>
       Object.assign({ status: "accepted" as const, text: "Resultado", private: "recibo" }, { recipient: "beto" }),
