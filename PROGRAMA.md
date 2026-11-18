@@ -1229,16 +1229,22 @@ instantánea divergente como evidencia de un cálculo correcto, aunque la casa p
 
 Cada descarte dice el nombre del plegado y el motivo: formato anterior o desconocido, bytes ilegibles, secuencia
 inválida o adelantada, otro registro, cálculos distintos, nombre retirado o un grupo dependiente incompleto.
-Son avisos `SAVED_FOLD_REBUILT`, no fallas. Durante el arranque salen por la salida de diagnósticos (stderr,
-`StorageNotice`) y quedan disponibles en `house.storageNotices()`, en la instancia que abrió. No son hechos,
+Son avisos `SAVED_FOLD_REBUILT`, no fallas. Quedan disponibles en `house.storageNotices()` y en
+`storage-notices.jsonl`, dentro de la casa, con nombre y motivo técnico por renglón y modo 0600 al crearlo.
+No se emiten warnings de Node ni se escribe en stdout o stderr. La superficie local muestra al abrir un hilo
+«Sistema» con «Reconstruido · Estado de la casa»; Enter continúa al Menú. El aviso dura esa apertura.
+La puerta HTTP conserva el mismo registro sin dibujar una pantalla. No son hechos,
 no escriben `tool-entry` ni agregan historia por reconstruir. Diez aperturas del almacenamiento, alternando
 identidades, dejan exactamente los mismos hechos. El arranque de `startHouse` conserva su hecho de ciclo de vida
 `boot`, independiente de los avisos; también siguen siendo hechos los resultados reales de las herramientas.
 Los pares de estado y reloj se conservan por identidad dentro de la misma versión de cálculos: cada identidad
 reconstruye la primera vez y después verifica su prefijo y procesa la cola, aunque otras hayan abierto en el medio.
 No se comparten estados calculados para personas distintas. Un cambio de versión retira los pares anteriores.
-Una apertura sin descartes no repite el aviso. Quien usa `SqliteJournal` directamente recibe stderr o pasa un
-receptor de diagnósticos como tercer argumento.
+Una apertura sin descartes no repite el aviso. Quien usa `SqliteJournal` directamente consulta
+`restoration().warnings` o pasa un receptor de diagnósticos como tercer argumento; tampoco imprime.
+`src/doors/terminal/storage-notices.spec.ts` comprueba los bytes de una terminal real, el cambio de cálculos,
+un formato viejo, la segunda apertura y la conservación de datos y autor. `storage-http.spec.ts`, en esa
+misma carpeta, comprueba el manejador HTTP sin sockets, su registro y la ausencia de salida de pantalla.
 
 En una casa viva, solo SQLite abre y cierra los archivos del auxiliar, del registro y de la bóveda.
 `copyJournal` sigue copiando el registro vivo mediante SQLite, incluyendo WAL, sin descriptores propios que
@@ -2030,8 +2036,29 @@ las demás acciones y programas.
 incluye el país en `locale` y las rutas de cálculo en `codigo`. Devuelve `program`, `shown`, `manifest`,
 `calculation` y `mentes`. Rechaza ids y hechos repetidos, hechos ajenos, contratos DESERT distintos, mentes
 inexistentes o repetidas, asistentes sin identidades y dependencias de distribuciones. Los diagnósticos incluyen
-cada camino y motivo. Este corte todavía rechaza `effects` de programas instalables: no los ejecuta por fuera
-del motor ni presenta las reacciones como resueltas.
+cada camino y motivo. Rechaza `effects` de programas instalables: no los ejecuta por fuera del motor.
+Las `reactions` de cada herramienta sí se instalan: su identificador y acción quedan bajo el nombre de la
+herramienta, su destino es la carpeta y su actor es `mind:<programa>`. Una reacción sin destino de objeto no puede
+invocar una acción sobre objetos: esa declaración se rechaza al componer.
+Dos herramientas pueden repetir un nombre local de reacción y de acción. El motor conserva los pendientes,
+reintenta con el kit vigente y no repite una reacción ya aceptada para el mismo aviso. Una acción o aviso
+inexistente se rechaza al componer. Prueba: `src/runtime/distributions/house-reactions.spec.ts`.
+
+**Qué garantiza el tipo.** `CompositionErrors` y `RequireValid` comprueban tuplas y literales de metadatos,
+contrato DESERT, ids y hechos repetidos, propiedad de hechos, mentes existentes y no repetidas, asistentes
+con identidades, dependencias de distribuciones y `effects` no admitidos. No comparan las formas de las
+mitades contractuales ni recorren ciclos. `src/runtime/distributions/types.spec.ts`, «types the independent
+positive and reports exactly each isolated static negative», comprueba los rechazos aislados y demuestra
+que un ciclo contractual puede compilar: su alias `RuntimeCycle` no tiene errores estáticos.
+
+**Qué comprueba la ejecución de la composición.** `diagnostico` y `componer` repiten las comprobaciones
+centrales, exigen proveedor único, recorren el grafo para rechazar ciclos, comparan entradas, salidas,
+rechazos, objetos y avisos, y verifican la evidencia de los casos para los artefactos instalados.
+`src/runtime/distributions/contracts.spec.ts` lo comprueba en «preserves all contract paths alongside the
+core composition diagnostics», «rejects both routes of a cycle when composing independently valid halves»
+y «does not accept evidence from another executor or copied rows». `src/runtime/contracts/negatives.spec.ts`
+comprueba los negativos contractuales aislados. Que TypeScript acepte una llamada no acredita esas condiciones;
+la composición debe ejecutarse y puede rechazarla antes de abrir la casa.
 
 `mentes: { asistentes: false, programas: [] }` conserva el arranque determinista `mind:<programa>` y el plegado
 de hechos históricos. No inicia pensamiento ni carga módulos de turno, catálogo de cartas o adaptadores de
@@ -2091,8 +2118,14 @@ puede importarla. La ley corre antes de evaluar esa distribución.
 
 Cada programa publica su propia oferta y su propio pedido (`ContractPackage`). Las acciones ofrecidas
 vinculan una ruta local `herramienta/acción` con esquemas de entrada, salida y rechazo. Las herramientas
-instaladas usan el id `programa/herramienta`. `createContractRuntime(programas, puertos, historial)` comprueba
-las mitades y las rutas instaladas; su función `context` se entrega como `contracts` a `startTools`.
+instaladas usan el id `programa/herramienta`. `componer` conserva las mitades y proyectores ya validados en
+`program.contractSetup`, con una copia de sus declaraciones, y rechaza una ruta sin ejecutor instalado.
+`startHouse` arma `createContractRuntime` con el estado y diario reales de esa apertura y entrega su
+`context` como `contracts` a `startTools` y a la ejecución de las mentes. No exige cableado adicional del
+programa. Cada apertura reconstruye sus cortes desde los hechos confirmados, con el registro y kit actuales.
+`src/runtime/distributions/house-contracts.spec.ts` prueba respuesta, efecto, actor y cadena de causas,
+lectura contractual y persistencia, permiso revocado antes y durante la espera, rechazo de negocio,
+inconcluso y cierre con actos pendientes. También rechaza una declaración certificada sin ejecutor.
 El contexto de la acción recibe `contracts["documentos-fiscales"].actions.emitir(entrada)` y `cut`.
 La llamada conserva actor, causa y proceso y pasa por el ejecutor común, incluidos permisos vigentes,
 interrupción y autoridad de efectos. El puerto prestado deja de servir al terminar la acción.
@@ -2118,7 +2151,7 @@ evidencia con huellas de artefactos, oferta, pedido, caso y observaciones, junto
 Una fila serializada sirve como evidencia para inspeccionar, pero no prueba por sí sola que se ejecutó:
 para acreditarla en otro proceso hay que volver a correr la compuerta. No hay firma remota implementada.
 
-`validateContractPrograms(programas, build, evidencias, verificar)` es la unión que debe llamar `componer`:
+`validateContractPrograms(programas, build, evidencias, verificar)` es la unión que llama `componer`:
 devuelve `errors` completos con camino y `rows`. Sin ejecución, la fila dice «casos no comprobados».
 Las comprobaciones estructurales se pueden usar antes de ejecutar casos con `structuralContractErrors`;
-por sí solas no acreditan compatibilidad. No se modificó la composición de distribuciones en este carril.
+por sí solas no acreditan compatibilidad.

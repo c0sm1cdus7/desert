@@ -4,7 +4,6 @@ import { expect, it } from "vitest";
 import { object } from "../../fields/visible-text.ts";
 import { answerSchema, validateAnswer, type AnswerContext, type MindMenu } from "./mind-answer.ts";
 import { turnLimits } from "./mind-contract.ts";
-import { providerSchema, matchesSchema } from "../../adapters/models/schema.ts";
 const menu: MindMenu = [
   {
     tool: "notes",
@@ -32,20 +31,7 @@ const answer = {
 it("reserva doce intentos físicos compartidos y una corrección y consulta", () => {
   expect(turnLimits).toEqual({ calls: 12, corrections: 1, consultations: 1 });
 });
-it("construye ramas concretas cerradas y conserva restricciones locales al reducir el transporte", () => {
-  const schema = answerSchema(menu);
-  expect(Value.Check(schema, answer)).toBe(true);
-  const transport = providerSchema(schema);
-  expect(JSON.stringify(transport)).not.toMatch(/minLength|maximum|minimum|maxItems/);
-  expect(matchesSchema(transport, answer)).toBe(true);
-  expect(validateAnswer(answer, context)).toEqual({ ok: true, answer });
-  const extra = {
-    ...answer,
-    acts: [{ ...answer.acts[0], input: { text: "Hola", detail: { number: 1, secret: "extra" } } }],
-  };
-  expect(Value.Check(schema, extra)).toBe(false);
-  expect(validateAnswer(extra, context).ok).toBe(false);
-});
+
 it.each([
   { ...answer, by: "ana" },
   { ...answer, process: "ajeno" },

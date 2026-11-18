@@ -7,7 +7,6 @@ import { derivedId, stored, readFact } from "./journal-record.ts";
 import { storageIdentity } from "./storage-identity.ts";
 import { journalIdentity } from "./journal-identity.ts";
 import type { FoldWarning } from "../journal/snapshot-format.ts";
-import { snapshotWarning } from "./storage-notices.ts";
 import { journalPosition } from "./journal-position.ts";
 import { journalTransaction } from "./journal-transaction.ts";
 import { writerLease } from "./writer-lease.ts";
@@ -46,13 +45,13 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   constructor(
     file: string,
     words: Vocabulary<P>,
-    warn: (warning: FoldWarning) => void = snapshotWarning,
+    warn?: (warning: FoldWarning) => void,
     folds: "restore" | "preserve" = "restore",
   ) {
     this.folds = folds;
     this.warn = warning => {
       this.warnings.push(warning);
-      warn(warning);
+      warn?.(warning);
     };
     this.words = words;
     const canonical = storageIdentity(file);

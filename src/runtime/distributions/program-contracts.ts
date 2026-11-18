@@ -1,4 +1,8 @@
 // Adapta las mitades declaradas en programas instalables para comprobarlas con sus artefactos y evidencia.
+import type { ContractSetup, Program, ToolRegistry } from "../../tools/tool-contract.ts";
+import { copyContractPackages } from "../contracts/contract-record.ts";
+import { checkContractBindings, createContractRuntime } from "../contracts/contract-runtime.ts";
+import { contractHistory } from "../contracts/contract-history.ts";
 import type { InstallableProgram } from "../../tools/installable/program.ts";
 import { codeProjectionVersion } from "../calculation-version.ts";
 import type { ContractPackage } from "../contracts/package-contracts.ts";
@@ -52,4 +56,15 @@ export function distributionContractIssues(
         : { path: first, reason: detail },
     ];
   });
+}
+
+/** Bind before returning a composition; each opening receives its own journal and cuts. */
+export function bindProgramContracts(
+  programs: readonly ContractualProgram[],
+  registry: ToolRegistry<Program>,
+): ContractSetup<Program> {
+  const packages = copyContractPackages(programContracts(programs));
+  checkContractBindings(packages, { registry });
+  return source =>
+    createContractRuntime(packages, source, contractHistory(source.initial, source.slices, source.events)).context;
 }

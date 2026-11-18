@@ -9,9 +9,9 @@ import { defectReporter } from "../failures/defect-reporter.ts";
 import type { Program } from "../tool-contract.ts";
 
 type Pending = Readonly<{ reaction: string; notice: string; by: string; reason: string }>;
-type Reaction = Readonly<{ id: string; tool: string; when: string; act: string }>;
+type Reaction = Readonly<{ id: string; tool: string; target: string; when: string; act: string }>;
 const keyOf = (reaction: string, notice: string) => JSON.stringify([reaction, notice]);
-function declaredReactions<X extends Program>(ports: Execution<X>): readonly Reaction[] {
+export function declaredReactions<X extends Program>(ports: Pick<Execution<X>, "registry">): readonly Reaction[] {
   return ports.registry.flatMap(tool =>
     Object.entries(tool.reactions ?? {}).map(([id, reaction]) => {
       const action = tool.acts[reaction.act];
@@ -19,7 +19,13 @@ function declaredReactions<X extends Program>(ports: Execution<X>): readonly Rea
         Object.hasOwn(houseCatalog, reaction.when) || ports.registry.some(tool => tool.facts?.includes(reaction.when));
       if (!action || !Object.hasOwn(tool.acts, reaction.act) || action.reach !== "house" || !known)
         throw new OutsideDefect(new Error(toolTexts.invalidReaction(tool.id, reaction.act)));
-      return { id: JSON.stringify([tool.id, id]), tool: tool.id, when: reaction.when, act: reaction.act };
+      return {
+        id: JSON.stringify([tool.id, id]),
+        tool: tool.id,
+        target: "folder" in action && typeof action.folder === "string" ? action.folder : tool.id,
+        when: reaction.when,
+        act: reaction.act,
+      };
     }),
   );
 }
@@ -95,7 +101,7 @@ class ReactionRunner<X extends Program> {
       try {
         const result = execute(
           ports,
-          { target: reaction.tool, act: reaction.act, input: event.data },
+          { target: reaction.target, act: reaction.act, input: event.data },
           ports.state().through,
           mindOf(reaction.tool),
           [event.id],

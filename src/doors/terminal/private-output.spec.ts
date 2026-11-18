@@ -18,7 +18,8 @@ it("g05 d2: the launched house leaves shutdown and unfinished acts in owner-only
     while ((!existsSync(path) || !readFileSync(path, "utf8").includes(socketTexts.pending(1))) && Date.now() < until)
       await delay(20);
     expect(readFileSync(path, "utf8")).toContain(socketTexts.pending(1));
-    expect(readFileSync(path, "utf8")).toContain("fixture rebuild notice");
+    expect(readFileSync(join(root, "storage-notices.jsonl"), "utf8")).toContain("fixture rebuild notice");
+    expect(statSync(join(root, "storage-notices.jsonl")).mode & 0o777).toBe(0o600);
     expect(readFileSync(path, "utf8")).toContain("fixture scrubbed diagnostic");
     expect(statSync(path).mode & 0o777).toBe(0o600);
     expect(statSync(root).mode & 0o777).toBe(0o700);

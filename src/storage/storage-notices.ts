@@ -1,17 +1,19 @@
-// Startup diagnostics belong to the opening instance, never to the journal's facts.
+// Conserva diagnósticos de apertura fuera del diario y de la salida de la terminal.
+import { appendFileSync } from "node:fs";
+import { join } from "node:path";
 import type { FoldWarning } from "../journal/snapshot-format.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
-export const snapshotWarning = ({ name, reason }: FoldWarning): void =>
-  process.emitWarning(journalTexts.rebuildNotice(name, reason), {
-    code: journalTexts.rebuildCode,
-    type: "StorageNotice",
-  });
-export function storageNotices() {
+export function storageNotices(home?: string) {
   const warnings: FoldWarning[] = [];
   return {
     warn: (warning: FoldWarning) => {
+      if (home)
+        appendFileSync(
+          join(home, "storage-notices.jsonl"),
+          `${JSON.stringify({ code: journalTexts.rebuildCode, ...warning })}\n`,
+          { mode: 0o600 },
+        );
       warnings.push(Object.freeze({ ...warning }));
-      snapshotWarning(warning);
     },
     read: (): readonly FoldWarning[] => [...warnings],
   };

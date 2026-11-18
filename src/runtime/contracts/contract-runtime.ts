@@ -17,7 +17,10 @@ export class ContractCompositionError extends Error {
     this.errors = errors;
   }
 }
-function checkBindings<X extends Program>(programs: readonly ContractPackage[], ports: Pick<Execution<X>, "registry">) {
+export function checkContractBindings<X extends Program>(
+  programs: readonly ContractPackage[],
+  ports: Pick<Execution<X>, "registry">,
+) {
   const errors = structuralContractErrors(programs);
   for (const program of programs)
     for (const [tool, actions] of Object.entries(program.herramientas)) {
@@ -61,7 +64,7 @@ export function createContractRuntime<X extends Program>(
   ports: Pick<Execution<X>, "state" | "registry">,
   history: ContractHistory<X>,
 ) {
-  checkBindings(programs, ports);
+  checkContractBindings(programs, ports);
   programs = copyContractPackages(programs);
   const cuts = new WeakSet<ContractCut>();
   const cut = (sequence = ports.state().through): ContractCut => {

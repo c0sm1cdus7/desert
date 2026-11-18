@@ -10,6 +10,8 @@ import type { ProgramTool } from "../../../tools/promises.ts";
 /** What the surface needs from a running house; nothing here knows how it runs. */
 export interface HousePorts<X extends Program> {
   readonly me: string;
+  /** Opening diagnostics are transient; they never become journal facts. */
+  readonly openingNotices?: () => readonly string[];
   /** The house as this identity reads it. */
   readonly state: () => State<X>;
   readonly registry: ToolRegistry<X>;

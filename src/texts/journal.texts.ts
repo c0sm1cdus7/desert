@@ -31,9 +31,9 @@ export const journalTexts = {
     "create table if not exists journal_identity (singleton integer primary key check(singleton = 1), id text)",
   identityInsert: "insert or ignore into journal_identity values (1, ?)",
   identityRead: "select id from journal_identity where singleton = 1",
-  rebuilt: "Saved state is being rebuilt from the journal",
-  rebuildNotice: (name: string, reason: string) =>
-    `Saved fold ${name} discarded: ${reason}; rebuilding from the journal`,
+  rebuilt: "Reconstruido · Estado de la casa",
+  opening: "Sistema",
+  continue: "continuar",
   unreadableFold: "truncated or unreadable format",
   oldFold: "old or unsupported format version",
   aheadFold: "invalid or ahead sequence",

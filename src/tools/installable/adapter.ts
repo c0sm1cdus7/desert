@@ -1,4 +1,5 @@
 // Builds one engine tool per program, keeping each group and its encoded object destinations intact.
+import { toolTexts } from "../../texts/tools.texts.ts";
 import { vocabulary } from "../../journal/vocabulary.ts";
 import { localState, type InstalledGroup, type InstalledProgram } from "./runtime.ts";
 import { adaptAction } from "./actions.ts";
@@ -6,12 +7,21 @@ import { folderOf, objectOf, localTarget } from "./destinations.ts";
 import type { ProgramMetadata, ProgramBody, LocalProgram, ProgramGroup } from "./program.ts";
 import type { Program, State } from "../tool-contract.ts";
 import type { ProgramTool } from "../promises-contract.ts";
+function groupReactions<X extends Program>(id: string, name: string, group: ProgramGroup<X>) {
+  return Object.fromEntries(
+    Object.entries(group.reactions ?? {}).map(([key, reaction]) => {
+      if (group.acts[reaction.act]?.on !== "tool") throw new Error(toolTexts.invalidReaction(id, reaction.act));
+      return [`${name}/${key}`, { ...reaction, act: `${name}/${reaction.act}` }];
+    }),
+  );
+}
 function groupTool<X extends Program>(id: string, name: string, group: ProgramGroup<X>): InstalledGroup {
   const stateOf = (state: State<Program>) => localState<X>(state, id);
   const target = (value: string) => localTarget(id, name, value);
   const tool: ProgramTool<Program> = {
     id: folderOf(id, name),
     purpose: group.purpose,
+    reactions: groupReactions(id, name, group),
     acts: Object.fromEntries(
       Object.entries(group.acts).map(([key, act]) => [`${name}/${key}`, adaptAction(id, name, group, act)]),
     ),
@@ -72,6 +82,7 @@ export function installProgram<M extends ProgramMetadata>(meta: M, body: Program
     skill: body.skill,
     facts: meta.hechos.map(f => f.nombre),
     groups,
+    reactions: Object.fromEntries(groups.flatMap(group => Object.entries(group.tool.reactions ?? {}))),
     actionTools: Object.fromEntries(
       groups.flatMap(group => Object.keys(group.tool.acts).map(action => [action, group.id])),
     ),
