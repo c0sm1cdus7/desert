@@ -19,8 +19,25 @@ const { program, shown } = componer({
   atajoUnaHerramienta: process.argv[3] === "shortcut",
   mentes: { asistentes: true, programas: [] },
 });
+/** Assistants are on, so the house needs an explicit model configuration; nothing here thinks or calls out. */
+const modelMinds = {
+  language: "es" as const,
+  definitions: [],
+  catalog: [],
+  providers: [],
+  fingerprint: () => ({ cases: "c", skill: "s", frameTexts: "f" }),
+  key: () => Promise.resolve(undefined),
+  transport: () => Promise.reject(new Error("sin red")),
+  account: "prueba",
+  capNanoUsd: 0,
+  maxInputTokens: 10000,
+  message: () => undefined,
+  textRules: [],
+  rulesVersion: () => "v1",
+};
 const house = startHouse(home, {
   ...program,
+  modelMinds,
   by: "house",
   secretKeys: new MemoryHouseKeys(),
   creation: {
