@@ -49,12 +49,15 @@ function distributionPackage(file: string): boolean {
 export function programImports(repo: Repository): string[] {
   const pkg: unknown = JSON.parse(readFileSync(join(repo.root, "package.json"), "utf8"));
   const desert = field(pkg, "desert");
-  if (field(desert, "testDistribution") === undefined) return [];
+  if (field(desert, "program") === undefined || field(desert, "kind") === "distribution") return [];
   const dependencies = programDependencies(field(desert, "dependencies"));
   const files = codeFiles(repo).filter(file => !isSpec(file));
   const own = new Set(files.map(file => realpathSync(file)));
 
   return [
+    ...(typeof field(desert, "testDistribution") === "string" && field(desert, "testDistribution") !== ""
+      ? []
+      : [distributionTexts.testDistributionRequired]),
     ...dependencies.filter(d => d.kind === "distribution").map(d => distributionTexts.dependencyImport(d.name)),
     ...files.flatMap(file =>
       importsIn(parsed(file))

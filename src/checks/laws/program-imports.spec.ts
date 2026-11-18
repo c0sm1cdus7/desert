@@ -5,10 +5,14 @@ import { programImports } from "./program-imports.ts";
 import { programLaws } from "./program-laws.ts";
 import { lawRepository, lawPackage } from "../../../tests/support/law-repository.ts";
 
-const manifest = (dependencies: unknown = []) =>
+const manifest = (dependencies: unknown = [], testDistribution = true) =>
   JSON.stringify({
     ...lawPackage,
-    desert: { ...lawPackage.desert, testDistribution: "tests/distribution.ts", dependencies },
+    desert: {
+      ...lawPackage.desert,
+      testDistribution: testDistribution ? "tests/distribution.ts" : undefined,
+      dependencies,
+    },
   });
 it.each([
   'import "void/program";',
@@ -66,25 +70,54 @@ it("rejects a declared distribution even before an import uses it", () => {
   const repo = lawRepository({ "package.json": manifest([{ kind: "distribution", name: "void" }]) });
   expect(programImports(repo)).toEqual(["desert.dependencies → void"]);
 });
-for (const entry of [
-  "runtime",
-  "runtime/cloud",
-  "componer",
-  "calculation",
-  "doors/terminal",
-  "doors/socket",
-  "doors/keys",
-  "doors/mcp",
-  "doors/mcp/handler",
-  "surface/house-router",
-])
-  it.each([
-    `import "desert/${entry}";`,
-    `export * from "desert/${entry}";`,
-    `type Host = import("desert/${entry}").Host;`,
-    `const host = import("desert/${entry}");`,
-    `const host = require("desert/${entry}");`,
-  ])("280: rejects kernel composition and cloud entries: %s", code => {
-    const repo = lawRepository({ "package.json": manifest(), "src/a.ts": code });
-    expect(programImports(repo)).toEqual([`src/a.ts → desert/${entry}`]);
+for (const testDistribution of [false, true])
+  for (const entry of [
+    "runtime",
+    "runtime/cloud",
+    "componer",
+    "calculation",
+    "doors/terminal",
+    "doors/socket",
+    "doors/keys",
+    "doors/mcp",
+    "doors/mcp/handler",
+    "surface/house-router",
+  ])
+    it.each([
+      `import "desert/${entry}";`,
+      `export * from "desert/${entry}";`,
+      `type Host = import("desert/${entry}").Host;`,
+      `const host = import("desert/${entry}");`,
+      `const host = require("desert/${entry}");`,
+    ])(`280: rejects kernel composition and cloud entries, testDistribution=${testDistribution}: %s`, code => {
+      const repo = lawRepository({ "package.json": manifest([], testDistribution), "src/a.ts": code });
+      expect(programImports(repo)).toContain(`src/a.ts → desert/${entry}`);
+    });
+
+it("reports a missing test distribution even without forbidden imports", () => {
+  const repo = lawRepository({ "package.json": manifest([], false) });
+  expect(programImports(repo).some(reason => reason.includes("desert.testDistribution"))).toBe(true);
+});
+it.each([undefined, "program", "Distribution", "kernel"])("does not infer a distribution from kind=%s", kind => {
+  const repo = lawRepository({
+    "package.json": JSON.stringify({ ...lawPackage, desert: { ...lawPackage.desert, kind } }),
+    "src/a.ts": 'export * from "desert/runtime/cloud";',
   });
+  expect(programImports(repo)).toContain("src/a.ts → desert/runtime/cloud");
+});
+it("allows host imports only for an explicitly declared distribution", () => {
+  const repo = lawRepository({
+    "package.json": JSON.stringify({ ...lawPackage, desert: { ...lawPackage.desert, kind: "distribution" } }),
+    "src/a.ts": ["surface/house-router", "runtime/cloud", "doors/keys", "doors/mcp/handler"]
+      .map(entry => `export * from "desert/${entry}";`)
+      .join("\n"),
+  });
+  expect(programImports(repo)).toEqual([]);
+});
+
+it.each([null, "", 3, false])("rejects an invalid testDistribution: %s", testDistribution => {
+  const repo = lawRepository({
+    "package.json": JSON.stringify({ ...lawPackage, desert: { ...lawPackage.desert, testDistribution } }),
+  });
+  expect(programImports(repo).some(reason => reason.includes("desert.testDistribution"))).toBe(true);
+});

@@ -29,6 +29,7 @@
     "@sinclair/typebox": "0.34.52"
   },
   "desert": {
+    "kind": "distribution",
     "program": "tests/support/shop-program.ts",
     "laws": {
       "code": [

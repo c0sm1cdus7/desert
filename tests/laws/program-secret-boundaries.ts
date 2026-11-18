@@ -6,6 +6,8 @@ import { secretBoundaryViolations, virtualProgram } from "./secret-boundaries.ts
 import { secretPublicApi } from "./secret-public-api.ts";
 import { inside, programSourceGraph } from "./program-source-graph.ts";
 import { registryOrigins } from "./registry-origins.ts";
+import { programImports } from "../../src/checks/laws/program-imports.ts";
+import { programLawOptions } from "../../src/checks/laws/program-law-options.ts";
 // The same composition files after the signed move; no extra door inherits the exemption.
 const compositionFiles = [
   "src/checks/adapter-test.ts",
@@ -88,7 +90,13 @@ const production = (directory: string): string[] => filesUnder(directory).filter
  * (current base globs omit .mts/.cts). This catches mistakes/known paths, not JavaScript isolation. */
 export function programSecretBoundaries(root: string): string[] {
   const pkg: unknown = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
-  const entry = field(field(pkg, "desert"), "program");
+  const desert = field(pkg, "desert");
+  const distribution = field(desert, "kind") === "distribution";
+  const entry = field(desert, "program");
+  if (!distribution && entry !== undefined) {
+    const imports = programImports(programLawOptions(root).repo);
+    if (imports.length) return imports;
+  }
   if (typeof entry !== "string") return ["missing desert.program"];
   const main = resolve(root, entry);
   const publicModules = secretPublicApi(base);
@@ -106,9 +114,7 @@ export function programSecretBoundaries(root: string): string[] {
       virtualProgram(sources, graph.aliases),
       main,
       new Set([main, ...adapters]),
-      field(field(pkg, "desert"), "testDistribution") === undefined
-        ? undefined
-        : join(base, "src/tools/installable/program.ts"),
+      distribution ? undefined : join(base, "src/tools/installable/program.ts"),
     ),
     ...secretBoundaryViolations(sources, {
       composition: [main, ...compositionFiles.map(file => join(base, file))],

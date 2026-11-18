@@ -1,5 +1,7 @@
 // Explains composition failures and names the program's folders in the surface.
 export const distributionTexts = {
+  testDistributionRequired:
+    "desert.testDistribution: declará la composición local de prueba; el programa sigue siendo para DESERT.",
   dependencyImport: (name: string) => `desert.dependencies → ${name}`,
   failed: "No se pudo componer la distribución",
   groups: "Herramientas",

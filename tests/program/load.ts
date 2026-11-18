@@ -9,6 +9,7 @@ import { programImports, programDependencies } from "../../src/checks/laws/progr
 import { programLawOptions } from "../../src/checks/laws/program-law-options.ts";
 import { codeProjectionVersion } from "../../src/runtime/calculation-version.ts";
 import { field } from "../contract/json.ts";
+import { programSecretBoundaries } from "../laws/program-secret-boundaries.ts";
 
 export type Composed<X extends Program = Program> = Readonly<{
   where: string;
@@ -35,8 +36,12 @@ export async function loadProgram(root = process.cwd()): Promise<Composed> {
   if (testDistribution !== undefined) {
     if (typeof entry !== "string" || typeof testDistribution !== "string")
       throw new Error("desert.program and desert.testDistribution must name modules");
+  }
+  if (field(desert, "kind") !== "distribution") {
     const issues = programImports(programLawOptions(root).repo);
     if (issues.length) throw new Error(issues.join("\n"));
+    const boundaries = programSecretBoundaries(root);
+    if (boundaries.length) throw new Error(boundaries.join("\n"));
   }
   const composed: unknown = await import(pathToFileURL(join(root, where)).href);
   const program = field(composed, "program");

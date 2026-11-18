@@ -2149,7 +2149,9 @@ Para armar una distribución, `desert/surface/house-router` publica `houseRouter
 y `desert/doors/mcp/handler` publica `mcpDoor`, que se conecta con `serveMcp` de `desert/doors/mcp`.
 Estas entradas son del ensamblador de la distribución: publicarlas no habilita su importación desde programas.
 La ley 280 rechaza las entradas de arranque, composición, cálculo, puertas y router desde el código de un programa,
-también al reexportar, consultar tipos o importar dinámicamente. La frontera de secretos sigue auditando los nombres
+también al reexportar, consultar tipos, usar `require` o importar dinámicamente. Alcanza a todo paquete que
+declare `desert.program`, salvo que declare exactamente `desert.kind: "distribution"`. La ausencia de
+`testDistribution` es una falla con motivo; no apaga ninguna frontera. La frontera de secretos sigue auditando los nombres
 permitidos de las entradas de programa; no habilita lectores de llaves ni funciones de nube.
 
 ### La compuerta de un programa independiente
@@ -2175,8 +2177,12 @@ El paquete declara dónde exporta su programa y dónde compone la distribución 
 
 `src/program.ts` exporta `program`, el resultado de `programa`. La distribución de prueba exporta `program`,
 `shown` y `manifest`, obtenidos de `componer`. El cargador comprueba que su manifiesto contiene el id, la versión
-y la huella del código del programa declarado. Los paquetes sin `testDistribution` mantienen la entrada de
-composición anterior. Las partes `tests/program/*.checks.ts` de DESERT siguen siendo obligatorias en el runner:
+y la huella del código del programa declarado. Un programa sin `testDistribution` falla con un diagnóstico que
+pide declarar la composición local de prueba. Para migrar el manifiesto anterior, `desert.program` pasa a señalar
+el módulo que exporta `program = programa(...)` y `desert.testDistribution` señala la composición de prueba;
+esta exporta también `manifest`. Eso no ata el programa a ninguna distribución: sus dependencias siguen siendo
+DESERT y los contratos que pide. Las partes `tests/program/*.checks.ts` de DESERT siguen siendo obligatorias
+en el runner:
 corren todos los `programChecks`, los diarios conservados, la frontera de secretos y las mismas leyes de código
 sobre la raíz del paquete independiente. No hay una selección de leyes reducida para programas instalables.
 
@@ -2189,7 +2195,15 @@ Los paquetes de distribución se identifican con `desert.kind: "distribution"`; 
 ellos presentado como módulo de contrato. Controla importaciones estáticas, reexportaciones, consultas de tipos,
 `require` e importaciones dinámicas; no admite especificadores dinámicos, alias privados ni escapes por enlaces.
 La distribución de prueba vive fuera de las raíces productivas y puede importar el programa; el programa no
-puede importarla. La ley corre antes de evaluar esa distribución.
+puede importarla. El cargador de la compuerta comprueba primero imports y secretos, antes de evaluar el programa
+o esa distribución.
+Llamar directamente a `programChecks` con módulos ya importados no reemplaza ese control previo ni las leyes.
+
+Un ensamblador declara, por ejemplo, `"desert": { "kind": "distribution", "program": "src/distribution.ts", ... }`.
+Esa entrada exporta la composición (`program` y `shown`) y puede importar las entradas públicas reservadas al
+anfitrión. La excepción no se deduce del nombre del paquete, de la ubicación de la entrada ni de la ausencia de
+`testDistribution`. La base usa esta declaración para la composición de su tienda de prueba; los controles de
+secretos del registro y de sus herramientas siguen activos. Los programas instalados conservan su propia compuerta.
 
 ## Contratos de dos mitades (18/11)
 

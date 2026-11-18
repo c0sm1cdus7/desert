@@ -10,7 +10,7 @@ it("checks the actual program's source graph in the gate", () => {
 function fixture(files: Readonly<Record<string, string>>) {
   const home = mkdtempSync(join(tmpdir(), "program-boundary-"));
   const sources = {
-    "package.json": JSON.stringify({ desert: { program: "src/main.ts" } }),
+    "package.json": JSON.stringify({ desert: { kind: "distribution", program: "src/main.ts" } }),
     "tsconfig.json": JSON.stringify({ compilerOptions: { paths: { "@shared/*": ["./src/shared/*"] } } }),
     "src/main.ts":
       Object.keys(files)
@@ -82,7 +82,7 @@ it("rejects imports of adapters by tools", () => {
 it("also inspects a composition entry outside src", () => {
   expect(
     fixture({
-      "package.json": JSON.stringify({ desert: { program: "main.ts" } }),
+      "package.json": JSON.stringify({ desert: { kind: "distribution", program: "main.ts" } }),
       "main.ts": "export const tool = { 'acts': { run: () => process.env } };",
     }).length,
   ).toBeGreaterThan(0);

@@ -29,14 +29,14 @@ it("still fails when the program does not say where it is composed", async () =>
 it.each(["export const program = {};", "export const shown = {};", "export const unrelated = true;"])(
   "still rejects missing or malformed exports: %s",
   async code => {
-    const folder = fixture({ desert: { program: "program.mjs" } }, code);
+    const folder = fixture({ desert: { kind: "distribution", program: "program.mjs" } }, code);
     await expect(loadProgram(folder)).rejects.toThrow("must export `program` and `shown`");
   },
 );
 it("loads the composition relative to the program and resolves its journal folder there", async () => {
   const shop = pathToFileURL(join(root, "tests/support/shop-program.ts")).href;
   const code = `export { program, shown } from ${JSON.stringify(shop)};`;
-  const folder = fixture({ desert: { program: "program.mjs", journals: "journals" } }, code);
+  const folder = fixture({ desert: { kind: "distribution", program: "program.mjs", journals: "journals" } }, code);
   const loaded = await loadProgram(folder);
   expect(loaded.where).toBe("program.mjs");
   expect(loaded.journals).toBe(join(folder, "journals"));
@@ -100,7 +100,7 @@ it("writes paths walked to stdout after the walk, and preserves its failure on a
 });
 
 it("registers repository laws automatically and runs them against the adopting program", async () => {
-  const folder = fixture({ name: "fixture", desert: { program: "program.mjs" } });
+  const folder = fixture({ name: "fixture", desert: { kind: "distribution", program: "program.mjs" } });
   vi.spyOn(process, "cwd").mockReturnValue(folder);
   const checks = programGroups(source).flatMap(group => group.checks);
   const law = checks.find(

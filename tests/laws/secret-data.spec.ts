@@ -33,7 +33,10 @@ it("212 datos: composición real alcanza tablas en herramientas y auxiliares imp
   try {
     mkdirSync(join(home, "src"));
     mkdirSync(join(home, "lib"));
-    writeFileSync(join(home, "package.json"), JSON.stringify({ desert: { program: "src/main.ts" } }));
+    writeFileSync(
+      join(home, "package.json"),
+      JSON.stringify({ desert: { kind: "distribution", program: "src/main.ts" } }),
+    );
     writeFileSync(join(home, "tsconfig.json"), JSON.stringify({ compilerOptions: {} }));
     writeFileSync(
       join(home, "src/main.ts"),

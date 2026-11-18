@@ -7,7 +7,7 @@ import { programSecretBoundaries } from "./program-secret-boundaries.ts";
 function fixture(files: Readonly<Record<string, string>>) {
   const home = mkdtempSync(join(tmpdir(), "rev4-boundary-"));
   const sources = {
-    "package.json": JSON.stringify({ desert: { program: "src/main.ts" } }),
+    "package.json": JSON.stringify({ desert: { kind: "distribution", program: "src/main.ts" } }),
     "tsconfig.json": JSON.stringify({ compilerOptions: {} }),
     ...files,
   };

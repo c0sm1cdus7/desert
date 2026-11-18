@@ -8,7 +8,7 @@ import { programSecretBoundaries } from "./program-secret-boundaries.ts";
 function fixture(files: Readonly<Record<string, string>>) {
   const home = mkdtempSync(join(tmpdir(), "rev4-boundary-"));
   const sources = {
-    "package.json": JSON.stringify({ desert: { program: "src/main.ts" } }),
+    "package.json": JSON.stringify({ desert: { kind: "distribution", program: "src/main.ts" } }),
     "tsconfig.json": JSON.stringify({ compilerOptions: {} }),
     ...files,
   };
@@ -157,7 +157,7 @@ it("B4: resuelve el mapa de imports del paquete sin dar acceso interno a la base
     fixture({
       "package.json": JSON.stringify({
         type: "module",
-        desert: { program: "src/main.ts" },
+        desert: { kind: "distribution", program: "src/main.ts" },
         imports: { "#local/*": "./lib/*.ts" },
       }),
       "tsconfig.json": JSON.stringify({ compilerOptions: { module: "NodeNext", moduleResolution: "NodeNext" } }),

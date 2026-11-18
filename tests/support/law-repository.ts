@@ -35,7 +35,7 @@ export const lawPackage = {
     gate: "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm laws",
     lint: "eslint --max-warnings 0 .",
   },
-  desert: { program: "src/a.ts", laws: lawOptions },
+  desert: { program: "src/a.ts", testDistribution: "tests/distribution.ts", laws: lawOptions },
 };
 export function lawRepository(files: Readonly<Record<string, string>>): Repository {
   const folder = mkdtempSync(join(tmpdir(), "repository-law-"));

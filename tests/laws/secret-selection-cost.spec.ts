@@ -54,7 +54,10 @@ it("212 costo: 800 archivos limpios tardan como máximo cuatro veces 200", () =>
   const times = new Map<number, number>();
   try {
     mkdirSync(join(home, "src"));
-    writeFileSync(join(home, "package.json"), JSON.stringify({ desert: { program: "src/main.ts" } }));
+    writeFileSync(
+      join(home, "package.json"),
+      JSON.stringify({ desert: { kind: "distribution", program: "src/main.ts" } }),
+    );
     writeFileSync(join(home, "tsconfig.json"), "{}");
     writeFileSync(
       join(home, "src/main.ts"),
