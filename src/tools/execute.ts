@@ -21,7 +21,7 @@ import type { Execution } from "./execution-contract.ts";
 import type { ToolCapabilities } from "./capabilities-contract.ts";
 import { usingCapabilities } from "./execution/action-capabilities.ts";
 export type { Execution } from "./execution-contract.ts";
-import { isMindActor } from "../fields/mind-actor.ts";
+import { isMindActor, parseMindActor } from "../fields/mind-actor.ts";
 import { journeyAllows } from "../house/minds/journey-state.ts";
 type Origin = HouseEvent<"act">;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
@@ -77,17 +77,49 @@ const decide = <X extends Program>(
   value: Act,
   origin: Origin,
   capabilities: ToolCapabilities,
+  reviewed = false,
 ): Decision<X> | Perform<X> => {
-  const { by, id } = origin;
+  const { by } = origin;
   const { object: target, through = 0 } = origin.data;
   const found = resolve(ports, by, target, value.act);
   const { state, offered, tool, act } = found;
   const refused = refusal(ports, origin, found);
   if (refused !== undefined || !act) return rejected(refused ?? toolTexts.unknown);
+  const context = actionContext(ports, origin, found, capabilities);
+  const draft = !offered && programCall(tool?.draft?.bind(tool), state, through, value.input, target, context.at);
+  if (draft) {
+    const data = {
+      tool: tool?.id ?? "",
+      target: draft,
+      author: by,
+      text: toolTexts.draft,
+      draft: true,
+      detail: value.input,
+    };
+    return { status: "draft", reason: toolTexts.draft, draft: value.input, effects: [effect("tool-entry", data, by)] };
+  }
+  if (!reviewed && act.reach === "world" && ports.review && parseMindActor(by))
+    return () => reviewWorld(ports, value, origin, capabilities, context.signal);
+  return () => {
+    const result = runProgram(act, value.input, context);
+    const finish = (result: ActResult<X>): Decision<X> =>
+      checkedDecision(ports, result, act, context, tool, offered, value.act);
+    return result instanceof Promise ? result.then(finish) : finish(result);
+  };
+};
+function actionContext<X extends Program>(
+  ports: Execution<X>,
+  origin: Origin,
+  found: ReturnType<typeof resolve<X>>,
+  capabilities: ToolCapabilities,
+): ActContext<X> {
+  const { state, offered, tool, act } = found;
+  const { by, id } = origin;
+  const { object: target, through = 0 } = origin.data;
   const { ports: publicPorts, credentials } = capabilities;
-  const context: ActContext<X> = {
+  return {
     state,
-    signal: runningSignal(ports, origin, offered ? undefined : tool?.id, act.reach),
+    signal: runningSignal(ports, origin, offered ? undefined : tool?.id, act?.reach ?? "house"),
     by,
     target,
     at: ports.now(),
@@ -97,19 +129,47 @@ const decide = <X extends Program>(
     id,
     execute: nested => executeNested(ports, origin, nested),
   };
-  const draft = !offered && programCall(tool?.draft?.bind(tool), state, through, value.input, target, context.at);
-  if (draft) {
-    const text = toolTexts.draft;
-    const data = { tool: tool?.id ?? "", target: draft, author: by, text, draft: true, detail: value.input };
-    return { status: "draft", reason: text, draft: value.input, effects: [effect("tool-entry", data, by)] };
-  }
-  return () => {
-    const result = runProgram(act, value.input, context);
-    const finish = (result: ActResult<X>): Decision<X> =>
-      checkedDecision(ports, result, act, context, tool, offered, value.act);
-    return result instanceof Promise ? result.then(finish) : finish(result);
+}
+async function reviewWorld<X extends Program>(
+  ports: Execution<X>,
+  value: Act,
+  origin: Origin,
+  capabilities: ToolCapabilities,
+  signal?: AbortSignal,
+): Promise<Decision<X>> {
+  const scope = ports.mindScope ?? processScope(ports, origin);
+  if (!scope || !ports.review) return rejected(toolTexts.unassigned);
+  const request = {
+    id: origin.id,
+    reason: "world" as const,
+    scope,
+    through: ports.state().through,
+    acts: [{ act: value.act, target: origin.data.object, input: value.input }],
   };
-};
+  const result = await ports.review.review(request);
+  if (result.outcome !== "passed" || result.proposal !== origin.id || result.through !== request.through)
+    return rejected(result.text || toolTexts.invalid);
+  if (!ports.live() || signal?.aborted) return rejected(toolTexts.withdrawn);
+  const current = decide(ports, value, origin, capabilities, true);
+  return typeof current === "function" ? current() : current;
+}
+function processScope<X extends Program>(ports: Execution<X>, origin: Origin) {
+  if (!parseMindActor(origin.by)) return undefined;
+  const actor = origin.by;
+  if (!actor.startsWith("mind:") && !actor.startsWith("assistant:")) return undefined;
+  const journey = origin.process ? ports.state().house.journeys.get(origin.process) : undefined;
+  // The actor schema is checked again by the review port; no identity is promoted to a mind.
+  if (actor.startsWith("mind:")) {
+    const mind = `mind:${actor.slice(5)}` as const;
+    return journey
+      ? { kind: "journey" as const, actor: mind, process: journey.id, kit: journey.kit }
+      : { kind: "consciousness" as const, actor: mind };
+  }
+  const mind = `assistant:${actor.slice(10)}` as const;
+  return journey
+    ? { kind: "journey" as const, actor: mind, process: journey.id, kit: journey.kit }
+    : { kind: "consciousness" as const, actor: mind };
+}
 async function executeNested<X extends Program>(
   ports: Execution<X>,
   origin: Origin,

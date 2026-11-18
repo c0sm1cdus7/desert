@@ -1,11 +1,11 @@
 // Abre la casa de nube siempre encendida; solo el anfitrión cierra recursos y las puertas reciben puertos sin apagado.
-import type { HouseOptions } from "../house/state.ts";
+import type { ModelHouseOptions } from "./minds/mind-runtime-options.ts";
 import type { Program, ViewLimits } from "../tools/tool-contract.ts";
 import { RootHouseKeys } from "../keychain/cloud/root-house-keys.ts";
 import { environmentRootKey, type KeyEnvironment } from "./environment-key.ts";
 import { localPorts, startHouse, type RunningHouse } from "./house-runtime.ts";
 export function startCloudHouse<X extends Program>(
-  program: Omit<HouseOptions<X>, "secretKeys">,
+  program: Omit<ModelHouseOptions<X>, "secretKeys">,
   home: string,
   environment: KeyEnvironment,
   variable: string,
@@ -19,9 +19,11 @@ export function startCloudHouse<X extends Program>(
   }
   try {
     const house = startHouse(home, { ...program, secretKeys: keys });
-    hostLifetime(house, keys);
+    const stop = hostLifetime(house, keys);
+    if (house.minds) void house.minds.catch(stop);
     const { tools, journal, bus, registry, now } = house;
     return Object.freeze({
+      ...(house.minds ? { minds: house.minds } : {}),
       ports: (identity: string, limits: Omit<ViewLimits, "now">) => localPorts(house, identity, limits),
       /** What a door serves from: the house without close, so no door can turn it off. */
       door: Object.freeze({ tools, journal, bus, registry, now }),
@@ -31,7 +33,7 @@ export function startCloudHouse<X extends Program>(
     throw error;
   }
 }
-function hostLifetime<X extends Program>(house: RunningHouse<X>, keys: RootHouseKeys): void {
+function hostLifetime<X extends Program>(house: RunningHouse<X>, keys: RootHouseKeys) {
   // A house without pending wakes or connected doors still keeps its host process alive.
   const alive = setInterval(() => {}, 60_000);
   let closed = false;
@@ -51,4 +53,5 @@ function hostLifetime<X extends Program>(house: RunningHouse<X>, keys: RootHouse
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
   process.once("exit", stop);
+  return stop;
 }

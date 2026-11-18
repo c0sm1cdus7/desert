@@ -83,8 +83,7 @@ export function recoverMindSchedule(ports: MindSchedulePorts): void {
   );
   for (const event of history) {
     if (event.layer !== "house" || event.kind !== "mind-turn-opened" || closed.has(event.data.turn)) continue;
-    if (!ports.policies().some(p => sameScope(event, p.scope) && parseMindActor(p.scope.actor)?.kind === "assistant"))
-      continue;
+    if (!ports.policies().some(p => sameScope(event, p.scope) && parseMindActor(p.scope.actor))) continue;
     const text = turnNotice.text(ports.language, { reason: "interrupted" });
     ports.emit(effect("mind-scene", { turn: event.data.turn, text }, event.by, [event.id], event.process));
     ports.emit(
@@ -105,7 +104,7 @@ export function recoverMindSchedule(ports: MindSchedulePorts): void {
 }
 function nextDeadline(ports: MindSchedulePorts): number | undefined {
   const history = ports.history();
-  const policies = ports.policies().filter(p => parseMindActor(p.scope.actor)?.kind === "assistant");
+  const policies = ports.policies().filter(p => parseMindActor(p.scope.actor));
   const deadlines: number[] = [];
   for (const event of history) {
     if (event.layer !== "house" || event.kind !== "journey-waiting" || event.data.until <= ports.time.now()) continue;
@@ -136,6 +135,7 @@ class Schedule {
     this.work = this.work
       .then(() => this.drain())
       .catch(() => {
+        if (!this.live) return;
         this.dirty = false;
         this.cancel();
         this.failure = new Error(turnNotice.text(this.ports.language, { reason: "internal" }));
@@ -155,13 +155,17 @@ class Schedule {
     this.live = false;
     this.cancel();
   };
+  private closed(): boolean {
+    return !this.live;
+  }
   private async drain(): Promise<void> {
     while (this.live && this.dirty && !this.failure) {
       this.dirty = false;
-      const policies = this.ports.policies().filter(p => parseMindActor(p.scope.actor)?.kind === "assistant");
+      const policies = this.ports.policies().filter(p => parseMindActor(p.scope.actor));
       const pending = pendingMindWakes(policies, this.ports.history(), this.ports.time.now())[0];
       if (!pending) break;
       await this.ports.run({ ...pending, id: this.ports.nextId(), language: this.ports.language });
+      if (this.closed()) return;
       const opened = this.ports
         .history()
         .some(

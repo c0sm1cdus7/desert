@@ -1,4 +1,4 @@
-// Ejecuta un despertar del asistente con consulta, revisión y una sola corrección compartida.
+// Ejecuta un despertar de una mente con consulta, revisión y una sola corrección compartida.
 import { Value } from "@sinclair/typebox/value";
 import { mindFacts } from "../../house/minds/mind-facts.ts";
 import { parseMindActor } from "../../fields/mind-actor.ts";
@@ -193,7 +193,7 @@ export async function runMindTurn(ports: TurnPorts, wake: TurnWake): Promise<Tur
   requireMind(ports, "ports");
   requireMind(wake, "wake");
   requireMind(wake.scope, "scope");
-  requireMind(parseMindActor(wake.scope.actor)?.kind === "assistant", "scope.actor");
+  requireMind(parseMindActor(wake.scope.actor), "scope.actor");
   for (const name of ["frame", "model", "read", "allowed", "reviewReason", "emit", "execute", "isOpen"] as const)
     requireMind(typeof ports[name] === "function", name);
   requireMind(ports.supervision, "supervision");

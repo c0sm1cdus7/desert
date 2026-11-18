@@ -161,13 +161,14 @@ it("cierra antes de llamar cuando el marco no entra", async () => {
     reason: "frame-too-large",
   });
 });
-it("no piensa con modelo para una mente de herramienta", async () => {
-  const f = fixture([]);
-  await expect(runMindTurn(f.ports, { ...wake, scope: { kind: "consciousness", actor: "mind:chat" } })).rejects.toThrow(
-    "scope.actor",
-  );
-  expect(f.model).not.toHaveBeenCalled();
+it("una mente de programa completa el mismo protocolo de turno", async () => {
+  const f = fixture([ok()]);
+  const result = await runMindTurn(f.ports, { ...wake, scope: { kind: "consciousness", actor: "mind:chat" } });
+  expect(result).toMatchObject({ outcome: "done", calls: 1 });
+  expect(f.execute).toHaveBeenCalledOnce();
+  expect(f.events.every(event => event.by === "mind:chat")).toBe(true);
 });
+
 it("descarta una respuesta tardía al cerrar mientras esperaba", async () => {
   const f = fixture([]);
   const model = async () => {

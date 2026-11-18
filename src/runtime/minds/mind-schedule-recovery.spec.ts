@@ -19,16 +19,27 @@ const policy: WakePolicy = {
   message: e => (e.layer === "program" && typeof e.data === "string" ? { text: e.data } : undefined),
   toolOf: target => target,
 };
-it.each(["reserved", "started", "uncertain"] as const)(
-  "reabre SQLite después de %s, interrumpe sin repetir y atiende una llegada posterior una sola vez",
-  async phase => {
+it.each([
+  ["reserved", "assistant:franco"],
+  ["started", "assistant:franco"],
+  ["uncertain", "assistant:franco"],
+  ["reserved", "mind:notes"],
+  ["started", "mind:notes"],
+  ["uncertain", "mind:notes"],
+] as const)(
+  "reabre SQLite después de %s de %s, interrumpe sin repetir y atiende una llegada posterior una sola vez",
+  async (phase, actor) => {
     const dir = mkdtempSync(join(tmpdir(), "mind-turn-recovery-"));
     const file = join(dir, "journal.sqlite");
     const catalog = { said: Type.String() };
     const words = vocabulary(catalog);
     let journal = new SqliteJournal(file, words);
     let at = 0;
-    const say = () => journal.append(words.fact("said", "Nora, hola", "martin"), ++at);
+    const emission = () =>
+      actor === "mind:notes"
+        ? effect("act", { object: "notes", option: "write", input: {} }, "martin")
+        : words.fact("said", "Nora, hola", "martin");
+    const say = () => journal.append(emission(), ++at);
     try {
       const first = say();
       journal.append(effect("mind-turn-opened", { turn: "old", wake: [first.id] }, actor), ++at);
@@ -79,7 +90,7 @@ it.each(["reserved", "started", "uncertain"] as const)(
         bus,
         emit,
         history,
-        policies: () => [policy],
+        policies: () => [{ ...policy, scope: { kind: "consciousness" as const, actor } }],
         language: "es" as const,
         time: { now: () => at, wait: () => () => {} },
         nextId: () => `new${++id}`,
@@ -97,7 +108,7 @@ it.each(["reserved", "started", "uncertain"] as const)(
         calls: phase === "reserved" ? 0 : 1,
         applied: [],
       });
-      const later = bus.emit(words.fact("said", "Nora, seguí con otra cosa", "martin"));
+      const later = bus.emit(emission());
       await schedule.flush();
       expect(model).toHaveBeenCalledOnce();
       expect(state().turns.get("new1")?.opened.data.wake).toEqual([later.id]);

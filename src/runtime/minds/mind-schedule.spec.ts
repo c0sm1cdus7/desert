@@ -167,13 +167,11 @@ it("recupera un turno abierto como interrumpido y nunca repite su llamada incier
   expect(f.events().find(e => e.kind === "mind-turn-closed")?.data).toMatchObject({ outcome: "interrupted", calls: 1 });
   schedule.close();
 });
-it("vence una espera desde los hechos y no vuelve a vencer tras reiniciar", async () => {
+it.each(["assistant:franco", "mind:notes"] as const)("vence la espera de %s sin repetir al reiniciar", async actor => {
   const f = fixture();
-  const journey = { ...policy, scope: { kind: "journey" as const, actor: policy.scope.actor, process: "j1", kit: [] } };
+  const journey = { ...policy, scope: { kind: "journey" as const, actor, process: "j1", kit: [] } };
   f.setPolicies([journey]);
-  const event = f.ports.bus.emit(
-    effect("journey-waiting", { what: "La hora", until: 10 }, policy.scope.actor, [], "j1"),
-  );
+  const event = f.ports.bus.emit(effect("journey-waiting", { what: "La hora", until: 10 }, actor, [], "j1"));
   const schedule = startMindSchedule(f.ports);
   await schedule.flush();
   expect(f.calls).toHaveLength(0);
@@ -221,13 +219,17 @@ it("la recuperación conserva los actos aceptados y deja pendientes las llegadas
   expect(f.calls.map(w => w.wake)).toEqual([[later.id]]);
   schedule.close();
 });
-it("el scheduler no conecta al modelo las mentes de herramienta", async () => {
+it("la agenda conecta una mente de programa y no repite el despertar", async () => {
   const f = fixture();
   f.setPolicies([{ ...policy, scope: { kind: "consciousness", actor: "mind:notes" } }]);
   f.ports.bus.emit(effect("act", { object: "notes", option: "write", input: {} }, "franco"));
   const schedule = startMindSchedule(f.ports);
   await schedule.flush();
-  expect(f.calls).toHaveLength(0);
+  expect(f.calls).toHaveLength(1);
+  expect(f.calls[0]?.scope).toEqual({ kind: "consciousness", actor: "mind:notes" });
+  schedule.notify();
+  await schedule.flush();
+  expect(f.calls).toHaveLength(1);
   schedule.close();
 });
 it("una falla del puerto queda visible y no provoca un ciclo automático de reintentos", async () => {

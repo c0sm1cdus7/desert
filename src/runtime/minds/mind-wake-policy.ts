@@ -61,9 +61,9 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   requireMind(Number.isSafeInteger(now) && now >= 0, "now");
   const mind = parseMindActor(policy.scope.actor);
   requireMind(mind, "policy.actor");
-  if (mind.kind === "assistant" && lifecycle(policy, event, history, now)) return true;
+  if (lifecycle(policy, event, history, now)) return true;
   if (event.by === policy.scope.actor) return false;
-  if (mind.kind === "tool")
+  if (mind.kind === "tool" && policy.scope.kind === "consciousness")
     return event.layer === "house" && event.kind === "act" && policy.toolOf(event.data.object) === mind.tool;
   if (event.layer === "house" && event.kind === "mind-message")
     return event.data.to === policy.scope.actor && requested(policy, event, history);

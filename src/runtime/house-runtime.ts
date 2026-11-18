@@ -12,6 +12,9 @@ import { requireProjectionVersion } from "./house-projections.ts";
 import type { HousePorts } from "../surface/bridge/ports/house-ports.ts";
 
 import { startState, type HouseOptions } from "../house/state.ts";
+import type { ModelHouseOptions } from "./minds/mind-runtime-options.ts";
+import { requireMind } from "../fields/mind-errors.ts";
+import type { ModelMinds } from "./minds/mind-runtime.ts";
 import { startTools } from "../tools/start.ts";
 
 /** A part is kept under its tool's id: that is how the house gives a whole tool, or none of it, to an identity. */
@@ -40,23 +43,38 @@ function checkComposedCreation<X extends Program>(options: HouseOptions<X>) {
   checkComposition(registry, { ...initial, house: preview }, options.own);
 }
 /** The composition as the house runs it, checked before anything opens. */
-function composed<X extends Program>(given: HouseOptions<X>): HouseOptions<X> {
+function composed<X extends Program>(given: ModelHouseOptions<X>): ModelHouseOptions<X> {
   const options = { ...given, registry: coreRegistry(given.registry, given.by, given.identities) };
   requireProjectionVersion(options.projectionVersion);
+  if (options.mentes) {
+    const { asistentes, programas } = options.mentes;
+    requireMind(typeof asistentes === "boolean" && Array.isArray(programas), "mentes");
+    requireMind(!asistentes || options.identities, "mentes.identities");
+    requireMind(new Set(programas).size === programas.length, "mentes.duplicate");
+    requireMind(
+      programas.every(id => id !== "identities" && options.registry.some(tool => tool.id === id)),
+      "mentes.program",
+    );
+    requireMind(!(asistentes || programas.length) || options.modelMinds, "mentes.options");
+  }
   if (!options.by) throw new Error("An explicit identity is required");
   if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
   checkComposedCreation(options);
   return options;
 }
-export function startHouse<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource = systemTime) {
+export function startHouse<X extends Program>(
+  home: string,
+  options: ModelHouseOptions<X>,
+  time: TimeSource = systemTime,
+) {
   options = composed(options);
   const { by, registry, creation } = options;
   const ports = {
     ...(options.own ? { own: options.own } : {}),
     ...(options.process ? { process: options.process } : {}),
   };
-  const { capabilities, protection, journal, secrets, bus, stops, report, close, notices, state, clock } =
-    houseResources(home, options, time);
+  const resources = houseResources(home, options, time);
+  const { capabilities, protection, secrets, bus, stops, report, close, state, clock } = resources;
   try {
     if (!state().house.admin) checkCreation(creation, by);
     protection.mark();
@@ -73,15 +91,102 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     if (!state().house.admin) createHouse(bus, creation);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
-    const running = { home, bus, journal, tools, registry, close, storageNotices: notices.read, now: () => time.now() };
-    return Object.assign(running, {
-      cancelInheritedWake: (by: string, id: string) => cancelInheritedWake(state, bus, by, id),
-    });
+    const ready = loadMinds(home, options, time, resources);
+    return runningHouse(home, registry, tools, time, resources, ready);
   } catch (error) {
     if (!(error instanceof InvalidCreation)) report(error, "program", "program", "start");
     close();
     throw error;
   }
+}
+function runningHouse<X extends Program>(
+  home: string,
+  registry: HouseOptions<X>["registry"],
+  tools: ReturnType<typeof startTools<X>>,
+  time: TimeSource,
+  resources: ReturnType<typeof houseResources<X>>,
+  ready?: Promise<ModelMinds | undefined>,
+) {
+  const { bus, journal, close, notices, state } = resources;
+  return {
+    home,
+    bus,
+    journal,
+    tools,
+    registry,
+    close,
+    ...(ready ? { minds: ready } : {}),
+    storageNotices: notices.read,
+    now: () => time.now(),
+    cancelInheritedWake: (by: string, id: string) => cancelInheritedWake(state, bus, by, id),
+  };
+}
+function mindHouse<X extends Program>(
+  home: string,
+  options: ModelHouseOptions<X>,
+  time: TimeSource,
+  resources: ReturnType<typeof houseResources<X>>,
+  active: () => boolean,
+) {
+  const { capabilities, state, bus, secrets, journal, report, close } = resources;
+  return {
+    home,
+    time,
+    active,
+    execution: {
+      ...capabilities(state),
+      bus,
+      registry: options.registry,
+      state,
+      secrets,
+      now: () => time.now(),
+      live: active,
+      own: () => [],
+      process: (id: string, by?: string) => {
+        const journey = state().house.journeys.get(id);
+        return !!journey && !journey.closed && (by === undefined || journey.by === by);
+      },
+    },
+    history: () =>
+      journal.replay<ReturnType<typeof journal.append>[]>([], (events, event) => {
+        events.push(event);
+        return events;
+      }),
+    failed: (error: Error) => {
+      report(error, "program", "program", "minds");
+      close();
+    },
+  };
+}
+function loadMinds<X extends Program>(
+  home: string,
+  options: ModelHouseOptions<X>,
+  time: TimeSource,
+  resources: ReturnType<typeof houseResources<X>>,
+) {
+  const switches = options.mentes;
+  const config = options.modelMinds;
+  if (!switches || !(switches.asistentes || switches.programas.length) || !config) return undefined;
+  let active = true;
+  let minds: ModelMinds | undefined;
+  resources.stops.unshift(() => {
+    active = false;
+    minds?.close();
+  });
+  return import("./minds/mind-runtime.ts")
+    .then(({ startModelMinds }) => {
+      if (!active) return undefined;
+      minds = startModelMinds(
+        mindHouse(home, options, time, resources, () => active),
+        switches,
+        config,
+      );
+      return minds;
+    })
+    .catch((error: unknown) => {
+      resources.close();
+      throw error;
+    });
 }
 export type RunningHouse<X extends Program> = ReturnType<typeof startHouse<X>>;
 /** A surface in the house's own process reads it and acts in it as one identity, with no door in between; it
