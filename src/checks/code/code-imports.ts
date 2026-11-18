@@ -1,5 +1,5 @@
 // The gate refuses local calculation dependencies absent from the declared fingerprint, naming their source.
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
@@ -22,7 +22,7 @@ function localImport(file: string, name: string): string | undefined {
   return name.startsWith(".") || isAbsolute(name) ? resolve(dirname(file), name) : undefined;
 }
 export function checkCodeImports(files: readonly CodeFile[]): void {
-  const included = new Set(files.map(({ file }) => file));
+  const included = new Set(files.map(({ file }) => realpathSync(file)));
   const visited = new Set<string>();
   const inspect = (file: string): void => {
     if (visited.has(file)) return;
@@ -38,7 +38,8 @@ export function checkCodeImports(files: readonly CodeFile[]): void {
         const name = target.text;
         const path = localImport(file, name);
         if (path) {
-          if (!included.has(path)) throw new Error(`${file}: calculation import outside declared code: ${path}`);
+          if (!existsSync(path) || !included.has(realpathSync(path)))
+            throw new Error(`${file}: calculation import outside declared code: ${path}`);
           inspect(path);
         }
       }

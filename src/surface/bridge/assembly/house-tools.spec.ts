@@ -65,7 +65,7 @@ describe("a program's tools, composed for a surface", () => {
     const titles = (place: Picture): string[] => stacksOf(place, tools).map(stack => stack.title);
     const keysOf = (place: Picture, title: string): unknown[] =>
       stacksOf(place, tools).flatMap(stack => (stack.title === title ? stack.rows.map(row => row.key) : []));
-    expect(keysOf({ kind: "menu", at: 0 }, "Herramientas")).toEqual(["v"]);
+    expect(keysOf({ kind: "menu", at: 0 }, "Programas")).toEqual(["v"]);
     expect(titles({ kind: "view", tool: "sales", at: 0 })).toContain("Herramientas");
     expect(keysOf({ kind: "view", tool: "sales", at: 0 }, "Herramientas")).toEqual(["p"]);
     const astray = { ...shopWords, payments: { ...inSales, inside: "nowhere" } };

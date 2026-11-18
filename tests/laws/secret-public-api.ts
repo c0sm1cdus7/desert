@@ -2,6 +2,25 @@ import { join } from "node:path";
 /** Named public imports stop at the audited engine boundary. Internal composition and storage never do. */
 const modules: Record<string, readonly string[]> = {
   "house/identities/identity-name.ts": ["identityNameProblem"],
+  "tools/installable/program.ts": [
+    "programa",
+    "programAct",
+    "DESERT_CONTRACT",
+    "Type",
+    "Static",
+    "TSchema",
+    "ProgramMetadata",
+    "ProgramBody",
+    "ProgramGroup",
+    "ProgramWords",
+    "LocalProgram",
+    "InstallableProgram",
+    "FactDefinition",
+    "FactCatalog",
+    "Case",
+    "ProgramAct",
+  ],
+  "fields/messages.ts": ["defineMessage", "MessageKind", "Message", "Skill"],
   "fields/visible-text.ts": ["object"],
   "fields/fields.ts": [
     "text",
@@ -67,5 +86,24 @@ export function secretPublicApi(base: string): Readonly<Record<string, readonly 
     ["@sinclair/typebox", ["Type", "Static", "TSchema"]],
     ["@sinclair/typebox/value", ["Value"]],
   ];
-  return Object.fromEntries(entries);
+  const packages: Record<string, string> = {
+    programa: "tools/installable/program.ts",
+    messages: "fields/messages.ts",
+    fields: "fields/fields.ts",
+    journal: "journal/vocabulary.ts",
+    "program-types": "tools/tool-contract.ts",
+    surface: "surface/bridge/ports/house-ports.ts",
+  };
+  const publicEntries: [string, readonly string[]][] = [
+    ...entries,
+    ...Object.entries(packages).map(([name, file]): [string, readonly string[]] => [
+      `desert/${name}`,
+      modules[file] ?? [],
+    ]),
+    ["desert/testing", safe],
+    ...Object.entries(modules)
+      .filter(([file]) => file.startsWith("fields/"))
+      .map(([file, names]): [string, readonly string[]] => [`desert/${file.slice(0, -3)}`, names]),
+  ];
+  return Object.fromEntries(publicEntries);
 }

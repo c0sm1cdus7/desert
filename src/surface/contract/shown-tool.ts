@@ -90,6 +90,8 @@ export interface ThingMenu {
   readonly opens: (target: string) => string;
 }
 export interface Tool {
+  /** An explicitly enabled distribution shortcut opens this folder from the Menu. */
+  readonly entryTarget?: string;
   rendered?(target?: string): void;
   /** Why it cannot be opened, when that is so: a tool nobody gave you stays on your Menu, off, and says this. */
   off?(): string | undefined;

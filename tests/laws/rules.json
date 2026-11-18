@@ -3210,6 +3210,45 @@
         "src/house/minds/mind-recovery.spec.ts"
       ],
       "from": "17/11 · mente 3, contratos y autoridad"
+    },
+    {
+      "id": 275,
+      "rule": "El Menú agrupa Programas y conserva Sistema. Cada programa abre Herramientas y cada herramienta sus acciones, incluso si es única. Solo atajoUnaHerramienta explícito salta el nivel intermedio.",
+      "from": "18/11 · distribuciones, núcleo paso 2",
+      "guarantee": "spec",
+      "evidence": ["src/runtime/distributions/surface.spec.ts", "src/checks/distribution-terminal.spec.ts"]
+    },
+    {
+      "id": 276,
+      "rule": "La distribución transmite mentes al registro efectivo. Apagar asistentes retira sus actos de terminal, MCP y kit; apagar pensamiento conserva arranque determinista e historia sin cargar turno, cartas ni modelos.",
+      "from": "18/11 · distribuciones, núcleo paso 2",
+      "guarantee": "spec",
+      "evidence": ["src/runtime/distributions/minds.spec.ts", "src/tools/identities/identities.ts"]
+    },
+    {
+      "id": 277,
+      "rule": "Un programa independiente declara su programa y su distribución de prueba. La compuerta comprueba el artefacto instalado y ejecuta los mismos programChecks, fronteras y leyes de código sobre el paquete.",
+      "from": "18/11 · distribuciones, núcleo paso 2",
+      "guarantee": "spec",
+      "evidence": ["tests/laws/standalone-program.spec.ts", "tests/program/load.ts", "tests/program/registration.ts"]
+    },
+    {
+      "id": 278,
+      "rule": "Un programa es para DESERT: solo importa sus archivos, exports de desert o módulos pedidos por contrato; las distribuciones quedan fuera. La ley controla todas las formas de importación y componer rechaza dependencias declaradas de distribuciones.",
+      "from": "18/11 · distribuciones, núcleo paso 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/laws/program-imports.spec.ts",
+        "src/runtime/distributions/compose.spec.ts",
+        "src/runtime/distributions/types.spec.ts"
+      ]
+    },
+    {
+      "id": 279,
+      "rule": "Las listas vacías y opcionales de asistentes se recorren como un hilo de acción, con opciones sin Entrada, regreso por esc y confirmación final; se comprueban en la terminal real de 100×30 y 40×16.",
+      "from": "18/11 · distribuciones, núcleo paso 2",
+      "guarantee": "spec",
+      "evidence": ["src/checks/distribution-terminal.spec.ts", "src/surface/bridge/questions/asking.spec.ts"]
     }
   ]
 }

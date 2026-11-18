@@ -41,7 +41,10 @@ function checkComposedCreation<X extends Program>(options: HouseOptions<X>) {
 }
 /** The composition as the house runs it, checked before anything opens. */
 function composed<X extends Program>(given: HouseOptions<X>): HouseOptions<X> {
-  const options = { ...given, registry: coreRegistry(given.registry, given.by, given.identities) };
+  const options = {
+    ...given,
+    registry: coreRegistry(given.registry, given.by, given.identities, given.mentes?.asistentes),
+  };
   requireProjectionVersion(options.projectionVersion);
   if (!options.by) throw new Error("An explicit identity is required");
   if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);

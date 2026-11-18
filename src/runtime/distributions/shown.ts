@@ -30,7 +30,7 @@ function filteredActions(program: InstalledProgram, acts: ScreenActs, ports: Sur
   );
   return { ...acts, actsOn, menusOn };
 }
-function screenFor(program: InstalledProgram): ProgramScreen<Program> {
+function screenFor(program: InstalledProgram, shortcut: boolean): ProgramScreen<Program> {
   return (ports, tool, words, acts, start) => {
     const root = anyToolScreen(ports, tool, words, acts, start);
     const groups = program.groups.map(group => ({
@@ -49,9 +49,12 @@ function screenFor(program: InstalledProgram): ProgramScreen<Program> {
             ),
       );
     const filtered = filteredActions(program, acts, ports);
+    const only = program.groups.length === 1 ? program.groups[0] : undefined;
     return {
       ...root,
+      ...(shortcut && only ? { entryTarget: only.folder } : {}),
       ...filtered,
+      find: sought => [...(root.find?.(sought) ?? []), ...groups.flatMap(({ screen }) => screen.find?.(sought) ?? [])],
       titleOf: target => {
         const found = find(target);
         return found?.group.folder === target
@@ -70,6 +73,7 @@ function screenFor(program: InstalledProgram): ProgramScreen<Program> {
 export function distributionShown(
   programs: readonly InstalledProgram[],
   presentation: Omit<Shown<Program>, "words" | "screens">,
+  shortcut = false,
 ): Shown<Program> {
   return {
     ...presentation,
@@ -86,6 +90,6 @@ export function distributionShown(
         },
       ]),
     ),
-    screens: Object.fromEntries(programs.map(p => [p.tool.id, screenFor(p)])),
+    screens: Object.fromEntries(programs.map(p => [p.tool.id, screenFor(p, shortcut)])),
   };
 }

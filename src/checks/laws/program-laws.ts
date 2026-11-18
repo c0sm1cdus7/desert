@@ -20,6 +20,7 @@ import {
 import { uncataloguedWords } from "./biases.ts";
 import { hiddenRules, instructionFiles } from "./prompts.ts";
 import { messageCoverage } from "./message-coverage.ts";
+import { programImports } from "./program-imports.ts";
 import { programLawOptions } from "./program-law-options.ts";
 
 /** Compiled program files also belong to a declared law folder, including a separate startup folder. */
@@ -47,6 +48,7 @@ export async function programLaws(root: string): Promise<string[]> {
   const readings = await readLint(repo);
   return [
     ...importCycles(repo),
+    ...programImports(repo),
     ...strayImports(repo, options),
     ...outsideAccess(repo, options),
     ...outsideGlobals(repo, options),

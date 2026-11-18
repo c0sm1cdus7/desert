@@ -102,7 +102,14 @@ export function programSecretBoundaries(root: string): string[] {
   const tools = files.filter(file => file !== main && !adapters.includes(file));
   return [
     ...graph.failures,
-    ...registryOrigins(virtualProgram(sources, graph.aliases), main, new Set([main, ...adapters])),
+    ...registryOrigins(
+      virtualProgram(sources, graph.aliases),
+      main,
+      new Set([main, ...adapters]),
+      field(field(pkg, "desert"), "testDistribution") === undefined
+        ? undefined
+        : join(base, "src/tools/installable/program.ts"),
+    ),
     ...secretBoundaryViolations(sources, {
       composition: [main, ...compositionFiles.map(file => join(base, file))],
       adapters,

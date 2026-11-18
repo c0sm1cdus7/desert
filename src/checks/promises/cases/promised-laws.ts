@@ -3,6 +3,7 @@ import { isRecord } from "../../../fields/json-values.ts";
 import type { Shown } from "../../../surface/bridge/ports/house-ports.ts";
 import { inspect } from "node:util";
 import { Type } from "@sinclair/typebox";
+import { groupTargetCauses } from "../identities/group-checks.ts";
 import { mindTargetCauses } from "../identities/kit-checks.ts";
 import { withoutActionCheck, closeCoreSetup, isCorePersonal } from "../identities/identity-checks.ts";
 import { fieldValidity } from "../../../fields/fields.ts";
@@ -132,9 +133,12 @@ export function coverage<X extends Program>(program: Composition<X>, aim: Aim<X>
       const own = (causes: readonly string[]) => [...new Set(causes.filter(cause => !ofTheBase(cause)))].sort();
       deepStrictEqual(
         own(
-          [...refused, ...(await alsoCauses(program, aim)), ...(await mindTargetCauses(program, aim))].map(
-            cause => aim.act.outside.find(out => cause.startsWith(`${out} · `)) ?? cause,
-          ),
+          [
+            ...refused,
+            ...(await alsoCauses(program, aim)),
+            ...(await mindTargetCauses(program, aim)),
+            ...(await groupTargetCauses(program, shown, aim)),
+          ].map(cause => aim.act.outside.find(out => cause.startsWith(`${out} · `)) ?? cause),
         ),
         own([...aim.act.refuses, ...aim.act.outside]),
         said.causesMismatch,

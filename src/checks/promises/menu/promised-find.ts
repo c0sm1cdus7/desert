@@ -50,7 +50,8 @@ function findCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
       try {
         seek(seat, { kind: "menu", at: 0 }, sought);
         type(seat.router, keysTo(shown, aim.tool.id));
-        seek(seat, { kind: "view", tool: aim.tool.id, at: 0 }, sought);
+        const entry = seat.tools.find(tool => tool.id === aim.tool.id)?.entryTarget;
+        seek(seat, { kind: "view", tool: aim.tool.id, at: 0, ...(entry ? { target: entry } : {}) }, sought);
         const outsider = seated(house(), cast.outsider, shown);
         try {
           await prefer(outsider, "foreign", true);

@@ -22,7 +22,8 @@ const seekers = (tools: readonly Tool[]): readonly Tool[] =>
 /** Whether a person can look for things from here: over every tool on the Menu, over one tool on its own menu. */
 export const findable = (place: Picture, tools: readonly Tool[]): boolean => {
   if (place.kind === "menu") return seekers(tools).length > 0;
-  return place.target === undefined && toolOf(tools, place.tool).find !== undefined;
+  const tool = toolOf(tools, place.tool);
+  return (place.target === undefined || place.target === tool.entryTarget) && tool.find !== undefined;
 };
 const found = (tool: Tool, sought: string): Choice[] =>
   (tool.find?.(sought) ?? []).flatMap((row): Choice[] => {
@@ -36,7 +37,9 @@ const named = (tools: readonly Tool[], sought: string): Choice[] =>
     .filter(tool => tool.off?.() === undefined && matches(tool.name, sought))
     .map(tool => {
       const talks = tool.conversation && !tool.conversationAt;
-      const open: Place = talks ? startTalk(tool.id) : { kind: "view", tool: tool.id, at: 0 };
+      const open: Place = talks
+        ? startTalk(tool.id)
+        : { kind: "view", tool: tool.id, ...(tool.entryTarget ? { target: tool.entryTarget } : {}), at: 0 };
       return { title: tool.name.toLowerCase(), detail: tool.summary(), open };
     });
 /** What a menu lists while a person looks for something: what they wrote and what it finds. No action is there,
@@ -49,7 +52,7 @@ export function foundAt(place: Picture, sought: string, tools: readonly Tool[]):
   const wanted = sought.trim();
   const here = place.kind === "menu" ? undefined : toolOf(tools, place.tool);
   /** From the Menu, the tools themselves are found by their name, before what each of them finds. */
-  const byName = here || wanted === "" ? [] : [{ title: said.sections.tools, rows: named(tools, wanted) }];
+  const byName = here || wanted === "" ? [] : [{ title: said.sections.programs, rows: named(tools, wanted) }];
   const within = (here ? [here] : seekers(tools)).map(tool => ({
     title: here ? said.found : tool.name,
     rows: wanted === "" ? [] : found(tool, wanted),

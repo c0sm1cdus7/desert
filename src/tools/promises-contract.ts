@@ -106,6 +106,7 @@ export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
 export type Composition<X extends Program> = AdapterComposition &
   Readonly<{
     identities?: boolean;
+    mentes?: Readonly<{ asistentes: boolean; programas: readonly string[] }>;
     projectionVersion: CalculationVersion;
     words: Vocabulary<X["fact"]>;
     registry: readonly ProgramTool<X>[];

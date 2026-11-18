@@ -77,10 +77,11 @@ describe("the tree of src/", () => {
   // Mente 2E: +57 líneas exactas para diagnósticos y asignación de cartas y gasto.
   // Unión de la etapa 2: +12 líneas exactas para la capa de la casa del marco (cómo leer, contestar y consultar).
   // Distribuciones paso 1: +17 líneas exactas para diagnósticos de composición y rótulos de carpetas.
-  it("keeps every file within 300 lines and the texts within 915", () => {
+  // Distribuciones paso 2: +2 líneas exactas para rechazar dependencias de distribuciones y señalar su ruta.
+  it("keeps every file within 300 lines and the texts within 917", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(915);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(917);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

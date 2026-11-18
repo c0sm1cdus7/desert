@@ -23,9 +23,11 @@ export type Facts = CompositionErrors<typeof facts>;
 export type Foreign = CompositionErrors<typeof foreign>;
 export type Mind = CompositionErrors<typeof mind>;
 export type Assistants = CompositionErrors<typeof assistants>;
+const distro = { ...base, programas: [{ ...p, dependencies: [{ kind: "distribution", name: "void" }] }] } as const;
+export type Distro = CompositionErrors<typeof distro>;
 export type Reactions = CompositionErrors<typeof reactions>;
 componer(contract); componer(ids); componer(facts); componer(foreign);
-componer(mind); componer(assistants); componer(reactions);
+componer(mind); componer(assistants); componer(reactions); componer(distro);
 declare const state: State<Sample>;
 state.tools.elsewhere;
 state.tools.own.count = 42;
@@ -72,11 +74,12 @@ state.tools.own.count = 42;
     Foreign: ["notas/hechos/ajeno/x:hecho-ajeno"],
     Mind: ["mentes/programas/absent:mente-ausente"],
     Assistants: ["mentes/asistentes:asistentes-requiere-identidades"],
+    Distro: ["notas/dependencies/void:dependencia-distribucion"],
     Reactions: ["notas/effects:reacciones-no-soportadas"],
   });
   const diagnostics = ts.getPreEmitDiagnostics(program);
   expect(diagnostics.map(d => ({ file: d.file?.fileName, code: d.code }))).toEqual([
-    ...Array.from({ length: 7 }, () => ({ file, code: 2345 })),
+    ...Array.from({ length: 8 }, () => ({ file, code: 2345 })),
     { file, code: 2339 },
     { file, code: 2540 },
   ]);

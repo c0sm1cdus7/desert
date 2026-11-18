@@ -39,6 +39,11 @@ type GroupErrors<P extends InstallableProgram> = P extends { readonly herramient
 type MetadataErrors<P> = P extends InstallableProgram
   ? | (P["desert"] extends 1 ? never : `${P["id"]}/desert:contrato-desert`)
     | GroupErrors<P>
+    | (P extends { readonly dependencies: readonly (infer D)[] }
+        ? D extends { readonly kind: "distribution"; readonly name: infer N extends string }
+          ? `${P["id"]}/dependencies/${N}:dependencia-distribucion`
+          : never
+        : never)
     | (string extends P["id"] ? "programas:id-no-literal" : never)
     | (string extends P["hechos"][number]["nombre"] ? `${P["id"]}/hechos:hecho-no-literal` : never)
     | (`${number}.${number}.${number}` extends P["version"] ? `${P["id"]}/version:version-no-literal` : never)

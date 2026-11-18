@@ -88,7 +88,7 @@ describe("the test shop on a real terminal", () => {
     term.press("v");
     await term.until("Registradas");
     term.press("\x1b");
-    await term.until("Herramientas");
+    await term.until("Programas");
     expect(term.screen()[0]).toContain("Menú");
   });
 });
@@ -189,7 +189,7 @@ describe("what is pasted in the test shop on a real terminal", () => {
     term.press("\x1b");
     await term.rest(120);
     term.press("[200~r\r\x1b[201~");
-    await term.until("Herramientas");
+    await term.until("Programas");
     await term.rest(200);
     expect(term.screen()[0]).toContain("Menú");
   });

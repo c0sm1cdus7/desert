@@ -25,7 +25,13 @@ const reported = (check: Check): Check => ({
   },
 });
 
-export function programGroups<X extends Program>({ program, shown, where, journals }: Composed<X>): readonly Group[] {
+export function programGroups<X extends Program>({
+  program,
+  shown,
+  where,
+  journals,
+  root,
+}: Composed<X>): readonly Group[] {
   const kept = keptChecks(program, shown, journals);
   const folder: Check = {
     name: "checks upgrade evidence even when the program names no journal folder",
@@ -35,14 +41,7 @@ export function programGroups<X extends Program>({ program, shown, where, journa
       return Promise.resolve();
     },
   };
-  /** Law 212 runs once in the program's own gate, as one more check of its parts. */
-  const boundaries: Check = {
-    name: "tools cannot import secret custody, factories or direct I/O",
-    run: () => {
-      const found = programSecretBoundaries(process.cwd());
-      return found.length ? Promise.reject(new Error(found.join("\n"))) : Promise.resolve();
-    },
-  };
+  const boundaries = secretCheck(root ?? process.cwd());
   return [
     { name: `what the program composed in ${where} promises`, checks: programChecks(program, shown) },
     { name: "the journals the program keeps", checks: [folder, ...kept.map(reported)] },
@@ -53,7 +52,7 @@ export function programGroups<X extends Program>({ program, shown, where, journa
         {
           name: "obeys every repository law with the options declared by the program",
           run: async () => {
-            const found = await programLaws(process.cwd());
+            const found = await programLaws(root ?? process.cwd());
             if (found.length) throw new Error(found.join("\n"));
           },
         },
@@ -70,4 +69,14 @@ export function registerPart(groups: readonly Group[], part: number, register: R
     if (checks.length) register(group.name, checks);
   }
   if (!count) register("derived checks", [{ name: "this part has no derived checks", run: async () => {} }]);
+}
+
+function secretCheck(root: string): Check {
+  return {
+    name: "tools cannot import secret custody, factories or direct I/O",
+    run: () => {
+      const found = programSecretBoundaries(root);
+      return found.length ? Promise.reject(new Error(found.join("\n"))) : Promise.resolve();
+    },
+  };
 }

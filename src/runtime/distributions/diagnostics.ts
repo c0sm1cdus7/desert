@@ -27,6 +27,9 @@ export function diagnostico(options: CompositionOptions): readonly CompositionIs
   const ids = new Set<string>();
   const facts = new Set<string>();
   for (const program of options.programas) {
+    for (const dependency of program.dependencies ?? [])
+      if (dependency.kind === "distribution")
+        add(`${program.id}/dependencies/${dependency.name}`, "dependencia-distribucion");
     if (program.desert !== DESERT_CONTRACT) add(`${program.id}/desert`, "contrato-desert");
     if (ids.has(program.id)) add(`programas/${program.id}`, "id-repetido");
     if (!/^[a-z][a-z0-9.-]*$/.test(program.id) || ["identities", "preferences", "me"].includes(program.id))
