@@ -12,6 +12,7 @@ import {
   optionalPrivate,
   readPrivate,
   recoveryLimit,
+  removeChecked,
   writePrivate,
 } from "./redemption-files.ts";
 export function configuration(target: RedemptionTarget): Record<string, unknown> {
@@ -52,7 +53,13 @@ export function publish(
     checkDirectory();
     checkName(recovered, recovery);
     linkSync(recovery, target.file);
-    checkName(recovered, target.file);
+    try {
+      checkName(recovered, target.file);
+      checkDirectory();
+    } catch (error) {
+      removeChecked(recovered, target.file, checkDirectory);
+      throw error;
+    }
   }
   checkName(recovered, recovery);
   unlinkSync(recovery);
@@ -67,7 +74,13 @@ function publishConfiguration(file: string, recovery: string, content: string, c
     checkDirectory();
     checkName(fd, publication);
     renameSync(publication, file);
+    checkName(fd, file);
+    checkDirectory();
+  } catch (error) {
+    removeChecked(fd, file, checkDirectory);
+    throw error;
   } finally {
+    removeChecked(fd, publication, checkDirectory);
     closeSync(fd);
   }
 }

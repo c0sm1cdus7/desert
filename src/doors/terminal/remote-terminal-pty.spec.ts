@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it, vi } from "vitest";
-import { realTerminal } from "../../checks/real-terminal.ts";
+import { realTerminal, type TerminalOptions } from "../../checks/real-terminal.ts";
 import { doorHouse, rpcRequest } from "../../../tests/support/door-house.ts";
 import { serveMcp } from "../mcp/mcp-http.ts";
 import { socketTexts } from "../../texts/socket.texts.ts";
@@ -16,10 +16,12 @@ function config(url: string, key: string) {
   );
   return directory;
 }
-function terminal(directory: string) {
+function terminal(directory: string, options: TerminalOptions = {}) {
   return realTerminal(
     [process.execPath, join(import.meta.dirname, "../../../tests/support/remote-terminal-open.ts"), directory],
     { cols: 110, rows: 36 },
+    {},
+    options,
   );
 }
 it("http: opens the real terminal, reads, acts, reconnects after server restart and revokes both doors", async () => {
@@ -86,7 +88,7 @@ it("http: an invalid credential shows a catalogued refusal on the real terminal 
     if (!address || typeof address === "string") throw new Error("Missing HTTP address");
     const key = "synthetic-invalid-remote-key";
     directory = config(`http://127.0.0.1:${address.port}/mcp`, key);
-    client = terminal(directory);
+    client = terminal(directory, { expectedExit: { code: 1, signal: null } });
     await client.until(socketTexts.denied);
     expect(client.written()).not.toContain(key);
     expect(client.written()).not.toContain("Error:");

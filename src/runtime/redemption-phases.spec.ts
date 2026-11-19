@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { join, resolve } from "node:path";
 import { readFileSync, readdirSync, writeFileSync, rmSync, statSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { doorHouse, invitationCode } from "../../tests/support/door-house.ts";
+import { doorHouse, invitationCode } from "../../tests/support/redemption-home.ts";
 import { reserveDestination } from "./redemption-destination.ts";
 import { redeemToFile, redemptionUrl } from "./redeem-door.ts";
 import { isRecord } from "../fields/json-values.ts";

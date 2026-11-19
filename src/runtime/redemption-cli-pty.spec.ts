@@ -23,7 +23,8 @@ for (const mode of ["--file", "--claude"])
       const terminal = realTerminal(
         [process.execPath, ...args],
         { cols: 120, rows: 40 },
-        { REDEMPTION_TEST_MARKER: marker },
+        { REDEMPTION_TEST_MARKER: marker, HOME: home },
+        { expectedExit: { code: null, signal } },
       );
       try {
         terminal.press("ABCD-2345\r");
@@ -40,7 +41,7 @@ for (const mode of ["--file", "--claude"])
         const conflict = spawnSync(process.execPath, args, {
           input: "WXYZ-6789\n",
           encoding: "utf8",
-          env: { ...process.env, REDEMPTION_TEST_RELEASE: "1" },
+          env: { ...process.env, HOME: home, REDEMPTION_TEST_RELEASE: "1" },
           timeout: 20000,
         });
         expect(conflict.status).toBe(1);
@@ -51,7 +52,7 @@ for (const mode of ["--file", "--claude"])
         const retry = spawnSync(process.execPath, args, {
           input: "ABCD-2345\n",
           encoding: "utf8",
-          env: { ...process.env, REDEMPTION_TEST_RELEASE: "1" },
+          env: { ...process.env, HOME: home, REDEMPTION_TEST_RELEASE: "1" },
           timeout: 20000,
         });
         expect(retry.status).toBe(0);

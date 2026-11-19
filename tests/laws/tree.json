@@ -1,5 +1,8 @@
 {
   "files": {
+    "checks/terminal-lifecycle.ts": "Checks program and PTY bridge termination, declared exits and pipe failures.",
+    "runtime/redemption-directory.ts": "Pins and verifies every destination directory from the explicit trust root.",
+    "runtime/redemption-sqlite.ts": "Verifies the reserved SQLite inode and auxiliary files around native name-based operations.",
     "runtime/redemption-destination.ts": "Reserves private credential storage before redemption and preserves recovery on publication conflicts.",
     "runtime/invitation-proof.ts": "Charges each public invitation guess code-bound work without a shared legitimate lockout.",
     "adapters/models/schema-keywords.ts": "Rejects unknown schema keywords and distinguishes local field metadata from JSON validation.",

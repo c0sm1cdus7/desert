@@ -11,7 +11,7 @@ import {
   symlinkSync,
 } from "node:fs";
 import { join } from "node:path";
-import { doorHouse, invitationCode } from "../../tests/support/door-house.ts";
+import { doorHouse, invitationCode } from "../../tests/support/redemption-home.ts";
 import { isRecord } from "../fields/json-values.ts";
 import { redeemToFile } from "./redeem-door.ts";
 const opened: ReturnType<typeof doorHouse>[] = [];

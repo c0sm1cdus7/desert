@@ -34,7 +34,10 @@ export const doorTexts = {
   foundersIgnored: "Las variables de llaves fundadoras ya no se leen; se pueden borrar del anfitrión.",
   invalidFounders: "No se pudieron registrar las llaves fundadoras.",
   saved: "La llave quedó guardada. Ya podés entrar a la casa.",
-  destination: "No se envió el código: revisá dueño, enlaces y permisos del archivo (0600) y la carpeta (0700).",
+  destination:
+    "No se envió el código: revisá dueño, enlaces y permisos del archivo (0600) y de cada carpeta desde HOME " +
+    "hasta el destino (sin escritura de grupo ni de otros; recomendado 0700). " +
+    "Fuera de HOME se verifica hasta la raíz del sistema.",
   unsafeRecovery: "Recuperación insegura, conservada. Revisá dueño, enlaces, tamaño y permisos 0600 antes de repetir.",
   pending: (file: string) => `Candidato reservado, sin emisión confirmada. Archivo privado: ${file}.`,
   uncertain: (file: string) => `Resultado incierto del intento pendiente: pudo llegar. Archivo privado: ${file}.`,

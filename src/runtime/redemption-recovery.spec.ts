@@ -1,16 +1,17 @@
+import { redemptionHome } from "../../tests/support/redemption-home.ts";
 // Process death releases the destination lock while its durable candidate survives and cannot be overwritten.
 import { expect, it, vi } from "vitest";
 import { fork } from "node:child_process";
 import { join, resolve } from "node:path";
-import { mkdtempSync, readFileSync, readdirSync, rmSync, mkdirSync, chmodSync } from "node:fs";
+import { readFileSync, readdirSync, rmSync, mkdirSync, chmodSync } from "node:fs";
 import { reserveDestination } from "./redemption-destination.ts";
 import { redeemToFile } from "./redeem-door.ts";
-import { doorHouse, invitationCode } from "../../tests/support/door-house.ts";
+import { doorHouse, invitationCode } from "../../tests/support/redemption-home.ts";
 import { httpDoorFetch } from "../../tests/support/http-door-fetch.ts";
 it.each(["SIGINT", "SIGTERM", "SIGKILL"] as const)(
   "recovers after %s without stealing a live reservation",
   async signal => {
-    const home = mkdtempSync("/tmp/desert-recovery-"),
+    const home = redemptionHome("/tmp/desert-recovery-"),
       file = join(home, "credential");
     const child = fork(resolve("tests/support/reservation-child.ts"), [file], {
       stdio: ["ignore", "ignore", "ignore", "ipc"],
@@ -83,7 +84,7 @@ it("recovers a response lost after issuance by presenting the already saved cand
   }
 });
 it("admits exactly one of two simultaneous recovery processes", async () => {
-  const home = mkdtempSync("/tmp/desert-recovery-race-"),
+  const home = redemptionHome("/tmp/desert-recovery-race-"),
     file = join(home, "credential");
   const abandoned = reserveDestination({ file }, "same-attempt");
   const candidate = abandoned.prepare();

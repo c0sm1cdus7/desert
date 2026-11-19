@@ -60,6 +60,11 @@ export const journalTexts = {
     "pragma busy_timeout = 0; pragma journal_mode = delete; begin immediate; " +
     "create table if not exists writer (id integer primary key, nonce blob); " +
     "insert or replace into writer values (1, randomblob(32))",
+  redemptionRecoverySql: "pragma busy_timeout = 0; pragma journal_mode = delete",
+  redemptionLeaseSql: "begin immediate",
+  redemptionWriterSql:
+    "create table if not exists writer (id integer primary key, nonce blob); " +
+    "insert or replace into writer values (1, randomblob(32))",
   reopenedMismatch: "Reopened state differs from the complete journal fold",
   spendingUnavailable: "No se puede escribir en la cuenta de modelos; revisá si otra casa la tiene abierta.",
   locked: "This house is already open in a running process",

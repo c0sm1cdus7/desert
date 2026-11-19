@@ -1,3 +1,4 @@
+import { redemptionHome } from "../../tests/support/redemption-home.ts";
 // One-shot filesystem hooks replace checked names deterministically, without load races or real credentials.
 import { afterEach, expect, it, vi } from "vitest";
 import {
@@ -6,7 +7,6 @@ import {
   existsSync,
   fstatSync,
   mkdirSync,
-  mkdtempSync,
   readFileSync,
   readdirSync,
   renameSync,
@@ -59,7 +59,7 @@ vi.mock("node:fs", async importOriginal => {
 const homes: string[] = [];
 const material = "f".repeat(43);
 function setup() {
-  const home = mkdtempSync("/tmp/desert-descriptors-");
+  const home = redemptionHome("/tmp/desert-descriptors-");
   homes.push(home);
   const file = join(home, "destination");
   const send = vi.fn(() => Promise.resolve(new Response(JSON.stringify({ key: material }))));

@@ -9,6 +9,7 @@ import {
   writeSync,
   ftruncateSync,
   fsyncSync,
+  unlinkSync,
 } from "node:fs";
 import { isRecord } from "../fields/json-values.ts";
 export const configurationLimit = 1_048_576;
@@ -85,19 +86,13 @@ export function checkName(fd: number, file: string) {
     named = lstatSync(file);
   if (named.isSymbolicLink() || named.dev !== opened.dev || named.ino !== opened.ino) throw new Error("replaced-file");
 }
-export function privateDirectory(path: string) {
-  const fd = openSync(path, constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW);
-  const check = () => {
-    const stat = fstatSync(fd);
-    if (!stat.isDirectory() || stat.uid !== process.geteuid?.() || (stat.mode & 0o022) !== 0)
-      throw new Error("private-directory");
-    checkName(fd, path);
-  };
+// Cleanup never removes an entry that no longer names our checked inode.
+export function removeChecked(fd: number, file: string, checkDirectory: () => void) {
   try {
-    check();
-    return { check, close: () => closeSync(fd) };
-  } catch (error) {
-    closeSync(fd);
-    throw error;
+    checkDirectory();
+    checkName(fd, file);
+    unlinkSync(file);
+  } catch {
+    // Preserve replaced or unreachable entries for the owner to inspect.
   }
 }

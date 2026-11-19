@@ -13,12 +13,12 @@ const screen: Screen = {
   menu: false,
 };
 /** A tty, a keyboard and a router that only remember what they were given. */
-function seated() {
+function seated(state: Screen["state"] = "connected") {
   const sent: Intent[] = [];
   const written: string[] = [];
   let feed: (chunk: Buffer) => void = () => undefined;
   const router: Router = {
-    screen: () => screen,
+    screen: () => ({ ...screen, state }),
     send: intent => {
       sent.push(intent);
       return intent.kind !== "quit";
@@ -41,6 +41,17 @@ function seated() {
 describe("the terminal on a tty", () => {
   beforeEach(() => void vi.useFakeTimers());
   afterEach(() => void vi.useRealTimers());
+  it("keeps a disconnected screen open until the person leaves with ctrl c", async () => {
+    const { written, over, press } = seated("disconnected");
+    const ended = vi.fn();
+    void over.then(ended);
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(written.join("")).toContain("×");
+    expect(ended).not.toHaveBeenCalled();
+    press("\x03");
+    await over;
+    expect(ended).toHaveBeenCalledOnce();
+  });
   it("asks the terminal to say what is pasted, and stops asking when it leaves", async () => {
     const { written, over, press } = seated();
     expect(written[0]).toContain("\x1b[?2004h");

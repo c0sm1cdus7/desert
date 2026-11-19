@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { readFileSync, statSync } from "node:fs";
 import { expect, it } from "vitest";
-import { doorHouse, invitationCode } from "../../../tests/support/door-house.ts";
+import { doorHouse, invitationCode } from "../../../tests/support/redemption-home.ts";
 import { serveMcp } from "./mcp-http.ts";
 import { isRecord } from "../../fields/json-values.ts";
 function runClient(address: string, file: string, code: string) {

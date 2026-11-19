@@ -7,10 +7,9 @@ import { afterEach, expect, it } from "vitest";
 import { realTerminal, type RealTerminal } from "./real-terminal.ts";
 const opened: { term: RealTerminal; home: string }[] = [];
 afterEach(async () => {
-  for (const { term, home } of opened.splice(0)) {
-    await term.close();
-    rmSync(home, { recursive: true, force: true });
-  }
+  const terminals = opened.splice(0);
+  for (const { term } of terminals) await term.close();
+  for (const home of new Set(terminals.map(each => each.home))) rmSync(home, { recursive: true, force: true });
 });
 const paste = (value: string) => `\x1b[200~${value}\x1b[201~`;
 for (const size of [

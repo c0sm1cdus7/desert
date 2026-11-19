@@ -75,7 +75,12 @@ it("unix: an unknown key shows only its catalog rejection on a real terminal and
   let terminal: ReturnType<typeof realTerminal> | undefined;
   try {
     await running.ready;
-    terminal = realTerminal([process.execPath, "tests/support/shop-terminal.ts", home, "unknown"]);
+    terminal = realTerminal(
+      [process.execPath, "tests/support/shop-terminal.ts", home, "unknown"],
+      undefined,
+      {},
+      { expectedExit: { code: 1, signal: null } },
+    );
     await terminal.until("La llave no da entrada a esta casa.");
     expect(terminal.written()).not.toContain(" at ");
     expect(terminal.written()).not.toContain("Error:");

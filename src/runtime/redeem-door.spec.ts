@@ -1,6 +1,7 @@
+import { redemptionHome } from "../../tests/support/redemption-home.ts";
 // The local entry preserves MCP configuration, enforces private files and never logs returned credentials.
 import { afterEach, expect, it, vi } from "vitest";
-import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync, symlinkSync } from "node:fs";
+import { readFileSync, rmSync, statSync, writeFileSync, symlinkSync } from "node:fs";
 import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import { doorTexts } from "../texts/doors.texts.ts";
@@ -8,7 +9,7 @@ import { redeemToFile } from "./redeem-door.ts";
 import { redeemCommand } from "./redeem-door-cli.ts";
 const homes: string[] = [];
 const setup = () => {
-  const home = mkdtempSync("/tmp/desert-redemption-");
+  const home = redemptionHome("/tmp/desert-redemption-");
   homes.push(home);
   return home;
 };

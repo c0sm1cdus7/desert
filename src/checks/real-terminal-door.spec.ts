@@ -4,19 +4,21 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { realTerminal, type RealTerminal } from "./real-terminal.ts";
+import { realTerminal, type RealTerminal, type TerminalOptions } from "./real-terminal.ts";
 
 const shop = join(import.meta.dirname, "../../tests/support/shop-open.ts");
 const open: { term: RealTerminal; home: string }[] = [];
 afterEach(async () => {
-  for (const { term, home } of open.splice(0)) {
-    await term.close();
-    rmSync(home, { recursive: true, force: true });
-  }
+  const terminals = open.splice(0);
+  for (const { term } of terminals) await term.close();
+  for (const home of new Set(terminals.map(each => each.home))) rmSync(home, { recursive: true, force: true });
 });
 /** The shop, opened as a person opens it, once its Menu is on the screen: a new one, or the one of this home. */
-async function seated(home = mkdtempSync(join(tmpdir(), "desert-real-"))): Promise<RealTerminal> {
-  const term = realTerminal([process.execPath, shop, home]);
+async function seated(
+  home = mkdtempSync(join(tmpdir(), "desert-real-")),
+  options: TerminalOptions = {},
+): Promise<RealTerminal> {
+  const term = realTerminal([process.execPath, shop, home], undefined, {}, options);
   open.push({ term, home });
   await term.until("Menú");
   return term;
@@ -121,7 +123,7 @@ describe("what is pasted in the test shop on a real terminal", () => {
     await again.until("Sin ventas.");
   });
   it("hears no key in a paste that never ends, and leaves with ctrl c", async () => {
-    const term = await seated();
+    const term = await seated(undefined, { expectedExit: { code: 0, signal: null } });
     await atTheTotal(term);
     term.press("\x1b[200~15");
     await term.rest(stall);

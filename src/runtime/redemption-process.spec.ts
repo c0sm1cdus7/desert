@@ -4,7 +4,7 @@ import { once } from "node:events";
 import { join } from "node:path";
 import { readFileSync, writeFileSync } from "node:fs";
 import { expect, it } from "vitest";
-import { doorHouse, invitationCode } from "../../tests/support/door-house.ts";
+import { doorHouse, invitationCode } from "../../tests/support/redemption-home.ts";
 import { isRecord } from "../fields/json-values.ts";
 it.each(["different", "same", "file"])(
   "rejects a recoverable reservation conflict across processes (%s)",
@@ -27,7 +27,7 @@ it.each(["different", "same", "file"])(
           "http://127.0.0.1",
           ...(mode === "file" ? ["--file", file] : ["--claude", file, "--name", name]),
         ],
-        { env: {}, stdio: ["pipe", "pipe", "pipe", "ipc"] },
+        { env: { HOME: h.home }, stdio: ["pipe", "pipe", "pipe", "ipc"] },
       );
       let output = "";
       child.stdout?.on("data", chunk => {

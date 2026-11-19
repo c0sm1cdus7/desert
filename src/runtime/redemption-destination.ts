@@ -8,11 +8,11 @@ import {
   checkPrivate,
   createPrivate,
   openPrivate,
-  privateDirectory,
   readPrivate,
   recoveryLimit,
   writePrivate,
 } from "./redemption-files.ts";
+import { privateDirectory } from "./redemption-directory.ts";
 import { configuration, publish } from "./redemption-publication.ts";
 import { doorTexts } from "../texts/doors.texts.ts";
 export type RedemptionTarget = Readonly<{ file: string; name?: string }>;
@@ -33,7 +33,7 @@ class ReservedDestination {
     this.recovery = join(dirname(this.target.file), `.desert-redemption-${randomUUID()}`);
     try {
       this.directory = reserveDirectory(dirname(this.target.file));
-      this.reservation = redemptionReservation(this.target.file);
+      this.reservation = redemptionReservation(this.target.file, () => this.directory?.check());
       if (this.reservation.recovery && this.resume(this.reservation.recovery)) return;
       configuration(this.target);
       this.directory.check();
@@ -90,10 +90,13 @@ class ReservedDestination {
         this.descriptor = undefined;
       }
     } finally {
-      this.reservation?.close();
-      this.reservation = undefined;
-      this.directory?.close();
-      this.directory = undefined;
+      try {
+        this.reservation?.close();
+      } finally {
+        this.reservation = undefined;
+        this.directory?.close();
+        this.directory = undefined;
+      }
     }
   }
   private removeUnused() {
@@ -109,6 +112,7 @@ class ReservedDestination {
     try {
       if (this.descriptor === undefined) throw new Error("closed-reservation");
       this.directory?.check();
+      this.reservation?.check();
       checkPrivate(this.descriptor, recoveryLimit);
       checkName(this.descriptor, this.recovery);
       return this.descriptor;

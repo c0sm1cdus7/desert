@@ -3,8 +3,12 @@
 // knows the surface. It needs python3, which opens the pseudo-terminal: without it the check fails, and says so.
 import { spawn, spawnSync } from "node:child_process";
 import { join } from "node:path";
+import { terminalLifecycle, type TerminalExit, type TerminalOptions } from "./terminal-lifecycle.ts";
+export type { TerminalExit, TerminalOptions } from "./terminal-lifecycle.ts";
 import { StringDecoder } from "node:string_decoder";
 export interface RealTerminal {
+  /** The program result reported by the PTY bridge, independently of the bridge exit. */
+  termination(): TerminalExit | undefined;
   /** Sends these bytes to the keyboard, in one piece. */
   press(bytes: string): void;
   /** Lets time pass: what is pressed after it comes in another chunk. */
@@ -15,7 +19,7 @@ export interface RealTerminal {
   until(text: string, ms?: number): Promise<readonly string[]>;
   /** Everything the program wrote to the terminal, as bytes. */
   written(): string;
-  /** Ends the program if it is still running, and waits for it. */
+  /** Checks both program and bridge exits. Without expectedExit, requests Ctrl-C if still running. */
   close(): Promise<void>;
 }
 const pty = join(import.meta.dirname, "../../tests/support/open-pty.py");
@@ -32,27 +36,30 @@ export function screenOf(bytes: string, rows: number): readonly string[] {
   }
   return lines.map(line => line.trimEnd());
 }
-/** Runs a command on a pseudo-terminal of this size, with these variables added to its environment. */
+/** Runs a command on a real PTY. Default success is exit zero or the interruption requested by close itself. */
 export function realTerminal(
   command: readonly string[],
   size = { cols: 100, rows: 30 },
   env: Readonly<Record<string, string>> = {},
+  options: TerminalOptions = {},
 ): RealTerminal {
   if (spawnSync("python3", ["--version"]).status !== 0)
     throw new Error("python3 is not here: a program cannot be checked on a real terminal without it");
   const child = spawn("python3", [pty, String(size.cols), String(size.rows), ...command], {
-    stdio: ["pipe", "pipe", "inherit"],
+    stdio: ["pipe", "pipe", "inherit", "pipe", "pipe"],
     env: { ...process.env, ...env },
   });
+  const keyboard = child.stdin;
+  if (!keyboard || !child.stdout) throw new Error("PTY bridge pipes unavailable");
   const text = new StringDecoder("utf8");
   let bytes = "";
   child.stdout.on("data", (chunk: Buffer) => void (bytes += text.write(chunk)));
-  const ended = new Promise<void>(done => child.on("close", () => done()));
-  const failure = pipeFailure(child.stdin);
+  const lifecycle = terminalLifecycle(child, options);
   const rest = (ms: number): Promise<void> => new Promise(done => setTimeout(done, ms));
   const screen = (): readonly string[] => screenOf(bytes, size.rows);
   return {
-    press: typed => void child.stdin.write(typed),
+    ...lifecycle,
+    press: typed => void keyboard.write(typed),
     rest,
     screen,
     written: () => bytes,
@@ -65,23 +72,5 @@ export function realTerminal(
       }
       return screen();
     },
-    close: async () => {
-      if (child.exitCode === null) child.stdin.write("\x03");
-      child.stdin.end();
-      await ended;
-      throwIf(failure());
-    },
   };
-}
-/** The terminal can close between the exit check and a keystroke; writing to it then is not a failure of the
- * program under test. Any other pipe error is kept for the caller to throw. */
-function pipeFailure(stdin: NodeJS.WritableStream): () => Error | undefined {
-  let failure: Error | undefined;
-  stdin.on("error", (error: NodeJS.ErrnoException) => {
-    if (error.code !== "EPIPE") failure = error;
-  });
-  return () => failure;
-}
-function throwIf(error: Error | undefined): void {
-  if (error) throw error;
 }

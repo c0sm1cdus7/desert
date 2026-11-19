@@ -1,3 +1,4 @@
+import { redemptionHome } from "../../tests/support/redemption-home.ts";
 // Reject unsafe local custody before contacting a house and preserve suspect recovery for its owner.
 import { afterEach, expect, it, vi } from "vitest";
 import {
@@ -6,7 +7,6 @@ import {
   linkSync,
   lstatSync,
   mkdirSync,
-  mkdtempSync,
   readFileSync,
   readdirSync,
   renameSync,
@@ -22,7 +22,7 @@ import { doorTexts } from "../texts/doors.texts.ts";
 const homes: string[] = [];
 const material = "f".repeat(43);
 function setup() {
-  const home = mkdtempSync("/tmp/desert-custody-");
+  const home = redemptionHome("/tmp/desert-custody-");
   homes.push(home);
   const file = join(home, "destination");
   const send = vi.fn(() => Promise.resolve(new Response(JSON.stringify({ key: material }))));
