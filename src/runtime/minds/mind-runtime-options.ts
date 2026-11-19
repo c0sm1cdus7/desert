@@ -1,4 +1,4 @@
-// Declara interruptores y recursos explícitos del pensamiento sin cargar modelos al abrir una casa apagada.
+// Declares explicit model resources, optional host spending accounts and mind switches.
 import type { Card } from "../../adapters/models/catalog.ts";
 import type { Language } from "../../fields/languages.ts";
 import type { MindActor } from "../../fields/mind-actor.ts";
@@ -13,16 +13,19 @@ import type { SupervisionPorts, TurnOutcome } from "./mind-ports.ts";
 import type { Composition } from "../../tools/promises-contract.ts";
 import type { ProgramMindCase } from "../../tools/minds/program-mind-cases.ts";
 import type { Bus } from "../../journal/bus.ts";
-import type { ModelCalls } from "../../house/minds/model-call-state.ts";
+import type { ModelAccount, ModelCalls } from "../../house/minds/model-call-state.ts";
+import type { SpendingAccount } from "./model-spending-account.ts";
 export type MindBilling = Readonly<{
   bus: Pick<Bus, "emit" | "together" | "confirmation">;
   calls: () => ModelCalls;
+  balance?: (account: string) => ModelAccount;
   active: () => boolean;
 }>;
 export type MindSwitches = Readonly<{ asistentes: boolean; programas: readonly string[] }>;
 export type MindRuntimeOptions = Readonly<{
   programBank?: Readonly<{ program: Composition<Program>; cases: ReadonlyMap<string, readonly ProgramMindCase[]> }>;
   billing?: MindBilling;
+  spendingAccount?: SpendingAccount;
   observeTurn?: (outcome: TurnOutcome) => void;
   unavailable?: ReadonlyMap<string, import("../../texts/mind-turn.texts.ts").TurnStop>;
   language: Language;

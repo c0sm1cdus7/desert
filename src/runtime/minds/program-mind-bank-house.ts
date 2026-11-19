@@ -1,4 +1,4 @@
-// Aísla el estado de cada escena del banco y conserva el motor, las transacciones y la protección de entradas.
+// Isolates bank scenes while using the house engine for actions and directed messages.
 import { randomUUID } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -12,7 +12,7 @@ import { readonlyState } from "../../journal/readonly-state.ts";
 import { startState, toolsStep } from "../../house/state.ts";
 import { createHouse } from "../../house/members.ts";
 import { effect } from "../../house/facts.ts";
-import { execute } from "../../tools/execute.ts";
+import { startTools } from "../../tools/start.ts";
 import type { Execution } from "../../tools/execution-contract.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { Composition } from "../../tools/promises-contract.ts";
@@ -30,6 +30,7 @@ export class ProgramMindBankHouse {
   readonly secrets: Redactor<Program>;
   readonly bus: Bus;
   readonly execution: Execution<Program>;
+  private readonly tools: ReturnType<typeof startTools<Program>>;
   private state: ReturnType<typeof startState<Program>>;
   private events: Event[] = [];
   private live = true;
@@ -46,6 +47,7 @@ export class ProgramMindBankHouse {
     });
     this.bus = new Bus(this.append, this.transaction);
     this.execution = this.ports();
+    this.tools = startTools({ ...this.execution, history: [] });
     this.home = mkdtempSync(join(tmpdir(), "desert-mind-bank-"));
   }
   active = () => this.live && this.billing.active();
@@ -94,7 +96,7 @@ export class ProgramMindBankHouse {
         const journey = this.state.house.journeys.get(id);
         return !!journey && !journey.closed && journey.by === by;
       },
-      // No recibe custodia ni adaptadores de la casa que pidió el banco.
+      // The bank receives no custody or adapters from the requesting house.
       secrets: this.secrets,
       ...(contracts ? { contracts } : {}),
     };
@@ -128,8 +130,10 @@ export class ProgramMindBankHouse {
     );
   }
   async wake(scene: ProgramMindScene) {
-    this.bus.emit(effect("attended", { target: scene.when.target }, "bank"));
-    const result = execute(this.execution, scene.when, this.state.through, "bank");
+    const wake =
+      "kind" in scene.when ? { act: "message", target: scene.when.to, input: { text: scene.when.text } } : scene.when;
+    if (!("kind" in scene.when)) this.bus.emit(effect("attended", { target: wake.target }, "bank"));
+    const result = this.tools.act(wake, this.state.through, "bank");
     const done = result.status === "processing" ? await result.completion : result;
     if (done.status !== "accepted") throw new Error(`bank.wake:${done.reason}`);
   }
@@ -156,6 +160,7 @@ export class ProgramMindBankHouse {
   }
   close() {
     this.live = false;
+    this.tools.stop();
     this.bus.close();
     rmSync(this.home, { recursive: true, force: true });
   }

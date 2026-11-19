@@ -1,4 +1,5 @@
-// Reduce esquemas para el proveedor y verifica la respuesta contra el esquema completo.
+// Translates provider schemas while checking answers against the complete local contract.
+import { checkSchemaKeywords, localKeywords } from "./schema-keywords.ts";
 import { isDeepStrictEqual } from "node:util";
 import { Kind, TypeGuard } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -25,45 +26,12 @@ const forbidden = new Set([
   "minContains",
   "maxContains",
 ]);
-const schemaKeys = new Set([
-  "type",
-  "properties",
-  "required",
-  "additionalProperties",
-  "items",
-  "enum",
-  "const",
-  "anyOf",
-  "oneOf",
-  "allOf",
-  "$ref",
-  "$defs",
-  "definitions",
-  "$id",
-  "description",
-  "title",
-  "minLength",
-  "maxLength",
-  "minimum",
-  "maximum",
-  "exclusiveMinimum",
-  "exclusiveMaximum",
-  "multipleOf",
-  "pattern",
-  "format",
-  "minItems",
-  "maxItems",
-  "uniqueItems",
-  "contains",
-  "minContains",
-  "maxContains",
-  "minProperties",
-  "maxProperties",
-  "default",
-]);
+const providerOmitted = (key: string) =>
+  localKeywords.has(key) || forbidden.has(key) || ["$defs", "definitions", "$id", "additionalProperties"].includes(key);
 const isObject = (value: unknown): value is Schema =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 export function providerSchema(schema: Schema): Schema {
+  checkSchemaKeywords(schema);
   const visit = (node: unknown, seen: Set<object>): unknown => {
     if (typeof node === "boolean") return node ? {} : { not: {} };
     if (!isObject(node)) throw new Error("schema");
@@ -83,7 +51,7 @@ export function providerSchema(schema: Schema): Schema {
     }
     const result: Schema = {};
     for (const [key, value] of Object.entries(node)) {
-      if (forbidden.has(key) || ["$defs", "definitions", "$id", "additionalProperties"].includes(key)) continue;
+      if (providerOmitted(key)) continue;
       if (key === "properties") {
         if (!isObject(value)) throw new Error("schema properties");
         result[key] = Object.fromEntries(Object.entries(value).map(([name, child]) => [name, visit(child, next)]));
@@ -117,7 +85,7 @@ const shallow = (node: Schema): Schema => {
     "minContains",
     "maxContains",
   ];
-  return Object.fromEntries(Object.entries(node).filter(([key]) => !removed.includes(key)));
+  return Object.fromEntries(Object.entries(node).filter(([key]) => !removed.includes(key) && !localKeywords.has(key)));
 };
 const basicCheck = (basic: Schema, kind: string, data: unknown): boolean => {
   Object.defineProperty(basic, Kind, { value: kind });
@@ -189,14 +157,14 @@ const untyped = (node: Schema): boolean => {
     "anyOf",
     "oneOf",
   ]);
-  if (Object.keys(node).some(key => !neutral.has(key))) throw new Error("schema type");
+  if (Object.keys(node).some(key => !neutral.has(key) && !localKeywords.has(key))) throw new Error("schema type");
   return true;
 };
 export function matchesSchema(schema: Schema, value: unknown): boolean {
+  checkSchemaKeywords(schema);
   const check: Check = (node, data) => {
     if (typeof node === "boolean") return node;
     if (!isObject(node)) throw new Error("schema");
-    for (const key of Object.keys(node)) if (!schemaKeys.has(key)) throw new Error(`schema keyword: ${key}`);
     if (typeof node.$ref === "string") {
       const siblings = Object.fromEntries(Object.entries(node).filter(([key]) => key !== "$ref"));
       return check(reference(schema, node.$ref), data) && check(siblings, data);

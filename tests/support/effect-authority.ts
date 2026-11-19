@@ -43,6 +43,7 @@ export const houseEffects = (by: string) =>
       by,
     ),
     effect("door-invitation-redeemed", { invitation: "forged", key: "forged" }, by),
+    effect("mind-requested", { to: "mind:sales", text: "Request" }, by),
     effect("house-created", {}, by),
     effect("granted", { identity: "beto", tools: ["sales", "payments"] }, by),
     effect("named", { identity: "beto", name: "Otro nombre" }, by),

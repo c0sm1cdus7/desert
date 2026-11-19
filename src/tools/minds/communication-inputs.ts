@@ -5,5 +5,5 @@ import { scene } from "../../house/own-acts.ts";
 import { mindText } from "../../house/minds/journey-facts.ts";
 export const communicationInputs = {
   scene,
-  message: object({ to: Type.String(), text: mindText }),
+  message: object({ to: Type.String(), text: mindText, replyTo: Type.Optional(Type.String({ minLength: 1 })) }),
 };

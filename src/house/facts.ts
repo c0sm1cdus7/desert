@@ -1,5 +1,7 @@
 // The house fact catalog, typed emissions and effects, including the legacy catalog for saved records.
 import { doorFacts } from "./doors/door-facts.ts";
+import { mindActor } from "../fields/mind-actor.ts";
+import { mindText } from "./minds/journey-facts.ts";
 import { ruleFacts } from "./rules/rule-facts.ts";
 import { deviceFacts } from "./devices/device-facts.ts";
 import { executionDestination } from "../fields/device-protocol.ts";
@@ -24,6 +26,7 @@ export const names = Type.Array(name);
 const actStatus = literals("accepted", "rejected", "draft", "inconclusive", "interrupted");
 /** The new mind facts stay after existing facts in validation, without changing their schemas. */
 export const mindHouseCatalog = {
+  "mind-requested": object({ to: mindActor, text: mindText }),
   ...assistantFacts,
   ...journeyFacts,
   ...mindFacts,

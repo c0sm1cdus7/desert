@@ -129,7 +129,7 @@ export function runtimeActions<X extends Program>(
     const cause = [opened.id];
     if (item.tool === "mind") {
       if (!ruleControl(house, turn.scope, cause, proposal, "mind")) return { status: "rejected", id: turn.id };
-      const event = applyProgramCommunication(house, proposal, turn.id, turn.scope);
+      const event = applyProgramCommunication(house, proposal, turn.id, turn.scope, cause);
       return { status: event ? "accepted" : "rejected", id: event?.id ?? turn.id };
     }
     if (item.scope === "control" || item.scope === "open")

@@ -1,7 +1,7 @@
-// Explica por qué una mente no puede pensar al abrir y deja el aviso en su escena pública.
+// Explains unavailable program minds using the selected billing account and public scenes.
 import { costUsd, type Card } from "../../adapters/models/catalog.ts";
 import { effect } from "../../house/facts.ts";
-import { modelAccount } from "../../house/minds/model-call-state.ts";
+import { billingAccount, billingFor } from "./mind-billing.ts";
 import { programMindUnavailable } from "../../texts/program-mind.texts.ts";
 import { turnNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -53,7 +53,7 @@ async function unavailableReason<X extends Program>(
     hasKey = false;
   }
   if (!house.active()) return "interrupted";
-  const account = modelAccount(house.execution.state().house.modelCalls, options.account);
+  const account = billingAccount(billingFor(house, options), options.account);
   const fingerprint = options.fingerprint(definition);
   const passed = card?.results.some(
     result =>

@@ -1,4 +1,5 @@
 // Integra pliegues de mentes en la casa y conserva referencias cuando un hecho no los cambia.
+import { requireMind } from "../../fields/mind-errors.ts";
 import { mindHouseCatalog, type HouseEvent } from "../facts.ts";
 import type { House } from "../members.ts";
 import { assistantStep } from "../assistants/assistant-state.ts";
@@ -8,6 +9,10 @@ import { journeyStep } from "./journey-state.ts";
 import { modelCallStep } from "./model-call-state.ts";
 export function mindHouseStep(state: House, event: HouseEvent): House {
   if (!Object.hasOwn(mindHouseCatalog, event.kind)) return state;
+  if (event.kind === "mind-requested") {
+    requireMind(state.grants.has(event.by) && !event.process, "request.by");
+    return state;
+  }
   state = assistantStep(state, event);
   state = mindSettingsStep(state, event);
   const minds = mindStep(state.minds, event);

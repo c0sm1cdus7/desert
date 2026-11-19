@@ -1,4 +1,4 @@
-// Arma los recursos del pensamiento desde la composición y conserva en la base catálogo y huellas.
+// Builds model resources from a composition while keeping its catalog and fingerprints in DESERT.
 import { createHash } from "node:crypto";
 import { cards } from "../../adapters/models/catalog.ts";
 import { frameHouse, frameLabels } from "../../texts/mind-frame.texts.ts";
@@ -9,7 +9,7 @@ import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
 import type { MindRuntimeOptions } from "./mind-runtime-options.ts";
 export type ProgramMindResources = Pick<
   MindRuntimeOptions,
-  "key" | "transport" | "account" | "capNanoUsd" | "language"
+  "key" | "transport" | "account" | "capNanoUsd" | "language" | "billing" | "spendingAccount"
 >;
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 export function programMindOptions(
@@ -32,7 +32,10 @@ export function programMindOptions(
       if (!fingerprint) throw new Error("runtime.definition");
       return fingerprint;
     },
-    message: event => (event.layer === "house" && event.kind === "mind-message" ? event.data : undefined),
+    message: event =>
+      event.layer === "house" && (event.kind === "mind-message" || event.kind === "mind-requested")
+        ? event.data
+        : undefined,
     textRules: [],
     rulesVersion: () => version,
     programBank: { program, cases: new Map(installed.map(item => [item.id, item.mindCases ?? []])) },
