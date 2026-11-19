@@ -37,8 +37,7 @@ export const doorTexts = {
   destination:
     "No se envió el código: revisá dueño, enlaces y permisos del archivo (0600) y de cada carpeta desde HOME " +
     "hasta el destino (sin escritura de grupo ni de otros; recomendado 0700).",
-  outsideHome:
-    "No se envió el código: la llave se guarda solo dentro de tu carpeta personal (HOME). Elegí un destino ahí.",
+  outsideHome: "No se envió el código: la llave se guarda solo dentro de tu carpeta personal (HOME).",
   unsafeRecovery: "Recuperación insegura, conservada. Revisá dueño, enlaces, tamaño y permisos 0600 antes de repetir.",
   pending: (file: string) => `Candidato reservado, sin emisión confirmada. Archivo privado: ${file}.`,
   uncertain: (file: string) => `Resultado incierto del intento pendiente: pudo llegar. Archivo privado: ${file}.`,
