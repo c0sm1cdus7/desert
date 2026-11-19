@@ -125,12 +125,13 @@ it.each(["group", "link", "foreign"])("checks HOME itself (%s)", async kind => {
   await expect(redeemToFile("http://localhost", "ABCD-2345", { file: target })).rejects.toThrow(doorTexts.destination);
   expect(send).not.toHaveBeenCalled();
 });
-it("rejects an outside-HOME chain with a public temporary ancestor", async () => {
+it("refuses a private destination outside HOME and says that is the reason", async () => {
   const { home, file, send } = setup();
   const inner = join(home, "home");
   mkdirSync(inner, { mode: 0o700 });
   vi.stubEnv("HOME", inner);
-  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(doorTexts.destination);
+  // The destination folder itself is private (0700, own user): the refusal is only about being outside HOME.
+  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(doorTexts.outsideHome);
   expect(send).not.toHaveBeenCalled();
 });
 it("accepts a private HOME through the controlled system tmp alias", async () => {

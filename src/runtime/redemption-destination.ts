@@ -43,7 +43,7 @@ class ReservedDestination {
       this.reservation.record(this.recovery, attempt);
     } catch (error) {
       this.close();
-      throw error instanceof RedemptionFailure ? error : new RedemptionFailure(doorTexts.destination);
+      throw error instanceof RedemptionFailure ? error : new RedemptionFailure(destinationFailure(error));
     }
   }
   private resume(previous: string) {
@@ -172,7 +172,12 @@ export const reserveDestination = (target: RedemptionTarget, attempt = "") => ne
 function reserveDirectory(path: string) {
   try {
     return privateDirectory(path);
-  } catch {
-    throw new RedemptionFailure(doorTexts.destination);
+  } catch (error) {
+    throw new RedemptionFailure(destinationFailure(error));
   }
+}
+function destinationFailure(error: unknown): string {
+  return error instanceof Error && error.message === "private-outside-home"
+    ? doorTexts.outsideHome
+    : doorTexts.destination;
 }

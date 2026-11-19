@@ -21,11 +21,12 @@ export function privateDirectory(path: string) {
   if (!home || !isAbsolute(home)) throw new Error("private-home");
   const destination = systemAlias(resolve(path));
   const root = systemAlias(resolve(home));
-  const inside = destination === root || destination.startsWith(`${root}${sep}`);
+  // The key is kept only inside HOME: outside it the chain reaches "/", which an ordinary user never owns.
+  if (destination !== root && !destination.startsWith(`${root}${sep}`)) throw new Error("private-outside-home");
   const paths: string[] = [];
   for (let at = destination; ; at = dirname(at)) {
     paths.unshift(at);
-    if (at === (inside ? root : sep)) break;
+    if (at === root) break;
   }
   const opened: { path: string; fd: number }[] = [];
   const check = () => {
