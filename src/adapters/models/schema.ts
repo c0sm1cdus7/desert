@@ -14,20 +14,22 @@ const kinds: Record<string, string> = {
   boolean: "Boolean",
   null: "Null",
 };
-const forbidden = new Set([
-  "minLength",
-  "maxLength",
-  "minimum",
-  "maximum",
-  "minItems",
-  "maxItems",
-  "uniqueItems",
-  "contains",
-  "minContains",
-  "maxContains",
+// Only the shape travels to the provider; every other constraint (patterns, formats, ranges, lengths) stays in the local
+// contract that checks each answer. A keyword the provider might reject can never be sent by omission from a list.
+const providerKeywords = new Set([
+  "type",
+  "properties",
+  "required",
+  "items",
+  "enum",
+  "const",
+  "anyOf",
+  "oneOf",
+  "allOf",
+  "description",
+  "title",
 ]);
-const providerOmitted = (key: string) =>
-  localKeywords.has(key) || forbidden.has(key) || ["$defs", "definitions", "$id", "additionalProperties"].includes(key);
+const providerOmitted = (key: string) => !providerKeywords.has(key);
 const isObject = (value: unknown): value is Schema =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 export function providerSchema(schema: Schema): Schema {
@@ -49,6 +51,7 @@ export function providerSchema(schema: Schema): Schema {
       const target = path.reduce<unknown>((current, part) => (isObject(current) ? current[part] : undefined), schema);
       return visit(target, next);
     }
+    if ("oneOf" in node && "anyOf" in node) throw new Error("schema branches");
     const result: Schema = {};
     for (const [key, value] of Object.entries(node)) {
       if (providerOmitted(key)) continue;
@@ -58,7 +61,7 @@ export function providerSchema(schema: Schema): Schema {
       } else if (key === "items") result[key] = visit(value, next);
       else if (["anyOf", "oneOf", "allOf"].includes(key)) {
         if (!Array.isArray(value)) throw new Error("schema branches");
-        result[key] = value.map(child => visit(child, next));
+        result[key === "oneOf" ? "anyOf" : key] = value.map(child => visit(child, next));
       } else result[key] = value;
     }
     if (node.type === "object") result.additionalProperties = false;
