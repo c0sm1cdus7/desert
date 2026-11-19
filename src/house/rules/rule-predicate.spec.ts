@@ -15,7 +15,7 @@ const schema = Type.Object({ amount: Type.Number(), currency: Type.String(), abs
 const check = (condition: Predicate) => {
   expect(
     ruleProblem(
-      { id: "test", text: "Prueba", action: { tool: "probe", act: "send" }, condition, effect: "frena" },
+      { id: "test", text: "Prueba", action: { tool: "probe", act: "send" }, condition, effect: "block" },
       schema,
     ),
   ).toBeUndefined();
@@ -72,7 +72,7 @@ it("limita tamaño y profundidad, rechaza accesores y claves fuera de toda rama 
     text: "Prueba",
     action: { tool: "probe", act: "send" },
     condition: { operator: "gt", field: amount, value: 10 },
-    effect: "frena",
+    effect: "block",
   };
   const cyclic: Record<string, unknown> = { operator: "not" };
   cyclic.condition = cyclic;

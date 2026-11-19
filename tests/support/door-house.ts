@@ -77,7 +77,7 @@ function doorOptions(founder: string, founders?: FounderDoorKeys) {
       ],
     },
     founderDoorKeys: founders ?? {
-      read: () => new Map([[founder, { identity: "ana", door: "agente" as const }]]),
+      read: () => new Map([[founder, { identity: "ana", door: "agent" as const }]]),
       present: () => false,
     },
   };

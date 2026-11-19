@@ -9,7 +9,12 @@ export type McpRequest = Readonly<{
   body: () => AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
   signal?: AbortSignal;
 }>;
-export type McpResponse = Readonly<{ status: number; headers: Readonly<Record<string, string>>; body: string }>;
+export type McpResponse = Readonly<{
+  status: number;
+  headers: Readonly<Record<string, string>>;
+  body: string;
+  events?: AsyncIterable<string>;
+}>;
 export const empty = (status: number, headers: Record<string, string> = {}): McpResponse => ({
   status,
   headers,
@@ -33,12 +38,12 @@ export function authenticate(
     let found: DoorKey | undefined;
     for (const [token, key] of keys) {
       const matches = timingSafeEqual(digest, createHash("sha256").update(token).digest());
-      if (matches && bearer !== undefined && key.door === "agente") found = key;
+      if (matches && bearer !== undefined) found = key;
     }
     return found;
   }
   const key = bearer === undefined ? undefined : keys.get(bearer);
-  return key?.door === "agente" ? key : undefined;
+  return key;
 }
 export function bodyFailure(request: McpRequest): McpResponse | undefined {
   const length = header(request, "content-length");

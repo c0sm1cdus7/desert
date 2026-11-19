@@ -31,7 +31,7 @@ house.bus.emit(
         text: "Tope anterior",
         action: { tool: "sales", act: "register" },
         condition: { operator: "actor", kind: "identity" },
-        effect: "frena",
+        effect: "block",
       },
     },
     "ana",

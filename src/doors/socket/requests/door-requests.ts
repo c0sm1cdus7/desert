@@ -22,7 +22,6 @@ export async function routeRequest<X extends Program>(
     motivo: said.unavailable,
     ...("id" in message ? { id: message.id } : {}),
   } as const;
-  if (peer.key()?.door !== "terminal") return refusal;
   if (message.tipo === "acto") return credentialAct(session, peer, message);
   if (!jsonData(message)) return { ...refusal, motivo: said.invalidData };
   if (message.tipo === "leer") {
@@ -86,6 +85,7 @@ async function credentialAct<X extends Program>(session: Session<X>, peer: Peer,
   if (signal.aborted) controller.abort();
   check();
   try {
+    // Shutdown refuses new requests, but an accepted act retains its credential while the house drains.
     return await book.act(key?.identity ?? "", message, controller.signal);
   } finally {
     stop();

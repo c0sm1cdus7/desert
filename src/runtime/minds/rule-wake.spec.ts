@@ -38,7 +38,7 @@ it("aprueba después de reiniciar y despierta solo al actor frenado sin repetir 
       text: "Pausa",
       action: { tool: "probe", act: "send" },
       condition: { operator: "actor", kind: "program" },
-      effect: "frena",
+      effect: "block",
     };
     expect((await settle(rig.act("ana", "save", definition, "rules"))).status).toBe("accepted");
     expect((await settle(rig.act("mind:probe", "send", {}, "probe"))).status).toBe("rejected");

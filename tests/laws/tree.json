@@ -538,6 +538,14 @@
     "texts/personal.texts.ts": "Shared words for the core's personal actions, generated like every program action.",
     "house/devices/device-public-key.ts": "Validate public registration material without opening a device or touching private credentials.",
     "tools/execution/action-authority.ts": "Resolves each action and checks live identity, attendance, kit and journey authority.",
-    "runtime/house-composition.ts": "Validates the complete core catalog, creation and mind composition before house startup."
+    "runtime/house-composition.ts": "Validates the complete core catalog, creation and mind composition before house startup.",
+    "runtime/mcp-connection-config.ts": "Read only the selected MCP entry, preferring project configuration and returning credentials without output.",
+    "runtime/remote-address.ts": "Validate an encrypted house origin before any remote credential can leave this process.",
+    "doors/terminal/remote-terminal-client.ts": "Reconnect the terminal to one remote house; recover request identifiers without resending any action.",
+    "doors/mcp/socket-http.ts": "Carry the socket protocol over authenticated POSTs and a bounded event stream on the MCP listener.",
+    "doors/socket/server/remote-sessions.ts": "Remote peers share the socket request book and state delivery without owning the cloud house lifetime.",
+    "doors/socket/client/http-stream.ts": "Adapt authenticated HTTP events to the existing framed duplex, with ordered POSTs and no action retries.",
+    "house/core-value-history.ts": "Read historical door and rule values without changing saved records or accepting them in new emissions.",
+    "tools/rules/rule-display.ts": "Render rule effect labels in the house language while preserving English values in facts and action results."
   }
 }

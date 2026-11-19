@@ -25,7 +25,7 @@ it("frena la acción publicada sin emitir hechos del proveedor", async () => {
             text: "No emitir",
             action: { tool: "documentos", act: "fiscal/emitir" },
             condition: { operator: "actor", kind: "identity" },
-            effect: "frena",
+            effect: "block",
           },
         },
         "ana",
@@ -39,7 +39,7 @@ it("frena la acción publicada sin emitir hechos del proveedor", async () => {
     expect(result.value).toEqual({ status: "core-failure", reason: "forbidden" });
     expect(house.events().filter(event => event.kind === "documentos/emitido")).toEqual([]);
     expect(house.events().filter(event => event.kind === "rule-evaluated")).toMatchObject([
-      { by: "beto", data: { results: [{ outcome: "frena" }] } },
+      { by: "beto", data: { results: [{ outcome: "block" }] } },
     ]);
   } finally {
     engine.stop();

@@ -1,4 +1,6 @@
 // The house fact catalog, typed emissions and effects, including the legacy catalog for saved records.
+import { historicalCoreFacts } from "./core-value-history.ts";
+export { currentCoreValue } from "./core-value-history.ts";
 import { doorFacts } from "./doors/door-facts.ts";
 import { mindActor } from "../fields/mind-actor.ts";
 import { mindText } from "./minds/journey-facts.ts";
@@ -119,6 +121,7 @@ export const effect = <K extends HouseKind>(
 ) => ({ layer: "house" as const, kind, data, ...origin(by, cause, process) });
 /** The one compatibility boundary for records written before shared house reading. */
 export const legacyHouseCatalog = {
+  ...historicalCoreFacts,
   "channel-created": object({ channel: name, members: names }),
   "tool-entry": object({
     tool: name,

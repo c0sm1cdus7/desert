@@ -21,7 +21,7 @@ it("serves the MCP door from a cloud house opened with its root key and door key
   const cloud = startCloudHouse({ ...shopProgram, by: "shop", creation }, home, environment, "ROOT");
   const signal = process.listeners("SIGTERM").find(listener => !before.includes(listener));
   if (signal) stops.push(() => signal("SIGTERM"));
-  const keys = environmentDoorKeys(environment, [{ variable: "ANA", identity: "ana", door: "agente" }]);
+  const keys = environmentDoorKeys(environment, [{ variable: "ANA", identity: "ana", door: "agent" }]);
   const door = mcpDoor(cloud.door, keys, { name: "Almacén", version: "1", limits: { recentLines: 20 } });
   const call = (name: string, args: unknown) =>
     door.handle({

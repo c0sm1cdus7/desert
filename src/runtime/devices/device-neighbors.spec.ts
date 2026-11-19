@@ -45,7 +45,7 @@ it("offers connected destinations over MCP and sends the chosen machine through 
   rig.device("vm");
   const door = mcpDoor(
     rig.house,
-    new Map([["synthetic-identity-credential", { identity: "beto", door: "agente" as const }]]),
+    new Map([["synthetic-identity-credential", { identity: "beto", door: "agent" as const }]]),
     { name: "test", version: "1", limits: { recentLines: 10 } },
   );
   const call = async (name: string, args: unknown) =>

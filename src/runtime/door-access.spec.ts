@@ -20,7 +20,7 @@ it.each([false, true])("adopts founders at birth or at the first opening of an e
     },
   };
   const warn = vi.fn();
-  const founders = founderDoorKeys(environment, [{ identity: "ana", door: "agente", variable: "FOUNDER" }], warn);
+  const founders = founderDoorKeys(environment, [{ identity: "ana", door: "agent", variable: "FOUNDER" }], warn);
   const h = doorHouse(existing ? { read: () => new Map(), present: () => false } : founders);
   opened.push(h);
   if (existing) {
@@ -42,7 +42,7 @@ it.each([false, true])("adopts founders at birth or at the first opening of an e
 it("never reads host values after invitation history, even when no key remains", async () => {
   const h = doorHouse({ read: () => new Map(), present: () => false });
   opened.push(h);
-  await h.act("invite", { door: "agente" }, "identities/beto");
+  await h.act("invite", { door: "agent" }, "identities/beto");
   const read = vi.fn(() => {
     throw new Error("Must not read environment values");
   });
@@ -54,7 +54,7 @@ it("never reads host values after invitation history, even when no key remains",
 it("restores both invitation and key state if the redemption transaction fails", async () => {
   const h = doorHouse();
   opened.push(h);
-  const code = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+  const code = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
   const before = h.house().tools.state().house.doors.keys.size;
   const stop = h.house().bus.on("door-invitation-redeemed", () => {
     throw new Error("Synthetic storage failure");
@@ -70,7 +70,7 @@ it("restores both invitation and key state if the redemption transaction fails",
 it("scrubs pasted keys and codes from journal entries, diagnostics and MCP preparation", async () => {
   const h = doorHouse();
   opened.push(h);
-  const code = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+  const code = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
   const key = h.access().redeem(code).key;
   if (!key) throw new Error("Missing synthetic credential");
   h.house().bus.emit(
@@ -87,7 +87,7 @@ it("scrubs pasted keys and codes from journal entries, diagnostics and MCP prepa
 it("refuses expiration reached between fingerprint verification and the transaction", async () => {
   const h = doorHouse();
   opened.push(h);
-  const code = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+  const code = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
   const before = h.house().tools.state().house.doors.keys.size;
   const together = h.house().bus.together.bind(h.house().bus);
   const transaction = vi.spyOn(h.house().bus, "together").mockImplementation(<T>(write: () => T): T => {
@@ -108,7 +108,7 @@ it("refuses expiration reached between fingerprint verification and the transact
 it("redeems through the catalog action without retaining its private material", async () => {
   const h = doorHouse();
   opened.push(h);
-  const code = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+  const code = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
   const result = h.access().redeem(code);
   expect(result.status).toBe(200);
   const acts = h.house().journal.replay<string[]>([], (found, event) => {

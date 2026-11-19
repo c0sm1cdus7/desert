@@ -26,7 +26,8 @@ async function answer(door: Door, request: IncomingMessage, response: ServerResp
     const result = await door.handle(incoming(request, response));
     if (response.destroyed) return;
     response.writeHead(result.status, { ...result.headers, ...(request.complete ? {} : { Connection: "close" }) });
-    response.end(result.body);
+    if (result.events) await streamEvents(response, result.events);
+    else response.end(result.body);
   } catch {
     if (!response.headersSent) response.writeHead(500);
     response.end();
@@ -55,4 +56,26 @@ export async function serveMcp(door: Door, options: Readonly<{ host: string; por
     await closing;
   };
   return { address: server.address(), close };
+}
+
+function drained(response: ServerResponse): Promise<void> {
+  return new Promise(resolve => {
+    const done = () => {
+      response.off("drain", done);
+      response.off("close", done);
+      resolve();
+    };
+    response.once("drain", done);
+    response.once("close", done);
+    if (response.destroyed) done();
+  });
+}
+
+async function streamEvents(response: ServerResponse, events: AsyncIterable<string>) {
+  response.flushHeaders();
+  for await (const event of events) {
+    if (response.destroyed) break;
+    if (!response.write(event)) await drained(response);
+  }
+  response.end();
 }

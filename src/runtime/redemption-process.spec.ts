@@ -11,8 +11,8 @@ it.each(["different", "same", "file"])(
   async mode => {
     const h = doorHouse(),
       file = join(h.home, "configuration");
-    const first = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
-    const second = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+    const first = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
+    const second = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
     if (mode !== "file")
       writeFileSync(file, JSON.stringify({ theme: "dark", mcpServers: { previous: { preserved: true } } }));
     const start = (code: string, name: string) => {

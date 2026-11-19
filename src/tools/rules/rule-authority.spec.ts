@@ -12,7 +12,7 @@ const definition = {
   text: "Pausa de ventas",
   action: { tool: "sales", act: "register" },
   condition: { operator: "actor", kind: "identity" },
-  effect: "frena",
+  effect: "block",
 } as const;
 const forged: readonly HouseEmission[] = [
   effect("rule-versioned", { definition, version: 1, previous: null }, "ana"),

@@ -58,7 +58,7 @@ describe.each(["handler", "HTTP"])("installed program reading through MCP %s", t
     const credentials = new Map(
       ["ana", "martin"].map(identity => {
         const key = randomUUID();
-        keys.set(key, { identity, door: "agente" });
+        keys.set(key, { identity, door: "agent" });
         return [identity, key];
       }),
     );
@@ -268,7 +268,7 @@ function replayCases(access: () => Context) {
     const replayKey = replayCredential;
     const reopened = mcpDoor(
       rig.house(),
-      new Map<string, DoorKey>([[replayKey, { identity: "martin", door: "agente" }]]),
+      new Map<string, DoorKey>([[replayKey, { identity: "martin", door: "agent" }]]),
       { name: "Prueba", version: "1", limits: { recentLines: 20 } },
     );
     try {

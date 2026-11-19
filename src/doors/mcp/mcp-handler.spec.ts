@@ -14,14 +14,13 @@ afterEach(async () => {
   vi.useRealTimers();
   for (const rig of opened.splice(0)) await rig.close();
 });
-it.each(["missing", "wrong", "terminal", "short", "long", "absent", "mind", "assistant"])(
+it.each(["missing", "wrong", "short", "long", "absent", "mind", "assistant"])(
   "denies %s credentials before reading the body",
   async kind => {
     const h = setup();
     h.rig.bus.emit(effect("assistant-enabled", { owner: "beto", name: "Nora" }, "ana"));
     const tokens: Record<string, string> = {
       wrong: randomUUID(),
-      terminal: h.terminal,
       short: "a",
       long: randomUUID().repeat(3),
       absent: h.key("absent"),
@@ -130,4 +129,11 @@ it("rejects malformed JSON without reflecting it", async () => {
   });
   expect(JSON.parse(response.body)).toMatchObject({ error: { code: -32700 } });
   expect(response.body.includes(material)).toBe(false);
+});
+
+it("accepts a terminal-origin key through MCP with the same identity", async () => {
+  const h = setup();
+  const response = await h.request({ jsonrpc: "2.0", id: 1, method: "ping" }, h.terminal);
+  expect(response.status).toBe(200);
+  expect(JSON.parse(response.body)).toEqual({ jsonrpc: "2.0", id: 1, result: {} });
 });

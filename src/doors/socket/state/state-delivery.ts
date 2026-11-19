@@ -7,7 +7,10 @@ import type { Program, State } from "../../../tools/tool-contract.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
 import { stateTransfer } from "./state-transfer.ts";
 import type { Peer } from "../peers/socket-peer.ts";
-export function stateDelivery<X extends Program>(house: RunningHouse<X>, peers: Set<Peer>) {
+export function stateDelivery<X extends Program>(
+  house: Pick<RunningHouse<X>, "tools" | "journal" | "bus" | "registry" | "now">,
+  peers: Set<Peer>,
+) {
   let stopped = false;
   let scheduled: NodeJS.Immediate | undefined;
   let answers: (() => void)[] = [];
@@ -43,7 +46,10 @@ export function stateDelivery<X extends Program>(house: RunningHouse<X>, peers: 
     },
   };
 }
-function isMember<X extends Program>(house: RunningHouse<X>, peer: Peer): boolean {
+function isMember<X extends Program>(
+  house: Pick<RunningHouse<X>, "tools" | "journal" | "bus" | "registry" | "now">,
+  peer: Peer,
+): boolean {
   const key = peer.key();
   if (!key || !peer.live()) return false;
   const current = house.tools.state().house;
@@ -58,7 +64,9 @@ function isMember<X extends Program>(house: RunningHouse<X>, peer: Peer): boolea
   return false;
 }
 
-function transferCache<X extends Program>(house: RunningHouse<X>) {
+function transferCache<X extends Program>(
+  house: Pick<RunningHouse<X>, "tools" | "journal" | "bus" | "registry" | "now">,
+) {
   const cache = new Map<
     string,
     { view: State<X>; before?: State<X>; full?: readonly Buffer[]; delta?: readonly Buffer[] }
@@ -77,12 +85,12 @@ function transferCache<X extends Program>(house: RunningHouse<X>) {
 }
 
 function sendView<X extends Program>(
-  house: RunningHouse<X>,
+  house: Pick<RunningHouse<X>, "tools" | "journal" | "bus" | "registry" | "now">,
   peer: Peer,
   frames: (identity: string, seq: number) => readonly Buffer[],
   full: boolean,
 ) {
-  if (!isMember(house, peer) || peer.key()?.door !== "terminal") return;
+  if (!isMember(house, peer)) return;
   const seq = house.tools.state().through;
   if (!full && peer.seq() === seq) return;
   try {

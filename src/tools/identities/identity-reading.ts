@@ -129,7 +129,7 @@ function doorReading(house: House, identity: string) {
   return keys.length
     ? {
         doorKeys: keys.map(key => {
-          const door = key.door === "agente" ? doorTexts.doors.agent : doorTexts.doors.terminal;
+          const door = key.door === "agent" ? doorTexts.doors.agent : doorTexts.doors.terminal;
           return `${key.id} · ${door} · ${key.revoked ? doorTexts.status.retired : doorTexts.status.active}`;
         }),
       }

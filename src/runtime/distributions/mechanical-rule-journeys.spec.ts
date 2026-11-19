@@ -25,7 +25,7 @@ it("frena abrir un journey por el control comÃºn", async () => {
           text: "Pausa de journeys",
           action: { tool: "journey", act: "open" },
           condition: { operator: "actor", kind: "program" },
-          effect: "frena",
+          effect: "block",
         },
       },
       0,
@@ -48,7 +48,7 @@ it("frena abrir un journey por el control comÃºn", async () => {
         found ||
         (event.kind === "rule-evaluated" &&
           event.data.action.tool === "journey" &&
-          event.data.results[0]?.outcome === "frena"),
+          event.data.results[0]?.outcome === "block"),
     ),
   ).toBe(true);
 });
@@ -68,7 +68,7 @@ it("un journey queda frenado; cambiar la regla lo despierta sin repetir la acciÃ
     text: "Pausa del trabajo",
     action: { tool: "notas", act: "personal/add" },
     condition: { operator: "actor", kind: "program" },
-    effect: "frena",
+    effect: "block",
   };
   expect((await settle(house.tools.act({ act: "save", target: "rules", input: definition }, 0, "ana"))).status).toBe(
     "accepted",
@@ -102,7 +102,7 @@ it("un journey queda frenado; cambiar la regla lo despierta sin repetir la acciÃ
         found ||
         (event.kind === "rule-evaluated" &&
           event.process?.startsWith("journey:") === true &&
-          event.data.results[0]?.outcome === "frena"),
+          event.data.results[0]?.outcome === "block"),
     ),
   ).toBe(true);
   f.respond(() => {
@@ -129,7 +129,7 @@ it("una mente tampoco saltea el control al escribir una escena", async () => {
           text: "Pausa de escenas",
           action: { tool: "mind", act: "scene" },
           condition: { operator: "actor", kind: "program" },
-          effect: "frena",
+          effect: "block",
         },
       },
       0,
@@ -151,7 +151,7 @@ it("una mente tampoco saltea el control al escribir una escena", async () => {
         found ||
         (event.kind === "rule-evaluated" &&
           event.data.action.tool === "mind" &&
-          event.data.results[0]?.outcome === "frena"),
+          event.data.results[0]?.outcome === "block"),
     ),
   ).toBe(true);
   expect(

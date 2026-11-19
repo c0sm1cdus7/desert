@@ -69,7 +69,7 @@ async function runCloudSample(home: string, args: readonly string[], environment
       ...program,
       by: server.by,
       creation: server.creation,
-      founderDoorKeys: founderDoorKeys(environment, [{ variable: "DESERT_DOOR_KEY", identity: "ana", door: "agente" }]),
+      founderDoorKeys: founderDoorKeys(environment, [{ variable: "DESERT_DOOR_KEY", identity: "ana", door: "agent" }]),
     },
     home,
     environment,

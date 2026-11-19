@@ -15,8 +15,8 @@ vi.mock("../runtime/projection-version.ts", async importOriginal => {
 afterEach(() => {
   version.old = "desert/3";
 });
-// Rebuild earlier folds, including desert/9 before live door credentials.
-it.each(["desert/3", "desert/4", "desert/6", "desert/8", "desert/9"])(
+// Rebuild earlier folds, including desert/10 before English core values.
+it.each(["desert/3", "desert/4", "desert/6", "desert/8", "desert/9", "desert/10"])(
   "rebuilds %s saved folds and retains the first owner of an old wake id",
   old => {
     version.old = old;
@@ -24,7 +24,7 @@ it.each(["desert/3", "desert/4", "desert/6", "desert/8", "desert/9"])(
     rig.house().bus.emit(effect("wake-at", { id: "old-name", at: null }, "mind:desk"));
     rig.house().close();
     version.old = undefined;
-    expect(baseProjectionVersion).toBe("desert/10");
+    expect(baseProjectionVersion).toBe("desert/11");
     rig.restart();
     expect(
       rig

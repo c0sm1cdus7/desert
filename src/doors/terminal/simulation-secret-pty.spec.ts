@@ -28,7 +28,7 @@ it.each(["first", "second", "invalid"])(
       await terminal.rest(100);
       expect(terminal.written()).not.toContain(simulationMarker);
       terminal.press("\r");
-      await terminal.until(kind === "invalid" ? ruleFormTexts.casesInvalid : "frena");
+      await terminal.until(kind === "invalid" ? ruleFormTexts.casesInvalid : "Frena");
       expect(terminal.written()).not.toContain(simulationMarker);
       await terminal.close();
       expect(readFileSync(join(home, "result.json"), "utf8")).not.toContain(simulationMarker);

@@ -13,7 +13,7 @@ it("does not start register after revocation between attend and register", async
   const h = doorHouse();
   opened.push(h);
   await h.act("new", { identity: "luz", tools: ["sales"] });
-  const key = h.access().redeem(invitationCode(await h.act("invite", { door: "agente" }, "identities/luz"))).key;
+  const key = h.access().redeem(invitationCode(await h.act("invite", { door: "agent" }, "identities/luz"))).key;
   if (!key) throw new Error("Missing synthetic credential");
   const id = h.access().get(key)?.id;
   const door = h.door();
@@ -47,7 +47,7 @@ it("does not run a body released after revocation and leaves two other credentia
   const h = doorHouse();
   opened.push(h);
   const issue = async () =>
-    h.access().redeem(invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"))).key;
+    h.access().redeem(invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"))).key;
   const key = await issue(),
     other = await issue();
   if (!key || !other) throw new Error("Missing synthetic credentials");

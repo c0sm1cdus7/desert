@@ -56,7 +56,7 @@ it.each(simulationShapes.map((schema, index) => ({ schema, index })))(
         version: 1,
         samples: JSON.stringify([{ actor: "ana", now: 0, input }]),
       });
-      expect(result).toMatchObject({ status: "accepted", value: [{ outcome: "frena" }] });
+      expect(result).toMatchObject({ status: "accepted", value: [{ outcome: "block" }] });
       expect(JSON.stringify(result)).not.toContain(simulationMarker);
     }
     for (const samples of [
@@ -100,7 +100,7 @@ it.each([11, 1])("matches the real guard after normalizing exactly once to %i", 
     version: 1,
     samples: JSON.stringify([{ actor: "ana", now: 0, input }]),
   });
-  expect(simulation).toMatchObject({ status: "accepted", value: [{ outcome: amount > 10 ? "frena" : "passed" }] });
+  expect(simulation).toMatchObject({ status: "accepted", value: [{ outcome: amount > 10 ? "block" : "passed" }] });
   expect(normalizations).toBe(1);
   expect(executed).toBe(0);
   const actual = await f.call("send", input, "probe");
@@ -200,7 +200,7 @@ it("protects ambiguous union positions and arrays while keeping common public fi
         version: 1,
         samples: JSON.stringify([{ actor: "ana", now: 0, input }]),
       });
-      expect(result).toMatchObject({ status: "accepted", value: [{ outcome: "frena" }] });
+      expect(result).toMatchObject({ status: "accepted", value: [{ outcome: "block" }] });
       expect(JSON.stringify(result).includes(simulationMarker)).toBe(false);
     }
   }

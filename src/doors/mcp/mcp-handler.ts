@@ -1,4 +1,5 @@
 // Maneja HTTP y JSON-RPC sin sockets; cada pedido toma su identidad de la llave y usa los puertos de la casa.
+import { socketHttp } from "./socket-http.ts";
 import { mcpSessions, abortableResponse } from "./mcp-sessions.ts";
 import { liveDoorKeys } from "../socket/peers/live-door-keys.ts";
 import { redeemHttp } from "./invitation-http.ts";
@@ -35,13 +36,8 @@ export function mcpDoor<X extends Program>(
   const options = "get" in keysOrOptions ? givenOptions : keysOrOptions;
   if (!options) throw new Error("Missing MCP options");
   const keys = liveDoorKeys(house, founders);
-  if (
-    !options.name ||
-    !options.version ||
-    !Number.isSafeInteger(options.limits.recentLines) ||
-    options.limits.recentLines < 1
-  )
-    throw new Error("MCP requires name, version and positive recentLines");
+  validateOptions(options);
+  const remote = socketHttp(house);
   const book = requestBook(house);
   const controller = new AbortController();
   const pending = new Set<Promise<McpResponse>>();
@@ -50,7 +46,7 @@ export function mcpDoor<X extends Program>(
   const sessions = mcpSessions(changed => house.bus.on(changed));
   const dispatch = dispatcher(house, keys, controller.signal, call, sessions.track);
   const handle = (request: McpRequest) => {
-    const work = dispatch(request);
+    const work = request.path === "/door/socket" ? remote.handle(request) : dispatch(request);
     pending.add(work);
     void work.then(
       () => pending.delete(work),
@@ -61,6 +57,7 @@ export function mcpDoor<X extends Program>(
   const close = async () => {
     controller.abort();
     sessions.close();
+    await remote.close();
     await Promise.allSettled([...pending]);
     book.stop();
   };
@@ -250,4 +247,14 @@ async function wait<X extends Program>(
   } finally {
     waits.set(by, (waits.get(by) ?? 1) - 1);
   }
+}
+
+function validateOptions(options: McpOptions) {
+  if (
+    !options.name ||
+    !options.version ||
+    !Number.isSafeInteger(options.limits.recentLines) ||
+    options.limits.recentLines < 1
+  )
+    throw new Error("MCP requires name, version and positive recentLines");
 }

@@ -1,11 +1,24 @@
-import { expect, it, vi } from "vitest";
-import { existsSync, readdirSync, statSync, rmSync, readFileSync } from "node:fs";
+import { afterAll, beforeAll, expect, it, vi } from "vitest";
+import { existsSync, readdirSync, statSync, rmSync, readFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { keptFixture } from "../../../tests/support/kept-inspection.ts";
 import { inspectKept } from "./kept-inspection.ts";
 import * as calculations from "../calculations/check-calculations.ts";
 import { InspectionUnavailable } from "../../tools/failures/inspection-unavailable.ts";
+const temporary = vi.hoisted(() => ({ root: "" }));
+vi.mock("node:os", async importOriginal => {
+  const original = await importOriginal<typeof import("node:os")>();
+  return { ...original, tmpdir: () => temporary.root || original.tmpdir() };
+});
+// Inspect and clean only this suite's copies; other workers may be inspecting at the same time.
+beforeAll(() => {
+  temporary.root = mkdtempSync(join(tmpdir(), "kept-inspection-owned-"));
+});
+afterAll(() => {
+  rmSync(temporary.root, { recursive: true, force: true });
+  temporary.root = "";
+});
 const copies = () => readdirSync(tmpdir()).filter(name => name.startsWith("desert-inspection-"));
 for (const fails of [false, true])
   it(`X01: borra la copia privada al terminar, falla=${fails}`, async () => {

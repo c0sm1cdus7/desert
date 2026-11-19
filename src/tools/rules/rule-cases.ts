@@ -1,4 +1,5 @@
 // Declared rule examples exercise successful lifecycle changes and each reachable refusal through the router.
+import { ruleDisplay } from "./rule-display.ts";
 import type { ruleReference } from "../../house/rules/rule-facts.ts";
 import type { ruleDefinition } from "../../house/rules/rule-schema.ts";
 import { ruleFormTexts as form, rulesTexts as words } from "../../texts/rules.texts.ts";
@@ -9,7 +10,7 @@ export const exampleRule = {
   text: words.example,
   action: { tool: "rules", act: "consult" },
   condition: { operator: "actor", kind: "program" },
-  effect: "frena",
+  effect: "block",
 } as const;
 const reference = { id: "example", version: 1 };
 const proposed = { act: "propose", on: "rules", by: "beto", input: exampleRule };
@@ -68,7 +69,7 @@ export function simulationCases<X extends Program>(): readonly [SimulationCase<X
       promise: words.simulate.name,
       given: [proposed],
       input,
-      then: { says: words.simulationResult([{ actor: "ana", outcome: "passed" }]), facts: [] },
+      then: { says: words.simulationResult(ruleDisplay([{ actor: "ana", outcome: "passed" }])), facts: [] },
     },
     { promise: words.missing, input, then: { refused: words.missing } },
     {

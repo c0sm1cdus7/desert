@@ -34,7 +34,7 @@ async function save(rig: ReturnType<typeof setup>, command: string) {
             field: { source: "input", path: "command" },
             value: { kind: "text", value: command },
           },
-          effect: "frena",
+          effect: "block",
         },
       },
       0,
@@ -52,7 +52,7 @@ it.each(["ana", "beto"])("blocks a device action over MCP for %s and keeps the r
   const rig = setup();
   rig.device("mac");
   expect((await save(rig, "test")).status).toBe("accepted");
-  const door = mcpDoor(rig.house, new Map([["synthetic-credential", { identity: actor, door: "agente" as const }]]), {
+  const door = mcpDoor(rig.house, new Map([["synthetic-credential", { identity: actor, door: "agent" as const }]]), {
     name: "test",
     version: "1",
     limits: { recentLines: 10 },
@@ -87,7 +87,7 @@ it.each(["ana", "beto"])("blocks a device action over MCP for %s and keeps the r
     expect(rig.house.tools.state().house.devices.executions.size).toBe(0);
     expect(evaluations(rig)).toContainEqual({
       action: { tool: "agents", act: "run" },
-      results: [{ id: "remote-stop", version: 1, outcome: "frena" }],
+      results: [{ id: "remote-stop", version: 1, outcome: "block" }],
     });
   } finally {
     await door.close();
@@ -132,7 +132,7 @@ it("rechecks the changed rule after review and before device dispatch", async ()
   expect(evaluations(rig)).toEqual(
     expect.arrayContaining([
       { action: { tool: "agents", act: "run" }, results: [{ id: "remote-stop", version: 1, outcome: "passed" }] },
-      { action: { tool: "agents", act: "run" }, results: [{ id: "remote-stop", version: 2, outcome: "frena" }] },
+      { action: { tool: "agents", act: "run" }, results: [{ id: "remote-stop", version: 2, outcome: "block" }] },
     ]),
   );
 });
@@ -210,7 +210,7 @@ it("rechecks a rule changed while the device send is queued", async () => {
   expect(attempt).toMatchObject({ status: "rejected", reference: `core:${attempt?.execution}` });
   expect(evaluations(rig)).toContainEqual({
     action: { tool: "agents", act: "run" },
-    results: [{ id: "remote-stop", version: 2, outcome: "frena" }],
+    results: [{ id: "remote-stop", version: 2, outcome: "block" }],
   });
 });
 

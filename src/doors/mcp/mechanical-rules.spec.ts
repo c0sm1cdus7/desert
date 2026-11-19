@@ -13,7 +13,7 @@ it("una identidad propone por MCP y ni el admin pasa la regla aprobada", async (
       text: "No registrar ventas mayores a diez",
       action: { tool: "sales", act: "register" },
       condition: { operator: "gt", field: { source: "input", path: "total" }, value: 10 },
-      effect: "frena",
+      effect: "block",
     };
     const proposal = mcpResult(
       (await f.call("actuar", { programa: "rules", accion: "propose", datos: definition }, f.beto)).body,

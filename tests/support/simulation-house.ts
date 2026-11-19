@@ -12,7 +12,7 @@ export const publicLimit = {
   text: "Tope de prueba",
   action: { tool: "probe", act: "send" },
   condition: { operator: "gt", field: { source: "input", path: "amount" }, value: 10 },
-  effect: "frena",
+  effect: "block",
 } as const;
 export const simulationShapes: readonly TSchema[] = [
   Type.Object({ amount: Type.Number(), token: Type.String({ secret: true }) }),

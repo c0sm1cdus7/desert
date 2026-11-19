@@ -3,7 +3,7 @@ import { createHash, randomBytes, randomUUID, randomInt, scryptSync } from "node
 import { mcpTexts } from "../../texts/mcp.texts.ts";
 import { effect } from "../facts.ts";
 import type { DoorState } from "./door-state.ts";
-export type DoorIdentity = Readonly<{ identity: string; door: "agente" | "terminal"; id?: string }>;
+export type DoorIdentity = Readonly<{ identity: string; door: "agent" | "terminal"; id?: string }>;
 export const doorFingerprint = (material: string) =>
   createHash("sha256").update(`desert-door-key:${material}`).digest("hex");
 export const invitationFingerprint = (material: string, id: string) =>

@@ -35,7 +35,7 @@ assert.equal(reopened.tools.state().house.admin, "ana");
 reopened.close();
 
 const environment = { ROOT: Buffer.alloc(32, 71).toString("hex"), DOOR: Buffer.alloc(32, 72).toString("hex") };
-const declaration = [{ variable: "DOOR", identity: "ana", door: "agente" }] as const;
+const declaration = [{ variable: "DOOR", identity: "ana", door: "agent" }] as const;
 const doorKeys = environmentDoorKeys(environment, declaration);
 assert.equal(doorKeys.size, 1);
 assert.throws(() => environmentDoorKeys({}, declaration));

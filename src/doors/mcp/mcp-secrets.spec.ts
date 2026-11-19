@@ -12,7 +12,7 @@ it("marks secret inputs and never returns material or private receipts", async (
   const receipt = randomUUID();
   const key = randomUUID();
   const rig = fixture(secret, () => ({ status: "accepted", text: "Guardado", private: receipt }));
-  const door = mcpDoor(rig.house, new Map([[key, { identity: "ana", door: "agente" }]]), {
+  const door = mcpDoor(rig.house, new Map([[key, { identity: "ana", door: "agent" }]]), {
     name: "Prueba",
     version: "1",
     limits: { recentLines: 20 },

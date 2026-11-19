@@ -2,7 +2,7 @@ import { expect, it, vi } from "vitest";
 import { environmentDoorKeys } from "./environment-door-keys.ts";
 const declaration = [
   { identity: "ana", door: "terminal", variable: "ANA_TERMINAL" },
-  { identity: "ana", door: "agente", variable: "ANA_AGENTE" },
+  { identity: "ana", door: "agent", variable: "ANA_AGENTE" },
 ] as const;
 it("arma el mapa existente con identidad y puerta de la declaración y ambas codificaciones", () => {
   const terminal = Buffer.alloc(32, 71).toString("hex"),
@@ -10,7 +10,7 @@ it("arma el mapa existente con identidad y puerta de la declaración y ambas cod
   const map = environmentDoorKeys({ ANA_TERMINAL: terminal, ANA_AGENTE: agent }, declaration);
   expect(map.size).toBe(2);
   expect(map.get(terminal)).toEqual({ identity: "ana", door: "terminal" });
-  expect(map.get(agent)).toEqual({ identity: "ana", door: "agente" });
+  expect(map.get(agent)).toEqual({ identity: "ana", door: "agent" });
 });
 it.each([undefined, "", "a".repeat(42), "!".repeat(64), "a".repeat(41) + "B", "a".repeat(43) + "="])(
   "rechaza ausentes, cortas y codificaciones mal formadas nombrando la variable (%#)",

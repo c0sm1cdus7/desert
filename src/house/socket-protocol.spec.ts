@@ -57,11 +57,12 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
     expect(c.messages).toHaveLength(0);
     expect(c.states).toHaveLength(0);
   }, 7000);
-  it("an agent key cannot declare a terminal door and receives no binary state", async () => {
+  it("an agent-origin key receives terminal state but cannot forge its identity", async () => {
     const f = await setup();
     const c = await f.client("beto-agente");
     expect(c.messages[0]?.tipo).toBe("bienvenida");
-    expect(c.states).toHaveLength(0);
+    expect(await c.until(() => c.states.length === 1)).toBe(true);
+    expect(c.states).toHaveLength(1);
     const forged = await f.client();
     forged.hello("beto-agente", { puerta: "terminal", identidad: "ana" });
     expect(await forged.until(forged.closed)).toBe(true);

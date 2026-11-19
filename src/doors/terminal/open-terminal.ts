@@ -4,6 +4,8 @@ import { terminalError } from "./terminal-error.ts";
 import type { Composition } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { Shown } from "../../surface/bridge/ports/house-ports.ts";
+import { connectRemoteTerminal } from "./remote-terminal-client.ts";
+import type { SocketConnection } from "../socket/client/socket-connection.ts";
 import { connectTerminal } from "./terminal-client.ts";
 import { socketPorts } from "../socket/client/socket-ports.ts";
 import { houseRouter } from "../../surface/bridge/assembly/house-router.ts";
@@ -16,20 +18,30 @@ export async function openProgramTerminal<X extends Program>(
   shown: Shown<X>,
 ): Promise<void> {
   try {
-    await runTerminal<X>(root, home, token, program, shown);
+    await runTerminal(await connectTerminal<X>(root, home, token), program, shown);
+  } catch (error) {
+    process.stderr.write(`${terminalError(error)}\n`);
+    process.exitCode = 1;
+  }
+}
+export async function openRemoteTerminal<X extends Program>(
+  address: string,
+  key: string,
+  program: Composition<X>,
+  shown: Shown<X>,
+): Promise<void> {
+  try {
+    await runTerminal(await connectRemoteTerminal<X>(address, key), program, shown);
   } catch (error) {
     process.stderr.write(`${terminalError(error)}\n`);
     process.exitCode = 1;
   }
 }
 async function runTerminal<X extends Program>(
-  root: string,
-  home: string,
-  token: string,
+  connection: SocketConnection<X>,
   program: Composition<X>,
   shown: Shown<X>,
 ) {
-  const connection = await connectTerminal<X>(root, home, token);
   const router = houseRouter(
     socketPorts(connection, {
       registry: coreRegistry(

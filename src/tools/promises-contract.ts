@@ -39,7 +39,7 @@ export type Step =
     }>
   | Readonly<{ days: number }>
   /** Synthetic host provisioning for cases of core door administration; no material is declared. */
-  | Readonly<{ doorKey: Readonly<{ id: string; identity: string; door: "agente" | "terminal" }> }>;
+  | Readonly<{ doorKey: Readonly<{ id: string; identity: string; door: "agent" | "terminal" }> }>;
 /** A fact of the program as a case promises it: its kind and everything it says. */
 export type Told<X extends Program> = X["fact"] extends infer F
   ? F extends Readonly<{ kind: infer K; data: infer D }>

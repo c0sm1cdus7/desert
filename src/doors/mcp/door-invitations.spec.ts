@@ -59,9 +59,9 @@ it("rejects expired, reused and invented codes alike and limits attempts across 
     first = h.door(),
     second = h.door();
   try {
-    const expired = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+    const expired = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
     h.advance(86_400_000);
-    const used = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+    const used = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
     expect((await first.handle(redemptionRequest(used))).status).toBe(200);
     const failures = await Promise.all([expired, used, "invented"].map(code => first.handle(redemptionRequest(code))));
     expect(failures.every(response => response.status === 400 && response.body === failures[0]?.body)).toBe(true);
@@ -79,7 +79,7 @@ it("consumes an invitation atomically when concurrent requests race", async () =
   const h = setup(),
     door = h.door();
   try {
-    const code = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+    const code = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
     const responses = await Promise.all(Array.from({ length: 5 }, () => door.handle(redemptionRequest(code))));
     expect(responses.filter(response => response.status === 200)).toHaveLength(1);
     expect(responses.filter(response => response.status === 400)).toHaveLength(4);
@@ -101,7 +101,7 @@ it("delivers an invitation only on the original request including MCP, but never
       id: "new-once",
       act: "invite",
       target: "identities/beto",
-      input: { door: "agente" },
+      input: { door: "agent" },
       through: h.house().tools.state().through,
     } as const;
     await h.act("attend", { target: "identities/beto" });
@@ -121,7 +121,7 @@ it("delivers an invitation only on the original request including MCP, but never
             programa: "identities",
             accion: "invite",
             objetivo: "identities/beto",
-            datos: { door: "agente" },
+            datos: { door: "agent" },
           },
         },
       }),
@@ -130,7 +130,7 @@ it("delivers an invitation only on the original request including MCP, but never
     expect(response.body.includes(code)).toBe(false);
     expect(/[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}/.test(response.body)).toBe(true);
     expect(h.history().includes(code)).toBe(false);
-    expect((await h.act("invite", { door: "agente" }, "identities/beto", "beto")).status).toBe("rejected");
+    expect((await h.act("invite", { door: "agent" }, "identities/beto", "beto")).status).toBe("rejected");
     expect((await h.act("revoke-key", { key: "missing" }, "identities/beto", "beto")).status).toBe("rejected");
   } finally {
     book.stop();

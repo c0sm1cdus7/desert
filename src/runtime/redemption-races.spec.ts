@@ -35,7 +35,7 @@ it.each(["missing", "readonly", "existing", "symlink"])(
     if (mode === "readonly") chmodSync(directory, 0o500);
     if (mode === "existing") writeFileSync(file, "previous");
     if (mode === "symlink") symlinkSync(join(h.home, "absent"), file);
-    const code = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+    const code = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
     const before = h.house().tools.state().house.doors.keys.size;
     const send = vi.fn(() => Promise.resolve(new Response(JSON.stringify(h.access().redeem(code)))));
     vi.stubGlobal("fetch", send);
@@ -54,8 +54,8 @@ it.each([false, true])(
   async configuration => {
     const h = setup(),
       file = join(h.home, "configuration");
-    const first = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
-    const second = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+    const first = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
+    const second = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
     let release = () => {};
     const barrier = new Promise<void>(resolve => {
       release = resolve;

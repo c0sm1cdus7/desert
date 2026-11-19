@@ -50,7 +50,7 @@ it("tells a member the proposal awaits approval and preserves the active version
           text: "Tope anterior",
           action: { tool: "sales", act: "register" },
           condition: { operator: "actor", kind: "identity" },
-          effect: "frena",
+          effect: "block",
         },
       },
       "ana",

@@ -27,5 +27,10 @@ export const socketTexts = {
   quota: "Llegaste al tope de pedidos de esta conexión. Esperá un segundo y volvé a intentar.",
   outputLimit: "Se alcanzó el tope de la salida. Se conserva el tramo más reciente.",
   startCause: (code: string) => `No se pudo abrir la casa. Causa: ${code}.`,
+  remoteAddress: "Usá una URL HTTPS sin credenciales ni parámetros, o localhost para una prueba local.",
+  configMissing: "Falta el servidor MCP en la configuración del proyecto o del usuario.",
+  configInvalid: "No se pudo leer la configuración MCP: revisá su formato y permisos.",
+  configUrl: "Falta una URL válida en el servidor MCP.",
+  configKey: "Falta Authorization: Bearer con la llave en el servidor MCP.",
   frame: "Marco inválido o demasiado grande.",
 };

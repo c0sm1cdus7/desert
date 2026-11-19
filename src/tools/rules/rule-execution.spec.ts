@@ -18,7 +18,7 @@ const rule = {
   text: "Tope",
   action: { tool: "probe", act: "send" },
   condition: { operator: "gt", field: { source: "input", path: "amount" }, value: 10 },
-  effect: "frena",
+  effect: "block",
 };
 function fixture(normalize?: (value: unknown) => unknown) {
   const run = vi.fn(() => ({ status: "accepted" as const }));
@@ -165,7 +165,7 @@ it("si cambia el esquema instalado, la regla vigente frena hasta corregirse", as
   const result = await settle(execute(f.ports, { act: "send", target: "probe", input: { other: 1 } }, 0, "ana"));
   expect(result).toMatchObject({ status: "rejected", coreFailure: "forbidden" });
   expect(f.rig.facts().findLast(event => event.kind === "rule-evaluated")?.data).toMatchObject({
-    results: [{ id: "limit", version: 1, outcome: "frena" }],
+    results: [{ id: "limit", version: 1, outcome: "block" }],
   });
   expect(f.run).not.toHaveBeenCalled();
 });

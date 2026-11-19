@@ -1,4 +1,5 @@
 // Define escrituras y consultas de reglas con autoridad actual y validación contra acciones instaladas.
+import { ruleDisplay } from "./rule-display.ts";
 import { type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { object } from "../../fields/visible-text.ts";
@@ -42,7 +43,7 @@ function writeRule<X extends Program>(registry: ToolRegistry<X>, operation: "pro
     refuses: [...(operation === "save" ? [words.only] : []), ...causes],
     offered: ({ by, house }) => (operation === "save" && by !== house.admin ? words.only : undefined),
     stops: value => {
-      const complete = { ...value, effect: value.effect ?? "frena" };
+      const complete = { ...value, effect: value.effect ?? "block" };
       return Value.Check(ruleDefinition, complete)
         ? ruleProblem(complete, actionSchema(registry, complete.action.tool, complete.action.act))
         : undefined;
@@ -106,7 +107,7 @@ export function ruleConsult<X extends Program>() {
 export function ruleReading<X extends Program>(state: State<X>): string {
   const rules = state.house.rules;
   return rules.versions.size
-    ? JSON.stringify(
+    ? ruleDisplay(
         [...rules.versions].map(([id, versions]) => ({
           id,
           active: rules.active.get(id) ?? null,

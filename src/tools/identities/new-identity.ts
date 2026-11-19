@@ -43,7 +43,7 @@ export function newIdentity<X extends Program>(registry: ToolRegistry<X>, runner
         : (identityNameProblem(identity, runner) ??
           (members(state.house).includes(identity) ? words.repeated : undefined)),
     run: ({ identity, name, tools }, { by, at }) => {
-      const invitation = issueInvitation(identity, "agente", by, at);
+      const invitation = issueInvitation(identity, "agent", by, at);
       return {
         private: doorTexts.receipt(invitation.code),
         status: "accepted",

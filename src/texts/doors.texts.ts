@@ -25,7 +25,7 @@ export const doorTexts = {
   noKey: "llave no vigente de esta identidad",
   key: { one: "Llave de puerta", many: "Llaves de puerta" },
   status: { active: "vigente", retired: "revocada" },
-  door: "Puerta",
+  door: "Origen de la invitación",
   doors: { agent: "Agente (MCP)", terminal: "Terminal" },
   sureRevoke: "Revocar la llave y cortar sus conexiones",
   denied: "No se pudo canjear la invitación.",

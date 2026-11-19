@@ -15,7 +15,7 @@ export const ruleFacts = {
       object({
         id: name,
         version,
-        outcome: Type.Union([Type.Literal("passed"), Type.Literal("frena"), Type.Literal("requiere-supervisor")]),
+        outcome: Type.Union([Type.Literal("passed"), Type.Literal("block"), Type.Literal("require-supervisor")]),
       }),
     ),
   }),

@@ -59,7 +59,7 @@ export const ruleDefinition = object({
   text: Type.String({ minLength: 1, maxLength: 4000 }),
   action: object({ tool: name, act: name }),
   condition: predicateSchema,
-  effect: Type.Union([Type.Literal("frena"), Type.Literal("requiere-supervisor")]),
+  effect: Type.Union([Type.Literal("block"), Type.Literal("require-supervisor")]),
 });
 export type Predicate = DeepReadonly<Static<typeof predicateSchema>>;
 export type RuleDefinition = DeepReadonly<Static<typeof ruleDefinition>>;

@@ -44,15 +44,16 @@ it("a whole turn's changes yield one final state, with its monotonic sequence", 
   expect(last?.tipo).toBe("estado");
   if (last?.tipo === "estado") expect(last.seq).toBe(f.house().tools.state().through);
 });
-it("the agent door gets neither state nor terminal action, lookup, defect or catalog shortcuts", async () => {
+it("an agent-origin credential gets the same state, actions and catalog as its identity", async () => {
   const f = await setup();
   const c = await f.client("beto-agente");
   const seq = f.house().tools.state().through;
   c.send({ tipo: "acto", id: "a", act: "prefer", input: { hide: "empty", on: true }, through: 0 });
   c.send({ tipo: "leer", id: "c", qué: "catalogo" });
-  expect(await c.until(() => c.messages.filter(m => m.tipo === "rechazo").length === 2)).toBe(true);
-  expect(f.house().tools.state().through).toBe(seq);
-  expect(c.states).toEqual([]);
+  expect(await c.result("a")).toMatchObject({ status: "accepted" });
+  expect(await c.until(() => c.messages.some(m => m.tipo === "respuesta" && m.id === "c"))).toBe(true);
+  expect(f.house().tools.state().through).toBeGreaterThan(seq);
+  expect(c.states.length).toBeGreaterThan(0);
 });
 it("defect provenance comes from the key and the house prepares the client entry", async () => {
   const f = await setup();

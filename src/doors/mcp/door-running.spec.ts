@@ -71,7 +71,7 @@ it.each([
       };
     });
     const home = mkdtempSync("/tmp/desert-running-door-");
-    const kind = mode === "mcp" ? "agente" : "terminal";
+    const kind = mode === "mcp" ? "agent" : "terminal";
     const house = startHouse(home, {
       ...shopProgram,
       registry,

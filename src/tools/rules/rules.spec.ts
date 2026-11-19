@@ -15,7 +15,7 @@ export const limit: RuleDefinition = {
   text: "No pasar de diez",
   action: { tool: "probe", act: "send" },
   condition: { operator: "gt", field: { source: "input", path: "amount" }, value: 10 },
-  effect: "frena",
+  effect: "block",
 };
 function fixture() {
   let sent = 0;
@@ -83,13 +83,13 @@ it("simular muestra los casos que pasan y frenan, sin efectos ni nuevas versione
     version: 1,
     samples: JSON.stringify([9, 11].map(amount => ({ actor: "ana", now: 0, input: { amount } }))),
   });
-  expect(result).toMatchObject({ status: "accepted", value: [{ outcome: "passed" }, { outcome: "frena" }] });
+  expect(result).toMatchObject({ status: "accepted", value: [{ outcome: "passed" }, { outcome: "block" }] });
   expect(f.sent()).toBe(0);
   expect(f.rig.state().house.rules.active.size).toBe(0);
 });
 it("sin supervisor espera con aviso y no deja que otra regla que pasa lo autorice", async () => {
   const f = fixture();
-  await f.act("save", { ...limit, effect: "requiere-supervisor" });
+  await f.act("save", { ...limit, effect: "require-supervisor" });
   expect(await f.send()).toMatchObject({ status: "rejected", reason: words.waiting });
   expect(f.rig.state().entries.at(-1)?.data).toMatchObject({ text: words.waiting, attention: true });
   await f.act("save", { ...limit, id: "block" });

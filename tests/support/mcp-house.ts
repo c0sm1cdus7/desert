@@ -7,14 +7,15 @@ import type { DoorKey } from "../../src/doors/socket/peers/socket-peer.ts";
 export function mcpHouse(registry = shopRegistry) {
   const rig = shopRig({ registry, grants: { ana: ["sales", "payments"], beto: ["sales"], carla: [] } });
   const keys = new Map<string, DoorKey>();
-  const key = (identity: string, door: DoorKey["door"] = "agente") => {
+  const key = (identity: string, door: DoorKey["door"] = "agent") => {
     const value = randomUUID();
     keys.set(value, { identity, door });
     return value;
   };
   const ana = key("ana");
   const beto = key("beto");
-  const carla = key("carla");
+  const carla = key("carla"),
+    terminal = key("ana", "terminal");
 
   const house = { tools: rig.tools(), registry, bus: rig.bus, journal: rig.journal, now: Date.now };
   const door = mcpDoor(house, keys, { name: "Almacén", version: "1", limits: { recentLines: 20 } });
@@ -36,12 +37,9 @@ export function mcpHouse(registry = shopRegistry) {
     ana,
     beto,
     carla,
-    terminal: key("ana", "terminal"),
+    terminal,
     request,
     call,
-    close: async () => {
-      await door.close();
-      rig.close();
-    },
+    close: () => door.close().finally(() => rig.close()),
   };
 }

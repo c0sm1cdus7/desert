@@ -9,7 +9,7 @@ import { probe } from "./socket-probe.ts";
 export const doorKeys: ReadonlyMap<string, DoorKey> = new Map([
   ["ana-terminal", { identity: "ana", door: "terminal" }],
   ["beto-terminal", { identity: "beto", door: "terminal" }],
-  ["beto-agente", { identity: "beto", door: "agente" }],
+  ["beto-agente", { identity: "beto", door: "agent" }],
   ["nadie-terminal", { identity: "nadie", door: "terminal" }],
   ["mente-terminal", { identity: "mind:payments", door: "terminal" }],
 ]);

@@ -20,7 +20,7 @@ it("never checks invitations for unproven guesses, caches proven misses and admi
       h.house().now,
       () => h.house().tools.state().house.doors.invitations,
     );
-    const code = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+    const code = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
     for (let attempt = 0; attempt < 1000; attempt++) attemptCode("2222-2222", undefined);
     expect(redeem).not.toHaveBeenCalled();
     const proof = solveInvitationProof("2222-2222");

@@ -1,4 +1,5 @@
 // Evaluates public samples against the same effective input as execution, without action effects.
+import { ruleDisplay } from "./rule-display.ts";
 import { Type, type Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { OutsideDefect } from "../../fields/program-call.ts";
@@ -111,7 +112,7 @@ export function ruleSimulation<X extends Program>(registry: ToolRegistry<X>) {
     run: (value, { state }) => {
       const result = evaluate(value, state);
       if (!result.results) throw new OutsideDefect(result.problem);
-      return { status: "accepted", text: words.simulationResult(result.results), value: result.results };
+      return { status: "accepted", text: words.simulationResult(ruleDisplay(result.results)), value: result.results };
     },
     cases: simulationCases<X>(),
   });

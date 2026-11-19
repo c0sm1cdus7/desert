@@ -32,7 +32,7 @@ it("frena al admin después de confirmar por teclado sin registrar la venta", as
           text: "Tope de ventas",
           action: { tool: "sales", act: "register" },
           condition: { operator: "gt", field: { source: "input", path: "total" }, value: 10 },
-          effect: "frena",
+          effect: "block",
         },
       },
       "ana",

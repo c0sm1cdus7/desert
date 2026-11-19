@@ -27,8 +27,8 @@ export function mechanicalRules<X extends Program>(
     inJourney: origin.process !== undefined && house.journeys.has(origin.process),
   };
   const results = relevant.map(({ definition, version }) => {
-    let outcome: "frena" | "requiere-supervisor" | "passed" = "passed";
-    if (ruleProblem(definition, schema)) outcome = "frena";
+    let outcome: "block" | "require-supervisor" | "passed" = "passed";
+    if (ruleProblem(definition, schema)) outcome = "block";
     else if (evaluatePredicate(definition.condition, context)) outcome = definition.effect;
     return { id: definition.id, version, outcome };
   });
@@ -40,8 +40,8 @@ function stoppedDecision<X extends Program>(
   tool: string,
   results: HouseEvent<"rule-evaluated">["data"]["results"],
 ): Decision<X> | undefined {
-  const blocked = results.some(result => result.outcome === "frena");
-  const waiting = results.some(result => result.outcome === "requiere-supervisor");
+  const blocked = results.some(result => result.outcome === "block");
+  const waiting = results.some(result => result.outcome === "require-supervisor");
   if (!blocked && !waiting) return undefined;
   const reason = blocked ? words.blocked : words.waiting;
   return {

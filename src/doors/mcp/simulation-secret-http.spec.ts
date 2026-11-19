@@ -75,7 +75,7 @@ it.each(["handler", "HTTP"])("never returns or records secret sample material re
         samples: JSON.stringify([{ actor: "ana", now: 0, input }]),
       });
       expect(mcpResult(result).isError).toBe(false);
-      expect(result).toContain("frena");
+      expect(result).toContain("Frena");
       expect(result.includes(simulationMarker)).toBe(false);
     }
     h.rig.restart();

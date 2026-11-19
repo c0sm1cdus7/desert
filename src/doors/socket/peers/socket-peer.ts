@@ -7,12 +7,13 @@ import { peerWriter } from "./peer-writer.ts";
 import { connectPeer } from "./peer-input.ts";
 import { serverFrame } from "../wire/frame.ts";
 
-export type DoorKey = Readonly<{ identity: string; door: "terminal" | "agente"; id?: string }>;
+export type DoorKey = Readonly<{ identity: string; door: "terminal" | "agent"; id?: string }>;
 export type Peer = ReturnType<typeof socketPeer>;
 type Welcome = Extract<ClientMessage, { tipo: "hola" }>;
 export const helloFailure = (hello: Welcome): string | undefined => {
   if (hello.protocolo !== houseProtocolVersion) return said.version(houseProtocolVersion, hello.protocolo);
-  if (hello.node !== process.versions.node) return said.node(process.versions.node, hello.node);
+  if (hello.node !== process.versions.node)
+    return /^\d+\.\d+\.\d+$/.test(hello.node) ? said.node(process.versions.node, hello.node) : said.frame;
   return undefined;
 };
 class SocketPeer {

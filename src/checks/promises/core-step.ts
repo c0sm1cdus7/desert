@@ -17,7 +17,7 @@ export function coreStep<X extends Program>(house: ReturnType<typeof startHouse<
   }
   if ("invitation" in step) {
     const { id, identity } = step.invitation;
-    const { fact } = issueInvitation(identity, "agente", admin, house.now());
+    const { fact } = issueInvitation(identity, "agent", admin, house.now());
     house.bus.emit({ ...fact, data: { ...fact.data, id } });
     return true;
   }

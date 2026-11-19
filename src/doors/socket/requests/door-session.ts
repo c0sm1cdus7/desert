@@ -11,7 +11,7 @@ import type { requestBook } from "./request-book.ts";
 import type { stateDelivery } from "../state/state-delivery.ts";
 import { routeRequest } from "./door-requests.ts";
 export type Session<X extends Program> = Readonly<{
-  house: RunningHouse<X>;
+  house: Pick<RunningHouse<X>, "tools" | "journal" | "bus" | "registry" | "now">;
   keys: Readonly<{ get: (material: string) => DoorKey | undefined }>;
   book: ReturnType<typeof requestBook<X>>;
   delivery: ReturnType<typeof stateDelivery<X>>;
@@ -73,7 +73,7 @@ function routeAndReply<X extends Program>(session: Session<X>, peer: Peer, messa
   });
 }
 function welcome<X extends Program>(
-  house: RunningHouse<X>,
+  house: Pick<RunningHouse<X>, "tools" | "journal" | "bus" | "registry" | "now">,
   keys: Readonly<{ get: (material: string) => DoorKey | undefined }>,
   peer: Peer,
   message: ClientMessage,

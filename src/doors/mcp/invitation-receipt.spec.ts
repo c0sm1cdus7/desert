@@ -18,7 +18,7 @@ it.each(["new", "invite"])(
               programa: "identities",
               accion: action,
               objetivo: action === "new" ? "identities" : "identities/beto",
-              datos: action === "new" ? { identity: "luz", tools: [] } : { door: "agente" },
+              datos: action === "new" ? { identity: "luz", tools: [] } : { door: "agent" },
             },
           },
         }),

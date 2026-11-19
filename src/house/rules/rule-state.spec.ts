@@ -10,7 +10,7 @@ const definition: RuleDefinition = {
   text: "No pasar de diez",
   action: { tool: "probe", act: "send" },
   condition: { operator: "gt", field: { source: "input", path: "amount" }, value: 10 },
-  effect: "frena",
+  effect: "block",
 };
 const schema = Type.Object({ amount: Type.Number() });
 const event = (value: HouseEmission, seq: number): HouseEvent => ({ ...value, id: `e${seq}`, seq, at: seq });

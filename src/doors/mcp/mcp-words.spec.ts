@@ -22,7 +22,7 @@ beforeEach(() => {
     registry: [...composition.program.registry, identitiesTool(composition.program.registry, "ana", false)],
   });
   credential = randomUUID();
-  door = mcpDoor(rig.house(), new Map([[credential, { identity: "ana", door: "agente" }]]), {
+  door = mcpDoor(rig.house(), new Map([[credential, { identity: "ana", door: "agent" }]]), {
     name: "Prueba",
     version: "1",
     limits: { recentLines: 20 },

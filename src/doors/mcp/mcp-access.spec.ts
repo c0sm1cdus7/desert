@@ -7,9 +7,9 @@ it("visits every key even on a match, with different lengths and terminal keys i
   const last = randomUUID().repeat(2);
   const terminal = randomUUID();
   const keys = new Map<string, DoorKey>([
-    [first, { identity: "ana", door: "agente" }],
+    [first, { identity: "ana", door: "agent" }],
     [terminal, { identity: "ana", door: "terminal" }],
-    [last, { identity: "beto", door: "agente" }],
+    [last, { identity: "beto", door: "agent" }],
   ]);
   const visit = vi.fn();
   vi.spyOn(keys, Symbol.iterator).mockImplementation(function* () {
@@ -22,7 +22,7 @@ it("visits every key even on a match, with different lengths and terminal keys i
   for (const [key, identity] of [
     [first, "ana"],
     [last, "beto"],
-    [terminal, undefined],
+    [terminal, "ana"],
     ["x", undefined],
   ] as const) {
     visit.mockClear();
@@ -36,7 +36,7 @@ it("visits every key even on a match, with different lengths and terminal keys i
 });
 it("rejects ambiguous authorization and empty bearer material", () => {
   const key = randomUUID();
-  const keys = new Map<string, DoorKey>([[key, { identity: "ana", door: "agente" }]]);
+  const keys = new Map<string, DoorKey>([[key, { identity: "ana", door: "agent" }]]);
   for (const headers of [
     { Authorization: `Bearer ${key}`, authorization: `Bearer ${key}` },
     { authorization: [`Bearer ${key}`, `Bearer ${key}`] },

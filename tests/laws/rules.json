@@ -2666,7 +2666,7 @@
     },
     {
       "id": 243,
-      "rule": "La terminal arma exactamente identityView; la vista de solo lectura viaja por sus partes planas, nunca la membrana: al entrar recibe el estado completo por tramos, después solo campos y claves cambiados y el agregado de las listas que crecen. Cada envío lleva secuencia, base y huella del estado entero. Una huella distinta no se publica: se avisa a la vista, se pide el estado completo y la casa deja un aviso en su salida. Se prepara una vez por identidad y secuencia, agrupando el turno; en reposo no viaja estado. Los resultados siguen al estado con sus efectos. Una terminal que no lee se corta con aviso al acumular más de 1 MiB de envíos posteriores o un segundo de oportunidad de drenaje, medido por el tiempo ocioso del bucle de la casa. El tiempo ocupado de la casa no consume ese plazo. Una terminal lectora en otro proceso permanece conectada y recibe la misma vista durante ráfagas; todo pago hecho recibe su resultado. Cada conexión progresa sin esperar a otra. La puerta de agentes no recibe estado ni atajos de terminal.",
+      "rule": "The terminal builds exactly identityView. Its read-only view travels as plain parts, never the membrane: a chunked full state on entry, then changed fields and keys and appended list entries. Each transfer carries its sequence, base and complete-state hash. A mismatched hash is not published: the view is notified, a full state is requested and the house reports the mismatch. State is prepared once per identity and sequence, grouping the turn; idle connections receive no state. Results follow the state containing their effects. A terminal that stops reading is cut with a notice after accumulating more than 1 MiB of subsequent deliveries or one second of drain opportunity, measured by idle event-loop time; time spent working does not consume that deadline. A reading terminal in another process stays connected through bursts and receives the same view; each completed payment receives its result. Each connection progresses independently. A door key belongs to its identity: its origin restricts neither doors nor state nor actions; the kit still governs every action. The same protocol travels over HTTPS through POST requests and events, and revocation cuts the stream.",
       "from": "14/11 · casa-servidor · paso 1",
       "guarantee": "spec",
       "evidence": [
@@ -2678,7 +2678,9 @@
         "src/doors/socket/peers/peer-writer.spec.ts",
         "src/doors/socket/state/socket-burst.spec.ts",
         "src/doors/socket/wire/socket-pressure.spec.ts",
-        "src/doors/socket/state/state-transfer.ts"
+        "src/doors/socket/state/state-transfer.ts",
+        "src/doors/mcp/socket-http.spec.ts",
+        "src/doors/terminal/remote-terminal-pty.spec.ts"
       ]
     },
     {
@@ -2971,7 +2973,7 @@
     },
     {
       "id": 268,
-      "rule": "La puerta MCP autentica cada pedido antes de leerlo con comparación SHA-256 de todas las llaves de agente. Limita bytes y tipo de cuerpo, negocia las tres versiones admitidas y mantiene cuatro herramientas fijas sin sesión MCP. Lee por los puertos de la terminal, ofrece actos del kit y muestra apagados los ajenos de programas instalables, actúa por el libro del socket y espera cambios hasta 60 segundos. No expone llaves ni recibos privados, y vuelve a comprobar la autorización tras leer y antes de responder. Salud es pública y no revela datos de la casa.",
+      "rule": "MCP authenticates every request before reading its body against the fingerprint of a live identity key, regardless of its door of origin. It limits body bytes and content type, negotiates the three supported versions and keeps four fixed tools without an MCP session. It reads through terminal ports, offers kit actions and shows unavailable installed-program actions, acts through the socket request book and waits for changes up to 60 seconds. It exposes no keys or private receipts, and rechecks authorization after reading and before responding. Public health reveals no house data.",
       "from": "16/11 · nube, MCP 1: puerta HTTP de agentes",
       "guarantee": "spec",
       "evidence": [

@@ -119,6 +119,24 @@ it("graceful shutdown waits for an act, delivers its outcome, and rejects new ac
   const late = await f.client();
   expect(await late.until(late.closed)).toBe(true);
 });
+it("revoking the credential during shutdown still interrupts its pending act", async () => {
+  const held = heldAct();
+  const f = await setup(held.promise);
+  const c = await f.client("ana-terminal");
+  c.send(attend("a"));
+  await c.result("a");
+  c.send(pay("p"));
+  expect(await c.until(() => f.house().tools.state().processing.size === 1)).toBe(true);
+  const closing = f.server().close();
+  const key = [...f.house().tools.state().house.doors.keys.values()].find(key => key.identity === "ana");
+  expect(key).toBeDefined();
+  f.house().bus.emit(effect("door-key-revoked", { key: key?.id ?? "missing" }, "ana"));
+  expect(await c.until(c.closed)).toBe(true);
+  held.resolve();
+  expect(await closing).toEqual({ remaining: 0 });
+  expect(f.house().tools.state().tools.payments.received).toBe(0);
+  expect(c.messages.some(message => message.tipo === "resultado" && message.id === "p")).toBe(false);
+});
 it("ten-second deadline counts unresolved acts and restart never repeats them", async () => {
   const held = heldAct();
   const f = await setup(held.promise);

@@ -3,13 +3,13 @@ import { doorTexts as words } from "../../texts/doors.texts.ts";
 import { identityTexts } from "../../texts/identities.texts.ts";
 import type { Case } from "../promises.ts";
 import type { Program } from "../tool-contract.ts";
-type InvitationCase<X extends Program> = Case<X> & { input: { door: "agente" | "terminal" } };
+type InvitationCase<X extends Program> = Case<X> & { input: { door: "agent" | "terminal" } };
 type RevokeCase<X extends Program> = Case<X> & { input: { key: string } };
 export const invitationCases = <X extends Program>(): readonly [InvitationCase<X>, ...InvitationCase<X>[]] => [
   {
     promise: words.promises.invited,
     on: "identities/beto",
-    input: { door: "agente" },
+    input: { door: "agent" },
     then: { says: words.issued, facts: [] },
   },
   {
@@ -23,14 +23,14 @@ export const invitationCases = <X extends Program>(): readonly [InvitationCase<X
     promise: words.promises.inviteAbsent,
     on: "identities/beto",
     given: [{ act: "remove", on: "identities/beto", input: {} }],
-    input: { door: "agente" },
+    input: { door: "agent" },
     then: { refused: words.absent },
   },
 ];
 export const revocationCases = <X extends Program>(): readonly [RevokeCase<X>, ...RevokeCase<X>[]] => [
   {
     promise: words.promises.revoked,
-    given: [{ doorKey: { id: "test-key", identity: "beto", door: "agente" } }],
+    given: [{ doorKey: { id: "test-key", identity: "beto", door: "agent" } }],
     on: "identities/beto",
     input: { key: "test-key" },
     then: { says: words.revoked, facts: [], sure: words.sureRevoke },

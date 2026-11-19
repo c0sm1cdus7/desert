@@ -3,7 +3,7 @@ import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
 import { name } from "../own-acts.ts";
 const fingerprint = Type.String({ pattern: "^[a-f0-9]{64}$" });
-export const doorKind = Type.Union([Type.Literal("agente"), Type.Literal("terminal")]);
+export const doorKind = Type.Union([Type.Literal("agent"), Type.Literal("terminal")]);
 export const doorFacts = {
   "door-key-issued": object({ id: name, identity: name, door: doorKind, fingerprint }),
   "door-key-revoked": object({ key: name }),

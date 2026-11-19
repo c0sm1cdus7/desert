@@ -6,7 +6,7 @@ it("admits an independent valid redemption during sustained distributed anonymou
     first = h.door(),
     second = h.door();
   try {
-    const code = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+    const code = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
     for (let round = 0; round < 3; round++) {
       for (let attempt = 0; attempt < 100; attempt++) {
         const request = redemptionRequest("invalid");
@@ -22,7 +22,7 @@ it("admits an independent valid redemption during sustained distributed anonymou
       }
       const candidate = ["2222-2222", "3333-3333", "4444-4444"][round] ?? "5555-5555";
       expect((await first.handle(redemptionRequest(candidate))).status).toBe(400);
-      const independent = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+      const independent = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
       expect((await second.handle(redemptionRequest(independent))).status).toBe(200);
       h.advance(60_000);
     }

@@ -13,7 +13,7 @@ import { redeemInvitationAction } from "./door-redemption-action.ts";
 import { targetIdentity } from "./identity-reading.ts";
 function inviteAction<X extends Program>() {
   const invitation = object({
-    door: oneOf(words.door, option("agente", words.doors.agent, "a"), option("terminal", words.doors.terminal, "t")),
+    door: oneOf(words.door, option("agent", words.doors.agent, "a"), option("terminal", words.doors.terminal, "t")),
   });
   return programAct<X, typeof invitation>({
     ...words.invitation,
