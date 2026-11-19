@@ -42,7 +42,10 @@ export function usingCapabilities<X extends Program>(
 }
 
 function scopedCapabilities<X extends Program>(ports: Execution<X>, origin: CapabilityOrigin) {
-  const parent = ports.active?.controller.signal;
+  const signals = [ports.active?.controller.signal, ports.authorization].filter(
+    (signal): signal is AbortSignal => signal !== undefined,
+  );
+  const parent = signals.length ? AbortSignal.any(signals) : undefined;
   const target = origin.data.object;
   const tool = targetTool(ports.registry, ports.state(), target)?.id ?? target;
   const active: RunningAct = { controller: new AbortController(), writing: false };

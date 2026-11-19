@@ -5,7 +5,7 @@ import { toolTexts } from "../../../texts/tools.texts.ts";
 import { effect } from "../../../house/facts.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import { socketTexts as said } from "../../../texts/socket.texts.ts";
-import type { ClientMessage, ServerMessage } from "../wire/protocol.ts";
+import type { ClientMessage, RequestAct, ServerMessage } from "../wire/protocol.ts";
 import type { Session } from "./door-session.ts";
 import type { Peer } from "../peers/socket-peer.ts";
 import { houseChange } from "./house-change.ts";
@@ -23,7 +23,7 @@ export async function routeRequest<X extends Program>(
     ...("id" in message ? { id: message.id } : {}),
   } as const;
   if (peer.key()?.door !== "terminal") return refusal;
-  if (message.tipo === "acto") return book.act(by, message);
+  if (message.tipo === "acto") return credentialAct(session, peer, message);
   if (!jsonData(message)) return { ...refusal, motivo: said.invalidData };
   if (message.tipo === "leer") {
     if (message.qué === "pedido") return book.lookup(by, message.id) ?? { ...refusal, motivo: said.unknown };
@@ -70,4 +70,25 @@ function waitForChange<X extends Program>(
     peer.stream.off("close", close);
     return { tipo: "respuesta", id, seq, datos: { cambio } };
   });
+}
+
+/** A lost connection does not revoke a credential; keep watching its pending act until completion. */
+async function credentialAct<X extends Program>(session: Session<X>, peer: Peer, message: RequestAct) {
+  const { house, book, signal } = session;
+  const key = peer.key();
+  const controller = new AbortController();
+  const check = () => {
+    const current = house.tools.state().house;
+    if (!key?.id || current.doors.keys.get(key.id)?.revoked !== false || !current.grants.has(key.identity))
+      controller.abort();
+  };
+  const stop = house.bus.on(check);
+  if (signal.aborted) controller.abort();
+  check();
+  try {
+    return await book.act(key?.identity ?? "", message, controller.signal);
+  } finally {
+    stop();
+    controller.abort();
+  }
 }

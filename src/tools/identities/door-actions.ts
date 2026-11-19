@@ -12,7 +12,7 @@ import { targetIdentity } from "./identity-reading.ts";
 import { invitationCases, revocationCases } from "./door-cases.ts";
 function inviteAction<X extends Program>() {
   const invitation = object({
-    door: oneOf(words.door, option("agente", words.agent, "a"), option("terminal", words.terminal, "t")),
+    door: oneOf(words.door, option("agente", words.doors.agent, "a"), option("terminal", words.doors.terminal, "t")),
   });
   return programAct<X, typeof invitation>({
     ...words.invitation,
@@ -37,7 +37,7 @@ function inviteAction<X extends Program>() {
   });
 }
 function revokeAction<X extends Program>() {
-  const revoke = object({ key: text(words.key, words.key) });
+  const revoke = object({ key: text(words.key.one, words.key.one) });
   return programAct<X, typeof revoke>({
     ...words.revoke,
     input: revoke,

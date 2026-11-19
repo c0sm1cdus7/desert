@@ -14,7 +14,8 @@ export async function executeNested<X extends Program>(
   nested: Act,
   run: typeof execute,
 ): Promise<ActResult<X>> {
-  if (ports.active?.controller.signal.aborted) return { status: "interrupted", reason: toolTexts.withdrawn };
+  if (ports.active?.closed || ports.active?.controller.signal.aborted)
+    return { status: "interrupted", reason: toolTexts.withdrawn };
   const { by, id, process } = origin;
   const tool = targetTool(ports.registry, identityView(ports.state(), by), nested.target ?? "");
   const unknown: ActResult<X> = { status: "rejected", reason: toolTexts.unknown };

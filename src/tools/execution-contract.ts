@@ -12,6 +12,7 @@ export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: 
   Readonly<{ registry: ToolRegistry<X>; state: () => State<X>; own: (state: State<X>) => readonly OwnAct<X>[] }> &
   Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
   Readonly<{
+    authorization?: AbortSignal;
     contracts?: ContractFactory;
     devices?: DeviceDispatch;
     mindScope?: MindScope;

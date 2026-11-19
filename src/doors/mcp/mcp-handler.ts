@@ -17,7 +17,9 @@ import { mcpTexts as said } from "../../texts/mcp.texts.ts";
 import { authenticate, bodyFailure, readBody, empty, type McpRequest, type McpResponse } from "./mcp-access.ts";
 import { initialize, mcpTools, rpcMessage, RpcError, toolCall, toolResult, type RpcId } from "./mcp-protocol.ts";
 import { mcpReading, type McpHouse } from "./mcp-reading.ts";
-import { mcpAct } from "./mcp-actions.ts";
+import { doorTexts } from "../../texts/doors.texts.ts";
+import { isRecord } from "../../fields/json-values.ts";
+import { mcpAct, privateInvitation } from "./mcp-actions.ts";
 export type McpOptions = Readonly<{ name: string; version: string; limits: Omit<ViewLimits, "now"> }>;
 const json = (value: unknown): McpResponse => ({
   status: 200,
@@ -117,6 +119,7 @@ async function authorizedRequest<X extends Program>(
     );
   } finally {
     stop();
+    revoked.abort();
   }
 }
 function identityOf<X extends Program>(house: McpHouse<X>, keys: DoorAccess, request: McpRequest) {
@@ -176,7 +179,19 @@ function publicResult<X extends Program>(house: McpHouse<X>, keys: DoorAccess, v
       return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, redact(child)]));
     return value;
   };
-  return redact(clean);
+  const safe = redact(clean);
+  if (
+    isRecord(value) &&
+    isRecord(value.result) &&
+    privateInvitation in value.result &&
+    typeof value.result[privateInvitation] === "string" &&
+    isRecord(safe) &&
+    isRecord(safe.result) &&
+    Array.isArray(safe.result.content)
+  ) {
+    safe.result.content.push({ type: "text", text: doorTexts.receipt(value.result[privateInvitation]) });
+  }
+  return safe;
 }
 function caller<X extends Program>(
   house: McpHouse<X>,
@@ -207,6 +222,7 @@ function caller<X extends Program>(
         typeof args.objetivo === "string" ? args.objetivo : program,
         args.datos,
         Value.Check(executionDestination, args.destination) ? args.destination : undefined,
+        signal,
       );
     throw new RpcError(-32602, said.params);
   };

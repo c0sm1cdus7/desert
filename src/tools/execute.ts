@@ -139,6 +139,7 @@ function actionContext<X extends Program>(
   const { by, id } = origin;
   const { object: target, through = 0 } = origin.data;
   const check = () => {
+    if (ports.active?.controller.signal.aborted) throw new MechanicalRuleFailure(toolTexts.withdrawn, []);
     const current = resolve(ports, by, target, origin.data.option);
     const denied = refusal(ports, origin, current);
     if (denied || !current.act) throw new MechanicalRuleFailure(denied ?? toolTexts.unknown, []);
@@ -159,7 +160,7 @@ function actionContext<X extends Program>(
       ? {}
       : {
           execute: (nested: Act) => {
-            check();
+            if (!ports.active?.controller.signal.aborted) check();
             return executeNested(ports, origin, nested, execute);
           },
         }),
@@ -181,7 +182,7 @@ function attachContracts<X extends Program>(
       by: origin.by,
       signal: context.signal,
       execute: nested => {
-        check();
+        if (!ports.active?.controller.signal.aborted) check();
         return executeNested(ports, origin, nested, execute);
       },
       alive: () => ports.live() && ports.active?.closed !== true,
@@ -198,6 +199,8 @@ export function execute<X extends Program>(
   cause: readonly string[] = [],
   reaction?: Origin["data"]["reaction"],
 ): ExecutionResult<X> {
+  if (ports.authorization?.aborted || ports.active?.closed || ports.active?.controller.signal.aborted)
+    return rejected(toolTexts.withdrawn);
   if (!Value.Check(actEnvelope, value)) return rejected(toolTexts.invalid);
   const safeValue =
     value.target === "rules" && value.act === "simulate"
