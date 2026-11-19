@@ -27,7 +27,8 @@ it("removes surface metadata recursively and retains the complete local text con
     verbatim: field,
   });
   const sent = providerSchema(schema);
-  expect(sent).toMatchObject({ properties: { plain: { type: "string", pattern: field.pattern, title: "Text" } } });
+  expect(sent).toMatchObject({ properties: { plain: { type: "string", title: "Text" } } });
+  expect(JSON.stringify(sent)).not.toMatch(/"(pattern|format|minLength|maxLength|default)"/);
   expect(JSON.stringify(sent)).not.toMatch(/"plain":true|"verbatim":true|"placeholder":"Example"/);
   const value = { nested: [{ body: "Mate" }], plain: "yes", placeholder: "yes", verbatim: "yes" };
   expect(matchesSchema(schema, value)).toBe(true);
@@ -52,7 +53,9 @@ it("recognizes the field vocabulary without serializing callbacks or presentatio
   });
   const serialized = JSON.stringify(providerSchema(schema));
   expect(serialized).not.toMatch(/"(?:mask|wrong|decimals|more|when|some|of|shapes|width|allowed)":/);
-  expect(serialized).toContain('"exclusiveMinimum":0');
+  // Ranges, formats and patterns are checked by the house on every answer; the provider only receives the shape.
+  expect(serialized).not.toMatch(/"(?:exclusiveMinimum|minimum|maximum|format|pattern|minLength|maxLength|default)":/);
+  expect(matchesSchema(schema, { amount: 0 })).toBe(false);
 });
 it.each([
   { type: "string", typo: true },
@@ -66,9 +69,15 @@ it.each([
   expect(() => providerSchema(schema)).toThrow("schema keyword: typo");
   expect(() => matchesSchema(schema, "valid")).toThrow("schema keyword: typo");
 });
-it("preserves validation-shaped payloads in enum, default and property names", () => {
+it("preserves validation-shaped payloads in const and property names and keeps defaults local", () => {
   const schema = object({ plain: Type.Literal("placeholder"), data: Type.Object({}, { default: { typo: true } }) });
-  expect(providerSchema(schema)).toMatchObject({
-    properties: { plain: { const: "placeholder" }, data: { default: { typo: true } } },
+  const sent = providerSchema(schema);
+  expect(sent).toMatchObject({ properties: { plain: { const: "placeholder" }, data: { type: "object" } } });
+  expect(JSON.stringify(sent)).not.toContain('"default"');
+});
+it("sends exclusive branches as plain branches and never two branch sets with the same name", () => {
+  expect(providerSchema({ oneOf: [{ type: "string" }, { type: "number" }] })).toEqual({
+    anyOf: [{ type: "string" }, { type: "number" }],
   });
+  expect(() => providerSchema({ oneOf: [{ type: "string" }], anyOf: [{ type: "number" }] })).toThrow("schema branches");
 });
