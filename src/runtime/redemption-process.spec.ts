@@ -14,7 +14,9 @@ it.each(["different", "same", "file"])(
     const first = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
     const second = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
     if (mode !== "file")
-      writeFileSync(file, JSON.stringify({ theme: "dark", mcpServers: { previous: { preserved: true } } }));
+      writeFileSync(file, JSON.stringify({ theme: "dark", mcpServers: { previous: { preserved: true } } }), {
+        mode: 0o600,
+      });
     const start = (code: string, name: string) => {
       const child = spawn(
         process.execPath,

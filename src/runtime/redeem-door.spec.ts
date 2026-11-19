@@ -23,6 +23,7 @@ it.each(["--file", "--claude"])("saves via %s with mode 600 without printing the
     writeFileSync(
       file,
       JSON.stringify({ theme: "dark", mcpServers: { previous: { type: "http", url: "https://example.invalid/mcp" } } }),
+      { mode: 0o600 },
     );
   const material = randomBytes(32).toString("base64url");
   const code = "ABCD-2345";
@@ -60,7 +61,7 @@ it("rejects insecure endpoints, malformed configuration and symlink targets befo
   const send = vi.fn();
   vi.stubGlobal("fetch", send);
   await expect(redeemToFile("http://example.invalid", "code", { file })).rejects.toThrow();
-  writeFileSync(file, "broken");
+  writeFileSync(file, "broken", { mode: 0o600 });
   await expect(redeemToFile("https://example.invalid", "code", { file, name: "house" })).rejects.toThrow();
   symlinkSync(file, join(home, "link"));
   await expect(
@@ -71,7 +72,7 @@ it("rejects insecure endpoints, malformed configuration and symlink targets befo
 it("never prints hostile response errors and preserves the previous configuration on failure", async () => {
   const file = join(setup(), "configuration.json"),
     original = JSON.stringify({ mcpServers: {} });
-  writeFileSync(file, original);
+  writeFileSync(file, original, { mode: 0o600 });
   const material = randomBytes(32).toString("base64url");
   vi.stubGlobal("fetch", () => Promise.reject(new Error(material)));
   const output: string[] = [];

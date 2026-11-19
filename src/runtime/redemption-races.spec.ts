@@ -33,7 +33,7 @@ it.each(["missing", "readonly", "existing", "symlink"])(
     if (mode !== "missing") mkdirSync(directory);
     const file = join(directory, "credential");
     if (mode === "readonly") chmodSync(directory, 0o500);
-    if (mode === "existing") writeFileSync(file, "previous");
+    if (mode === "existing") writeFileSync(file, "previous", { mode: 0o600 });
     if (mode === "symlink") symlinkSync(join(h.home, "absent"), file);
     const code = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
     const before = h.house().tools.state().house.doors.keys.size;
@@ -86,11 +86,12 @@ it.each([false, true])(
 it("merges an editor's changes while the response is pending", async () => {
   const h = setup(),
     file = join(h.home, "configuration");
-  writeFileSync(file, JSON.stringify({ theme: "old", mcpServers: { previous: { custom: true } } }));
+  writeFileSync(file, JSON.stringify({ theme: "old", mcpServers: { previous: { custom: true } } }), { mode: 0o600 });
   vi.stubGlobal("fetch", () => {
     writeFileSync(
       file,
       JSON.stringify({ theme: "new", extra: 7, mcpServers: { previous: { custom: false }, editor: {} } }),
+      { mode: 0o600 },
     );
     return Promise.resolve(new Response(JSON.stringify({ key: "x".repeat(43) })));
   });
@@ -105,7 +106,7 @@ it("never replaces a file created while a redemption is pending", async () => {
   const h = setup(),
     file = join(h.home, "credential");
   vi.stubGlobal("fetch", () => {
-    writeFileSync(file, "editor");
+    writeFileSync(file, "editor", { mode: 0o600 });
     return Promise.resolve(new Response(JSON.stringify({ key: "x".repeat(43) })));
   });
   await expect(redeemToFile(address, "ABCD-2345", { file })).rejects.toThrow();
@@ -137,7 +138,7 @@ it("preserves an editor's same-name entry and offers private recovery", async ()
   const h = setup(),
     file = join(h.home, "configuration");
   vi.stubGlobal("fetch", () => {
-    writeFileSync(file, JSON.stringify({ mcpServers: { house: { editor: true } } }));
+    writeFileSync(file, JSON.stringify({ mcpServers: { house: { editor: true } } }), { mode: 0o600 });
     return Promise.resolve(new Response(JSON.stringify({ key: "x".repeat(43) })));
   });
   await expect(redeemToFile(address, "ABCD-2345", { file, name: "house" })).rejects.toThrow(/archivo privado/);
@@ -146,7 +147,7 @@ it("preserves an editor's same-name entry and offers private recovery", async ()
 it("rejects an existing MCP name before consuming the code", async () => {
   const h = setup(),
     file = join(h.home, "configuration");
-  writeFileSync(file, JSON.stringify({ mcpServers: { house: {} } }));
+  writeFileSync(file, JSON.stringify({ mcpServers: { house: {} } }), { mode: 0o600 });
   const send = vi.fn();
   vi.stubGlobal("fetch", send);
   await expect(redeemToFile(address, "ABCD-2345", { file, name: "house" })).rejects.toThrow();

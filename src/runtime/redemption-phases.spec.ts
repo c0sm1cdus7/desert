@@ -29,7 +29,7 @@ for (const mode of ["file", "claude"])
       const result = h.access().redeem(value.code, key);
       if (calls === 1 && phase === "uncertain") throw new Error("Response lost after issuance");
       if (calls === 1 && phase === "confirmed")
-        writeFileSync(file, mode === "file" ? "editor" : JSON.stringify({ mcpServers: { test: {} } }));
+        writeFileSync(file, mode === "file" ? "editor" : JSON.stringify({ mcpServers: { test: {} } }), { mode: 0o600 });
       return Promise.resolve(new Response(JSON.stringify(result), { status: result.status }));
     });
     vi.stubGlobal("fetch", send);

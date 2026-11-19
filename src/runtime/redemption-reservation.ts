@@ -1,33 +1,26 @@
 // Reuse SQLite writer exclusion while atomic private metadata preserves recovery across process exits.
 import { journalTexts } from "../texts/journal.texts.ts";
 import { DatabaseSync } from "node:sqlite";
-import {
-  chmodSync,
-  lstatSync,
-  readFileSync,
-  writeFileSync,
-  renameSync,
-  rmSync,
-  openSync,
-  fsyncSync,
-  closeSync,
-} from "node:fs";
+import { constants, renameSync, rmSync, closeSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { isRecord } from "../fields/json-values.ts";
-function regular(file: string) {
-  const stat = lstatSync(file, { throwIfNoEntry: false });
-  if (stat && (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1)) throw new Error("reservation-path");
-  return stat;
-}
+import {
+  checkName,
+  configurationLimit,
+  createPrivate,
+  openPrivate,
+  optionalPrivate,
+  readPrivate,
+  writePrivate,
+} from "./redemption-files.ts";
 export type RedemptionPhase = "reserved" | "uncertain" | "confirmed";
 export function redemptionReservation(file: string) {
   const path = `${file}.desert-redemption-lock`;
   const metadata = `${path}.recovery`;
-  regular(path);
-  const database = new DatabaseSync(path);
+  const database = openDatabase(path);
   try {
-    chmodSync(path, 0o600);
     database.exec(journalTexts.writerLeaseSql);
-    const row: unknown = regular(metadata) ? JSON.parse(readFileSync(metadata, "utf8")) : undefined;
+    const row: unknown = readMetadata(metadata);
     return {
       recovery: isRecord(row) && typeof row.path === "string" ? row.path : undefined,
       attempt: isRecord(row) && typeof row.attempt === "string" ? row.attempt : undefined,
@@ -47,20 +40,45 @@ export function redemptionReservation(file: string) {
     throw error;
   }
 }
-function saveMetadata(file: string, row: { path: string; attempt: string; phase: RedemptionPhase }) {
-  const pending = `${file}.pending`;
-  regular(pending);
-  rmSync(pending, { force: true });
-  writeFileSync(pending, JSON.stringify(row), { mode: 0o600, flag: "wx" });
-  const fd = openSync(pending, "r");
+function openDatabase(path: string) {
+  // SQLite takes a filename; the caller has already reserved its private containing directory.
+  const fd = openPrivate(path, constants.O_RDWR | constants.O_CREAT, configurationLimit);
   try {
-    fsyncSync(fd);
+    checkName(fd, path);
+    const database = new DatabaseSync(path);
+    try {
+      checkName(fd, path);
+      return database;
+    } catch (error) {
+      database.close();
+      throw error;
+    }
   } finally {
     closeSync(fd);
   }
-  renameSync(pending, file);
 }
-
+function readMetadata(file: string): unknown {
+  const fd = optionalPrivate(file, configurationLimit);
+  if (fd === undefined) return undefined;
+  try {
+    const row: unknown = JSON.parse(readPrivate(fd, configurationLimit));
+    checkName(fd, file);
+    return row;
+  } finally {
+    closeSync(fd);
+  }
+}
+function saveMetadata(file: string, row: { path: string; attempt: string; phase: RedemptionPhase }) {
+  const pending = `${file}.${randomUUID()}.pending`;
+  const fd = openPrivate(pending, createPrivate, configurationLimit);
+  try {
+    writePrivate(fd, JSON.stringify(row), configurationLimit);
+    checkName(fd, pending);
+    renameSync(pending, file);
+  } finally {
+    closeSync(fd);
+  }
+}
 function recoveryPhase(row: unknown): RedemptionPhase {
   if (isRecord(row) && row.phase === "confirmed") return "confirmed";
   if (isRecord(row) && row.phase === "reserved") return "reserved";

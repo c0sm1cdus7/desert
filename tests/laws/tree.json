@@ -569,6 +569,8 @@
     "house/doors/credential-equal.ts": "Compare fixed-size digests even when untrusted material has an unexpected length or encoding.",
     "house/doors/root-verifier.ts": "Bind a cloud house's bus to a domain-separated verifier, without retaining its root or changing door ports.",
     "doors/mcp/oauth-code-journal.ts": "Persist only code digests and key IDs; replay detection uses fixed-size cryptographic comparisons.",
-    "runtime/oauth-recovery.ts": "At house opening no pending OAuth bearer can still be delivered: revoke it before serving any door."
+    "runtime/oauth-recovery.ts": "At house opening no pending OAuth bearer can still be delivered: revoke it before serving any door.",
+    "runtime/redemption-files.ts": "Binds bounded private file I/O and directory trust to verified descriptors.",
+    "runtime/redemption-publication.ts": "Merges checked configuration and publishes only the reserved private inodes."
   }
 }
