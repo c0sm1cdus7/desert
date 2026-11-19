@@ -26,7 +26,7 @@ class OAuthFixture {
     rootKey: this.rootKey,
     oauth: { origin: oauthOrigin },
   };
-  readonly door = mcpDoor(this.h.house(), this.options);
+  door = mcpDoor(this.h.house(), this.options);
   private server: Awaited<ReturnType<typeof serveMcp>> | undefined;
   async listen() {
     try {
@@ -114,6 +114,11 @@ class OAuthFixture {
       JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "read", arguments: {} } }),
       { "content-type": "application/json", authorization: `Bearer ${key}` },
     );
+  async reopen(abrupt = false) {
+    if (!abrupt) await this.door.close();
+    this.h.reopen();
+    this.door = mcpDoor(this.h.house(), this.options);
+  }
   async close() {
     if (this.server) await this.server.close();
     else await this.door.close();

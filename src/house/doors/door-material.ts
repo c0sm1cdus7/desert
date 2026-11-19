@@ -1,4 +1,5 @@
 // Generate unpredictable bearer material and compare only its domain-separated fingerprint.
+import { credentialEqual } from "./credential-equal.ts";
 import { scrubVolatileDoorText } from "./volatile-door-material.ts";
 import { createHash, randomBytes, randomUUID, randomInt, scryptSync } from "node:crypto";
 import { mcpTexts } from "../../texts/mcp.texts.ts";
@@ -40,7 +41,7 @@ export function issueDoorKey(
 }
 export function findDoorKey(state: DoorState, material: string) {
   const fingerprint = doorFingerprint(material);
-  const key = [...state.keys.values()].find(key => !key.revoked && key.fingerprint === fingerprint);
+  const key = [...state.keys.values()].find(key => !key.revoked && credentialEqual(key.fingerprint, fingerprint));
   if (key) rememberLength(fingerprint, material.length);
   return key;
 }

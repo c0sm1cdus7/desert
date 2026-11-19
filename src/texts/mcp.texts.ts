@@ -1,8 +1,6 @@
 // Spanish MCP tool descriptions, orientation, results and protocol errors.
 export const mcpTexts = {
-  instructions: `La casa reúne identidades y programas, que tienen herramientas con acciones. read baja por target:
-program: notas → herramienta notas/notas → objeto notas/notas/<id>. actions muestra entradas y motivos;
-act hace una acción y wait aguarda cambios. Los importes van en centavos: 4500 son 45,00.`,
+  instructions: "La casa reúne identidades y programas. Objetos: notas/notas/<id>. Centavos: 4500 son 45,00.",
   read: `Lee la casa o el programa elegido con program. target elige su herramienta (notas/notas) u objeto
 (notas/notas/<id>); sin target lee la raíz. Identidades usa program: identities. Todos leen; el kit habilita acciones.`,
   actions: "Lista program, herramienta, action, entradas y motivos. target filtra el destino; el kit limita acciones.",

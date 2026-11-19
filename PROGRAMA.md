@@ -1923,7 +1923,12 @@ el adaptador con un puerto real en un entorno que permita escuchar.
 ### OAuth e invitaciones
 
 `McpOptions` suma `rootKey?: Uint8Array` y `oauth?: { origin: string }`. OAuth requiere la raíz, con al menos
-32 bytes. `origin` es un origen HTTPS canónico sin barra final, ruta, credenciales, consulta ni fragmento.
+32 bytes. La casa abierta con `startCloudHouse` conserva en memoria un verificador HKDF-SHA256 con
+info `desert/house/door-root-verifier/v1`, separado de la credencial de anfitrión. Al componer una puerta
+con `rootKey`, compara ese verificador: otra raíz hace fallar el arranque con un error de cableado.
+Una casa que no es de nube y no tiene verificador acepta la raíz proporcionada por la distribución;
+no puede comprobar su procedencia. Sin `rootKey` siguen disponibles las llaves ordinarias.
+`origin` es un origen HTTPS canónico sin barra final, ruta, credenciales, consulta ni fragmento.
 La distribución lo proporciona: ningún encabezado `Host` cambia el recurso `${origin}/mcp` ni las redirecciones.
 Las firmas de `mcpDoor(house, options)` y `mcpDoor(house, founderKeys, options)` siguen disponibles.
 
@@ -1932,9 +1937,14 @@ Un cliente descubre `/.well-known/oauth-protected-resource` o su variante termin
 `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp", scope="house"`; si llegó una
 credencial inválida, agregan `error="invalid_token"`. No hay metadatos CIMD en esta entrega.
 
-`POST /register` admite JSON de hasta 32768 bytes, `token_endpoint_auth_method: "none"` y entre una y ocho
-`redirect_uris` de hasta 2048 caracteres: HTTPS o HTTP en `localhost`/`127.0.0.1`, sin credenciales ni fragmentos.
-`client_name` es opcional, de hasta 120 caracteres. El identificador contiene los datos con HMAC-SHA256 y una
+`POST /register` admite JSON de hasta 32768 bytes, `token_endpoint_auth_method: "none"` y entre una y tres
+`redirect_uris` de hasta 1024 bytes cada una: HTTPS o HTTP en `localhost`/`127.0.0.1`/`[::1]`, sin credenciales
+ni fragmentos. `client_name` es opcional, de hasta 120 bytes. Ambos límites cuentan el contenido UTF-8
+con escapes JSON, sin las comillas exteriores. Lo que excede esos límites recibe `invalid_client_metadata`
+con una explicación. El cliente firmado, el retorno con escape de consulta y los parámetros habituales de
+`/authorize`, incluido un `state` ASCII de 2048 caracteres, caben en menos de 12 KiB: queda margen frente a
+los 16 KiB de Node para encabezados. Los parámetros adicionales y encabezados del cliente también consumen
+ese margen; no se admiten tamaños arbitrarios. El identificador contiene los datos con HMAC-SHA256 y una
 llave HKDF separada por el origen y `desert/door/oauth/client/v1`. El registro no guarda clientes ni escribe
 hechos. Solo se admiten `authorization_code` y `code` como tipos de concesión y respuesta.
 
@@ -1949,15 +1959,22 @@ La página resuelve el trabajo de `invitation-proof.ts` antes del formulario. `P
 `DoorAccess.attempt` y presupuesto que el canje directo. La renovación del desafío conserva los parámetros de
 autorización, borra la invitación del formulario devuelto y pide ingresarla nuevamente. La llave se genera en el
 servidor y se emite por el camino de Identidades. El código aleatorio dura 60 segundos, está ligado a cliente,
-retorno, PKCE, recurso e identidad, y se conserva solo en memoria. Su vencimiento o cierre de la puerta revoca
-las llaves pendientes, aunque nadie intente canjearlas.
+retorno, PKCE, recurso e identidad, y se conserva solo en memoria. Antes de entregarlo, el diario guarda
+`door-oauth-issued` con su resumen SHA-256 y el ID de la llave, nunca el código ni la llave en claro.
+Su vencimiento o cierre de la puerta revoca las llaves pendientes, aunque nadie intente canjearlas.
+Al abrir la casa, antes de servir cualquier puerta, se revocan las llaves de códigos emitidos sin entrega
+registrada: también ocurre si la casa se cerró sin llamar a `close` de la puerta.
 
 `POST /token` verifica el formulario completo y entrega la llave normal como `access_token`, con
 `token_type: "Bearer"` y `scope: "house"`. Una prueba PKCE o vinculación incorrecta invalida el código y revoca
-su llave. Reusar un código canjeado también la revoca. Las huellas de códigos usados se conservan mientras la
-llave siga vigente en esa instancia; se admiten hasta 4096 concesiones pendientes o canjeadas vigentes por puerta.
-No se consumen invitaciones cuando se alcanza ese límite. Reiniciar pierde los códigos y las huellas de reuso;
-las llaves ya entregadas siguen siendo revocables desde Identidades. No hay refresh tokens ni scopes finos.
+su llave. Antes de responder se guarda `door-oauth-delivered` con el resumen del código; significa que el
+servidor confirmó el canje, no que el cliente recibió la respuesta. Reusar un código canjeado revoca su llave,
+también después de reiniciar: el diario conserva la asociación del resumen con la llave. Una respuesta perdida
+seguida de un reintento también provoca esa revocación. Reiniciar pierde los códigos pendientes en claro,
+pero conserva las llaves entregadas y la detección de reuso; las llaves siguen siendo revocables desde Identidades.
+Se admiten hasta 4096 concesiones vigentes por casa entre pendientes y entregadas. Al alcanzar el límite no
+se inicia otro canje de invitación; si se alcanza durante un canje ya en curso, se revoca su llave y no se emite
+el código. No hay refresh tokens ni scopes finos.
 
 `deriveHostCredential(rootKey: Uint8Array): string`, exportada por `desert/doors/mcp` y
 `desert/doors/mcp/handler`, devuelve 32 bytes HKDF-SHA256 en base64url sin relleno, con salt vacío e

@@ -1,4 +1,6 @@
 // Compose live journal keys, the host credential and OAuth without persisting distribution secrets.
+import { oauthCodeJournal } from "./oauth-code-journal.ts";
+import { checkDoorRoot } from "../../house/doors/root-verifier.ts";
 import { effect } from "../../house/facts.ts";
 import { oauthTexts } from "../../texts/oauth.texts.ts";
 import { liveDoorKeys } from "../socket/peers/live-door-keys.ts";
@@ -14,6 +16,7 @@ export function mcpCredentials<X extends Program>(
   options: McpCredentialOptions,
   founders?: ReadonlyMap<string, DoorKey>,
 ) {
+  checkDoorRoot(house.bus, options.rootKey);
   if (options.oauth && !options.rootKey) throw new Error(oauthTexts.configuration);
   const keys = hostDoorAccess(liveDoorKeys(house, founders), options.rootKey, () => house.tools.state().house.admin);
   const revoke = (key: string) => {
@@ -28,7 +31,7 @@ export function mcpCredentials<X extends Program>(
           keys,
           house.now,
           revoke,
-          key => house.tools.state().house.doors.keys.get(key)?.revoked === false,
+          oauthCodeJournal(house.bus, () => house.tools.state().house),
         )
       : undefined;
   return { keys, oauth };

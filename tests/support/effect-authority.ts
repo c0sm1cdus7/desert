@@ -37,6 +37,8 @@ export const houseEffects = (by: string) =>
     ...deviceEffects(by),
     effect("door-key-issued", { id: "forged", identity: "beto", door: "agent", fingerprint: "0".repeat(64) }, by),
     effect("door-key-revoked", { key: "forged" }, by),
+    effect("door-oauth-issued", { fingerprint: "0".repeat(64), key: "forged" }, by),
+    effect("door-oauth-delivered", { fingerprint: "0".repeat(64) }, by),
     effect(
       "door-invitation-issued",
       { id: "forged", identity: "beto", door: "agent", fingerprint: "0".repeat(64), expires: 1 },

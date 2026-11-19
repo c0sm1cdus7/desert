@@ -2,9 +2,13 @@
 import { createHmac, hkdfSync, timingSafeEqual } from "node:crypto";
 import { isRecord } from "../../fields/json-values.ts";
 export type OAuthClient = Readonly<{ redirect_uris: readonly string[]; client_name?: string }>;
-export const loopback = (url: URL) => url.hostname === "localhost" || url.hostname === "127.0.0.1";
+// Byte limits include JSON escaping; the signed client plus a maximally encoded return stays below 12 KiB.
+export const registrationLimits = { redirects: 3, redirectBytes: 1024, nameBytes: 120 } as const;
+const jsonBytes = (value: string) => Buffer.byteLength(JSON.stringify(value)) - 2;
+export const loopback = (url: URL) => ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
 function redirect(value: unknown): value is string {
-  if (typeof value !== "string" || value.length > 2048 || value.includes("#")) return false;
+  if (typeof value !== "string" || jsonBytes(value) > registrationLimits.redirectBytes || value.includes("#"))
+    return false;
   try {
     const url = new URL(value);
     return (
@@ -22,9 +26,10 @@ export function clientMetadata(value: unknown): OAuthClient | undefined {
     !isRecord(value) ||
     !Array.isArray(value.redirect_uris) ||
     !value.redirect_uris.length ||
-    value.redirect_uris.length > 8 ||
+    value.redirect_uris.length > registrationLimits.redirects ||
     !value.redirect_uris.every(redirect) ||
-    (value.client_name !== undefined && (typeof value.client_name !== "string" || value.client_name.length > 120)) ||
+    (value.client_name !== undefined &&
+      (typeof value.client_name !== "string" || jsonBytes(value.client_name) > registrationLimits.nameBytes)) ||
     value.token_endpoint_auth_method !== "none" ||
     (value.grant_types !== undefined &&
       (!Array.isArray(value.grant_types) ||
@@ -47,7 +52,7 @@ export function registeredRedirect(client: OAuthClient, requested: string): bool
       right = new URL(requested);
     if (!loopback(left) || !loopback(right)) return false;
     const withoutPort = (value: string) =>
-      value.replace(/^(https?:\/\/(?:localhost|127\.0\.0\.1))(?::[0-9]+)?(?=\/|[?#]|$)/, "$1");
+      value.replace(/^(https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]))(?::[0-9]+)?(?=\/|[?#]|$)/, "$1");
     return withoutPort(registered) === withoutPort(requested);
   });
 }
@@ -60,7 +65,7 @@ export function clientRegistrations(rootKey: Uint8Array, origin: string) {
       return `${payload}.${sign(payload).toString("base64url")}`;
     },
     read: (id: string): OAuthClient | undefined => {
-      if (id.length > 24000) return undefined;
+      if (id.length > 4600) return undefined;
       const parts = id.split(".");
       const payload = parts[0],
         signature = parts[1];

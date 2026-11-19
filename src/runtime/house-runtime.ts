@@ -10,6 +10,7 @@ import { defectReporter } from "../tools/failures/defect-reporter.ts";
 import type { Program, ViewLimits } from "../tools/tool-contract.ts";
 import { deviceRegistrationAccess } from "./devices/device-registration.ts";
 import { createDeviceRuntime, type DeviceRuntime } from "./devices/device-runtime.ts";
+import { revokeUndeliveredCodes } from "./oauth-recovery.ts";
 import { seedDoorKeys } from "./door-access.ts";
 import { composed } from "./house-composition.ts";
 import { houseResources } from "./house-resources.ts";
@@ -59,6 +60,7 @@ export function startHouse<X extends Program>(
     const tools = startHouseTools(options, resources, ports, devices, contracts, time);
     if (!state().house.admin) createHouse(bus, creation);
     seedDoorKeys(bus, () => state().house, options.founderDoorKeys);
+    revokeUndeliveredCodes(bus, () => state().house);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
     const minds = loadMinds(home, options, time, resources, devices, contracts);

@@ -565,6 +565,10 @@
     "house/doors/volatile-door-material.ts": "Keep only fingerprints of process credentials so every journal and public surface can redact them.",
     "texts/oauth.texts.ts": "OAuth consent and host configuration words, alongside the existing door refusal catalog.",
     "doors/mcp/oauth-authorization.ts": "Validate redirect authority before errors can redirect, then redeem through the audited invitation budget.",
-    "doors/mcp/mcp-credentials.ts": "Compose live journal keys, the host credential and OAuth without persisting distribution secrets."
+    "doors/mcp/mcp-credentials.ts": "Compose live journal keys, the host credential and OAuth without persisting distribution secrets.",
+    "house/doors/credential-equal.ts": "Compare fixed-size digests even when untrusted material has an unexpected length or encoding.",
+    "house/doors/root-verifier.ts": "Bind a cloud house's bus to a domain-separated verifier, without retaining its root or changing door ports.",
+    "doors/mcp/oauth-code-journal.ts": "Persist only code digests and key IDs; replay detection uses fixed-size cryptographic comparisons.",
+    "runtime/oauth-recovery.ts": "At house opening no pending OAuth bearer can still be delivered: revoke it before serving any door."
   }
 }

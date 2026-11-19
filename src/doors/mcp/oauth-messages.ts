@@ -1,4 +1,5 @@
 // Bound OAuth bodies and centralize uncached protocol responses without reflecting untrusted input.
+import { oauthTexts } from "../../texts/oauth.texts.ts";
 import { mcpTexts } from "../../texts/mcp.texts.ts";
 import { header, type McpRequest, type McpResponse } from "./mcp-access.ts";
 export function oauthJson(status: number, value: unknown): McpResponse {
@@ -9,7 +10,10 @@ export function oauthJson(status: number, value: unknown): McpResponse {
   };
 }
 export function oauthError(error: string, status = 400) {
-  return oauthJson(status, { error, error_description: mcpTexts.params });
+  return oauthJson(status, {
+    error,
+    error_description: error === "invalid_client_metadata" ? oauthTexts.metadata : mcpTexts.params,
+  });
 }
 export async function oauthBody(request: McpRequest, type: string): Promise<string | undefined> {
   if (header(request, "content-type")?.split(";")[0]?.trim().toLowerCase() !== type) return undefined;

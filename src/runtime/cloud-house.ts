@@ -1,4 +1,5 @@
 // Abre la casa de nube siempre encendida; solo el anfitrión cierra recursos y las puertas reciben puertos sin apagado.
+import { bindDoorRoot, rootVerifier } from "../house/doors/root-verifier.ts";
 import type { ModelHouseOptions } from "./minds/mind-runtime-options.ts";
 import type { Program, ViewLimits } from "../tools/tool-contract.ts";
 import { RootHouseKeys } from "../keychain/cloud/root-house-keys.ts";
@@ -11,6 +12,7 @@ export function startCloudHouse<X extends Program>(
   variable: string,
 ) {
   const root = environmentRootKey(environment, variable);
+  const verifier = rootVerifier(root);
   let keys: RootHouseKeys;
   try {
     keys = new RootHouseKeys(root, home);
@@ -19,6 +21,7 @@ export function startCloudHouse<X extends Program>(
   }
   try {
     const house = startHouse(home, { ...program, secretKeys: keys });
+    bindDoorRoot(house.bus, verifier);
     const stop = hostLifetime(house, keys);
     if (house.minds) void house.minds.catch(stop);
     const { tools, journal, bus, registry, now } = house;

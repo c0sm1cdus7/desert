@@ -16,6 +16,8 @@ export const autonomousFacts: Readonly<Record<string, string>> = {
   "device-execution-started": "journal", // Records dispatch of a catalog action to its chosen device.
   "device-execution-unknown": "journal", // Preserves uncertainty after a remote execution is lost.
   "device-execution-result": "journal", // Records the authenticated result of the dispatched action.
+  "door-oauth-issued": "journal", // The OAuth door records a code digest after verified invitation redemption.
+  "door-oauth-delivered": "journal", // The OAuth door records successful code exchange before returning the bearer.
   "mind-turn-opened": "minds", // Opens the turn caused by a recorded wake.
   "mind-answer-invalid": "minds", // Records failed validation without publishing proposed actions.
   "mind-consultation-requested": "minds", // Records a supervisor consultation within the current turn.

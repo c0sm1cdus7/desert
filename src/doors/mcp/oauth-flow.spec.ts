@@ -89,3 +89,11 @@ it("derives the host as the actual admin without journal writes, redacts it and 
   expect(reading.body.includes(credential)).toBe(false);
   expect(reading.body).toContain("[secreto]");
 });
+
+it("rejects a well-formed but incorrect PKCE verifier with the same grant revocation", async () => {
+  const f = await setup(),
+    g = await f.grant();
+  g.token.set("code_verifier", "x".repeat(43));
+  expect(responseField((await f.form("/token", g.token)).body, "error")).toBe("invalid_grant");
+  expect(f.h.house().tools.state().house.doors.keys.get(g.key.id)?.revoked).toBe(true);
+});

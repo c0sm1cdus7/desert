@@ -3,6 +3,7 @@ import { oauthAuthorization, type OAuthContext } from "./oauth-authorization.ts"
 import type { DoorAccess } from "../../runtime/door-access.ts";
 import { doorTexts } from "../../texts/doors.texts.ts";
 import { oauthTexts as said } from "../../texts/oauth.texts.ts";
+import type { OAuthCodeJournal } from "./oauth-code-journal.ts";
 import { oauthCodes } from "./oauth-codes.ts";
 import { clientMetadata, clientRegistrations } from "./oauth-registration.ts";
 import { oauthBody, oauthError, oauthJson, singleParameters } from "./oauth-messages.ts";
@@ -24,9 +25,9 @@ export function oauthDoor(
   access: DoorAccess,
   now: () => number,
   revoke: (key: string) => void,
-  live: (key: string) => boolean,
+  journal: OAuthCodeJournal,
 ) {
-  return new OAuthDoor(publicOrigin(options.origin), rootKey, access, now, revoke, live);
+  return new OAuthDoor(publicOrigin(options.origin), rootKey, access, now, revoke, journal);
 }
 class OAuthDoor {
   private readonly origin: string;
@@ -37,13 +38,13 @@ class OAuthDoor {
     access: DoorAccess,
     now: () => number,
     revoke: (key: string) => void,
-    live: (key: string) => boolean,
+    journal: OAuthCodeJournal,
   ) {
     this.origin = origin;
     this.context = {
       resource: `${origin}/mcp`,
       clients: clientRegistrations(rootKey, origin),
-      codes: oauthCodes(now, revoke, live),
+      codes: oauthCodes(now, revoke, journal),
       access,
       revoke,
     };

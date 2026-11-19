@@ -73,5 +73,6 @@ async function redeemAuthorization(
     key: result.key,
     keyId: key.id,
   });
+  if (!code) return oauthPage(503, doorTexts.denied);
   return oauthRedirect(params.get("redirect_uri") ?? "", params.get("state"), { code });
 }

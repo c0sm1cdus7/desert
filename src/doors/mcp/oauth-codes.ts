@@ -1,5 +1,7 @@
-// Hold short-lived grants in memory; hashed tombstones revoke a live door key on authorization-code replay.
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+// Bearers live only in memory; journal digests retain replay revocation across house restarts.
+import { createHash, randomBytes } from "node:crypto";
+import { credentialEqual } from "../../house/doors/credential-equal.ts";
+import type { OAuthCodeJournal } from "./oauth-code-journal.ts";
 export type OAuthGrant = Readonly<{
   client: string;
   redirect: string;
@@ -10,58 +12,65 @@ export type OAuthGrant = Readonly<{
   keyId: string;
 }>;
 type StoredGrant = Readonly<{ grant: OAuthGrant; expires: number; timer: ReturnType<typeof setTimeout> }>;
-const digest = (value: string) => createHash("sha256").update(value).digest("base64url");
+const digest = (value: string) => createHash("sha256").update(value).digest("hex");
 class OAuthCodes {
   private readonly pending = new Map<string, StoredGrant>();
-  private readonly spent = new Map<string, string>();
   private readonly now: () => number;
   private readonly revoke: (key: string) => void;
-  private readonly live: (key: string) => boolean;
-  constructor(now: () => number, revoke: (key: string) => void, live: (key: string) => boolean) {
+  private readonly journal: OAuthCodeJournal;
+  constructor(now: () => number, revoke: (key: string) => void, journal: OAuthCodeJournal) {
     this.now = now;
     this.revoke = revoke;
-    this.live = live;
+    this.journal = journal;
   }
   private retire(id: string, revokeKey: boolean) {
     const stored = this.pending.get(id);
     if (!stored) return;
+    if (revokeKey) this.revoke(stored.grant.keyId);
     clearTimeout(stored.timer);
     this.pending.delete(id);
-    if (revokeKey) this.revoke(stored.grant.keyId);
-    else this.spent.set(id, stored.grant.keyId);
   }
   available() {
     for (const [id, stored] of this.pending) if (stored.expires <= this.now()) this.retire(id, true);
-    for (const [id, key] of this.spent) if (!this.live(key)) this.spent.delete(id);
-    return this.pending.size + this.spent.size < 4096;
+    return this.journal.active() < 4096;
   }
   issue(grant: OAuthGrant) {
+    if (!this.available()) {
+      this.revoke(grant.keyId);
+      return undefined;
+    }
     const code = randomBytes(32).toString("base64url"),
       id = digest(code);
+    try {
+      this.journal.issue(id, grant.keyId);
+    } catch (error) {
+      this.revoke(grant.keyId);
+      throw error;
+    }
     const timer = setTimeout(() => this.retire(id, true), 60_000);
     timer.unref();
     this.pending.set(id, { grant, expires: this.now() + 60_000, timer });
     return code;
   }
   exchange(params: URLSearchParams): string | undefined {
-    const id = digest(params.get("code") ?? ""),
-      stored = this.pending.get(id);
-    const replay = this.spent.get(id);
-    if (replay) {
-      this.revoke(replay);
-      this.spent.delete(id);
+    const id = digest(params.get("code") ?? "");
+    let stored: StoredGrant | undefined;
+    for (const [fingerprint, pending] of this.pending) if (credentialEqual(fingerprint, id)) stored = pending;
+    if (!stored) {
+      const replay = this.journal.find(id);
+      if (replay) this.revoke(replay);
       return undefined;
     }
-    if (!stored) return undefined;
     const { grant } = stored;
     const verifier = params.get("code_verifier") ?? "";
     const valid =
       stored.expires > this.now() &&
-      grant.client === params.get("client_id") &&
-      grant.redirect === params.get("redirect_uri") &&
-      grant.resource === params.get("resource") &&
+      credentialEqual(grant.client, params.get("client_id") ?? "") &&
+      credentialEqual(grant.redirect, params.get("redirect_uri") ?? "") &&
+      credentialEqual(grant.resource, params.get("resource") ?? "") &&
       /^[A-Za-z0-9._~-]{43,128}$/.test(verifier) &&
-      timingSafeEqual(Buffer.from(digest(verifier)), Buffer.from(grant.challenge));
+      credentialEqual(createHash("sha256").update(verifier).digest("base64url"), grant.challenge);
+    if (valid) this.journal.deliver(id);
     this.retire(id, !valid);
     return valid ? grant.key : undefined;
   }
@@ -70,6 +79,6 @@ class OAuthCodes {
   }
 }
 
-export function oauthCodes(now: () => number, revoke: (key: string) => void, live: (key: string) => boolean) {
-  return new OAuthCodes(now, revoke, live);
+export function oauthCodes(now: () => number, revoke: (key: string) => void, journal: OAuthCodeJournal) {
+  return new OAuthCodes(now, revoke, journal);
 }

@@ -1,4 +1,5 @@
 // The host seeds founders lazily; every door resolves and redeems against the live journal projection.
+import { credentialEqual } from "../house/doors/credential-equal.ts";
 import { scrypt } from "node:crypto";
 import {
   findDoorKey,
@@ -71,7 +72,7 @@ function createDoorAccess(
             error ? reject(error) : resolve(value.toString("hex")),
           ),
         );
-        if (fingerprint === invitation.fingerprint) return redeem(code, material, invitation.id);
+        if (credentialEqual(fingerprint, invitation.fingerprint)) return redeem(code, material, invitation.id);
       }
       return { status: 400 };
     }, now),
@@ -95,7 +96,7 @@ function createRedeemer(
     if (material && !/^[A-Za-z0-9_-]{43}$/.test(material)) return { status: 400 };
     if (invitation.redeemed) {
       const key = house.doors.keys.get(invitation.key ?? "");
-      return material && key && !key.revoked && key.fingerprint === doorFingerprint(material)
+      return material && key && !key.revoked && credentialEqual(key.fingerprint, doorFingerprint(material))
         ? { status: 200, key: material }
         : { status: 400 };
     }
@@ -112,7 +113,9 @@ function matchingInvitation(house: House, code: string, at: number, retry = fals
   return /^[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/.test(code)
     ? [...house.doors.invitations.values()].find(
         each =>
-          (!each.redeemed || retry) && at < each.expires && each.fingerprint === invitationFingerprint(code, each.id),
+          (!each.redeemed || retry) &&
+          at < each.expires &&
+          credentialEqual(each.fingerprint, invitationFingerprint(code, each.id)),
       )
     : undefined;
 }
