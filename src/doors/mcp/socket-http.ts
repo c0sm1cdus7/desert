@@ -126,12 +126,19 @@ class SocketHttp<X extends Program> {
 }
 export const socketHttp = <X extends Program>(house: Session<X>["house"], keys = liveDoorKeys(house)) =>
   new SocketHttp(house, keys);
-async function* events(wire: Duplex): AsyncIterable<string> {
+export async function* events(wire: Duplex): AsyncIterable<string> {
   const reader = wire[Symbol.asyncIterator]();
+  // The wire can close while this stream is paused at a yield: a read created then is never raced, so each read is
+  // observed as soon as it exists and its failure ends only this stream.
+  const read = () => {
+    const pending = reader.next();
+    pending.catch(() => undefined);
+    return pending;
+  };
   let timer: NodeJS.Timeout | undefined;
   try {
     yield ": connected\n\n";
-    let next = reader.next();
+    let next = read();
     while (!wire.destroyed) {
       const item = await Promise.race([
         next,
@@ -148,7 +155,7 @@ async function* events(wire: Duplex): AsyncIterable<string> {
       const value = item.value;
       for (let offset = 0; offset < value.length; offset += socketLimits.chunk)
         yield `data: ${value.subarray(offset, offset + socketLimits.chunk).toString("base64")}\n\n`;
-      next = reader.next();
+      next = read();
     }
   } catch {
     /* Disconnects end only this stream; reconnection uses the existing request book. */
