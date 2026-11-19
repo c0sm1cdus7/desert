@@ -32,7 +32,7 @@ export function redeemInvitationAction<X extends Program>() {
       const found = state.house.doors.invitations.get(invitation);
       if (!found) throw new Error(words.noInvitation);
       const recipient = redemptionRecipient(invitation);
-      if (!recipient) return { status: "accepted", text: words.redeemed, effects: [] };
+      if (!recipient) return { status: "accepted", text: words.guided, effects: [] };
       const issued = issueDoorKey(found.identity, found.door, by, recipient.material);
       recipient.deliver(issued.material);
       return {
@@ -52,7 +52,7 @@ const cases = [
     on: "identities/beto",
     given: [{ invitation: { id: "case-invitation", identity: "beto" } }],
     input: { invitation: "case-invitation" },
-    then: { says: words.redeemed, facts: [] },
+    then: { says: words.guided, facts: [] },
   },
   {
     promise: words.promises.missingInvitation,

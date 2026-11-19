@@ -235,7 +235,7 @@
     "runtime/distributions/validation-types.ts": "Computes every static composition reason independently, including widened metadata and repeated tuples.",
     "runtime/environment-key.ts": "Lee llaves del entorno explícito y entrega bytes borrables con errores que solo nombran la variable.",
     "runtime/house-custody-maintenance.ts": "Mantenimiento con la casa cerrada y un solo escritor; agrega sin restaurar ni descartar plegados.",
-    "runtime/house-journal.ts": "Apertura común con vocabulario protegido y conservación explícita de plegados durante mantenimiento.",
+    "runtime/house-journal.ts": "Opens protected journals and indexes historical door material before replay or maintenance.",
     "runtime/house-projections.ts": "Runtime and upgrade checks restore the same complete house and clock before any effect or boot.",
     "runtime/house-resources.ts": "Abre diario, plegados y custodia, valida identidades, presta adaptadores autorizados y cierra los recursos.",
     "runtime/house-runtime.ts": "One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.",
@@ -501,7 +501,7 @@
     "tools/minds/device-answer.ts": "Limita la elección de una propuesta a los destinos compatibles ofrecidos por la casa.",
     "house/doors/door-facts.ts": "Door credentials and invitations persist only fingerprints, never their bearer material.",
     "house/doors/door-state.ts": "Fold door access and consume invitations without storing any bearer material.",
-    "house/doors/door-material.ts": "Generate unpredictable bearer material and compare only its domain-separated fingerprint.",
+    "house/doors/door-material.ts": "Issues fingerprint-only credentials and redacts complete or embedded material with length-indexed windows.",
     "runtime/door-access.ts": "The host seeds founders lazily; every door resolves and redeems against the live journal projection.",
     "runtime/redeem-door.ts": "Redeem on the person's machine and atomically persist a credential without displaying it.",
     "runtime/redeem-door-cli.ts": "A local redemption entry reads a short code from stdin and never prints response bodies or credentials.",
@@ -519,7 +519,7 @@
     "tools/minds/mind-settings-cases.ts": "Synthetic bank publications prepare card selection without a model or a credential.",
     "tools/rules/rule-cases.ts": "Declared rule examples exercise successful lifecycle changes and each reachable refusal through the router.",
     "tools/identities/device-cases.ts": "Public, synthetic registration examples prove owner boundaries and lifecycle navigation without sockets.",
-    "tools/identities/door-redemption-action.ts": "Redeeming an invitation is an administrator action; all doors invoke this same catalog entry.",
+    "tools/identities/door-redemption-action.ts": "Guides administrators and records actual issuance only for the verified invitation presenter.",
     "tools/identities/device-actions.ts": "Identity owners provision devices; owners and administrators accept or retire them through declared actions.",
     "checks/contracts/program-contract-cases.ts": "Every consumer request runs at the provider gate, on an isolated instance of the assembled house.",
     "checks/laws/action-coverage.ts": "Trace registered actions and their executable runs separately from promised case contexts.",
@@ -548,8 +548,9 @@
     "house/core-value-history.ts": "Read historical door and rule values without changing saved records or accepting them in new emissions.",
     "tools/rules/rule-display.ts": "Render rule effect labels in the house language while preserving English values in facts and action results.",
     "checks/laws/program-device.ts": "Separates declared device folders from house code and admits only pure shared dependency graphs.",
-    "runtime/redemption-reservation.ts": "Uses an operating-system released database lock with durable recovery metadata.",
+    "runtime/redemption-reservation.ts": "Keeps process exclusion and durable reserved, uncertain or confirmed recovery evidence.",
     "tools/identities/redemption-recipient.ts": "Scopes delivery to the verified invitation presenter without serializable authority.",
-    "doors/socket/requests/public-message.ts": "Prepares public envelopes and correlates redacted identifiers by digest."
+    "doors/socket/requests/public-message.ts": "Prepares public envelopes and correlates redacted identifiers by digest.",
+    "runtime/door-journal-vocabulary.ts": "Indexes historical door fingerprints before protected replay and projection restoration."
   }
 }

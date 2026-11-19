@@ -1,4 +1,5 @@
 // MCP creators receive each short invitation once; public readings and journals never reveal door material.
+import { requestDigest } from "../socket/requests/public-message.ts";
 import { expect, it } from "vitest";
 import { doorHouse, rpcRequest } from "../../../tests/support/door-house.ts";
 it.each(["new", "invite"])(
@@ -46,6 +47,9 @@ it.each(["new", "invite"])(
       ).toBe(false);
       const reflected = await door.handle(rpcRequest(h.founder, { jsonrpc: "2.0", id: issued.key, method: "ping" }));
       expect(reflected.body.includes(issued.key)).toBe(false);
+      expect(JSON.parse(reflected.body)).toMatchObject({ id: requestDigest(issued.key), correlation: "sha256" });
+      const ordinary = await door.handle(rpcRequest(h.founder, { jsonrpc: "2.0", id: "ordinary-id", method: "ping" }));
+      expect(JSON.parse(ordinary.body)).toEqual({ jsonrpc: "2.0", id: "ordinary-id", result: {} });
       expect(h.access().redeem(code).status).toBe(400);
     } finally {
       await door.close();

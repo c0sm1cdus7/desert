@@ -86,7 +86,7 @@ it("never gives an administrator the invited key through local actions, socket, 
     const local = await h.act("redeem-invitation", { invitation }, "identities/beto");
     expect(local.private).toBeUndefined();
     expect(local.status).toBe("accepted");
-    expect(h.history()).toContain(doorTexts.redeemed);
+    expect(h.history()).toContain(doorTexts.guided);
     await settle(ports.act({ act: "attend", input: { target: "identities/beto" } }, 0));
     const remote = await settle(
       ports.act({ act: "redeem-invitation", target: "identities/beto", input: { invitation } }, 0),
@@ -108,10 +108,21 @@ it("never gives an administrator the invited key through local actions, socket, 
         },
       }),
     );
-    expect(mcp.body).toContain("persona invitada");
+    expect(mcp.body).toContain(doorTexts.guided);
+    const offered = await door.handle(
+      rpcRequest(h.founder, {
+        jsonrpc: "2.0",
+        id: "guidance-offer",
+        method: "tools/call",
+        params: { name: "acciones", arguments: { programa: "identities", objetivo: "identities/beto" } },
+      }),
+    );
+    expect(offered.body).toContain(doorTexts.redeem.name);
+    expect(offered.body).toContain(doorTexts.redeem.purpose);
     expect([...h.house().tools.state().house.doors.invitations.values()][0]?.redeemed).toBe(false);
     const redeemed = h.access().redeem(code);
     expect(redeemed.status).toBe(200);
+    expect(h.history()).toContain(doorTexts.redeemed);
     expect(redeemed.key).toBeDefined();
     expect(JSON.stringify([local, remote, mcp]).includes(redeemed.key ?? "missing")).toBe(false);
   } finally {
@@ -121,56 +132,67 @@ it("never gives an administrator the invited key through local actions, socket, 
   }
   h.reopen();
   try {
+    expect(h.history()).toContain(doorTexts.redeemed);
+    expect(h.history()).toContain(doorTexts.guided);
     expect((await h.act("redeem-invitation", { invitation }, "identities/beto")).private).toBeUndefined();
   } finally {
     h.close();
   }
 });
-it("redacts live and revoked credentials in every response identifier with explicit stable correlation", async () => {
-  const h = doorHouse(),
-    door = h.door(),
-    transport = httpDoorFetch(door.handle);
-  const key = h.access().redeem(invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"))).key;
-  if (!key) throw new Error("Missing test key");
-  const client = await connectRemoteTerminal<Shop>("http://localhost/mcp", h.founder, transport.send);
-  const messages: unknown[] = [];
-  client.receive(message => messages.push(message));
-  try {
-    for (const revoked of [false, true]) {
-      if (revoked) await h.act("revoke-key", { key: h.access().get(key)?.id }, "identities/beto");
-      for (const what of ["catalogo", "pedido", "unknown"]) client.send({ tipo: "leer", id: key, qué: what });
+it.each(["whole", "compound"])(
+  "redacts live and revoked credentials in %s identifiers with stable correlation",
+  async mode => {
+    const h = doorHouse(),
+      door = h.door(),
+      transport = httpDoorFetch(door.handle);
+    const key = h.access().redeem(invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"))).key;
+    if (!key) throw new Error("Missing test key");
+    const client = await connectRemoteTerminal<Shop>("http://localhost/mcp", h.founder, transport.send);
+    const id = mode === "compound" ? `token_${key}_end` : key;
+    const messages: unknown[] = [];
+    client.receive(message => messages.push(message));
+    try {
+      for (const revoked of [false, true]) {
+        if (revoked) await h.act("revoke-key", { key: h.access().get(key)?.id }, "identities/beto");
+        for (const what of ["catalogo", "pedido", "unknown"]) client.send({ tipo: "leer", id, qué: what });
+        await tick();
+        expect(messages).toContainEqual(expect.objectContaining({ id: requestDigest(id), correlation: "sha256" }));
+        expect(JSON.stringify(messages)).not.toContain(key);
+      }
+      const action = { tipo: "acto", id, act: "prefer", input: { hide: "empty", on: true }, through: 0 } as const;
+      client.send(action);
       await tick();
-      expect(messages).toContainEqual(expect.objectContaining({ id: requestDigest(key), correlation: "sha256" }));
-      expect(JSON.stringify(messages)).not.toContain(key);
-    }
-    const action = { tipo: "acto", id: key, act: "prefer", input: { hide: "empty", on: true }, through: 0 } as const;
-    client.send(action);
-    await tick();
-    client.send(action);
-    await tick();
-    const acts = h
-      .house()
-      .journal.replay<number>(
-        0,
-        (count, event) =>
-          count + Number(event.layer === "house" && event.kind === "act" && event.data.option === "prefer"),
+      client.send(action);
+      await tick();
+      const acts = h
+        .house()
+        .journal.replay<number>(
+          0,
+          (count, event) =>
+            count + Number(event.layer === "house" && event.kind === "act" && event.data.option === "prefer"),
+        );
+      expect(acts).toBe(1);
+      expect(messages).toContainEqual(
+        expect.objectContaining({
+          tipo: "resultado",
+          id: requestDigest(id),
+          status: "accepted",
+          correlation: "sha256",
+        }),
       );
-    expect(acts).toBe(1);
-    expect(messages).toContainEqual(
-      expect.objectContaining({ tipo: "resultado", id: requestDigest(key), status: "accepted", correlation: "sha256" }),
-    );
-    expect(JSON.stringify(messages)).not.toContain(key);
-    client.send({ tipo: "leer", id: "ordinary", qué: "catalogo" });
-    await tick();
-    expect(messages).toContainEqual(expect.objectContaining({ id: "ordinary" }));
-    expect(h.history()).not.toContain(key);
-  } finally {
-    client.close();
-    transport.disconnect();
-    await door.close();
-    h.close();
-  }
-});
+      expect(JSON.stringify(messages)).not.toContain(key);
+      client.send({ tipo: "leer", id: "ordinary", qué: "catalogo" });
+      await tick();
+      expect(messages).toContainEqual(expect.objectContaining({ id: "ordinary" }));
+      expect(h.history()).not.toContain(key);
+    } finally {
+      client.close();
+      transport.disconnect();
+      await door.close();
+      h.close();
+    }
+  },
+);
 
 it.each(["hello", "frame"])(
   "keeps credentials out of %s transport failures and preserves ordinary content",

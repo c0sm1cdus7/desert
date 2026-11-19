@@ -1,21 +1,18 @@
-// Palabras de la puerta MCP: herramientas, orientación, resultados y errores del protocolo.
+// Spanish MCP tool descriptions, orientation, results and protocol errors.
 export const mcpTexts = {
-  instructions:
-    "La casa reúne identidades y programas, que tienen herramientas con acciones. leer baja por objetivo: " +
-    "programa notas → herramienta notas/notas → objeto notas/notas/<id>. acciones muestra entradas y motivos; " +
-    "actuar hace una acción y esperar aguarda cambios. Los importes van en centavos: 4500 son 45,00.",
+  instructions: `La casa reúne identidades y programas, que tienen herramientas con acciones. leer baja por objetivo:
+programa notas → herramienta notas/notas → objeto notas/notas/<id>. acciones muestra entradas y motivos;
+actuar hace una acción y esperar aguarda cambios. Los importes van en centavos: 4500 son 45,00.`,
   leer: {
     name: "leer",
-    description:
-      "Lee la casa; programa elige el programa. Conservá programa: notas y usá objetivo: notas/notas para " +
-      "leer la herramienta, o el id de un objeto: notas/notas/<id>. Sin objetivo lee la raíz. " +
-      "Identidades se lee igual, con programa: identities. Todos leen los programas; el kit habilita las acciones.",
+    description: `Lee la casa; programa elige el programa. Conservá programa: notas y usá objetivo: notas/notas para
+leer la herramienta, o el id de un objeto: notas/notas/<id>. Sin objetivo lee la raíz.
+Identidades se lee igual, con programa: identities. Todos leen los programas; el kit habilita las acciones.`,
   },
   acciones: {
     name: "acciones",
-    description:
-      "Lista programa, herramienta (carpeta), accion, entradas y motivos. programa elige el programa; " +
-      "objetivo filtra su carpeta u objeto con el id de leer y actuar. El kit apaga las acciones ajenas.",
+    description: `Lista programa, herramienta (carpeta), accion, entradas y motivos. programa elige el programa;
+objetivo filtra su carpeta u objeto con el id de leer y actuar. El kit apaga las acciones ajenas.`,
   },
   actuar: { name: "actuar", description: "Hace una acción del programa sobre el objetivo indicado, según el kit." },
   esperar: { name: "esperar", description: "Aguarda un cambio posterior a desde, durante hasta 60 segundos." },

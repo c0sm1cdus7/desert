@@ -1,3 +1,4 @@
+// Scenes preserve membership boundaries and rebuild under the current protected projection version.
 import { houseActs } from "../house/scenes.ts";
 import { noCapabilities } from "../tools/execution/execution-capabilities.ts";
 import { Value } from "@sinclair/typebox/value";
@@ -77,8 +78,8 @@ it("8: rejects excess, blank identity keys and another author's scene before a s
   expect(rig.state().house.scenes.get("ana")?.data).toEqual(boundary);
 });
 
-it("bumps the base fold version for English core values, credentials, selections, names and wake ownership", () => {
-  expect(baseProjectionVersion).toBe("desert/12");
+it("bumps the base fold version for embedded credentials and prior core migrations", () => {
+  expect(baseProjectionVersion).toBe("desert/13");
 });
 
 it("A6: the scene schema bounds recipient names independently of current membership", () => {

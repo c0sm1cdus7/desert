@@ -1,3 +1,4 @@
+// Historical folds rebuild without losing wake ownership or protected door state.
 import { afterEach, expect, it, vi } from "vitest";
 import { zeroHouse } from "../../tests/support/zero-house.ts";
 import { effect } from "./facts.ts";
@@ -16,7 +17,7 @@ afterEach(() => {
   version.old = "desert/3";
 });
 // Rebuild earlier folds, including desert/10 before English core values.
-it.each(["desert/3", "desert/4", "desert/6", "desert/8", "desert/9", "desert/10"])(
+it.each(["desert/3", "desert/4", "desert/6", "desert/8", "desert/9", "desert/10", "desert/12"])(
   "rebuilds %s saved folds and retains the first owner of an old wake id",
   old => {
     version.old = old;
@@ -24,7 +25,7 @@ it.each(["desert/3", "desert/4", "desert/6", "desert/8", "desert/9", "desert/10"
     rig.house().bus.emit(effect("wake-at", { id: "old-name", at: null }, "mind:desk"));
     rig.house().close();
     version.old = undefined;
-    expect(baseProjectionVersion).toBe("desert/12");
+    expect(baseProjectionVersion).toBe("desert/13");
     rig.restart();
     expect(
       rig
