@@ -48,6 +48,7 @@ export function realTerminal(
   let bytes = "";
   child.stdout.on("data", (chunk: Buffer) => void (bytes += text.write(chunk)));
   const ended = new Promise<void>(done => child.on("close", () => done()));
+  const failure = pipeFailure(child.stdin);
   const rest = (ms: number): Promise<void> => new Promise(done => setTimeout(done, ms));
   const screen = (): readonly string[] => screenOf(bytes, size.rows);
   return {
@@ -68,6 +69,19 @@ export function realTerminal(
       if (child.exitCode === null) child.stdin.write("\x03");
       child.stdin.end();
       await ended;
+      throwIf(failure());
     },
   };
+}
+/** The terminal can close between the exit check and a keystroke; writing to it then is not a failure of the
+ * program under test. Any other pipe error is kept for the caller to throw. */
+function pipeFailure(stdin: NodeJS.WritableStream): () => Error | undefined {
+  let failure: Error | undefined;
+  stdin.on("error", (error: NodeJS.ErrnoException) => {
+    if (error.code !== "EPIPE") failure = error;
+  });
+  return () => failure;
+}
+function throwIf(error: Error | undefined): void {
+  if (error) throw error;
 }
