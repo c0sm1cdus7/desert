@@ -41,6 +41,7 @@ export function findDoorKey(state: DoorState, material: string) {
 export function scrubDoorText(text: string, state: DoorState): string {
   const keys = new Set([...state.keys.values()].map(key => key.fingerprint));
   const invitations = [...state.invitations.values()];
+  if (keys.has(doorFingerprint(text))) return mcpTexts.redacted;
   return text.replace(/[A-Za-z0-9_+-]{8,}={0,2}/g, token =>
     keys.has(doorFingerprint(token)) ||
     (/^[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/.test(token) &&
@@ -51,15 +52,36 @@ export function scrubDoorText(text: string, state: DoorState): string {
 }
 export function scrubDoorValue<T>(value: T, state: DoorState): T;
 export function scrubDoorValue(value: unknown, state: DoorState): unknown {
+  if (state.keys.size === 0 && state.invitations.size === 0) return value;
+  const seen = new WeakMap<object, unknown>();
   const visit = (item: unknown): unknown => {
     if (typeof item === "string") return scrubDoorText(item, state);
-    if (Array.isArray(item)) return item.map(visit);
-    if (
-      item &&
-      typeof item === "object" &&
-      (Object.getPrototypeOf(item) === Object.prototype || Object.getPrototypeOf(item) === null)
-    )
-      return Object.fromEntries(Object.entries(item).map(([key, child]) => [scrubDoorText(key, state), visit(child)]));
+    if (!item || typeof item !== "object") return item;
+    if (seen.has(item)) return seen.get(item);
+    if (item instanceof Map) {
+      const copy = new Map<unknown, unknown>();
+      seen.set(item, copy);
+      for (const [key, child] of item) copy.set(visit(key), visit(child));
+      return copy;
+    }
+    if (item instanceof Set) {
+      const copy = new Set<unknown>();
+      seen.set(item, copy);
+      for (const child of item) copy.add(visit(child));
+      return copy;
+    }
+    if (Array.isArray(item)) {
+      const copy: unknown[] = [];
+      seen.set(item, copy);
+      copy.push(...item.map(visit));
+      return copy;
+    }
+    if (Object.getPrototypeOf(item) === Object.prototype || Object.getPrototypeOf(item) === null) {
+      const copy: Record<string, unknown> = {};
+      seen.set(item, copy);
+      for (const [key, child] of Object.entries(item)) copy[scrubDoorText(key, state)] = visit(child);
+      return copy;
+    }
     return item;
   };
   // Preserve the input type while replacing only strings in public JSON-shaped values.

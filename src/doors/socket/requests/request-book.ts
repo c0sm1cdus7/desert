@@ -1,4 +1,5 @@
 // The request key travels in the act's existing cause. Replaying the journal restores deduplication after a crash.
+import { requestDigest } from "./public-message.ts";
 import { ids } from "../../../house/ids.ts";
 import type { Event } from "../../../journal/vocabulary.ts";
 import type { RunningHouse } from "../../../runtime/house-runtime.ts";
@@ -10,10 +11,11 @@ import { jsonData } from "./json-data.ts";
 import { requestContent } from "./request-content.ts";
 export type RequestHouse<X extends Program> = Pick<RunningHouse<X>, "tools" | "journal" | "bus">;
 type Saved = { content: string; id: string; effects: ResultMessage["efectos"]; result?: ResultMessage };
-const prefix = "socket-request:";
+const legacyPrefix = "socket-request:";
 /** The two causes of a socket act that name the door's request, not a fact: its key and its content's hash. */
-export const requestCauses = [prefix, "socket-content:"] as const;
-const requestKey = (by: string, id: string) => `${requestCauses[0]}${JSON.stringify([by, id])}`;
+export const requestCauses = [legacyPrefix, "socket-content:"] as const;
+const prefix = `${requestCauses[0]}sha256:`;
+const requestKey = (by: string, id: string) => `${prefix}${JSON.stringify([by, requestDigest(id)])}`;
 function receipt(event: Event): ResultMessage["efectos"] {
   if (event.layer !== "house") return [];
   if (event.kind === "act-done") {
@@ -29,7 +31,7 @@ function history() {
   const origins = new Map<string, Saved>();
   const record = (event: Event) => {
     if (event.layer === "house" && event.kind === "act") {
-      const key = event.cause.find(cause => cause.startsWith(prefix));
+      const key = event.cause.find(cause => cause.startsWith(prefix) || cause.startsWith(legacyPrefix));
       if (key) {
         const content =
           event.cause.find(cause => cause.startsWith("socket-content:"))?.slice(15) ?? requestContent(event.data);
@@ -67,7 +69,7 @@ export function requestBook<X extends Program>(house: RequestHouse<X>) {
   }
   const stop = house.bus.on(record);
   const lookup = (by: string, id: string): ResultMessage | undefined => {
-    const saved = requests.get(requestKey(by, id));
+    const saved = requests.get(requestKey(by, id)) ?? requests.get(`${legacyPrefix}${JSON.stringify([by, id])}`);
     return (
       saved && (saved.result ? { ...saved.result, id } : { tipo: "resultado", id, status: "processing", efectos: [] })
     );
@@ -86,7 +88,7 @@ function actRequest<X extends Program>(
     if (!jsonData(request)) return { tipo: "rechazo", id, motivo: socketTexts.invalidData };
     const content = requestFingerprint(request);
     const key = requestKey(by, id);
-    const saved = requests.get(key);
+    const saved = requests.get(key) ?? requests.get(`${legacyPrefix}${JSON.stringify([by, id])}`);
     if (saved && saved.content !== content) return { tipo: "rechazo", id, motivo: socketTexts.reused };
     const previous = lookup(by, id);
     if (previous) return previous;

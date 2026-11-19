@@ -75,7 +75,7 @@ function transferCache<X extends Program>(
     const state = house.tools.state();
     let saved = cache.get(identity);
     if (!saved || saved.view.through !== state.through) {
-      saved = { view: identityView(state, identity), ...(saved ? { before: saved.view } : {}) };
+      saved = { view: house.tools.prepare(identityView(state, identity)), ...(saved ? { before: saved.view } : {}) };
       cache.set(identity, saved);
     }
     if (saved.before?.through === seq) return (saved.delta ??= stateTransfer(saved.view, saved.before, house.now()));

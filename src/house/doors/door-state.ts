@@ -2,7 +2,8 @@
 import type { HouseEvent } from "../facts.ts";
 import type { House } from "../members.ts";
 export type DoorCredential = HouseEvent<"door-key-issued">["data"] & Readonly<{ revoked: boolean }>;
-export type DoorInvitation = HouseEvent<"door-invitation-issued">["data"] & Readonly<{ redeemed: boolean }>;
+export type DoorInvitation = HouseEvent<"door-invitation-issued">["data"] &
+  Readonly<{ redeemed: boolean; key?: string }>;
 export type DoorState = Readonly<{
   initialized: boolean;
   keys: ReadonlyMap<string, DoorCredential>;
@@ -42,9 +43,15 @@ export function doorStep(house: House, event: HouseEvent): House {
         ...house,
         doors: {
           ...doors,
-          invitations: new Map(state.invitations).set(invitation.id, { ...invitation, redeemed: true }),
+          invitations: new Map(state.invitations).set(invitation.id, redeemedInvitation(invitation, event.data.key)),
         },
       };
   }
   return { ...house, doors };
 }
+
+const redeemedInvitation = (invitation: DoorInvitation, key: string): DoorInvitation => ({
+  ...invitation,
+  redeemed: true,
+  key,
+});

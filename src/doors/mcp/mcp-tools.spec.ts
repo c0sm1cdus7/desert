@@ -13,7 +13,7 @@ afterEach(async () => {
   vi.useRealTimers();
   for (const h of opened.splice(0)) await h.close();
 });
-it("reads the identity's scene and addressed part, tools and terminal notices", async () => {
+it("reads every scene, addressed part, program and terminal notice independently of the action kit", async () => {
   const h = setup();
   h.rig.bus.emit(
     effect("scene", { general: "El almacén abre", to: { beto: "Ordenar ventas", ana: "Parte ajena" } }, "ana"),
@@ -22,9 +22,9 @@ it("reads the identity's scene and addressed part, tools and terminal notices", 
   const response = await h.call("leer", {}, h.beto);
   expect(response.body).toContain("El almacén abre");
   expect(response.body).toContain("Ordenar ventas");
-  expect(response.body).not.toContain("Parte ajena");
+  expect(response.body).toContain("Parte ajena");
   expect(response.body).toContain("sales");
-  expect(response.body).not.toContain("payments");
+  expect(response.body).toContain("payments");
   expect(response.body).toContain("Registrada · pendiente");
 });
 it("reads a tool through the same view and never emits terminal escapes", async () => {
@@ -36,9 +36,22 @@ it("reads a tool through the same view and never emits terminal escapes", async 
     result: { content: [{ text: h.house.registry[0]?.view(h.rig.state(), "sales", { recentLines: 20, now: 0 }) }] },
   });
   expect(response.body.includes("\u001b")).toBe(false);
-  expect(JSON.parse((await h.call("leer", { programa: "payments" }, h.beto)).body)).toMatchObject({
-    result: { isError: true },
-  });
+  const payments = mcpResult((await h.call("leer", { programa: "payments" }, h.beto)).body);
+  expect(payments.isError).toBe(false);
+  expect(payments.content[0]?.text).toBe(
+    h.house.registry.find(tool => tool.id === "payments")?.view(h.rig.state(), "payments", { recentLines: 20, now: 0 }),
+  );
+  expect(
+    mcpResult(
+      (
+        await h.call(
+          "actuar",
+          { programa: "payments", accion: "receive", datos: { payment: "denied", amount: 1 } },
+          h.beto,
+        )
+      ).body,
+    ).isError,
+  ).toBe(true);
 });
 it("lists only granted actions and respects a narrower kit at execution time", async () => {
   const h = setup();
@@ -90,9 +103,17 @@ it("keeps ordinary Tool readings and action targets while accepting an explicit 
     mcpResult((await h.call("acciones", { programa: "sales", objetivo: target }, h.beto)).body),
   );
   expect(filtered).toEqual(actions.filter(action => action.objetivo === target));
-  expect(JSON.parse((await h.call("leer", { programa: "sales", objetivo: target }, h.carla)).body)).toMatchObject({
-    result: { isError: true },
-  });
+  const outsideKit = mcpResult((await h.call("leer", { programa: "sales", objetivo: target }, h.carla)).body);
+  expect(outsideKit.isError).toBe(false);
+  expect(outsideKit.content[0]?.text).toBe(tool.view(h.rig.state(), target, { recentLines: 20, now: Date.now() }));
+  const before = h.rig.state().through;
+  expect(
+    mcpResult(
+      (await h.call("actuar", { programa: "sales", accion: "register", datos: { sale: "denied", total: 1 } }, h.carla))
+        .body,
+    ).isError,
+  ).toBe(true);
+  expect(h.rig.state().through).toBe(before);
 });
 it("acts with the socket book, accepts once and explains a refusal", async () => {
   const h = setup();

@@ -1,4 +1,5 @@
 // Pending equality uses canonical JSON, never persisted; recovery keeps only opaque request identifiers.
+import { requestDigest } from "../requests/public-message.ts";
 import { socketLimits } from "../wire/protocol.ts";
 import { randomUUID, createHash } from "node:crypto";
 import type { Act } from "../../../house/own-acts.ts";
@@ -27,15 +28,16 @@ function recovery<X extends Program>(connection: SocketConnection<X>) {
   const lookup = recovering(connection, uncertain);
   connection.receive(message => {
     if (message.tipo !== "resultado" && message.tipo !== "rechazo") return;
-    if (!message.id) return;
-    if (message.tipo === "rechazo" && message.motivo === socketTexts.quota && uncertain.has(message.id)) {
+    const id = correlatedRequestId(message, pending.keys(), uncertain);
+    if (!id) return;
+    if (message.tipo === "rechazo" && message.motivo === socketTexts.quota && uncertain.has(id)) {
       lookup.later();
       return;
     }
     if (message.tipo === "resultado" && message.status === "processing") return;
-    const waiting = pending.get(message.id);
-    pending.delete(message.id);
-    uncertain.delete(message.id);
+    const waiting = pending.get(id);
+    pending.delete(id);
+    uncertain.delete(id);
     if (message.tipo === "rechazo") waiting?.done({ status: "rejected", reason: message.motivo, effects: [] });
     else if (message.status !== "processing")
       waiting?.done({
@@ -106,4 +108,14 @@ function recovering<X extends Program>(connection: SocketConnection<X>, uncertai
       timer = undefined;
     },
   };
+}
+
+function correlatedRequestId(
+  message: { id?: string; correlation?: string },
+  pending: Iterable<string>,
+  uncertain: Iterable<string>,
+) {
+  return message.correlation === "sha256"
+    ? [...pending, ...uncertain].find(candidate => requestDigest(candidate) === message.id)
+    : message.id;
 }

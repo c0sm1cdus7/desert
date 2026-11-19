@@ -1,4 +1,5 @@
 // Remote peers share the socket request book and state delivery without owning the cloud house lifetime.
+import { publicMessage } from "../requests/public-message.ts";
 import type { Duplex } from "node:stream";
 import type { Program } from "../../../tools/tool-contract.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
@@ -54,6 +55,7 @@ function acceptPeer<X extends Program>(session: Session<X>, peers: Set<Peer>, st
     },
     () => peers.delete(peer),
     session.report,
+    message => publicMessage(message, session.house.tools.prepare),
   );
   peers.add(peer);
 }

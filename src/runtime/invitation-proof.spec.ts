@@ -15,18 +15,14 @@ it("never checks invitations for unproven guesses, caches proven misses and admi
   try {
     const access = h.access();
     const redeem = vi.fn(access.redeem);
-    const attemptCode = invitationAttempts(
-      redeem,
-      h.house().now,
-      () => h.house().tools.state().house.doors.invitations,
-    );
+    const attemptCode = invitationAttempts(redeem, h.house().now);
     const code = invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"));
-    for (let attempt = 0; attempt < 1000; attempt++) attemptCode("2222-2222", undefined);
+    for (let attempt = 0; attempt < 1000; attempt++) await attemptCode("2222-2222", undefined);
     expect(redeem).not.toHaveBeenCalled();
     const proof = solveInvitationProof("2222-2222");
-    for (let attempt = 0; attempt < 50; attempt++) expect(attemptCode("2222-2222", proof).status).toBe(400);
+    for (let attempt = 0; attempt < 50; attempt++) expect((await attemptCode("2222-2222", proof)).status).toBe(400);
     expect(redeem).toHaveBeenCalledTimes(1);
-    expect(attemptCode(code, solveInvitationProof(code)).status).toBe(200);
+    expect((await attemptCode(code, solveInvitationProof(code))).status).toBe(200);
   } finally {
     vi.restoreAllMocks();
     h.close();
