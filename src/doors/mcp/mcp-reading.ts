@@ -1,7 +1,7 @@
-// La puerta agente lee programas, carpetas y objetos como la terminal, con acciones sujetas al kit.
+// Every member reads every program; only actions depend on the identity kit.
 import { deviceChoices } from "../../house/devices/device-state.ts";
 import { stripVTControlCharacters } from "node:util";
-import { allowed, allowedAct } from "../../house/kit.ts";
+import { allowedAct } from "../../house/kit.ts";
 import { targetTool } from "../../house/attendance.ts";
 import { localPorts } from "../../runtime/house-runtime.ts";
 import type { Program, ViewLimits, Tool, ToolAct } from "../../tools/tool-contract.ts";
@@ -25,7 +25,12 @@ function scene<X extends Program>(ports: HousePorts<X>, identity: string) {
     identityReading(ports.state().house, identityTarget(identity), ports.registry, ports.me),
   );
   if (!isRecord(reading)) throw new Error("Invalid identity reading");
-  return { identidad: identity, general: reading.general, parte: reading.addressed };
+  return {
+    identidad: identity,
+    general: reading.general,
+    parte: reading.addressed,
+    recipients: ports.state().house.scenes.get(identity)?.data.to,
+  };
 }
 function overview<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X>[]) {
   const state = ports.state();
@@ -109,16 +114,10 @@ function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X
 }
 export function mcpReading<X extends Program>(house: McpHouse<X>, by: string, limits: Omit<ViewLimits, "now">) {
   const ports = localPorts(house, by, limits);
-  const tools = () =>
-    ports.registry.filter(
-      tool =>
-        allowed(ports.state().house, by, tool.id) ||
-        (tool.id === "identities" && allowedAct(ports.state().house, by, tool.id, "scene")),
-    );
+  const tools = () => ports.registry;
   const clean = (value: unknown) =>
     stripVTControlCharacters(house.tools.prepare(typeof value === "string" ? value : JSON.stringify(value)));
-  const readable = () =>
-    ports.registry.filter(tool => (declared(tool) && tool.groups !== undefined) || tools().includes(tool));
+  const readable = tools;
   const matches = (id: string, target: string) => targetTool(ports.registry, ports.state(), target)?.id === id;
   const read = (id?: string, target?: string) => {
     if (id !== undefined && target !== undefined && !matches(id, target)) return toolResult(said.action, true);

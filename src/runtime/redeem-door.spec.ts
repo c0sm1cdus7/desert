@@ -89,7 +89,27 @@ it("never prints hostile response errors and preserves the previous configuratio
 it.each([400, 503])("distinguishes a definite refusal from an uncertain server result (%s)", async status => {
   const file = join(setup(), "credential");
   vi.stubGlobal("fetch", () => Promise.resolve(new Response("hostile body", { status })));
+  if (status === 503) vi.spyOn(Date, "now").mockReturnValueOnce(0).mockReturnValueOnce(0).mockReturnValue(20_000);
   await expect(redeemToFile("http://127.0.0.1", "ABCD-2345", { file })).rejects.toThrow(
     status === 400 ? doorTexts.denied : doorTexts.failed,
   );
+});
+
+it("retries temporary busy responses without replacing the reserved candidate", async () => {
+  const file = join(setup(), "credential");
+  const candidates: string[] = [];
+  vi.stubGlobal("fetch", (_url: unknown, init: RequestInit) => {
+    if (typeof init.body !== "string") throw new Error("Missing request body");
+    const body: unknown = JSON.parse(init.body);
+    if (!body || typeof body !== "object" || !("key" in body) || typeof body.key !== "string")
+      throw new Error("Missing candidate");
+    candidates.push(body.key);
+    return Promise.resolve(
+      new Response(JSON.stringify({ key: body.key }), { status: candidates.length < 3 ? 503 : 200 }),
+    );
+  });
+  await redeemToFile("http://127.0.0.1", "ABCD-2345", { file });
+  expect(candidates).toHaveLength(3);
+  expect(new Set(candidates).size).toBe(1);
+  expect(readFileSync(file, "utf8").trim() === candidates[0]).toBe(true);
 });

@@ -1,4 +1,5 @@
 // Adapt legacy founder maps once; authentication always reads the house's current fingerprint state.
+import { receiveRedemption } from "../../../tools/identities/redemption-recipient.ts";
 import type { DoorIdentity } from "../../../house/doors/door-material.ts";
 import { doorAccess, seedDoorKeys, type DoorBus } from "../../../runtime/door-access.ts";
 import { doorTexts } from "../../../texts/doors.texts.ts";
@@ -17,17 +18,23 @@ export function liveDoorKeys<X extends Program>(
     house.bus,
     () => house.tools.state().house,
     house.now,
-    (identity, invitation) => {
+    (identity, invitation, material) => {
       const by = house.tools.state().house.admin;
       const target = `identities/${identity}`;
       house.tools.act({ act: "attend", input: { target } }, 0, by);
-      const result = house.tools.act(
-        { act: "redeem-invitation", target, input: { invitation } },
-        house.tools.state().through,
-        by,
+      return receiveRedemption(
+        invitation,
+        () => {
+          const result = house.tools.act(
+            { act: "redeem-invitation", target, input: { invitation } },
+            house.tools.state().through,
+            by,
+          );
+          if (result.status !== "processing" && result.defect) throw new Error(doorTexts.denied);
+          return result.status === "accepted";
+        },
+        material,
       );
-      if (result.status !== "processing" && result.defect) throw new Error(doorTexts.denied);
-      return result.status === "accepted" ? result.private : undefined;
     },
   );
 }

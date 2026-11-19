@@ -3,8 +3,33 @@ import type { DoorAccess } from "../../runtime/door-access.ts";
 import { doorTexts } from "../../texts/doors.texts.ts";
 import { header, type McpRequest, type McpResponse } from "./mcp-access.ts";
 export async function redeemHttp(access: DoorAccess, request: McpRequest): Promise<McpResponse> {
-  let code = "";
-  let proof: unknown;
+  const { code, proof, challenge, material } = await readAttempt(request);
+
+  try {
+    const result = await access.attempt(request.signal?.aborted ? "" : code, proof, challenge, material);
+    return {
+      status: result.status,
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+        ...(result.status === 429 ? { "Retry-After": "60" } : {}),
+      },
+      body: JSON.stringify(responseBody(result)),
+    };
+  } catch {
+    return { status: 503, headers: { "Cache-Control": "no-store" }, body: doorTexts.denied };
+  }
+}
+
+function responseBody(result: Awaited<ReturnType<DoorAccess["attempt"]>>) {
+  if (result.challenge !== undefined) return { challenge: result.challenge };
+  if (result.key) return { key: result.key };
+  return { error: result.status === 429 ? doorTexts.limited : doorTexts.denied };
+}
+async function readAttempt(request: McpRequest) {
+  let code = "",
+    challenge = "";
+  let proof: unknown, material: string | undefined;
   try {
     if (header(request, "content-type")?.split(";")[0]?.trim() !== "application/json") throw new Error("content-type");
     let size = 0;
@@ -18,25 +43,11 @@ export async function redeemHttp(access: DoorAccess, request: McpRequest): Promi
     if (value && typeof value === "object" && "code" in value && typeof value.code === "string") {
       code = value.code;
       proof = "proof" in value ? value.proof : undefined;
+      if ("challenge" in value && typeof value.challenge === "string") challenge = value.challenge;
+      if ("key" in value && typeof value.key === "string") material = value.key;
     }
   } catch {
     /* Malformed input consumes the same bounded attempt budget. */
   }
-  if (request.signal?.aborted) code = "";
-  try {
-    const result = access.attempt(code, proof);
-    return {
-      status: result.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-store",
-        ...(result.status === 429 ? { "Retry-After": "60" } : {}),
-      },
-      body: JSON.stringify(
-        result.key ? { key: result.key } : { error: result.status === 429 ? doorTexts.limited : doorTexts.denied },
-      ),
-    };
-  } catch {
-    return { status: 503, headers: { "Cache-Control": "no-store" }, body: doorTexts.denied };
-  }
+  return { code, proof, challenge, material };
 }

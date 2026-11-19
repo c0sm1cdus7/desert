@@ -78,7 +78,7 @@ it("8: rejects excess, blank identity keys and another author's scene before a s
 });
 
 it("bumps the base fold version for English core values, credentials, selections, names and wake ownership", () => {
-  expect(baseProjectionVersion).toBe("desert/11");
+  expect(baseProjectionVersion).toBe("desert/12");
 });
 
 it("A6: the scene schema bounds recipient names independently of current membership", () => {

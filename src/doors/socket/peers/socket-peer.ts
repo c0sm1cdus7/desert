@@ -22,6 +22,7 @@ class SocketPeer {
   private readonly writer: ReturnType<typeof peerWriter>;
   private readonly timer: NodeJS.Timeout;
   private readonly report: (text: string) => void;
+  private readonly prepare: (message: ServerMessage) => ServerMessage;
   private entered: DoorKey | undefined;
   private ended = false;
   private sequence = -1;
@@ -31,7 +32,9 @@ class SocketPeer {
     receive: (message: ClientMessage) => void,
     gone: () => void,
     report: (text: string) => void,
+    prepare: (message: ServerMessage) => ServerMessage,
   ) {
+    this.prepare = prepare;
     this.stream = stream;
     this.report = report;
     this.timer = setTimeout(() => stream.destroy(), socketLimits.helloMs);
@@ -66,7 +69,7 @@ class SocketPeer {
     if (this.live()) this.writer.send(frames);
   };
   readonly sendBytes = (bytes: Buffer) => this.sendFrames([bytes]);
-  readonly send = (message: ServerMessage) => this.sendBytes(serverFrame(message));
+  readonly send = (message: ServerMessage) => this.sendBytes(serverFrame(this.prepare(message)));
   readonly end = (message?: ServerMessage) => {
     if (this.ended) return;
     if (message) this.send(message);
@@ -94,7 +97,8 @@ export const socketPeer = (
   report: (text: string) => void = text => {
     process.stderr.write(`${text}\n`);
   },
-) => new SocketPeer(stream, receive, gone, report);
+  prepare: (message: ServerMessage) => ServerMessage = message => message,
+) => new SocketPeer(stream, receive, gone, report, prepare);
 function endSoon(stream: Duplex) {
   const cutoff = setTimeout(() => stream.destroy(), 250);
   cutoff.unref();

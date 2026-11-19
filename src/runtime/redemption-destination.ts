@@ -5,13 +5,16 @@ import {
   openSync,
   writeFileSync,
   fsyncSync,
+  writeSync,
+  ftruncateSync,
   closeSync,
   renameSync,
   unlinkSync,
   linkSync,
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { randomUUID } from "node:crypto";
+import { redemptionReservation } from "./redemption-reservation.ts";
+import { randomBytes, randomUUID } from "node:crypto";
 import { isRecord } from "../fields/json-values.ts";
 import { doorTexts } from "../texts/doors.texts.ts";
 export type RedemptionTarget = Readonly<{ file: string; name?: string }>;
@@ -28,27 +31,37 @@ function configuration(target: RedemptionTarget): Record<string, unknown> {
 }
 class ReservedDestination {
   private readonly file: string;
-  private readonly lock: string;
-  private readonly recovery: string;
+  private reservation: ReturnType<typeof redemptionReservation> | undefined;
+  private recovery: string;
+  private prepared = false;
   private readonly target: RedemptionTarget;
-  private locked = false;
   private descriptor: number | undefined;
   private saved = false;
-  constructor(target: RedemptionTarget) {
+  constructor(target: RedemptionTarget, attempt: string) {
     this.target = { ...target, file: resolve(target.file) };
     this.file = this.target.file;
-    this.lock = `${this.file}.desert-redemption-lock`;
     this.recovery = join(dirname(this.file), `.desert-redemption-${randomUUID()}`);
     try {
-      const fd = openSync(this.lock, "wx", 0o600);
-      this.locked = true;
-      closeSync(fd);
+      this.reservation = redemptionReservation(this.file);
+      const previous = this.reservation.recovery;
+      if (previous) {
+        const stat = lstatSync(previous, { throwIfNoEntry: false });
+        if (stat?.size) {
+          this.recovery = previous;
+          this.prepared = true;
+          requireAttempt(this.reservation.attempt, attempt, previous);
+          this.descriptor = openRecovery(this.target, previous);
+          return;
+        }
+        removeReservation(previous);
+      }
       configuration(this.target);
       this.descriptor = openSync(this.recovery, "wx", 0o600);
       fsyncSync(this.descriptor);
-    } catch {
+      this.reservation.record(this.recovery, attempt);
+    } catch (error) {
       this.close();
-      throw new RedemptionFailure(doorTexts.destination);
+      throw error instanceof RedemptionFailure ? error : new RedemptionFailure(doorTexts.destination);
     }
   }
   close() {
@@ -56,16 +69,39 @@ class ReservedDestination {
       closeSync(this.descriptor);
       this.descriptor = undefined;
     }
-    if (!this.saved) removeReservation(this.recovery);
-    if (this.locked) {
-      removeReservation(this.lock);
-      this.locked = false;
+    try {
+      if (!this.saved && !this.prepared) {
+        removeReservation(this.recovery);
+        this.reservation?.clear();
+      }
+    } finally {
+      this.reservation?.close();
+      this.reservation = undefined;
     }
+  }
+  prepare() {
+    if (this.descriptor === undefined) throw new Error("closed-reservation");
+    if (this.prepared) {
+      const key = readFileSync(this.recovery, "utf8").trim();
+      if (!/^[A-Za-z0-9_-]{43}$/.test(key)) throw new RedemptionFailure(doorTexts.recovered(this.recovery));
+      return key;
+    }
+    const key = randomBytes(32).toString("base64url");
+    writeFileSync(this.descriptor, `${key}\n`);
+    fsyncSync(this.descriptor);
+    this.prepared = true;
+    return key;
+  }
+  cancel() {
+    this.prepared = false;
   }
   save(url: URL, key: string) {
     if (this.descriptor === undefined) throw new Error("closed-reservation");
     // The reserved inode stays writable even when directory permissions change during the exchange.
-    writeFileSync(this.descriptor, `${key}\n`);
+    if (readFileSync(this.recovery, "utf8").trim() !== key) {
+      writeSync(this.descriptor, `${key}\n`, 0, "utf8");
+      ftruncateSync(this.descriptor, key.length + 1);
+    }
     fsyncSync(this.descriptor);
     this.saved = true;
     closeSync(this.descriptor);
@@ -73,6 +109,7 @@ class ReservedDestination {
     try {
       publish(this.target, this.recovery, url, key);
       this.saved = false;
+      this.prepared = false;
     } catch {
       throw new RedemptionFailure(doorTexts.recovered(this.recovery));
     }
@@ -102,18 +139,34 @@ function publish(target: RedemptionTarget, recovery: string, url: URL, key: stri
       2,
     );
     // No await separates this fresh merge and publication; cooperating processes hold the same lock.
-    writeFileSync(recovery, `${content}\n`, { mode: 0o600 });
-    const fd = openSync(recovery, "r");
+    const publication = `${recovery}.publish`;
+    removeReservation(publication);
+    writeFileSync(publication, `${content}\n`, { mode: 0o600, flag: "wx" });
+    const fd = openSync(publication, "r");
     try {
       fsyncSync(fd);
     } finally {
       closeSync(fd);
     }
-    renameSync(recovery, target.file);
+    renameSync(publication, target.file);
+    unlinkSync(recovery);
   } else {
     // Hard-link publication cannot replace a destination created after reservation.
     linkSync(recovery, target.file);
     unlinkSync(recovery);
   }
 }
-export const reserveDestination = (target: RedemptionTarget) => new ReservedDestination(target);
+export const reserveDestination = (target: RedemptionTarget, attempt = "") => new ReservedDestination(target, attempt);
+
+function requireAttempt(saved: string | undefined, current: string, recovery: string) {
+  if (saved !== current) throw new RedemptionFailure(doorTexts.recovered(recovery));
+}
+
+function openRecovery(target: RedemptionTarget, recovery: string) {
+  try {
+    configuration(target);
+    return openSync(recovery, "r+");
+  } catch {
+    throw new RedemptionFailure(doorTexts.recovered(recovery));
+  }
+}

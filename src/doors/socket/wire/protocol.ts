@@ -28,6 +28,7 @@ const name = Type.String({ minLength: 1, maxLength: 256 });
 const text = Type.String();
 
 const id = { id: name };
+const correlation = { correlation: Type.Optional(Type.Literal("sha256")) };
 const tag = <T extends string>(tipo: T) => ({ tipo: Type.Literal(tipo) });
 const clientProtocol = Type.Union([
   object({ ...tag("hola"), protocolo: wholeNumber, node: name, token: name }),
@@ -85,14 +86,15 @@ const serverProtocol = Type.Union([
   }),
   object({
     ...tag("resultado"),
+    ...correlation,
     ...id,
     status,
     reason: Type.Optional(text),
     private: Type.Optional(text),
     efectos: Type.Array(Type.Union([notice, done])),
   }),
-  object({ ...tag("respuesta"), ...id, seq: wholeNumber, datos: Type.Unknown() }),
-  object({ ...tag("rechazo"), id: Type.Optional(name), motivo: text }),
+  object({ ...tag("respuesta"), ...correlation, ...id, seq: wholeNumber, datos: Type.Unknown() }),
+  object({ ...tag("rechazo"), ...correlation, id: Type.Optional(name), motivo: text }),
   object({ ...tag("cortado"), motivo: text }),
   object(tag("cerrando")),
 ]);

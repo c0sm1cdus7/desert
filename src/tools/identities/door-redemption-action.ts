@@ -1,4 +1,5 @@
-// Redeeming an invitation is an administrator action; all doors invoke this same catalog entry.
+// The catalog guides administrators; only the invitation presenter receives a scoped private delivery.
+import { redemptionRecipient } from "./redemption-recipient.ts";
 import { text } from "../../fields/fields.ts";
 import { object } from "../../fields/visible-text.ts";
 import { issueDoorKey } from "../../house/doors/door-material.ts";
@@ -30,11 +31,13 @@ export function redeemInvitationAction<X extends Program>() {
     run: ({ invitation }, { state, by }) => {
       const found = state.house.doors.invitations.get(invitation);
       if (!found) throw new Error(words.noInvitation);
-      const issued = issueDoorKey(found.identity, found.door, by);
+      const recipient = redemptionRecipient(invitation);
+      if (!recipient) return { status: "accepted", text: words.redeemed, effects: [] };
+      const issued = issueDoorKey(found.identity, found.door, by, recipient.material);
+      recipient.deliver(issued.material);
       return {
         status: "accepted",
         text: words.redeemed,
-        private: issued.material,
         effects: [issued.fact, effect("door-invitation-redeemed", { invitation, key: issued.fact.data.id }, by)],
       };
     },

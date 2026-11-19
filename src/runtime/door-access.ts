@@ -1,5 +1,12 @@
 // The host seeds founders lazily; every door resolves and redeems against the live journal projection.
-import { findDoorKey, invitationFingerprint, issueDoorKey, type DoorIdentity } from "../house/doors/door-material.ts";
+import { scrypt } from "node:crypto";
+import {
+  findDoorKey,
+  doorFingerprint,
+  invitationFingerprint,
+  issueDoorKey,
+  type DoorIdentity,
+} from "../house/doors/door-material.ts";
 import type { House } from "../house/members.ts";
 import type { HouseBus } from "../journal/vocabulary.ts";
 import { invitationAttempts } from "./invitation-proof.ts";
@@ -35,7 +42,7 @@ export function doorAccess(
   bus: DoorBus,
   state: () => House,
   now: () => number,
-  redeem: (identity: string, invitation: string) => string | undefined,
+  redeem: (identity: string, invitation: string, material?: string) => string | undefined,
 ) {
   const existing = accesses.get(bus);
   if (existing) return existing;
@@ -46,7 +53,7 @@ export function doorAccess(
 function createDoorAccess(
   state: () => House,
   now: () => number,
-  redeemAction: (identity: string, invitation: string) => string | undefined,
+  redeemAction: (identity: string, invitation: string, material?: string) => string | undefined,
 ) {
   const redeem = createRedeemer(state, now, redeemAction);
   return {
@@ -55,35 +62,57 @@ function createDoorAccess(
       const key = findDoorKey(house.doors, material);
       return key && house.grants.has(key.identity) ? key : undefined;
     },
-    attempt: invitationAttempts(redeem, now, () => state().doors.invitations),
+    attempt: invitationAttempts(async (code, material) => {
+      const house = state();
+      for (const invitation of house.doors.invitations.values()) {
+        if ((!invitation.redeemed && now() >= invitation.expires) || (invitation.redeemed && !material)) continue;
+        const fingerprint = await new Promise<string>((resolve, reject) =>
+          scrypt(code, `desert-door-invitation:${invitation.id}`, 32, (error, value) =>
+            error ? reject(error) : resolve(value.toString("hex")),
+          ),
+        );
+        if (fingerprint === invitation.fingerprint) return redeem(code, material, invitation.id);
+      }
+      return { status: 400 };
+    }, now),
     redeem,
   };
 }
 function createRedeemer(
   state: () => House,
   now: () => number,
-  redeem: (identity: string, invitation: string) => string | undefined,
+  redeem: (identity: string, invitation: string, material?: string) => string | undefined,
 ) {
   let redeeming = false;
-  return (code: string): Readonly<{ status: number; key?: string }> => {
+  return (code: string, material?: string, verified?: string): Readonly<{ status: number; key?: string }> => {
     const at = now();
     if (redeeming) return { status: 400 };
     const house = state();
-    const invitation = matchingInvitation(house, code, at);
+    const invitation = verified
+      ? house.doors.invitations.get(verified)
+      : matchingInvitation(house, code, at, material !== undefined);
     if (!invitation || !house.grants.has(invitation.identity)) return { status: 400 };
+    if (material && !/^[A-Za-z0-9_-]{43}$/.test(material)) return { status: 400 };
+    if (invitation.redeemed) {
+      const key = house.doors.keys.get(invitation.key ?? "");
+      return material && key && !key.revoked && key.fingerprint === doorFingerprint(material)
+        ? { status: 200, key: material }
+        : { status: 400 };
+    }
     redeeming = true;
     try {
-      const key = now() < invitation.expires ? redeem(invitation.identity, invitation.id) : undefined;
+      const key = now() < invitation.expires ? redeem(invitation.identity, invitation.id, material) : undefined;
       return key ? { status: 200, key } : { status: 400 };
     } finally {
       redeeming = false;
     }
   };
 }
-function matchingInvitation(house: House, code: string, at: number) {
+function matchingInvitation(house: House, code: string, at: number, retry = false) {
   return /^[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}$/.test(code)
     ? [...house.doors.invitations.values()].find(
-        each => !each.redeemed && at < each.expires && each.fingerprint === invitationFingerprint(code, each.id),
+        each =>
+          (!each.redeemed || retry) && at < each.expires && each.fingerprint === invitationFingerprint(code, each.id),
       )
     : undefined;
 }

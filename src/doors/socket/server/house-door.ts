@@ -1,4 +1,5 @@
 // One live house owns all sessions; the same byte protocol can be checked on in-memory duplex streams.
+import { publicMessage } from "../requests/public-message.ts";
 import { liveDoorKeys } from "../peers/live-door-keys.ts";
 import { socketLimits } from "../wire/protocol.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
@@ -61,6 +62,7 @@ function acceptPeer<X extends Program>(session: Session<X>, peers: Set<Peer>) {
       message => receivePeer(session, peer, message),
       () => peers.delete(peer),
       session.report,
+      message => publicMessage(message, session.house.tools.prepare),
     );
     peers.add(peer);
   };

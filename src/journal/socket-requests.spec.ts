@@ -66,7 +66,10 @@ it("defect provenance comes from the key and the house prepares the client entry
   };
   c.send({ tipo: "defecto", tool: "sales", target: "sales", option: "register" });
   expect(await c.until(() => c.messages.some(m => m.tipo === "respuesta"))).toBe(true);
-  expect(seen).toHaveLength(1);
+  expect(seen).toHaveLength(3);
+  expect(seen[0]).toMatchObject({ tool: "sales", target: "sales", author: "beto" });
+  expect(seen[1]).toMatchObject({ by: "beto", through: f.house().tools.state().through });
+  expect(seen[2]).toMatchObject({ tipo: "respuesta", id: "defecto" });
   expect(f.house().tools.state().entries.at(-1)).toMatchObject({ by: "beto", data: { author: "beto" } });
 });
 
