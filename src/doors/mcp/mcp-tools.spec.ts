@@ -145,8 +145,8 @@ it("waits for an actual change and returns immediately for an older sequence", a
   const waiting = h.call("wait", { since: since, seconds: 60 });
   await vi.waitFor(() => expect(h.rig.state().through).toBe(since));
   h.rig.bus.emit(effect("scene", { general: "Cambió" }, "ana"));
-  expect((await waiting).body).toContain('cambio\\\":true');
-  expect((await h.call("wait", { since: since, seconds: 60 })).body).toContain('cambio\\\":true');
+  expect((await waiting).body).toContain('changed\\\":true');
+  expect((await h.call("wait", { since: since, seconds: 60 })).body).toContain('changed\\\":true');
 });
 it("times out without a change and caps waiting at sixty seconds", async () => {
   vi.useFakeTimers();
@@ -160,7 +160,7 @@ it("times out without a change and caps waiting at sixty seconds", async () => {
   await Promise.resolve();
   expect(done).toBe(false);
   await vi.advanceTimersByTimeAsync(1);
-  expect((await waiting).body).toContain('cambio\\\":false');
+  expect((await waiting).body).toContain('changed\\\":false');
 });
 it("releases waits at door close and rejects removed identities before reading", async () => {
   const h = setup();

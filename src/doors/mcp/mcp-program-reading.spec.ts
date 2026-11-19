@@ -206,8 +206,8 @@ function actionCases(access: () => Context) {
       expect(await read(target, "martin")).toEqual(await read(target));
       const actions = mcpActions(await call("actions", { program: "notas", target: target }, "martin"));
       for (const action of actions) {
-        expect(action.motivo).toBe(toolTexts.kitRefusal("notas"));
-        expect(terminal?.actsOn?.[action.action]?.off?.(target)).toBe(action.motivo);
+        expect(action.reason).toBe(toolTexts.kitRefusal("notas"));
+        expect(terminal?.actsOn?.[action.action]?.off?.(target)).toBe(action.reason);
         const before = rig.state().through;
         expect(
           (await call("act", { program: "notas", action: action.action, target: target, data: {} }, "martin")).isError,
@@ -246,7 +246,7 @@ function replayCases(access: () => Context) {
       ),
     );
     const granted = mcpActions(await call("actions", { program: "notas" }, "martin"));
-    expect(granted.filter((action: { motivo?: string }) => action.motivo === undefined)).toMatchObject([
+    expect(granted.filter((action: { reason?: string }) => action.reason === undefined)).toMatchObject([
       { action: "personal/add", target: "notas/personal" },
     ]);
     expect(
@@ -284,7 +284,7 @@ function replayCases(access: () => Context) {
         const result = mcpResult(response.body);
         expect(result.isError).toBe(false);
         if (name === "read") expect(rows(result)).toEqual({ count: 1 });
-        else expect(rows(result)).toMatchObject([{ action: "personal/edit", motivo: toolTexts.kitRefusal("notas") }]);
+        else expect(rows(result)).toMatchObject([{ action: "personal/edit", reason: toolTexts.kitRefusal("notas") }]);
       }
     } finally {
       await reopened.close();

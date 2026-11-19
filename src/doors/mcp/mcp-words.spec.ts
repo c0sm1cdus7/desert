@@ -51,9 +51,9 @@ it("reads a program, its tool folder and its object, then acts using the publish
   expect(mcpList(folder)).toMatchObject([{ id: "notas/notas/same" }, { id: "notas/notas/a%2Fb%23c" }]);
   const actions = mcpActions(await call("actions", { program: "notas" }));
   expect(actions).toMatchObject([
-    { program: "notas", herramienta: "notas/notas", action: "notas/add", target: "notas/notas" },
-    { program: "notas", herramienta: "notas/notas", action: "notas/edit", target: "notas/notas/same" },
-    { program: "notas", herramienta: "notas/notas", action: "notas/edit", target: "notas/notas/a%2Fb%23c" },
+    { program: "notas", tool: "notas/notas", action: "notas/add", target: "notas/notas" },
+    { program: "notas", tool: "notas/notas", action: "notas/edit", target: "notas/notas/same" },
+    { program: "notas", tool: "notas/notas", action: "notas/edit", target: "notas/notas/a%2Fb%23c" },
   ]);
   for (const offered of actions) {
     const { program, action, target } = offered;
@@ -96,6 +96,15 @@ it("publishes program in schemas and teaches the program, tool and object vocabu
     expect(tool?.description).toContain("program");
     expect(tool?.description).not.toMatch(/con herramienta|repetí herramienta|herramienta elige el program/u);
   }
+  const outputFields = {
+    read: ["identity", "since", "scenes", "programs", "notices"],
+    actions: ["tool", "action", "name", "subject", "purpose", "input", "choices", "reason"],
+    wait: ["seq", "changed"],
+  };
+  for (const [name, fields] of Object.entries(outputFields)) {
+    const description = catalog.find(tool => tool.name === name)?.description ?? "";
+    for (const field of fields) expect(description).toMatch(new RegExp(`\\b${field}\\b`, "u"));
+  }
   const initialized: unknown = JSON.parse(await send("initialize", { protocolVersion: "2025-11-25" }));
   expect(initialized).toHaveProperty("result.instructions", expect.stringContaining("identidades y programas"));
   expect(initialized).toHaveProperty("result.instructions", expect.stringContaining("notas/notas/<id>"));
@@ -110,12 +119,12 @@ it("reads system identities as a program and lists their action coordinates", as
   expect(mcpRows(identity)).toMatchObject({ identifier: "ana" });
   const actions = mcpActions(await call("actions", { program: "identities" }));
   expect(actions.length).toBeGreaterThan(0);
-  expect(actions.every(action => action.program === "identities" && action.herramienta === "identities")).toBe(true);
+  expect(actions.every(action => action.program === "identities" && action.tool === "identities")).toBe(true);
 });
 
 it("names programs in the house overview and their notices", async () => {
   const overview = mcpRows(await call("read", {}));
-  expect(overview).toHaveProperty("programas", expect.arrayContaining([expect.objectContaining({ id: "notas" })]));
+  expect(overview).toHaveProperty("programs", expect.arrayContaining([expect.objectContaining({ id: "notas" })]));
   expect(overview).not.toHaveProperty("herramientas");
-  expect(overview).toHaveProperty("avisos", expect.arrayContaining([expect.objectContaining({ program: "notas" })]));
+  expect(overview).toHaveProperty("notices", expect.arrayContaining([expect.objectContaining({ program: "notas" })]));
 });

@@ -26,15 +26,15 @@ function scene<X extends Program>(ports: HousePorts<X>, identity: string) {
   );
   if (!isRecord(reading)) throw new Error("Invalid identity reading");
   return {
-    identidad: identity,
+    identity: identity,
     general: reading.general,
-    parte: reading.addressed,
+    addressed: reading.addressed,
     recipients: ports.state().house.scenes.get(identity)?.data.to,
   };
 }
 function overview<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X>[]) {
   const state = ports.state();
-  const avisos = tools.filter(declared).map(tool => ({
+  const notices = tools.filter(declared).map(tool => ({
     program: tool.id,
     ...noticesOf({ ...ports, act: value => ports.act(value, state.through) }, tool, {
       name: tool.id,
@@ -42,11 +42,11 @@ function overview<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<
     }).notices(),
   }));
   return {
-    identidad: ports.me,
+    identity: ports.me,
     since: state.through,
-    escenas: [...state.house.scenes.keys()].map(identity => scene(ports, identity)),
-    programas: tools.map(({ id, purpose }) => ({ id, para: purpose })),
-    avisos,
+    scenes: [...state.house.scenes.keys()].map(identity => scene(ports, identity)),
+    programs: tools.map(({ id, purpose }) => ({ id, purpose })),
+    notices,
   };
 }
 function actionGroups<X extends Program>(tool: Tool<X>): readonly Tool<X>[] {
@@ -64,7 +64,7 @@ function choiceSources(input: unknown): string[] {
 function dynamicChoices<X extends Program>(ports: HousePorts<X>, act: ToolAct<X>, target?: string) {
   if (!isProgram(act) || !act.choices || target === undefined) return {};
   return {
-    opciones: Object.fromEntries(
+    choices: Object.fromEntries(
       [...new Set(choiceSources(act.input))].map(source => [
         source,
         programCall(act.choices?.bind(act), source, ports.state(), target) ?? [],
@@ -89,13 +89,13 @@ function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X
             .filter(target => on === undefined || target === on)
             .map(target => ({
               program: tool.id,
-              herramienta: group.id,
+              tool: group.id,
               action: name,
-              nombre: isProgram(act) ? act.name : name,
-              sobre: act.on ?? "tool",
+              name: isProgram(act) ? act.name : name,
+              subject: act.on ?? "tool",
               target,
-              para: isProgram(act) ? act.purpose : tool.purpose,
-              entrada: act.input,
+              purpose: isProgram(act) ? act.purpose : tool.purpose,
+              input: act.input,
               ...dynamicChoices(ports, act, target),
               ...(act.execution
                 ? {
@@ -106,7 +106,7 @@ function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X
                     ],
                   }
                 : {}),
-              motivo: reason(name, act, target),
+              reason: reason(name, act, target),
             }));
         }),
     );

@@ -3147,10 +3147,15 @@
     },
     {
       "id": 283,
-      "rule": "MCP permite leer un programa instalable, sus carpetas y sus objetos usando los ids de la terminal. read y actions aceptan target dentro del program indicado; rechazan destinos inexistentes o ajenos. Todas las identidades presentes leen los programas y sus acciones sin kit se muestran apagadas. actions sólo publica destinos aplicables y act conserva sus permisos. Los Tool comunes mantienen su comportamiento anterior.",
+      "rule": "MCP permite leer un programa instalable, sus carpetas y sus objetos usando los ids de la terminal. read y actions aceptan target dentro del program indicado; rechazan destinos inexistentes o ajenos. Todas las identidades presentes leen los programas y sus acciones sin kit se muestran apagadas. actions sólo publica destinos aplicables y act conserva sus permisos. Los Tool comunes mantienen su comportamiento anterior. Las claves de salida de read, actions, act y wait están en inglés; los valores de texto conservan el castellano. Una prueba recorre respuestas reales, JSON y JSON por renglón de una casa con programas, escenas, avisos, opciones y destinos, y rechaza claves fuera de un vocabulario explícito.",
       "from": "18/11 · dist-mcp-leer, lectura de carpetas y objetos",
       "guarantee": "spec",
-      "evidence": ["src/doors/mcp/mcp-program-reading.spec.ts", "src/doors/mcp/mcp-tools.spec.ts"]
+      "evidence": [
+        "src/doors/mcp/mcp-program-reading.spec.ts",
+        "src/doors/mcp/mcp-tools.spec.ts",
+        "src/doors/mcp/mcp-output-vocabulary.spec.ts",
+        "tests/support/mcp-vocabulary.ts"
+      ]
     },
     {
       "id": 284,

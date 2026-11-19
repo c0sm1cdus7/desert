@@ -28,7 +28,7 @@ it("enters the invited house through HTTP with OAuth and a forged Host", async (
     const token = await f.form("/token", params);
     expect(token.status).toBe(200);
     const reading = await f.read(responseField(token.body, "access_token"));
-    expect(mcpRows(mcpResult(reading.body))).toMatchObject({ identidad: "beto" });
+    expect(mcpRows(mcpResult(reading.body))).toMatchObject({ identity: "beto" });
   } finally {
     await f.close();
   }

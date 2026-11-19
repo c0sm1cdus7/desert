@@ -26,10 +26,10 @@ export const mcpActions = (result: Result) =>
     Type.Array(
       Type.Object({
         program: Type.String(),
-        herramienta: Type.String(),
+        tool: Type.String(),
         action: Type.String(),
         target: Type.Optional(Type.String()),
-        motivo: Type.Optional(Type.String()),
+        reason: Type.Optional(Type.String()),
       }),
     ),
     mcpText(result),

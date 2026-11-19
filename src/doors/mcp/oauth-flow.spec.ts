@@ -23,7 +23,7 @@ it("exchanges consent once, reads as the invited identity and honors Identidades
   const token = responseField(response.body, "access_token");
   const parsed: unknown = JSON.parse(response.body);
   expect(parsed).toEqual({ access_token: token, scope: "house", token_type: "Bearer" });
-  expect(mcpRows(mcpResult((await f.read(token)).body))).toMatchObject({ identidad: "beto" });
+  expect(mcpRows(mcpResult((await f.read(token)).body))).toMatchObject({ identity: "beto" });
   expect((await f.h.act("revoke-key", { key: g.key.id }, "identities/beto")).status).toBe("accepted");
   expect((await f.read(token)).status).toBe(401);
   for (const secret of [token, g.code, g.invitation, g.authorization.get("client_id") ?? ""])
@@ -77,7 +77,7 @@ it("derives the host as the actual admin without journal writes, redacts it and 
     before = f.h.history();
   const credential = deriveHostCredential(f.rootKey);
   expect((await f.read(credential)).status).toBe(200);
-  expect(mcpRows(mcpResult((await f.read(credential)).body))).toMatchObject({ identidad: "ana" });
+  expect(mcpRows(mcpResult((await f.read(credential)).body))).toMatchObject({ identity: "ana" });
   expect(f.h.history() === before).toBe(true);
   expect((await f.read(deriveHostCredential(randomBytes(32)))).status).toBe(401);
   expect((await f.read(f.h.founder)).status).toBe(200);

@@ -25,7 +25,7 @@ it("admits root A as the cloud host and rejects root B at composition, with and 
     const read = { jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "read", arguments: {} } };
     const response = await door.handle(rpcRequest(deriveHostCredential(root), read));
     expect(response.status).toBe(200);
-    expect(mcpRows(mcpResult(response.body))).toMatchObject({ identidad: "ana" });
+    expect(mcpRows(mcpResult(response.body))).toMatchObject({ identity: "ana" });
     const wrong = Buffer.alloc(32, 72);
     expect((await door.handle(rpcRequest(deriveHostCredential(wrong)))).status).toBe(401);
     for (const oauth of [undefined, { origin: "https://house.example" }])

@@ -1886,8 +1886,9 @@ identidades y programas; cada programa tiene herramientas con acciones. El pará
 llama `program`. Mandar `herramienta` en cualquiera de las tres primeras recibe `-32602` con el nombre nuevo,
 incluso si también se manda `program`: no hay alias de compatibilidad.
 
-- `read { program?: string, target?: string }` muestra la identidad, la secuencia `since`, las escenas generales
-  con la parte dirigida a quien lee, los `programas` asignados y sus avisos (cada aviso identifica su `program`).
+- `read { program?: string, target?: string }` muestra `identity`, la secuencia `since`, las `scenes`
+  con `identity`, `general`, `addressed` y `recipients`, los `programs` (`id`, `purpose`) y sus `notices`
+  (`program`, `needs`, `news`, `quiet`; cada aviso lleva `title`, `detail` y, si corresponde, `opens`).
   Con `program`, muestra su lectura textual, sin códigos de terminal. En un programa instalable, esa lectura
   lista sus herramientas con ids. Por ejemplo: `read { program: "notas" }` lista las carpetas;
   `read { program: "notas", target: "notas/notas" }` lista los objetos de esa herramienta;
@@ -1896,23 +1897,30 @@ incluso si también se manda `program`: no hay alias de compatibilidad.
   puede leer un programa instalable aunque no lo tenga en su kit. Las piezas del sistema se leen igual:
   `read { program: "identities" }` lista Identidades; `target: "identities/ana"` lee a Ana.
   Usa `localPorts`, las lecturas de identidad y los avisos de la terminal.
-- `actions { program?: string, target?: string }` muestra `program`, `herramienta` (id de la carpeta, como
-  `notas/notas`), `action` (identificador ejecutable, como `notas/add`), nombre, propósito, si se hace sobre una
-  herramienta o una cosa, objetivo, esquema TypeBox serializado como JSON Schema y motivo de indisponibilidad.
+- `actions { program?: string, target?: string }` muestra `program`, `tool` (id de la carpeta, como
+  `notas/notas`), `action` (identificador ejecutable, como `notas/add`), `name`, `purpose`, `subject`
+  (herramienta o cosa), `target`, `input` (TypeBox serializado como JSON Schema) y `reason` de indisponibilidad.
+  `choices` reúne las opciones dinámicas por fuente; `execution` y `destinations` describen dónde ejecutar.
   Las posiciones secretas conservan `secret: true`. Si todavía no hay cosas, la acción de cosa aparece con ese
   motivo y sin objetivo. En programas instalables muestra también las acciones ajenas, apagadas con el motivo
   del kit. Cada acción aparece sólo en su carpeta u objetos correspondientes; `target` filtra por uno de esos
   mismos ids que aceptan `read` y `act`, y requiere `program`. Las piezas sin grupos, como Identidades,
-  conservan su id de raíz como `herramienta`. Los `Tool` comunes conservan el filtro por kit y su lectura sin
+  conservan su id de raíz como `tool`. Los `Tool` comunes conservan el filtro por kit y su lectura sin
   objetivo. Ninguna lectura concede escritura.
 - `act { program, action, target?, data }` toma el programa como objetivo cuando no se indica otro.
   Para ejecutar una acción publicada, copiá sus campos `program`, `action` y `target`, y agregá `data`.
   Atiende el objetivo y ejecuta mediante `requestBook`, el mismo camino del socket, con los chequeos de kit y el
   tope de datos de la casa. Devuelve el texto aceptado o el motivo del rechazo con `isError: true`. La invitación de Identidades se entrega una sola vez en su recibo privado. Cada llamada es un acto nuevo: el ID JSON-RPC correlaciona la respuesta,
   no sirve como clave de deduplicación para reintentar una escritura.
-- `wait { since, seconds }` devuelve texto JSON con `seq` y `cambio`. Responde inmediatamente si la secuencia
+- `wait { since, seconds }` devuelve texto JSON con `seq` y `changed`. Responde inmediatamente si la secuencia
   ya avanzó; en otro caso espera un cambio posterior a `since` o el plazo, limitado a 60 segundos. Al desconectar
   o cerrar la puerta se liberan la escucha y el temporizador. Comparte la espera con el socket.
+
+Las claves de estas respuestas están en inglés; los textos para personas y mentes siguen en castellano.
+`mcp-output-vocabulary.spec.ts` recorre las respuestas reales de las cuatro herramientas, también el JSON
+y el JSON por renglón dentro de `content.text`. Cada clave nueva exige revisar el vocabulario explícito
+de `tests/support/mcp-vocabulary.ts`, incluidos los campos de esquemas y lecturas de programas de prueba.
+Los ids que indexan `recipients` y `choices` se conservan y se enumeran explícitamente en esa prueba.
 
 Esta puerta no ofrece apagar, sincronizar ni declarar defectos. `http.close()` deja de escuchar, corta conexiones
 y espera los pedidos admitidos antes de soltar el libro de actos; no cierra la casa. El manejador `door.handle`

@@ -1,11 +1,11 @@
 // Spanish MCP tool descriptions, orientation, results and protocol errors.
 export const mcpTexts = {
   instructions: "La casa reúne identidades y programas. Objetos: notas/notas/<id>. Centavos: 4500 son 45,00.",
-  read: `Lee la casa o el programa elegido con program. target elige su herramienta (notas/notas) u objeto
-(notas/notas/<id>); sin target lee la raíz. Identidades usa program: identities. Todos leen; el kit habilita acciones.`,
-  actions: "Lista program, herramienta, action, entradas y motivos. target filtra el destino; el kit limita acciones.",
+  read: `Lee identity, since, scenes, programs y notices; con program, su raíz. target elige herramienta u objeto
+(notas/notas/<id>). Identidades usa program: identities. Todos leen; el kit habilita acciones.`,
+  actions: "Lista tool, action, name, subject, purpose, input, choices y reason. program y target filtran por kit.",
   act: "Hace una acción del programa sobre el target indicado, según el kit.",
-  wait: "Aguarda un cambio posterior a since, durante hasta 60 segundos.",
+  wait: "Aguarda un cambio posterior a since, hasta 60 segundos; devuelve seq y changed.",
   parse: "El cuerpo no es JSON válido.",
   request: "El pedido debe ser un mensaje JSON-RPC 2.0, sin listas.",
   method: "Ese método no está disponible.",
