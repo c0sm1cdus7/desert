@@ -47,14 +47,16 @@ class MindTurnRun {
     const outcome = reason ? "failed" : "done";
     const interrupted =
       reason === "uncertain" || reason === "act-uncertain" || reason === "inactive" || reason === "interrupted";
+    const rejection = this.caller.rejection();
     const result: TurnOutcome = {
       outcome: interrupted ? "interrupted" : outcome,
       calls: this.caller.calls(),
       applied: [...this.applied],
       ...(reason ? { reason } : {}),
+      ...(rejection ? { rejection } : {}),
     };
     if (!this.ports.isOpen(this.turn.id)) return result;
-    if (reason) this.scene(turnNotice.text(this.turn.language, { reason }));
+    if (reason) this.scene(turnNotice.text(this.turn.language, { reason, ...(rejection ? { rejection } : {}) }));
     const { id, scope, wake } = this.turn;
     this.write(
       effect(

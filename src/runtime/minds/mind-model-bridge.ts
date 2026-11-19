@@ -1,6 +1,8 @@
 // Conecta una carta asignada con el proveedor y conserva el costo de cada intento.
 import { callAnthropic, ModelFailure, requestBody } from "../../adapters/models/anthropic.ts";
 import { costUsd, validBankResult, type Card, type Usage } from "../../adapters/models/catalog.ts";
+import { mindRequest } from "./mind-request.ts";
+import { modelFailureLog, turnNotice } from "../../texts/mind-turn.texts.ts";
 import type { MindActor } from "../../fields/mind-actor.ts";
 import type { ModelOutcome, ModelRequest } from "./mind-ports.ts";
 /** Tokens que el proveedor agrega solo (el formato del esquema): los bytes acotan nada más el texto que mandamos. */
@@ -22,6 +24,7 @@ type Ports = Readonly<{
   settle: (request: ModelRequest, usage: Usage, actualNanoUsd: number) => Promise<void>;
   uncertain: (request: ModelRequest) => Promise<void>;
   transport: typeof fetch;
+  scrub?: (text: string) => string;
 }>;
 const nano = (usd: number): number => {
   const value = Math.ceil(usd * 1_000_000_000);
@@ -80,6 +83,18 @@ function maximumCost(card: Card, maxInputTokens: number): number {
     ),
   );
 }
+function logFailure(error: ModelFailure, request: ModelRequest) {
+  const rejection = error.rejection;
+  if (error.kind === "http")
+    console.log(
+      modelFailureLog.text("es", {
+        mind: request.mind,
+        turn: request.turn,
+        number: request.number,
+        cause: turnNotice.text("es", { reason: "http", ...(rejection ? { rejection } : {}) }),
+      }),
+    );
+}
 async function failedCall(
   error: unknown,
   usage: Usage | undefined,
@@ -91,6 +106,7 @@ async function failedCall(
     await ports.uncertain(request);
     return { kind: "uncertain" };
   }
+  logFailure(error, request);
   if (usage) {
     try {
       await ports.settle(request, usage, nano(costUsd(card, usage)));
@@ -112,13 +128,15 @@ async function failedCall(
   }
   if (error.kind === "json" || error.kind === "schema" || error.kind === "refusal" || error.kind === "max_tokens")
     return { kind: "invalid", reason: error.kind, ...(usage ? { usage } : {}) };
-  if (error.kind === "http") return { kind: "failed", reason: "http" };
+  if (error.kind === "http")
+    return { kind: "failed", reason: "http", ...(error.rejection ? { rejection: error.rejection } : {}) };
   return { kind: "uncertain" };
 }
 async function send(payload: Payload, key: string, request: ModelRequest, ports: Ports): Promise<ModelOutcome> {
   let usage: Usage | undefined;
   const transport: typeof fetch = async (url, init) => {
     const response = await ports.transport(url, init);
+    if (!response.ok) return response;
     try {
       usage = usageOf(await response.clone().json());
     } catch {
@@ -127,7 +145,7 @@ async function send(payload: Payload, key: string, request: ModelRequest, ports:
     return response;
   };
   try {
-    const result = await callAnthropic(payload, key, transport);
+    const result = await callAnthropic(payload, key, transport, ports.scrub);
     await ports.settle(request, result.usage, nano(costUsd(payload.card, result.usage)));
     return { kind: "answer", ...result };
   } catch (error) {
@@ -147,13 +165,7 @@ async function invoke(request: ModelRequest, ports: Ports): Promise<ModelOutcome
     return { kind: "not-sent", reason: "no-key" };
   }
   if (!key) return { kind: "not-sent", reason: "no-key" };
-  const payload = {
-    card,
-    maxOutputTokens: 16000,
-    layers: request.frame.layers,
-    changing: request.frame.changing,
-    schema: request.schema,
-  };
+  const payload = mindRequest(card, request.frame, request.schema);
   const body = requestBody(payload);
   if (new TextEncoder().encode(JSON.stringify(body)).length + providerMarginTokens > ports.maxInputTokens)
     return { kind: "not-sent", reason: "cap" };

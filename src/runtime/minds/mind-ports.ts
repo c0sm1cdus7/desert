@@ -1,4 +1,5 @@
 // Declara los puertos del turno y serializa sus doce intentos físicos compartidos.
+import type { ProviderRejection } from "../../fields/provider-rejection.ts";
 import type { Usage } from "../../adapters/models/catalog.ts";
 import type { MindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
@@ -19,7 +20,7 @@ export type ModelRequest = Readonly<{
 export type ModelOutcome =
   | Readonly<{ kind: "answer"; value: unknown; usage: Usage }>
   | Readonly<{ kind: "invalid"; reason: "json" | "schema" | "max_tokens" | "refusal"; usage?: Usage }>
-  | Readonly<{ kind: "failed"; reason: "http" | "transport" }>
+  | Readonly<{ kind: "failed"; reason: "http" | "transport"; rejection?: ProviderRejection }>
   | Readonly<{ kind: "not-sent"; reason: "cap" | "no-key" | "no-card" }>
   | Readonly<{ kind: "uncertain" }>;
 export type ModelPort = (request: ModelRequest) => Promise<ModelOutcome>;
@@ -29,10 +30,12 @@ export type TurnOutcome = Readonly<{
   calls: number;
   applied: readonly string[];
   reason?: TurnStop;
+  rejection?: ProviderRejection;
 }>;
 export type TurnCaller = Readonly<{
   call: (mind: MindActor, frame: MindFrame, schema: Record<string, unknown>) => Promise<ModelOutcome>;
   stopped: () => TurnStop | undefined;
+  rejection: () => ProviderRejection | undefined;
   calls: () => number;
   correct: () => boolean;
   pendingInvalid: () => boolean;
@@ -68,6 +71,7 @@ export class TurnStopped extends Error {
 class TurnCallLedger {
   count = 0;
   stop: TurnStop | undefined;
+  rejection: ProviderRejection | undefined;
   closed = false;
   invalid = false;
   private corrected = false;
@@ -85,6 +89,7 @@ class TurnCallLedger {
     if (outcome.kind === "not-sent") this.count--;
     this.turn.usage.calls = this.count;
     if (outcome.kind === "failed" || outcome.kind === "not-sent") this.stop = outcome.reason;
+    if (outcome.kind === "failed") this.rejection = outcome.rejection;
     if (outcome.kind === "uncertain") this.stop = "uncertain";
     if (outcome.kind === "invalid" && !this.correct()) this.stop = "invalid";
     this.invalid = outcome.kind === "invalid";
@@ -122,6 +127,7 @@ export function createTurnCaller(model: ModelPort, turn: TurnContext, active: ()
     correct: ledger.correct,
     pendingInvalid: () => ledger.invalid,
     stopped: () => ledger.stop,
+    rejection: () => ledger.rejection,
     close: () => {
       ledger.closed = true;
     },

@@ -1,5 +1,6 @@
 // Connects certified cards to atomic reservations and settlements in the selected billing journal.
 import { billingAccount, billingFor } from "./mind-billing.ts";
+import { scrubDoorText } from "../../house/doors/door-material.ts";
 import { effect } from "../../house/facts.ts";
 import type { MindActor } from "../../fields/mind-actor.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -82,6 +83,7 @@ export function runtimeModel<X extends Program>(house: MindRuntimeHouse<X>, opti
     ...accountPorts(house, options),
     card,
     key: options.key,
+    scrub: text => scrubDoorText(options.scrubProviderError?.(text) ?? text, house.execution.state().house.doors),
     transport: options.transport,
     capNanoUsd: options.capNanoUsd,
     maxInputTokens: options.maxInputTokens,

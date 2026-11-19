@@ -23,9 +23,13 @@ export async function programMindAvailability<X extends Program>(
     const reason = await unavailableReason(house, options, definition);
     if (reason && house.active()) {
       unavailable.set(definition.actor, reason);
+      const rejection = options.providerRejections?.get(definition.actor);
       const general = programMindUnavailable.text(options.language, {
         actor: definition.actor,
-        reason: turnNotice.text(options.language, { reason }),
+        reason: turnNotice.text(options.language, {
+          reason,
+          ...(rejection ? { rejection } : {}),
+        }),
       });
       house.execution.bus.emit(
         effect(
@@ -71,10 +75,11 @@ async function unavailableReason<X extends Program>(
   return options.unavailable?.get(definition.actor) ?? (!passed ? "no-card" : undefined);
 }
 export function programMindNotices(options: MindRuntimeOptions) {
-  return [...(options.unavailable ?? [])].map(([actor, reason]) =>
-    programMindUnavailable.text(options.language, {
+  return [...(options.unavailable ?? [])].map(([actor, reason]) => {
+    const rejection = options.providerRejections?.get(actor);
+    return programMindUnavailable.text(options.language, {
       actor,
-      reason: turnNotice.text(options.language, { reason }),
-    }),
-  );
+      reason: turnNotice.text(options.language, { reason, ...(rejection ? { rejection } : {}) }),
+    });
+  });
 }

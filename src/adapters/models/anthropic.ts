@@ -2,6 +2,8 @@
 import { modelTexts } from "../../texts/model.texts.ts";
 import type { Card, Usage } from "./catalog.ts";
 import { providerSchema, matchesSchema } from "./schema.ts";
+import type { ProviderRejection } from "../../fields/provider-rejection.ts";
+import { readProviderError } from "./provider-error.ts";
 
 type Request = {
   card: Card;
@@ -13,10 +15,12 @@ type Request = {
 export type FailureKind = "http" | "transport" | "refusal" | "max_tokens" | "json" | "schema" | "response";
 export class ModelFailure extends Error {
   readonly kind: FailureKind;
-  constructor(kind: FailureKind, cause: string) {
+  readonly rejection?: ProviderRejection;
+  constructor(kind: FailureKind, cause: string, rejection?: ProviderRejection) {
     super(`${kind}: ${cause}`, { cause });
     this.name = "ModelFailure";
     this.kind = kind;
+    if (rejection) this.rejection = rejection;
   }
 }
 const required = (value: unknown, name: string) => {
@@ -93,7 +97,12 @@ export function readResponse(data: unknown, schema: Record<string, unknown>): { 
     },
   };
 }
-export async function callAnthropic(request: Request, key: string, transport: typeof fetch = fetch) {
+export async function callAnthropic(
+  request: Request,
+  key: string,
+  transport: typeof fetch = fetch,
+  scrub: (text: string) => string = text => text,
+) {
   if (!key) throw new ModelFailure("transport", modelTexts.key);
   const body = JSON.stringify(requestBody(request));
   let response: Response;
@@ -106,7 +115,10 @@ export async function callAnthropic(request: Request, key: string, transport: ty
   } catch {
     throw new ModelFailure("transport", modelTexts.transport);
   }
-  if (!response.ok) throw new ModelFailure("http", `${modelTexts.http} ${response.status}`);
+  if (!response.ok) {
+    const rejection = await readProviderError(response, key, scrub);
+    throw new ModelFailure("http", `${rejection.status} ${rejection.type}: ${rejection.message}`, rejection);
+  }
   let data: unknown;
   try {
     data = await response.json();

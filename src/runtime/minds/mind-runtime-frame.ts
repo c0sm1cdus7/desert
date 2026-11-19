@@ -1,5 +1,5 @@
 // Arma marcos visibles con el pedido completo acotado y restaura los cortes durables del hilo propio.
-import { requestBody } from "../../adapters/models/anthropic.ts";
+import { diagnoseMindRequest, diagnoseFittedMindRequest } from "./mind-request.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { MindScope, TurnContext } from "../../tools/minds/mind-contract.ts";
 import { answerSchema } from "../../tools/minds/mind-answer.ts";
@@ -22,18 +22,25 @@ export function runtimeFrame<X extends Program>(
   const threads = openMindThreads(house.home);
   const entries = (scope: MindScope) => threadEntries(house.history(), scope);
   const thread = (scope: MindScope) => threads.read(scope, entries(scope));
+  const read = (scope: MindScope, turn: TurnContext) => {
+    const definition = options.definitions.find(each => each.actor === scope.actor);
+    requireMind(definition, "runtime.definition");
+    const view = runtimeView(house, options, switches, scope, definition);
+    const snapshot = snapshotFor(view, scope, turn, options, thread(scope).entries);
+    return { view, fitted: fitFrame(snapshot, turn, view.menu, model, options.maxInputTokens) };
+  };
   return {
     thread,
+    diagnose: (turn: TurnContext) => {
+      const { fitted, view } = read(turn.scope, turn);
+      return diagnoseFittedMindRequest(model.card(turn.scope.actor)?.card, fitted, answerSchema(view.menu));
+    },
     compact: (scope: MindScope, request: Readonly<{ through: number; keep: readonly string[] }>) => {
       requireMind(house.active(), "runtime.active");
       return threads.compact(scope, entries(scope), request);
     },
     frame: (scope: MindScope, turn: TurnContext) => {
-      const definition = options.definitions.find(each => each.actor === scope.actor);
-      requireMind(definition, "runtime.definition");
-      const view = runtimeView(house, options, switches, scope, definition);
-      const snapshot = snapshotFor(view, scope, turn, options, thread(scope).entries);
-      const fitted = fitFrame(snapshot, turn, view.menu, model, options.maxInputTokens);
+      const { fitted, view } = read(scope, turn);
       if (fitted.tooLarge) return fitted;
       const previous = thread(scope);
       if (previous.entries.some(entry => fitted.omitted.includes(entry.id))) {
@@ -101,13 +108,7 @@ function fitFrame<X extends Program>(
       new TextEncoder().encode(
         JSON.stringify(
           assignment
-            ? requestBody({
-                card: assignment.card,
-                maxOutputTokens: 16000,
-                layers: frame.layers,
-                changing: frame.changing,
-                schema: answerSchema(menu),
-              })
+            ? diagnoseMindRequest(assignment.card, frame, answerSchema(menu))
             : { frame, schema: answerSchema(menu) },
         ),
       ).length + providerMarginTokens,
