@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 279. Deudas: 22.
+Leyes: 280. Deudas: 22.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -286,3 +286,4 @@ Leyes: 279. Deudas: 22.
 | 298 | Cada texto del catálogo se usa en la superficie, una respuesta, un aviso o el marco de una mente. Un texto sin uso pone roja la compuerta. | 18/11 · Ley 6 firmada | una spec a mano | `src/checks/laws/catalog-coverage.spec.ts` |
 | 299 | Source exports used only by tests are rejected unless published through package.exports or the desert/testing contract. Published entries count as external consumption and must not be removed to satisfy the gate. | 18/11 · Ley 6 firmada | una spec a mano | `src/checks/laws/catalog-coverage.spec.ts` |
 | 300 | La compuerta de quien ofrece un contrato corre los casos declarados por quienes lo piden en una casa real, con su kit y sus hechos. | 18/11 · Ley 6 firmada | una spec a mano | `src/checks/contracts/program-contract-cases.spec.ts` |
+| 301 | El programa declara las carpetas de su ejecutor de dispositivo; allí admite Node y la puerta pública de dispositivo. La casa nunca importa ese ejecutor, y el ejecutor sólo comparte esquemas, tipos y textos puros del programa. | 18/11 · Ejecutor de dispositivo del programa | una spec a mano | `tests/laws/program-device.spec.ts` `src/checks/laws/program-device.ts` `src/checks/laws/program-imports.ts` |

@@ -546,6 +546,7 @@
     "doors/socket/server/remote-sessions.ts": "Remote peers share the socket request book and state delivery without owning the cloud house lifetime.",
     "doors/socket/client/http-stream.ts": "Adapt authenticated HTTP events to the existing framed duplex, with ordered POSTs and no action retries.",
     "house/core-value-history.ts": "Read historical door and rule values without changing saved records or accepting them in new emissions.",
-    "tools/rules/rule-display.ts": "Render rule effect labels in the house language while preserving English values in facts and action results."
+    "tools/rules/rule-display.ts": "Render rule effect labels in the house language while preserving English values in facts and action results.",
+    "checks/laws/program-device.ts": "Separates declared device folders from house code and admits only pure shared dependency graphs."
   }
 }

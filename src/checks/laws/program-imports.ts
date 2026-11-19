@@ -3,6 +3,8 @@ import { distributionTexts } from "../../texts/distributions.texts.ts";
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, join, resolve, sep } from "node:path";
 import ts from "typescript";
+import { isBuiltin } from "node:module";
+import { deviceFiles, pureShared } from "./program-device.ts";
 import { field, isRecord } from "../../fields/json-values.ts";
 import { codeFiles, fromRoot, isSpec, parsed, type Repository } from "./law-files.ts";
 import { importsIn } from "./imports.ts";
@@ -55,6 +57,9 @@ export function programImports(repo: Repository): string[] {
   const files = codeFiles(repo).filter(file => !isSpec(file));
   const own = new Set(files.map(file => realpathSync(file)));
 
+  const devices = deviceFiles(repo, desert, own);
+  const main = resolve(repo.root, String(field(desert, "program")));
+  const shared = pureShared(own, devices, existsSync(main) ? realpathSync(main) : main);
   return [
     ...(typeof field(desert, "testDistribution") === "string" && field(desert, "testDistribution") !== ""
       ? []
@@ -62,7 +67,7 @@ export function programImports(repo: Repository): string[] {
     ...dependencies.filter(d => d.kind === "distribution").map(d => distributionTexts.dependencyImport(d.name)),
     ...files.flatMap(file =>
       importsIn(parsed(file))
-        .filter(specifier => !allowedImport(repo, own, dependencies, file, specifier))
+        .filter(specifier => !allowedImport(repo, own, dependencies, file, specifier, devices, shared))
         .map(specifier => `${fromRoot(repo.root, file)} → ${specifier}`),
     ),
   ];
@@ -74,19 +79,33 @@ function allowedImport(
   dependencies: readonly ProgramDependency[],
   file: string,
   specifier: string,
+  devices: ReadonlySet<string>,
+  shared: (file: string) => boolean,
 ): boolean {
+  const device = devices.has(realpathSync(file));
+  if (device && (isBuiltin(specifier) || specifier === "desert/doors/device-process")) return true;
   if (specifier.startsWith("desert/")) return isProgramEntry(specifier);
   if (specifier.startsWith(".")) {
     const target = resolve(dirname(file), specifier);
     return (
       existsSync(target) &&
       own.has(realpathSync(target)) &&
+      (device ? devices.has(realpathSync(target)) || shared(target) : !devices.has(realpathSync(target))) &&
       repo.code.some(folder => realpathSync(target).startsWith(`${resolve(realpathSync(repo.root), folder)}${sep}`)) &&
       !distributionPackage(target)
     );
   }
   if (!dependencies.some(dependency => dependency.kind === "contract" && dependency.name === specifier)) return false;
-  const resolved = ts.resolveModuleName(
+  const resolved = contractFile(file, specifier);
+  if (resolved === undefined) return false;
+  const target = realpathSync(resolved);
+  return (
+    !distributionPackage(target) &&
+    (!own.has(target) || (device ? devices.has(target) || shared(target) : !devices.has(target)))
+  );
+}
+function contractFile(file: string, specifier: string): string | undefined {
+  return ts.resolveModuleName(
     specifier,
     file,
     {
@@ -96,5 +115,4 @@ function allowedImport(
     },
     ts.sys,
   ).resolvedModule?.resolvedFileName;
-  return resolved !== undefined && !distributionPackage(realpathSync(resolved));
 }

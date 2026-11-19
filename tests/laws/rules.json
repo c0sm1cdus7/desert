@@ -3329,6 +3329,17 @@
       "from": "18/11 · Ley 6 firmada",
       "guarantee": "spec",
       "evidence": ["src/checks/contracts/program-contract-cases.spec.ts"]
+    },
+    {
+      "id": 301,
+      "rule": "El programa declara las carpetas de su ejecutor de dispositivo; allí admite Node y la puerta pública de dispositivo. La casa nunca importa ese ejecutor, y el ejecutor sólo comparte esquemas, tipos y textos puros del programa.",
+      "from": "18/11 · Ejecutor de dispositivo del programa",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/program-device.spec.ts",
+        "src/checks/laws/program-device.ts",
+        "src/checks/laws/program-imports.ts"
+      ]
     }
   ]
 }

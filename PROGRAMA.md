@@ -2482,3 +2482,42 @@ A rule activated after dispatch cannot rewrite an external receipt or an unknown
 The public rule condition schema does not expose execution destinations. `destination` belongs
 to the act envelope, not the action input, and the core projections remain `admin`, `actor`,
 `actorKind`, `isAdmin`, and `inJourney`. This union does not extend that public contract.
+
+### El ejecutor que trae un programa
+
+El paquete puede publicar el ejecutor por separado del catálogo de la casa. Declaralo en `package.json`:
+
+```json
+{
+  "exports": { ".": "./src/program.ts", "./device": "./device/index.ts" },
+  "desert": {
+    "program": "src/program.ts",
+    "testDistribution": "tests/support/distribution.ts",
+    "device": ["device"],
+    "laws": {
+      "code": ["src", "device"],
+      "adapters": ["device"],
+      "adapterUsers": { "device/": "El ejecutor usa la infraestructura local." },
+      "mayTalkOutside": { "device/": "El ejecutor posee la E/S del dispositivo." }
+    }
+  }
+}
+```
+
+El ejemplo muestra los campos que cambian; conservá las demás opciones obligatorias de `desert.laws`.
+`desert.device` enumera carpetas locales no superpuestas, incluidas en el código inspeccionado y con código
+productivo. No puede incluir la entrada `desert.program`. Omitirlo conserva las reglas anteriores.
+
+Allí se admiten los módulos incorporados de Node, con o sin `node:`, y `desert/doors/device-process`, además de
+las entradas que ya admite un programa. Las dependencias externas siguen necesitando su declaración de contrato;
+publicar un paquete no lo habilita como dependencia. Las leyes de adaptadores, textos, hechos y tamaño siguen vigentes.
+
+El ejecutor puede importar esquemas, tipos y textos de la casa. Ese grafo compartido sólo admite entradas de
+campos, mensajes y tipos; de `desert/programa` admite `Type`, `Static` e imports de tipos. No puede alcanzar la composición, acciones,
+Node, globals de E/S ni el propio ejecutor. La comprobación es estática y conservadora, no un aislamiento de JavaScript.
+La casa nunca importa el ejecutor: se controlan también reexportaciones, imports dinámicos, consultas de tipos,
+`require` y enlaces simbólicos. El anfitrión del dispositivo carga la exportación separada.
+
+Para cada acción de grupo `at: "device"`, la compuerta prepara un dispositivo sintético compatible, comprueba
+que omitir la elección la pide y que elegirlo no habilita actuar sobre un objeto ajeno. El rechazo conserva el
+estado de la casa y del programa. No necesita sockets ni proveedores.
