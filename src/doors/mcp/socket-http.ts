@@ -15,15 +15,15 @@ import { abortableResponse } from "./mcp-sessions.ts";
 type Channel = { key: string; wire: Duplex; stop: () => void; signal: AbortSignal };
 class SocketHttp<X extends Program> {
   private readonly house: Session<X>["house"];
-  private readonly keys: ReturnType<typeof liveDoorKeys<X>>;
+  private readonly keys: Session<X>["keys"];
   private readonly sessions: ReturnType<typeof remoteSessions<X>>;
   private readonly channels = new Map<string, Channel>();
   private readonly budgets = new Map<string, ReturnType<typeof requestBudget>>();
   private readonly closing = new AbortController();
-  constructor(house: Session<X>["house"]) {
+  constructor(house: Session<X>["house"], keys: Session<X>["keys"]) {
     this.house = house;
-    this.keys = liveDoorKeys(house);
-    this.sessions = remoteSessions(house);
+    this.keys = keys;
+    this.sessions = remoteSessions(house, keys);
   }
   private identity(request: McpRequest) {
     const key = authenticate(request, this.keys);
@@ -124,7 +124,8 @@ class SocketHttp<X extends Program> {
     await this.sessions.close();
   }
 }
-export const socketHttp = <X extends Program>(house: Session<X>["house"]) => new SocketHttp(house);
+export const socketHttp = <X extends Program>(house: Session<X>["house"], keys = liveDoorKeys(house)) =>
+  new SocketHttp(house, keys);
 async function* events(wire: Duplex): AsyncIterable<string> {
   const reader = wire[Symbol.asyncIterator]();
   let timer: NodeJS.Timeout | undefined;

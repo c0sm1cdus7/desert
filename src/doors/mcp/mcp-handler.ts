@@ -1,8 +1,9 @@
 // Handle authenticated HTTP and JSON-RPC without sockets and preserve explicit correlation after redaction.
+export { deriveHostCredential } from "./host-credential.ts";
+import { mcpCredentials, credentialRoutes, type McpCredentialOptions } from "./mcp-credentials.ts";
 import { requestDigest } from "../socket/requests/public-message.ts";
 import { socketHttp } from "./socket-http.ts";
 import { mcpSessions, abortableResponse } from "./mcp-sessions.ts";
-import { liveDoorKeys } from "../socket/peers/live-door-keys.ts";
 import { redeemHttp } from "./invitation-http.ts";
 import type { DoorAccess } from "../../runtime/door-access.ts";
 import { Value } from "@sinclair/typebox/value";
@@ -22,7 +23,12 @@ import { mcpReading, type McpHouse } from "./mcp-reading.ts";
 import { doorTexts } from "../../texts/doors.texts.ts";
 import { isRecord } from "../../fields/json-values.ts";
 import { mcpAct, privateInvitation } from "./mcp-actions.ts";
-export type McpOptions = Readonly<{ name: string; version: string; limits: Omit<ViewLimits, "now"> }>;
+export type McpOptions = Readonly<{
+  name: string;
+  version: string;
+  limits: Omit<ViewLimits, "now">;
+}> &
+  McpCredentialOptions;
 const json = (value: unknown): McpResponse => ({
   status: 200,
   headers: { "Content-Type": "application/json" },
@@ -36,9 +42,9 @@ export function mcpDoor<X extends Program>(
   const founders = "get" in keysOrOptions ? keysOrOptions : undefined;
   const options = "get" in keysOrOptions ? givenOptions : keysOrOptions;
   if (!options) throw new Error("Missing MCP options");
-  const keys = liveDoorKeys(house, founders);
+  const { keys, oauth } = mcpCredentials(house, options, founders);
   validateOptions(options);
-  const remote = socketHttp(house);
+  const remote = socketHttp(house, keys);
   const book = requestBook(house);
   const controller = new AbortController();
   const pending = new Set<Promise<McpResponse>>();
@@ -46,8 +52,9 @@ export function mcpDoor<X extends Program>(
   const call = caller(house, book, options, waits);
   const sessions = mcpSessions(changed => house.bus.on(changed));
   const dispatch = dispatcher(house, keys, controller.signal, call, sessions.track);
+  const route = credentialRoutes(dispatch, remote, oauth, controller.signal);
   const handle = (request: McpRequest) => {
-    const work = request.path === "/door/socket" ? remote.handle(request) : dispatch(request);
+    const work = route(request);
     pending.add(work);
     void work.then(
       () => pending.delete(work),
@@ -60,6 +67,7 @@ export function mcpDoor<X extends Program>(
     sessions.close();
     await remote.close();
     await Promise.allSettled([...pending]);
+    oauth?.close();
     book.stop();
   };
   return { handle, close };
@@ -207,21 +215,21 @@ function caller<X extends Program>(
     if (method !== "tools/call") throw new RpcError(-32601, said.method);
     const { name, args } = toolCall(params);
     const reading = mcpReading(house, by, options.limits);
-    const program = typeof args.programa === "string" ? args.programa : undefined;
-    const target = typeof args.objetivo === "string" ? args.objetivo : undefined;
-    if (name === "leer") return reading.read(program, target);
-    if (name === "acciones") return reading.actions(program, target);
-    if (name === "esperar" && typeof args.desde === "number" && typeof args.segundos === "number")
-      return wait(house, waits, by, { desde: args.desde, segundos: args.segundos }, signal);
-    if (name === "actuar" && program !== undefined && typeof args.accion === "string")
+    const program = typeof args.program === "string" ? args.program : undefined;
+    const target = typeof args.target === "string" ? args.target : undefined;
+    if (name === "read") return reading.read(program, target);
+    if (name === "actions") return reading.actions(program, target);
+    if (name === "wait" && typeof args.since === "number" && typeof args.seconds === "number")
+      return wait(house, waits, by, { since: args.since, seconds: args.seconds }, signal);
+    if (name === "act" && program !== undefined && typeof args.action === "string")
       return mcpAct(
         house,
         book,
         by,
         program,
-        args.accion,
-        typeof args.objetivo === "string" ? args.objetivo : program,
-        args.datos,
+        args.action,
+        typeof args.target === "string" ? args.target : program,
+        args.data,
         Value.Check(executionDestination, args.destination) ? args.destination : undefined,
         signal,
       );
@@ -233,7 +241,7 @@ async function wait<X extends Program>(
   house: McpHouse<X>,
   waits: Map<string, number>,
   by: string,
-  { desde, segundos }: Readonly<{ desde: number; segundos: number }>,
+  { since, seconds }: Readonly<{ since: number; seconds: number }>,
   signal: AbortSignal,
 ) {
   const open = waits.get(by) ?? 0;
@@ -243,8 +251,8 @@ async function wait<X extends Program>(
     const changed = await houseChange(
       () => house.tools.state().through,
       changed => house.bus.on(changed),
-      desde,
-      Math.min(60, segundos) * 1000,
+      since,
+      Math.min(60, seconds) * 1000,
       signal,
     );
     return toolResult(JSON.stringify(changed));

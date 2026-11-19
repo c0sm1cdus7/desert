@@ -60,14 +60,14 @@ it("offers connected destinations over MCP and sends the chosen machine through 
       },
     });
   try {
-    const listed = await call("acciones", { programa: "agents" });
+    const listed = await call("actions", { program: "agents" });
     expect(listed.body).toContain("destinations");
     expect(listed.body).toContain("mac");
     expect(listed.body).toContain("vm");
-    const result = await call("actuar", {
-      programa: "agents",
-      accion: "run",
-      datos: { command: "test" },
+    const result = await call("act", {
+      program: "agents",
+      action: "run",
+      data: { command: "test" },
       destination: { kind: "device", device: "vm" },
     });
     expect(result.body).toContain('"isError":false');

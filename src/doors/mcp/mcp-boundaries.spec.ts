@@ -29,11 +29,11 @@ it("shows unavailable actions and thing actions even before any things exist", a
     },
     paymentsTool,
   ]);
-  const before = await h.call("acciones", { programa: "sales" });
+  const before = await h.call("actions", { program: "sales" });
   expect(before.body).toContain("Closed");
   expect(before.body).toContain("modify");
   expect(before.body).toContain("thing");
-  const denied = await h.call("actuar", { programa: "sales", accion: "register", datos: { sale: "x", total: 1 } });
+  const denied = await h.call("act", { program: "sales", action: "register", data: { sale: "x", total: 1 } });
   expect(JSON.parse(denied.body)).toMatchObject({ result: { isError: true } });
   expect(denied.body).toContain("Closed");
 });
@@ -49,10 +49,10 @@ it("reads needs with the same per-identity filtering and removes terminal codes"
     },
     paymentsTool,
   ]);
-  const home = await h.call("leer", {}, h.beto);
+  const home = await h.call("read", {}, h.beto);
   expect(home.body).toContain("De Beto");
   expect(home.body).not.toContain("De Ana");
-  const reading = await h.call("leer", { programa: "sales" }, h.beto);
+  const reading = await h.call("read", { program: "sales" }, h.beto);
   expect(JSON.parse(reading.body)).toMatchObject({ result: { content: [{ text: "Ventas" }] } });
 });
 it("rejects unknown targets and invalid tool arguments without exposing exceptions", async () => {
@@ -66,19 +66,19 @@ it("rejects unknown targets and invalid tool arguments without exposing exceptio
     },
     paymentsTool,
   ]);
-  const read = await h.call("leer", { programa: "sales" });
+  const read = await h.call("read", { program: "sales" });
   expect(JSON.parse(read.body)).toMatchObject({ error: { code: -32603 } });
   expect(read.body.includes(secret)).toBe(false);
   for (const [name, args] of [
-    ["esperar", { desde: -1, segundos: 0 }],
-    ["esperar", { desde: 0, segundos: -1 }],
-    ["actuar", { programa: "sales", accion: "register", datos: [] }],
+    ["wait", { since: -1, seconds: 0 }],
+    ["wait", { since: 0, seconds: -1 }],
+    ["act", { program: "sales", action: "register", data: [] }],
     ["sincronizar", {}],
-    ["leer", { programa: "sales", extra: true }],
+    ["read", { program: "sales", extra: true }],
   ] as const) {
     expect(JSON.parse((await h.call(name, args)).body)).toMatchObject({ error: { code: -32602 } });
   }
-  const call = await h.call("actuar", { programa: "sales", accion: "register", objetivo: "absent", datos: {} });
+  const call = await h.call("act", { program: "sales", action: "register", target: "absent", data: {} });
   expect(JSON.parse(call.body)).toMatchObject({ result: { isError: true } });
 });
 it("accepts exactly the byte bound, rejects broken UTF-8, and checks auth before size", async () => {
@@ -115,7 +115,7 @@ it("releases a disconnected wait and leaves no timer or bus subscription", async
           jsonrpc: "2.0",
           id: 1,
           method: "tools/call",
-          params: { name: "esperar", arguments: { desde: h.rig.state().through, segundos: 60 } },
+          params: { name: "wait", arguments: { since: h.rig.state().through, seconds: 60 } },
         }),
       ),
     ],
@@ -142,7 +142,7 @@ it("rechecks a revoked credential after a slow body, before reading the house", 
       const key = findDoorKey(h.rig.state().house.doors, h.beto);
       if (!key) throw new Error("Missing fixture credential");
       h.rig.bus.emit(effect("door-key-revoked", { key: key.id }, "ana"));
-      yield Buffer.from(JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "leer" } }));
+      yield Buffer.from(JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "read" } }));
     },
   });
   expect(response.status).toBe(401);

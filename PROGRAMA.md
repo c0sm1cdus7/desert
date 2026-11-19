@@ -1838,37 +1838,39 @@ entrada separada. Los programas que fijan una versión anterior recién reciben 
 ## La puerta MCP por HTTP
 
 Un programa puede servir la misma casa a un cliente MCP por HTTP. La puerta se arma sobre una casa ya abierta;
-no crea otra casa ni guarda sesiones MCP. El mapa de llaves vincula cada llave con una identidad presente y la
-puerta `agente`. Las llaves de `terminal` no sirven para entrar por MCP.
+no crea otra casa ni guarda sesiones MCP. Cada llave vigente entra con su identidad, tanto si nació para MCP
+como para la terminal. Las invitaciones y las revocaciones se administran desde Identidades.
 
 ```ts
-import { mcpDoor } from "./src/doors/mcp/mcp-handler.ts";
-import { serveMcp } from "./src/doors/mcp/mcp-http.ts";
+import { mcpDoor, serveMcp, deriveHostCredential } from "desert/doors/mcp";
 
-// house es la casa ya abierta; keys es su ReadonlyMap<string, DoorKey>.
-const door = mcpDoor(house, keys, {
+// house is already open; rootKey contains the HOUSE_ROOT_KEY bytes supplied by the host.
+const door = mcpDoor(house, {
   name: "Mi programa",
   version: "1.0.0",
   limits: { recentLines: 40 },
+  rootKey,
+  oauth: { origin: "https://casa.example" },
 });
+const hostCredential = deriveHostCredential(rootKey); // Private terminal credential.
 const http = await serveMcp(door, { host: "0.0.0.0", port: 3000 });
-// Cuando el programa termina de atender HTTP:
+// When the distribution stops serving HTTP:
 await http.close();
-// El programa sigue siendo dueño de cerrar house después de sus otras puertas.
+// The distribution closes house after its other doors.
 ```
 
 La dirección y el puerto los decide el programa. Railway termina TLS y reenvía HTTP a ese puerto.
 `GET /salud` responde `200` con `ok`, sin llave ni datos de la casa. El protocolo entra por `POST /mcp`;
-`GET /mcp` responde `405` porque no hay SSE. Las demás combinaciones de método y ruta responden `404`.
+`GET /mcp` responde `405` porque no hay SSE. OAuth agrega las rutas de ingreso descritas abajo.
 Para conectar Claude:
 
 ```sh
 claude mcp add --transport http <nombre> <url>/mcp --header "Authorization: Bearer <llave>"
 ```
 
-Cada pedido lleva la llave. Antes de consumir el cuerpo, la puerta compara hashes SHA-256 de igual tamaño con
-`timingSafeEqual`, recorriendo todas las llaves; exige una identidad presente y una llave de `agente`.
-Si falla, responde `401`, `WWW-Authenticate: Bearer` y cuerpo vacío. Comprueba la longitud declarada y corta la
+Cada pedido lleva la llave. Antes de consumir el cuerpo, la puerta resuelve su huella contra el estado vigente;
+la credencial de quien hospeda se compara en tiempo constante. Exige una identidad presente. Si falla, responde
+`401` de transporte con el desafío OAuth; sin OAuth conserva `WWW-Authenticate: Bearer`. Comprueba la longitud declarada y corta la
 lectura por fragmentos al superar `socketLimits.json` (`413`). El cuerpo requiere `application/json` (`415`);
 se admite el parámetro de codificación habitual. Al terminar de leer y antes de responder comprueba nuevamente
 la autorización, para respetar una llave retirada o una identidad removida durante el pedido.
@@ -1879,45 +1881,89 @@ la versión indicados por el programa, `{ tools: { listChanged: false } }` y la 
 `ping` devuelve `{}`; `notifications/*` recibe `202` sin cuerpo. No hay `Mcp-Session-Id` ni una inicialización
 obligatoria entre pedidos. Un método desconocido recibe `-32601`; argumentos inválidos, `-32602`.
 
-Las herramientas MCP publicadas son siempre `leer`, `acciones`, `actuar` y `esperar`. La casa reúne
+Las herramientas MCP publicadas son siempre `read`, `actions`, `act` y `wait`. La casa reúne
 identidades y programas; cada programa tiene herramientas con acciones. El parámetro que elige el programa se
-llama `programa`. Mandar `herramienta` en cualquiera de las tres primeras recibe `-32602` con el nombre nuevo,
-incluso si también se manda `programa`: no hay alias de compatibilidad.
+llama `program`. Mandar `herramienta` en cualquiera de las tres primeras recibe `-32602` con el nombre nuevo,
+incluso si también se manda `program`: no hay alias de compatibilidad.
 
-- `leer { programa?: string, objetivo?: string }` muestra la identidad, la secuencia `desde`, las escenas generales
-  con la parte dirigida a quien lee, los `programas` asignados y sus avisos (cada aviso identifica su `programa`).
-  Con `programa`, muestra su lectura textual, sin códigos de terminal. En un programa instalable, esa lectura
-  lista sus herramientas con ids. Por ejemplo: `leer { programa: "notas" }` lista las carpetas;
-  `leer { programa: "notas", objetivo: "notas/notas" }` lista los objetos de esa herramienta;
-  `leer { programa: "notas", objetivo: "notas/notas/<id>" }` lee el objeto. `objetivo` requiere `programa` y debe
+- `read { program?: string, target?: string }` muestra la identidad, la secuencia `since`, las escenas generales
+  con la parte dirigida a quien lee, los `programas` asignados y sus avisos (cada aviso identifica su `program`).
+  Con `program`, muestra su lectura textual, sin códigos de terminal. En un programa instalable, esa lectura
+  lista sus herramientas con ids. Por ejemplo: `read { program: "notas" }` lista las carpetas;
+  `read { program: "notas", target: "notas/notas" }` lista los objetos de esa herramienta;
+  `read { program: "notas", target: "notas/notas/<id>" }` lee el objeto. `target` requiere `program` y debe
   pertenecer a él: destinos inexistentes o de otro programa reciben un rechazo claro. Cualquier identidad presente
   puede leer un programa instalable aunque no lo tenga en su kit. Las piezas del sistema se leen igual:
-  `leer { programa: "identities" }` lista Identidades; `objetivo: "identities/ana"` lee a Ana.
+  `read { program: "identities" }` lista Identidades; `target: "identities/ana"` lee a Ana.
   Usa `localPorts`, las lecturas de identidad y los avisos de la terminal.
-- `acciones { programa?: string, objetivo?: string }` muestra `programa`, `herramienta` (id de la carpeta, como
-  `notas/notas`), `accion` (identificador ejecutable, como `notas/add`), nombre, propósito, si se hace sobre una
+- `actions { program?: string, target?: string }` muestra `program`, `herramienta` (id de la carpeta, como
+  `notas/notas`), `action` (identificador ejecutable, como `notas/add`), nombre, propósito, si se hace sobre una
   herramienta o una cosa, objetivo, esquema TypeBox serializado como JSON Schema y motivo de indisponibilidad.
   Las posiciones secretas conservan `secret: true`. Si todavía no hay cosas, la acción de cosa aparece con ese
   motivo y sin objetivo. En programas instalables muestra también las acciones ajenas, apagadas con el motivo
-  del kit. Cada acción aparece sólo en su carpeta u objetos correspondientes; `objetivo` filtra por uno de esos
-  mismos ids que aceptan `leer` y `actuar`, y requiere `programa`. Las piezas sin grupos, como Identidades,
+  del kit. Cada acción aparece sólo en su carpeta u objetos correspondientes; `target` filtra por uno de esos
+  mismos ids que aceptan `read` y `act`, y requiere `program`. Las piezas sin grupos, como Identidades,
   conservan su id de raíz como `herramienta`. Los `Tool` comunes conservan el filtro por kit y su lectura sin
   objetivo. Ninguna lectura concede escritura.
-- `actuar { programa, accion, objetivo?, datos }` toma el programa como objetivo cuando no se indica otro.
-  Para ejecutar una acción publicada, copiá sus campos `programa`, `accion` y `objetivo`, y agregá `datos`.
+- `act { program, action, target?, data }` toma el programa como objetivo cuando no se indica otro.
+  Para ejecutar una acción publicada, copiá sus campos `program`, `action` y `target`, y agregá `data`.
   Atiende el objetivo y ejecuta mediante `requestBook`, el mismo camino del socket, con los chequeos de kit y el
-  tope de datos de la casa. Devuelve el texto aceptado o el motivo del rechazo con `isError: true`. Los recibos
-  privados no se exponen por esta puerta. Cada llamada es un acto nuevo: el ID JSON-RPC correlaciona la respuesta,
+  tope de datos de la casa. Devuelve el texto aceptado o el motivo del rechazo con `isError: true`. La invitación de Identidades se entrega una sola vez en su recibo privado. Cada llamada es un acto nuevo: el ID JSON-RPC correlaciona la respuesta,
   no sirve como clave de deduplicación para reintentar una escritura.
-- `esperar { desde, segundos }` devuelve texto JSON con `seq` y `cambio`. Responde inmediatamente si la secuencia
-  ya avanzó; en otro caso espera un cambio posterior a `desde` o el plazo, limitado a 60 segundos. Al desconectar
+- `wait { since, seconds }` devuelve texto JSON con `seq` y `cambio`. Responde inmediatamente si la secuencia
+  ya avanzó; en otro caso espera un cambio posterior a `since` o el plazo, limitado a 60 segundos. Al desconectar
   o cerrar la puerta se liberan la escucha y el temporizador. Comparte la espera con el socket.
 
 Esta puerta no ofrece apagar, sincronizar ni declarar defectos. `http.close()` deja de escuchar, corta conexiones
 y espera los pedidos admitidos antes de soltar el libro de actos; no cierra la casa. El manejador `door.handle`
 recibe método, ruta, encabezados y una función que entrega fragmentos del cuerpo: esa función no se invoca para
-pedidos sin autorización. Así se prueban protocolo y herramientas sin abrir sockets; `mcp-http.spec.ts` comprueba
+pedidos MCP sin autorización. Así se prueban protocolo y herramientas sin abrir sockets; `mcp-http.spec.ts` comprueba
 el adaptador con un puerto real en un entorno que permita escuchar.
+
+### OAuth e invitaciones
+
+`McpOptions` suma `rootKey?: Uint8Array` y `oauth?: { origin: string }`. OAuth requiere la raíz, con al menos
+32 bytes. `origin` es un origen HTTPS canónico sin barra final, ruta, credenciales, consulta ni fragmento.
+La distribución lo proporciona: ningún encabezado `Host` cambia el recurso `${origin}/mcp` ni las redirecciones.
+Las firmas de `mcpDoor(house, options)` y `mcpDoor(house, founderKeys, options)` siguen disponibles.
+
+Un cliente descubre `/.well-known/oauth-protected-resource` o su variante terminada en `/mcp` y
+`/.well-known/oauth-authorization-server`. Todos los `401` de `/mcp` incluyen
+`Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp", scope="house"`; si llegó una
+credencial inválida, agregan `error="invalid_token"`. No hay metadatos CIMD en esta entrega.
+
+`POST /register` admite JSON de hasta 32768 bytes, `token_endpoint_auth_method: "none"` y entre una y ocho
+`redirect_uris` de hasta 2048 caracteres: HTTPS o HTTP en `localhost`/`127.0.0.1`, sin credenciales ni fragmentos.
+`client_name` es opcional, de hasta 120 caracteres. El identificador contiene los datos con HMAC-SHA256 y una
+llave HKDF separada por el origen y `desert/door/oauth/client/v1`. El registro no guarda clientes ni escribe
+hechos. Solo se admiten `authorization_code` y `code` como tipos de concesión y respuesta.
+
+`GET /authorize` valida cliente, retorno, recurso, alcance `house` y PKCE S256 antes de mostrar la página.
+El retorno coincide exactamente; en bucle local solo se ignora el puerto. Un cliente o retorno inválido recibe
+una página de error sin redirección. Los errores posteriores vuelven al retorno validado con `state` intacto.
+La persona ve el cliente y el host de retorno, escribe su invitación y pulsa «Entrar»: esa invitación es su
+consentimiento. La página no carga recursos externos, no permite marcos, no se guarda en caché ni envía referrer. Su
+`form-action` permite la propia puerta y el origen de retorno validado, para que el navegador pueda seguir el 302.
+
+La página resuelve el trabajo de `invitation-proof.ts` antes del formulario. `POST /authorize` usa el mismo
+`DoorAccess.attempt` y presupuesto que el canje directo. La renovación del desafío conserva los parámetros de
+autorización, borra la invitación del formulario devuelto y pide ingresarla nuevamente. La llave se genera en el
+servidor y se emite por el camino de Identidades. El código aleatorio dura 60 segundos, está ligado a cliente,
+retorno, PKCE, recurso e identidad, y se conserva solo en memoria. Su vencimiento o cierre de la puerta revoca
+las llaves pendientes, aunque nadie intente canjearlas.
+
+`POST /token` verifica el formulario completo y entrega la llave normal como `access_token`, con
+`token_type: "Bearer"` y `scope: "house"`. Una prueba PKCE o vinculación incorrecta invalida el código y revoca
+su llave. Reusar un código canjeado también la revoca. Las huellas de códigos usados se conservan mientras la
+llave siga vigente en esa instancia; se admiten hasta 4096 concesiones pendientes o canjeadas vigentes por puerta.
+No se consumen invitaciones cuando se alcanza ese límite. Reiniciar pierde los códigos y las huellas de reuso;
+las llaves ya entregadas siguen siendo revocables desde Identidades. No hay refresh tokens ni scopes finos.
+
+`deriveHostCredential(rootKey: Uint8Array): string`, exportada por `desert/doors/mcp` y
+`desert/doors/mcp/handler`, devuelve 32 bytes HKDF-SHA256 en base64url sin relleno, con salt vacío e
+info `desert/door/host/v1`. Autentica como el `admin` actual, por MCP y por `/door/socket`, sin guardar material
+ni una llave derivada en el diario. La redacción conserva solo huellas en memoria y tapa también el material
+pegado dentro de textos. Quien hospeda custodia la raíz y su credencial; no se necesita una variable por identidad.
 
 ## Mensajes por idioma, skills y capacidades de la carta (17/11)
 
@@ -2444,7 +2490,7 @@ Al usar una acción para dispositivo o ambos, el pedido lleva una elección expl
 El motor aplica presencia, kit vigente, journey, entrada y revisión exterior antes del despacho. Una declaración
 que permite dispositivos se considera exterior también si declara `reach: "house"`; no elude la revisión.
 Socket conserva la elección y la incluye al deduplicar pedidos. MCP muestra `execution` y `destinations` en
-`acciones` y acepta `destination` en `actuar`. Las propuestas de journeys reciben destinos compatibles en su menú
+`actions` y acepta `destination` en `act`. Las propuestas de journeys reciben destinos compatibles en su menú
 y en el esquema de respuesta; una máquina ausente o no ofrecida se rechaza.
 
 `createDeviceProcess`, exportada por `desert/doors/device-process`, recibe implementaciones locales agrupadas

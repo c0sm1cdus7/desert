@@ -57,8 +57,8 @@ it.each([false, true])("rejects a detached continuation after revocation (pendin
         id: 1,
         method: "tools/call",
         params: {
-          name: "actuar",
-          arguments: { programa: "sales", accion: "register", datos: { sale: "original", total: 1500 } },
+          name: "act",
+          arguments: { program: "sales", action: "register", data: { sale: "original", total: 1500 } },
         },
       }),
     );

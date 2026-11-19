@@ -69,11 +69,11 @@ it.each(["ana", "beto"])("blocks a device action over MCP for %s and keeps the r
             id: 1,
             method: "tools/call",
             params: {
-              name: "actuar",
+              name: "act",
               arguments: {
-                programa: "agents",
-                accion: "run",
-                datos: proposal.input,
+                program: "agents",
+                action: "run",
+                data: proposal.input,
                 destination: proposal.destination,
               },
             },

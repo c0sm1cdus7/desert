@@ -105,7 +105,7 @@ it("answers notifications, ping and the fixed tool list without initialization s
     result: {},
   });
   const list = await h.request({ jsonrpc: "2.0", id: 1, method: "tools/list" });
-  for (const name of ["leer", "acciones", "actuar", "esperar"]) expect(list.body).toContain(`"${name}"`);
+  for (const name of ["read", "actions", "act", "wait"]) expect(list.body).toContain(`"${name}"`);
   expect((await h.request({ jsonrpc: "2.0", id: 1, method: "tools/list" }, h.carla)).body).toBe(list.body);
 });
 it.each([
@@ -113,7 +113,7 @@ it.each([
   [{ jsonrpc: "1.0", id: 1, method: "ping" }, -32600],
   [{ jsonrpc: "2.0", id: 1, method: "apagar" }, -32601],
   [{ jsonrpc: "2.0", id: 1, method: "initialize", params: {} }, -32602],
-  [{ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "actuar", arguments: {} } }, -32602],
+  [{ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "act", arguments: {} } }, -32602],
 ])("rejects invalid protocol messages %#", async (message, code) => {
   const h = setup();
   expect(JSON.parse((await h.request(message)).body)).toMatchObject({ error: { code } });

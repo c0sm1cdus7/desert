@@ -25,10 +25,10 @@ export const mcpActions = (result: Result) =>
   mcpJson(
     Type.Array(
       Type.Object({
-        programa: Type.String(),
+        program: Type.String(),
         herramienta: Type.String(),
-        accion: Type.String(),
-        objetivo: Type.Optional(Type.String()),
+        action: Type.String(),
+        target: Type.Optional(Type.String()),
         motivo: Type.Optional(Type.String()),
       }),
     ),

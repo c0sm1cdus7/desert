@@ -38,7 +38,7 @@ it("creates, redeems and enters MCP without restarting, then revokes the open wa
         jsonrpc: "2.0",
         id: 1,
         method: "tools/call",
-        params: { name: "esperar", arguments: { desde: h.house().tools.state().through, segundos: 60 } },
+        params: { name: "wait", arguments: { since: h.house().tools.state().through, seconds: 60 } },
       }),
     );
     await new Promise(resolve => setImmediate(resolve));
@@ -116,12 +116,12 @@ it("delivers an invitation only on the original request including MCP, but never
         id: code,
         method: "tools/call",
         params: {
-          name: "actuar",
+          name: "act",
           arguments: {
-            programa: "identities",
-            accion: "invite",
-            objetivo: "identities/beto",
-            datos: { door: "agent" },
+            program: "identities",
+            action: "invite",
+            target: "identities/beto",
+            data: { door: "agent" },
           },
         },
       }),

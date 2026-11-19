@@ -44,8 +44,8 @@ it("does not start a sale after revocation and admits a proven redemption during
         id: 1,
         method: "tools/call",
         params: {
-          name: "actuar",
-          arguments: { programa: "sales", accion: "register", datos: { sale: "revoked-http", total: 1500 } },
+          name: "act",
+          arguments: { program: "sales", action: "register", data: { sale: "revoked-http", total: 1500 } },
         },
       },
       key,

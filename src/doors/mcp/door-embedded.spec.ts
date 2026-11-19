@@ -65,7 +65,7 @@ it.each([false, true])("protects state, journal and envelopes across restart (hi
       if (recovered) expect((await door.handle(rpcRequest(recovered))).status).toBe(401);
       for (const method of ["ping", "unknown", "tools/call"]) {
         const response = await door.handle(
-          rpcRequest(key, { jsonrpc: "2.0", id: embedded, method, params: { name: "leer", arguments: {} } }),
+          rpcRequest(key, { jsonrpc: "2.0", id: embedded, method, params: { name: "read", arguments: {} } }),
         );
         expect(response.body.includes(material)).toBe(false);
         expect(JSON.parse(response.body)).toMatchObject({ id: requestDigest(embedded), correlation: "sha256" });

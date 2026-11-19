@@ -1,4 +1,4 @@
-// Adaptador HTTP fino: presta un cuerpo perezoso al manejador y escucha solo donde el programa lo indica.
+// Serve a lazy HTTP body to the handler and listen only on the address selected by the distribution.
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { socketLimits } from "../socket/wire/protocol.ts";
 import type { McpRequest, McpResponse } from "./mcp-access.ts";
@@ -79,3 +79,6 @@ async function streamEvents(response: ServerResponse, events: AsyncIterable<stri
   }
   response.end();
 }
+
+export { mcpDoor, type McpOptions } from "./mcp-handler.ts";
+export { deriveHostCredential } from "./host-credential.ts";

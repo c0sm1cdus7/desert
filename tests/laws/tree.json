@@ -551,6 +551,17 @@
     "runtime/redemption-reservation.ts": "Keeps process exclusion and durable reserved, uncertain or confirmed recovery evidence.",
     "tools/identities/redemption-recipient.ts": "Scopes delivery to the verified invitation presenter without serializable authority.",
     "doors/socket/requests/public-message.ts": "Prepares public envelopes and correlates redacted identifiers by digest.",
-    "runtime/door-journal-vocabulary.ts": "Indexes historical door fingerprints before protected replay and projection restoration."
+    "runtime/door-journal-vocabulary.ts": "Indexes historical door fingerprints before protected replay and projection restoration.",
+    "doors/mcp/host-credential.ts": "Derive the host's bearer independently of all journal credentials and compare fixed-size digests.",
+    "doors/mcp/oauth-codes.ts": "Hold short-lived grants in memory; hashed tombstones revoke a live door key on authorization-code replay.",
+    "doors/mcp/oauth-door.ts": "Route OAuth discovery, stateless registration, invitation consent and PKCE exchange over the existing door.",
+    "doors/mcp/oauth-messages.ts": "Bound OAuth bodies and centralize uncached protocol responses without reflecting untrusted input.",
+    "doors/mcp/oauth-page.ts": "Render escaped house consent with structural HTML and nonce-bound proof code, without external resources.",
+    "doors/mcp/oauth-proof-script.ts": "Serialize a browser proof solver with a minimal DOM contract; no browser dependency enters the server.",
+    "doors/mcp/oauth-registration.ts": "Public clients carry bounded, authenticated registration metadata instead of creating journal entries.",
+    "house/doors/volatile-door-material.ts": "Keep only fingerprints of process credentials so every journal and public surface can redact them.",
+    "texts/oauth.texts.ts": "OAuth consent and host configuration words, alongside the existing door refusal catalog.",
+    "doors/mcp/oauth-authorization.ts": "Validate redirect authority before errors can redirect, then redeem through the audited invitation budget.",
+    "doors/mcp/mcp-credentials.ts": "Compose live journal keys, the host credential and OAuth without persisting distribution secrets."
   }
 }

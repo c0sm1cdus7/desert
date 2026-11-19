@@ -20,12 +20,12 @@ it("answers 429 past the socket's requests per second, per identity and before r
 it("refuses a wait past the bound of open waits for one identity, and frees it when a wait ends", async () => {
   const h = mcpHouse();
   houses.push(h);
-  const desde = h.house.tools.state().through;
-  const open = Array.from({ length: socketLimits.waits }, () => h.call("esperar", { desde, segundos: 60 }));
-  const refused = await h.call("esperar", { desde, segundos: 60 });
+  const since = h.house.tools.state().through;
+  const open = Array.from({ length: socketLimits.waits }, () => h.call("wait", { since, seconds: 60 }));
+  const refused = await h.call("wait", { since, seconds: 60 });
   expect(JSON.parse(refused.body)).toMatchObject({ error: { code: -32000 } });
-  await h.call("actuar", { programa: "sales", accion: "register", datos: { sale: "despierta", total: 100 } });
+  await h.call("act", { program: "sales", action: "register", data: { sale: "despierta", total: 100 } });
   expect((await Promise.all(open)).every(response => response.body.includes('\\"cambio\\":true'))).toBe(true);
-  const again = await h.call("esperar", { desde: h.house.tools.state().through, segundos: 0 });
+  const again = await h.call("wait", { since: h.house.tools.state().through, seconds: 0 });
   expect(JSON.parse(again.body)).toMatchObject({ result: { isError: false } });
 });

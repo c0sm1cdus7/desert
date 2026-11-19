@@ -42,7 +42,7 @@ it("reads sales through both doors before and after kit removal while actions re
           jsonrpc: "2.0",
           id: 1,
           method: "tools/call",
-          params: { name: "leer", arguments: { programa: "sales" } },
+          params: { name: "read", arguments: { program: "sales" } },
         }),
       );
       expect(response.body).toContain(sale);
@@ -58,7 +58,7 @@ it("reads sales through both doors before and after kit removal while actions re
         jsonrpc: "2.0",
         id: "overview",
         method: "tools/call",
-        params: { name: "leer", arguments: {} },
+        params: { name: "read", arguments: {} },
       }),
     );
     expect(overview.body).toContain("DIRECTED-ANA");
@@ -98,12 +98,12 @@ it("never gives an administrator the invited key through local actions, socket, 
         id: "admin-redemption",
         method: "tools/call",
         params: {
-          name: "actuar",
+          name: "act",
           arguments: {
-            programa: "identities",
-            accion: "redeem-invitation",
-            objetivo: "identities/beto",
-            datos: { invitation },
+            program: "identities",
+            action: "redeem-invitation",
+            target: "identities/beto",
+            data: { invitation },
           },
         },
       }),
@@ -114,7 +114,7 @@ it("never gives an administrator the invited key through local actions, socket, 
         jsonrpc: "2.0",
         id: "guidance-offer",
         method: "tools/call",
-        params: { name: "acciones", arguments: { programa: "identities", objetivo: "identities/beto" } },
+        params: { name: "actions", arguments: { program: "identities", target: "identities/beto" } },
       }),
     );
     expect(offered.body).toContain(doorTexts.redeem.name);

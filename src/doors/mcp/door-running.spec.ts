@@ -17,8 +17,8 @@ const registration = {
   id: 1,
   method: "tools/call",
   params: {
-    name: "actuar",
-    arguments: { programa: "sales", accion: "register", datos: { sale: "suspended", total: 1500 } },
+    name: "act",
+    arguments: { program: "sales", action: "register", data: { sale: "suspended", total: 1500 } },
   },
 };
 const key = "synthetic-running-credential",

@@ -8,8 +8,10 @@ import { socketPeer, type Peer } from "../peers/socket-peer.ts";
 import { receivePeer, type Session } from "../requests/door-session.ts";
 import { requestBook } from "../requests/request-book.ts";
 import { stateDelivery } from "../state/state-delivery.ts";
-export function remoteSessions<X extends Program>(house: Session<X>["house"]) {
-  const keys = liveDoorKeys(house);
+export function remoteSessions<X extends Program>(
+  house: Session<X>["house"],
+  keys: Session<X>["keys"] = liveDoorKeys(house),
+) {
   const peers = new Set<Peer>();
   const pending = new Set<Promise<void>>();
   const book = requestBook(house);

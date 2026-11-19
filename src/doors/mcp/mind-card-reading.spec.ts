@@ -15,15 +15,15 @@ it("lists the root card action beside grouped actions, with only the published c
     const result = mcpReading(house(), "ana", { recentLines: 40 }).actions("notas", "notas");
     expect(mcpRows(result)).toEqual([
       expect.objectContaining({
-        programa: "notas",
-        accion: "assign-mind-card",
-        objetivo: "notas",
+        program: "notas",
+        action: "assign-mind-card",
+        target: "notas",
         opciones: { "mind-cards": [{ value: JSON.stringify(["approved", "1"]), title: "approved · 1" }] },
       }),
     ]);
     const member = mcpReading(house(), "beto", { recentLines: 40 }).actions("notas", "notas");
     expect(mcpRows(member)).toEqual([
-      expect.objectContaining({ accion: "assign-mind-card", motivo: "solo quien administra" }),
+      expect.objectContaining({ action: "assign-mind-card", motivo: "solo quien administra" }),
     ]);
   });
 });

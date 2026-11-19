@@ -3147,7 +3147,7 @@
     },
     {
       "id": 283,
-      "rule": "MCP permite leer un programa instalable, sus carpetas y sus objetos usando los ids de la terminal. leer y acciones aceptan objetivo dentro del programa indicado; rechazan destinos inexistentes o ajenos. Todas las identidades presentes leen los programas y sus acciones sin kit se muestran apagadas. acciones sólo publica destinos aplicables y actuar conserva sus permisos. Los Tool comunes mantienen su comportamiento anterior.",
+      "rule": "MCP permite leer un programa instalable, sus carpetas y sus objetos usando los ids de la terminal. read y actions aceptan target dentro del program indicado; rechazan destinos inexistentes o ajenos. Todas las identidades presentes leen los programas y sus acciones sin kit se muestran apagadas. actions sólo publica destinos aplicables y act conserva sus permisos. Los Tool comunes mantienen su comportamiento anterior.",
       "from": "18/11 · dist-mcp-leer, lectura de carpetas y objetos",
       "guarantee": "spec",
       "evidence": ["src/doors/mcp/mcp-program-reading.spec.ts", "src/doors/mcp/mcp-tools.spec.ts"]
@@ -3339,6 +3339,18 @@
         "tests/laws/program-device.spec.ts",
         "src/checks/laws/program-device.ts",
         "src/checks/laws/program-imports.ts"
+      ]
+    },
+    {
+      "id": 302,
+      "rule": "La invitación de un uso da consentimiento OAuth por MCP; el registro dinámico no escribe en el diario, PKCE S256 ata el canje al cliente y al recurso, y las llaves conservan el presupuesto y la revocación de Identidades. Los códigos vencidos o reusados revocan su llave. La credencial de quien hospeda se deriva de la raíz sin persistirla. Las herramientas MCP se llaman read, actions, act y wait.",
+      "from": "19/11 · carril oauth",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/mcp/oauth-flow.spec.ts",
+        "src/doors/mcp/oauth-validation.spec.ts",
+        "src/doors/mcp/oauth-security.spec.ts",
+        "src/doors/mcp/oauth-http.spec.ts"
       ]
     }
   ]

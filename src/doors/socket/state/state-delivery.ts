@@ -57,7 +57,7 @@ function isMember<X extends Program>(
     !isMindActor(key.identity) &&
     present(house.registry, current, key.identity) &&
     key.id !== undefined &&
-    current.doors.keys.get(key.id)?.revoked === false
+    (key.live?.() ?? current.doors.keys.get(key.id)?.revoked === false)
   )
     return true;
   peer.end({ tipo: "cortado", motivo: socketTexts.removed });

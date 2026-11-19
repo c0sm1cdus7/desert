@@ -28,11 +28,11 @@ it("marks secret inputs and never returns material or private receipts", async (
       ],
     });
   const responses = [
-    await call("acciones", {}),
-    await call("actuar", { programa: "vault", accion: "set", datos: { value: material } }),
-    await call("leer", {}),
-    await call("leer", { programa: "vault" }),
-    await call("actuar", { programa: "vault", accion: "missing", datos: { value: material } }),
+    await call("actions", {}),
+    await call("act", { program: "vault", action: "set", data: { value: material } }),
+    await call("read", {}),
+    await call("read", { program: "vault" }),
+    await call("act", { program: "vault", action: "missing", data: { value: material } }),
   ];
   expect(responses[0]?.body).toContain('secret\\\":true');
   expect(JSON.parse(responses[1]?.body ?? "")).toMatchObject({ result: { isError: false } });
@@ -45,12 +45,12 @@ it("never reflects door credentials, even when used as request ids or public tex
   try {
     const ping = await h.request({ jsonrpc: "2.0", id: h.ana, method: "ping" });
     const invalid = await h.request({ jsonrpc: "2.0", id: h.ana, method: "unknown" });
-    const accepted = await h.call("actuar", {
-      programa: "sales",
-      accion: "register",
-      datos: { sale: h.ana, total: 100 },
+    const accepted = await h.call("act", {
+      program: "sales",
+      action: "register",
+      data: { sale: h.ana, total: 100 },
     });
-    const reading = await h.call("leer", { programa: "sales" });
+    const reading = await h.call("read", { program: "sales" });
     expect([ping, invalid, accepted, reading].some(response => response.body.includes(h.ana))).toBe(false);
   } finally {
     await h.close();

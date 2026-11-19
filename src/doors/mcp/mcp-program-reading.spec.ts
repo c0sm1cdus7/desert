@@ -100,8 +100,8 @@ describe.each(["handler", "HTTP"])("installed program reading through MCP %s", t
   const call = async (name: string, args: unknown, identity?: string) => {
     return mcpResult(await send("tools/call", { name, arguments: args }, identity));
   };
-  const read = (objetivo?: string, identity?: string) =>
-    call("leer", { programa: "notas", ...(objetivo === undefined ? {} : { objetivo }) }, identity);
+  const read = (target?: string, identity?: string) =>
+    call("read", { program: "notas", ...(target === undefined ? {} : { target }) }, identity);
   const access = () => ({ rig, door, send, call, read, composition, replayCredential });
   readingCases(access);
   actionCases(access);
@@ -120,13 +120,13 @@ function readingCases(access: () => Context) {
   it("publishes optional targets and explains how to descend using returned ids", async () => {
     const { send } = access();
     const catalog = mcpCatalog(await send("tools/list"));
-    for (const name of ["leer", "acciones"]) {
+    for (const name of ["read", "actions"]) {
       const tool = catalog.find(tool => tool.name === name);
-      expect(tool?.inputSchema.properties.objetivo).toMatchObject({ type: "string" });
-      expect(tool?.inputSchema.required ?? []).not.toContain("objetivo");
+      expect(tool?.inputSchema.properties.target).toMatchObject({ type: "string" });
+      expect(tool?.inputSchema.required ?? []).not.toContain("target");
     }
-    const description = catalog.find(tool => tool.name === "leer")?.description ?? "";
-    for (const word of ["programa", "herramienta", "objeto", "objetivo", "id"]) expect(description).toContain(word);
+    const description = catalog.find(tool => tool.name === "read")?.description ?? "";
+    for (const word of ["program", "herramienta", "objeto", "target", "id"]) expect(description).toContain(word);
   });
   it("reads program, both folders and objects with terminal destinations and current data", async () => {
     const { rig, read, call, composition } = access();
@@ -148,8 +148,7 @@ function readingCases(access: () => Context) {
       for (const object of objects) expect(rows(await read(object.id))).toEqual({ count: 0 });
     }
     expect(
-      (await call("actuar", { programa: "notas", accion: "personal/add", objetivo: folders[0]?.id, datos: {} }))
-        .isError,
+      (await call("act", { program: "notas", action: "personal/add", target: folders[0]?.id, data: {} })).isError,
     ).toBe(false);
     expect(rows(await read("notas/personal/same"))).toEqual({ count: 1 });
     expect(await read("notas")).toEqual(await read());
@@ -159,8 +158,8 @@ function readingCases(access: () => Context) {
     async target => {
       const { rig, call } = access();
       const before = rig.state().through;
-      for (const name of ["leer", "acciones"]) {
-        expect(await call(name, { programa: "notas", objetivo: target })).toEqual({
+      for (const name of ["read", "actions"]) {
+        expect(await call(name, { program: "notas", target: target })).toEqual({
           content: [{ type: "text", text: mcpTexts.action }],
           isError: true,
         });
@@ -172,8 +171,8 @@ function readingCases(access: () => Context) {
 function actionCases(access: () => Context) {
   it("lists only each action's own destinations, reusable for reading and acting", async () => {
     const { read, call } = access();
-    const actions = mcpActions(await call("acciones", { programa: "notas" }));
-    expect(actions.map(action => [action.accion, action.objetivo])).toEqual([
+    const actions = mcpActions(await call("actions", { program: "notas" }));
+    expect(actions.map(action => [action.action, action.target])).toEqual([
       ["personal/add", "notas/personal"],
       ["personal/edit", "notas/personal/same"],
       ["personal/edit", "notas/personal/a%2Fb%23c"],
@@ -182,21 +181,21 @@ function actionCases(access: () => Context) {
       ["shared/edit", "notas/shared/a%2Fb%23c"],
     ]);
     for (const action of actions) {
-      expect((await read(action.objetivo)).isError).toBe(false);
+      expect((await read(action.target)).isError).toBe(false);
       expect(
         (
-          await call("actuar", {
-            programa: action.programa,
-            accion: action.accion,
-            objetivo: action.objetivo,
-            datos: {},
+          await call("act", {
+            program: action.program,
+            action: action.action,
+            target: action.target,
+            data: {},
           })
         ).isError,
       ).toBe(false);
     }
-    expect(rows(await call("acciones", { programa: "notas", objetivo: "notas/personal" }))).toHaveLength(1);
-    expect(rows(await call("acciones", { programa: "notas", objetivo: "notas/shared/same" }))).toHaveLength(1);
-    expect(rows(await call("acciones", { programa: "notas", objetivo: "notas" }))).toEqual([]);
+    expect(rows(await call("actions", { program: "notas", target: "notas/personal" }))).toHaveLength(1);
+    expect(rows(await call("actions", { program: "notas", target: "notas/shared/same" }))).toHaveLength(1);
+    expect(rows(await call("actions", { program: "notas", target: "notas" }))).toEqual([]);
   });
   it("lets an identity without the program read all levels, with actions disabled just like the terminal", async () => {
     const { rig, read, call, composition } = access();
@@ -205,14 +204,13 @@ function actionCases(access: () => Context) {
     );
     for (const target of ["notas", "notas/personal", "notas/shared", "notas/personal/same", "notas/shared/a%2Fb%23c"]) {
       expect(await read(target, "martin")).toEqual(await read(target));
-      const actions = mcpActions(await call("acciones", { programa: "notas", objetivo: target }, "martin"));
+      const actions = mcpActions(await call("actions", { program: "notas", target: target }, "martin"));
       for (const action of actions) {
         expect(action.motivo).toBe(toolTexts.kitRefusal("notas"));
-        expect(terminal?.actsOn?.[action.accion]?.off?.(target)).toBe(action.motivo);
+        expect(terminal?.actsOn?.[action.action]?.off?.(target)).toBe(action.motivo);
         const before = rig.state().through;
         expect(
-          (await call("actuar", { programa: "notas", accion: action.accion, objetivo: target, datos: {} }, "martin"))
-            .isError,
+          (await call("act", { program: "notas", action: action.action, target: target, data: {} }, "martin")).isError,
         ).toBe(true);
         expect(rig.state().through).toBe(before);
       }
@@ -220,11 +218,11 @@ function actionCases(access: () => Context) {
   });
   it("rejects a target without its program and malformed targets", async () => {
     const { send } = access();
-    for (const name of ["leer", "acciones"]) {
+    for (const name of ["read", "actions"]) {
       for (const args of [
-        { objetivo: "notas/personal" },
-        { programa: "notas", objetivo: "" },
-        { programa: "notas", objetivo: 4 },
+        { target: "notas/personal" },
+        { program: "notas", target: "" },
+        { program: "notas", target: 4 },
       ]) {
         expect(JSON.parse(await send("tools/call", { name, arguments: args }))).toMatchObject({
           error: { code: -32602 },
@@ -247,18 +245,13 @@ function replayCases(access: () => Context) {
         "ana",
       ),
     );
-    const granted = mcpActions(await call("acciones", { programa: "notas" }, "martin"));
+    const granted = mcpActions(await call("actions", { program: "notas" }, "martin"));
     expect(granted.filter((action: { motivo?: string }) => action.motivo === undefined)).toMatchObject([
-      { accion: "personal/add", objetivo: "notas/personal" },
+      { action: "personal/add", target: "notas/personal" },
     ]);
     expect(
-      (
-        await call(
-          "actuar",
-          { programa: "notas", accion: "personal/add", objetivo: "notas/personal", datos: {} },
-          "martin",
-        )
-      ).isError,
+      (await call("act", { program: "notas", action: "personal/add", target: "notas/personal", data: {} }, "martin"))
+        .isError,
     ).toBe(false);
     rig
       .house()
@@ -272,7 +265,7 @@ function replayCases(access: () => Context) {
       { name: "Prueba", version: "1", limits: { recentLines: 20 } },
     );
     try {
-      for (const name of ["leer", "acciones"]) {
+      for (const name of ["read", "actions"]) {
         const response = await reopened.handle({
           method: "POST",
           path: "/mcp",
@@ -283,15 +276,15 @@ function replayCases(access: () => Context) {
                 jsonrpc: "2.0",
                 id: 1,
                 method: "tools/call",
-                params: { name, arguments: { programa: "notas", objetivo: "notas/personal/same" } },
+                params: { name, arguments: { program: "notas", target: "notas/personal/same" } },
               }),
             ),
           ],
         });
         const result = mcpResult(response.body);
         expect(result.isError).toBe(false);
-        if (name === "leer") expect(rows(result)).toEqual({ count: 1 });
-        else expect(rows(result)).toMatchObject([{ accion: "personal/edit", motivo: toolTexts.kitRefusal("notas") }]);
+        if (name === "read") expect(rows(result)).toEqual({ count: 1 });
+        else expect(rows(result)).toMatchObject([{ action: "personal/edit", motivo: toolTexts.kitRefusal("notas") }]);
       }
     } finally {
       await reopened.close();

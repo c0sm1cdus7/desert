@@ -49,8 +49,8 @@ it("starts the cloud example with persisted founder access and serves MCP withou
             id: 1,
             method: "tools/call",
             params: {
-              name: "actuar",
-              arguments: { programa: "sales", accion: "register", datos: { sale: "cloud", total: 100 } },
+              name: "act",
+              arguments: { program: "sales", action: "register", data: { sale: "cloud", total: 100 } },
             },
           }),
         ),

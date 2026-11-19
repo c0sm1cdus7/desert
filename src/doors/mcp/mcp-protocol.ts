@@ -6,27 +6,27 @@ import { object } from "../../fields/visible-text.ts";
 import { isRecord } from "../../fields/json-values.ts";
 import { mcpTexts as said } from "../../texts/mcp.texts.ts";
 const name = Type.String({ minLength: 1, maxLength: 256 });
-const selection = object({ programa: Type.Optional(name), objetivo: Type.Optional(name) });
+const selection = object({ program: Type.Optional(name), target: Type.Optional(name) });
 export const mcpInputs = {
-  leer: selection,
-  acciones: selection,
-  actuar: object({
-    programa: name,
-    accion: name,
-    objetivo: Type.Optional(name),
-    datos: Type.Record(Type.String(), Type.Unknown()),
+  read: selection,
+  actions: selection,
+  act: object({
+    program: name,
+    action: name,
+    target: Type.Optional(name),
+    data: Type.Record(Type.String(), Type.Unknown()),
     destination: Type.Optional(executionDestination),
   }),
-  esperar: object({
-    desde: Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER }),
-    segundos: Type.Number({ minimum: 0 }),
+  wait: object({
+    since: Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER }),
+    seconds: Type.Number({ minimum: 0 }),
   }),
 };
 export const mcpTools = [
-  { ...said.leer, inputSchema: mcpInputs.leer },
-  { ...said.acciones, inputSchema: mcpInputs.acciones },
-  { ...said.actuar, inputSchema: mcpInputs.actuar },
-  { ...said.esperar, inputSchema: mcpInputs.esperar },
+  { name: "read", description: said.read, inputSchema: mcpInputs.read },
+  { name: "actions", description: said.actions, inputSchema: mcpInputs.actions },
+  { name: "act", description: said.act, inputSchema: mcpInputs.act },
+  { name: "wait", description: said.wait, inputSchema: mcpInputs.wait },
 ];
 export class RpcError extends Error {
   readonly code: number;
@@ -53,14 +53,14 @@ export function toolCall(params: unknown): { name: keyof typeof mcpInputs; args:
   if (!isRecord(params) || typeof params.name !== "string" || !Object.hasOwn(mcpInputs, params.name))
     throw new RpcError(-32602, said.params);
   const name = params.name;
-  if (name !== "leer" && name !== "acciones" && name !== "actuar" && name !== "esperar")
+  if (name !== "read" && name !== "actions" && name !== "act" && name !== "wait")
     throw new RpcError(-32602, said.params);
   const args: unknown = params.arguments ?? {};
-  if (name !== "esperar" && isRecord(args) && Object.hasOwn(args, "herramienta"))
+  if (name !== "wait" && isRecord(args) && Object.hasOwn(args, "herramienta"))
     throw new RpcError(-32602, said.programParameter);
   if (
     !isRecord(args) ||
-    (args.objetivo !== undefined && args.programa === undefined) ||
+    (args.target !== undefined && args.program === undefined) ||
     !Value.Check(mcpInputs[name], args)
   )
     throw new RpcError(-32602, said.params);

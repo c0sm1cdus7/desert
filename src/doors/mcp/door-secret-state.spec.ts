@@ -35,7 +35,7 @@ it("never transfers secret material or door keys in initial state, differences o
           jsonrpc: "2.0",
           id: 1,
           method: "tools/call",
-          params: { name: "leer", arguments: { programa: "vault" } },
+          params: { name: "read", arguments: { program: "vault" } },
         }),
       );
       expect([key, material, value].some(secret => read.body.includes(secret))).toBe(false);

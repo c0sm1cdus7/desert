@@ -16,23 +16,21 @@ it("una identidad propone por MCP y ni el admin pasa la regla aprobada", async (
       effect: "block",
     };
     const proposal = mcpResult(
-      (await f.call("actuar", { programa: "rules", accion: "propose", datos: definition }, f.beto)).body,
+      (await f.call("act", { program: "rules", action: "propose", data: definition }, f.beto)).body,
     );
     expect(proposal.isError).toBe(false);
     expect(f.rig.state().house.rules.active.size).toBe(0);
     const approval = mcpResult(
-      (await f.call("actuar", { programa: "rules", accion: "approve", datos: { id: "sales-limit", version: 1 } })).body,
+      (await f.call("act", { program: "rules", action: "approve", data: { id: "sales-limit", version: 1 } })).body,
     );
     expect(approval.isError).toBe(false);
     const result = mcpResult(
-      (await f.call("actuar", { programa: "sales", accion: "register", datos: { sale: "s1", total: 1500 } })).body,
+      (await f.call("act", { program: "sales", action: "register", data: { sale: "s1", total: 1500 } })).body,
     );
     expect(result.isError).toBe(true);
     expect(mcpText(result)).toContain(rulesTexts.blocked);
     expect(f.rig.state().tools.sales.size).toBe(0);
-    const query = mcpResult(
-      (await f.call("actuar", { programa: "rules", accion: "consult", datos: {} }, f.carla)).body,
-    );
+    const query = mcpResult((await f.call("act", { program: "rules", action: "consult", data: {} }, f.carla)).body);
     expect(mcpText(query)).toContain("sales-limit");
   } finally {
     await f.close();

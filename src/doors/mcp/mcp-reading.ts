@@ -35,7 +35,7 @@ function scene<X extends Program>(ports: HousePorts<X>, identity: string) {
 function overview<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X>[]) {
   const state = ports.state();
   const avisos = tools.filter(declared).map(tool => ({
-    programa: tool.id,
+    program: tool.id,
     ...noticesOf({ ...ports, act: value => ports.act(value, state.through) }, tool, {
       name: tool.id,
       titleOf: target => target,
@@ -43,7 +43,7 @@ function overview<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<
   }));
   return {
     identidad: ports.me,
-    desde: state.through,
+    since: state.through,
     escenas: [...state.house.scenes.keys()].map(identity => scene(ports, identity)),
     programas: tools.map(({ id, purpose }) => ({ id, para: purpose })),
     avisos,
@@ -88,12 +88,12 @@ function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X
           return (targets.length ? targets : [undefined])
             .filter(target => on === undefined || target === on)
             .map(target => ({
-              programa: tool.id,
+              program: tool.id,
               herramienta: group.id,
-              accion: name,
+              action: name,
               nombre: isProgram(act) ? act.name : name,
               sobre: act.on ?? "tool",
-              objetivo: target,
+              target,
               para: isProgram(act) ? act.purpose : tool.purpose,
               entrada: act.input,
               ...dynamicChoices(ports, act, target),

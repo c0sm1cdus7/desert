@@ -29,8 +29,7 @@ it.each(["handler", "HTTP"])("never returns or records secret sample material re
   try {
     if (transport === "HTTP") server = await serveMcp(h.door, { host: "127.0.0.1", port: 0 });
     const call = async (action: string, input: unknown) => {
-      if (transport === "handler")
-        return (await h.call("actuar", { programa: "rules", accion: action, datos: input })).body;
+      if (transport === "handler") return (await h.call("act", { program: "rules", action: action, data: input })).body;
       const address = server?.address;
       if (!address || typeof address === "string") throw new Error("Missing localhost address");
       return new Promise<string>((resolve, reject) => {
@@ -57,7 +56,7 @@ it.each(["handler", "HTTP"])("never returns or records secret sample material re
             jsonrpc: "2.0",
             id: 1,
             method: "tools/call",
-            params: { name: "actuar", arguments: { programa: "rules", accion: action, datos: input } },
+            params: { name: "act", arguments: { program: "rules", action: action, data: input } },
           }),
         );
       });

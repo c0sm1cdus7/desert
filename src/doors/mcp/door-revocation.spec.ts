@@ -7,7 +7,7 @@ const sale = (name: string) => ({
   jsonrpc: "2.0",
   id: 1,
   method: "tools/call",
-  params: { name: "actuar", arguments: { programa: "sales", accion: "register", datos: { sale: name, total: 1500 } } },
+  params: { name: "act", arguments: { program: "sales", action: "register", data: { sale: name, total: 1500 } } },
 });
 it("does not start register after revocation between attend and register", async () => {
   const h = doorHouse();

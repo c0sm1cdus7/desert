@@ -14,12 +14,12 @@ it.each(["new", "invite"])(
           id: 1,
           method: "tools/call",
           params: {
-            name: "actuar",
+            name: "act",
             arguments: {
-              programa: "identities",
-              accion: action,
-              objetivo: action === "new" ? "identities" : "identities/beto",
-              datos: action === "new" ? { identity: "luz", tools: [] } : { door: "agent" },
+              program: "identities",
+              action: action,
+              target: action === "new" ? "identities" : "identities/beto",
+              data: action === "new" ? { identity: "luz", tools: [] } : { door: "agent" },
             },
           },
         }),
@@ -38,7 +38,7 @@ it.each(["new", "invite"])(
           jsonrpc: "2.0",
           id: code,
           method: "tools/call",
-          params: { name: "leer", arguments: { programa: "identities" } },
+          params: { name: "read", arguments: { program: "identities" } },
         }),
       );
       expect(read.status).toBe(200);

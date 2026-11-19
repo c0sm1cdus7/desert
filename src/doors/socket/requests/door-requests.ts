@@ -78,7 +78,11 @@ async function credentialAct<X extends Program>(session: Session<X>, peer: Peer,
   const controller = new AbortController();
   const check = () => {
     const current = house.tools.state().house;
-    if (!key?.id || current.doors.keys.get(key.id)?.revoked !== false || !current.grants.has(key.identity))
+    if (
+      !key?.id ||
+      !(key.live?.() ?? current.doors.keys.get(key.id)?.revoked === false) ||
+      !current.grants.has(key.identity)
+    )
       controller.abort();
   };
   const stop = house.bus.on(check);

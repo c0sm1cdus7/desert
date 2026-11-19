@@ -1,4 +1,5 @@
 // Generate unpredictable bearer material and compare only its domain-separated fingerprint.
+import { scrubVolatileDoorText } from "./volatile-door-material.ts";
 import { createHash, randomBytes, randomUUID, randomInt, scryptSync } from "node:crypto";
 import { mcpTexts } from "../../texts/mcp.texts.ts";
 import { effect } from "../facts.ts";
@@ -45,6 +46,7 @@ export function findDoorKey(state: DoorState, material: string) {
 }
 /** Scrub known material even when a caller pastes it back into an ordinary public field. */
 export function scrubDoorText(text: string, state: DoorState): string {
+  text = scrubVolatileDoorText(text);
   const index = doorTextIndex(state);
   const fingerprint = doorFingerprint(text);
   if (index.keys.has(fingerprint)) {
@@ -143,7 +145,6 @@ function doorTextIndex(state: DoorState) {
 
 export function scrubDoorValue<T>(value: T, state: DoorState): T;
 export function scrubDoorValue(value: unknown, state: DoorState): unknown {
-  if (state.keys.size === 0 && state.invitations.size === 0) return value;
   const seen = new WeakMap<object, unknown>();
   const visit = (item: unknown): unknown => {
     if (typeof item === "string") return scrubDoorText(item, state);
