@@ -1,4 +1,6 @@
 // Tests cards in cost order against the selected billing account and assigns the first passing card.
+import type { ProviderRejection } from "../../fields/provider-rejection.ts";
+import { scrubDoorText } from "../../house/doors/door-material.ts";
 import type { Card, BankResult } from "../../adapters/models/catalog.ts";
 import type { TurnStop } from "../../texts/mind-turn.texts.ts";
 import { effect } from "../../house/facts.ts";
@@ -21,6 +23,7 @@ type Role<X extends Program> = Readonly<{
   options: MindRuntimeOptions;
   definition: MindDefinition;
   billing: MindBilling;
+  rejections: Map<string, ProviderRejection>;
 }>;
 export async function prepareProgramMinds<X extends Program>(
   house: MindRuntimeHouse<X>,
@@ -30,21 +33,23 @@ export async function prepareProgramMinds<X extends Program>(
   if (!options.programBank) return options;
   options = {
     ...options,
+    scrubProviderError: text => scrubDoorText(text, house.execution.state().house.doors),
     definitions: options.definitions.filter(definition => enabledMind(switches, definition.actor)),
   };
   const catalog = options.catalog.map(card => ({ ...card, results: [...card.results] }));
   const billing = billingFor(house, options);
   const unavailable = new Map<string, TurnStop>();
+  const rejections = new Map<string, ProviderRejection>();
   for (const definition of options.definitions) {
     if (!house.active()) break;
-    const selected = await bankRole({ house, options: { ...options, catalog }, definition, billing });
+    const selected = await bankRole({ house, options: { ...options, catalog }, definition, billing, rejections });
     if (typeof selected === "string") {
       unavailable.set(definition.actor, selected);
       continue;
     }
     if (selected) assignInitial(house, definition, selected);
   }
-  const prepared = { ...options, catalog, unavailable };
+  const prepared = { ...options, catalog, unavailable, providerRejections: rejections };
   return house.active() ? programMindAvailability(house, prepared) : prepared;
 }
 function assignInitial<X extends Program>(house: MindRuntimeHouse<X>, definition: MindDefinition, selected: Card) {
@@ -178,6 +183,7 @@ async function runCases<X extends Program>(role: Role<X>, card: Card, cases: rea
   for (const scene of cases.flatMap(item => item.scenes)) {
     if (!house.active()) return "interrupted";
     const result = await runProgramMindScene(options, definition, card, scene, billing);
+    if (result.rejection) role.rejections.set(definition.actor, result.rejection);
     if (result.stopped) return result.stopped;
     passed = result.passed && passed;
   }

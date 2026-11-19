@@ -28,14 +28,26 @@ export const turnNotice = defineMessage({
   kind: "text",
   parameters: object({
     reason: Type.KeyOf(Type.Object(Object.fromEntries(Object.keys(reasons).map(k => [k, Type.String()])))),
+    rejection: Type.Optional(object({ status: Type.Integer(), type: Type.String(), message: Type.String() })),
   }),
   texts: {
-    es: ({ reason }) => {
+    es: ({ reason, rejection }) => {
+      if (reason === "http" && rejection)
+        return (
+          `El proveedor rechazó el pedido (${rejection.status} ${rejection.type}: ${rejection.message}). ` +
+          "El turno se detuvo."
+        );
       const entry = Object.entries(reasons).find(([key]) => key === reason);
       if (!entry) throw new Error("Motivo de cierre desconocido");
       return entry[1];
     },
   },
+});
+export const modelFailureLog = defineMessage({
+  id: "mind.turn.provider-log",
+  kind: "text",
+  parameters: object({ mind: Type.String(), turn: Type.String(), number: Type.Integer(), cause: Type.String() }),
+  texts: { es: ({ mind, turn, number, cause }) => `${mind} · ${turn} · ${number} · ${cause}` },
 });
 export const correctionNotice = defineMessage({
   id: "mind.turn.correction",

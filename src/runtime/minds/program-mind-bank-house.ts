@@ -147,9 +147,10 @@ export class ProgramMindBankHouse {
       "inactive",
       "interrupted",
     ];
-    const reason = this.outcomes.find(outcome => outcome.reason && transient.includes(outcome.reason))?.reason;
+    const outcome = this.outcomes.find(outcome => outcome.reason && transient.includes(outcome.reason));
+    const reason = outcome?.reason;
     if (!this.active()) return { passed: false, stopped: "interrupted" as const };
-    if (reason) return { passed: false, stopped: reason };
+    if (reason) return { passed: false, stopped: reason, rejection: outcome.rejection };
     const turns = [...this.state.house.minds.turns.values()];
     return {
       passed:

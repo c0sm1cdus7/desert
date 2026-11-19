@@ -95,7 +95,8 @@ describe("bordes de las cartas y el transporte", () => {
     };
     await expect(callAnthropic(request, secret, transport)).rejects.toMatchObject({
       kind: "http",
-      message: "http: El proveedor respondió con estado 401",
+      message: "http: 401 sin_tipo: provider details",
+      rejection: { status: 401, type: "sin_tipo", message: "provider details" },
     });
     await expect(callAnthropic(request, secret, () => Promise.reject(new Error(secret)))).rejects.toMatchObject({
       kind: "transport",

@@ -181,6 +181,7 @@ class HouseMindRuntime<X extends Program> {
       flush: schedule.flush,
       notices: () => programMindNotices(options),
       thread: frames.thread,
+      diagnose: frames.diagnose,
       compact: frames.compact,
       close: () => {
         this.live = false;

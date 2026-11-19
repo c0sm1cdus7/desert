@@ -1,4 +1,5 @@
 // Declares explicit model resources, optional host spending accounts and mind switches.
+import type { ProviderRejection } from "../../fields/provider-rejection.ts";
 import type { Card } from "../../adapters/models/catalog.ts";
 import type { Language } from "../../fields/languages.ts";
 import type { MindActor } from "../../fields/mind-actor.ts";
@@ -26,6 +27,8 @@ export type MindRuntimeOptions = Readonly<{
   programBank?: Readonly<{ program: Composition<Program>; cases: ReadonlyMap<string, readonly ProgramMindCase[]> }>;
   billing?: MindBilling;
   spendingAccount?: SpendingAccount;
+  providerRejections?: ReadonlyMap<string, ProviderRejection>;
+  scrubProviderError?: (text: string) => string;
   observeTurn?: (outcome: TurnOutcome) => void;
   unavailable?: ReadonlyMap<string, import("../../texts/mind-turn.texts.ts").TurnStop>;
   language: Language;
