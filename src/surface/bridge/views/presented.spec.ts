@@ -1,6 +1,6 @@
 // A thing in the stacks its tool declared: always the same stacks, what it names numbered, nothing left loose.
 import { describe, expect, it } from "vitest";
-import { presented } from "./presented.ts";
+import { ownView, presented } from "./presented.ts";
 
 const stacks = [
   { title: "Venta", empty: "Sin datos.", reads: { total: "Total", state: "Estado" } },
@@ -12,6 +12,32 @@ const ana = { id: "clients/c1", text: "Ana" };
 const shirt = { id: "products/p1", text: "2 × Remera", detail: "$ 5" };
 
 describe("a thing presented", () => {
+  it("keeps every written line and blank separator readable under a single label", () => {
+    const detail = "franco · hoy\r\n  Hola Martín  \r\n\r\nmartin · hoy\nHola Franco\n";
+    const shown = presented(stacks, { state: detail }, "sales/s1");
+    expect(shown[0]?.rows).toEqual([
+      { title: "Estado", detail: "franco · hoy", still: true },
+      { title: "", detail: "  Hola Martín  ", still: true },
+      { title: "", detail: "", still: true },
+      { title: "", detail: "martin · hoy", still: true },
+      { title: "", detail: "Hola Franco", still: true },
+      { title: "", detail: "", still: true },
+    ]);
+  });
+
+  it("passes the whole multiline value to its declared editing action once", () => {
+    const text = "primera\nsegunda";
+    const received: string[] = [];
+    const row = { title: "Estado", detail: text, key: "e" };
+    const shown = ownView(stacks, JSON.stringify({ state: text }), "sales", (key, value) => {
+      expect(key).toBe("state");
+      received.push(value);
+      return row;
+    });
+    expect(received).toEqual([text]);
+    expect(shown[0]?.rows).toEqual([row]);
+  });
+
   it("shows every stack its tool declared, in that order, and one with nothing in it says so", () => {
     const shown = presented(stacks, { total: "$ 10", payments: [] }, "sales/s1");
     expect(shown.map(stack => stack.title)).toEqual(["Venta", "Cliente", "Artículos", "Cobros"]);

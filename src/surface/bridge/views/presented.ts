@@ -32,7 +32,11 @@ function rowsOf(value: unknown, label: string, where: string, changed?: (shown: 
     const thing = named(each);
     if (thing) return [thing];
     if (typeof each === "object") throw new OutsideDefect(new Error(`${where} is read as neither a datum nor a thing`));
-    return [changed?.(plain(each)) ?? { title: said, detail: plain(each), still: true }];
+    const text = plain(each);
+    const action = changed?.(text);
+    if (action) return [action];
+    // Each written line gets a readable row; the viewport can then reach every line with the arrow keys.
+    return text.split(/\r\n|\r|\n/u).map((detail, index) => ({ title: index ? "" : said, detail, still: true }));
   };
   return rows(value, label);
 }
