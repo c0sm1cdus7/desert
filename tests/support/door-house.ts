@@ -7,8 +7,8 @@ import { liveDoorKeys } from "../../src/doors/socket/peers/live-door-keys.ts";
 import { type FounderDoorKeys } from "../../src/runtime/door-access.ts";
 import { startHouse } from "../../src/runtime/house-runtime.ts";
 import { shopProgram } from "./shop.ts";
-export function doorHouse(founders?: FounderDoorKeys) {
-  const home = mkdtempSync("/tmp/desert-door-");
+export function doorHouse(founders?: FounderDoorKeys, folder?: string) {
+  const home = folder ?? mkdtempSync("/tmp/desert-door-");
   let at = 1_800_000_000_000;
   const founder = randomBytes(32).toString("base64url");
   const options = doorOptions(founder, founders);
@@ -37,7 +37,7 @@ export function doorHouse(founders?: FounderDoorKeys) {
     history: () => JSON.stringify(house.journal.replay<unknown[]>([], (events, event) => [...events, event])),
     close: () => {
       house.close();
-      rmSync(home, { recursive: true, force: true });
+      if (!folder) rmSync(home, { recursive: true, force: true });
     },
   };
 }

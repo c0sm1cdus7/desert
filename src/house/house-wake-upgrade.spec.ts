@@ -17,31 +17,38 @@ afterEach(() => {
   version.old = "desert/3";
 });
 // Rebuild earlier folds, including desert/10 before English core values and desert/13 before durable OAuth codes.
-it.each(["desert/3", "desert/4", "desert/6", "desert/8", "desert/9", "desert/10", "desert/12", "desert/13"])(
-  "rebuilds %s saved folds and retains the first owner of an old wake id",
-  old => {
-    version.old = old;
-    const rig = zeroHouse();
-    rig.house().bus.emit(effect("wake-at", { id: "old-name", at: null }, "mind:desk"));
-    rig.house().close();
-    version.old = undefined;
-    expect(baseProjectionVersion).toBe("desert/14");
-    rig.restart();
-    expect(
-      rig
-        .house()
-        .storageNotices()
-        .map(notice => notice.reason.includes("calculation version changed")),
-    ).toEqual([true, true]);
-    expect(rig.house().tools.state().wakeOwners.get("old-name")).toBe("mind:desk");
-    expect(rig.house().tools.state().house.doors).toEqual({
-      initialized: false,
-      codes: new Map(),
-      keys: new Map(),
-      invitations: new Map(),
-    });
-    expect(
-      rig.mind.startup().bus.emit({ layer: "house", kind: "wake-at", data: { id: "old-name", at: null } }).by,
-    ).toBe("mind:desk");
-  },
-);
+it.each([
+  "desert/3",
+  "desert/4",
+  "desert/6",
+  "desert/8",
+  "desert/9",
+  "desert/10",
+  "desert/12",
+  "desert/13",
+  "desert/14",
+])("rebuilds %s saved folds and retains the first owner of an old wake id", old => {
+  version.old = old;
+  const rig = zeroHouse();
+  rig.house().bus.emit(effect("wake-at", { id: "old-name", at: null }, "mind:desk"));
+  rig.house().close();
+  version.old = undefined;
+  expect(baseProjectionVersion).toBe("desert/15");
+  rig.restart();
+  expect(
+    rig
+      .house()
+      .storageNotices()
+      .map(notice => notice.reason.includes("calculation version changed")),
+  ).toEqual([true, true]);
+  expect(rig.house().tools.state().wakeOwners.get("old-name")).toBe("mind:desk");
+  expect(rig.house().tools.state().house.doors).toEqual({
+    initialized: false,
+    codes: new Map(),
+    keys: new Map(),
+    invitations: new Map(),
+  });
+  expect(rig.mind.startup().bus.emit({ layer: "house", kind: "wake-at", data: { id: "old-name", at: null } }).by).toBe(
+    "mind:desk",
+  );
+});

@@ -20,7 +20,7 @@ export function solveInvitationProof(code: string, challenge = ""): number {
   throw new Error("invitation-proof-exhausted");
 }
 export type InvitationResult = Readonly<{ status: number; key?: string; challenge?: string }>;
-type Redeem = (code: string, key?: string) => InvitationResult | Promise<InvitationResult>;
+type Redeem = (code: string, key?: string, oauth?: boolean) => InvitationResult | Promise<InvitationResult>;
 class InvitationAttempts {
   private window: number;
   private attempts = 0;
@@ -46,7 +46,13 @@ class InvitationAttempts {
     }
     return { status: ++this.attempts > 10 ? 429 : 400 };
   }
-  readonly attempt = async (code: string, proof: unknown, challenge = "", key?: string): Promise<InvitationResult> => {
+  readonly attempt = async (
+    code: string,
+    proof: unknown,
+    challenge = "",
+    key?: string,
+    oauth = false,
+  ): Promise<InvitationResult> => {
     if (challenge !== this.epoch) return { status: 428, challenge: this.epoch };
     if (!validInvitationProof(code, proof, challenge)) return this.unproven();
     const candidate = `${challenge}:${code}`;
@@ -56,7 +62,7 @@ class InvitationAttempts {
     if (this.pending.size >= 8) return { status: 503 };
     // Spend before awaiting: concurrent replays cannot duplicate expensive verification.
     this.spent.add(candidate);
-    const work = Promise.resolve().then(() => this.redeem(code, key));
+    const work = Promise.resolve().then(() => this.redeem(code, key, oauth));
     this.pending.set(candidate, work);
     try {
       return await work;

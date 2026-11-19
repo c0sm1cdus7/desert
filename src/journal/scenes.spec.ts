@@ -79,7 +79,7 @@ it("8: rejects excess, blank identity keys and another author's scene before a s
 });
 
 it("bumps the base fold version for durable OAuth codes and prior core migrations", () => {
-  expect(baseProjectionVersion).toBe("desert/14");
+  expect(baseProjectionVersion).toBe("desert/15");
 });
 
 it("A6: the scene schema bounds recipient names independently of current membership", () => {

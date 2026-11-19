@@ -43,7 +43,7 @@ export function doorAccess(
   bus: DoorBus,
   state: () => House,
   now: () => number,
-  redeem: (identity: string, invitation: string, material?: string) => string | undefined,
+  redeem: (identity: string, invitation: string, material?: string, oauth?: boolean) => string | undefined,
 ) {
   const existing = accesses.get(bus);
   if (existing) return existing;
@@ -54,7 +54,7 @@ export function doorAccess(
 function createDoorAccess(
   state: () => House,
   now: () => number,
-  redeemAction: (identity: string, invitation: string, material?: string) => string | undefined,
+  redeemAction: (identity: string, invitation: string, material?: string, oauth?: boolean) => string | undefined,
 ) {
   const redeem = createRedeemer(state, now, redeemAction);
   return {
@@ -63,7 +63,7 @@ function createDoorAccess(
       const key = findDoorKey(house.doors, material);
       return key && house.grants.has(key.identity) ? key : undefined;
     },
-    attempt: invitationAttempts(async (code, material) => {
+    attempt: invitationAttempts(async (code, material, oauth) => {
       const house = state();
       for (const invitation of house.doors.invitations.values()) {
         if ((!invitation.redeemed && now() >= invitation.expires) || (invitation.redeemed && !material)) continue;
@@ -72,7 +72,7 @@ function createDoorAccess(
             error ? reject(error) : resolve(value.toString("hex")),
           ),
         );
-        if (credentialEqual(fingerprint, invitation.fingerprint)) return redeem(code, material, invitation.id);
+        if (credentialEqual(fingerprint, invitation.fingerprint)) return redeem(code, material, oauth, invitation.id);
       }
       return { status: 400 };
     }, now),
@@ -82,10 +82,15 @@ function createDoorAccess(
 function createRedeemer(
   state: () => House,
   now: () => number,
-  redeem: (identity: string, invitation: string, material?: string) => string | undefined,
+  redeem: (identity: string, invitation: string, material?: string, oauth?: boolean) => string | undefined,
 ) {
   let redeeming = false;
-  return (code: string, material?: string, verified?: string): Readonly<{ status: number; key?: string }> => {
+  return (
+    code: string,
+    material?: string,
+    oauth = false,
+    verified?: string,
+  ): Readonly<{ status: number; key?: string }> => {
     const at = now();
     if (redeeming) return { status: 400 };
     const house = state();
@@ -102,7 +107,7 @@ function createRedeemer(
     }
     redeeming = true;
     try {
-      const key = now() < invitation.expires ? redeem(invitation.identity, invitation.id, material) : undefined;
+      const key = now() < invitation.expires ? redeem(invitation.identity, invitation.id, material, oauth) : undefined;
       return key ? { status: 200, key } : { status: 400 };
     } finally {
       redeeming = false;

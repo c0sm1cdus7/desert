@@ -11,22 +11,28 @@ export function responseField(body: string, name: string): string {
   if (!isRecord(value) || typeof value[name] !== "string") throw new Error("Missing OAuth response field");
   return value[name];
 }
-export async function oauthHouse(http = false) {
-  const fixture = new OAuthFixture();
+export async function oauthHouse(http = false, home?: string, rootKey?: Buffer) {
+  const fixture = new OAuthFixture(home, rootKey);
   if (http) await fixture.listen();
   return fixture;
 }
 class OAuthFixture {
-  readonly h = doorHouse();
-  readonly rootKey = randomBytes(32);
-  readonly options = {
-    name: "Casa",
-    version: "1",
-    limits: { recentLines: 20 },
-    rootKey: this.rootKey,
-    oauth: { origin: oauthOrigin },
-  };
-  door = mcpDoor(this.h.house(), this.options);
+  readonly h: ReturnType<typeof doorHouse>;
+  readonly rootKey: Buffer;
+  readonly options;
+  door: ReturnType<typeof mcpDoor>;
+  constructor(home?: string, rootKey: Buffer = randomBytes(32)) {
+    this.h = doorHouse(undefined, home);
+    this.rootKey = rootKey;
+    this.options = {
+      name: "Casa",
+      version: "1",
+      limits: { recentLines: 20 },
+      rootKey: this.rootKey,
+      oauth: { origin: oauthOrigin },
+    };
+    this.door = mcpDoor(this.h.house(), this.options);
+  }
   private server: Awaited<ReturnType<typeof serveMcp>> | undefined;
   async listen() {
     try {
@@ -114,8 +120,8 @@ class OAuthFixture {
       JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "read", arguments: {} } }),
       { "content-type": "application/json", authorization: `Bearer ${key}` },
     );
-  async reopen(abrupt = false) {
-    if (!abrupt) await this.door.close();
+  async reopen(withoutDoorClose = false) {
+    if (!withoutDoorClose) await this.door.close();
     this.h.reopen();
     this.door = mcpDoor(this.h.house(), this.options);
   }

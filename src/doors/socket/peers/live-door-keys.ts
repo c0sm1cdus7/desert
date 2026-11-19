@@ -18,7 +18,7 @@ export function liveDoorKeys<X extends Program>(
     house.bus,
     () => house.tools.state().house,
     house.now,
-    (identity, invitation, material) => {
+    (identity, invitation, material, oauth) => {
       const by = house.tools.state().house.admin;
       const target = `identities/${identity}`;
       house.tools.act({ act: "attend", input: { target } }, 0, by);
@@ -34,6 +34,7 @@ export function liveDoorKeys<X extends Program>(
           return result.status === "accepted";
         },
         material,
+        oauth,
       );
     },
   );
