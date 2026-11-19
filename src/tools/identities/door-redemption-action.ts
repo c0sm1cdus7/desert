@@ -33,7 +33,7 @@ export function redeemInvitationAction<X extends Program>() {
       if (!found) throw new Error(words.noInvitation);
       const recipient = redemptionRecipient(invitation);
       if (!recipient) return { status: "accepted", text: words.guided, effects: [] };
-      const issued = issueDoorKey(found.identity, found.door, by, recipient.material);
+      const issued = issueDoorKey(found.identity, found.door, by, recipient.material, recipient.oauth);
       recipient.deliver(issued.material);
       return {
         status: "accepted",

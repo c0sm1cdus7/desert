@@ -7,8 +7,9 @@ afterEach(async () => {
   for (const f of opened.splice(0)) await f.close();
   vi.useRealTimers();
 });
-for (const abrupt of [false, true]) {
-  it(`${abrupt ? "abrupt" : "orderly"} restart revokes undelivered codes before any door`, async () => {
+for (const withoutDoorClose of [false, true]) {
+  const closing = withoutDoorClose ? "house close without door close" : "orderly";
+  it(`${closing} restart revokes undelivered codes before any door`, async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const f = await oauthHouse();
     opened.push(f);
@@ -19,9 +20,9 @@ for (const abrupt of [false, true]) {
       key: g.key.id,
       delivered: false,
     });
-    if (!abrupt) await f.door.close();
+    if (!withoutDoorClose) await f.door.close();
     f.h.reopen();
-    // Process death discards timers without calling the old door's close or emitting its revocations.
+    // This fixture closes the house; real process death is covered in oauth-process-death.spec.ts.
     vi.clearAllTimers();
     expect(f.h.house().tools.state().house.doors.keys.get(g.key.id)?.revoked).toBe(true);
     // Recompose only after checking the house itself performed recovery.
@@ -30,7 +31,7 @@ for (const abrupt of [false, true]) {
     expect(responseField((await f.form("/token", g.token)).body, "error")).toBe("invalid_grant");
     expect(f.h.history().includes(g.code)).toBe(false);
   });
-  it(`${abrupt ? "abrupt" : "orderly"} restart keeps delivered keys until replay revokes them`, async () => {
+  it(`${closing} restart keeps delivered keys until replay revokes them`, async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const f = await oauthHouse();
     opened.push(f);
@@ -38,7 +39,7 @@ for (const abrupt of [false, true]) {
     const token = responseField((await f.form("/token", g.token)).body, "access_token");
     const fingerprint = createHash("sha256").update(g.code).digest("hex");
     expect(f.h.house().tools.state().house.doors.codes.get(fingerprint)?.delivered).toBe(true);
-    await f.reopen(abrupt);
+    await f.reopen(withoutDoorClose);
     vi.clearAllTimers();
     expect((await f.read(token)).status).toBe(200);
     const invalid = new URLSearchParams(g.token);

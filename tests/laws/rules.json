@@ -3343,7 +3343,7 @@
     },
     {
       "id": 302,
-      "rule": "La invitación de un uso da consentimiento OAuth por MCP; el registro dinámico no escribe en el diario, PKCE S256 ata el canje al cliente y al recurso, y las llaves conservan el presupuesto y la revocación de Identidades. Los códigos vencidos o reusados revocan su llave; el diario conserva solo su resumen y el ID de llave, y registra el canje antes de responder. Al reabrir, incluso tras cerrar sin close de la puerta, se revocan las llaves de códigos sin entrega registrada. Las llaves entregadas sobreviven, pero reusar su código tras reiniciar las revoca. Entrega registrada no garantiza recepción de la respuesta. La credencial de quien hospeda se deriva de la raíz sin persistirla; en nube otra raíz impide componer la puerta. Las herramientas MCP se llaman read, actions, act y wait.",
+      "rule": "La invitación de un uso da consentimiento OAuth por MCP; el registro dinámico no escribe en el diario, PKCE S256 ata el canje al cliente y al recurso, y las llaves conservan el presupuesto y la revocación de Identidades. Los códigos vencidos o reusados revocan su llave; el diario conserva solo su resumen y el ID de llave, y registra el canje antes de responder. Al reabrir tras SIGKILL sin cerrar casa ni puerta, se revocan las llaves OAuth sin entrega registrada, incluso si el canje de la invitación quedó confirmado antes de registrar el resumen del código. El hecho que emite la llave guarda su origen OAuth. Las llaves con entrega confirmada sobreviven, pero reusar su código tras reiniciar las revoca de forma durable; otra muerte y reapertura conserva el rechazo. Las pruebas cortan también escrituras sin confirmar y la entrega confirmada antes de responder. Entrega registrada no garantiza recepción de la respuesta. La credencial de quien hospeda se deriva de la raíz sin persistirla; en nube otra raíz impide componer la puerta. Las herramientas MCP se llaman read, actions, act y wait.",
       "from": "19/11 · carril oauth",
       "guarantee": "spec",
       "evidence": [
@@ -3352,6 +3352,7 @@
         "src/doors/mcp/oauth-security.spec.ts",
         "src/doors/mcp/oauth-http.spec.ts",
         "src/doors/mcp/oauth-restart.spec.ts",
+        "src/doors/mcp/oauth-process-death.spec.ts",
         "src/runtime/cloud-door-root.spec.ts"
       ]
     }

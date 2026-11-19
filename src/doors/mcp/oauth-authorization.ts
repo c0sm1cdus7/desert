@@ -52,6 +52,7 @@ async function redeemAuthorization(
     proof !== null && /^\d+$/.test(proof) ? Number(proof) : undefined,
     params.get("challenge") ?? "",
     material,
+    true,
   );
   if (!result.key) {
     if (result.status === 428) return oauthPage(200, "", params, clientName, result.challenge ?? "");

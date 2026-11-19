@@ -29,12 +29,21 @@ export function issueDoorKey(
   door: DoorIdentity["door"],
   by: string,
   material = randomBytes(32).toString("base64url"),
+  oauth = false,
 ) {
   return {
     material,
     fact: effect(
       "door-key-issued",
-      { id: randomUUID(), identity, door, fingerprint: doorFingerprint(material), length: material.length },
+      {
+        id: randomUUID(),
+        identity,
+        door,
+        fingerprint: doorFingerprint(material),
+        length: material.length,
+        // Recovery must recognize this key even if no OAuth code fact is ever committed.
+        ...(oauth ? { oauth: true } : {}),
+      },
       by,
     ),
   };

@@ -10,6 +10,7 @@ export const doorFacts = {
     identity: name,
     door: doorKind,
     fingerprint,
+    oauth: Type.Optional(Type.Literal(true)),
     length: Type.Optional(Type.Integer({ minimum: 1 })),
   }),
   "door-oauth-issued": object({ fingerprint, key: name }),

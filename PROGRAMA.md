@@ -1958,12 +1958,15 @@ consentimiento. La página no carga recursos externos, no permite marcos, no se 
 La página resuelve el trabajo de `invitation-proof.ts` antes del formulario. `POST /authorize` usa el mismo
 `DoorAccess.attempt` y presupuesto que el canje directo. La renovación del desafío conserva los parámetros de
 autorización, borra la invitación del formulario devuelto y pide ingresarla nuevamente. La llave se genera en el
-servidor y se emite por el camino de Identidades. El código aleatorio dura 60 segundos, está ligado a cliente,
+servidor y se emite por el camino de Identidades. El mismo hecho `door-key-issued` guarda `oauth: true`: la
+asociación con OAuth nace con la llave, antes de registrar cualquier código, sin una segunda escritura que pueda
+quedar pendiente. El código aleatorio dura 60 segundos, está ligado a cliente,
 retorno, PKCE, recurso e identidad, y se conserva solo en memoria. Antes de entregarlo, el diario guarda
 `door-oauth-issued` con su resumen SHA-256 y el ID de la llave, nunca el código ni la llave en claro.
 Su vencimiento o cierre de la puerta revoca las llaves pendientes, aunque nadie intente canjearlas.
-Al abrir la casa, antes de servir cualquier puerta, se revocan las llaves de códigos emitidos sin entrega
-registrada: también ocurre si la casa se cerró sin llamar a `close` de la puerta.
+Al abrir la casa, antes de servir cualquier puerta, se revocan las llaves OAuth sin entrega registrada,
+incluso si la invitación se canjeó y todavía no se guardó el resumen del código. También se conservan las
+revocaciones de códigos pendientes de versiones anteriores que ya registraban su asociación.
 
 `POST /token` verifica el formulario completo y entrega la llave normal como `access_token`, con
 `token_type: "Bearer"` y `scope: "house"`. Una prueba PKCE o vinculación incorrecta invalida el código y revoca
@@ -1975,6 +1978,20 @@ pero conserva las llaves entregadas y la detección de reuso; las llaves siguen 
 Se admiten hasta 4096 concesiones vigentes por casa entre pendientes y entregadas. Al alcanzar el límite no
 se inicia otro canje de invitación; si se alcanza durante un canje ya en curso, se revoca su llave y no se emite
 el código. No hay refresh tokens ni scopes finos.
+
+`oauth-process-death.spec.ts` mata con SIGKILL al proceso de una casa desechable sin cerrar casa ni puerta.
+Cubre siete cortes: dentro de la escritura de la llave, canje confirmado sin resumen del código, dentro de la
+escritura del resumen, código pendiente, dentro de la escritura de la entrega, entrega confirmada antes de
+responder y respuesta de token recibida. Otro proceso abre la misma carpeta y autentica por el handler MCP
+real: los pendientes y la llave sin código reciben 401; una entrega confirmada recibe 200 hasta que el reuso
+del código devuelve `invalid_grant` y revoca la llave. Ese segundo proceso también muere por SIGKILL; un tercero
+comprueba que el rechazo sigue vigente y que una llave ordinaria sigue entrando. Los cortes dentro de las
+transacciones comprueban su recuperación sin confirmar escrituras parciales. No usan sockets ni proveedores.
+
+La prueba demuestra muerte del proceso y recuperación del diario SQLite en estas fronteras; no demuestra
+corte eléctrico, daño físico del disco ni recepción de una respuesta por un navegador remoto. La proyección
+`desert/15` reconstruye los hechos anteriores sin exigirles la marca nueva. Una llave histórica sin marca OAuth
+ni asociación de código no puede identificarse retroactivamente como OAuth por esta recuperación.
 
 `deriveHostCredential(rootKey: Uint8Array): string`, exportada por `desert/doors/mcp` y
 `desert/doors/mcp/handler`, devuelve 32 bytes HKDF-SHA256 en base64url sin relleno, con salt vacío e
