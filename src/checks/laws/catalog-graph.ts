@@ -33,7 +33,7 @@ class CatalogIndex {
       allowImportingTsExtensions: true,
       skipLibCheck: true,
       noResolve: true,
-      noLib: true,
+      lib: ["lib.esnext.d.ts"],
       types: [],
     });
     this.checker = program.getTypeChecker();
@@ -54,6 +54,24 @@ class CatalogIndex {
     const original = this.canonical.get(declaration) ?? target;
     this.canonical.set(declaration, original);
     return original;
+  };
+  /** Keep public factory names when imports intentionally stay outside this repository graph. */
+  readonly factoryName = (node: ts.Expression, module: string): string | undefined => {
+    const target = this.symbol(node);
+    if (target?.declarations?.length) return target.name;
+    const local = this.checker.getSymbolAtLocation(ts.isPropertyAccessExpression(node) ? node.expression : node);
+    for (const declaration of local?.declarations ?? []) {
+      if (ts.isImportSpecifier(declaration)) {
+        const source = declaration.parent.parent.parent.moduleSpecifier;
+        if (ts.isStringLiteral(source) && source.text === module)
+          return (declaration.propertyName ?? declaration.name).text;
+      }
+      if (ts.isNamespaceImport(declaration) && ts.isPropertyAccessExpression(node)) {
+        const source = declaration.parent.parent.moduleSpecifier;
+        if (ts.isStringLiteral(source) && source.text === module) return node.name.text;
+      }
+    }
+    return undefined;
   };
   readonly owner = (node: ts.Node): ts.Symbol | undefined => {
     if (ts.isSourceFile(node)) return undefined;
@@ -81,7 +99,17 @@ class CatalogIndex {
         ts.isParenthesizedExpression(initializer)
       )
         initializer = initializer.expression;
-      if (initializer !== node && ts.isObjectLiteralExpression(initializer)) this.consume(initializer, file, seen);
+      if (initializer !== node) this.consume(initializer, file, seen);
+    }
+    if (ts.isArrayLiteralExpression(node)) {
+      for (const item of node.elements) this.consume(item, file, seen);
+    }
+    if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) {
+      if (!ts.isBlock(node.body)) this.consume(node.body, file, seen);
+      else
+        visitNodes(node.body, child => {
+          if (ts.isReturnStatement(child) && child.expression) this.consume(child.expression, file, seen);
+        });
     }
     const type = this.checker.getTypeAtLocation(node);
     if (seen.has(type)) return;
@@ -139,7 +167,10 @@ class CatalogIndex {
         }
       }
       if (
-        (ts.isVariableDeclaration(node) || ts.isFunctionDeclaration(node) || ts.isPropertyAssignment(node)) &&
+        (ts.isVariableDeclaration(node) ||
+          ts.isFunctionDeclaration(node) ||
+          ts.isPropertyAssignment(node) ||
+          ts.isMethodDeclaration(node)) &&
         node.name
       ) {
         const outer = this.owner(node),

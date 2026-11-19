@@ -72,6 +72,25 @@ export function testOnlyExports(repo: Repository, graph: CatalogGraph): string[]
   }
   return [...new Set(results)];
 }
+function carriesText(graph: CatalogGraph, type: ts.Type, seen = new Set<ts.Type>()): boolean {
+  if (seen.has(type)) return false;
+  seen.add(type);
+  if (type.flags & ts.TypeFlags.StringLike) return true;
+  if (type.isUnionOrIntersection()) return type.types.some(part => carriesText(graph, part, seen));
+  if (graph.checker.isArrayType(type) || graph.checker.isTupleType(type)) {
+    const item = type.getNumberIndexType();
+    return !!item && carriesText(graph, item, seen);
+  }
+  if (type.getCallSignatures().some(signature => carriesText(graph, signature.getReturnType(), seen))) return true;
+  return type.getProperties().some(property => {
+    const declaration = property.valueDeclaration;
+    return (
+      !!declaration &&
+      graph.catalog.has(declaration.getSourceFile()) &&
+      carriesText(graph, graph.checker.getTypeOfSymbolAtLocation(property, declaration), seen)
+    );
+  });
+}
 export function unusedCatalogTexts(graph: CatalogGraph): string[] {
   const users = new Set(graph.production);
   const dead: string[] = [];
@@ -84,6 +103,11 @@ export function unusedCatalogTexts(graph: CatalogGraph): string[] {
         ts.isArrowFunction(node.initializer)
       ))
         return;
+      if (!carriesText(graph, graph.checker.getTypeAtLocation(node.initializer))) return;
+      // Constructor options configure formatting; they are not stored catalog entries.
+      for (let parent: ts.Node = node; !ts.isSourceFile(parent); parent = parent.parent) {
+        if (ts.isNewExpression(parent)) return;
+      }
       // A message factory retains translations behind its public message object.
       for (let parent: ts.Node = node; !ts.isSourceFile(parent); parent = parent.parent) {
         if (ts.isCallExpression(parent) && ["message", "defineMessage"].includes(parent.expression.getText())) return;
@@ -93,6 +117,8 @@ export function unusedCatalogTexts(graph: CatalogGraph): string[] {
         dead.push(words.text(nodeLocation(node), node.name.text));
     });
     for (const symbol of exported(graph, file)) {
+      const declaration = symbol.valueDeclaration;
+      if (!declaration || !carriesText(graph, graph.checker.getTypeOfSymbolAtLocation(symbol, declaration))) continue;
       if (![...(graph.uses.get(symbol) ?? [])].some(file => users.has(file)))
         dead.push(words.text(nodeLocation(symbol.declarations?.[0] ?? file), symbol.name));
     }
