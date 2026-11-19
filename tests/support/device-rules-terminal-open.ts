@@ -1,13 +1,13 @@
 // A real terminal chooses a synthetic device before the common mechanical guard runs.
 import { generateKeyPairSync } from "node:crypto";
-import { createDeviceProcess } from "../../src/doors/devices/device-process.ts";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { createDeviceProcess } from "../../src/doors/devices/device-process.ts";
 import { startTerminal } from "../../src/doors/terminal/boot.ts";
+import { effect } from "../../src/house/facts.ts";
 import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
 import { localPorts, startHouse } from "../../src/runtime/house-runtime.ts";
 import { houseRouter } from "../../src/surface/bridge/assembly/house-router.ts";
-import { effect } from "../../src/house/facts.ts";
 import { shopProgram, shopShown } from "./shop.ts";
 const home = process.argv[2];
 if (!home) throw new Error("Missing test directory");
@@ -17,6 +17,7 @@ Object.assign(register, { execution: { at: "device", tool: "sales", version: "1"
 let dispatched = 0;
 const house = startHouse(home, {
   ...shopProgram,
+  identities: true,
   by: "shop",
   secretKeys: new MemoryHouseKeys(),
   creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] },

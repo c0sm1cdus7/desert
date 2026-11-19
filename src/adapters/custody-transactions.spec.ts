@@ -1,12 +1,12 @@
-import { expect, it } from "vitest";
 import { join } from "node:path";
+import { expect, it } from "vitest";
 import { custodyRig, custodyScope } from "../../tests/support/custody-rig.ts";
-import { credentialJournal } from "./credential-journal.ts";
-import { SqliteJournal } from "../storage/journal-store.ts";
-import { vocabulary } from "../journal/vocabulary.ts";
 import { fakeKeychain } from "../../tests/support/fake-keychain.ts";
-import { MacOSHouseKeys } from "../keychain/macos/macos-house-keys.ts";
+import { MacOSHouseKeys } from "../../tests/support/retired-macos/macos-house-keys.ts";
+import { vocabulary } from "../journal/vocabulary.ts";
 import { SecretCustody } from "../keychain/custody/secret-custody.ts";
+import { SqliteJournal } from "../storage/journal-store.ts";
+import { credentialJournal } from "./credential-journal.ts";
 it("liberar por la API dentro de una transacción rechaza el segundo agregado antes del commit", () => {
   const rig = custodyRig(),
     journal = new SqliteJournal(join(rig.home, "events.sqlite"), vocabulary({}));

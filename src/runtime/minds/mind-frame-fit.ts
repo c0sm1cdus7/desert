@@ -1,8 +1,7 @@
 // Recorta unidades recuperables del marco y rechaza un mínimo que supera la cota explícita.
 import type { Language } from "../../fields/languages.ts";
-import type { FrameItem, FramePort, FrameSnapshot, FrameSource, MindFrame } from "./mind-frame.ts";
-import { buildMindFrame } from "./mind-frame.ts";
 import { renderMindFrame } from "./mind-frame-text.ts";
+import type { FrameItem, FrameSnapshot, MindFrame } from "./mind-frame.ts";
 export type InputBound = (frame: MindFrame) => number;
 export type FrameLimits = Readonly<{ max: number; bound: InputBound }>;
 export type FitResult =
@@ -41,13 +40,4 @@ export function fitMindFrame(snapshot: FrameSnapshot, language: Language, limits
     current = frame();
   }
   return { tooLarge: false, frame: current, omitted };
-}
-export function createFramePort(
-  source: (scope: Parameters<FramePort>[0], turn: Parameters<FramePort>[1]) => FrameSource,
-  limits: FrameLimits,
-): FramePort {
-  return (scope, turn) => {
-    const result = fitMindFrame(buildMindFrame(scope, turn, source(scope, turn)), turn.language, limits);
-    return result.tooLarge ? result : result.frame;
-  };
 }

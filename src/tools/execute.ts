@@ -1,37 +1,34 @@
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
-import { executeNested } from "./execution/nested-execution.ts";
-import { destinationProblem, deviceRun, executionReach } from "./execution/device-execution.ts";
-import { publicSimulationInput } from "./rules/simulation-public-input.ts";
-import { normalizedInput, withPreparedInput } from "./inputs/prepared-input.ts";
-import { reviewWorld } from "./execution/review-world.ts";
-import { MechanicalRuleFailure } from "./rules/rule-failure.ts";
-import { ruleCapabilities } from "./execution/rule-capabilities.ts";
-import { mechanicalRules, enforceMechanical } from "./execution/mechanical-rules.ts";
-import type { ContractFailureReason } from "./contract-port.ts";
-import { hasSecretInput, executionSchema } from "./inputs/secret-input.ts";
-import { rejected, performAct } from "./execution/perform-act.ts";
-import { runningSignal } from "./execution/running-acts.ts";
-import { checkedDecision } from "./execution/action-decision.ts";
-import { actionDraft } from "./execution/action-draft.ts";
 import { Value } from "@sinclair/typebox/value";
-import { actEnvelope, type Act } from "../house/own-acts.ts";
-import { ids } from "../house/ids.ts";
-import { allowedAct, present } from "../house/kit.ts";
-import { identityView } from "../house/members.ts";
+import { parseMindActor } from "../fields/mind-actor.ts";
 import { effect, type HouseEvent } from "../house/facts.ts";
+import { ids } from "../house/ids.ts";
+import { actEnvelope, type Act } from "../house/own-acts.ts";
 import type { Emission } from "../journal/vocabulary.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
-import { isAttended, targetTool } from "../house/attendance.ts";
-import { programOffered, runProgram } from "./program-run.ts";
-import { startAct } from "./failures/start-act.ts";
-import { finish } from "./failures/finish.ts";
-import type { ActContext, ActResult, Program, Tool, ToolAct } from "./tool-contract.ts";
-import type { Execution } from "./execution-contract.ts";
 import type { ToolCapabilities } from "./capabilities-contract.ts";
+import type { ContractFailureReason } from "./contract-port.ts";
+import type { Execution } from "./execution-contract.ts";
 import { usingCapabilities } from "./execution/action-capabilities.ts";
+import { checkedDecision } from "./execution/action-decision.ts";
+import { resolve, refusal, type Resolving } from "./execution/action-authority.ts";
+import { actionDraft } from "./execution/action-draft.ts";
+import { deviceRun, executionReach } from "./execution/device-execution.ts";
+import { enforceMechanical, mechanicalRules } from "./execution/mechanical-rules.ts";
+import { executeNested } from "./execution/nested-execution.ts";
+import { performAct, rejected } from "./execution/perform-act.ts";
+import { reviewWorld } from "./execution/review-world.ts";
+import { ruleCapabilities } from "./execution/rule-capabilities.ts";
+import { runningSignal } from "./execution/running-acts.ts";
+import { finish } from "./failures/finish.ts";
+import { startAct } from "./failures/start-act.ts";
+import { normalizedInput, withPreparedInput } from "./inputs/prepared-input.ts";
+import { executionSchema, hasSecretInput } from "./inputs/secret-input.ts";
+import { runProgram } from "./program-run.ts";
+import { MechanicalRuleFailure } from "./rules/rule-failure.ts";
+import { prepareSimulationAct } from "./rules/simulation-public-input.ts";
+import type { ActContext, ActResult, Program } from "./tool-contract.ts";
 export type { Execution } from "./execution-contract.ts";
-import { isMindActor, parseMindActor } from "../fields/mind-actor.ts";
-import { journeyAllows } from "../house/minds/journey-state.ts";
 type Origin = HouseEvent<"act">;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
   Readonly<{ value?: unknown; coreFailure?: ContractFailureReason }> &
@@ -42,58 +39,9 @@ type Processing<X extends Program> = Readonly<{ status: "processing"; effects: r
 export type ExecutionResult<X extends Program> = Decision<X> | Processing<X>;
 type Perform<X extends Program> = () => Decision<X> | Promise<Decision<X>>;
 
-type Resolving<X extends Program> = Pick<Execution<X>, "state" | "own" | "registry">;
-/** The act an identity's act resolves to: one the house offers it directly first, then the target's tool act. */
-const resolve = <X extends Program>(ports: Resolving<X>, by: string, target: string, option: string) => {
-  const state = identityView(ports.state(), by);
-  const offered = ports
-    .own(state)
-    .find(
-      act =>
-        act.object === target &&
-        act.option === option &&
-        (!isMindActor(by) || (target === ids.self && option === "scene")),
-    );
-  const tool = targetTool(ports.registry, state, target);
-  return { state, offered, tool, act: offered ?? tool?.acts[option] };
-};
 /** Whether an act would leave the house; an act that resolves to nothing never runs. */
 export const actReach = <X extends Program>(ports: Resolving<X>, by: string, target: string, option: string) =>
   executionReach(resolve(ports, by, target, option).act);
-/** An act that says where it stands is done there: on its tool itself, or on one of its tool's things. */
-const elsewhere = <X extends Program>(act: ToolAct<X>, tool: Tool<X>, target: string): boolean =>
-  act.on !== undefined && (act.on === "tool") !== (target === tool.id);
-function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: ReturnType<typeof resolve<X>>) {
-  const { by, process } = origin;
-  const { state, offered, tool, act } = found;
-  const target = origin.data.object;
-  if (!present(ports.registry, state.house, by) || (process && !ports.process(process, by)))
-    return toolTexts.unassigned;
-  if (!act) return toolTexts.unknown;
-  const destination = destinationProblem(act.execution, origin.data.destination);
-  if (destination) return destination;
-  if (origin.data.reaction && executionReach(act) !== "house") return toolTexts.invalid;
-  if (!offered && (!tool || !allowedAct(state.house, by, tool.id, origin.data.option, ports.registry)))
-    return toolTexts.kitRefusal(tool?.id ?? "");
-  if (!offered && tool && elsewhere(act, tool, target)) return toolTexts.unknown;
-  if (
-    process &&
-    state.house.journeys.has(process) &&
-    (!tool ||
-      !journeyAllows(
-        state.house.journeys,
-        process,
-        by,
-        tool.id,
-        origin.data.option,
-        state.house.kitLayout,
-        state.house.kitMigration,
-      ))
-  )
-    return toolTexts.outsideKit;
-  if (!offered && !isMindActor(by) && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
-  return programOffered(act, state, target, ports.now());
-}
 const decide = <X extends Program>(
   ports: Execution<X>,
   value: Act,
@@ -202,10 +150,8 @@ export function execute<X extends Program>(
   if (ports.authorization?.aborted || ports.active?.closed || ports.active?.controller.signal.aborted)
     return rejected(toolTexts.withdrawn);
   if (!Value.Check(actEnvelope, value)) return rejected(toolTexts.invalid);
-  const safeValue =
-    value.target === "rules" && value.act === "simulate"
-      ? { ...value, input: publicSimulationInput(value.input, ports.state(), ports.registry) }
-      : value;
+  const safeValue = prepareSimulationAct(value, ports.state(), ports.registry);
+  if (!safeValue) return rejected(toolTexts.invalid);
   return executePublic(ports, safeValue, through, by, cause, reaction);
 }
 function executePublic<X extends Program>(

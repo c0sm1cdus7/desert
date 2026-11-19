@@ -1,12 +1,12 @@
-import { DatabaseSync } from "node:sqlite";
-import { unpackFixture, packFixture } from "../../tests/support/snapshot-fixture.ts";
-import { startState } from "../house/state.ts";
-import { type Shop, shopShown } from "../../tests/support/shop.ts";
 import { join } from "node:path";
-import { copyJournal } from "./copy-journal.ts";
-import "../../tests/support/upgrade-vault.ts";
+import { DatabaseSync } from "node:sqlite";
 import { expect, it } from "vitest";
+import { type Shop, shopShown } from "../../tests/support/shop.ts";
+import { packFixture, unpackFixture } from "../../tests/support/snapshot-fixture.ts";
+import "../../tests/support/upgrade-vault.ts";
+import { copyJournal } from "../checks/kept/copy-journal.ts";
 import { keptChecks } from "../checks/kept/kept-journals.ts";
+import { startState } from "../house/state.ts";
 
 import { home, kept, legacy, program, seed } from "../../tests/support/upgrade-support.ts";
 it.each(["legacy", "stale"])("refuses to certify a manual version with only %s evidence", async mode => {

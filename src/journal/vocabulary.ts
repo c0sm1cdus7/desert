@@ -91,6 +91,7 @@ export function vocabulary<C extends Catalog>(program: Own<C>) {
       ...arms("house", mindHouseCatalog, stored),
     ]),
   );
+  deepFreeze(event);
   return {
     event,
     emission: Type.Unsafe<Emission<ProgramFacts<C>>>(currentSchema(program, provenance)),

@@ -28,7 +28,7 @@ it("cerrar SQLite y reabrir reconstruye todos los contratos sin cambiar autoría
     emit(
       effect("mind-card-assigned", { mind: "assistant:beto", card: "test", version: "v1", capabilities: [] }, "ana"),
     );
-    for (const event of mindEffects("assistant:beto").filter(
+    for (const event of mindEffects("assistant:beto", "ana").filter(
       event =>
         event.kind.startsWith("journey-") ||
         (event.kind.startsWith("mind-") && event.kind !== "mind-card-assigned") ||
@@ -44,6 +44,7 @@ it("cerrar SQLite y reabrir reconstruye todos los contratos sin cambiar autoría
     expect(reopened().scenes.get("nora")?.by).toBe("nora");
     expect(reopened().modelCalls.get("c1")?.status).toBe("uncertain");
     expect(reopened().journeys.get("j1")?.closed?.by).toBe("assistant:beto");
+    expect(reopened().mindCards.get("assistant:beto")).toEqual([]);
   } finally {
     journal.close();
     rmSync(dir, { recursive: true, force: true });

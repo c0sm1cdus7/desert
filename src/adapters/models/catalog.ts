@@ -1,6 +1,6 @@
 // Define las cartas, sus capacidades, resultados y cálculo conservador de costos.
-import { modelTexts } from "../../texts/model.texts.ts";
 import type { Capability } from "../../fields/capabilities.ts";
+import { modelTexts } from "../../texts/model.texts.ts";
 
 export type Effort = "low" | "medium" | "high";
 export type Price = number | null;
@@ -24,7 +24,6 @@ export type Card = {
   results: readonly BankResult[];
 };
 export type Usage = { input: number; cacheWrite: number; cacheRead: number; output: number };
-export type Act = { needs: readonly Capability[] };
 /** Lectura de caché y escritura con vida de cinco minutos, por millón de tokens (referencia de la API,
  * 03/11/2026): la escritura cuesta 1,25 veces la entrada; la lectura, 0,1 veces, salvo Sonnet 5.5 y Opus 5.5
  * (0,05) y Fable 5.2 (0,025). */
@@ -52,18 +51,6 @@ export const cards: readonly Card[] = models.flatMap(model =>
 const required = (value: unknown, name: string) => {
   if (value === undefined || value === null) throw new Error(`${modelTexts.missing}: ${name}`);
 };
-export const lostActs = <T extends Act>(card: Card, acts: readonly T[]): T[] => {
-  required(card, "card");
-  required(acts, "acts");
-  return acts.filter(act => {
-    required(act.needs, "needs");
-    return act.needs.some(need => !card.capabilities.includes(need));
-  });
-};
-export const cardsFor = (acts: readonly Act[]): readonly Card[] => {
-  required(acts, "acts");
-  return cards.filter(card => lostActs(card, acts).length === 0);
-};
 const validNumber = (value: number, name: string) => {
   if (!Number.isFinite(value) || value < 0) throw new Error(name);
 };
@@ -83,28 +70,6 @@ export function costUsd(card: Card, usage: Usage): number {
     if (rate !== null) validNumber(rate, key);
     return total + (usage[key] * (rate ?? 0)) / 1_000_000;
   }, 0);
-}
-export function withinCap(args: {
-  spentUsd: number;
-  capUsd: number;
-  card: Card;
-  maxInputTokens: number;
-  maxOutputTokens: number;
-}): boolean {
-  required(args, "args");
-  const { spentUsd, capUsd, card, maxInputTokens, maxOutputTokens } = args;
-  required(card, "card");
-  validNumber(spentUsd, "spentUsd");
-  validNumber(capUsd, "capUsd");
-  const costs = ["input", "cacheWrite", "cacheRead"].map(key =>
-    costUsd(card, {
-      input: key === "input" ? maxInputTokens : 0,
-      cacheWrite: key === "cacheWrite" ? maxInputTokens : 0,
-      cacheRead: key === "cacheRead" ? maxInputTokens : 0,
-      output: maxOutputTokens,
-    }),
-  );
-  return spentUsd + Math.max(...costs) <= capUsd;
 }
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 export function validBankResult(value: unknown): value is BankResult {

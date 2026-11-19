@@ -1,5 +1,7 @@
 // Declared positions are replaced structurally, independently of their spelling or length.
 import { referencePattern, hasSecretInput, executionSchema } from "../../tools/inputs/secret-input.ts";
+import { isImmutableSchema, isSchema } from "../../fields/schema-shape.ts";
+import { deepFreeze } from "../../journal/vocabulary.ts";
 import { isRecord } from "../../fields/json-values.ts";
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { Type, type TSchema } from "@sinclair/typebox";
@@ -8,7 +10,8 @@ import { Value } from "@sinclair/typebox/value";
 export const isReference = (value: unknown): boolean =>
   typeof value === "string" && new RegExp(referencePattern, "u").test(value);
 
-const schemaOf = (value: unknown): TSchema => Type.Unsafe(isRecord(value) ? value : {});
+const schemaOf = (value: unknown): TSchema => (isSchema(value) ? value : Type.Unsafe(isRecord(value) ? value : {}));
+const stored = new WeakMap<TSchema, TSchema>();
 
 class SecretSchemaError extends Error {
   readonly code = "E-SECRET-SCHEMA";
@@ -65,11 +68,19 @@ export function secretPositions(schema: unknown, value: unknown, replace: Replac
 }
 /** Read persisted references without weakening validation of incoming original facts. */
 export function storedSchema(schema: TSchema): TSchema {
+  if (!hasSecretInput(schema)) return schema;
+  const known = stored.get(schema);
+  if (known) return known;
   const walk = (value: unknown): unknown => {
     if (Array.isArray(value)) return value.map(walk);
     if (!isRecord(value)) return value;
     if (value.secret === true) return Type.Union([schemaOf(value), Type.String({ pattern: referencePattern })]);
     return Object.fromEntries(Reflect.ownKeys(value).map(key => [key, walk(Reflect.get(value, key))]));
   };
-  return schemaOf(walk(schema));
+  const result = schemaOf(walk(schema));
+  if (isImmutableSchema(schema)) {
+    deepFreeze(result);
+    stored.set(schema, result);
+  }
+  return result;
 }

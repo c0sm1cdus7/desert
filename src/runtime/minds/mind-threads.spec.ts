@@ -1,5 +1,11 @@
 import { expect, it } from "vitest";
-import { appendThread, putThread, threadFor, threadStep, threadWindow } from "./mind-threads.ts";
+import {
+  appendThread,
+  putThread,
+  threadFor,
+  threadWindow,
+} from "../../../tests/support/retired-helpers/mind-threads.ts";
+import { threadStep } from "./mind-threads.ts";
 it("keeps later arrivals and references across compaction", () => {
   const events = [
     { seq: 1, id: "a", text: "uno" },

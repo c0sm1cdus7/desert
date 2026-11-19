@@ -1,4 +1,5 @@
 // Casos declarados de sacar, readmitir y pasar la administración, incluidos los motivos de rechazo.
+import { programName } from "./kit-catalog.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import type { Case } from "../promises.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";
@@ -79,7 +80,7 @@ export const handCases = <X extends Program>(registry: ToolRegistry<X>): readonl
             identifier: "carla",
             name: "carla",
             state: words.admin,
-            kit: registry.map(tool => `${tool.id} · ${words.all}`),
+            kit: registry.map(tool => `${programName(tool)} · ${words.all}`),
           },
         ],
       },

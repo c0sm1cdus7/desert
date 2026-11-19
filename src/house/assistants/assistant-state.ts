@@ -1,14 +1,14 @@
 // Reconstruye asistentes y cruza su delegación con el permiso actual y la capacidad asignada.
-import { migrateKit } from "../kit-migration.ts";
-import { holderKit } from "../kit-history.ts";
-import { covers, expandKit, explicitKit, kitLayout, type SelectionKit } from "../kit-selection.ts";
 import { Value } from "@sinclair/typebox/value";
 import type { Capability } from "../../fields/capabilities.ts";
 import { assistantOf, isMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
-import type { House } from "../members.ts";
 import type { HouseEvent } from "../facts.ts";
 import { identityAllowedAct } from "../identities/identity-permissions.ts";
+import { holderKit } from "../kit-history.ts";
+import { migrateKit } from "../kit-migration.ts";
+import { covers, expandKit, explicitKit, kitLayout, type SelectionKit } from "../kit-selection.ts";
+import type { House } from "../members.ts";
 import { assistantFacts, type DelegatedKit } from "./assistant-facts.ts";
 export type AssistantState = Readonly<{
   owner: string;
@@ -31,7 +31,7 @@ export function assistantOfIdentity(house: House, owner: string): AssistantState
 export function effectiveAssistantKit(house: House, owner: string, registry: MindTools): DelegatedKit {
   requireMind(house, "house");
   requireMind(registry, "registry");
-  const assistant = house.assistants.get(owner);
+  const assistant = assistantOfIdentity(house, owner);
   const assignment = house.mindAssignments.get(assistantOf(owner));
   if (!assistant?.enabled || !house.grants.has(owner) || !assignment) return [];
   return expandKit(

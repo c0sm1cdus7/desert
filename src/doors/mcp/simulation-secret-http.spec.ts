@@ -5,8 +5,10 @@ import { mcpHouse } from "../../../tests/support/mcp-house.ts";
 import { shopRegistry } from "../../../tests/support/shop.ts";
 import { simulationShapes, simulationMarker, publicLimit } from "../../../tests/support/simulation-house.ts";
 import { rulesTool } from "../../tools/rules/rules.ts";
+import { rulesTexts } from "../../texts/rules.texts.ts";
+import { mcpResult } from "../../../tests/support/mcp-results.ts";
 import { serveMcp } from "./mcp-http.ts";
-it("never returns or records secret sample material received over HTTP", async () => {
+it.each(["handler", "HTTP"])("never returns or records secret sample material received over %s", async transport => {
   const schema = simulationShapes[2];
   if (!schema) throw new Error("Missing union schema");
   const registry = shopRegistry.map(tool =>
@@ -25,11 +27,13 @@ it("never returns or records secret sample material received over HTTP", async (
   const h = mcpHouse([...registry, rulesTool(registry)]);
   let server: Awaited<ReturnType<typeof serveMcp>> | undefined;
   try {
-    server = await serveMcp(h.door, { host: "127.0.0.1", port: 0 });
-    const address = server.address;
-    if (!address || typeof address === "string") throw new Error("Missing localhost address");
-    const call = (action: string, input: unknown) =>
-      new Promise<string>((resolve, reject) => {
+    if (transport === "HTTP") server = await serveMcp(h.door, { host: "127.0.0.1", port: 0 });
+    const call = async (action: string, input: unknown) => {
+      if (transport === "handler")
+        return (await h.call("actuar", { programa: "rules", accion: action, datos: input })).body;
+      const address = server?.address;
+      if (!address || typeof address === "string") throw new Error("Missing localhost address");
+      return new Promise<string>((resolve, reject) => {
         const outgoing = request(
           {
             host: "127.0.0.1",
@@ -57,9 +61,10 @@ it("never returns or records secret sample material received over HTTP", async (
           }),
         );
       });
-    expect(await call("save", { ...publicLimit, action: { tool: "sales", act: "register" } })).toContain(
-      "Regla guardada",
-    );
+    };
+    const saved = await call("save", { ...publicLimit, action: { tool: "sales", act: "register" } });
+    expect(mcpResult(saved).isError).toBe(false);
+    expect(saved).toContain(rulesTexts.saved);
     for (const input of [
       { kind: "first", amount: 11, nested: { token: simulationMarker } },
       { kind: "first", amount: 11, nested: {} },
@@ -69,6 +74,7 @@ it("never returns or records secret sample material received over HTTP", async (
         version: 1,
         samples: JSON.stringify([{ actor: "ana", now: 0, input }]),
       });
+      expect(mcpResult(result).isError).toBe(false);
       expect(result).toContain("frena");
       expect(result.includes(simulationMarker)).toBe(false);
     }

@@ -1,20 +1,20 @@
 // The two lists every menu opens with, checked for every program: what needs someone to act, and what the others did.
-import { holdsAny } from "../../../house/kit.ts";
-import { effect } from "../../../house/facts.ts";
-import { errorIn } from "../../read-screen.ts";
-import { firstLine } from "../../../surface/bridge/views/notices.ts";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
+import { effect } from "../../../house/facts.ts";
+import { holdsAny } from "../../../house/kit.ts";
 import type { Shown } from "../../../surface/bridge/ports/house-ports.ts";
-import type { Choice } from "../../../surface/session/screen.ts";
-import { choices, stacksOf } from "../../../surface/menus/lists.ts";
+import { firstLine } from "../../../surface/bridge/views/notices.ts";
 import type { Tool } from "../../../surface/contract/shown-tool.ts";
+import { choices, stacksOf } from "../../../surface/menus/lists.ts";
+import type { Choice } from "../../../surface/session/screen.ts";
 import { promiseTexts as said } from "../../../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../../../texts/surface.texts.ts";
 import type { Case, Composition } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
-import { seated, openRows, view, type Seat } from "../promised-keys.ts";
-import { prefer } from "../off/promised-off.ts";
+import { errorIn } from "../../read-screen.ts";
 import { promisedNeeds } from "../cases/promised.ts";
+import { prefer } from "../off/promised-off.ts";
+import { openRows, seated, view, type Seat } from "../promised-keys.ts";
 import { cast, given, label, perform, staged, type Aim, type Check } from "../promised-stage.ts";
 /** The rows of one of the two lists where a person stands: on the Menu, or on a tool's own menu. Nothing when the
  * list is not there at all. */
@@ -46,7 +46,8 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
         ok(news(theirs.tools) && news(theirs.tools, aim.tool.id), said.noActivity(entry.data.text));
         strictEqual(news(own.tools), undefined, said.ownActivity(entry.data.text));
         await outsideActivity(outside, news, entry.data.text, aim.tool.id);
-        strictEqual((listAt(outside.tools, surface.attentionList, aim.tool.id) ?? []).length, 0);
+        if (!holdsAny(outside.state().house, outside.state().by, aim.tool.id, Object.keys(aim.tool.acts)))
+          strictEqual((listAt(outside.tools, surface.attentionList, aim.tool.id) ?? []).length, 0);
         const at = choices({ kind: "menu", at: 0 }, theirs.tools).findIndex(
           row => row.title === firstLine(entry.data.text),
         );

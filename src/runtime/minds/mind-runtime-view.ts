@@ -1,19 +1,19 @@
 // Proyecta destinos, permisos y datos visibles de la casa para cada alcance del pensamiento.
-import { deviceChoices } from "../../house/devices/device-state.ts";
 import type { ExecutionDestination } from "../../fields/device-protocol.ts";
-import { programCommunication } from "./program-mind-communication.ts";
-import { allowedAct, present } from "../../house/kit.ts";
-import { identityView } from "../../house/members.ts";
 import { targetTool } from "../../house/attendance.ts";
-import { journeyMenu } from "../../tools/minds/journey-menu.ts";
+import { deviceChoices } from "../../house/devices/device-state.ts";
+import { allowedAct, effectiveKit, present } from "../../house/kit.ts";
+import { identityView } from "../../house/members.ts";
 import type { JourneyControlState } from "../../tools/minds/journey-controls.ts";
-import type { MindDefinition, MindScope } from "../../tools/minds/mind-contract.ts";
+import { journeyMenu } from "../../tools/minds/journey-menu.ts";
 import type { MindMenu } from "../../tools/minds/mind-answer.ts";
+import type { MindDefinition, MindScope } from "../../tools/minds/mind-contract.ts";
 import { programOffered } from "../../tools/program-run.ts";
-import type { Program, Tool, State, ToolRegistry } from "../../tools/tool-contract.ts";
+import type { Program, State, Tool, ToolRegistry } from "../../tools/tool-contract.ts";
+import type { FrameSource } from "./mind-frame.ts";
 import type { MindRuntimeHouse, MindRuntimeOptions, MindSwitches } from "./mind-runtime-options.ts";
 import { enabledMind } from "./mind-runtime-options.ts";
-import type { FrameSource } from "./mind-frame.ts";
+import { programCommunication } from "./program-mind-communication.ts";
 export function runtimeView<X extends Program>(
   house: MindRuntimeHouse<X>,
   options: MindRuntimeOptions,
@@ -30,10 +30,7 @@ export function runtimeView<X extends Program>(
     present(registry, state.house, scope.actor) &&
     (scope.kind !== "journey" ||
       (!!state.house.journeys.get(scope.process) && !state.house.journeys.get(scope.process)?.closed));
-  const kit = registry.flatMap(tool => {
-    const acts = Object.keys(tool.acts).filter(act => allowedAct(state.house, scope.actor, tool.id, act, registry));
-    return acts.length ? [{ tool: tool.id, acts }] : [];
-  });
+  const kit = effectiveKit(state.house, scope.actor, registry, scope.process);
   const parts = visibleTools(house, scope, state, kit);
   const control = controlFor(house, options, state, active, kit);
   const menu = [

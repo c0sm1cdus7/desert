@@ -2,17 +2,18 @@
 import type { Execution } from "../../tools/execute.ts";
 import { startTools } from "../../tools/start.ts";
 import type { Program } from "../../tools/tool-contract.ts";
-import type { ContractPackage } from "./package-contracts.ts";
-import type { ContractHistory } from "./contract-history.ts";
-import { createContractRuntime, ContractCompositionError } from "./contract-runtime.ts";
-import { structuralContractErrors } from "./package-checks.ts";
 import { caseDeclarationErrors } from "./case-declaration.ts";
 import { executeContractCase } from "./case-execution.ts";
-import { contractHash, evidenceIdentity, evidenceLedger } from "./contract-evidence.ts";
 import type { ContractBuild, ContractEvidence } from "./contract-evidence.ts";
+import { contractHash, evidenceIdentity, evidenceLedger } from "./contract-evidence.ts";
+import type { ContractHistory } from "./contract-history.ts";
+import { ContractCompositionError, createContractRuntime } from "./contract-runtime.ts";
+import { structuralContractErrors } from "./package-checks.ts";
+import type { ContractPackage } from "./package-contracts.ts";
 export type ContractCaseHouse<X extends Program> = Readonly<{
   ports: Omit<Execution<X>, "live" | "own" | "process"> & Partial<Pick<Execution<X>, "own" | "process">>;
   history: ContractHistory<X>;
+  engine?: Pick<ReturnType<typeof startTools<X>>, "act">;
   close: () => void;
 }>;
 type GateOptions<X extends Program> = Readonly<{
@@ -31,12 +32,16 @@ async function runCase<X extends Program>(
   let stop = () => {};
   try {
     const runtime = createContractRuntime(options.programs, house.ports, house.history);
-    const engine = startTools({
-      ...house.ports,
-      history: house.history.events(house.ports.state().through),
-      contracts: runtime.context,
-    });
-    stop = engine.stop;
+    const start = () => {
+      const engine = startTools({
+        ...house.ports,
+        history: house.history.events(house.ports.state().through),
+        contracts: runtime.context,
+      });
+      stop = engine.stop;
+      return engine;
+    };
+    const engine = house.engine ?? start();
     // Preparation grants are supplied by the isolated house; attendance still goes through the core.
     for (const tool of house.ports.registry)
       engine.act({ act: "attend", input: { target: tool.id } }, house.ports.state().through, scenario.actor);

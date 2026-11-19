@@ -1,7 +1,6 @@
 // Length includes the type byte; JSON and v8 have separate limits. Clients' binary input is never decoded.
-import { serialize } from "node:v8";
-import { socketLimits, readClient, readServer, type ClientMessage, type ServerMessage } from "./protocol.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
+import { readClient, readServer, socketLimits, type ClientMessage, type ServerMessage } from "./protocol.ts";
 
 const invalid = (): never => {
   throw new Error(socketTexts.frame);
@@ -18,7 +17,6 @@ export const clientFrame = (value: ClientMessage): Buffer =>
 export const serverFrame = (value: ServerMessage): Buffer =>
   envelope(0, Buffer.from(JSON.stringify(readServer(value))), socketLimits.json);
 export const binaryFrame = (bytes: Buffer): Buffer => envelope(1, bytes, socketLimits.state);
-export const stateFrame = (value: unknown): Buffer => envelope(1, serialize(value), socketLimits.state);
 function frameLength(bytes: Buffer, side: "client" | "server"): number {
   const length = bytes.readUInt32BE(0);
   if (length < 1 || length > (side === "client" ? socketLimits.json : socketLimits.state) + 1) invalid();

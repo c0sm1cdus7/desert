@@ -2,7 +2,6 @@
 export const surfaceTexts = {
   menu: "Menú",
   tooSmall: "Ventana muy chica",
-  create: "crear",
   attention: "Requiere atención",
   actions: "Acciones",
   attentionList: "Atención",
@@ -44,13 +43,6 @@ export const surfaceTexts = {
     notSent: "E-COM-1 · No enviado",
     summary: (count: number, clock: string) => `${count} ${count === 1 ? "mensaje" : "mensajes"} · ${clock}`,
     empty: "sin mensajes",
-  },
-  house: {
-    journeys: "Viajes",
-    running: "En curso",
-    ended: "Terminados",
-    noJourneys: "Sin viajes.",
-    people: "En este Void",
   },
   chords: { menu: "ctrl o", quit: "ctrl c" },
   keys: {

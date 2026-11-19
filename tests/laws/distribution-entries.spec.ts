@@ -149,3 +149,11 @@ export const shown = { words: {}, locale: {} };
   expect(programSecretBoundaries(repo.root)).toEqual([]);
   expect((await loadProgram(repo.root)).where).toBe("src/host.ts");
 });
+
+it("preserves the terminal timing contract while adding the remote entry", async () => {
+  const terminal = await import("../../src/doors/terminal/public-terminal.ts");
+  const existing = await import("../../src/doors/terminal/boot.ts");
+  expect(terminal.startTerminal).toBe(existing.startTerminal);
+  expect(terminal.keyWaits).toBe(existing.keyWaits);
+  expect(typeof terminal.openProgramTerminal).toBe("function");
+});

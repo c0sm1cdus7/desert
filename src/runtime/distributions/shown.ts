@@ -1,9 +1,9 @@
 // Presents program folders and each group's own words through the existing surface contract.
-import type { Program } from "../../tools/tool-contract.ts";
-import type { InstalledProgram } from "../../tools/installable/runtime.ts";
-import type { Shown, ProgramScreen, ScreenActs, SurfacePorts } from "../../surface/bridge/ports/house-ports.ts";
+import type { ProgramScreen, ScreenActs, Shown, SurfacePorts } from "../../surface/bridge/ports/house-ports.ts";
 import { anyToolScreen } from "../../surface/bridge/views/any-tool.ts";
 import { distributionTexts } from "../../texts/distributions.texts.ts";
+import type { InstalledProgram } from "../../tools/installable/runtime.ts";
+import type { Program } from "../../tools/tool-contract.ts";
 function filteredActions(program: InstalledProgram, acts: ScreenActs, ports: SurfacePorts<Program>): ScreenActs {
   const belongs = (key: string, target: string) =>
     program.groups.some(group => {
@@ -52,7 +52,7 @@ function screenFor(program: InstalledProgram, shortcut: boolean): ProgramScreen<
     const only = program.groups.length === 1 ? program.groups[0] : undefined;
     return {
       ...root,
-      ...(shortcut && only ? { entryTarget: only.folder } : {}),
+      ...(shortcut && only && Object.keys(acts.acts).length === 0 ? { entryTarget: only.folder } : {}),
       ...filtered,
       find: sought => [...(root.find?.(sought) ?? []), ...groups.flatMap(({ screen }) => screen.find?.(sought) ?? [])],
       titleOf: target => {

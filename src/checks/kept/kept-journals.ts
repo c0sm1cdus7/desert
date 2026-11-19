@@ -1,7 +1,7 @@
 // The journals a program keeps of what organizations wrote with it: each still opens with the program of today.
 // Every fact is read and folds from the first, and every thing is read as whoever administers it reads it.
 import { stateResult } from "../../journal/readonly-state.ts";
-import { inspectKept } from "./kept-inspection.ts";
+import { inspectKept, inspectKeptPaths } from "./kept-inspection.ts";
 import { deepStrictEqual } from "node:assert/strict";
 import { join } from "node:path";
 import { houseTools } from "../../surface/bridge/assembly/house-tools.ts";
@@ -26,7 +26,7 @@ type Kept<X extends Program> = Readonly<{ program: Composition<X>; shown: Shown<
 function read<X extends Program>({ program, shown }: Kept<X>, house: ReturnType<typeof startHouse<X>>, now: number) {
   const runner = house.tools.state().by;
   const again = house.journal.replay(
-    startState<X>(program.slices, runner, program.identities, program.registry, program.kitMigration),
+    startState<X>(program.slices, runner, program.identities, house.registry, program.kitMigration),
     (state, event) => toolsStep<X>(state, event, program.slices),
   );
   deepStrictEqual(again.tools, stateResult(house.tools.state().tools));
@@ -36,7 +36,7 @@ function read<X extends Program>({ program, shown }: Kept<X>, house: ReturnType<
     shown,
   );
   stacksOf({ kind: "menu", at: 0 }, tools);
-  for (const tool of program.registry) {
+  for (const tool of house.registry) {
     const things = tool.targets(house.tools.state()).map(target => ({ target }));
     for (const on of [{}, ...things]) stacksOf({ kind: "view", tool: tool.id, ...on, at: 0 }, tools);
   }
@@ -53,12 +53,15 @@ async function opened<X extends Program, R>(
 function walk<X extends Program>(source: Kept<X>, file: string, name: string): Check {
   let walked: WalkCoverage | undefined;
   const { program, shown } = source;
-  const replay = (path: Path) => opened(source, file, (house, now) => keptPath(program, shown, house, now, path));
   return {
     name: said.keptWalks(name, keptWalkLimits),
     run: async () => {
       walked = undefined;
-      walked = await breadthFirst(replay);
+      walked = await inspectKeptPaths(program, file, open =>
+        breadthFirst((path: Path) =>
+          open((house, now) => keptPath({ ...program, registry: house.registry }, shown, house, now, path)),
+        ),
+      );
     },
     report: () => walked && said.keptWalked(name, walked),
   };

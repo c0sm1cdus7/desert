@@ -8,6 +8,7 @@ import { mindStep } from "./mind-state.ts";
 import { journeyStep } from "./journey-state.ts";
 import { modelCallStep } from "./model-call-state.ts";
 export function mindHouseStep(state: House, event: HouseEvent): House {
+  if (event.kind === "boot") return mindSettingsStep(state, event);
   if (!Object.hasOwn(mindHouseCatalog, event.kind)) return state;
   if (event.kind === "mind-requested") {
     requireMind(state.grants.has(event.by) && !event.process, "request.by");

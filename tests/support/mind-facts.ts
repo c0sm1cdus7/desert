@@ -20,13 +20,14 @@ const bankEffect = (by: string) =>
     },
     by,
   );
-export const mindEffects = (by: string) => [
+export const mindEffects = (by: string, publisher = by) => [
   effect("assistant-enabled", { owner: "beto", name: "Nora" }, by),
   effect("assistant-disabled", { owner: "beto" }, by),
   effect("assistant-kit-set", { owner: "beto", kit: [{ tool: "sales", acts: ["forge"] }] }, by),
   effect("assistant-adopted", { owner: "beto", legacy: "nora" }, by),
   effect("mind-card-assigned", { mind: "assistant:beto", card: "test", version: "v1", capabilities: [] }, by),
   bankEffect(by),
+  effect("mind-cards-published", { mind: "assistant:beto", cards: [] }, publisher),
   effect("journey-opened", { goal: "Guardar una nota", kit: [] }, by, [], "j1"),
   effect("journey-plan-written", { steps: [{ id: "s1", text: "Anotar" }] }, by, [], "j1"),
   effect("journey-step-done", { step: "s1", note: "Anotada" }, by, [], "j1"),

@@ -1,13 +1,15 @@
 // Lista y objeto de identidades y mentes: nombre, administración, kit, última escena general y parte para quien lee.
-import { doorTexts } from "../../texts/doors.texts.ts";
-import { systemTool } from "../../house/system-tools.ts";
 import { holderKit } from "../../house/kit-history.ts";
+import { allowedAct, mindTool } from "../../house/kit.ts";
 import { identityDisplayName, type House } from "../../house/members.ts";
-import { mindTool, allowedAct } from "../../house/kit.ts";
-import { identityTexts as words } from "../../texts/identities.texts.ts";
+import { systemTool } from "../../house/system-tools.ts";
 import type { ToolWords } from "../../surface/bridge/ports/house-ports.ts";
-import type { ToolRegistry, Program } from "../tool-contract.ts";
-import { kitCatalog, kitDatum, programName, actionName } from "./kit-catalog.ts";
+import { deviceActionTexts } from "../../texts/devices.texts.ts";
+import { doorTexts } from "../../texts/doors.texts.ts";
+import { identityTexts as words } from "../../texts/identities.texts.ts";
+import { mindCardTexts } from "../../texts/mind-models.texts.ts";
+import type { Program, ToolRegistry } from "../tool-contract.ts";
+import { actionName, kitCatalog, kitDatum, programName } from "./kit-catalog.ts";
 export const identityTarget = (identity: string) => `identities/${identity}`;
 export const targetIdentity = (target: string) => target.slice("identities/".length);
 export const members = (house: House) => [...new Set([...house.grants.keys(), ...house.removed])];
@@ -36,8 +38,14 @@ export const identityWords: ToolWords = {
       reads: { identifier: words.identifier, name: words.display, state: words.state },
     },
     { title: doorTexts.key.many, empty: words.emptyData, reads: { doorKeys: doorTexts.key.many } },
-    { title: words.given, empty: words.emptyKit, reads: { kit: words.programs } },
     { title: words.sceneTitle, empty: words.emptyScene, reads: { general: words.general, addressed: words.addressed } },
+    {
+      title: deviceActionTexts.devices,
+      empty: words.emptyData,
+      reads: { devices: deviceActionTexts.devices },
+    },
+    { title: mindCardTexts.card, empty: words.emptyData, reads: { card: mindCardTexts.card } },
+    { title: words.given, empty: words.emptyKit, reads: { kit: words.programs } },
   ],
 };
 function identityList<X extends Program>(house: House, registry: ToolRegistry<X>): string {
@@ -91,6 +99,7 @@ export function identityReading<X extends Program>(
     state: identityDatum(house, identity),
     kit: identityKit(house, identity, registry),
     ...doorReading(house, identity),
+    ...deviceReading(house, identity),
   });
 }
 function identityKit<X extends Program>(house: House, identity: string, registry: ToolRegistry<X>): string[] {
@@ -125,4 +134,22 @@ function doorReading(house: House, identity: string) {
         }),
       }
     : {};
+}
+
+function deviceReading(house: House, identity: string) {
+  const devices = [...house.devices.devices.values()].filter(device => device.owner === identity);
+  const card = house.mindAssignments.get(`assistant:${identity}`);
+  return {
+    ...(devices.length
+      ? {
+          devices: devices.map(device => `${device.id} · ${device.name} · ${deviceStatus(device)}`),
+        }
+      : {}),
+    ...(card ? { card: `${card.card} · ${card.version}` } : {}),
+  };
+}
+
+function deviceStatus(device: { retired: boolean; accepted: boolean }) {
+  if (device.retired) return deviceActionTexts.retired;
+  return device.accepted ? deviceActionTexts.accepted : deviceActionTexts.registered;
 }

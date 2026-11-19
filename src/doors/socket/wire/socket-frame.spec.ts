@@ -1,8 +1,9 @@
-import { expect, it } from "vitest";
 import { deserialize } from "node:v8";
-import { clientFrame, serverFrame, stateFrame, frameReader } from "./frame.ts";
-import { readClient, readServer, socketLimits } from "./protocol.ts";
+import { expect, it } from "vitest";
+import { stateFrame } from "../../../../tests/support/retired-helpers/frame.ts";
 import { wire } from "../../../../tests/support/socket-probe.ts";
+import { clientFrame, frameReader, serverFrame } from "./frame.ts";
+import { readClient, readServer, socketLimits } from "./protocol.ts";
 
 it("frames survive every split, coalescing and exact JSON limit", () => {
   const hello = { tipo: "hola", protocolo: 1, node: process.versions.node, token: "test" } as const;

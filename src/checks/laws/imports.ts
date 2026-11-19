@@ -3,7 +3,7 @@ import { existsSync, realpathSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve, sep } from "node:path";
 import ts from "typescript";
 import { field, isRecord } from "../../fields/json-values.ts";
-import { codeFiles, fromRoot, isSpec, parsed, staleExemptions, type Repository, type Exemptions } from "./law-files.ts";
+import { codeFiles, fromRoot, isSpec, parsed, staleExemptions, type Exemptions, type Repository } from "./law-files.ts";
 export type ImportOptions = Readonly<{
   base: string | null;
   adapters: readonly string[];
@@ -80,8 +80,14 @@ const importGuard = (repo: Repository, options: ImportOptions) => {
   };
 };
 
-export function forbidden(repo: Repository, options: ImportOptions, file: string, specifier: string): boolean {
-  return importGuard(repo, options)(file, specifier);
+export function forbidden(
+  repo: Repository,
+  options: ImportOptions,
+  file: string,
+  specifier: string,
+  rejects = importGuard(repo, options),
+): boolean {
+  return rejects(file, specifier);
 }
 
 export function strayImports(repo: Repository, options: ImportOptions): string[] {
@@ -91,7 +97,7 @@ export function strayImports(repo: Repository, options: ImportOptions): string[]
     ...staleExemptions(repo, options.adapterUsers),
     ...files.flatMap(file =>
       importsIn(parsed(file))
-        .filter(specifier => rejects(file, specifier))
+        .filter(specifier => forbidden(repo, options, file, specifier, rejects))
         .map(specifier => `${fromRoot(repo.root, file)} → ${specifier}`),
     ),
   ];

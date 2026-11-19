@@ -1,10 +1,10 @@
 // Exposes real destination forms with two synthetic endpoints and a controlled disconnection.
-import type { ActionExecution } from "../../src/fields/device-protocol.ts";
 import { generateKeyPairSync } from "node:crypto";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createDeviceProcess } from "../../src/doors/devices/device-process.ts";
 import { startTerminal } from "../../src/doors/terminal/boot.ts";
+import type { ActionExecution } from "../../src/fields/device-protocol.ts";
 import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
 import { localPorts, startHouse } from "../../src/runtime/house-runtime.ts";
 import { houseRouter } from "../../src/surface/bridge/assembly/house-router.ts";
@@ -33,6 +33,7 @@ const registry = shopProgram.registry.map(tool =>
 );
 const house = startHouse(home, {
   ...shopProgram,
+  identities: true,
   registry,
   by: "shop",
   secretKeys: new MemoryHouseKeys(),

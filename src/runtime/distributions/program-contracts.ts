@@ -1,12 +1,12 @@
 // Adapta las mitades declaradas en programas instalables para comprobarlas con sus artefactos y evidencia.
+import type { InstallableProgram } from "../../tools/installable/program.ts";
 import type { ContractSetup, Program, ToolRegistry } from "../../tools/tool-contract.ts";
+import { codeProjectionVersion } from "../calculation-version.ts";
+import type { ContractBuild, ContractEvidence, EvidenceVerifier } from "../contracts/contract-evidence.ts";
+import { contractHistory } from "../contracts/contract-history.ts";
 import { copyContractPackages } from "../contracts/contract-record.ts";
 import { checkContractBindings, createContractRuntime } from "../contracts/contract-runtime.ts";
-import { contractHistory } from "../contracts/contract-history.ts";
-import type { InstallableProgram } from "../../tools/installable/program.ts";
-import { codeProjectionVersion } from "../calculation-version.ts";
 import type { ContractPackage } from "../contracts/package-contracts.ts";
-import type { ContractBuild, ContractEvidence, EvidenceVerifier } from "../contracts/contract-evidence.ts";
 import { validateContractPrograms } from "../contracts/validate-contracts.ts";
 export type ContractualProgram = InstallableProgram &
   Partial<Pick<ContractPackage, "artifact" | "ofrece" | "pide" | "proyectores">>;
@@ -59,12 +59,16 @@ export function distributionContractIssues(
 }
 
 /** Bind before returning a composition; each opening receives its own journal and cuts. */
+const boundPackages = new WeakMap<object, readonly ContractPackage[]>();
+export const packagesForContracts = (setup: object) => boundPackages.get(setup);
 export function bindProgramContracts(
   programs: readonly ContractualProgram[],
   registry: ToolRegistry<Program>,
 ): ContractSetup<Program> {
   const packages = copyContractPackages(programContracts(programs));
   checkContractBindings(packages, { registry });
-  return source =>
+  const setup: ContractSetup<Program> = source =>
     createContractRuntime(packages, source, contractHistory(source.initial, source.slices, source.events)).context;
+  boundPackages.set(setup, packages);
+  return setup;
 }

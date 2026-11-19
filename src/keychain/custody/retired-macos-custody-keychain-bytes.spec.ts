@@ -1,9 +1,9 @@
-import { expect, it } from "vitest";
 import { randomBytes } from "node:crypto";
+import { expect, it } from "vitest";
 import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
-import { MacOSHouseKeys } from "./macos-house-keys.ts";
-import { decodeKey, encodeKey } from "./keychain-bytes.ts";
-import { keychainTimeout } from "./keychain-command.ts";
+import { decodeKey, encodeKey } from "../../../tests/support/retired-macos/keychain-bytes.ts";
+import { keychainTimeout } from "../../../tests/support/retired-macos/keychain-command.ts";
+import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
 it("el codec de bytes coincide con base64 canónico sin crear texto dentro del proveedor", () => {
   for (let n = 0; n < 20; n++) {
     const key = randomBytes(32),

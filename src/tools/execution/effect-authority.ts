@@ -1,17 +1,20 @@
 // Validate the complete returned batch before the engine adds its own execution facts.
-import { ruleEffectProblem } from "../rules/rule-effects.ts";
-import { storedHolderKit } from "../../house/kit-history.ts";
-import { selectionPath, selectionKit } from "../../house/kit-selection.ts";
-import { selectionProblem } from "../../house/kit-validation.ts";
 import { isMindActor } from "../../fields/mind-actor.ts";
 import { MindContractError } from "../../fields/mind-errors.ts";
-import { assistantEffect } from "./assistant-effects.ts";
+import { layerOf, type HouseEmission } from "../../house/facts.ts";
+import { storedHolderKit } from "../../house/kit-history.ts";
+import { selectionKit, selectionPath } from "../../house/kit-selection.ts";
+import { selectionProblem } from "../../house/kit-validation.ts";
 import { allowed, mindTool, present } from "../../house/kit.ts";
 import { houseStep } from "../../house/members.ts";
-import { layerOf, type HouseEmission } from "../../house/facts.ts";
 import { effectRefusalTexts, toolTexts } from "../../texts/tools.texts.ts";
 import type { Execution } from "../execute.ts";
+import { deviceOwnerProblem } from "../identities/device-actions.ts";
+import { isMindCardAction } from "../minds/mind-settings-actions.ts";
+import { isPersonalTool } from "../personal/personal.ts";
+import { ruleEffectProblem } from "../rules/rule-effects.ts";
 import type { ActContext, ActResult, Program, Tool } from "../tool-contract.ts";
+import { assistantEffect } from "./assistant-effects.ts";
 /** A reserved identifier, never a flag supplied by a program, identifies a core piece. */
 const corePiece = (id: string | undefined): boolean => id === "identities";
 export const coreSelf = (tool: string | undefined, by: string, target: string): boolean =>
@@ -50,6 +53,8 @@ function coreAuthority<X extends Program>(
   context: ActContext<X>,
   tool: Tool<X> | undefined,
 ): string | undefined {
+  if (each.kind === "device-registered" || each.kind === "device-accepted" || each.kind === "device-retired")
+    return deviceEffect(ports, house, each, context);
   const self =
     coreSelf(tool?.id, context.by, context.target) &&
     (each.kind === "scene" || (each.kind === "named" && each.data.identity === context.by));
@@ -90,13 +95,16 @@ export function effectRefusal<X extends Program>(
     }
     if (each.layer !== "house") return refuse(effectRefusalTexts.houseFact);
     if (each.kind === "tool-entry" && each.data.author !== context.by) return refuse(effectRefusalTexts.otherAuthor);
-    if (each.kind.startsWith("rule-")) {
-      const why = ruleEffectProblem(ports, house, each, context, tool);
+    if (each.kind === "mind-card-assigned" || each.kind.startsWith("rule-")) {
+      const why = specialEffect(ports, house, each, context, tool);
       if (why) return refuse(why);
       house = houseStep(house, { ...each, id: "validation", seq: 0, at: context.at });
       continue;
     }
-    if (source !== "house") {
+    if (tool && isPersonalTool(tool)) {
+      if (!["scene", "preferred", "attended", "unattended"].includes(each.kind) || context.target !== "personal")
+        return refuse(effectRefusalTexts.houseFact);
+    } else if (source !== "house") {
       if (source === "own" || !corePiece(tool?.id) || !house.identities) return refuse(effectRefusalTexts.houseFact);
       const why = coreAuthority(ports, house, each, context, tool);
       if (why) return refuse(why);
@@ -108,4 +116,39 @@ export function effectRefusal<X extends Program>(
     house = houseStep(house, { ...each, id: "validation", seq: 0, at: context.at });
   }
   return undefined;
+}
+
+function deviceEffect<X extends Program>(
+  ports: Execution<X>,
+  house: Parameters<typeof houseStep>[0],
+  each: HouseEmission<"device-registered" | "device-accepted" | "device-retired">,
+  context: ActContext<X>,
+) {
+  const expected = {
+    "device-registered": "register-device",
+    "device-accepted": "accept-device",
+    "device-retired": "retire-device",
+  };
+  if (ports.state().acts.get(context.id ?? "")?.data.option !== expected[each.kind])
+    return effectRefusalTexts.houseFact;
+  const owner = each.kind === "device-registered" ? each.by : house.devices.devices.get(each.data.device)?.owner;
+  if (context.target !== `identities/${owner ?? ""}`) return effectRefusalTexts.houseFact;
+  return deviceOwnerProblem(
+    { ...ports.state(), house, by: context.by },
+    context.target,
+    each.kind === "device-registered",
+  );
+}
+function specialEffect<X extends Program>(
+  ports: Execution<X>,
+  house: Parameters<typeof houseStep>[0],
+  each: HouseEmission,
+  context: ActContext<X>,
+  tool: Tool<X> | undefined,
+) {
+  if (each.kind !== "mind-card-assigned") return ruleEffectProblem(ports, house, each, context, tool);
+  const action = tool?.acts["assign-mind-card"];
+  return !action || !isMindCardAction(action)
+    ? effectRefusalTexts.houseFact
+    : coreAuthority(ports, house, each, context, tool);
 }

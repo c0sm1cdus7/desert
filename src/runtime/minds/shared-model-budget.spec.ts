@@ -90,12 +90,13 @@ it("shares the total across two fresh houses, reopening and reconstruction like 
     account.close();
   }
 });
-it("charges both the bank and thinking to explicit billing", async () => {
+it("publishes certified cards while charging the bank and thinking to explicit billing", async () => {
   const f = fixture();
   const settings = resources();
   const account = openModelSpendingAccount(f.home, settings.spendingAccount, "test", settings.capNanoUsd);
   try {
     const house = await f.open({ capNanoUsd: settings.capNanoUsd, billing: account.billing });
+    expect(house.tools.state().house.mindCards.get("mind:notas")).toHaveLength(1);
     const bank = billingAccount(account.billing, "test").spentNanoUsd;
     expect(bank).toBeGreaterThan(1.02e9);
     f.wake(house);

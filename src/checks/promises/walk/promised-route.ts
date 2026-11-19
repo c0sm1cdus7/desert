@@ -1,18 +1,20 @@
 // Reach and answer a declared case through the same keys a person uses.
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
-import { proveConstruction } from "./fixed-entries.ts";
-import { addresses } from "../../../texts/addressing.ts";
 import { asking } from "../../../surface/bridge/questions/asking.ts";
 import type { Field } from "../../../surface/contract/contract.ts";
 import { fieldOf, type Choice } from "../../../surface/session/screen.ts";
+import { addresses } from "../../../texts/addressing.ts";
+import { catalogLawTexts } from "../../../texts/catalog-laws.texts.ts";
+import { deviceTexts } from "../../../texts/devices.texts.ts";
 import { promiseTexts as said, promiseTexts as words } from "../../../texts/promises.texts.ts";
 import type { Case } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
-import { actRow, fitsSmallest, goTo, openRows, type, view, type Seat } from "../promised-keys.ts";
 import { readThrough, rowsIn } from "../../read-screen.ts";
 import { answer, type Stopped } from "../answers/promised-answer.ts";
 import { actionUnavailable } from "../off/case-availability.ts";
+import { actRow, fitsSmallest, goTo, openRows, type, view, type Seat } from "../promised-keys.ts";
 import type { Aim } from "../promised-stage.ts";
+import { proveConstruction } from "./fixed-entries.ts";
 /** Whether a row starts the act with what the case says: what the row does not ask has to be the case's already. */
 const fitting =
   (answers: readonly string[]) =>
@@ -126,6 +128,10 @@ export function walk<X extends Program>(
     const why = act?.stops?.(answers.slice(0, position + 1), kase.on ?? aim.tool.id);
     if (why !== undefined) return { kind: "cause", ask: field.ask };
   }
+  const destination = walkDestination(router, next, aim, kase, answers);
+  if (!Array.isArray(destination)) return destination;
+  answers = destination;
+
   fitsSmallest(router);
   /** What asks to be confirmed is confirmed as a person does: by the initial of the act's own verb. */
   const sure = row.with?.until === undefined ? next(answers) : null;
@@ -134,4 +140,30 @@ export function walk<X extends Program>(
   if (sure && promised !== undefined) strictEqual(sure.ask, promised, words.notSure(sure.ask));
   if (sure) type(router, aim.act.enter.charAt(0));
   return true;
+}
+
+function walkDestination<X extends Program>(
+  router: Seat<X>["router"],
+  next: (answers: readonly string[]) => Field | null,
+  aim: Aim<X>,
+  kase: Case<X>,
+  answers: readonly string[],
+): string[] | Stopped {
+  if (!aim.act.execution || aim.act.execution.at === "house") return [...answers];
+  {
+    const field = next(answers);
+    ok(field?.kind === "pick", catalogLawTexts.destinationQuestion);
+    const destination = kase.destination;
+    ok(destination, catalogLawTexts.caseDestination);
+    const selected =
+      destination.kind === "house"
+        ? deviceTexts.house
+        : field
+            .found("")
+            .find(option => option.title === deviceTexts.deviceChoice(destination.device, destination.device))?.title;
+    ok(selected, catalogLawTexts.destinationRow);
+    const outcome = answer(router, field, selected);
+    if (outcome !== true) return outcome;
+    return [...answers, selected];
+  }
 }

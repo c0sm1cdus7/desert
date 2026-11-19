@@ -21,10 +21,12 @@ it("personal scene and assistant delegation keep their rules; administrative act
     for (const act of acts.filter(each => each !== "scene" && each !== "new")) {
       const before = facts(house);
       const done = await perform(house(), "identities", { by: "beto", on: identityTarget("beto"), act, input: {} });
+      const ownedDevice = ["register-device", "accept-device", "retire-device"].includes(act);
+      const refused = ownedDevice ? toolTexts.invalid : toolTexts.kitRefusal("identities");
       expect([act, done.status, done.reason]).toEqual([
         act,
         "rejected",
-        act === "delegate-assistant" ? "asistente sin habilitar" : toolTexts.kitRefusal("identities"),
+        act === "delegate-assistant" ? "asistente sin habilitar" : refused,
       ]);
       expect(facts(house)).toBe(before);
     }

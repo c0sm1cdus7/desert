@@ -31,6 +31,7 @@ const inspectionDevices = {
   retire: denied,
   authentication: denied,
   connect: denied,
+  door: { challenge: denied, connect: denied },
   available: denied,
   close: denied,
 };
@@ -67,19 +68,23 @@ function inspectionTools<X extends Program>(
   });
   return { bus, tools };
 }
-async function inspectCopy<X extends Program, R>(
-  given: InspectionProgram<X>,
-  file: string,
-  use: (house: RunningHouse<X>, now: number) => R | Promise<R>,
-): Promise<R> {
+function prepareCopy<X extends Program>(given: InspectionProgram<X>, file: string) {
   const { runner, last } = journalKept(file);
   ok(runner, said.keptEmpty);
   // Composed as a live house composes it: the core pieces it asked for, and the guard on every new identity name.
   const program = {
     ...given,
-    registry: coreRegistry(given.registry, runner, given.identities, given.mentes?.asistentes),
+    registry: coreRegistry(given.registry, runner, given.identities, given.mentes?.asistentes, given.mentes?.programas),
   };
   checkReopenedState<X>(file, { ...program, by: runner });
+  return { program, runner, last };
+}
+type Visit<X extends Program, R> = (house: RunningHouse<X>, now: number) => R | Promise<R>;
+async function inspectPrepared<X extends Program, R>(
+  { program, runner, last }: ReturnType<typeof prepareCopy<X>>,
+  file: string,
+  use: Visit<X, R>,
+): Promise<R> {
   const journal = houseJournal(file, program.words),
     now = last + 1;
   guardJournal(journal, runner);
@@ -108,18 +113,30 @@ async function inspectCopy<X extends Program, R>(
     journal.close();
   }
 }
-/** No runtime switch: the only input is evidence, copied before opening. No key provider or adapter is opened. */
-export async function inspectKept<X extends Program, R>(
-  program: InspectionProgram<X>,
-  file: string,
-  use: (house: RunningHouse<X>, now: number) => R | Promise<R>,
-): Promise<R> {
+/** Each branch owns a fresh file; only the verified, closed seed is shared. */
+async function copied<R>(file: string, use: (copy: string) => Promise<R>): Promise<R> {
   const home = mkdtempSync(join(tmpdir(), "desert-inspection-"));
   try {
     const copy = join(home, "journal.sqlite");
     copyKeptJournal(file, copy);
-    return await inspectCopy(program, copy, use);
+    return await use(copy);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
+}
+/** No runtime switch: the only input is evidence, copied before opening. No key provider or adapter is opened. */
+export function inspectKept<X extends Program, R>(program: InspectionProgram<X>, file: string, use: Visit<X, R>) {
+  return copied(file, copy => inspectPrepared(prepareCopy(program, copy), copy, use));
+}
+/** Validate one immutable baseline, then replay each path on a separate byte-for-byte copy of that baseline. */
+export function inspectKeptPaths<X extends Program, R>(
+  program: InspectionProgram<X>,
+  file: string,
+  use: (open: <V>(visit: Visit<X, V>) => Promise<V>) => Promise<R>,
+): Promise<R> {
+  return copied(file, async seed => {
+    const prepared = prepareCopy(program, seed);
+    const open = <V>(visit: Visit<X, V>) => copied(seed, copy => inspectPrepared(prepared, copy, visit));
+    return use(open);
+  });
 }

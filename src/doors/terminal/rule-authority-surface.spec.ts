@@ -1,5 +1,6 @@
 // Reproduces authority-dependent rule wording with the production keyboard, forms and renderer.
 import { afterEach, expect, it } from "vitest";
+import { rulesTexts } from "../../texts/rules.texts.ts";
 import { effect } from "../../house/facts.ts";
 import { houseRouter } from "../../surface/bridge/assembly/house-router.ts";
 import { shopRig } from "../../../tests/support/shop-rig.ts";
@@ -60,7 +61,7 @@ it("tells a member the proposal awaits approval and preserves the active version
   await f.press("f");
   expect(f.rig.state().house.rules.active.get("terminal-rule")).toBe(1);
   expect(f.rig.state().house.rules.versions.get("terminal-rule")).toHaveLength(2);
-  expect(f.screen()).toContain("Borrador guardado; espera aprobación");
+  expect(f.screen()).toContain(rulesTexts.draft);
 });
 it("updates the effect and verb when a member becomes admin during the form", async () => {
   const f = fixture("beto");

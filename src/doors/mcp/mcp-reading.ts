@@ -44,6 +44,29 @@ function overview<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<
     avisos,
   };
 }
+function actionGroups<X extends Program>(tool: Tool<X>): readonly Tool<X>[] {
+  const groups = declared(tool) ? tool.groups : undefined;
+  if (!groups) return [tool];
+  const names = new Set(groups.flatMap(group => Object.keys(group.tool.acts)));
+  const root = Object.fromEntries(Object.entries(tool.acts).filter(([name]) => !names.has(name)));
+  return [...(Object.keys(root).length ? [{ ...tool, acts: root }] : []), ...groups.map(group => group.tool)];
+}
+function choiceSources(input: unknown): string[] {
+  if (Array.isArray(input)) return input.flatMap(choiceSources);
+  if (!isRecord(input)) return [];
+  return [...(typeof input.of === "string" ? [input.of] : []), ...Object.values(input).flatMap(choiceSources)];
+}
+function dynamicChoices<X extends Program>(ports: HousePorts<X>, act: ToolAct<X>, target?: string) {
+  if (!isProgram(act) || !act.choices || target === undefined) return {};
+  return {
+    opciones: Object.fromEntries(
+      [...new Set(choiceSources(act.input))].map(source => [
+        source,
+        programCall(act.choices?.bind(act), source, ports.state(), target) ?? [],
+      ]),
+    ),
+  };
+}
 function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X>[], on?: string) {
   const state = ports.state();
   return tools.flatMap(tool => {
@@ -52,8 +75,7 @@ function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X
       return target === undefined ? said.noThings : programOffered(act, state, target, ports.now());
     };
     const groups = declared(tool) ? tool.groups : undefined;
-    const members: readonly Tool<X>[] = groups?.map(group => group.tool) ?? [tool];
-    return members.flatMap(group =>
+    return actionGroups(tool).flatMap(group =>
       Object.entries(group.acts)
         .filter(([name]) => groups !== undefined || allowedAct(state.house, ports.me, tool.id, name))
         .flatMap(([name, act]) => {
@@ -69,6 +91,7 @@ function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X
               objetivo: target,
               para: isProgram(act) ? act.purpose : tool.purpose,
               entrada: act.input,
+              ...dynamicChoices(ports, act, target),
               ...(act.execution
                 ? {
                     execution: act.execution,

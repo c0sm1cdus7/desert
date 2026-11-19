@@ -1,4 +1,5 @@
 // The program's public terminal composition: one router for both local and remote HousePorts.
+import { coreRegistry } from "../../tools/identities/identities.ts";
 import { terminalError } from "./terminal-error.ts";
 import type { Composition } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -30,7 +31,16 @@ async function runTerminal<X extends Program>(
 ) {
   const connection = await connectTerminal<X>(root, home, token);
   const router = houseRouter(
-    socketPorts(connection, { registry: program.registry, limits: { recentLines: 40 } }),
+    socketPorts(connection, {
+      registry: coreRegistry(
+        program.registry,
+        "house",
+        program.identities,
+        program.mentes?.asistentes,
+        program.mentes?.programas,
+      ),
+      limits: { recentLines: 40 },
+    }),
     shown,
   );
   const stop = new AbortController();

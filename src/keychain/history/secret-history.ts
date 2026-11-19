@@ -30,12 +30,13 @@ function inspectAct<X extends Program>(
 ): void {
   const data = row.data;
   if (row.kind !== "act" || !isRecord(data)) return;
+  const object = typeof data.object === "string" ? data.object : "";
+  const option = typeof data.option === "string" ? data.option : "";
   const input = declaredInput(options, state, row);
   if (input) result.reviewed++;
   else result.unreviewable++;
   secretPositions(input && storedSchema(input), data.input, (value, position) => {
-    if (!isReference(value))
-      positions.push({ action: `${String(data.object)}/${String(data.option)}`, position, seq: Number(row.seq) });
+    if (!isReference(value)) positions.push({ action: `${object}/${option}`, position, seq: Number(row.seq) });
     return value;
   });
 }

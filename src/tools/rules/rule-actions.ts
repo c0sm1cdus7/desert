@@ -3,12 +3,13 @@ import { type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { object } from "../../fields/visible-text.ts";
 import { effect } from "../../house/facts.ts";
-import { ruleDefinition } from "../../house/rules/rule-schema.ts";
 import { ruleReference } from "../../house/rules/rule-facts.ts";
 import { ruleProblem } from "../../house/rules/rule-predicate.ts";
+import { ruleDefinition } from "../../house/rules/rule-schema.ts";
 import { rulesTexts as words } from "../../texts/rules.texts.ts";
 import { programAct } from "../promises.ts";
 import type { Program, State, ToolRegistry } from "../tool-contract.ts";
+import { changeRuleCases, writeRuleCases } from "./rule-cases.ts";
 import { coreRuleSchema } from "./rule-core-actions.ts";
 import { ruleForm } from "./rule-form.ts";
 export function actionSchema<X extends Program>(registry: ToolRegistry<X>, tool: string, act: string) {
@@ -31,19 +32,21 @@ export function versionProblem<X extends Program>(
     actionSchema(registry, version.definition.action.tool, version.definition.action.act),
   );
 }
-const causes = [words.invalid, words.action, words.field, words.type, words.missing, words.approved, words.inactive];
+const causes = [words.invalid, words.action, words.field, words.type];
 function writeRule<X extends Program>(registry: ToolRegistry<X>, operation: "propose" | "save") {
   return programAct<X, typeof ruleDefinition>({
     ...words[operation],
     input: ruleForm(ruleDefinition),
     on: "tool",
     undoable: true,
-    refuses: [words.only, ...causes],
+    refuses: [...(operation === "save" ? [words.only] : []), ...causes],
     offered: ({ by, house }) => (operation === "save" && by !== house.admin ? words.only : undefined),
-    stops: value =>
-      Value.Check(ruleDefinition, value)
-        ? ruleProblem(value, actionSchema(registry, value.action.tool, value.action.act))
-        : undefined,
+    stops: value => {
+      const complete = { ...value, effect: value.effect ?? "frena" };
+      return Value.Check(ruleDefinition, complete)
+        ? ruleProblem(complete, actionSchema(registry, complete.action.tool, complete.action.act))
+        : undefined;
+    },
     run: (definition, { by, state }) => {
       const previous = state.house.rules.versions.get(definition.id)?.at(-1)?.version ?? null;
       return {
@@ -52,19 +55,7 @@ function writeRule<X extends Program>(registry: ToolRegistry<X>, operation: "pro
         effects: [effect("rule-versioned", { definition, previous, version: (previous ?? 0) + 1 }, by)],
       };
     },
-    cases: [
-      {
-        promise: words.action,
-        input: {
-          id: "example",
-          text: words.example,
-          action: { tool: "absent", act: "absent" },
-          condition: { operator: "actor", kind: "identity" },
-          effect: "frena",
-        },
-        then: { refused: words.action },
-      },
-    ],
+    cases: writeRuleCases<X>(operation),
   });
 }
 function changeRule<X extends Program>(registry: ToolRegistry<X>, operation: "approve" | "retire") {
@@ -73,7 +64,7 @@ function changeRule<X extends Program>(registry: ToolRegistry<X>, operation: "ap
     input: ruleForm(ruleReference),
     on: "tool",
     undoable: true,
-    refuses: [words.only, ...causes],
+    refuses: [words.only, words.missing, operation === "approve" ? words.approved : words.inactive],
     offered: ({ by, house }) => (by !== house.admin ? words.only : undefined),
     stops: (value, state) =>
       Value.Check(ruleReference, value) ? versionProblem(value, state, registry, operation) : undefined,
@@ -82,7 +73,7 @@ function changeRule<X extends Program>(registry: ToolRegistry<X>, operation: "ap
       text: operation === "approve" ? words.activated : words.retired,
       effects: [effect(operation === "approve" ? "rule-approved" : "rule-retired", input, by)],
     }),
-    cases: [{ promise: words.missing, input: { id: "absent", version: 1 }, then: { refused: words.missing } }],
+    cases: changeRuleCases<X>(operation),
   });
 }
 export function ruleWriteActions<X extends Program>(registry: ToolRegistry<X>) {
@@ -102,14 +93,14 @@ export function ruleConsult<X extends Program>() {
     output: true,
     run: (_, { state }) => ({
       status: "accepted",
-      text: ruleReading(state),
+      text: words.consulted(ruleReading(state)),
       value: [...state.house.rules.versions].map(([id, versions]) => ({
         id,
         versions,
         active: state.house.rules.active.get(id) ?? null,
       })),
     }),
-    cases: [{ promise: words.empty, input: {}, then: { says: words.empty, facts: [] } }],
+    cases: [{ promise: words.empty, input: {}, then: { says: words.consulted(words.empty), facts: [] } }],
   });
 }
 export function ruleReading<X extends Program>(state: State<X>): string {

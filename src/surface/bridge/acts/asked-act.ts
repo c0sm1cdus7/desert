@@ -1,22 +1,22 @@
 // A declared action as questions and confirmation, preserving the receiver of each program method.
-import { executionDestination } from "./execution-destination.ts";
-import { rulePresentation } from "./rule-presentation.ts";
-import { capital } from "../../../texts/capital.ts";
-import { currencyQuestions } from "../questions/currency-defect.ts";
 import { programCall } from "../../../fields/program-call.ts";
-import { declaredCause } from "../../../tools/execution/program-causes.ts";
 import { hides } from "../../../house/members.ts";
+import { capital } from "../../../texts/capital.ts";
 import { genericTexts as generic } from "../../../texts/generic-surface.texts.ts";
+import { declaredCause } from "../../../tools/execution/program-causes.ts";
 import type { ProgramAct } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import type { Field } from "../../contract/contract.ts";
 import type { Locale } from "../../formats/masks.ts";
 import { offeredOn } from "../picking/picked.ts";
-import { currentAnswers } from "../questions/current-answers.ts";
+import type { SurfacePorts } from "../ports/house-ports.ts";
 import { questionWords } from "../questions/asking-clock.ts";
 import { asking, type Asking, type AskWords } from "../questions/asking.ts";
+import { currencyQuestions } from "../questions/currency-defect.ts";
+import { currentAnswers } from "../questions/current-answers.ts";
+import { executionDestination } from "./execution-destination.ts";
 import { programResult } from "./program-result.ts";
-import type { SurfacePorts } from "../ports/house-ports.ts";
+import { rulePresentation } from "./rule-presentation.ts";
 
 /** Confirmation tells what will happen and who confirms it, after the declared questions end. */
 function confirmation<X extends Program>(ports: SurfacePorts<X>, act: ProgramAct<X>, ask: Asking, tool: string) {
@@ -72,7 +72,7 @@ type Own<X extends Program> = Readonly<{ tool: string; name: string; act: Progra
 export function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
   const declared = asking(act.input, {
     ...questionWords(ports.now, asked, { state: ports.state, target: tool }),
-    things: asked.things,
+    things: actionThings(ports, act, tool, asked),
     cause: reason => declaredCause(act.refuses, reason),
   });
   const ask = {
@@ -108,4 +108,22 @@ export function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, 
     },
   };
   return { name, act, ask, walk };
+}
+
+function actionThings<X extends Program>(
+  ports: SurfacePorts<X>,
+  act: ProgramAct<X>,
+  tool: string,
+  asked: Asked,
+): NonNullable<AskWords["things"]> {
+  return (source: string, target?: string) => {
+    const options = programCall(act.choices?.bind(act), source, ports.state(), target ?? tool);
+    if (options === undefined) return asked.things(source, target);
+    return {
+      found: sought => options.filter(option => option.title.toLowerCase().includes(sought.toLowerCase())),
+      shown: value => options.find(option => option.value === value)?.title ?? value,
+      has: value => options.some(option => option.value === value),
+      empty: "",
+    };
+  };
 }

@@ -1,17 +1,22 @@
 // Adapts action callbacks and cases while guarding the owning group and folder versus object distinction.
-import { adaptReject, mapResult } from "./action-results.ts";
-import { toolTexts } from "../../texts/tools.texts.ts";
 import { OutsideDefect } from "../../fields/program-call.ts";
-import type { ProgramAct, Case, Step } from "../promises-contract.ts";
-import type { Program, State, ActContext } from "../tool-contract.ts";
+import { toolTexts } from "../../texts/tools.texts.ts";
+import type { Case, ProgramAct, Step } from "../promises-contract.ts";
+import type { ActContext, Program, State } from "../tool-contract.ts";
+import { adaptReject, mapResult } from "./action-results.ts";
+import { folderOf, localTarget, objectOf } from "./destinations.ts";
 import type { ProgramGroup } from "./program.ts";
 import { localState } from "./runtime.ts";
-import { folderOf, objectOf, localTarget } from "./destinations.ts";
 const targetOf = (id: string, group: string, target?: string) =>
   target === undefined || target === group ? folderOf(id, group) : objectOf(id, group, target);
 function casesOf<X extends Program>(id: string, group: string, cases: readonly Case<X>[]): readonly Case<Program>[] {
   const step = (each: Step): Step =>
-    "days" in each || "doorKey" in each
+    "days" in each ||
+    "doorKey" in each ||
+    "mindCards" in each ||
+    "invitation" in each ||
+    "device" in each ||
+    "scene" in each
       ? each
       : { ...each, act: `${group}/${each.act}`, on: targetOf(id, group, each.on) };
   return cases.map(each => ({
@@ -64,6 +69,7 @@ function adaptQuestions<X extends Program>(
   target: (s: string) => string,
 ): Partial<ProgramAct<Program>> {
   return {
+    ...(act.choices ? { choices: (source, s, t) => act.choices?.(source, stateOf(s), target(t)) } : {}),
     ...(act.today ? { today: (s, t, at) => act.today?.(stateOf(s), target(t), at) } : {}),
     ...(act.confirms ? { confirms: (i, s, t, at) => act.confirms?.(i, stateOf(s), target(t), at) } : {}),
     ...(act.datum ? { datum: (s, t) => act.datum?.(stateOf(s), target(t)) } : {}),
@@ -97,6 +103,7 @@ function plainAction<X extends Program>(act: ProgramAct<X>) {
     datum: _datum,
     stops: _stops,
     among: _among,
+    choices: _choices,
     reject: _reject,
     also: _also,
     ...plain

@@ -1,20 +1,42 @@
 // The declarations a program supplies once, shared by execution, surfaces and derived checks.
+import type { Static, TSchema } from "@sinclair/typebox";
 import type { ProgramWords } from "../fields/installable-words.ts";
 import type { KitMigration } from "../house/kit-migration.ts";
+import type { Vocabulary } from "../journal/vocabulary.ts";
 import type { AdapterComposition } from "./adapter-contract.ts";
 import type { CalculationVersion } from "./calculation-contract.ts";
-import type { Static, TSchema } from "@sinclair/typebox";
-import type { Vocabulary } from "../journal/vocabulary.ts";
-import type { SoFar } from "./so-far.ts";
-import type { ProgramOutside, ProgramRun } from "./promises.ts";
 import type { RunResult } from "./outside.ts";
+import type { ProgramOutside, ProgramRun } from "./promises.ts";
+import type { SoFar } from "./so-far.ts";
 import type { ActContext, ContractSetup, Program, Reach, Slices, State, Tool, ToolAct } from "./tool-contract.ts";
 /** Something that already happened before a case: an act of the program, by one of the house's identities. */
-export type Did = Readonly<{ act: string; input: unknown; on?: string; by?: string }>;
+export type Did = Readonly<{
+  act: string;
+  input: unknown;
+  destination?: import("../fields/device-protocol.ts").ExecutionDestination;
+  on?: string;
+  by?: string;
+}>;
 /** What a case says came before it: each thing someone did and, when the case is about what time does, the whole
  * days that passed before what comes next. */
 export type Step =
   | Did
+  /** A conserved scene may still name identities that have left the house. */
+  | Readonly<{ scene: Readonly<{ by: string; general: string; to: Readonly<Record<string, string>> }> }>
+  | Readonly<{
+      device: Readonly<{
+        id: string;
+        owner: string;
+        tool: string;
+        version: string;
+        actions: readonly string[];
+        result: string;
+      }>;
+    }>
+  | Readonly<{ invitation: Readonly<{ id: string; identity: string }> }>
+  | Readonly<{
+      mindCards: Readonly<{ mind: string; cards: readonly import("../house/minds/mind-settings.ts").MindAssignment[] }>;
+    }>
   | Readonly<{ days: number }>
   /** Synthetic host provisioning for cases of core door administration; no material is declared. */
   | Readonly<{ doorKey: Readonly<{ id: string; identity: string; door: "agente" | "terminal" }> }>;
@@ -50,6 +72,7 @@ export type Case<X extends Program, S extends TSchema = TSchema> = Readonly<{
   /** The thing of another tool the person takes it from, when the case is about taking it from there. */
   from?: string;
   input: Static<S>;
+  destination?: import("../fields/device-protocol.ts").ExecutionDestination;
   then: Outcome<X>;
 }>;
 /** How an act stands on a surface, by parts; no part is a sentence. `name` is what its row says, in lower case:

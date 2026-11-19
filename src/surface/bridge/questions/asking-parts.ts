@@ -1,15 +1,15 @@
 // What asking an act and reading its answers share: how a declared field says its question, its options and its value.
-import { at, isList, plain } from "../../../fields/json-values.ts";
-import { moneyQuestion, type MoneyContext } from "./money-question.ts";
-import { secretReason } from "./secret-reason.ts";
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { wrongIn } from "../../../fields/fields.ts";
+import { at, isList, plain } from "../../../fields/json-values.ts";
 import { visibleText } from "../../../fields/visible-text.ts";
 import { addresses } from "../../../texts/addressing.ts";
-import { wrongIn } from "../../../fields/fields.ts";
 import { genericTexts as generic } from "../../../texts/generic-surface.texts.ts";
 import type { Field, Option } from "../../contract/contract.ts";
 import { isFormat, limited, padded, shaped, type Format, type FormatName } from "../../formats/masks.ts";
+import { moneyQuestion, type MoneyContext } from "./money-question.ts";
+import { secretReason } from "./secret-reason.ts";
 /** The things of a tool as an answer can pick them: found by what a person types, shown by their name. */
 export type Things = Readonly<{
   found(sought: string): readonly Option[];
@@ -25,7 +25,7 @@ export type Things = Readonly<{
 export type AskWords = MoneyContext &
   Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string }> &
   Readonly<{
-    things?: (tool: string) => Things | undefined;
+    things?: (tool: string, target?: string) => Things | undefined;
     secret?: (material: string, position: number) => string;
     cause?: (reason: string | undefined) => string | undefined;
   }> &
@@ -50,6 +50,11 @@ export const titleOf = (schema: unknown, ctx: Ctx): string =>
 export const armsOf = (schema: unknown): readonly unknown[] => {
   const arms = at(schema, "anyOf");
   return isList(arms) ? arms : [];
+};
+/** A closed set may have one literal after TypeBox collapses its union. */
+export const markedArms = (schema: unknown): readonly unknown[] => {
+  const items = at(schema, "items");
+  return at(items, "const") !== undefined ? [items] : armsOf(items);
 };
 export const choiceOf = (literal: unknown): Option => ({ title: word(literal, "title"), key: word(literal, "key") });
 /** The property every shape of a union carries as one fixed option: what tells them apart. */
@@ -82,7 +87,7 @@ export const valueOf = (schema: unknown, ctx: Ctx, answer: string): unknown => {
  * that may go without one says what that is called, and opens on it. */
 function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   /** Asked for each time: when a program is composed the other tools may not be there yet. */
-  const things = (): Things | undefined => ctx.things?.(of);
+  const things = (): Things | undefined => ctx.things?.(of, ctx.target);
   const absent = ctx.optional ? word(schema, "none") : "";
   const none: Option = { title: absent, value: "" };
   const makes = at(schema, "makes");

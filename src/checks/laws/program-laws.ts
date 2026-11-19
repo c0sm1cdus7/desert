@@ -2,26 +2,27 @@
 import { join } from "node:path";
 import ts from "typescript";
 import { isRecord } from "../../fields/json-values.ts";
-import { codeFiles, fromRoot, withParsedFiles, type Repository } from "./law-files.ts";
-import { importCycles } from "./cycles.ts";
-import { strayImports } from "./imports.ts";
 import { outsideAccess, outsideGlobals } from "./adapters.ts";
-import { longFiles, longLines, repeatedClasses, unsafeCasts, switchedOffChecks, looseCompiler } from "./size.ts";
+import { uncataloguedWords } from "./biases.ts";
+import { catalogLaws } from "./catalog-coverage.ts";
+import { importCycles } from "./cycles.ts";
 import {
-  readLint,
+  gateScripts,
   ignoredFiles,
   looseRules,
-  gateScripts,
   packageShape,
+  readLint,
   skippedTests,
   strayTests,
   uncollectedTests,
 } from "./gate.ts";
-import { uncataloguedWords } from "./biases.ts";
-import { hiddenRules, instructionFiles } from "./prompts.ts";
+import { strayImports } from "./imports.ts";
+import { codeFiles, fromRoot, withParsedFiles, type Repository } from "./law-files.ts";
 import { messageCoverage } from "./message-coverage.ts";
 import { programImports } from "./program-imports.ts";
 import { programLawOptions } from "./program-law-options.ts";
+import { hiddenRules, instructionFiles } from "./prompts.ts";
+import { longFiles, longLines, looseCompiler, repeatedClasses, switchedOffChecks, unsafeCasts } from "./size.ts";
 
 /** Compiled program files also belong to a declared law folder, including a separate startup folder. */
 export function uncoveredCode(repo: Repository, options: Readonly<{ base: string | null }>): string[] {
@@ -70,5 +71,6 @@ export async function programLaws(root: string): Promise<string[]> {
     ...hiddenRules(repo, { exempt: options.exemptRules }),
     ...instructionFiles(repo, options),
     ...messageCoverage(repo),
+    ...catalogLaws(repo, options.catalog),
   ]);
 }

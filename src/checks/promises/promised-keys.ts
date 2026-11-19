@@ -1,18 +1,18 @@
 // How a derived check moves through a program by keys: from the Menu to a tool, to one of its things, to an act's row.
 import { ok, strictEqual } from "node:assert/strict";
-import type { ExecutionResult } from "../../tools/execute.ts";
 import type { Act } from "../../house/own-acts.ts";
 import { caseInstant } from "../../journal/clock.ts";
-import type { Shown } from "../../surface/bridge/ports/house-ports.ts";
+import { localPorts } from "../../runtime/house-runtime.ts";
 import { houseTools } from "../../surface/bridge/assembly/house-tools.ts";
+import type { Shown } from "../../surface/bridge/ports/house-ports.ts";
+import { questionWords } from "../../surface/bridge/questions/asking-clock.ts";
 import type { Tool } from "../../surface/contract/shown-tool.ts";
-import { startRouter, type Router } from "../../surface/router/router.ts";
 import { choices, stacksOf } from "../../surface/menus/lists.ts";
+import { startRouter, type Router } from "../../surface/router/router.ts";
 import type { Choice } from "../../surface/session/screen.ts";
 import { promiseTexts as said } from "../../texts/promises.texts.ts";
+import type { ExecutionResult } from "../../tools/execute.ts";
 import type { Program } from "../../tools/tool-contract.ts";
-import { questionWords } from "../../surface/bridge/questions/asking-clock.ts";
-import { localPorts } from "../../runtime/house-runtime.ts";
 import type { Aim, House } from "./promised-stage.ts";
 export const view = { rows: 40 };
 /** The room a list has on the smallest terminal there is, 40×16. */
@@ -51,7 +51,7 @@ export function seated<X extends Program>(house: House<X>, by: string, shown: Sh
   const requests: Act[] = [];
   const defects: string[] = [];
   const act = (value: Act, through: number) => {
-    if (value.act !== "attend") requests.push(value);
+    if (value.act !== "attend" || value.target !== undefined) requests.push(value);
     return recordResult(ports.act(value, through), defects);
   };
   const tools = houseTools({ ...ports, act }, shown);

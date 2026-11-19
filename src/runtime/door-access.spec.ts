@@ -104,3 +104,19 @@ it("refuses expiration reached between fingerprint verification and the transact
     transaction.mockRestore();
   }
 });
+
+it("redeems through the catalog action without retaining its private material", async () => {
+  const h = doorHouse();
+  opened.push(h);
+  const code = invitationCode(await h.act("invite", { door: "agente" }, "identities/beto"));
+  const result = h.access().redeem(code);
+  expect(result.status).toBe(200);
+  const acts = h.house().journal.replay<string[]>([], (found, event) => {
+    if (event.layer === "house" && event.kind === "act") found.push(event.data.option);
+    return found;
+  });
+  expect(acts.filter(act => act === "redeem-invitation")).toHaveLength(1);
+  expect(result.key).toBeDefined();
+  expect(h.history()).not.toContain(result.key);
+  expect(h.access().redeem(code).status).toBe(400);
+});

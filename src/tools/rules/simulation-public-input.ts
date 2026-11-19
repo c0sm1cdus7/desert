@@ -1,9 +1,10 @@
 // Removes schema-declared secret positions before simulation requests reach any public record.
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { fine } from "../../fields/fields.ts";
 import { isRecord } from "../../fields/json-values.ts";
-import { hasSecretInput } from "../inputs/secret-input.ts";
 import { ruleReference } from "../../house/rules/rule-facts.ts";
+import { hasSecretInput } from "../inputs/secret-input.ts";
 import type { Program, State, ToolRegistry } from "../tool-contract.ts";
 import { actionSchema } from "./rule-actions.ts";
 
@@ -97,4 +98,16 @@ export function publicSimulationInput<X extends Program>(
   } catch {
     return empty;
   }
+}
+
+export function prepareSimulationAct<X extends Program>(
+  value: import("../../house/own-acts.ts").Act,
+  state: State<X>,
+  registry: ToolRegistry<X>,
+) {
+  if (value.target !== "rules" || value.act !== "simulate") return value;
+  const schema = registry.find(tool => tool.id === "rules")?.acts.simulate?.input;
+  return schema && Value.Check(schema, value.input) && fine(schema, value.input)
+    ? { ...value, input: publicSimulationInput(value.input, state, registry) }
+    : undefined;
 }

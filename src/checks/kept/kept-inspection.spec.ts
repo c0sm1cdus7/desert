@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { keptFixture } from "../../../tests/support/kept-inspection.ts";
 import { inspectKept } from "./kept-inspection.ts";
 import * as calculations from "../calculations/check-calculations.ts";
+import { InspectionUnavailable } from "../../tools/failures/inspection-unavailable.ts";
 const copies = () => readdirSync(tmpdir()).filter(name => name.startsWith("desert-inspection-"));
 for (const fails of [false, true])
   it(`X01: borra la copia privada al terminar, falla=${fails}`, async () => {
@@ -53,8 +54,15 @@ it("la inspección no crea auxiliares ni cambia los bytes junto a la evidencia",
   const fixture = keptFixture();
   fixture.save();
   const before = readFileSync(fixture.file);
-  await inspectKept(fixture.program, fixture.file, () => {
+  await inspectKept(fixture.program, fixture.file, house => {
     expect(readdirSync(fixture.folder)).toEqual(["kept.sqlite"]);
+    expect(() => house.devices.door.challenge("device")).toThrow(InspectionUnavailable);
+    expect(() =>
+      house.devices.door.connect("challenge", "synthetic", {
+        inventory: [],
+        receive: () => Promise.resolve({ status: "accepted", reference: "unused" }),
+      }),
+    ).toThrow(InspectionUnavailable);
   });
   expect(readFileSync(fixture.file)).toEqual(before);
   expect(readdirSync(fixture.folder)).toEqual(["kept.sqlite"]);

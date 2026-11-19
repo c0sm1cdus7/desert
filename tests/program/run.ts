@@ -12,7 +12,7 @@ export async function runProgramPart(part: number): Promise<void> {
   sameProgramList(groups, inject("programList"));
   registerPart(groups, part, (name, checks) => {
     describe(name, () => {
-      for (const check of checks) it(check.name, check.run);
+      for (const check of checks) it(check.name, check.run, check.timeoutMs);
     });
   });
 }

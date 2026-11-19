@@ -20,7 +20,7 @@ it.each(mindEffects(by))("$kind rechaza campos ausentes y extra", event => {
 });
 it("reconstruye turnos, consulta, revisión, escenas y mensajes tras reabrir", () => {
   const rig = open();
-  for (const event of mindEffects(by).filter(
+  for (const event of mindEffects(by, "ana").filter(
     event => event.kind.startsWith("mind-") && event.kind !== "mind-card-assigned",
   ))
     rig.bus.emit(event);
@@ -32,6 +32,14 @@ it("reconstruye turnos, consulta, revisión, escenas y mensajes tras reabrir", (
   rig.restart();
   expect(rig.state().house.minds).toEqual(before);
   expect(() => rig.bus.emit(effect("mind-scene", { turn: "t1", text: "Tarde" }, by))).toThrow();
+});
+it("rejects card publication by the assistant without recording it", () => {
+  const rig = open();
+  const publication = effect("mind-cards-published", { mind: by, cards: [] }, by);
+  const before = rig.facts();
+  expect(() => rig.bus.emit(publication)).toThrow("card.admin");
+  expect(rig.facts()).toEqual(before);
+  expect(rig.state().house.mindCards.size).toBe(0);
 });
 it("rechaza consulta duplicada, respuesta sin pregunta, autor cambiado y turnos simultáneos", () => {
   const rig = open();

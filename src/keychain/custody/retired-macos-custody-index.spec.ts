@@ -1,8 +1,8 @@
 import { expect, it } from "vitest";
-import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
 import { custodyHead, custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
-import { MacOSHouseKeys } from "./macos-house-keys.ts";
-import { SecretCustody } from "../custody/secret-custody.ts";
+import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
+import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
+import { SecretCustody } from "./secret-custody.ts";
 const indexId = (fake: ReturnType<typeof fakeKeychain>) =>
   [...fake.saved.keys()].find(id => id.includes("custody-index")) ?? "";
 it("300 altas simultáneas y 300 purgas no cortan el índice ni hacen crecer el ancla", () => {

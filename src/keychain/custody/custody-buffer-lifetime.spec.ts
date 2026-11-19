@@ -1,9 +1,9 @@
-import { expect, it, vi } from "vitest";
 import { DatabaseSync } from "node:sqlite";
+import { expect, it, vi } from "vitest";
 import { custodyRig } from "../../../tests/support/custody-rig.ts";
-import { CustodyCipher } from "./custody-cipher.ts";
-import { MacOSHouseKeys } from "../macos/macos-house-keys.ts";
 import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
+import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
+import { CustodyCipher } from "./custody-cipher.ts";
 it("descifrar borra también los fragmentos nativos que concatena, no solamente el resultado prestado", () => {
   const rig = custodyRig(),
     cipher = new CustodyCipher("house", rig.keys);
@@ -39,7 +39,7 @@ it("adoptar una fila borra tanto el BLOB de SQLite como el búfer de comparació
     if (result.type === "return") expect(result.value.every(byte => byte === 0)).toBe(true);
 });
 it("el proveedor borra el aleatorio y la codificación temporal de una llave recién creada", async () => {
-  const codec = await import("../macos/keychain-bytes.ts");
+  const codec = await import("../../../tests/support/retired-macos/keychain-bytes.ts");
   const encoded = vi.spyOn(codec, "encodeKey"),
     fake = fakeKeychain();
   new MacOSHouseKeys(fake.command).key("house", true);

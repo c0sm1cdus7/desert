@@ -1,13 +1,13 @@
 // Administra dispositivos del dueño y conexiones técnicas separadas de las sesiones de identidad.
 import { supportsDeviceAction, type DeviceRequest } from "../../fields/device-protocol.ts";
-import { readonlyState } from "../../journal/readonly-state.ts";
 import type { House } from "../../house/members.ts";
+import { readonlyState } from "../../journal/readonly-state.ts";
 import type { HouseBus } from "../../journal/vocabulary.ts";
-import type { Program, ToolRegistry } from "../../tools/tool-contract.ts";
 import { deviceTexts } from "../../texts/devices.texts.ts";
-import { deviceDispatcher, type DeviceConnection } from "./device-dispatch.ts";
-import { deviceRegistrationAccess } from "./device-registration.ts";
+import type { Program, ToolRegistry } from "../../tools/tool-contract.ts";
+import { createDeviceDoor } from "./device-authentication.ts";
 import { deviceConnections, recoverDevices } from "./device-connections.ts";
+import { deviceDispatcher, type DeviceConnection } from "./device-dispatch.ts";
 const matches = (connection: DeviceConnection, tool: string, version: string, action: string) =>
   supportsDeviceAction(connection.endpoint.inventory, tool, version, action);
 function availability<X extends Program>(
@@ -74,11 +74,14 @@ export function createDeviceRuntime<X extends Program>(
     scrub,
   );
   recoverDevices(bus, state(), host);
-  return {
-    dispatch,
-    ...deviceRegistrationAccess(bus, state, access.checkOpen),
+  const connection = {
     authentication: (id: string) => access.ready(id).publicKey,
     connect: live.connect,
+  };
+  return {
+    dispatch,
+    ...connection,
+    door: createDeviceDoor(connection),
     available: availability(state, registry, live.connections),
     close() {
       if (access.close()) live.close();

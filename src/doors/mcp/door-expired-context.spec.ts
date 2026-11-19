@@ -2,7 +2,7 @@
 import { expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { startHouse } from "../../runtime/house-runtime.ts";
-import { doorAccess } from "../../runtime/door-access.ts";
+import { liveDoorKeys } from "../socket/peers/live-door-keys.ts";
 import { shopProgram, type Shop } from "../../../tests/support/shop.ts";
 import { rpcRequest } from "../../../tests/support/door-house.ts";
 import { MemoryHouseKeys } from "../../keychain/custody/house-keys.ts";
@@ -48,7 +48,7 @@ it.each([false, true])("rejects a detached continuation after revocation (pendin
     creation: { admin: "ana", assignments: [{ identity: "beto", tools: ["sales"] }] },
     founderDoorKeys: { read: () => new Map([[key, { identity: "beto", door: "agente" }]]), present: () => false },
   });
-  const access = doorAccess(house.bus, () => house.tools.state().house, house.now);
+  const access = liveDoorKeys(house);
   const door = mcpDoor(house, { name: "Test", version: "1", limits: { recentLines: 20 } });
   try {
     await door.handle(

@@ -3,10 +3,12 @@ import { deepFreeze, type Event, type Foreign, type Vocabulary } from "../../jou
 import { stateResult } from "../../journal/readonly-state.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { isImmutableSchema } from "../../fields/schema-shape.ts";
 import { storedSchema } from "./secret-positions.ts";
 
 export function protectedVocabulary<P extends Foreign>(words: Vocabulary<P>): Vocabulary<P> {
   const event = Type.Unsafe<Event<P>>(storedSchema(words.event));
+  if (isImmutableSchema(words.event)) deepFreeze(event);
   return {
     ...words,
     event,

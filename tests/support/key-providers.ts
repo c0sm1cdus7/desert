@@ -1,8 +1,8 @@
 import { afterEach } from "vitest";
-import { MemoryHouseKeys, type HouseKeyProvider } from "../../src/keychain/custody/house-keys.ts";
-import { MacOSHouseKeys } from "../../src/keychain/macos/macos-house-keys.ts";
 import { RootHouseKeys } from "../../src/keychain/cloud/root-house-keys.ts";
+import { MemoryHouseKeys, type HouseKeyProvider } from "../../src/keychain/custody/house-keys.ts";
 import { fakeKeychain } from "./fake-keychain.ts";
+import { MacOSHouseKeys } from "./retired-macos/macos-house-keys.ts";
 const roots: RootHouseKeys[] = [];
 afterEach(() => roots.splice(0).forEach(keys => keys.dispose()));
 function rootKeys(home: string): RootHouseKeys {
