@@ -31,7 +31,6 @@ function identityInput<X extends Program>(catalog: ToolRegistry<X>) {
 export function newIdentity<X extends Program>(registry: ToolRegistry<X>, runner: string) {
   const catalog = registry.filter(tool => !systemTool(tool.id));
   const input = identityInput(catalog);
-  const tools = catalog.map(tool => tool.id);
   return programAct<X, typeof input>({
     ...words.new,
     on: "tool",
@@ -57,6 +56,6 @@ export function newIdentity<X extends Program>(registry: ToolRegistry<X>, runner
         ],
       };
     },
-    cases: newIdentityCases<X>(tools),
+    cases: newIdentityCases<X>(catalog),
   });
 }

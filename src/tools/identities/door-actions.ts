@@ -1,15 +1,16 @@
 // Admin-only invitation recovery and key revocation use the normal identity action engine.
-import { mindTool } from "../../house/kit.ts";
-import { object } from "../../fields/visible-text.ts";
 import { oneOf, option, text } from "../../fields/fields.ts";
+import { object } from "../../fields/visible-text.ts";
 import { issueInvitation } from "../../house/doors/door-material.ts";
 import { effect } from "../../house/facts.ts";
+import { mindTool } from "../../house/kit.ts";
 import { doorTexts as words } from "../../texts/doors.texts.ts";
 import { identityTexts } from "../../texts/identities.texts.ts";
 import { programAct } from "../promises.ts";
 import type { Program } from "../tool-contract.ts";
-import { targetIdentity } from "./identity-reading.ts";
 import { invitationCases, revocationCases } from "./door-cases.ts";
+import { redeemInvitationAction } from "./door-redemption-action.ts";
+import { targetIdentity } from "./identity-reading.ts";
 function inviteAction<X extends Program>() {
   const invitation = object({
     door: oneOf(words.door, option("agente", words.agent, "a"), option("terminal", words.terminal, "t")),
@@ -59,4 +60,8 @@ function revokeAction<X extends Program>() {
     cases: revocationCases<X>(),
   });
 }
-export const doorActions = <X extends Program>() => ({ invite: inviteAction<X>(), "revoke-key": revokeAction<X>() });
+export const doorActions = <X extends Program>() => ({
+  invite: inviteAction<X>(),
+  "revoke-key": revokeAction<X>(),
+  "redeem-invitation": redeemInvitationAction<X>(),
+});

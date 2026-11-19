@@ -1,7 +1,7 @@
-// Adopta proveedores anteriores por un manifiesto y un borde de bytes; verifica antes de retirar.
-import type { SecretCustody } from "../custody/secret-custody.ts";
-import type { SecretRef } from "../custody/custody-contract.ts";
-import { CustodyError } from "../custody/house-keys.ts";
+// Historical migration verifies byte-oriented legacy providers before removing their stored values.
+import type { SecretRef } from "../../../src/keychain/custody/custody-contract.ts";
+import { CustodyError } from "../../../src/keychain/custody/house-keys.ts";
+import type { SecretCustody } from "../../../src/keychain/custody/secret-custody.ts";
 /** The owner supplies every source/destination explicitly; KeyStore has no reliable enumeration contract. */
 export async function importLegacyKeys(
   custody: SecretCustody,

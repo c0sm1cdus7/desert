@@ -1,18 +1,25 @@
 // Where a derived check runs: a real house on disk at a fixed instant, its three people, an act done as anyone does.
-import { issueDoorKey } from "../../house/doors/door-material.ts";
-import { MemoryHouseKeys } from "../../keychain/custody/house-keys.ts";
 import { ok } from "node:assert/strict";
-import { join } from "node:path";
-import { checkReopenedState } from "../calculations/reopened-state.ts";
 import { rmSync } from "node:fs";
-import { promiseHome } from "../promise-temporaries.ts";
+import { join } from "node:path";
+import { systemTool } from "../../house/system-tools.ts";
 import { caseInstant, type TimeSource } from "../../journal/clock.ts";
+import { MemoryHouseKeys } from "../../keychain/custody/house-keys.ts";
+import { checkReopenedState } from "../calculations/reopened-state.ts";
+import { promiseHome } from "../promise-temporaries.ts";
+import { coreRegistry } from "../../tools/identities/identities.ts";
+import { coreStep } from "./core-step.ts";
 
+import { startHouse } from "../../runtime/house-runtime.ts";
 import { promiseTexts as said } from "../../texts/promises.texts.ts";
 import type { Composition, Did, ProgramAct, ProgramTool, Step } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
-import { startHouse } from "../../runtime/house-runtime.ts";
-export type Check = Readonly<{ name: string; run: () => Promise<void>; report?: () => string | undefined }>;
+export type Check = Readonly<{
+  name: string;
+  run: () => Promise<void>;
+  report?: () => string | undefined;
+  timeoutMs?: number;
+}>;
 /** Who lives in the house a case runs in: ana administers it, beto holds every tool, carla holds none. */
 export const cast = { admin: "ana", member: "beto", outsider: "carla" } as const;
 const dayMs = 24 * 3_600_000;
@@ -36,7 +43,7 @@ function open<X extends Program>(
   { time, pass, setTime }: Clock,
   secretKeys: MemoryHouseKeys,
 ) {
-  const tools = program.registry.filter(tool => tool.id !== "identities").map(tool => tool.id);
+  const tools = program.registry.filter(tool => !systemTool(tool.id)).map(tool => tool.id);
   const holding = [cast.admin, cast.member].map(identity => ({ identity, tools }));
   const assignments = [...holding, { identity: cast.outsider, tools: [] }];
   const creation = { admin: cast.admin, assignments };
@@ -51,7 +58,17 @@ function open<X extends Program>(
  * role's cases on the bench. A check that brings them keeps its minds. */
 function withoutMinds<X extends Program>(program: Composition<X>): Composition<X> {
   return program.mentes && !("modelMinds" in program)
-    ? { ...program, mentes: { asistentes: false, programas: [] } }
+    ? {
+        ...program,
+        registry: coreRegistry(
+          program.registry,
+          runner,
+          program.identities,
+          program.mentes.asistentes,
+          program.mentes.programas,
+        ),
+        mentes: { asistentes: false, programas: [] },
+      }
     : program;
 }
 export type House<X extends Program> = ReturnType<typeof open<X>>;
@@ -86,9 +103,13 @@ export async function staged<X extends Program>(program: Composition<X>, use: (s
 export type Doing = Did & Readonly<{ attends?: boolean }>;
 /** One act as anyone does it: the target in view first, then the act; the answer is what the house decided. */
 export async function perform<X extends Program>(house: House<X>, tool: string, doing: Doing) {
-  const { by = cast.admin, on: target = tool, act, input, attends = true } = doing;
+  const { by = cast.admin, on: target = tool, act, input, destination, attends = true } = doing;
   if (attends) house.tools.act({ act: "attend", input: { target } }, 0, by);
-  const started = house.tools.act({ act, target, input }, house.tools.state().through, by);
+  const started = house.tools.act(
+    { act, target, input, ...(destination ? { destination } : {}) },
+    house.tools.state().through,
+    by,
+  );
   return started.status === "processing" ? started.completion : started;
 }
 export type Decided<X extends Program> = Awaited<ReturnType<typeof perform<X>>>;
@@ -109,16 +130,12 @@ export async function given<X extends Program>(
 ): Promise<void> {
   if (at !== undefined) house.setTime(at);
   for (const step of steps) {
-    if ("doorKey" in step) {
-      const { id, identity, door } = step.doorKey;
-      const { fact } = issueDoorKey(identity, door, house.tools.state().house.admin);
-      house.bus.emit({ ...fact, data: { ...fact.data, id } });
-      continue;
-    }
+    if (coreStep(house, step)) continue;
     if ("days" in step) {
       house.pass(step.days);
       continue;
     }
+    if (!("act" in step)) throw new Error("Unsupported case step");
     const done = await perform(house, tool, step);
     ok(done.status === "accepted", said.givenRefused(step.act, done.reason ?? done.status));
   }

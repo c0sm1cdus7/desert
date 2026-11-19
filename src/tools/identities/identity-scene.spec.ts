@@ -4,6 +4,8 @@ import { identitiesProgram, identitiesShown } from "../../../tests/support/ident
 import { houseTools } from "../../surface/bridge/assembly/house-tools.ts";
 import { localPorts } from "../../runtime/house-runtime.ts";
 import { sceneLimits } from "../../house/own-acts.ts";
+import { houseRouter } from "../../surface/bridge/assembly/house-router.ts";
+import { paint, contentRows } from "../../doors/terminal/paint.ts";
 const scene = (by: string, identity = by, general = "En curso") => ({
   by,
   act: "scene",
@@ -120,6 +122,46 @@ it("an already open reader sees each new identity and mind scene without recreat
       expect(list?.find(row => row.title === "mente de sales")?.detail).toBe(general);
       expect(JSON.stringify(core?.view("identities/beto"))).toContain(general);
       expect(JSON.stringify(core?.view("identities/mind:sales"))).toContain("Para Carla");
+    }
+  });
+});
+
+it.each([
+  { by: "carla", target: "2" },
+  { by: "ana", target: "2" },
+  { by: "carla", target: "4" },
+  { by: "ana", target: "4" },
+])("$by reads the whole scene of $target above expanded actions with arrows", async ({ by, target }) => {
+  await staged(identitiesProgram, async ({ house, reopen }) => {
+    const general =
+      "Preparando la lectura de la casa con sus identidades y sus herramientas " +
+      "para continuar mañana sin perder el contexto completo.";
+    for (const by of ["beto", "mind:sales"])
+      expect(
+        house().tools.act(
+          { act: "scene", input: { general, to: { carla: "Revisión para Carla", ana: "Para Ana" } } },
+          0,
+          by,
+        ).status,
+      ).toBe("accepted");
+    reopen();
+    const router = houseRouter(localPorts(house(), by, { recentLines: 40 }), identitiesShown);
+    const screen = () =>
+      paint(router.screen({ rows: contentRows(40) }), { cols: 100, rows: 40 })
+        .map(row => row.map(cell => cell.char).join(""))
+        .join("\n");
+    try {
+      router.send({ kind: "type", text: "i" });
+      router.send({ kind: "type", text: target });
+      await router.idle();
+      const addressed = by === "carla" ? "Revisión para Carla" : "Para Ana";
+      for (let moves = 0; moves < 40 && !screen().includes(addressed); moves++) router.send({ kind: "up" });
+      expect(screen()).toContain(addressed);
+      expect(screen()).toContain("contexto completo.");
+      expect(screen()).toContain("Preparando la lectura");
+      expect(screen()).not.toContain(by === "carla" ? "Para Ana" : "Revisión para Carla");
+    } finally {
+      router.stop();
     }
   });
 });

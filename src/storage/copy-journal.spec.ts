@@ -1,8 +1,8 @@
 import { join } from "node:path";
 import { expect, it } from "vitest";
-import { copyJournal } from "./copy-journal.ts";
-import { home, open, sale, watch, fold } from "../../tests/support/storage-rig.ts";
 import { contender } from "../../tests/support/storage-process.ts";
+import { fold, home, open, sale, watch } from "../../tests/support/storage-rig.ts";
+import { copyJournal } from "../checks/kept/copy-journal.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 
 it("copies a live journal through SQLite including its WAL, without disturbing the owner's exclusion", async () => {

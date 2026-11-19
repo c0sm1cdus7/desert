@@ -1,8 +1,8 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { openProgramTerminal } from "./open-terminal.ts";
-import { connectTerminal } from "./terminal-client.ts";
 import { shopProgram, shopShown } from "../../../tests/support/shop.ts";
 import { socketTexts } from "../../texts/socket.texts.ts";
+import { openProgramTerminal } from "./open-terminal.ts";
+import { connectTerminal } from "./terminal-client.ts";
 vi.mock("./terminal-client.ts", () => ({ connectTerminal: vi.fn() }));
 afterEach(() => {
   vi.restoreAllMocks();

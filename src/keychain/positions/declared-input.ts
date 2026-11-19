@@ -15,11 +15,12 @@ export function declaredInput<X extends Program>(
 ) {
   if (!isRecord(event.data)) return undefined;
   const { object, option } = event.data;
+  if (typeof event.by !== "string" || typeof object !== "string" || typeof option !== "string") return undefined;
   if (object === ids.self) {
     const builtin = Object.entries(actCatalog).find(([name]) => name === option);
     if (builtin) return builtin[1].input;
   }
-  const by = String(event.by);
+  const by = event.by;
   const view = { ...identityView({ ...state, entries: [] }, by) };
   let entries: State<X>["entries"] | undefined;
   Object.defineProperty(view, "entries", {
@@ -27,6 +28,6 @@ export function declaredInput<X extends Program>(
     get: () => (entries ??= identityView(state, by).entries),
   });
   const own = options.own?.(readonlyState(view)).find(act => act.object === object && act.option === option);
-  const tool = own ? undefined : targetTool(options.registry, readonlyState(view), String(object));
-  return (own ?? tool?.acts[String(option)])?.input;
+  const tool = own ? undefined : targetTool(options.registry, readonlyState(view), object);
+  return (own ?? tool?.acts[option])?.input;
 }

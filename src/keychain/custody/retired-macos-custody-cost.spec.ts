@@ -1,8 +1,8 @@
 import { expect, it } from "vitest";
 import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
 import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
-import { MacOSHouseKeys } from "./macos-house-keys.ts";
-import { SecretCustody } from "../custody/secret-custody.ts";
+import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
+import { SecretCustody } from "./secret-custody.ts";
 it("un uso de una referencia con un vínculo cuesta tres consultas al llavero y ninguna escritura", async () => {
   const rig = custodyRig(),
     fake = fakeKeychain();

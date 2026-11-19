@@ -12,6 +12,13 @@ it("opens a staged house for a composition that turns on a program mind, with it
 });
 it("runs the program checks of a distribution that turns on a program mind, opening its houses", async () => {
   const checks = programChecks(minded, shown);
-  expect(checks.map(check => check.name)).toEqual(programChecks(program, shown).map(check => check.name));
+  const ordinary = (name: string) =>
+    program.registry.some(tool => name.startsWith(`${tool.id} · `)) && !name.includes("assign-mind-card");
+  expect(checks.map(check => check.name).filter(ordinary)).toEqual(
+    programChecks(program, shown)
+      .map(check => check.name)
+      .filter(ordinary),
+  );
+  expect(checks.some(check => check.name.startsWith(`${first} · assign-mind-card ·`))).toBe(true);
   for (const check of checks.slice(0, 3)) await check.run();
 });

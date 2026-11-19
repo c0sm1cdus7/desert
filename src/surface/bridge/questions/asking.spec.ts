@@ -11,6 +11,7 @@ import {
   oneOf,
   option,
   quantity,
+  someOf,
   text,
   usually,
   when,
@@ -227,4 +228,16 @@ describe("lists that may be empty or omitted", () => {
     const datum = { lines: told.lines };
     expect(ask.input(ask.answers(datum))).toEqual(datum);
   });
+});
+
+it.each(["all", "none"] as const)("asks a single selectable program with initial selection %s", marked => {
+  const ask = asking(object({ tools: someOf("Programas", marked, option("notes", "Notas", "n")) }), words);
+  expect(ask.next([])).toMatchObject({
+    kind: "many",
+    options: [{ title: "Notas" }],
+    initial: marked === "all" ? "Notas" : "",
+  });
+  expect(ask.answers({ tools: ["notes"] })).toEqual(["Notas"]);
+  expect(ask.input(["Notas"])).toEqual({ tools: ["notes"] });
+  expect(ask.input([""])).toEqual({ tools: [] });
 });

@@ -1,15 +1,15 @@
-import { journalReader } from "./journal-store.ts";
-import { copyJournal } from "./copy-journal.ts";
-import { privateDatabase } from "./home.ts";
 import { shop } from "../../tests/support/shop.ts";
+import { copyJournal } from "../checks/kept/copy-journal.ts";
+import { privateDatabase } from "./home.ts";
+import { journalReader } from "./journal-store.ts";
 // SQLite can also open journal/WAL/SHM siblings while acquiring a sidecar: none may alias another file.
 import { linkSync, symlinkSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "vitest";
-import { home, open, sale, watch } from "../../tests/support/storage-rig.ts";
 import { contender } from "../../tests/support/storage-process.ts";
-import { WriterLeaseUnavailable } from "./writer-lease.ts";
+import { home, open, sale, watch } from "../../tests/support/storage-rig.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
+import { WriterLeaseUnavailable } from "./writer-lease.ts";
 it.each(["-journal", "-wal", "-shm"])("refuses aliased sidecar sibling %s before SQLite opens it", async suffix => {
   const root = home();
   const victimFile = join(root, "victim.sqlite");

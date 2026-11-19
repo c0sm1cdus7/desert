@@ -1,8 +1,7 @@
 // The host seeds founders lazily; every door resolves and redeems against the live journal projection.
-import { issueDoorKey, findDoorKey, invitationFingerprint, type DoorIdentity } from "../house/doors/door-material.ts";
+import { findDoorKey, invitationFingerprint, issueDoorKey, type DoorIdentity } from "../house/doors/door-material.ts";
 import type { House } from "../house/members.ts";
 import type { HouseBus } from "../journal/vocabulary.ts";
-import { effect } from "../house/facts.ts";
 import { doorTexts } from "../texts/doors.texts.ts";
 export type DoorBus = HouseBus & Readonly<{ together: <T>(write: () => T) => T }>;
 const accesses = new WeakMap<object, ReturnType<typeof createDoorAccess>>();
@@ -31,14 +30,23 @@ export function seedDoorKeys(bus: DoorBus, state: () => House, founders?: Founde
       bus.emit(issueDoorKey(identity, door, state().admin, material).fact);
   });
 }
-export function doorAccess(bus: DoorBus, state: () => House, now: () => number) {
+export function doorAccess(
+  bus: DoorBus,
+  state: () => House,
+  now: () => number,
+  redeem: (identity: string, invitation: string) => string | undefined,
+) {
   const existing = accesses.get(bus);
   if (existing) return existing;
-  const access = createDoorAccess(bus, state, now);
+  const access = createDoorAccess(state, now, redeem);
   accesses.set(bus, access);
   return access;
 }
-function createDoorAccess(bus: DoorBus, state: () => House, now: () => number) {
+function createDoorAccess(
+  state: () => House,
+  now: () => number,
+  redeem: (identity: string, invitation: string) => string | undefined,
+) {
   // A house-wide limit also bounds attacks spread over connections or forged forwarding headers.
   let window = now();
   let attempts = 0;
@@ -62,16 +70,8 @@ function createDoorAccess(bus: DoorBus, state: () => House, now: () => number) {
       if (!invitation || !house.grants.has(invitation.identity)) return { status: 400 };
       redeeming = true;
       try {
-        const issued = issueDoorKey(invitation.identity, invitation.door, house.admin);
-        const committed = bus.together(() => {
-          if (now() >= invitation.expires) return false;
-          bus.emit(issued.fact);
-          bus.emit(
-            effect("door-invitation-redeemed", { invitation: invitation.id, key: issued.fact.data.id }, house.admin),
-          );
-          return true;
-        });
-        return committed ? { status: 200, key: issued.material } : { status: 400 };
+        const key = now() < invitation.expires ? redeem(invitation.identity, invitation.id) : undefined;
+        return key ? { status: 200, key } : { status: 400 };
       } finally {
         redeeming = false;
       }

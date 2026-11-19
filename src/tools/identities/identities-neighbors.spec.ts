@@ -1,13 +1,13 @@
 import { expect, it } from "vitest";
-import { staged, perform } from "../../checks/promises/promised-stage.ts";
-import { seated, type } from "../../checks/promises/promised-keys.ts";
 import { identitiesProgram, identitiesShown } from "../../../tests/support/identities-program.ts";
-import { shopProgram, shopShown, salesTool } from "../../../tests/support/shop.ts";
-import { coreRegistry } from "./identities.ts";
+import { assigned } from "../../../tests/support/retired-helpers/kit.ts";
+import { salesTool, shopProgram, shopShown } from "../../../tests/support/shop.ts";
+import { seated, type } from "../../checks/promises/promised-keys.ts";
+import { perform, staged } from "../../checks/promises/promised-stage.ts";
 import { effect } from "../../house/facts.ts";
-import { assigned } from "../../house/kit.ts";
 import { localPorts } from "../../runtime/house-runtime.ts";
 import { houseTools } from "../../surface/bridge/assembly/house-tools.ts";
+import { coreRegistry } from "./identities.ts";
 const create = (identity: string, name?: string) => ({
   act: "new",
   input: { identity, ...(name === undefined ? {} : { name }), tools: [] },

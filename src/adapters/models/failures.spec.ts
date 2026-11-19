@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { cards, costUsd, withinCap, validBankResult } from "./catalog.ts";
+import { withinCap } from "../../../tests/support/retired-helpers/catalog.ts";
 import { callAnthropic, ModelFailure, readResponse, requestBody } from "./anthropic.ts";
+import { cards, costUsd, validBankResult } from "./catalog.ts";
 
 const card = cards[0];
 if (!card) throw new Error("missing card");

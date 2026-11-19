@@ -1,27 +1,28 @@
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
-import { seedDoorKeys } from "./door-access.ts";
-import { createDeviceRuntime, type DeviceRuntime } from "./devices/device-runtime.ts";
-import { journalTexts } from "../texts/journal.texts.ts";
-import type { Event } from "../journal/vocabulary.ts";
+import { effect } from "../house/facts.ts";
+import { cancelInheritedWake } from "../house/inherited-wake.ts";
 import { checkKitMigration } from "../house/kit-migration.ts";
 import { programKit } from "../house/kit-selection.ts";
-import { checkComposition } from "../tools/execution/composed-authority.ts";
-import { coreRegistry } from "../tools/identities/identities.ts";
-import { houseResources } from "./house-resources.ts";
-import { cancelInheritedWake } from "../house/inherited-wake.ts";
-import { defectReporter } from "../tools/failures/defect-reporter.ts";
-import type { ViewLimits, Program } from "../tools/tool-contract.ts";
-import { checkCreation, InvalidCreation, createHouse, houseStep, identityView } from "../house/members.ts";
+import { checkCreation, createHouse, houseStep, identityReader, InvalidCreation } from "../house/members.ts";
 import { startClock, systemTime, type TimeSource } from "../journal/clock.ts";
-import { effect } from "../house/facts.ts";
-import { requireProjectionVersion } from "./house-projections.ts";
+import type { Event } from "../journal/vocabulary.ts";
 import type { HousePorts } from "../surface/bridge/ports/house-ports.ts";
+import { journalTexts } from "../texts/journal.texts.ts";
+import { checkComposition } from "../tools/execution/composed-authority.ts";
+import { defectReporter } from "../tools/failures/defect-reporter.ts";
+import { coreRegistry } from "../tools/identities/identities.ts";
+import type { Program, ViewLimits } from "../tools/tool-contract.ts";
+import { deviceRegistrationAccess } from "./devices/device-registration.ts";
+import { createDeviceRuntime, type DeviceRuntime } from "./devices/device-runtime.ts";
+import { seedDoorKeys } from "./door-access.ts";
+import { requireProjectionVersion } from "./house-projections.ts";
+import { houseResources } from "./house-resources.ts";
 
-import { startState, type HouseOptions } from "../house/state.ts";
-import type { ModelHouseOptions } from "./minds/mind-runtime-options.ts";
 import { requireMind } from "../fields/mind-errors.ts";
-import type { ModelMinds } from "./minds/mind-runtime.ts";
+import { startState, type HouseOptions } from "../house/state.ts";
 import { startTools } from "../tools/start.ts";
+import type { ModelHouseOptions } from "./minds/mind-runtime-options.ts";
+import type { ModelMinds } from "./minds/mind-runtime.ts";
 
 /** A part is kept under its tool's id: that is how the house gives a whole tool, or none of it, to an identity. */
 function ownerless<X extends Program>({ slices, registry }: HouseOptions<X>): string[] {
@@ -56,7 +57,13 @@ function checkComposedCreation<X extends Program>(options: HouseOptions<X>) {
 function composed<X extends Program>(given: ModelHouseOptions<X>): ModelHouseOptions<X> {
   const options = {
     ...given,
-    registry: coreRegistry(given.registry, given.by, given.identities, given.mentes?.asistentes),
+    registry: coreRegistry(
+      given.registry,
+      given.by,
+      given.identities,
+      given.mentes?.asistentes,
+      given.mentes?.programas,
+    ),
   };
   requireProjectionVersion(options.projectionVersion);
   if (options.mentes) {
@@ -166,7 +173,7 @@ function runningHouse<X extends Program>(
     bus,
     journal,
     tools,
-    devices: deviceAccess,
+    devices: { ...deviceAccess, ...deviceRegistrationAccess(tools) },
     registry,
     close,
     ...(ready ? { minds: ready } : {}),
@@ -237,7 +244,10 @@ function loadMinds<X extends Program>(
       if (!houseActive()) return undefined;
       const house = mindHouse(home, options, time, resources, () => active, devices, contracts);
       const { prepareProgramMinds } = await import("./minds/program-mind-bank.ts");
+      const { publishMindCards } = await import("./minds/mind-card-catalog.ts");
+      publishMindCards(house, config, true);
       const prepared = await prepareProgramMinds(house, config, switches);
+      publishMindCards(house, prepared);
       if (!houseActive()) return undefined;
       minds = startModelMinds(house, switches, prepared);
       return minds;
@@ -266,7 +276,7 @@ export const localPorts = <X extends Program>(
   ],
   limits,
   registry: house.registry,
-  state: () => identityView(house.tools.state(), me),
+  state: identityReader(house.tools.state, me),
   act: (value, through) => house.tools.act(value, through, me),
   now,
   defect: defectReporter(house.registry, me, entry => house.bus.emit(entry), house.tools.prepare),

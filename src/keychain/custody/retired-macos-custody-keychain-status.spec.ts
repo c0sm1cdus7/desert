@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
-import { MacOSHouseKeys } from "./macos-house-keys.ts";
+import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
 it("rechaza un ejecutor que no devuelve un búfer antes de interpretar su respuesta", () => {
   const malformed = Buffer.alloc(0);
   Object.setPrototypeOf(malformed, null);

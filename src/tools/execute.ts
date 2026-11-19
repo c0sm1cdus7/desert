@@ -1,37 +1,37 @@
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
-import { executeNested } from "./execution/nested-execution.ts";
-import { destinationProblem, deviceRun, executionReach } from "./execution/device-execution.ts";
-import { publicSimulationInput } from "./rules/simulation-public-input.ts";
-import { normalizedInput, withPreparedInput } from "./inputs/prepared-input.ts";
-import { reviewWorld } from "./execution/review-world.ts";
-import { MechanicalRuleFailure } from "./rules/rule-failure.ts";
-import { ruleCapabilities } from "./execution/rule-capabilities.ts";
-import { mechanicalRules, enforceMechanical } from "./execution/mechanical-rules.ts";
-import type { ContractFailureReason } from "./contract-port.ts";
-import { hasSecretInput, executionSchema } from "./inputs/secret-input.ts";
-import { rejected, performAct } from "./execution/perform-act.ts";
-import { runningSignal } from "./execution/running-acts.ts";
-import { checkedDecision } from "./execution/action-decision.ts";
-import { actionDraft } from "./execution/action-draft.ts";
 import { Value } from "@sinclair/typebox/value";
-import { actEnvelope, type Act } from "../house/own-acts.ts";
+import { isMindActor, parseMindActor } from "../fields/mind-actor.ts";
+import { isAttended, targetTool } from "../house/attendance.ts";
+import { effect, type HouseEvent } from "../house/facts.ts";
 import { ids } from "../house/ids.ts";
 import { allowedAct, present } from "../house/kit.ts";
 import { identityView } from "../house/members.ts";
-import { effect, type HouseEvent } from "../house/facts.ts";
+import { journeyAllows } from "../house/minds/journey-state.ts";
+import { actEnvelope, type Act } from "../house/own-acts.ts";
 import type { Emission } from "../journal/vocabulary.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
-import { isAttended, targetTool } from "../house/attendance.ts";
-import { programOffered, runProgram } from "./program-run.ts";
-import { startAct } from "./failures/start-act.ts";
-import { finish } from "./failures/finish.ts";
-import type { ActContext, ActResult, Program, Tool, ToolAct } from "./tool-contract.ts";
-import type { Execution } from "./execution-contract.ts";
 import type { ToolCapabilities } from "./capabilities-contract.ts";
+import type { ContractFailureReason } from "./contract-port.ts";
+import type { Execution } from "./execution-contract.ts";
 import { usingCapabilities } from "./execution/action-capabilities.ts";
+import { checkedDecision } from "./execution/action-decision.ts";
+import { actionDraft } from "./execution/action-draft.ts";
+import { destinationProblem, deviceRun, executionReach } from "./execution/device-execution.ts";
+import { enforceMechanical, mechanicalRules } from "./execution/mechanical-rules.ts";
+import { executeNested } from "./execution/nested-execution.ts";
+import { performAct, rejected } from "./execution/perform-act.ts";
+import { reviewWorld } from "./execution/review-world.ts";
+import { ruleCapabilities } from "./execution/rule-capabilities.ts";
+import { runningSignal } from "./execution/running-acts.ts";
+import { finish } from "./failures/finish.ts";
+import { startAct } from "./failures/start-act.ts";
+import { normalizedInput, withPreparedInput } from "./inputs/prepared-input.ts";
+import { executionSchema, hasSecretInput } from "./inputs/secret-input.ts";
+import { programOffered, runProgram } from "./program-run.ts";
+import { MechanicalRuleFailure } from "./rules/rule-failure.ts";
+import { prepareSimulationAct } from "./rules/simulation-public-input.ts";
+import type { ActContext, ActResult, Program, Tool, ToolAct } from "./tool-contract.ts";
 export type { Execution } from "./execution-contract.ts";
-import { isMindActor, parseMindActor } from "../fields/mind-actor.ts";
-import { journeyAllows } from "../house/minds/journey-state.ts";
 type Origin = HouseEvent<"act">;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
   Readonly<{ value?: unknown; coreFailure?: ContractFailureReason }> &
@@ -199,10 +199,8 @@ export function execute<X extends Program>(
   reaction?: Origin["data"]["reaction"],
 ): ExecutionResult<X> {
   if (!Value.Check(actEnvelope, value)) return rejected(toolTexts.invalid);
-  const safeValue =
-    value.target === "rules" && value.act === "simulate"
-      ? { ...value, input: publicSimulationInput(value.input, ports.state(), ports.registry) }
-      : value;
+  const safeValue = prepareSimulationAct(value, ports.state(), ports.registry);
+  if (!safeValue) return rejected(toolTexts.invalid);
   return executePublic(ports, safeValue, through, by, cause, reaction);
 }
 function executePublic<X extends Program>(

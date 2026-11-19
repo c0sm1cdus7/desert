@@ -1,7 +1,7 @@
 // Programs depend on these exported names, including types: internal moves must fail here first.
-import { expect, it } from "vitest";
-import ts from "typescript";
 import { join } from "node:path";
+import ts from "typescript";
+import { expect, it } from "vitest";
 import { root } from "../support/sources.ts";
 
 const names = [
@@ -102,6 +102,10 @@ const names = [
   "Step",
   "Tool",
   "Walk",
+  "textOf",
+  "keysOf",
+  "copyJournal",
+  "keptChecks",
   "actRow",
   "asking",
   "begin",

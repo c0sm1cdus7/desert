@@ -45,15 +45,3 @@ export function eligibleMindCards<T extends MindCandidate>(
     );
   });
 }
-export function initialMindAssignment<T extends MindCandidate>(
-  cards: readonly T[],
-  role: string,
-  providers: readonly string[],
-  needs: readonly Capability[],
-  fingerprint: Readonly<{ cases: string; skill: string; frameTexts: string }>,
-): T | undefined {
-  return eligibleMindCards(cards, role, providers, needs, fingerprint).sort(
-    (a, b) =>
-      a.referenceNanoUsd - b.referenceNanoUsd || a.name.localeCompare(b.name) || a.version.localeCompare(b.version),
-  )[0];
-}

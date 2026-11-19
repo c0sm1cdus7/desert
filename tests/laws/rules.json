@@ -2112,16 +2112,16 @@
         "src/runtime/house-runtime.spec.ts",
         "src/keychain/custody/custody-isolation.spec.ts",
         "src/keychain/custody/custody-heap.spec.ts",
-        "src/keychain/macos/custody-keychain-bytes.spec.ts",
-        "src/keychain/macos/custody-command.spec.ts",
+        "src/keychain/custody/retired-macos-custody-keychain-bytes.spec.ts",
+        "src/keychain/custody/retired-macos-custody-command.spec.ts",
         "src/keychain/custody/custody-retention.spec.ts",
         "src/keychain/custody/custody-buffer-lifetime.spec.ts",
         "src/keychain/custody/custody-cipher-edges.spec.ts",
         "src/keychain/custody/custody-provider-lifecycle.spec.ts",
-        "src/keychain/macos/custody-keychain-status.spec.ts",
-        "src/keychain/macos/custody-keychain-cuts.spec.ts",
+        "src/keychain/custody/retired-macos-custody-keychain-status.spec.ts",
+        "src/keychain/custody/retired-macos-custody-keychain-cuts.spec.ts",
         "src/keychain/custody/custody-retained-lifetime.spec.ts",
-        "src/keychain/macos/custody-index.spec.ts",
+        "src/keychain/custody/retired-macos-custody-index.spec.ts",
         "src/keychain/custody/custody-incremental.spec.ts",
         "src/keychain/custody/custody-close-neighbors.spec.ts",
         "src/keychain/custody/custody-messages.spec.ts",
@@ -2150,7 +2150,7 @@
         "src/keychain/custody/custody-retention.spec.ts",
         "src/keychain/custody/house-custody-anchor.spec.ts",
         "src/keychain/custody/custody-transaction-edges.spec.ts",
-        "src/keychain/macos/custody-cost.spec.ts",
+        "src/keychain/custody/retired-macos-custody-cost.spec.ts",
         "src/keychain/custody/custody-restoration.spec.ts",
         "src/keychain/custody/custody-restoration-cuts.spec.ts",
         "src/runtime/house-custody-maintenance.spec.ts",
@@ -3279,6 +3279,54 @@
         "src/runtime/devices/device-rules.spec.ts",
         "src/doors/terminal/device-rules-pty.spec.ts"
       ]
+    },
+    {
+      "id": 295,
+      "rule": "La compuerta arma los mismos programas y piezas del core que la casa y recorre sus casos desde el Menú por el router común. Lo que no se alcanza no pasa.",
+      "from": "18/11 · Ley 6 firmada",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/identities/identities-derived.spec.ts",
+        "src/checks/promises/renderer-sample.spec.ts",
+        "src/checks/whole-house-gate.spec.ts",
+        "src/checks/personal-core-terminal.spec.ts",
+        "src/doors/socket/client/core-menu.spec.ts"
+      ]
+    },
+    {
+      "id": 296,
+      "rule": "Toda definición de acción pertenece a un catálogo registrado; una definición suelta pone roja la compuerta.",
+      "from": "18/11 · Ley 6 firmada",
+      "guarantee": "spec",
+      "evidence": ["src/checks/laws/catalog-coverage.spec.ts"]
+    },
+    {
+      "id": 297,
+      "rule": "Todo hecho que cambia la casa tiene una acción registrada que lo emite, salvo la lista explícita y motivada de hechos autónomos del diario, las mentes y el banco.",
+      "from": "18/11 · Ley 6 firmada",
+      "guarantee": "spec",
+      "evidence": ["src/checks/laws/catalog-coverage.spec.ts"]
+    },
+    {
+      "id": 298,
+      "rule": "Cada texto del catálogo se usa en la superficie, una respuesta, un aviso o el marco de una mente. Un texto sin uso pone roja la compuerta.",
+      "from": "18/11 · Ley 6 firmada",
+      "guarantee": "spec",
+      "evidence": ["src/checks/laws/catalog-coverage.spec.ts"]
+    },
+    {
+      "id": 299,
+      "rule": "Un exportado de src usado únicamente por pruebas no pertenece a la base, salvo el contrato público desert/testing.",
+      "from": "18/11 · Ley 6 firmada",
+      "guarantee": "spec",
+      "evidence": ["src/checks/laws/catalog-coverage.spec.ts"]
+    },
+    {
+      "id": 300,
+      "rule": "La compuerta de quien ofrece un contrato corre los casos declarados por quienes lo piden en una casa real, con su kit y sus hechos.",
+      "from": "18/11 · Ley 6 firmada",
+      "guarantee": "spec",
+      "evidence": ["src/checks/contracts/program-contract-cases.spec.ts"]
     }
   ]
 }

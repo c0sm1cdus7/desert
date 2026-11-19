@@ -51,6 +51,8 @@ export function programGroups<X extends Program>({
       checks: [
         {
           name: "obeys every repository law with the options declared by the program",
+          // Repository-wide TypeScript graphs exceed the action deadline; every law still runs and must pass.
+          timeoutMs: 30_000,
           run: async () => {
             const found = await programLaws(root ?? process.cwd());
             if (found.length) throw new Error(found.join("\n"));

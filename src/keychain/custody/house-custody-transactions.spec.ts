@@ -1,11 +1,11 @@
-import { expect, it, vi } from "vitest";
 import { Type } from "@sinclair/typebox";
+import { expect, it, vi } from "vitest";
 import { adapterHouse } from "../../../tests/support/adapter-house.ts";
 import { imported } from "../../../tests/support/declared-adapters.ts";
+import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
+import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
 import { toolAct } from "../../tools/act-definition.ts";
 import { MemoryHouseKeys } from "./house-keys.ts";
-import { MacOSHouseKeys } from "../macos/macos-house-keys.ts";
-import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
 const empty = Type.Object({});
 it("el together del arranque confirma dos posiciones en un agregado y vuelve a abrir", async () => {
   let complete: (value: unknown) => void = () => {};

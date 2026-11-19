@@ -7,6 +7,7 @@ import { mindStep } from "./mind-state.ts";
 import { journeyStep } from "./journey-state.ts";
 import { modelCallStep } from "./model-call-state.ts";
 export function mindHouseStep(state: House, event: HouseEvent): House {
+  if (event.kind === "boot") return mindSettingsStep(state, event);
   if (!Object.hasOwn(mindHouseCatalog, event.kind)) return state;
   state = assistantStep(state, event);
   state = mindSettingsStep(state, event);

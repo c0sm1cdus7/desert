@@ -1,21 +1,21 @@
 // Guion fijo del revisor de la unión: holds no cambia; la revocación del acto sí corta sus adaptadores.
-import "../../tests/support/fixture-vault.ts";
+import { Type } from "@sinclair/typebox";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Type } from "@sinclair/typebox";
 import { afterEach, expect, it, vi } from "vitest";
-import { MacOSHouseKeys } from "../keychain/macos/macos-house-keys.ts";
-import { emptyHouse } from "./members.ts";
-import { holds, mindOf } from "./kit.ts";
-import { effect } from "./facts.ts";
+import { adapterProgram, imported, signer } from "../../tests/support/declared-adapters.ts";
+import { fakeKeychain } from "../../tests/support/fake-keychain.ts";
+import "../../tests/support/fixture-vault.ts";
+import { deferred, settled } from "../../tests/support/kit-running.ts";
+import { MacOSHouseKeys } from "../../tests/support/retired-macos/macos-house-keys.ts";
+import { shop, shopRegistry, shopSlices, type Shop } from "../../tests/support/shop.ts";
+import { startHouse } from "../runtime/house-runtime.ts";
 import { toolAct } from "../tools/act-definition.ts";
 import type { Tool } from "../tools/tool-contract.ts";
-import { startHouse } from "../runtime/house-runtime.ts";
-import { fakeKeychain } from "../../tests/support/fake-keychain.ts";
-import { adapterProgram, imported, signer } from "../../tests/support/declared-adapters.ts";
-import { deferred, settled } from "../../tests/support/kit-running.ts";
-import { shop, shopRegistry, shopSlices, type Shop } from "../../tests/support/shop.ts";
+import { effect } from "./facts.ts";
+import { holds, mindOf } from "./kit.ts";
+import { emptyHouse } from "./members.ts";
 
 const close: (() => void)[] = [];
 afterEach(() => close.splice(0).forEach(stop => stop()));

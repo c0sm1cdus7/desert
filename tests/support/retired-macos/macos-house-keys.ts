@@ -1,7 +1,7 @@
-// Proveedor macOS v3: llaves por stdin, ancla fija separada e índice público podado por argv, con límites previos.
+// Historical macOS v3 provider bounds byte input, its separate anchor and its public command-line index.
 import { randomBytes } from "node:crypto";
-import { CustodyError, type HouseKeyProvider, type LedgerHead } from "../custody/house-keys.ts";
-import { encodeKey, decodeKey } from "./keychain-bytes.ts";
+import { CustodyError, type HouseKeyProvider, type LedgerHead } from "../../../src/keychain/custody/house-keys.ts";
+import { decodeKey, encodeKey } from "./keychain-bytes.ts";
 import { keychainTimeout, type KeychainCommand } from "./keychain-command.ts";
 export type { KeychainCommand } from "./keychain-command.ts";
 type Index = { accounts: string[] };

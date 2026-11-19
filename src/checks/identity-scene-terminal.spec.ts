@@ -8,6 +8,14 @@ const open = (home: string, by: string) => realTerminal([process.execPath, entry
 const general =
   "Preparando la lectura de la casa con sus identidades y sus herramientas " +
   "para continuar mañana sin perder el contexto completo.";
+// Object actions keep the cursor in view; arrows reveal the reading above a long action catalog.
+async function readAbove(term: ReturnType<typeof open>, text: string) {
+  for (let moves = 0; moves < 40 && !term.screen().some(line => line.includes(text)); moves++) {
+    term.press("\x1b[A");
+    await term.rest(20);
+  }
+  return term.until(text);
+}
 it("a non-admin writes its scene; another reads an ellipsis and the whole object after restart", async () => {
   const home = mkdtempSync(join(tmpdir(), "identity-scene-"));
   const writer = open(home, "beto");
@@ -32,7 +40,8 @@ it("a non-admin writes its scene; another reads an ellipsis and the whole object
       reader.press(" beto");
       await reader.until("› beto");
       reader.press("\r");
-      await reader.until("contexto completo.");
+      await reader.until("solo la escena propia");
+      await readAbove(reader, "contexto completo.");
       expect(reader.screen().join("\n")).toContain("Preparando la lectura");
     } finally {
       await reader.close();
@@ -103,7 +112,8 @@ it("real terminal shows addressed parts only to the viewer and reads the mind sc
         expect(list).toContain("Mentes");
         expect(list).not.toContain("Revisión para");
         term.press("2");
-        await term.until(by === "carla" ? "Revisión para Carla" : "Revisión para Ana");
+        await term.until("solo la escena propia");
+        await readAbove(term, by === "carla" ? "Revisión para Carla" : "Revisión para Ana");
         expect(term.screen().join("\n")).not.toContain(by === "carla" ? "Revisión para Ana" : "Revisión para Carla");
         term.press("\x0f");
         await term.until("Menú");

@@ -4,7 +4,7 @@ import { herramientaDe, selects, type KitLayout } from "../kit-selection.ts";
 import type { House } from "../members.ts";
 /** A grant assigns a whole tool; its action kit is checked separately. */
 export const allowed = (house: House, by: string, tool: string): boolean =>
-  (tool === "rules" && house.grants.has(by)) ||
+  ((tool === "rules" || tool === "personal") && house.grants.has(by)) ||
   (house.identities === true && by === house.admin && house.grants.has(by)) ||
   (house.grants.has(by) &&
     (house.grants.get(by)?.includes(tool) === true ||
@@ -16,12 +16,16 @@ export function identityAllowedAct(
   act: string,
   layout: KitLayout | undefined = house.kitLayout,
 ): boolean {
+  if (tool === "personal") return house.grants.has(by);
   if (tool === "rules")
     return house.grants.has(by) && (!["save", "approve", "retire"].includes(act) || by === house.admin);
   if (tool === "identities")
     return (
       house.identities === true &&
-      (act === "scene" || act === "delegate-assistant" || by === house.admin) &&
+      (act === "scene" ||
+        act === "delegate-assistant" ||
+        ["register-device", "accept-device", "retire-device"].includes(act) ||
+        by === house.admin) &&
       house.grants.has(by)
     );
   if (!house.grants.has(by)) return false;

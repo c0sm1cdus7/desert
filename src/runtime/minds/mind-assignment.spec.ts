@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
-import { eligibleMindCards, initialMindAssignment } from "./mind-assignment.ts";
+import { initialMindAssignment } from "../../../tests/support/retired-helpers/mind-assignment.ts";
+import { eligibleMindCards } from "./mind-assignment.ts";
 const result = {
   role: "assistant",
   passed: true,

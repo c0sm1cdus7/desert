@@ -1,10 +1,10 @@
 // What an act says of what was answered so far, before it runs: why it cannot go on, and which things it takes.
-import { isRecord } from "../fields/json-values.ts";
-import { isImmutableSchema } from "../fields/schema-shape.ts";
-import { executionSchema } from "./inputs/secret-input.ts";
-import { programCall } from "../fields/program-call.ts";
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { isRecord } from "../fields/json-values.ts";
+import { programCall } from "../fields/program-call.ts";
+import { isImmutableSchema } from "../fields/schema-shape.ts";
+import { executionSchema } from "./inputs/secret-input.ts";
 import type { Program, State } from "./tool-contract.ts";
 type Answered = Readonly<Record<string, unknown>>;
 const partialSchemas = new WeakMap<TSchema, TSchema>();
@@ -13,6 +13,11 @@ type Among = Readonly<Record<string, (thing: string) => string | undefined>>;
 /** Asked after each answer, with the fields answered whole until then. A surface says it early; the act still
  * refuses when run. */
 export type SoFar<X extends Program> = Readonly<{
+  choices?: (
+    source: string,
+    state: State<X>,
+    target: string,
+  ) => readonly Readonly<{ value: string; title: string }>[] | undefined;
   /** Why what was answered so far cannot go on, when that is so: said at the question it was answered in. */
   stops?: (answered: Answered, state: State<X>, target: string, at: number) => string | undefined;
   /** A question shows the things it cannot take disabled with their reasons.
@@ -22,14 +27,18 @@ export type SoFar<X extends Program> = Readonly<{
 /** What an act says of what was answered so far: asked only about the fields it takes, answered whole. Anything
  * else a surface may give is not asked about. */
 export function soFar<X extends Program>(input: TSchema, said: SoFar<X>): SoFar<X> {
-  const { stops, among } = said;
+  const { stops, among, choices } = said;
   const partial = partialSchemas.get(input) ?? Type.Partial(executionSchema(input));
   if (isImmutableSchema(input)) partialSchemas.set(input, partial);
   const asked: NonNullable<SoFar<X>["stops"]> = (answered, state, target, at) =>
     Value.Check(partial, answered) ? stops?.call(said, answered, state, target, at) : undefined;
   const narrowed: NonNullable<SoFar<X>["among"]> = (answered, state, target, at) =>
     Value.Check(partial, answered) ? (among?.call(said, answered, state, target, at) ?? {}) : {};
-  return { ...(stops ? { stops: asked } : {}), ...(among ? { among: narrowed } : {}) };
+  return {
+    ...(choices ? { choices: choices.bind(said) } : {}),
+    ...(stops ? { stops: asked } : {}),
+    ...(among ? { among: narrowed } : {}),
+  };
 }
 
 type Picked = readonly [tool: string, thing: string];

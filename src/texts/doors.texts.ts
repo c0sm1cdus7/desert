@@ -1,6 +1,10 @@
 // Spanish words for invitation delivery, credential recovery and host setup.
 export const doorTexts = {
   promises: {
+    redeemed: "Canjea una invitación vigente desde el Menú",
+    missingInvitation: "Rechaza una invitación ausente",
+    redeemAdmin: "Sólo quien administra canjea desde la casa",
+    expiredInvitation: "Rechaza una invitación vencida",
     invited: "Emite una invitación para una identidad existente",
     inviteAdmin: "Solo quien administra emite invitaciones",
     inviteAbsent: "Rechaza invitaciones para quien salió de la casa",
@@ -10,6 +14,10 @@ export const doorTexts = {
   },
   invitation: { name: "nueva invitación", enter: "invitar", purpose: "entrada con un código de un uso", key: "v" },
   revoke: { name: "revocar llave", enter: "revocar", purpose: "corte inmediato de una llave de puerta", key: "x" },
+  redeem: { name: "canjear invitación", enter: "canjear", purpose: "llave privada de entrada de un uso", key: "q" },
+  invitationId: "Invitación vigente",
+  redeemed: "Canjeada · Invitación · llave privada",
+  noInvitation: "invitación no vigente de esta identidad",
   issued: "Emitida · Invitación · vence en 24 horas · código privado en la terminal",
   receipt: (code: string) => `Invitación: ${code} · vence en 24 horas · compartila con la persona que va a entrar.`,
   revoked: "Revocada · Llave · conexiones cortadas",

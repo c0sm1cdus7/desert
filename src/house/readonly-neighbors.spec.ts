@@ -1,4 +1,4 @@
-import { identityView } from "./members.ts";
+import { identityView, identityReader } from "./members.ts";
 import { afterEach, expect, it } from "vitest";
 import { effect } from "./facts.ts";
 import { noticesOf } from "../surface/bridge/views/notices.ts";
@@ -91,4 +91,18 @@ it("an identity view protects even a raw input and its newly derived arrays", ()
   expect(() => mutate(view.entries, "push", {})).toThrow(TypeError);
   expect(() => mutate(view.attends, "push", "sales")).toThrow(TypeError);
   expect(raw.house.admin).toBe("ana");
+});
+
+it("reuses a protected identity snapshot and refreshes it after the next fact", () => {
+  const rig = shopRig();
+  rigs.push(rig);
+  const read = identityReader(rig.state, "ana");
+  const before = read();
+  expect(read()).toBe(before);
+  rig.bus.emit(effect("scene", { general: "Preparando" }, "beto"));
+  const after = read();
+  expect(after).not.toBe(before);
+  expect(after.house.scenes.get("beto")?.data.general).toBe("Preparando");
+  expect(before.house.scenes.has("beto")).toBe(false);
+  expect(() => mutate(after.house.scenes, "clear")).toThrow(TypeError);
 });

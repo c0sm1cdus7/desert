@@ -5,6 +5,7 @@ import { isAsked } from "../../../fields/fields.ts";
 import type { Option } from "../../contract/contract.ts";
 import {
   armsOf,
+  markedArms,
   asked,
   choiceOf,
   formatOf,
@@ -18,7 +19,7 @@ import {
 
 /** Some of a closed set as one answer: the words of the ones a datum holds, in the order the set lists them. */
 export const markedOf = (schema: unknown, values: unknown): string =>
-  armsOf(at(schema, "items"))
+  markedArms(schema)
     .filter(arm => isList(values) && values.includes(at(arm, "const")))
     .map(arm => word(arm, "title"))
     .join(" · ");
@@ -104,7 +105,7 @@ export function audit(
   } else if (at(schema, "type") === "object") auditFields(schema, ctx, seen);
   else if (at(schema, "some") !== undefined) {
     titleOf(schema, ctx);
-    armsOf(at(schema, "items")).forEach(arm => word(arm, "title"));
+    markedArms(schema).forEach(arm => word(arm, "title"));
   } else if (at(schema, "type") === "array") {
     const more = at(schema, "more");
     asked(word(more, "ask"));

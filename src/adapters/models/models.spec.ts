@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { cards, cardsFor, costUsd, lostActs, withinCap } from "./catalog.ts";
-import { requestBody, callAnthropic } from "./anthropic.ts";
+import { cardsFor, lostActs, withinCap } from "../../../tests/support/retired-helpers/catalog.ts";
+import { callAnthropic, requestBody } from "./anthropic.ts";
+import { cards, costUsd } from "./catalog.ts";
 
 const first = cards[0];
 if (!first) throw new Error("missing card");

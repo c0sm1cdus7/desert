@@ -2,16 +2,11 @@
 import { fieldTexts } from "./field-texts.ts";
 export const genericTexts = {
   optional: " · opcional",
-  /** What an act with nothing to ask puts to be confirmed: what it is, and the thing it is done to. */
-  sure: (act: string, thing?: string) => (thing ? `${act} · ${thing}` : act),
-  offline: "Sin conexión",
   /** The last list of a thing: everything that was done to it, as the journal has it. */
   record: { title: "Registro" },
   ...fieldTexts,
   /** What a row says of an act that cannot be undone, when the act has nothing more useful to say there. */
   irreversible: "irreversible",
-  /** Why a tool, or what it does, is off for who does not hold it: said as a datum, like any cause. */
-  notHeld: "sin acceso",
   /** What a person may prefer not to see, and the two answers each one takes. */
   preferences: {
     name: "Preferencias",

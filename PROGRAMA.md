@@ -564,6 +564,10 @@ recuperar una casa requiere su raíz original y sus metadatos. Este paso no impl
 
 ## Custodia de credenciales · contrato de memoria, disco y cortes
 
+Desde el 18/11 el adaptador macOS no forma parte de la base ni de su API. Las referencias a ese adaptador
+en esta sección describen el contrato histórico que conservan los fixtures y sus pruebas, siempre con
+comandos falsos. Una composición actual declara un `HouseKeyProvider`; no se elige un llavero implícito.
+
 Un programa sin posiciones secretas y una casa sin material abre sin proveedor.
 
 Contrato de la custodia, incluida la aceptación y el mantenimiento con la casa cerrada. `Kregistro` solo autentica el registro y los sobres cifrados;

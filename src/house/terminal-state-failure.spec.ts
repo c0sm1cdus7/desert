@@ -1,15 +1,15 @@
 import { duplexPair } from "node:stream";
 import { afterEach, expect, it, vi } from "vitest";
-import { openProgramTerminal } from "../doors/terminal/open-terminal.ts";
-import { connectTerminal } from "../doors/terminal/terminal-client.ts";
-import { socketConnection } from "../doors/socket/client/socket-connection.ts";
-import { socketHouse } from "../../tests/support/socket-house.ts";
 import { shopProgram, shopShown, type Shop } from "../../tests/support/shop.ts";
-import { identityView } from "./members.ts";
+import { socketHouse } from "../../tests/support/socket-house.ts";
+import { socketConnection } from "../doors/socket/client/socket-connection.ts";
 import { stateTransfer } from "../doors/socket/state/state-transfer.ts";
 import { frameReader, serverFrame } from "../doors/socket/wire/frame.ts";
-import { readClient, readServer, houseProtocolVersion, socketLimits } from "../doors/socket/wire/protocol.ts";
+import { houseProtocolVersion, readClient, readServer, socketLimits } from "../doors/socket/wire/protocol.ts";
+import { openProgramTerminal } from "../doors/terminal/open-terminal.ts";
+import { connectTerminal } from "../doors/terminal/terminal-client.ts";
 import { socketTexts } from "../texts/socket.texts.ts";
+import { identityView } from "./members.ts";
 
 const tty = vi.hoisted(() => ({ written: "", raw: false, paused: false }));
 vi.mock("../doors/terminal/terminal-client.ts", () => ({ connectTerminal: vi.fn() }));

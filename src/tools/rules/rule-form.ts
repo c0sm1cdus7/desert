@@ -6,14 +6,13 @@ import { ruleFormTexts as words } from "../../texts/rules.texts.ts";
 import { deepFreeze } from "../../journal/vocabulary.ts";
 const forms = new WeakMap<TSchema, TSchema>();
 const labels: Readonly<Record<string, string>> = words.fields;
-const keys: Readonly<Record<string, string>> = words.keys;
-const choices: Readonly<Record<string, string>> = words.choices;
+const choices: Readonly<Record<string, { title: string; key: string }>> = words.options;
 function decorated(value: Record<string, unknown>): Record<string, unknown> {
   const result = { ...value };
   delete result.$id;
   if (typeof value.const === "string") {
-    const label = choices[value.const];
-    if (label) Object.assign(result, { title: label, key: keys[value.const] ?? label.slice(0, 1) });
+    const choice = choices[value.const];
+    if (choice) Object.assign(result, choice);
   }
   if (value.type === "array") result.more = words.more;
   if (value.type === "string" && value.const === undefined)

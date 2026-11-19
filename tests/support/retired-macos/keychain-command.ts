@@ -1,4 +1,4 @@
-// Ejecutor optativo de security con entrada y salida en bytes, límite de tiempo y descarte de stderr.
+// Historical opt-in command runner keeps bounded byte input and output, discarding standard error.
 import { spawnSync } from "node:child_process";
 export const keychainTimeout = 5000;
 export type KeychainCommand = (

@@ -60,8 +60,9 @@ Reglas:
 ## Reorden del 16/11
 Cada archivo y su prueba acompañante siguen el mapa firmado. Campos y textos forman la base; después vienen
 registro, casa, herramientas, almacenamiento, custodia, adaptadores, superficie, ejecución, puertas y comprobaciones.
-`src/testing.ts` reúne la entrada de pruebas. Las cuatro piezas de macOS se conservan en `src/keychain/macos/`
-hasta el paso de contratos. El comportamiento y los nombres de las pruebas se conservan.
+`src/testing.ts` reúne la entrada de pruebas. El adaptador del llavero de macOS salió de la base el 18/11.
+Sus pruebas y ejecutores falsos se conservan como fixtures históricos en `tests/support/retired-macos/`;
+ningún módulo de producción los importa. La composición provee la custodia que necesita la casa.
 
 `tests/laws/tree.json` describe cada archivo; `tests/laws/core-size.spec.ts` fija 300 renglones por archivo,
 519 en textos y al menos dos archivos de código por carpeta, salvo la raíz que espera `index.ts`.

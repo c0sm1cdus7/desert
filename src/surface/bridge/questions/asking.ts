@@ -10,6 +10,7 @@ import type { Field, Option } from "../../contract/contract.ts";
 import { audit, leading, markedOf, write } from "./asking-back.ts";
 import {
   armsOf,
+  markedArms,
   choiceOf,
   tellingOf,
   titleOf,
@@ -115,7 +116,7 @@ function items(schema: TSchema, ctx: Ctx, from: number, before: readonly unknown
 /** Some of a closed set: one question, answered with the words of what was marked. It opens with all of them
  * marked, or with none, as the datum declares. */
 function some(schema: TSchema, ctx: Ctx, from: number): Got {
-  const arms = armsOf(at(schema, "items"));
+  const arms = markedArms(schema);
   const answer = ctx.answers[from];
   const options = arms.map(arm => ({ title: word(arm, "title") }));
   const every = arms.map(arm => at(arm, "const"));

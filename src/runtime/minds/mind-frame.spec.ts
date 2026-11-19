@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { createFramePort } from "../../../tests/support/retired-helpers/mind-frame-fit.ts";
 import { requestBody } from "../../adapters/models/anthropic.ts";
 import { cards } from "../../adapters/models/catalog.ts";
 import { defineMessage } from "../../fields/messages.ts";
 import { object } from "../../fields/visible-text.ts";
 import { turnLimits } from "../../tools/minds/mind-contract.ts";
-import { buildMindFrame } from "./mind-frame.ts";
 import { renderMindFrame } from "./mind-frame-text.ts";
-import { createFramePort } from "./mind-frame-fit.ts";
+import { buildMindFrame } from "./mind-frame.ts";
 
 const mind = defineMessage({
   id: "test.mind",

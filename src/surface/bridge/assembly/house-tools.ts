@@ -1,22 +1,19 @@
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
-import { withRulesWords } from "../views/rules-words.ts";
-import { authorName } from "../views/author-name.ts";
-import { authorThread } from "../views/author-thread.ts";
-import { kitScreen } from "../../../tools/identities/kit-screen.ts";
-import { withIdentityWords } from "../../../tools/identities/identity-reading.ts";
-import { observedPorts } from "../ports/observed-ports.ts";
 import { programCall } from "../../../fields/program-call.ts";
-import { builtScreen } from "../views/program-screen.ts";
-import { thingView } from "../views/presented.ts";
 import { allowed } from "../../../house/kit.ts";
 import { hides } from "../../../house/members.ts";
+import { toolTexts } from "../../../texts/tools.texts.ts";
+import { withIdentityWords } from "../../../tools/identities/identity-reading.ts";
+import { kitScreen } from "../../../tools/identities/kit-screen.ts";
+import { isMindCardAction } from "../../../tools/minds/mind-settings-actions.ts";
+import { withPersonalWords } from "../../../tools/personal/personal.ts";
 import type { ProgramTool } from "../../../tools/promises.ts";
-import type { Program, Tool as HouseTool } from "../../../tools/tool-contract.ts";
-import type { Tool, ViewRow } from "../../contract/shown-tool.ts";
+import type { Tool as HouseTool, Program } from "../../../tools/tool-contract.ts";
 import type { Option } from "../../contract/contract.ts";
+import type { Tool, ViewRow } from "../../contract/shown-tool.ts";
 import { backKey as back } from "../../session/screen.ts";
-import type { Things } from "../questions/asking.ts";
-import { auditFields } from "./audit-fields.ts";
+import { programActs } from "../acts/program-acts.ts";
+import { makerOptions } from "../picking/makers.ts";
 import {
   listsOf,
   ownReads,
@@ -25,12 +22,17 @@ import {
   type SurfacePorts,
   type ToolWords,
 } from "../ports/house-ports.ts";
-import { makerOptions } from "../picking/makers.ts";
+import { observedPorts } from "../ports/observed-ports.ts";
+import type { Things } from "../questions/asking.ts";
+import { authorName } from "../views/author-name.ts";
+import { authorThread } from "../views/author-thread.ts";
 import { noticesOf } from "../views/notices.ts";
-import { preferencesPlace, preferencesTool } from "./preferences-tool.ts";
-import { programActs } from "../acts/program-acts.ts";
-import { toolTexts } from "../../../texts/tools.texts.ts";
+import { thingView } from "../views/presented.ts";
+import { builtScreen } from "../views/program-screen.ts";
 import { recordOf } from "../views/record.ts";
+import { withRulesWords } from "../views/rules-words.ts";
+import { auditFields } from "./audit-fields.ts";
+import { preferencesPlace, preferencesTool } from "./preferences-tool.ts";
 /** Only a tool whose acts say how they are offered can be shown: an act without its declaration is a defect. */
 const isProgramTool = <X extends Program>(tool: HouseTool<X>): tool is ProgramTool<X> =>
   Object.values(tool.acts).every(act => "name" in act && "enter" in act && "key" in act && "cases" in act);
@@ -73,7 +75,8 @@ function auditPlaces<X extends Program>(tools: readonly ProgramTool<X>[], shown:
 function groupedTools<X extends Program>(tool: ProgramTool<X>): readonly ProgramTool<X>[] {
   if (!tool.groups) return [tool];
   const groups = tool.groups.map(group => group.tool);
-  const actions = groups.flatMap(group => Object.keys(group.acts));
+  const core = Object.entries(tool.acts).filter(([, act]) => isMindCardAction(act));
+  const actions = [...groups.flatMap(group => Object.keys(group.acts)), ...core.map(([name]) => name)];
   const sameNames = JSON.stringify([...actions].sort()) === JSON.stringify(Object.keys(tool.acts).sort());
   if (!sameNames || repeated(groups.map(group => group.id)).length)
     throw new Error(`Group coverage differs from the installed actions of ${tool.id}`);
@@ -84,7 +87,7 @@ function groupedTools<X extends Program>(tool: ProgramTool<X>): readonly Program
         throw new Error(`Group action ${name} differs from its installed action`);
     }
   }
-  return groups;
+  return [...groups, ...(core.length ? [{ ...tool, acts: Object.fromEntries(core) }] : [])];
 }
 function sameAction(left: object, right: object): boolean {
   const keys = (value: object) =>
@@ -212,8 +215,10 @@ function declaredTools<X extends Program>(registry: readonly HouseTool<X>[]) {
 }
 const namedScreen = <X extends Program>(...args: Parameters<typeof builtScreen<X>>) =>
   authorThread(builtScreen(...args), authorName(args[1]));
+const coreWords = <X extends Program>(registry: HousePorts<X>["registry"], given: Shown<X>) =>
+  withPersonalWords(registry, withRulesWords(registry, withIdentityWords(registry, given)));
 export function houseTools<X extends Program>(ports: HousePorts<X>, given: Shown<X>): readonly Tool[] {
-  const shown = withRulesWords(ports.registry, withIdentityWords(ports.registry, given));
+  const shown = coreWords(ports.registry, given);
   const seen = new Map<string, number>();
   const observed = observedPorts(ports, seen);
   const tools = declaredTools(ports.registry);

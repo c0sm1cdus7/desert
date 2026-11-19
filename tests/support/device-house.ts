@@ -6,7 +6,6 @@ import { startHouse } from "../../src/runtime/house-runtime.ts";
 import { home, time } from "./upgrade-support.ts";
 import { vocabulary } from "../../src/journal/vocabulary.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
-import { createDeviceDoor } from "../../src/doors/devices/device-door.ts";
 import { createDeviceProcess } from "../../src/doors/devices/device-process.ts";
 import type { ActionExecution, DeviceRequest, DeviceResult } from "../../src/fields/device-protocol.ts";
 
@@ -58,7 +57,7 @@ export function setup(execution: ActionExecution = { at: "either", tool: "shell"
   };
   const house = open();
   house.tools.act({ act: "attend", input: { target: "agents" } }, 0, "beto");
-  const door = createDeviceDoor(house.devices, () => time.now());
+  const door = house.devices.door;
   const requests: DeviceRequest[] = [];
   const device = provisioner(house, door, requests);
   const act = (device: string, by = "beto") =>
@@ -72,7 +71,7 @@ export function setup(execution: ActionExecution = { at: "either", tool: "shell"
 
 function provisioner(
   house: ReturnType<typeof startHouse>,
-  door: ReturnType<typeof createDeviceDoor>,
+  door: ReturnType<typeof startHouse>["devices"]["door"],
   requests: DeviceRequest[],
 ) {
   return function device(id: string, handler?: (request: DeviceRequest) => Promise<DeviceResult>) {

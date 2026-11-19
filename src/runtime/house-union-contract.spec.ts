@@ -1,27 +1,27 @@
 // The custody and the house contract as one contract: kits, a tool's mind, scenes and a credential, through reopening;
 // and a registry written by the custody alone (3e69d44) folds the same in the joined tree.
-import "../../tests/support/fixture-vault.ts";
-import { afterEach, expect, it } from "vitest";
-import { DatabaseSync } from "node:sqlite";
+import { Type } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Type } from "@sinclair/typebox";
-import { Value } from "@sinclair/typebox/value";
-import { MacOSHouseKeys } from "../keychain/macos/macos-house-keys.ts";
-import { ids } from "../house/ids.ts";
-import { mindOf } from "../house/kit.ts";
-import { explicitKit, programKit, selectionKit } from "../house/kit-selection.ts";
+import { DatabaseSync } from "node:sqlite";
+import { afterEach, expect, it } from "vitest";
+import previous from "../../tests/support/custody-3e69d44.json" with { type: "json" };
+import { adapterProgram, call, imported, validity } from "../../tests/support/declared-adapters.ts";
+import { fakeKeychain } from "../../tests/support/fake-keychain.ts";
+import "../../tests/support/fixture-vault.ts";
+import { MacOSHouseKeys } from "../../tests/support/retired-macos/macos-house-keys.ts";
+import { shop, shopRegistry, shopSlices, type Shop } from "../../tests/support/shop.ts";
 import { effect } from "../house/facts.ts";
+import { ids } from "../house/ids.ts";
+import { explicitKit, programKit, selectionKit } from "../house/kit-selection.ts";
+import { mindOf } from "../house/kit.ts";
+import type { HouseOptions } from "../house/state.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { toolAct } from "../tools/act-definition.ts";
 import type { Tool } from "../tools/tool-contract.ts";
 import { startHouse } from "./house-runtime.ts";
-import type { HouseOptions } from "../house/state.ts";
-import { fakeKeychain } from "../../tests/support/fake-keychain.ts";
-import { adapterProgram, call, imported, validity } from "../../tests/support/declared-adapters.ts";
-import { shop, shopRegistry, shopSlices, type Shop } from "../../tests/support/shop.ts";
-import previous from "../../tests/support/custody-3e69d44.json" with { type: "json" };
 const homes: string[] = [];
 const houses: { close(): void }[] = [];
 afterEach(() => {
@@ -189,6 +189,7 @@ it("un registro escrito por la custodia sola (3e69d44) se pliega igual en el ár
     removed,
     assistants,
     mindAssignments,
+    mindCards,
     minds,
     journeys,
     modelCalls,
@@ -203,6 +204,7 @@ it("un registro escrito por la custodia sola (3e69d44) se pliega igual en el ár
   expect(Object.hasOwn(older, "channels")).toBe(false);
   const previousHouse = Object.fromEntries(Object.entries(previous.fold.house).filter(([key]) => key !== "channels"));
   expect(folded({ ...rest, house: older })).toEqual({ ...previous.fold, house: previousHouse });
+  expect(mindCards).toEqual(new Map());
   expect(identities).toBe(false);
   expect(rules).toEqual({ versions: new Map(), active: new Map(), approved: new Map(), retired: new Map() });
   expect(devices).toEqual({ devices: new Map(), executions: new Map() });

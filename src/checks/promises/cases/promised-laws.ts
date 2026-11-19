@@ -1,20 +1,18 @@
 // The laws every act of every program keeps: nobody promises them case by case, and every act is checked on them.
+import { Type } from "@sinclair/typebox";
+import { deepStrictEqual, ok } from "node:assert/strict";
+import { inspect } from "node:util";
+import { fieldValidity } from "../../../fields/fields.ts";
 import { isRecord } from "../../../fields/json-values.ts";
 import type { Shown } from "../../../surface/bridge/ports/house-ports.ts";
-import { inspect } from "node:util";
-import { Type } from "@sinclair/typebox";
-import { groupTargetCauses } from "../identities/group-checks.ts";
-import { mindTargetCauses } from "../identities/kit-checks.ts";
-import { withoutActionCheck, closeCoreSetup, isCorePersonal } from "../identities/identity-checks.ts";
-import { fieldValidity } from "../../../fields/fields.ts";
-import { openingChecks } from "./opening-checks.ts";
-import { alsoCauses } from "./also-causes.ts";
-import { deepStrictEqual, ok } from "node:assert/strict";
 import { promiseTexts as said } from "../../../texts/promises.texts.ts";
 import { toolTexts } from "../../../texts/tools.texts.ts";
 import { ofTheBase, type Case, type Composition } from "../../../tools/promises.ts";
 import { outsideOf } from "../../../tools/schema-breaks.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
+import { groupTargetCauses } from "../identities/group-checks.ts";
+import { closeCoreSetup, isCorePersonal, withoutActionCheck } from "../identities/identity-checks.ts";
+import { mindTargetCauses } from "../identities/kit-checks.ts";
 import {
   cast,
   given,
@@ -26,6 +24,8 @@ import {
   type Check,
   type Doing,
 } from "../promised-stage.ts";
+import { alsoCauses } from "./also-causes.ts";
+import { openingChecks } from "./opening-checks.ts";
 /** An act stands on its tool or on one of its things: done anywhere else, the house refuses it and writes nothing. */
 function placeCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase: Case<X>): Check {
   const run = (): Promise<void> =>
@@ -74,7 +74,7 @@ export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X
         deepStrictEqual(wroteSince(house(), before), []);
       }),
   });
-  const core = aim.tool.id === "identities";
+  const core = aim.tool.id === "identities" || aim.tool.id === "rules" || aim.tool.id === "personal";
   const kitReason = toolTexts.kitRefusal(aim.tool.id);
   const unheld = core ? cast.member : cast.outsider;
   return [

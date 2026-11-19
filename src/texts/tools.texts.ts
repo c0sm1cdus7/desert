@@ -28,11 +28,10 @@ export const toolTexts = {
   unattended: "destino sin abrir",
   unassigned: "sin acceso",
   outsideKit: "fuera del kit",
-  kitRefusal: (tool: string) => (tool === "identities" ? identityTexts.only : "fuera del kit"),
+  kitRefusal: (tool: string) => (tool === "identities" || tool === "rules" ? identityTexts.only : "fuera del kit"),
   defect: (act: string): string => `E-PROG-1 · Falló el programa · ${act}`,
   baseFailure: "E-BASE-1 · Falló la base",
   disconnected: "sin conexión con el servicio",
-  unavailable: "acción fallida",
   interrupted: "acción interrumpida",
   withdrawn: "sacada",
   unchanged: "sin cambios", // What an act answers when it would leave the thing exactly as it is.

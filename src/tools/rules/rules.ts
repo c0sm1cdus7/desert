@@ -1,8 +1,8 @@
-// Reglas es una pieza reservada del core que comparte acciones y lectura entre todas las superficies.
-import type { Program, ToolRegistry } from "../tool-contract.ts";
-import type { ProgramTool } from "../promises.ts";
+// Rules belong to the core and share declarations across every surface.
 import { rulesTexts as words } from "../../texts/rules.texts.ts";
-import { ruleWriteActions, ruleConsult, ruleReading } from "./rule-actions.ts";
+import type { ProgramTool } from "../promises.ts";
+import type { Program, ToolRegistry } from "../tool-contract.ts";
+import { ruleConsult, ruleReading, ruleWriteActions } from "./rule-actions.ts";
 import { ruleSimulation } from "./rule-simulation.ts";
 const core = new WeakSet<object>();
 export const isRulesTool = (tool: object): boolean => core.has(tool);
@@ -24,5 +24,5 @@ export function rulesRegistry<X extends Program>(registry: ToolRegistry<X>): Too
   if (registry.some(tool => tool.id === "rules" && !isRulesTool(tool)))
     throw new Error("rules is reserved for the core");
   const ordinary = registry.filter(tool => tool.id !== "rules");
-  return [...ordinary, rulesTool(ordinary)];
+  return [...ordinary, registry.find(tool => tool.id === "rules") ?? rulesTool(ordinary)];
 }

@@ -1,19 +1,21 @@
 // Evaluates public samples against the same effective input as execution, without action effects.
-import { canSimulateInput, normalizedInput } from "../inputs/prepared-input.ts";
-import { hasSecretInput } from "../inputs/secret-input.ts";
-import { fine } from "../../fields/fields.ts";
-import { publicSimulationInput, simulationSchema } from "./simulation-public-input.ts";
 import { Type, type Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { OutsideDefect } from "../../fields/program-call.ts";
+import { fine } from "../../fields/fields.ts";
 import { object } from "../../fields/visible-text.ts";
-import { evaluatePredicate, ruleProblem } from "../../house/rules/rule-predicate.ts";
 import { ruleReference } from "../../house/rules/rule-facts.ts";
-import { rulesTexts as words, ruleFormTexts as form } from "../../texts/rules.texts.ts";
+import { evaluatePredicate, ruleProblem } from "../../house/rules/rule-predicate.ts";
+import type { RuleDefinition } from "../../house/rules/rule-schema.ts";
+import { ruleFormTexts as form, rulesTexts as words } from "../../texts/rules.texts.ts";
+import { canSimulateInput, normalizedInput } from "../inputs/prepared-input.ts";
+import { hasSecretInput } from "../inputs/secret-input.ts";
 import { programAct } from "../promises.ts";
 import type { Program, State, ToolRegistry } from "../tool-contract.ts";
-import type { RuleDefinition } from "../../house/rules/rule-schema.ts";
 import { actionSchema } from "./rule-actions.ts";
+import { simulationCases } from "./rule-cases.ts";
 import { ruleForm } from "./rule-form.ts";
+import { publicSimulationInput, simulationSchema } from "./simulation-public-input.ts";
 const sampleSchema = Type.Array(
   object({
     actor: Type.String({ minLength: 1 }),
@@ -75,27 +77,42 @@ function ruleOutcomes(definition: RuleDefinition, samples: Static<typeof sampleS
   }));
 }
 
+/** Pure normalization may be reused for the same public sample and unchanged rule context. */
+function simulationReader<X extends Program>(registry: ToolRegistry<X>) {
+  let previous:
+    | {
+        input: string;
+        versions: State<X>["house"]["rules"]["versions"];
+        admin: string;
+        result: ReturnType<typeof simulation<X>>;
+      }
+    | undefined;
+  return (value: unknown, state: State<X>) => {
+    const safe = publicSimulationInput(value, state, registry);
+    const input = JSON.stringify(safe);
+    const { versions } = state.house.rules;
+    const { admin } = state.house;
+    if (previous?.input === input && previous.versions === versions && previous.admin === admin) return previous.result;
+    const result = simulation(safe, state, registry, true);
+    previous = { input, versions, admin, result };
+    return result;
+  };
+}
 export function ruleSimulation<X extends Program>(registry: ToolRegistry<X>) {
-  return programAct<X, typeof input, readonly [typeof form.casesInvalid, typeof form.unavailable]>({
+  const evaluate = simulationReader(registry);
+  return programAct<X, typeof input>({
     ...words.simulate,
     input: ruleForm(input),
     on: "tool",
     undoable: true,
     output: true,
-    refuses: [form.casesInvalid, words.missing, words.action, words.invalid, words.field, words.type, form.unavailable],
-    outside: [form.casesInvalid, form.unavailable],
-    stops: (value, state) => (Value.Check(input, value) ? simulation(value, state, registry).problem : undefined),
+    refuses: [form.casesInvalid, words.missing, form.unavailable],
+    stops: (value, state) => (Value.Check(input, value) ? evaluate(value, state).problem : undefined),
     run: (value, { state }) => {
-      const result = simulation(value, state, registry, true);
-      if (!result.results)
-        return {
-          status: "rejected",
-          reason: result.problem === form.casesInvalid ? form.casesInvalid : form.unavailable,
-        };
-      return { status: "accepted", text: JSON.stringify(result.results), value: result.results };
+      const result = evaluate(value, state);
+      if (!result.results) throw new OutsideDefect(result.problem);
+      return { status: "accepted", text: words.simulationResult(result.results), value: result.results };
     },
-    cases: [
-      { promise: words.missing, input: { id: "absent", version: 1, samples: "[]" }, then: { refused: words.missing } },
-    ],
+    cases: simulationCases<X>(),
   });
 }

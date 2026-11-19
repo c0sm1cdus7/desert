@@ -10,6 +10,7 @@ const executionSchemas = new WeakMap<TSchema, TSchema>();
 const secretInputs = new WeakMap<object, boolean>();
 
 export function executionSchema<S extends TSchema>(schema: S) {
+  if (!hasSecretInput(schema)) return schema;
   const known = executionSchemas.get(schema);
   if (known) return Type.Unsafe<Static<S>>(known);
   const walk = (value: unknown): unknown => {

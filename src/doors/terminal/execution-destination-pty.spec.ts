@@ -44,7 +44,7 @@ it.each([
       f.terminal.press("\r");
       await f.terminal.until(deviceTexts.confirm(destination));
       f.terminal.press("\r");
-      await f.terminal.until(sales ? "Registrada" : "La ejecución terminó");
+      await f.terminal.until(sales ? "Registrada" : deviceTexts.completed("").trim());
       await f.terminal.close();
       expect(f.result()).toMatchObject({
         received,

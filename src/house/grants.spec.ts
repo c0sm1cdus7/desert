@@ -1,10 +1,11 @@
 // Whole tools are the only assignment unit, the admin alone assigns them, and identities read the house.
 import { afterEach, describe, expect, it } from "vitest";
-import { allowed, assigned } from "./kit.ts";
-import { hides } from "./members.ts";
-import { effect } from "./facts.ts";
-import { toolTexts } from "../texts/tools.texts.ts";
+import { assigned } from "../../tests/support/retired-helpers/kit.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
+import { effect } from "./facts.ts";
+import { allowed } from "./kit.ts";
+import { hides } from "./members.ts";
 
 const rigs: ReturnType<typeof shopRig>[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));

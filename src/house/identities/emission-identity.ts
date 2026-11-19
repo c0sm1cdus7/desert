@@ -1,9 +1,8 @@
 // Valida identificadores nuevos y rechaza asignaciones o recortes del id reservado identities antes de escribir.
-import { rulesTexts } from "../../texts/rules.texts.ts";
 import type { Emission, Foreign } from "../../journal/vocabulary.ts";
 import type { HouseEmission } from "../facts.ts";
+import { coreToolReasons } from "../system-tools.ts";
 import { identityNameProblem } from "./identity-name.ts";
-import { identityTexts } from "../../texts/identities.texts.ts";
 function identityIn(emission: HouseEmission): string | undefined {
   if (emission.kind === "house-created") return emission.by;
   if (emission.kind === "granted") return emission.data.identity;
@@ -11,30 +10,20 @@ function identityIn(emission: HouseEmission): string | undefined {
   return undefined;
 }
 export function checkIdentity<P extends Foreign>(emission: Emission<P>, runner: string): Emission<P> {
-  if (
-    emission.layer === "house" &&
-    ((emission.kind === "granted" &&
-      ("version" in emission.data
-        ? emission.data.kit.selections.some(selection => selection.program === "identities")
-        : emission.data.tools.includes("identities"))) ||
-      (emission.kind === "kit-set" &&
+  for (const [tool, reason] of Object.entries(coreToolReasons)) {
+    if (
+      emission.layer === "house" &&
+      ((emission.kind === "granted" &&
         ("version" in emission.data
-          ? emission.data.kit.selections.some(selection => selection.program === "identities")
-          : emission.data.tool === "identities")))
-  )
-    throw new Error(identityTexts.reserved);
-  if (
-    emission.layer === "house" &&
-    ((emission.kind === "granted" &&
-      ("version" in emission.data
-        ? emission.data.kit.selections.some(selection => selection.program === "rules")
-        : emission.data.tools.includes("rules"))) ||
-      (emission.kind === "kit-set" &&
-        ("version" in emission.data
-          ? emission.data.kit.selections.some(selection => selection.program === "rules")
-          : emission.data.tool === "rules")))
-  )
-    throw new Error(rulesTexts.reserved);
+          ? emission.data.kit.selections.some(selection => selection.program === tool)
+          : emission.data.tools.includes(tool))) ||
+        (emission.kind === "kit-set" &&
+          ("version" in emission.data
+            ? emission.data.kit.selections.some(selection => selection.program === tool)
+            : emission.data.tool === tool)))
+    )
+      throw new Error(reason);
+  }
   const identity = emission.layer === "house" ? identityIn(emission) : undefined;
   const problem = identity === undefined ? undefined : identityNameProblem(identity, runner);
   if (problem) throw new Error(problem);

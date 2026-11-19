@@ -1,8 +1,8 @@
+import { randomUUID } from "node:crypto";
 import { expect, it } from "vitest";
 import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
-import { importLegacyKeys } from "../macos/legacy-key-provider.ts";
 import { MemoryKeys } from "../../../tests/support/legacy-keys.ts";
-import { randomUUID } from "node:crypto";
+import { importLegacyKeys } from "../../../tests/support/retired-macos/legacy-key-provider.ts";
 import type { SecretRef } from "./custody-contract.ts";
 it("el manifiesto no resucita una referencia purgada ni deja filas con ids inválidos", () => {
   const store = custodyRig().open(),

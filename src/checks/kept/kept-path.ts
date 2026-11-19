@@ -13,8 +13,8 @@ import { walkBody, walkHints } from "../../surface/acts/walk.ts";
 import { promiseTexts as said } from "../../texts/promises.texts.ts";
 import { surfaceTexts } from "../../texts/surface.texts.ts";
 import { outsideCause } from "../../tools/outside.ts";
-import type { Composition } from "../../tools/promises.ts";
-import type { Program } from "../../tools/tool-contract.ts";
+import { isProgram } from "../../tools/execution/program-causes.ts";
+import type { Program, ToolRegistry } from "../../tools/tool-contract.ts";
 import { errorIn } from "../read-screen.ts";
 import { quietScreen } from "../promises/answers/promised-entry.ts";
 import { localPorts, type RunningHouse } from "../../runtime/house-runtime.ts";
@@ -57,7 +57,7 @@ function inspect(session: Session, tools: readonly Tool[], now: number): void {
   for (const row of rows) ok(!row.off || row.detail?.trim(), said.disabledReason);
 }
 function outsideResult<X extends Program>(
-  program: Composition<X>,
+  program: Readonly<{ registry: ToolRegistry<X> }>,
   tools: readonly Tool[],
   session: Session,
   walk: Running,
@@ -65,7 +65,7 @@ function outsideResult<X extends Program>(
   now: number,
 ): void {
   const act = program.registry.find(tool => tool.id === walk.tool)?.acts[walk.act];
-  ok(act && outsideCause(act.outside, reason), said.offeredFailed(reason));
+  ok(act && isProgram(act) && outsideCause(act.outside, reason), said.offeredFailed(reason));
   const failed = finished(session, walk, { ok: false, reason });
   const bar = { state: "connected", clock: "00:00", now } as const;
   const body = resolve(failed, tools, bar, { rows: 10000 }).body;
@@ -84,7 +84,7 @@ async function runOffered(tools: readonly Tool[], run: Running) {
 const fingerprint = (session: Session, state: unknown): string =>
   JSON.stringify([session, state], (_key, value: unknown) => (value instanceof Map ? [...value] : value));
 export async function keptPath<X extends Program>(
-  program: Composition<X>,
+  program: Readonly<{ registry: ToolRegistry<X> }>,
   shown: Shown<X>,
   house: RunningHouse<X>,
   now: number,

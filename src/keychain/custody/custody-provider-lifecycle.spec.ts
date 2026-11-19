@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { keyProviders } from "../../../tests/support/key-providers.ts";
 import { custodyRig } from "../../../tests/support/custody-rig.ts";
+import { keyProviders } from "../../../tests/support/key-providers.ts";
+import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
 import { CustodyDatabase } from "./custody-database.ts";
 import { MemoryHouseKeys } from "./house-keys.ts";
-import { MacOSHouseKeys } from "../macos/macos-house-keys.ts";
 it("el proveedor en memoria borra su original al olvidar y copia ambos lados del ancla", () => {
   const provider = new MemoryHouseKeys(),
     copies = vi.spyOn(Uint8Array, "from");

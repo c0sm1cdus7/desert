@@ -1,18 +1,16 @@
 // Whole-tool grants and action kits for identities and minds, with the same membership guards.
-import { systemTool } from "./system-tools.ts";
-import { journeyAllows } from "./minds/journey-state.ts";
-import { holderKit } from "./kit-history.ts";
-import { herramientaDe, kitLayout, selects } from "./kit-selection.ts";
-import { requireMind } from "../fields/mind-errors.ts";
-import { ids } from "./ids.ts";
 import { isMindActor, parseMindActor } from "../fields/mind-actor.ts";
+import { requireMind } from "../fields/mind-errors.ts";
 import { effectiveAssistantKit, type MindTools } from "./assistants/assistant-state.ts";
 import type { HouseEvent } from "./facts.ts";
-import type { House } from "./members.ts";
 import { allowed, identityAllowedAct } from "./identities/identity-permissions.ts";
+import { ids } from "./ids.ts";
+import { holderKit } from "./kit-history.ts";
+import { herramientaDe, kitLayout, selects } from "./kit-selection.ts";
+import type { House } from "./members.ts";
+import { journeyAllows } from "./minds/journey-state.ts";
+import { systemTool } from "./system-tools.ts";
 export { allowed } from "./identities/identity-permissions.ts";
-export const assigned = (house: House, by: string, tools: readonly string[]): string[] =>
-  tools.filter(tool => !systemTool(tool) && allowed(house, by, tool));
 
 /** The journal name of a tool's mind; an empty suffix does not name a tool. */
 export const mindOf = (tool: string): string => `${ids.mind}${tool}`;

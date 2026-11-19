@@ -1,24 +1,24 @@
 // A house: tool grants, action kits, shared scenes, preferences and reading.
-import { emptyDoors, doorStep, type DoorState } from "./doors/door-state.ts";
-import { systemTool } from "./system-tools.ts";
-import { emptyRules, rulesStep, type RulesState } from "./rules/rule-state.ts";
-import { emptyDevices, deviceStep, type DeviceState } from "./devices/device-state.ts";
-import type { KitMigration } from "./kit-migration.ts";
-import { selectionStep } from "./kit-history.ts";
-import { programKit, type KitLayout, type SelectionKit } from "./kit-selection.ts";
-import { mindHouseStep } from "./minds/mind-house-state.ts";
-import { sceneStep } from "./scenes.ts";
-import { readonlyState } from "../journal/readonly-state.ts";
-import type { Hideable } from "./own-acts.ts";
-import { effect, type HouseEvent } from "./facts.ts";
-import type { Event, HouseBus } from "../journal/vocabulary.ts";
-import { kitStep } from "./kit.ts";
 import { isMindActor } from "../fields/mind-actor.ts";
+import { readonlyState } from "../journal/readonly-state.ts";
+import type { Event, HouseBus } from "../journal/vocabulary.ts";
 import { type AssistantState } from "./assistants/assistant-state.ts";
+import { deviceStep, emptyDevices, type DeviceState } from "./devices/device-state.ts";
+import { doorStep, emptyDoors, type DoorState } from "./doors/door-state.ts";
+import { effect, type HouseEvent } from "./facts.ts";
+import { selectionStep } from "./kit-history.ts";
+import type { KitMigration } from "./kit-migration.ts";
+import { programKit, type KitLayout, type SelectionKit } from "./kit-selection.ts";
+import { kitStep } from "./kit.ts";
+import { type Journeys } from "./minds/journey-state.ts";
+import { mindHouseStep } from "./minds/mind-house-state.ts";
 import { type MindAssignment } from "./minds/mind-settings.ts";
 import { emptyMindState, type MindState } from "./minds/mind-state.ts";
-import { type Journeys } from "./minds/journey-state.ts";
 import { type ModelCalls } from "./minds/model-call-state.ts";
+import type { Hideable } from "./own-acts.ts";
+import { emptyRules, rulesStep, type RulesState } from "./rules/rule-state.ts";
+import { sceneStep } from "./scenes.ts";
+import { systemTool } from "./system-tools.ts";
 
 export { checkCreation, checkIdentity, guardJournal, InvalidCreation } from "./identities/guards.ts";
 type Assignment = Readonly<{ identity: string; tools: readonly string[] }>;
@@ -34,6 +34,7 @@ export type House = Readonly<{
 }> &
   Readonly<{
     assistants: ReadonlyMap<string, AssistantState>;
+    mindCards: ReadonlyMap<string, readonly MindAssignment[]>;
     mindAssignments: ReadonlyMap<string, MindAssignment>;
     minds: MindState;
     journeys: Journeys;
@@ -60,6 +61,7 @@ export const emptyHouse: House = {
   rules: emptyRules,
   devices: emptyDevices,
   assistants: new Map(),
+  mindCards: new Map(),
   mindAssignments: new Map(),
   minds: emptyMindState,
   journeys: new Map(),
@@ -119,6 +121,19 @@ export const identityView = <S extends HouseView>(state: S, by: string): S =>
     attention: state.attentionBy.get(by) ?? noAttention,
     entries: state.entries,
   });
+/** A live reader publishes immutable snapshots; reuse its identity view until the snapshot changes. */
+export function identityReader<S extends HouseView>(read: () => S, by: string): () => S {
+  let previous: S | undefined;
+  let view: S | undefined;
+  return () => {
+    const current = read();
+    if (current !== previous || !view) {
+      previous = current;
+      view = identityView(current, by);
+    }
+    return view;
+  };
+}
 export function createHouse(bus: HouseBus, { admin: by, assignments }: Creation): void {
   bus.emit(effect("house-created", {}, by));
   for (const { identity, tools } of assignments)

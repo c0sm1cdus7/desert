@@ -1,19 +1,19 @@
 // The request key travels in the act's existing cause. Replaying the journal restores deduplication after a crash.
-import { requestContent } from "./request-content.ts";
-import { jsonData } from "./json-data.ts";
 import { ids } from "../../../house/ids.ts";
-import { toolTexts } from "../../../texts/tools.texts.ts";
-import { socketTexts } from "../../../texts/socket.texts.ts";
 import type { Event } from "../../../journal/vocabulary.ts";
 import type { RunningHouse } from "../../../runtime/house-runtime.ts";
+import { socketTexts } from "../../../texts/socket.texts.ts";
+import { toolTexts } from "../../../texts/tools.texts.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import type { RequestAct, ResultMessage, ServerMessage } from "../wire/protocol.ts";
+import { jsonData } from "./json-data.ts";
+import { requestContent } from "./request-content.ts";
 export type RequestHouse<X extends Program> = Pick<RunningHouse<X>, "tools" | "journal" | "bus">;
 type Saved = { content: string; id: string; effects: ResultMessage["efectos"]; result?: ResultMessage };
 const prefix = "socket-request:";
 /** The two causes of a socket act that name the door's request, not a fact: its key and its content's hash. */
 export const requestCauses = [prefix, "socket-content:"] as const;
-const requestKey = (by: string, id: string) => `${prefix}${JSON.stringify([by, id])}`;
+const requestKey = (by: string, id: string) => `${requestCauses[0]}${JSON.stringify([by, id])}`;
 function receipt(event: Event): ResultMessage["efectos"] {
   if (event.layer !== "house") return [];
   if (event.kind === "act-done") {

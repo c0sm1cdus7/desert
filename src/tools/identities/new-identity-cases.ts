@@ -1,12 +1,13 @@
 // Casos declarados de alta con nombre y kit, alta vacía, duplicados y permiso de administración.
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import type { Case } from "../promises.ts";
-import type { Program } from "../tool-contract.ts";
+import { programName } from "./kit-catalog.ts";
+import type { Program, ToolRegistry } from "../tool-contract.ts";
 import { identityTarget } from "./identity-reading.ts";
 type NewCase<X extends Program> = Case<X> & { input: { identity: string; name?: string; tools: string[] } };
-const namedCase = <X extends Program>(tools: string[]): NewCase<X> => ({
+const namedCase = <X extends Program>(tools: ToolRegistry<X>): NewCase<X> => ({
   promise: words.promises.createdNamed,
-  input: { identity: "luz", name: "Luz", tools },
+  input: { identity: "luz", name: "Luz", tools: tools.map(tool => tool.id) },
   then: {
     says: words.created("Luz"),
     facts: [],
@@ -17,13 +18,13 @@ const namedCase = <X extends Program>(tools: string[]): NewCase<X> => ({
           identifier: "luz",
           name: "Luz",
           state: words.count(tools.length),
-          kit: tools.map(tool => `${tool} · ${words.all}`),
+          kit: tools.map(tool => `${programName(tool)} · ${words.all}`),
         },
       ],
     },
   },
 });
-export const newIdentityCases = <X extends Program>(tools: string[]): readonly [NewCase<X>, ...NewCase<X>[]] => [
+export const newIdentityCases = <X extends Program>(tools: ToolRegistry<X>): readonly [NewCase<X>, ...NewCase<X>[]] => [
   namedCase<X>(tools),
   {
     promise: words.promises.createdBare,

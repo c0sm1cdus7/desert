@@ -1,7 +1,7 @@
-import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
-import { expect, it } from "vitest";
 import { inspect } from "node:util";
-import { MacOSHouseKeys } from "../macos/macos-house-keys.ts";
+import { expect, it } from "vitest";
+import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
+import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
 import { MemoryHouseKeys } from "./house-keys.ts";
 it("crear usa entrada estándar separada: ningún argumento contiene la llave (a6)", () => {
   const { saved, calls, command } = fakeKeychain();

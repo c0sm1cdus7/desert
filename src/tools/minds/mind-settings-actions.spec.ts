@@ -1,7 +1,7 @@
 import { afterEach, expect, it } from "vitest";
-import { effect } from "../../house/facts.ts";
 import { shopRig } from "../../../tests/support/shop-rig.ts";
 import { shopRegistry, type Shop } from "../../../tests/support/shop.ts";
+import { effect } from "../../house/facts.ts";
 import { settle } from "../../surface/bridge/ports/house-ports.ts";
 import { assignMindCard } from "./mind-settings-actions.ts";
 const rigs: ReturnType<typeof shopRig>[] = [];
@@ -18,7 +18,7 @@ it("solo administración asigna una carta elegible al asistente en Identidades",
         view: () => "",
         summary: () => "",
         acts: {
-          "assign-mind-card": assignMindCard<Shop>([{ name: "c", version: "v1", capabilities: ["sees"] }], "es"),
+          "assign-mind-card": assignMindCard<Shop>(),
         },
       },
     ],
@@ -26,16 +26,41 @@ it("solo administración asigna una carta elegible al asistente en Identidades",
   });
   rigs.push(rig);
   rig.bus.emit(effect("assistant-enabled", { owner: "franco", name: "Nora" }, "ana"));
+  rig.bus.emit(
+    effect(
+      "mind-cards-published",
+      { mind: "assistant:franco", cards: [{ card: "c", version: "v1", capabilities: ["sees"] }] },
+      "ana",
+    ),
+  );
   rig.attend("ana", "identities");
   rig.attend("franco", "identities");
   expect(
-    (await settle(rig.act("franco", "assign-mind-card", { card: "c", version: "v1" }, "identities/franco"))).status,
+    (await settle(rig.act("franco", "assign-mind-card", { card: JSON.stringify(["c", "v1"]) }, "identities/franco")))
+      .status,
   ).toBe("rejected");
   expect(
-    (await settle(rig.act("ana", "assign-mind-card", { card: "other", version: "v1" }, "identities/franco"))).status,
+    (await settle(rig.act("ana", "assign-mind-card", { card: JSON.stringify(["other", "v1"]) }, "identities/franco")))
+      .status,
   ).toBe("rejected");
   expect(
-    (await settle(rig.act("ana", "assign-mind-card", { card: "c", version: "v1" }, "identities/franco"))).status,
+    (await settle(rig.act("ana", "assign-mind-card", { card: JSON.stringify(["c", "v1"]) }, "identities/franco")))
+      .status,
   ).toBe("accepted");
   expect(rig.state().house.mindAssignments.get("assistant:franco")?.capabilities).toEqual(["sees"]);
+});
+
+it("invalidates persisted role certificates when the house boots again", () => {
+  const rig = shopRig();
+  rigs.push(rig);
+  rig.bus.emit(
+    effect(
+      "mind-cards-published",
+      { mind: "mind:sales", cards: [{ card: "c", version: "v1", capabilities: [] }] },
+      "ana",
+    ),
+  );
+  expect(rig.state().house.mindCards.get("mind:sales")).toHaveLength(1);
+  rig.bus.emit(effect("boot", {}, "house"));
+  expect(rig.state().house.mindCards.size).toBe(0);
 });
