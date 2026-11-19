@@ -13,7 +13,7 @@ import {
   linkSync,
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { redemptionReservation } from "./redemption-reservation.ts";
+import { redemptionReservation, type RedemptionPhase } from "./redemption-reservation.ts";
 import { randomBytes, randomUUID } from "node:crypto";
 import { isRecord } from "../fields/json-values.ts";
 import { doorTexts } from "../texts/doors.texts.ts";
@@ -34,10 +34,13 @@ class ReservedDestination {
   private reservation: ReturnType<typeof redemptionReservation> | undefined;
   private recovery: string;
   private prepared = false;
+  private phase: RedemptionPhase = "reserved";
+  private readonly attempt: string;
   private readonly target: RedemptionTarget;
   private descriptor: number | undefined;
   private saved = false;
   constructor(target: RedemptionTarget, attempt: string) {
+    this.attempt = attempt;
     this.target = { ...target, file: resolve(target.file) };
     this.file = this.target.file;
     this.recovery = join(dirname(this.file), `.desert-redemption-${randomUUID()}`);
@@ -49,8 +52,9 @@ class ReservedDestination {
         if (stat?.size) {
           this.recovery = previous;
           this.prepared = true;
-          requireAttempt(this.reservation.attempt, attempt, previous);
-          this.descriptor = openRecovery(this.target, previous);
+          this.phase = this.reservation.phase;
+          requireAttempt(this.reservation.attempt, attempt, this.guidance());
+          this.descriptor = openRecovery(this.target, previous, this.guidance());
           return;
         }
         removeReservation(previous);
@@ -83,7 +87,7 @@ class ReservedDestination {
     if (this.descriptor === undefined) throw new Error("closed-reservation");
     if (this.prepared) {
       const key = readFileSync(this.recovery, "utf8").trim();
-      if (!/^[A-Za-z0-9_-]{43}$/.test(key)) throw new RedemptionFailure(doorTexts.recovered(this.recovery));
+      if (!/^[A-Za-z0-9_-]{43}$/.test(key)) throw new RedemptionFailure(this.guidance());
       return key;
     }
     const key = randomBytes(32).toString("base64url");
@@ -91,6 +95,16 @@ class ReservedDestination {
     fsyncSync(this.descriptor);
     this.prepared = true;
     return key;
+  }
+  guidance() {
+    const messages = { reserved: doorTexts.pending, uncertain: doorTexts.uncertain, confirmed: doorTexts.confirmed };
+    return `${messages[this.phase](this.recovery)} ${doorTexts.resume}`;
+  }
+
+  sending() {
+    if (this.phase === "confirmed") return;
+    this.phase = "uncertain";
+    this.reservation?.record(this.recovery, this.attempt, this.phase);
   }
   cancel() {
     this.prepared = false;
@@ -103,6 +117,8 @@ class ReservedDestination {
       ftruncateSync(this.descriptor, key.length + 1);
     }
     fsyncSync(this.descriptor);
+    this.phase = "confirmed";
+    this.reservation?.record(this.recovery, this.attempt, this.phase);
     this.saved = true;
     closeSync(this.descriptor);
     this.descriptor = undefined;
@@ -111,7 +127,7 @@ class ReservedDestination {
       this.saved = false;
       this.prepared = false;
     } catch {
-      throw new RedemptionFailure(doorTexts.recovered(this.recovery));
+      throw new RedemptionFailure(this.guidance());
     }
   }
 }
@@ -158,15 +174,15 @@ function publish(target: RedemptionTarget, recovery: string, url: URL, key: stri
 }
 export const reserveDestination = (target: RedemptionTarget, attempt = "") => new ReservedDestination(target, attempt);
 
-function requireAttempt(saved: string | undefined, current: string, recovery: string) {
-  if (saved !== current) throw new RedemptionFailure(doorTexts.recovered(recovery));
-}
-
-function openRecovery(target: RedemptionTarget, recovery: string) {
+function openRecovery(target: RedemptionTarget, recovery: string, guidance: string) {
   try {
     configuration(target);
     return openSync(recovery, "r+");
   } catch {
-    throw new RedemptionFailure(doorTexts.recovered(recovery));
+    throw new RedemptionFailure(guidance);
   }
+}
+
+function requireAttempt(saved: string | undefined, current: string, guidance: string) {
+  if (saved !== current) throw new RedemptionFailure(guidance);
 }

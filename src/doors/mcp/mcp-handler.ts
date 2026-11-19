@@ -1,4 +1,5 @@
-// Maneja HTTP y JSON-RPC sin sockets; cada pedido toma su identidad de la llave y usa los puertos de la casa.
+// Handle authenticated HTTP and JSON-RPC without sockets and preserve explicit correlation after redaction.
+import { requestDigest } from "../socket/requests/public-message.ts";
 import { socketHttp } from "./socket-http.ts";
 import { mcpSessions, abortableResponse } from "./mcp-sessions.ts";
 import { liveDoorKeys } from "../socket/peers/live-door-keys.ts";
@@ -188,6 +189,9 @@ function publicResult<X extends Program>(house: McpHouse<X>, keys: DoorAccess, v
   ) {
     safe.result.content.push({ type: "text", text: doorTexts.receipt(value.result[privateInvitation]) });
   }
+  // Both doors use the same tagged digest when echoing the original identifier would disclose a credential.
+  if (isRecord(value) && typeof value.id === "string" && isRecord(safe) && safe.id !== value.id)
+    return { ...safe, id: requestDigest(value.id), correlation: "sha256" };
   return safe;
 }
 function caller<X extends Program>(

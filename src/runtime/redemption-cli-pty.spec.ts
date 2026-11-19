@@ -37,6 +37,17 @@ for (const mode of ["--file", "--claude"])
         if (signal === "SIGINT") terminal.press("\x03");
         else process.kill(Number(readFileSync(marker, "utf8")), signal);
         await terminal.close();
+        const conflict = spawnSync(process.execPath, args, {
+          input: "WXYZ-6789\n",
+          encoding: "utf8",
+          env: { ...process.env, REDEMPTION_TEST_RELEASE: "1" },
+          timeout: 20000,
+        });
+        expect(conflict.status).toBe(1);
+        expect(conflict.stderr).toContain("Resultado incierto del intento pendiente");
+        expect(conflict.stderr).toContain("misma URL, código y destino");
+        expect(conflict.stderr).not.toContain("Canje completo");
+        expect(readFileSync(join(home, recovery), "utf8").trim() === candidate).toBe(true);
         const retry = spawnSync(process.execPath, args, {
           input: "ABCD-2345\n",
           encoding: "utf8",
@@ -45,7 +56,9 @@ for (const mode of ["--file", "--claude"])
         });
         expect(retry.status).toBe(0);
         expect(readFileSync(file, "utf8").includes(candidate)).toBe(true);
-        expect(`${terminal.written()}${retry.stdout}${retry.stderr}`).not.toContain(candidate);
+        expect(`${terminal.written()}${conflict.stdout}${conflict.stderr}${retry.stdout}${retry.stderr}`).not.toContain(
+          candidate,
+        );
       } finally {
         await terminal.close();
         rmSync(home, { recursive: true, force: true });

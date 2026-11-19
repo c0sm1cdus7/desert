@@ -33,9 +33,11 @@ it.each(["local", "remote"])(
       terminal.press("i");
       await terminal.until("nueva identidad");
       terminal.press("2");
-      await terminal.until("canjear");
+      await terminal.until("orientar el canje");
+      expect(terminal.screen().join("\n")).toContain("no emite llave ni consume invitación");
       terminal.press("q");
       await terminal.until("Invitación vigente");
+      expect(terminal.screen().join("\n")).toContain("Orientar");
       const invitation = readFileSync(join(fixture.home, "invitation-id-fixture"), "utf8");
       terminal.press(`${invitation}\r`);
       await terminal.until("persona invitada");

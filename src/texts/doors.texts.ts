@@ -1,9 +1,9 @@
 // Spanish words for invitation delivery, credential recovery and host setup.
 export const doorTexts = {
   promises: {
-    redeemed: "Informa el canje de una invitación vigente desde el Menú",
+    redeemed: "Orienta a la persona invitada para canjear en su equipo",
     missingInvitation: "Rechaza una invitación ausente",
-    redeemAdmin: "Sólo quien administra canjea desde la casa",
+    redeemAdmin: "Solo quien administra orienta desde la casa",
     expiredInvitation: "Rechaza una invitación vencida",
     invited: "Emite una invitación para una identidad existente",
     inviteAdmin: "Solo quien administra emite invitaciones",
@@ -14,9 +14,10 @@ export const doorTexts = {
   },
   invitation: { name: "nueva invitación", enter: "invitar", purpose: "entrada con un código de un uso", key: "v" },
   revoke: { name: "revocar llave", enter: "revocar", purpose: "corte inmediato de una llave de puerta", key: "x" },
-  redeem: { name: "canjear invitación", enter: "canjear", purpose: "llave privada de entrada de un uso", key: "q" },
+  redeem: { name: "orientar el canje", enter: "orientar", purpose: "no emite llave ni consume invitación", key: "q" },
   invitationId: "Invitación vigente",
-  redeemed: "Informado · Canje · la persona invitada canjea el código en su equipo; la invitación sigue vigente.",
+  guided: "Informado · Canje · la persona invitada canjea el código en su equipo; la invitación sigue vigente.",
+  redeemed: "Emitida · Llave de entrada · invitación consumida; entrega privada a la persona invitada.",
   noInvitation: "invitación no vigente de esta identidad",
   issued: "Emitida · Invitación · vence en 24 horas · código en el recibo privado",
   receipt: (code: string) => `Invitación: ${code} · vence en 24 horas · compartila con la persona que va a entrar.`,
@@ -34,9 +35,11 @@ export const doorTexts = {
   invalidFounders: "No se pudieron registrar las llaves fundadoras.",
   saved: "La llave quedó guardada. Ya podés entrar a la casa.",
   destination: "No se reservó el destino: revisá carpeta, permisos y conflictos. No se envió el código.",
-  recovered: (file: string) =>
-    `Canje completo. El destino cambió: recuperá tu llave del archivo privado ${file}. No repitas el canje.`,
-  failed: "Resultado incierto: el código podría estar consumido. Si no podés entrar, pedí otra invitación.",
+  pending: (file: string) => `Candidato reservado, sin emisión confirmada. Archivo privado: ${file}.`,
+  uncertain: (file: string) => `Resultado incierto del intento pendiente: pudo llegar. Archivo privado: ${file}.`,
+  confirmed: (file: string) => `Emisión confirmada. Llave en archivo privado: ${file}.`,
+  resume: "Repetí el comando con la misma URL, código y destino del intento pendiente para recuperarlo.",
+  failed: "Resultado incierto: repetí el comando con la misma URL, código y destino para recuperar el intento.",
   usage: "Uso: redeem URL --claude ARCHIVO --name NOMBRE, o URL --file ARCHIVO. Código por entrada estándar.",
   secure: "Usá HTTPS, o localhost para una prueba local.",
 };

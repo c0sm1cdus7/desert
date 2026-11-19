@@ -24,10 +24,11 @@ export async function redeemToFile(address: string, code: string, target: Redemp
   const destination = reserveDestination(target, attempt);
   try {
     const key = destination.prepare();
+    destination.sending();
     const issued = await exchange(url, code, key, () => destination.cancel());
     destination.save(url, issued);
   } catch (error) {
-    throw error instanceof RedemptionFailure ? error : new RedemptionFailure(doorTexts.failed);
+    throw error instanceof RedemptionFailure ? error : new RedemptionFailure(destination.guidance());
   } finally {
     destination.close();
   }

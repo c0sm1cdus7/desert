@@ -18,6 +18,7 @@ function regular(file: string) {
   if (stat && (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1)) throw new Error("reservation-path");
   return stat;
 }
+export type RedemptionPhase = "reserved" | "uncertain" | "confirmed";
 export function redemptionReservation(file: string) {
   const path = `${file}.desert-redemption-lock`;
   const metadata = `${path}.recovery`;
@@ -30,8 +31,9 @@ export function redemptionReservation(file: string) {
     return {
       recovery: isRecord(row) && typeof row.path === "string" ? row.path : undefined,
       attempt: isRecord(row) && typeof row.attempt === "string" ? row.attempt : undefined,
-      record(path: string, attempt: string) {
-        saveMetadata(metadata, { path, attempt });
+      phase: recoveryPhase(row),
+      record(path: string, attempt: string, phase: RedemptionPhase = "reserved") {
+        saveMetadata(metadata, { path, attempt, phase });
       },
       clear() {
         rmSync(metadata, { force: true });
@@ -45,7 +47,7 @@ export function redemptionReservation(file: string) {
     throw error;
   }
 }
-function saveMetadata(file: string, row: { path: string; attempt: string }) {
+function saveMetadata(file: string, row: { path: string; attempt: string; phase: RedemptionPhase }) {
   const pending = `${file}.pending`;
   regular(pending);
   rmSync(pending, { force: true });
@@ -57,4 +59,10 @@ function saveMetadata(file: string, row: { path: string; attempt: string }) {
     closeSync(fd);
   }
   renameSync(pending, file);
+}
+
+function recoveryPhase(row: unknown): RedemptionPhase {
+  if (isRecord(row) && row.phase === "confirmed") return "confirmed";
+  if (isRecord(row) && row.phase === "reserved") return "reserved";
+  return "uncertain";
 }

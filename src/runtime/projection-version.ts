@@ -1,6 +1,6 @@
 // SHA-256 covers declared regular code files, their relative names and Node, in a fixed traversal order.
 /** Bump whenever the base changes how its own facts fold. */
-export const baseProjectionVersion = "desert/12";
+export const baseProjectionVersion = "desert/13";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { codeFiles } from "./code-files.ts";
