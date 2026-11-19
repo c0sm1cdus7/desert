@@ -14,8 +14,8 @@ const kinds: Record<string, string> = {
   boolean: "Boolean",
   null: "Null",
 };
-// Only the shape travels to the provider; every other constraint (patterns, formats, ranges, lengths) stays in the local
-// contract that checks each answer. A keyword the provider might reject can never be sent by omission from a list.
+// Only the shape travels to the provider; every other constraint (patterns, formats, ranges, lengths) stays in
+// the local contract that checks each answer. A keyword the provider might reject is never sent by omission.
 const providerKeywords = new Set([
   "type",
   "properties",
