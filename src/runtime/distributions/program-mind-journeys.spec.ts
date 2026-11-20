@@ -122,3 +122,32 @@ it("la consciencia puede dirigirse a una identidad sin recibir acciones de traba
   expect(house.tools.state().house.minds.messages.at(-1)?.data).toMatchObject({ to: "ana", text: "Revisá la nota." });
   expect(house.tools.state().tools.notas.count).toBe(1);
 });
+it("a journey kit outside the mind's kit comes back as a correction with that kit, then it opens", async () => {
+  const f = fixture();
+  const house = await f.open();
+  house.bus.emit(
+    effect(
+      "kit-set",
+      { version: 2, holder: "mind:notas", kit: selectionKit([{ kind: "tool", program: "notas", tool: "personal" }]) },
+      "ana",
+    ),
+  );
+  const frames: string[] = [];
+  let calls = 0;
+  f.respond(request => {
+    calls++;
+    frames.push(request.body);
+    const kit =
+      calls === 1 ? [{ tool: "notas/personal", acts: ["personal/add"] }] : [{ tool: "notas", acts: ["personal/add"] }];
+    return calls <= 2
+      ? { scene: "Abro", consulta: null, acts: [{ act: "open", target: "mind:notas", input: { goal: "Anotar", kit } }] }
+      : { scene: "Listo", consulta: null, acts: [] };
+  });
+  f.wake(house);
+  await (await house.minds)?.flush();
+  const turns = [...house.tools.state().house.minds.turns.values()];
+  expect(turns[0]?.closed?.data.outcome).toBe("done");
+  expect(turns[0]?.invalid.map(event => event.data.faults)).toEqual([[{ code: "kit", path: "/acts" }]]);
+  expect(frames[1]).toContain("notas: personal/add");
+  expect(house.tools.state().house.journeys.size).toBe(1);
+});

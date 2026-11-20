@@ -8,6 +8,7 @@ import { answerSchema, validateAnswer, type AnswerFault, type MindAnswer } from 
 import { turnLimits, type TurnContext } from "../../tools/minds/mind-contract.ts";
 import type { ReviewPort } from "../../tools/minds/mind-review.ts";
 import { correctionNotice, invalidNotice, turnNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
+import { JourneyKitRefused } from "../../tools/minds/journey-controls.ts";
 import { createMindActReview, reviewMindActs } from "./mind-act-review.ts";
 import {
   createTurnCaller,
@@ -129,13 +130,23 @@ class MindTurnRun {
     if (reviewed.outcome === "rejected" && !this.correct(reviewed.text)) return "rejected";
     return undefined;
   }
-  private async apply(answer: MindAnswer, version: string): Promise<TurnStop | undefined> {
+  private async apply(
+    answer: MindAnswer,
+    version: string,
+  ): Promise<TurnStop | Readonly<{ correction: string }> | undefined> {
     for (const act of answer.acts) {
       const current = this.ports.read(this.turn.scope);
       if (!current.active || !this.ports.isOpen(this.turn.id)) return "inactive";
       if (current.rulesVersion !== version) return "review-stale";
       if (!this.ports.allowed(this.turn.scope, act)) return "permission";
-      const result = await this.ports.execute(act, { turn: this.turn, review: this.review });
+      let result: Awaited<ReturnType<typeof this.ports.execute>>;
+      try {
+        result = await this.ports.execute(act, { turn: this.turn, review: this.review });
+      } catch (error) {
+        if (error instanceof JourneyKitRefused)
+          return { correction: `${invalidNotice.text(this.turn.language, { reason: "kit" })} ${error.kit}` };
+        throw error;
+      }
       if (result.status === "inconclusive") return "act-uncertain";
       if (result.status !== "accepted") return "act-failed";
       requireMind(result.id && !this.applied.includes(result.id), "act.id");
@@ -158,6 +169,8 @@ class MindTurnRun {
     if (version !== this.ports.read(this.turn.scope).rulesVersion) return this.finish("review-stale");
     if (!this.inspect(answer).ok) return this.finish("permission");
     const failure = await this.apply(answer, version);
+    if (typeof failure === "object")
+      return this.correct(failure.correction, [{ code: "kit", path: "/acts" }]) ? undefined : this.finish("invalid");
     return this.finish(this.ports.isOpen(this.turn.id) ? failure : "inactive");
   }
   private async step(): Promise<TurnOutcome | undefined> {

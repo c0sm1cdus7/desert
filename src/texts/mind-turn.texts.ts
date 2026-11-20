@@ -67,12 +67,11 @@ export const reviewNotice = defineMessage({
   parameters: object({ passed: Type.Boolean() }),
   texts: { es: ({ passed }) => (passed ? "La propuesta pasó la revisión." : "No se pudo revisar la propuesta.") },
 });
+const invalidReasons = ["json", "schema", "max_tokens", "refusal", "kit"] as const;
 export const invalidNotice = defineMessage({
   id: "mind.turn.invalid",
   kind: "text",
-  parameters: object({
-    reason: Type.Union((["json", "schema", "max_tokens", "refusal"] as const).map(reason => Type.Literal(reason))),
-  }),
+  parameters: object({ reason: Type.Union(invalidReasons.map(reason => Type.Literal(reason))) }),
   texts: {
     es: ({ reason }) =>
       ({
@@ -80,6 +79,7 @@ export const invalidNotice = defineMessage({
         schema: "La respuesta no cumple el contrato o los permisos vigentes.",
         max_tokens: "El proveedor cortó la respuesta por su límite de salida.",
         refusal: "El proveedor rechazó responder.",
+        kit: "El kit del journey sale de tu kit, con sus nombres exactos; si está vacío, pedíselo al admin. Tu kit:",
       })[reason],
   },
 });

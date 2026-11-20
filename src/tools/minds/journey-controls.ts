@@ -31,6 +31,16 @@ export type JourneyControlContext = Readonly<{
   review: ReviewPort;
 }>;
 export type JourneyReviewOutcome = Readonly<{ review: ReviewResult; facts: readonly HouseEmission[] }>;
+/** A journey kit outside the mind's own kit is the model's mistake: the turn corrects it instead of failing. */
+export class JourneyKitRefused extends Error {
+  readonly kit: string;
+  constructor(kit: JourneyAccess["kit"]) {
+    const listed = kit.map(item => `${item.tool}: ${item.acts.join(", ")}`).join(" · ");
+    super("journey.kit");
+    this.name = "JourneyKitRefused";
+    this.kit = listed;
+  }
+}
 const reviewShape = object({
   proposal: mindName,
   through: wholeNumber,
@@ -125,25 +135,21 @@ export async function openJourney(context: JourneyControlContext, input: unknown
   const c = contextOf(context);
   requireMind(c.turn.scope.kind === "consciousness", "scope.kind");
   const data = inputOf(journeyInputs.open, input, "open");
-  if (!("version" in data))
-    requireMind(new Set(data.kit.map(item => item.tool)).size === data.kit.length, "journey.kit");
   const process = `journey:${randomUUID()}`;
   return reviewed(c, "open", data, state => {
+    const refuse = (valid: boolean) => {
+      if (!valid) throw new JourneyKitRefused(state.kit);
+    };
+    if (!("version" in data)) refuse(new Set(data.kit.map(item => item.tool)).size === data.kit.length);
     const registry = state.kit.map(item => ({
       id: item.tool,
       acts: Object.fromEntries(item.acts.map(action => [action, {}])),
       ...(state.layout?.[item.tool] ? { actionTools: state.layout[item.tool] } : {}),
     }));
-    if ("version" in data) requireMind(!selectionProblem(data.kit, registry), "journey.kit");
+    if ("version" in data) refuse(!selectionProblem(data.kit, registry));
     const kit = "version" in data ? expandKit(data.kit, registry) : data.kit;
-    requireMind(
-      kit.every(item => item.acts.every(act => kitIncludes(state.kit, item.tool, act))),
-      "journey.kit",
-    );
-    requireMind(
-      kit.every(item => state.kit.some(each => each.tool === item.tool)),
-      "journey.kit",
-    );
+    refuse(kit.every(item => item.acts.every(act => kitIncludes(state.kit, item.tool, act))));
+    refuse(kit.every(item => state.kit.some(each => each.tool === item.tool)));
     return checked(state, [
       effect(
         "journey-opened",
