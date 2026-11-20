@@ -14,7 +14,7 @@ import { readonlyPorts } from "../../tools/boundaries/readonly-ports.ts";
 import { watchRunning } from "../../tools/execution/running-acts.ts";
 import { turnNotice } from "../../texts/mind-turn.texts.ts";
 import { runMindTurn } from "./mind-turn.ts";
-import { followUpJourney } from "./journey-follow-up.ts";
+import { followUpJourney, resumeInterruptedJourneys } from "./journey-follow-up.ts";
 import { startMindSchedule, recoverMindSchedule, type MindSchedulePorts } from "./mind-schedule.ts";
 import { runtimeView, scopeActive } from "./mind-runtime-view.ts";
 import { runtimeFrame } from "./mind-runtime-frame.ts";
@@ -203,6 +203,7 @@ class HouseMindRuntime<X extends Program> {
       },
     };
     recoverMindSchedule({ ...schedulePorts, policies: () => this.policies(true) });
+    resumeInterruptedJourneys(house);
     const offs = [watchRunning(house.execution), this.assistantCards].map(listen => house.execution.bus.on(listen));
     const schedule = startMindSchedule(schedulePorts);
     return {

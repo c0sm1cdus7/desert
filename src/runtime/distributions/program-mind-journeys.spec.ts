@@ -189,3 +189,49 @@ it("a journey turn that acted without waiting, ending or desisting gets a short 
   expect(journey?.waiting?.what).toBe("Anoté y sigo");
   expect(journey?.waiting?.until).toBeGreaterThanOrEqual(before + 90_000);
 });
+const openJourney = { act: "open", target: "mind:notas", input: { goal: "Anotar", kit: [] } };
+it("a journey turn cut short by its provider gets a wait to come back instead of staying open forever", async () => {
+  const f = fixture();
+  const house = await f.open();
+  let calls = 0;
+  f.respond(() => {
+    if (++calls === 1) return { scene: "Abro", consulta: null, acts: [openJourney] };
+    throw new Error("provider down");
+  });
+  const before = Date.now();
+  f.wake(house);
+  await (await house.minds)?.flush();
+  const journey = [...house.tools.state().house.journeys.values()][0];
+  const turns = [...house.tools.state().house.minds.turns.values()].filter(turn => turn.opened.process === journey?.id);
+  expect(turns.map(turn => turn.closed?.data.outcome)).toEqual(["interrupted"]);
+  expect(journey?.closed).toBeUndefined();
+  expect(journey?.waiting?.until).toBeGreaterThanOrEqual(before + 90_000);
+});
+it("a restart that cut a journey turn closes it as interrupted and gives the journey its wait", async () => {
+  const f = fixture();
+  const first = await f.open();
+  let calls = 0;
+  f.respond(() =>
+    ++calls === 1
+      ? { scene: "Abro", consulta: null, acts: [openJourney] }
+      : { scene: "Espero", consulta: null, acts: [{ act: "wait", target: "", input: { what: "x", until: 1 } }] },
+  );
+  f.wake(first);
+  await (await first.minds)?.flush();
+  const journey = [...first.tools.state().house.journeys.values()][0];
+  if (!journey) throw new Error("fixture.journey");
+  const cut = first.bus.emit(effect("mind-turn-opened", { turn: "cut", wake: [] }, "mind:notas", [], journey.id));
+  first.close();
+  const before = Date.now();
+  const again = await f.open();
+  const state = again.tools.state().house;
+  expect(state.minds.turns.get("cut")?.closed?.data.outcome).toBe("interrupted");
+  expect(state.journeys.get(journey.id)?.closed).toBeUndefined();
+  expect(state.journeys.get(journey.id)?.waiting?.until).toBeGreaterThanOrEqual(before + 90_000);
+  const waits = again.journal
+    .replay<{ cause: readonly string[] }[]>([], (all, event) =>
+      event.layer === "house" && event.kind === "journey-waiting" ? [...all, event] : all,
+    )
+    .filter(event => event.cause.includes(cut.id));
+  expect(waits).toHaveLength(1);
+});
