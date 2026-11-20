@@ -14,6 +14,21 @@ import type { FrameSource } from "./mind-frame.ts";
 import type { MindRuntimeHouse, MindRuntimeOptions, MindSwitches } from "./mind-runtime-options.ts";
 import { enabledMind } from "./mind-runtime-options.ts";
 import { programCommunication } from "./program-mind-communication.ts";
+/** Whether a scope can think now, read from the house alone: the schedule asks this for every scope it weighs. */
+export function scopeActive<X extends Program>(
+  house: MindRuntimeHouse<X>,
+  switches: MindSwitches,
+  scope: MindScope,
+): boolean {
+  const state = house.execution.state().house;
+  const journey = scope.kind === "journey" ? state.journeys.get(scope.process) : undefined;
+  return (
+    house.active() &&
+    enabledMind(switches, scope.actor) &&
+    present(house.execution.registry, state, scope.actor) &&
+    (scope.kind !== "journey" || (!!journey && !journey.closed))
+  );
+}
 export function runtimeView<X extends Program>(
   house: MindRuntimeHouse<X>,
   options: MindRuntimeOptions,
@@ -24,12 +39,7 @@ export function runtimeView<X extends Program>(
   const { execution } = house;
   const state = identityView(execution.state(), scope.actor);
   const registry = execution.registry;
-  const active =
-    house.active() &&
-    enabledMind(switches, scope.actor) &&
-    present(registry, state.house, scope.actor) &&
-    (scope.kind !== "journey" ||
-      (!!state.house.journeys.get(scope.process) && !state.house.journeys.get(scope.process)?.closed));
+  const active = scopeActive(house, switches, scope);
   const kit = effectiveKit(state.house, scope.actor, registry, scope.process);
   const parts = visibleTools(house, scope, state, kit);
   const control = controlFor(house, options, state, active, kit);

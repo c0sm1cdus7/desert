@@ -1,6 +1,7 @@
 {
   "files": {
     "checks/terminal-lifecycle.ts": "Checks program and PTY bridge termination, declared exits and pipe failures.",
+    "runtime/remembered-history.ts": "Keeps the facts of a house in memory for its minds, reading from the journal only what was appended since.",
     "runtime/redemption-directory.ts": "Pins and verifies every destination directory from the explicit trust root.",
     "runtime/redemption-sqlite.ts": "Verifies the reserved SQLite inode and auxiliary files around native name-based operations.",
     "runtime/redemption-destination.ts": "Reserves private credential storage before redemption and preserves recovery on publication conflicts.",

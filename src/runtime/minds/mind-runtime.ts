@@ -16,7 +16,7 @@ import { turnNotice } from "../../texts/mind-turn.texts.ts";
 import { runMindTurn } from "./mind-turn.ts";
 import { followUpJourney } from "./journey-follow-up.ts";
 import { startMindSchedule, recoverMindSchedule, type MindSchedulePorts } from "./mind-schedule.ts";
-import { runtimeView } from "./mind-runtime-view.ts";
+import { runtimeView, scopeActive } from "./mind-runtime-view.ts";
 import { runtimeFrame } from "./mind-runtime-frame.ts";
 import { programMindNotices } from "./program-mind-availability.ts";
 import { runtimeModel } from "./mind-runtime-model.ts";
@@ -145,7 +145,7 @@ class HouseMindRuntime<X extends Program> {
               ),
             });
         return scopes
-          .filter(scope => recover || this.view(scope).control.active)
+          .filter(scope => recover || scopeActive(house, switches, scope))
           .map(scope => ({
             scope,
             name: house.execution.state().house.assistants.get(each.actor.slice(10))?.name ?? each.role,

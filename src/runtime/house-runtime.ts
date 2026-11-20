@@ -132,6 +132,7 @@ function mindHouse<X extends Program>(
   contracts?: import("../tools/contract-port.ts").ContractFactory,
 ) {
   const { capabilities, state, bus, secrets, journal, report, close } = resources;
+  const history = rememberedHistory<X["fact"]>(journal, bus);
   return {
     home,
     time,
@@ -152,7 +153,7 @@ function mindHouse<X extends Program>(
         return !!journey && !journey.closed && (by === undefined || journey.by === by);
       },
     },
-    history: () => houseHistory<X>(journal),
+    history,
     failed: (error: Error) => {
       report(error, "program", "program", "minds");
       close();
@@ -249,6 +250,7 @@ export type {
 } from "../tools/adapter-contract.ts";
 
 export { maintainHouseCustody, type CustodyMaintenance } from "./house-custody-maintenance.ts";
+import { rememberedHistory } from "./remembered-history.ts";
 
 function houseHistory<X extends Program>(journal: ReturnType<typeof houseResources<X>>["journal"]) {
   return journal.replay<Event<X["fact"]>[]>([], (events, event) => {
