@@ -13,7 +13,7 @@ export function historicalKitEmission(event: Emission): boolean {
     !("version" in event.data)
   );
 }
-/** Compatibility for callers of the old helper, evaluated against the current journal, never its saved snapshot. */
+/** Compatibility for callers of the old helper, evaluated against the house the journal converts with. */
 export function currentKitEmission<P extends Foreign>(event: Emission<P>, house: House): Emission<P> {
   if (event.layer !== "house") return event;
   if (!Value.Check(houseCatalog[event.kind], event.data)) throw new Error(journalTexts.invalidEvent);

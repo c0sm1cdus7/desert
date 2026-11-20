@@ -1,5 +1,5 @@
 // Append-only facts; replay folds the complete journal without publishing effects.
-import { emptyHouse, houseStep } from "../house/members.ts";
+import { emptyHouse, houseStep, type House } from "../house/members.ts";
 import { currentKitEmission, historicalKitEmission } from "../house/kit-emission.ts";
 import { verifiedAfter, restorationOf } from "./verify-saved.ts";
 import { ProjectionGroup } from "../journal/projections.ts";
@@ -42,6 +42,8 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   private restored = false;
   private restoreFailed = false;
   private batching = false;
+  /** Old kit requests convert against this house; a journal nobody gave one folds it from its own facts. */
+  private house: () => House = () => this.replay(emptyHouse, houseStep);
   constructor(
     file: string,
     words: Vocabulary<P>,
@@ -78,6 +80,10 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   check(): void {
     this.lease.check();
   }
+  /** The running house knows the folders of its installed programs, which no fact in the journal records. */
+  convertWith(house: () => House): void {
+    this.house = house;
+  }
   restoration() {
     return restorationOf(this.projections, this.warnings);
   }
@@ -110,7 +116,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   append(emission: Emission<P>, at: number): Event<P> {
     if (!this.restored && this.folds === "restore") this.restore();
     return this.batch(() => {
-      if (historicalKitEmission(emission)) emission = currentKitEmission(emission, this.replay(emptyHouse, houseStep));
+      if (historicalKitEmission(emission)) emission = currentKitEmission(emission, this.house());
       const position = this.db.prepare("select coalesce(max(seq), 0) + 1 as seq from events").get();
       const count = this.db
         .prepare("select count(*) as ordinal from events where kind = ? and by = ? and cause = ?")

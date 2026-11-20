@@ -42,5 +42,6 @@ export function houseProjections<X extends Program>(journal: SqliteJournal<X["fa
     identity,
   );
   journal.restore(prefix, true);
+  journal.convertWith(() => state().house);
   return { state, clock };
 }
