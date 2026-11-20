@@ -118,24 +118,3 @@ export function compactProviderSchema(node: unknown): unknown {
     result = Object.fromEntries(Object.entries(result).filter(([key]) => key !== "enum"));
   return compactBranches(compactBranches(result, "anyOf"), "allOf");
 }
-/** The documented limits of the provider grammar, measured on the schema actually sent. */
-export function providerComplexity(schema: unknown) {
-  let optional = 0;
-  let unions = 0;
-  const visit = (node: unknown) => {
-    if (Array.isArray(node)) {
-      node.forEach(visit);
-      return;
-    }
-    if (!isObject(node)) return;
-    if (Array.isArray(node.anyOf) || Array.isArray(node.type)) unions++;
-    if (node.type === "object" && isObject(node.properties)) {
-      const required = new Set(Array.isArray(node.required) ? node.required : []);
-      optional += Object.keys(node.properties).filter(key => !required.has(key)).length;
-    }
-    Object.values(node).forEach(visit);
-  };
-  visit(schema);
-  return { optional, unions, bytes: JSON.stringify(schema).length };
-}
-export const providerLimits = { optional: 24, unions: 16 } as const;
