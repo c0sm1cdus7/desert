@@ -23,10 +23,13 @@ import { mcpReading, type McpHouse } from "./mcp-reading.ts";
 import { doorTexts } from "../../texts/doors.texts.ts";
 import { isRecord } from "../../fields/json-values.ts";
 import { mcpAct, privateInvitation } from "./mcp-actions.ts";
+import { deviceHttp, type DeviceDoorOptions } from "../devices/device-http.ts";
 export type McpOptions = Readonly<{
   name: string;
   version: string;
   limits: Omit<ViewLimits, "now">;
+  /** Serves /door/device/... so remote devices connect through this listener; absent, those paths do not exist. */
+  devices?: DeviceDoorOptions;
 }> &
   McpCredentialOptions;
 const json = (value: unknown): McpResponse => ({
@@ -45,6 +48,7 @@ export function mcpDoor<X extends Program>(
   const { keys, oauth } = mcpCredentials(house, options, founders);
   validateOptions(options);
   const remote = socketHttp(house, keys);
+  const devices = options.devices ? deviceHttp(options.devices, changed => house.bus.on(changed)) : undefined;
   const book = requestBook(house);
   const controller = new AbortController();
   const pending = new Set<Promise<McpResponse>>();
@@ -52,7 +56,7 @@ export function mcpDoor<X extends Program>(
   const call = caller(house, book, options, waits);
   const sessions = mcpSessions(changed => house.bus.on(changed));
   const dispatch = dispatcher(house, keys, controller.signal, call, sessions.track);
-  const route = credentialRoutes(dispatch, remote, oauth, controller.signal);
+  const route = credentialRoutes(dispatch, remote, oauth, controller.signal, devices);
   const handle = (request: McpRequest) => {
     const work = route(request);
     pending.add(work);
@@ -66,6 +70,7 @@ export function mcpDoor<X extends Program>(
     controller.abort();
     sessions.close();
     await remote.close();
+    await devices?.close();
     await Promise.allSettled([...pending]);
     oauth?.close();
     book.stop();

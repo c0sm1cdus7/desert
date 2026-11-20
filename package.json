@@ -80,7 +80,8 @@
         "src/doors/terminal/terminal-error.ts": "Relocated door owns its external I/O.",
         "src/doors/terminal/terminal-program.ts": "Relocated door owns its external I/O.",
         "src/doors/mcp/mcp-http.ts": "The HTTP door adapter owns its listener; the handler has no network access.",
-        "src/doors/socket/client/http-stream.ts": "The remote socket adapter owns authenticated HTTP transport."
+        "src/doors/socket/client/http-stream.ts": "The remote socket adapter owns authenticated HTTP transport.",
+        "src/doors/devices/remote-device.ts": "The remote device client owns its HTTPS transport to the house."
       },
       "catalog": [
         "src/texts/"
@@ -127,6 +128,7 @@
     "./calculation": "./src/runtime/calculation-version.ts",
     "./doors/device": "./src/doors/devices/device-door.ts",
     "./doors/device-process": "./src/doors/devices/device-process.ts",
+    "./doors/device-remote": "./src/doors/devices/remote-device.ts",
     "./doors/redeem": "./src/runtime/redeem-door.ts",
     "./doors/redeem-cli": "./src/runtime/redeem-door-cli.ts"
   }

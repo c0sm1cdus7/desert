@@ -68,7 +68,7 @@ it("abre con startHouse, guarda hechos y secretos sintéticos, cierra desde el a
     disposed = vi.spyOn(RootHouseKeys.prototype, "dispose");
   const first = open(path);
   expect(start).toHaveBeenCalledTimes(1);
-  expect(Object.keys(first.cloud)).toEqual(["ports", "door"]);
+  expect(Object.keys(first.cloud)).toEqual(["ports", "door", "devices"]);
   expect(Object.keys(first.cloud.door)).toEqual(["tools", "journal", "bus", "registry", "now"]);
   expect(["close", "stop", "journal", "tools", "bus"].some(name => name in first.ports)).toBe(false);
   await settle(first.ports.act({ act: "attend", input: { target: "vault" } }, 0));

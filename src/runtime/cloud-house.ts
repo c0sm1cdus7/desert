@@ -25,11 +25,14 @@ export function startCloudHouse<X extends Program>(
     const stop = hostLifetime(house, keys);
     if (house.minds) void house.minds.catch(stop);
     const { tools, journal, bus, registry, now } = house;
+    const { authentication, connect } = house.devices;
     return Object.freeze({
       ...(house.minds ? { minds: house.minds } : {}),
       ports: (identity: string, limits: Omit<ViewLimits, "now">) => localPorts(house, identity, limits),
       /** What a door serves from: the house without close, so no door can turn it off. */
       door: Object.freeze({ tools, journal, bus, registry, now }),
+      /** Device admission for the HTTP door (`mcpDoor` option `devices: { access }`): signature check and connect. */
+      devices: Object.freeze({ authentication, connect }),
     });
   } catch (error) {
     keys.dispose();

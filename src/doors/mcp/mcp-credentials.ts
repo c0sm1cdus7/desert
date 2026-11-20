@@ -41,12 +41,13 @@ export function credentialRoutes(
   remote: Readonly<{ handle: (request: McpRequest) => Promise<McpResponse> }>,
   oauth: ReturnType<typeof oauthDoor> | undefined,
   closing: AbortSignal,
+  devices?: Readonly<{ handle: (request: McpRequest) => Promise<McpResponse> }>,
 ) {
   return async (request: McpRequest): Promise<McpResponse> => {
     if (closing.aborted) return empty(503);
-    const response =
-      (await oauth?.handle(request)) ??
-      (await (request.path === "/door/socket" ? remote.handle(request) : dispatch(request)));
+    let door = request.path === "/door/socket" ? remote : undefined;
+    if (request.path.startsWith("/door/device/")) door = devices;
+    const response = (await oauth?.handle(request)) ?? (await (door ? door.handle(request) : dispatch(request)));
     return request.path === "/mcp" && response.status === 401
       ? { ...response, headers: { ...response.headers, "WWW-Authenticate": oauth?.challenge(request) ?? "Bearer" } }
       : response;
