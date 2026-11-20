@@ -2,7 +2,30 @@ import { Type } from "@sinclair/typebox";
 import { expect, it } from "vitest";
 import { answerSchema, type MindMenu } from "../../tools/minds/mind-answer.ts";
 import { matchesSchema, providerSchema } from "./schema.ts";
-import { enumLimit, providerComplexity, providerLimits } from "./schema-compaction.ts";
+import { enumLimit } from "./schema-compaction.ts";
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+/** The documented explicit limits of the provider grammar (structured outputs, 20/11). */
+const providerLimits = { optional: 24, unions: 16 } as const;
+function providerComplexity(schema: unknown) {
+  let optional = 0;
+  let unions = 0;
+  const visit = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      node.forEach(visit);
+      return;
+    }
+    if (!isObject(node)) return;
+    if (Array.isArray(node.anyOf) || Array.isArray(node.type)) unions++;
+    if (node.type === "object" && isObject(node.properties)) {
+      const required = new Set(Array.isArray(node.required) ? node.required : []);
+      optional += Object.keys(node.properties).filter(key => !required.has(key)).length;
+    }
+    Object.values(node).forEach(visit);
+  };
+  visit(schema);
+  return { optional, unions, bytes: JSON.stringify(schema).length };
+}
 const ids = (count: number, prefix: string) => Array.from({ length: count }, (_, index) => `${prefix}-${index + 1}`);
 /** The shape that broke the communicator: one branch per thread and one literal per message to reply to. */
 function houseMenu(threads: number, messages: number): MindMenu {
