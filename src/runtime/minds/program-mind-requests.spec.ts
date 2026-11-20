@@ -1,14 +1,27 @@
-// Proves native requests, concurrent work, causal replies and restart recovery without a real provider.
+// Proves requests and replies through a talk program, concurrent work and restart recovery without a provider.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { Type } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 import { effect } from "../../house/facts.ts";
+import { kitAct } from "../../tools/identities/kit-catalog.ts";
+import { identityTarget } from "../../tools/identities/identity-reading.ts";
+import { identityTexts } from "../../texts/identities.texts.ts";
 import {
   requestMindFixture,
   answer,
+  say,
   send,
   history,
   type RequestHouse,
 } from "../../../tests/support/request-mind-fixture.ts";
-import { currentTurn, respondToNotes, causalRequest } from "../../../tests/support/request-mind-responder.ts";
+import {
+  currentTurn,
+  respondToNotes,
+  causalRequest,
+  lineOf,
+  lines,
+  mention,
+} from "../../../tests/support/request-mind-responder.ts";
 const fixtures: ReturnType<typeof requestMindFixture>[] = [];
 const fixture = () => {
   const f = requestMindFixture();
@@ -28,7 +41,37 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 const note = "Mañana tomamos mate con Martín";
-it("a person requests work and a text-field journey performs exactly the granted action", async () => {
+/** What each model call was shown: the frame of one scope with its menu. */
+const frames = (f: ReturnType<typeof fixture>) =>
+  f.transport.mock.calls.map(call => {
+    const body: unknown = JSON.parse(typeof call[1]?.body === "string" ? call[1].body : "{}");
+    return Value.Check(shown, body) ? (body.messages[0]?.content ?? "") : "";
+  });
+const shown = Type.Object({ messages: Type.Array(Type.Object({ content: Type.String() })) });
+const talkMenu = '"tool":"talk","act":"thread/say","target":"talk/thread"';
+it("a program mind may hold the talk program besides its own and its consciousness says lines with it", async () => {
+  const f = fixture();
+  expect(f.distribution.mindDefinitions.find(mind => mind.actor === "mind:notes")?.communication).toEqual([
+    { tool: "mind", act: "scene" },
+    { tool: "talk", act: "thread/say" },
+  ]);
+  const house = await f.open();
+  const give = (holder: string, program: string) => {
+    house.bus.emit(effect("attended", { target: identityTarget(holder) }, "ana"));
+    const done = house.tools.act(
+      { act: kitAct(program), target: identityTarget(holder), input: { value: "yes" } },
+      house.tools.state().through,
+      "ana",
+    );
+    return [done.status, done.status === "rejected" ? done.reason : undefined];
+  };
+  expect(give("mind:notes", "talk")).toEqual(["accepted", undefined]);
+  expect(give("mind:talk", "notes")).toEqual(["rejected", identityTexts.ownActions]);
+  const kits = house.tools.state().house.selections;
+  expect(kits?.get("mind:notes")?.selections).toEqual([{ kind: "program", program: "talk" }]);
+  expect(kits?.has("mind:talk")).toBe(false);
+});
+it("a person asks for work through the talk program and the mind answers through it, not natively", async () => {
   const f = fixture();
   const house = await f.open();
   f.prepare(house);
@@ -43,14 +86,23 @@ it("a person requests work and a text-field journey performs exactly the granted
     { kind: "action", program: "notes", tool: "personal", action: "add" },
   ]);
   const acts = history(house).filter(e => e.layer === "house" && e.kind === "act" && e.by === "mind:notes");
-  expect(acts).toHaveLength(1);
-  expect(acts[0]).toMatchObject({ process: journeys[0]?.id, data: { option: "personal/add", input: { body: note } } });
-  expect(house.tools.state().house.minds.messages.at(-1)).toMatchObject({
-    by: "mind:notes",
-    data: { to: "ana", text: note },
-  });
+  expect(acts.map(e => [e.layer === "house" && e.kind === "act" ? e.data.option : "", e.process])).toEqual([
+    ["personal/add", journeys[0]?.id],
+    ["thread/say", undefined],
+  ]);
+  expect(acts[0]).toMatchObject({ data: { input: { body: note } } });
+  expect(lines(house).map(({ by, to, text }) => ({ by, to, text }))).toEqual([
+    { by: "ana", to: "mind:notes", text: note },
+    { by: "mind:notes", to: "ana", text: note },
+  ]);
+  expect(history(house).some(e => e.kind === "mind-message" || e.kind === "mind-requested")).toBe(false);
+  const consciousness = frames(f).filter(frame => /^Alcance:\nmind:notes \/ \d/u.test(frame));
+  const working = frames(f).filter(frame => frame.startsWith("Alcance:\nmind:notes / journey:"));
+  expect([consciousness.length, working.length]).toEqual([2, 1]);
+  expect(consciousness.every(frame => frame.includes(talkMenu))).toBe(true);
+  expect(working.some(frame => frame.includes(talkMenu))).toBe(false);
   expect([...house.tools.state().house.minds.turns.values()].every(t => t.closed?.data.outcome === "done")).toBe(true);
-});
+}, 30000);
 it("two requests arriving during one response retain separate work and replies", async () => {
   const f = fixture();
   const house = await f.open();
@@ -77,108 +129,94 @@ it("two requests arriving during one response retain separate work and replies",
   expect(house.tools.state().tools.notes.notes).toEqual([note, "Return the books"]);
   expect(house.tools.state().house.journeys.size).toBe(2);
   expect(
-    house.tools
-      .state()
-      .house.minds.messages.filter(e => e.by === "mind:notes")
-      .map(e => e.data.text),
+    lines(house)
+      .filter(line => line.by === "mind:notes")
+      .map(line => line.text),
   ).toEqual([note, "Return the books"]);
-  const requested = history(house).filter(e => e.kind === "mind-requested");
+  const requested = lines(house).filter(line => line.to === "mind:notes");
   const turns = [...house.tools.state().house.minds.turns.values()];
+  expect(requested).toHaveLength(2);
   requested.forEach(request => expect(turns.filter(t => t.opened.data.wake.includes(request.id))).toHaveLength(1));
-});
+}, 30000);
 function assistantResponse(house: RequestHouse) {
   const turn = currentTurn(house);
   if (turn.by === "mind:notes") return respondToNotes(house);
   const wake = history(house).filter(e => turn.data.wake.includes(e.id));
-  if (!turn.process)
-    return answer(
-      wake.some(e => e.kind === "journey-closed")
-        ? []
-        : [{ act: "open", target: "assistant:ana", input: { goal: note, kit: [] } }],
-    );
-  const reply = wake.find(e => e.kind === "mind-message" && e.by === "mind:notes");
-  return answer(
-    reply
-      ? [{ act: "end", target: turn.process, input: { summary: "Received", references: [reply.id] } }]
-      : [
-          { act: "message", target: "assistant:ana", input: { to: "mind:notes", text: note } },
-          { act: "wait", target: turn.process, input: { what: "Notes reply", until: Date.now() + 60000 } },
-        ],
-  );
+  const reply = wake.flatMap(e => lineOf(e) ?? []).find(line => line.by === "mind:notes");
+  return answer(reply ? [] : [say("mind:notes", mention("mind:notes", note))], reply ? "Received" : "Asked");
 }
-it.each([false, true])("an assistant receives its journey reply, restart=%s", async restart => {
-  const f = fixture();
-  const house = await f.open();
-  f.prepare(house);
-  const minds = await house.minds;
-  f.respond(() => assistantResponse(house));
-  let stopped = false;
-  const off = house.bus.on(event => {
-    if (restart && event.kind === "mind-message" && event.by === "mind:notes") {
-      stopped = true;
-      minds?.close();
-    }
-  });
-  expect(send(house, "assistant:ana", "Please remember the meeting").status).toBe("accepted");
-  await minds?.flush();
-  off();
-  const request = house.tools.state().house.minds.messages.find(e => e.by === "assistant:ana");
-  const reply = house.tools.state().house.minds.messages.find(e => e.by === "mind:notes");
-  expect(request?.process).toBeTruthy();
-  expect(reply).toBeDefined();
-  if (!request || !reply) throw new Error("exchange");
-  expect(causalRequest(history(house), reply.cause).id).toBe(request.id);
-  let finished = house;
-  if (restart) {
-    expect(stopped).toBe(true);
-    expect(house.tools.state().house.journeys.get(request.process ?? "")?.closed).toBeUndefined();
-    house.close();
-    f.respond(frame => {
-      expect(frame).toContain("assistant:ana");
-      if (frame.startsWith(`Alcance:\nassistant:ana / ${request.process}`)) {
-        expect(frame).toContain(reply.id);
-        expect(frame).toContain(note);
-        return answer([
-          { act: "end", target: request.process ?? "", input: { summary: "Received", references: [reply.id] } },
-        ]);
+it.each([false, true])(
+  "an assistant asks a program mind and hears back through the thread, restart=%s",
+  async restart => {
+    const f = fixture();
+    const house = await f.open();
+    f.prepare(house);
+    const minds = await house.minds;
+    f.respond(() => assistantResponse(house));
+    let stopped = false;
+    const off = house.bus.on(event => {
+      if (restart && lineOf(event)?.by === "mind:notes") {
+        stopped = true;
+        minds?.close();
       }
-      return answer();
     });
-    finished = await f.open();
-  }
-  const resumed = [...finished.tools.state().house.minds.turns.values()].filter(t =>
-    t.opened.data.wake.includes(reply.id),
-  );
-  expect(resumed).toHaveLength(1);
-  expect(resumed[0]?.opened).toMatchObject({ by: "assistant:ana", process: request.process });
-  expect(resumed[0]?.closed?.data.outcome).toBe("done");
-  expect(finished.tools.state().house.journeys.get(request.process ?? "")?.closed?.data.outcome).toBe("done");
-  expect(finished.tools.state().tools.notes.notes).toEqual([note]);
-  const calls = f.transport.mock.calls.length;
-  finished.close();
-  await f.open();
-  expect(f.transport).toHaveBeenCalledTimes(calls);
-});
-it("own messages and external or migrated content do not schedule work, including after restart", async () => {
+    expect(send(house, "assistant:ana", "Please remember the meeting").status).toBe("accepted");
+    await minds?.flush();
+    off();
+    const request = lines(house).find(line => line.by === "assistant:ana");
+    const reply = lines(house).find(line => line.by === "mind:notes");
+    expect(request).toMatchObject({ to: "mind:notes", text: mention("mind:notes", note) });
+    expect(reply).toMatchObject({ to: "assistant:ana", text: mention("assistant:ana", note) });
+    if (!request || !reply) throw new Error("exchange");
+    expect(causalRequest(history(house), [reply.id]).id).toBe(request.id);
+    let finished = house;
+    if (restart) {
+      expect(stopped).toBe(true);
+      const heard = [...house.tools.state().house.minds.turns.values()].filter(t =>
+        t.opened.data.wake.includes(reply.id),
+      );
+      expect(heard).toEqual([]);
+      house.close();
+      f.respond(frame => {
+        expect(frame).toContain("assistant:ana");
+        if (frame.startsWith("Alcance:\nassistant:ana")) {
+          expect(frame).toContain(reply.id);
+          expect(frame).toContain(note);
+          return answer([], "Received");
+        }
+        return answer();
+      });
+      finished = await f.open();
+    }
+    const resumed = [...finished.tools.state().house.minds.turns.values()].filter(t =>
+      t.opened.data.wake.includes(reply.id),
+    );
+    expect(resumed).toHaveLength(1);
+    expect(resumed[0]?.opened).toMatchObject({ by: "assistant:ana" });
+    expect(resumed[0]?.opened.process).toBeUndefined();
+    expect(resumed[0]?.closed?.data.outcome).toBe("done");
+    expect(finished.tools.state().tools.notes.notes).toEqual([note]);
+    const calls = f.transport.mock.calls.length;
+    finished.close();
+    await f.open();
+    expect(f.transport).toHaveBeenCalledTimes(calls);
+  },
+  30000,
+);
+it("own lines, unnamed mind lines and legacy native messages schedule no work, including after restart", async () => {
   const f = fixture();
   const house = await f.open();
   f.prepare(house);
   const calls = f.transport.mock.calls.length;
-  house.bus.emit(effect("mind-turn-opened", { turn: "own", wake: [] }, "mind:notes"));
-  house.bus.emit(effect("mind-message", { turn: "own", to: "mind:notes", text: note }, "mind:notes"));
-  house.bus.emit(effect("mind-turn-closed", { turn: "own", outcome: "done", calls: 0, applied: [] }, "mind:notes"));
-  for (const by of ["external", "migration"]) {
-    const imported = house.bus.emit({
-      layer: "program",
-      kind: "notes/imported",
-      data: { body: `mind:notes ${note}` },
-      by,
-      cause: [],
-    });
-    house.bus.emit(effect("mind-turn-opened", { turn: by, wake: [] }, `mind:${by}`));
-    house.bus.emit(effect("mind-message", { turn: by, to: "mind:notes", text: note }, `mind:${by}`, [imported.id]));
-    house.bus.emit(effect("mind-turn-closed", { turn: by, outcome: "done", calls: 0, applied: [] }, `mind:${by}`));
-  }
+  const line = (by: string, text: string) =>
+    house.bus.emit({ layer: "program", kind: "talk/said", data: { to: "mind:notes", text }, by, cause: [] });
+  line("mind:notes", mention("mind:notes", note));
+  line("assistant:ana", note);
+  line("mind:migration", `Notes ${note}`);
+  house.bus.emit(effect("mind-requested", { to: "mind:notes", text: note }, "ana"));
+  house.bus.emit(effect("mind-turn-opened", { turn: "legacy", wake: [] }, "mind:agenda"));
+  house.bus.emit(effect("mind-message", { turn: "legacy", to: "mind:notes", text: note }, "mind:agenda"));
+  house.bus.emit(effect("mind-turn-closed", { turn: "legacy", outcome: "done", calls: 0, applied: [] }, "mind:agenda"));
   await (await house.minds)?.flush();
   expect(house.tools.state().house.journeys.size).toBe(0);
   expect(f.transport).toHaveBeenCalledTimes(calls);
@@ -186,54 +224,13 @@ it("own messages and external or migrated content do not schedule work, includin
   await f.open();
   expect(f.transport).toHaveBeenCalledTimes(calls);
 });
-it("rejects an unknown recipient and malformed message through the ordinary action engine", async () => {
+it("a blank line is refused by the ordinary action engine and a line to nobody wakes no mind", async () => {
   const f = fixture();
   const house = await f.open();
-  expect(send(house, "mind:missing", note).status).toBe("rejected");
+  const calls = f.transport.mock.calls.length;
   expect(send(house, "mind:notes", " ").status).toBe("rejected");
-  expect(house.tools.state().house.minds.messages).toEqual([]);
-});
-it("two assistant journeys receive only their own explicitly correlated reply", async () => {
-  const f = fixture();
-  const house = await f.open();
-  f.prepare(house);
-  const goals = [note, "Return the books"];
-  f.respond(() => {
-    const turn = currentTurn(house);
-    if (turn.by === "mind:notes") return respondToNotes(house);
-    if (!turn.process)
-      return answer(
-        turn.data.wake.some(id => history(house).some(e => e.id === id && e.kind === "mind-requested"))
-          ? goals.map(goal => ({ act: "open", target: "assistant:ana", input: { goal, kit: [] } }))
-          : [],
-      );
-    const journey = house.tools.state().house.journeys.get(turn.process);
-    if (!journey) throw new Error("journey");
-    const reply = house.tools
-      .state()
-      .house.minds.messages.find(e => turn.data.wake.includes(e.id) && e.by === "mind:notes");
-    if (reply) {
-      expect(reply.data.text).toBe(journey.goal);
-      return answer([{ act: "end", target: journey.id, input: { summary: journey.goal, references: [reply.id] } }]);
-    }
-    return answer([
-      { act: "message", target: "assistant:ana", input: { to: "mind:notes", text: journey.goal } },
-      { act: "wait", target: journey.id, input: { what: "Reply", until: Date.now() + 60000 } },
-    ]);
-  });
-  expect(send(house, "assistant:ana", "Remember both").status).toBe("accepted");
+  expect(send(house, "mind:missing", note).status).toBe("accepted");
   await (await house.minds)?.flush();
-  expect(house.tools.state().tools.notes.notes).toEqual(goals);
-  const requests = house.tools.state().house.minds.messages.filter(e => e.by === "assistant:ana");
-  expect(new Set(requests.map(e => e.process)).size).toBe(2);
-  for (const request of requests) {
-    const reply = house.tools.state().house.minds.messages.find(e => e.cause.includes(request.id));
-    expect(reply).toBeDefined();
-    const turns = [...house.tools.state().house.minds.turns.values()].filter(t =>
-      t.opened.data.wake.includes(reply?.id ?? ""),
-    );
-    expect(turns).toHaveLength(1);
-    expect(turns[0]?.opened.process).toBe(request.process);
-    expect(house.tools.state().house.journeys.get(request.process ?? "")?.closed?.data.outcome).toBe("done");
-  }
-}, 30000);
+  expect(lines(house).map(line => line.to)).toEqual(["mind:missing"]);
+  expect(f.transport).toHaveBeenCalledTimes(calls);
+});

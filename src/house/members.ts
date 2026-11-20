@@ -30,6 +30,8 @@ export type House = Readonly<{
   devices: DeviceState;
   selections?: ReadonlyMap<string, SelectionKit>;
   kitLayout?: KitLayout;
+  /** Tools minds talk through; a tool mind may hold them besides its own. */
+  talk?: readonly string[];
   kitMigration?: KitMigration;
 }> &
   Readonly<{

@@ -108,7 +108,7 @@ function fixture(switches?: MindSwitches) {
       })),
       message: event =>
         event.by === "ana" && event.layer === "house" && event.kind === "act" && event.data.object === "probe"
-          ? { text: "Nora, mirá" }
+          ? { text: "Nora, mirá", to: ["assistant:ana"], by: event.by }
           : undefined,
       textRules: [],
       rulesVersion: () => "v1",

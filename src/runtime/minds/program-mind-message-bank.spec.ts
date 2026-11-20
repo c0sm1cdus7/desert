@@ -1,6 +1,13 @@
-// Runs all three message scenes through the offline bank; a live turn rejects invalid or unauthorized work.
+// Runs three talk-line scenes through the offline bank; a live turn rejects invalid or unauthorized work.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { requestMindFixture, answer, openWork, finishWork, send } from "../../../tests/support/request-mind-fixture.ts";
+import {
+  requestMindFixture,
+  answer,
+  openWork,
+  finishWork,
+  say,
+  send,
+} from "../../../tests/support/request-mind-fixture.ts";
 import { currentTurn, respondToNotes } from "../../../tests/support/request-mind-responder.ts";
 import { requestKit } from "../../../tests/support/request-program.ts";
 import type { ProgramMindScene } from "../../tools/minds/program-mind-cases.ts";
@@ -30,7 +37,7 @@ function scene(index: number): ProgramMindScene {
       cause: [],
     })),
     kit: requestKit,
-    when: { kind: "message", to: "mind:notes", text: body },
+    when: say("mind:notes", body),
     check: events => {
       const facts = events.filter(e => e.layer === "program" && e.kind === "notes/stored");
       const opened = events.filter(e => e.layer === "house" && e.kind === "journey-opened");
@@ -57,7 +64,7 @@ function scene(index: number): ProgramMindScene {
     },
   };
 }
-it("passes three distinct directed-message contexts with text fields and isolated journeys", async () => {
+it("passes three distinct talk-line contexts with text fields and isolated journeys", async () => {
   const f = requestMindFixture([scene(0), scene(1), scene(2)]);
   fixtures.push(f);
   const seen: string[] = [];
@@ -108,7 +115,7 @@ it.each([
   expect([...house.tools.state().house.minds.turns.values()].some(t => t.closed?.data.outcome === "failed")).toBe(true);
   expect(house.tools.state().house.journeys.size).toBe(1);
 });
-it("does not certify a card when one of its three message scenes fails", async () => {
+it("does not certify a card when one of its three talk-line scenes fails", async () => {
   const f = requestMindFixture([scene(0), { ...scene(1), check: () => false }, scene(2)]);
   fixtures.push(f);
   f.respond(frame => {

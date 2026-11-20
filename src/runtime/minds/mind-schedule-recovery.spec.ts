@@ -16,7 +16,8 @@ const actor = "assistant:franco";
 const policy: WakePolicy = {
   scope: { kind: "consciousness", actor },
   name: "Nora",
-  message: e => (e.layer === "program" && typeof e.data === "string" ? { text: e.data } : undefined),
+  message: e =>
+    e.layer === "program" && typeof e.data === "string" ? { text: e.data, to: [actor], by: e.by } : undefined,
   toolOf: target => target,
 };
 it.each([

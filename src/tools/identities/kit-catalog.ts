@@ -2,7 +2,7 @@
 import { systemTool } from "../../house/system-tools.ts";
 import { holderKit } from "../../house/kit-history.ts";
 import { covers, herramientaDe } from "../../house/kit-selection.ts";
-import { allowedAct, mindTool } from "../../house/kit.ts";
+import { allowedAct, mindMayHold, mindTool } from "../../house/kit.ts";
 import type { House } from "../../house/members.ts";
 import type { Program, Tool, ToolRegistry } from "../tool-contract.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
@@ -28,7 +28,7 @@ export function kitProblem(house: House, holder: string, tool: string) {
   if (holder === house.admin) return words.adminAll;
   if (house.removed.has(holder)) return words.removed;
   const own = mindTool(holder);
-  return own !== undefined && own !== tool ? words.ownActions : undefined;
+  return own !== undefined && !mindMayHold(house, own, tool) ? words.ownActions : undefined;
 }
 export function actionName(action: unknown, fallback: string): string {
   const name: unknown = action && typeof action === "object" ? Reflect.get(action, "name") : undefined;

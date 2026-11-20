@@ -101,6 +101,8 @@ export interface Tool<X extends Program> extends Readonly<{ id: string; purpose:
   readonly name?: string;
   readonly toolNames?: Readonly<Record<string, string>>;
   readonly actionTools?: Readonly<Record<string, string>>;
+  /** Minds talk through this tool, so every tool mind may hold it besides its own (signed 20/11). */
+  readonly talks?: boolean;
   /** Guidance read by the mind working with this tool; tools without a mind may omit it. */
   readonly skill?: Skill;
   /** Program fact kinds owned exclusively by this tool; absent means no program facts. */

@@ -81,6 +81,7 @@ export function installProgram<M extends ProgramMetadata>(meta: M, body: Program
     name: body.palabras.name,
     purpose: body.purpose,
     skill: body.skill,
+    ...(body.mensajes ? { talks: true } : {}),
     facts: meta.hechos.map(f => f.nombre),
     groups,
     ...fromGroups(groups),

@@ -49,7 +49,12 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   if (lifecycle(policy, event, history, now) || ruleWake(policy.scope, event, history)) return true;
   if (event.by === policy.scope.actor) return false;
   if (policy.scope.kind !== "consciousness") return false;
-  if (mind.kind === "tool" && event.layer === "house" && event.kind === "act" && policy.toolOf(event.data.object) === mind.tool)
+  if (
+    mind.kind === "tool" &&
+    event.layer === "house" &&
+    event.kind === "act" &&
+    policy.toolOf(event.data.object) === mind.tool
+  )
     return true;
   return addressed(policy, policy.message(event));
 }

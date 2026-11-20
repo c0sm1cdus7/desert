@@ -5,7 +5,8 @@ import { effectiveAssistantKit, type MindTools } from "./assistants/assistant-st
 import type { HouseEvent } from "./facts.ts";
 import { allowed, identityAllowedAct } from "./identities/identity-permissions.ts";
 import { ids } from "./ids.ts";
-import { holderKit } from "./kit-history.ts";
+import { holderKit, mindMayHold } from "./kit-history.ts";
+export { mindMayHold } from "./kit-history.ts";
 import { herramientaDe, kitLayout, selects } from "./kit-selection.ts";
 import type { House } from "./members.ts";
 import { journeyAllows } from "./minds/journey-state.ts";
@@ -30,9 +31,10 @@ export function holds(registry: MindTools, house: House, by: string, tool: strin
   const actor = parseMindActor(by);
   if (actor?.kind === "assistant")
     return effectiveAssistantKit(house, actor.owner, registry).some(each => each.tool === tool);
-  return mindTool(by) === undefined ? allowed(house, by, tool) : mindTool(by) === tool && present(registry, house, by);
+  const own = mindTool(by);
+  return own === undefined ? allowed(house, by, tool) : mindMayHold(house, own, tool) && present(registry, house, by);
 }
-/** Identities inherit every act of a granted tool; minds receive only explicit acts of their own tool. */
+/** Identities inherit every act of a granted tool; minds receive only explicit acts of the tools they may hold. */
 export function allowedAct(house: House, by: string, tool: string, act: string, registry?: MindTools): boolean {
   const actor = parseMindActor(by);
   if (actor?.kind === "assistant") {
@@ -46,7 +48,7 @@ export function allowedAct(house: House, by: string, tool: string, act: string, 
   const layout = registry ? kitLayout(registry) : house.kitLayout;
   const own = mindTool(by);
   if (own !== undefined)
-    return own === tool && selects(holderKit(house, by), tool, herramientaDe(tool, act, layout), act);
+    return mindMayHold(house, own, tool) && selects(holderKit(house, by), tool, herramientaDe(tool, act, layout), act);
   return identityAllowedAct(house, by, tool, act, layout);
 }
 /** Whether a holder can act at least once on a tool. */
@@ -68,7 +70,10 @@ export function kitStep(state: House, event: HouseEvent): House {
     const { holder, tool, acts } = event.data;
     if (holder.startsWith("assistant:")) return state;
     const own = mindTool(holder);
-    if (holder === state.admin || (own === undefined ? !state.grants.get(holder)?.includes(tool) : own !== tool))
+    if (
+      holder === state.admin ||
+      (own === undefined ? !state.grants.get(holder)?.includes(tool) : !mindMayHold(state, own, tool))
+    )
       return state;
     const held = new Map(state.kits.get(holder)).set(tool, acts);
     return { ...state, kits: new Map(state.kits).set(holder, held) };

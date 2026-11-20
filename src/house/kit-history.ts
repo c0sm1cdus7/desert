@@ -4,6 +4,9 @@ import { migrateKit } from "./kit-migration.ts";
 import type { House } from "./members.ts";
 import type { HouseEvent } from "./facts.ts";
 import { actionSelection, selectionKit, type KitLayout, type SelectionKit, type Selection } from "./kit-selection.ts";
+/** A tool mind holds its own tool and the tools minds talk through (signed 20/11). */
+export const mindMayHold = (house: House, own: string, tool: string): boolean =>
+  own === tool || (house.talk?.includes(tool) ?? false);
 export function holderKit(house: House, holder: string): SelectionKit {
   return migrateKit(storedHolderKit(house, holder), house.kitMigration);
 }
@@ -39,13 +42,16 @@ export function selectionStep(house: House, event: HouseEvent): House {
     if (holder === house.admin || holder.startsWith("assistant:") || (!own && !house.grants.has(holder))) return house;
     if ("version" in event.data) {
       if (
-        event.data.kit.selections.some(selection => systemTool(selection.program) || (own && own !== selection.program))
+        event.data.kit.selections.some(
+          selection => systemTool(selection.program) || (own && !mindMayHold(house, own, selection.program)),
+        )
       )
         return house;
       selections.set(holder, event.data.kit);
     } else {
       const { tool, acts } = event.data;
-      if (systemTool(tool) || (own ? own !== tool : !house.grants.get(holder)?.includes(tool))) return house;
+      if (systemTool(tool) || (own ? !mindMayHold(house, own, tool) : !house.grants.get(holder)?.includes(tool)))
+        return house;
       const rest = storedHolderKit(house, holder).selections.filter(selection => selection.program !== tool);
       selections.set(holder, selectionKit([...rest, ...historicalBranch(tool, acts, house.kitLayout)]));
     }

@@ -5,7 +5,7 @@ import { layerOf, type HouseEmission } from "../../house/facts.ts";
 import { storedHolderKit } from "../../house/kit-history.ts";
 import { selectionKit, selectionPath } from "../../house/kit-selection.ts";
 import { selectionProblem } from "../../house/kit-validation.ts";
-import { allowed, mindTool, present } from "../../house/kit.ts";
+import { allowed, mindMayHold, mindTool, present } from "../../house/kit.ts";
 import { houseStep } from "../../house/members.ts";
 import { effectRefusalTexts, toolTexts } from "../../texts/tools.texts.ts";
 import type { Execution } from "../execute.ts";
@@ -26,7 +26,8 @@ function invalidKit<X extends Program>(ports: Execution<X>, event: HouseEmission
     if (holder === house.admin || holder.startsWith("assistant:")) return effectRefusalTexts.adminKit;
     if (!present(ports.registry, house, holder)) return effectRefusalTexts.absentHolder;
     const own = mindTool(holder);
-    if (own && kit.selections.some(selection => selection.program !== own)) return effectRefusalTexts.unassignedTool;
+    if (own && kit.selections.some(selection => !mindMayHold(house, own, selection.program)))
+      return effectRefusalTexts.unassignedTool;
     const previous = new Set(storedHolderKit(house, holder).selections.map(selectionPath));
     return selectionProblem(
       selectionKit(kit.selections.filter(selection => !previous.has(selectionPath(selection)))),
@@ -39,7 +40,7 @@ function invalidKit<X extends Program>(ports: Execution<X>, event: HouseEmission
   if (holder.startsWith("assistant:")) return effectRefusalTexts.adminKit;
   const own = mindTool(holder);
   if (!present(ports.registry, house, holder)) return effectRefusalTexts.absentHolder;
-  if (!declared || (own === undefined ? !allowed(house, holder, tool) : own !== tool))
+  if (!declared || (own === undefined ? !allowed(house, holder, tool) : !mindMayHold(house, own, tool)))
     return effectRefusalTexts.unassignedTool;
   if (holder === house.admin || corePiece(tool)) return effectRefusalTexts.adminKit;
   if (acts !== null && new Set(acts).size !== acts.length) return effectRefusalTexts.repeatedActs;

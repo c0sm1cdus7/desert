@@ -56,7 +56,13 @@ export const startState = <X extends Program>(
   kitMigration?: KitMigration,
 ): State<X> => ({
   ...emptyHouseState,
-  house: { ...emptyHouse, identities, kitLayout: kitLayout(registry), ...(kitMigration ? { kitMigration } : {}) },
+  house: {
+    ...emptyHouse,
+    identities,
+    kitLayout: kitLayout(registry),
+    talk: registry.filter(tool => tool.talks).map(tool => tool.id),
+    ...(kitMigration ? { kitMigration } : {}),
+  },
   by,
   tools: slices.initial,
 });

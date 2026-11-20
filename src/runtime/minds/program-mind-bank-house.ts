@@ -1,4 +1,4 @@
-// Isolates bank scenes while using the house engine for actions and directed messages.
+// Isolates bank scenes while using the house engine for the actions that wake them.
 import { randomUUID } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

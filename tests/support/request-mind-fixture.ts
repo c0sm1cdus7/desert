@@ -1,4 +1,4 @@
-// Runs a text-field program and an assistant with hand-assigned cards, a synthetic transport and a durable journal.
+// Runs a text-field program, a talk program and an assistant with hand-assigned cards and a durable journal.
 import "./fixture-vault.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -17,6 +17,7 @@ import type { MindAnswer } from "../../src/tools/minds/mind-answer.ts";
 import type { ProgramMindScene } from "../../src/tools/minds/program-mind-cases.ts";
 import { sampleOptions } from "./installable-program.ts";
 import { requestProgram, requestKit } from "./request-program.ts";
+import { talkAct, talkKit, talkProgram } from "./talk-program.ts";
 export const answer = (acts: MindAnswer["acts"] = [], scene = "Ready"): MindAnswer => ({ scene, acts, consulta: null });
 const requestShape = Type.Object({ messages: Type.Array(Type.Object({ content: Type.String() })) });
 function withAssistant(options: MindRuntimeOptions): MindRuntimeOptions {
@@ -28,14 +29,15 @@ function withAssistant(options: MindRuntimeOptions): MindRuntimeOptions {
         actor: "assistant:ana",
         role: "assistant",
         rules: { ...programMindRules, text: () => "Nora" },
-        communication: [{ tool: "mind", act: "message" }],
+        communication: [{ tool: "talk", act: talkAct.act }],
       },
     ],
   };
 }
 function assignAssistant(house: RequestHouse, card: Pick<Card, "model" | "effort" | "capabilities">) {
   house.bus.emit(effect("assistant-enabled", { owner: "ana", name: "Nora" }, "ana"));
-  house.bus.emit(effect("assistant-kit-set", { owner: "ana", kit: [] }, "ana"));
+  const kit = explicitKit([talkKit], kitLayout(house.registry));
+  house.bus.emit(effect("assistant-kit-set", { version: 2, owner: "ana", kit }, "ana"));
   house.bus.emit(
     effect(
       "mind-card-assigned",
@@ -52,7 +54,7 @@ class RequestMindFixture {
   constructor(scenes?: readonly [ProgramMindScene, ProgramMindScene, ProgramMindScene]) {
     this.distribution = componer({
       ...sampleOptions,
-      programas: [requestProgram(scenes)],
+      programas: [requestProgram(scenes), talkProgram],
       mentes: { asistentes: true, programas: ["notes"] },
     });
   }
@@ -84,7 +86,7 @@ class RequestMindFixture {
     const house = startHouse(this.home, {
       ...this.distribution.program,
       by: "distribution",
-      creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes"] }] },
+      creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes", "talk"] }] },
       modelMinds: withAssistant(options),
       ...(!enabled ? { mentes: { asistentes: false, programas: [] } } : {}),
     });
@@ -105,7 +107,7 @@ class RequestMindFixture {
     house.bus.emit(
       effect(
         "kit-set",
-        { version: 2, holder: "mind:notes", kit: explicitKit(requestKit, kitLayout(house.registry)) },
+        { version: 2, holder: "mind:notes", kit: explicitKit([...requestKit, talkKit], kitLayout(house.registry)) },
         "ana",
       ),
     );
@@ -124,8 +126,13 @@ export function requestMindFixture(scenes?: readonly [ProgramMindScene, ProgramM
 export type RequestHouse = Awaited<ReturnType<ReturnType<typeof requestMindFixture>["open"]>>;
 export const history = (house: RequestHouse) =>
   house.journal.replay<import("../../src/journal/vocabulary.ts").Event[]>([], (events, event) => [...events, event]);
-export const send = (house: RequestHouse, to: string, text: string) =>
-  house.tools.act({ act: "message", target: to, input: { text } }, house.tools.state().through, "ana");
+/** Says a line through the talk program as ana, who first opens the thread like a person would. */
+export function send(house: RequestHouse, to: string, text: string) {
+  house.bus.emit(effect("attended", { target: talkAct.target }, "ana"));
+  return house.tools.act(say(to, text), house.tools.state().through, "ana");
+}
+/** The talk act a mind answers with to say a line to one reader. */
+export const say = (to: string, text: string) => ({ ...talkAct, input: { to, text } });
 export const openWork = (body: string) => ({
   act: "open",
   target: "mind:notes",

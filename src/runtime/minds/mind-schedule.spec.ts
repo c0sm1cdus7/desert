@@ -8,7 +8,10 @@ import type { WakePolicy } from "./mind-wake-policy.ts";
 const policy: WakePolicy = {
   scope: { kind: "consciousness", actor: "assistant:franco" },
   name: "Nora",
-  message: e => (e.layer === "program" && typeof e.data === "string" ? { text: e.data } : undefined),
+  message: e =>
+    e.layer === "program" && typeof e.data === "string"
+      ? { text: e.data, to: ["assistant:franco"], by: e.by }
+      : undefined,
   toolOf: target => target,
 };
 function fixture(initial: Event[] = []) {

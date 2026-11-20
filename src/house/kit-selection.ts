@@ -16,6 +16,7 @@ export type Selection = Readonly<Static<typeof selectionSchema>>;
 export type SelectionKit = Readonly<{ version: 2; selections: readonly Selection[] }>;
 export type KitProgram = Readonly<{
   id: string;
+  talks?: boolean;
   actionTools?: Readonly<Record<string, string>>;
   acts?: Readonly<Record<string, unknown>>;
 }>;

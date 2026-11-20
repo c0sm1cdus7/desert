@@ -18,7 +18,7 @@ it.each(mindEffects(by))("$kind rechaza campos ausentes y extra", event => {
   expect(Value.Check(schema, {})).toBe(false);
   expect(Value.Check(schema, { ...event.data, by: "ana" })).toBe(false);
 });
-it("reconstruye turnos, consulta, revisión, escenas y mensajes tras reabrir", () => {
+it("reconstruye turnos, consulta, revisión y escenas tras reabrir; los mensajes nativos viejos no dejan estado", () => {
   const rig = open();
   for (const event of mindEffects(by, "ana").filter(
     event => event.kind.startsWith("mind-") && event.kind !== "mind-card-assigned",
@@ -27,7 +27,8 @@ it("reconstruye turnos, consulta, revisión, escenas y mensajes tras reabrir", (
   const before = rig.state().house.minds;
   expect(before.turns.get("t1")?.answer?.data.source).toBe("unconfigured");
   expect(before.scenes.get(by)?.data.text).toBe("Preparando");
-  expect(before.messages).toHaveLength(1);
+  expect(rig.facts().some(event => event.kind === "mind-message")).toBe(true);
+  expect(Object.keys(before)).toEqual(["turns", "scenes"]);
   expect(JSON.stringify([...before.turns])).not.toContain("card");
   rig.restart();
   expect(rig.state().house.minds).toEqual(before);

@@ -109,8 +109,9 @@ it("abre con mente una casa creada sin pensamiento y conserva sus notas", async 
   expect(second.tools.state().house.scenes.get("mind:notas")?.data.general).toBe("Banco aprobado");
   expect(f.transport).toHaveBeenCalledOnce();
 });
-it("la consciencia puede dirigirse a una identidad sin recibir acciones de trabajo", async () => {
+it("la consciencia ya no tiene mensaje nativo: habla por programas y un mensaje propuesto no deja hechos", async () => {
   const f = fixture();
+  expect(f.distribution.mindDefinitions[0]?.communication).toEqual([{ tool: "mind", act: "scene" }]);
   const house = await f.open();
   f.respond(() => ({
     scene: "Le avisé a Ana",
@@ -119,7 +120,9 @@ it("la consciencia puede dirigirse a una identidad sin recibir acciones de traba
   }));
   f.wake(house);
   await (await house.minds)?.flush();
-  expect(house.tools.state().house.minds.messages.at(-1)?.data).toMatchObject({ to: "ana", text: "Revisá la nota." });
+  const kinds = house.journal.replay<string[]>([], (kinds, event) => [...kinds, event.kind]);
+  expect(kinds).not.toContain("mind-message");
+  expect(kinds).toContain("mind-turn-closed");
   expect(house.tools.state().tools.notas.count).toBe(1);
 });
 it("a journey kit outside the mind's kit comes back as a correction with that kit, then it opens", async () => {
