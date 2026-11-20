@@ -99,11 +99,19 @@ async function inspectPrepared<X extends Program, R>(
     };
     try {
       bus.emit(effect("boot", {}, runner));
-      // The copy's folder stands for home; cancelling an inherited wake would write, so it is denied like any write.
+      // The copy's folder stands for home; cancelling an inherited wake or running the bank would write, so both are
+      // denied like any write.
       const house = { home: dirname(file), bus, journal, tools, registry: program.registry, close };
       const quiet = { storageNotices: () => [], storageUnsaved: () => [] };
       return await use(
-        { ...house, ...quiet, devices: inspectionDevices, now: () => now, cancelInheritedWake: denied },
+        {
+          ...house,
+          ...quiet,
+          devices: inspectionDevices,
+          now: () => now,
+          cancelInheritedWake: denied,
+          bankMinds: denied,
+        },
         now,
       );
     } finally {

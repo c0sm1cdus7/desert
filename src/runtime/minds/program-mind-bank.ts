@@ -1,7 +1,7 @@
-// Tests cards in cost order against the selected billing account and assigns the first passing card.
+// Offline catalog composition: tests cards in cost order and records which pass; opening a house never runs it.
 import type { ProviderRejection } from "../../fields/provider-rejection.ts";
 import { scrubDoorText } from "../../house/doors/door-material.ts";
-import type { Card, BankResult } from "../../adapters/models/catalog.ts";
+import { validBankResult, type Card, type BankResult } from "../../adapters/models/catalog.ts";
 import type { TurnStop } from "../../texts/mind-turn.texts.ts";
 import { effect } from "../../house/facts.ts";
 import { billingAccount, billingFor } from "./mind-billing.ts";
@@ -25,7 +25,7 @@ type Role<X extends Program> = Readonly<{
   billing: MindBilling;
   rejections: Map<string, ProviderRejection>;
 }>;
-export async function prepareProgramMinds<X extends Program>(
+export async function runProgramBank<X extends Program>(
   house: MindRuntimeHouse<X>,
   options: MindRuntimeOptions,
   switches: MindSwitches,
@@ -125,6 +125,7 @@ function previousResult<X extends Program>({ house, options, definition }: Role<
         event.data.card === card.model &&
         event.data.version === card.effort &&
         event.data.result.role === definition.role &&
+        validBankResult(event.data.result) &&
         (["cases", "skill", "frameTexts"] as const).every(
           key => event.data.result.fingerprint[key] === fingerprint[key],
         ),

@@ -6,25 +6,7 @@ it("liquida una respuesta inválida con uso y no expone la llave", async () => {
   if (!card) throw new Error("card");
   const events: unknown[] = [];
   const model = callAssignedModel({
-    card: () => ({
-      card: {
-        ...card,
-        results: [
-          {
-            role: "assistant",
-            passed: true,
-            cases: 3,
-            scenes: 9,
-            costUsd: 0,
-            seconds: 1,
-            date: "2026-11-17",
-            fingerprint: { cases: "c", skill: "s", frameTexts: "f" },
-          },
-        ],
-      },
-      role: "assistant",
-      fingerprint: { cases: "c", skill: "s", frameTexts: "f" },
-    }),
+    card: () => ({ card, role: "assistant" }),
     key: () => Promise.resolve("synthetic-key"),
     maxInputTokens: 10000,
     capNanoUsd: 1000000000,
@@ -60,20 +42,14 @@ it("liquida una respuesta inválida con uso y no expone la llave", async () => {
   expect(events).toHaveLength(2);
   expect(JSON.stringify(events)).not.toContain("synthetic-key");
 });
-it("cierra sin enviar por evidencia, llave o saldo y conserva una salida incierta", async () => {
-  const base = cards[0];
-  if (!base) throw new Error("card");
-  const fingerprint = { cases: "c", skill: "s", frameTexts: "f" };
-  const card = {
-    ...base,
-    results: [
-      { role: "assistant", passed: true, cases: 3, scenes: 9, costUsd: 0, seconds: 1, date: "2026-11-17", fingerprint },
-    ],
-  };
+it("cierra sin enviar sin carta, llave o saldo; una carta asignada a mano se envía sin evidencia", async () => {
+  const card = cards[0];
+  if (!card) throw new Error("card");
+  expect(card.results).toEqual([]);
   let sent = 0;
   let uncertain = 0;
   const ports = {
-    card: () => ({ card, role: "assistant", fingerprint }),
+    card: () => ({ card, role: "assistant" }),
     key: () => Promise.resolve("synthetic"),
     capNanoUsd: 1000000000,
     maxInputTokens: 10000,
@@ -100,12 +76,6 @@ it("cierra sin enviar por evidencia, llave o saldo y conserva una salida inciert
     kind: "not-sent",
     reason: "no-card",
   });
-  expect(
-    await callAssignedModel({
-      ...ports,
-      card: () => ({ card, role: "assistant", fingerprint: { ...fingerprint, skill: "otra" } }),
-    })(request),
-  ).toEqual({ kind: "not-sent", reason: "no-card" });
   expect(await callAssignedModel({ ...ports, key: () => Promise.resolve(undefined) })(request)).toEqual({
     kind: "not-sent",
     reason: "no-key",
@@ -120,20 +90,13 @@ it("cierra sin enviar por evidencia, llave o saldo y conserva una salida inciert
   expect(uncertain).toBe(1);
 });
 it("presupuesta escritura de caché, rechaza precios ausentes y liquida una respuesta válida", async () => {
-  const base = cards.find(each => each.model === "claude-sonnet-5-5");
-  if (!base) throw new Error("card");
-  const fingerprint = { cases: "c", skill: "s", frameTexts: "f" };
-  const card = {
-    ...base,
-    results: [
-      { role: "assistant", passed: true, cases: 3, scenes: 9, costUsd: 0, seconds: 1, date: "2026-11-17", fingerprint },
-    ],
-  };
+  const card = cards.find(each => each.model === "claude-sonnet-5-5");
+  if (!card) throw new Error("card");
   let maximum = 0;
   let actual = 0;
   let sends = 0;
   const ports = {
-    card: () => ({ card, role: "assistant", fingerprint }),
+    card: () => ({ card, role: "assistant" }),
     key: () => Promise.resolve("synthetic"),
     maxInputTokens: 5000,
     capNanoUsd: 1000000000,
@@ -173,9 +136,10 @@ it("presupuesta escritura de caché, rechaza precios ausentes y liquida una resp
     schema: { type: "object", additionalProperties: false },
   };
   const unknown = { ...card, prices: { ...card.prices, cacheWrite: null } };
-  expect(
-    await callAssignedModel({ ...ports, card: () => ({ card: unknown, role: "assistant", fingerprint }) })(request),
-  ).toEqual({ kind: "not-sent", reason: "cap" });
+  expect(await callAssignedModel({ ...ports, card: () => ({ card: unknown, role: "assistant" }) })(request)).toEqual({
+    kind: "not-sent",
+    reason: "cap",
+  });
   expect(sends).toBe(0);
   expect((await callAssignedModel(ports)(request)).kind).toBe("answer");
   // Sonnet 5.5: 5000 de entrada escritos en caché a USD 2,50/M más 16000 de salida a USD 10/M.
@@ -183,11 +147,9 @@ it("presupuesta escritura de caché, rechaza precios ausentes y liquida una resp
   expect(actual).toBe(146000);
 });
 const assistantCard = () => {
-  const base = cards.find(each => each.model === "claude-sonnet-5-5");
-  if (!base) throw new Error("card");
-  const fingerprint = { cases: "c", skill: "s", frameTexts: "f" };
-  const result = { role: "assistant", passed: true, cases: 3, scenes: 9, costUsd: 0, seconds: 1, date: "2026-11-17" };
-  return { card: { ...base, results: [{ ...result, fingerprint }] }, role: "assistant", fingerprint };
+  const card = cards.find(each => each.model === "claude-sonnet-5-5");
+  if (!card) throw new Error("card");
+  return { card, role: "assistant" };
 };
 const smallRequest = {
   mind: "assistant:franco" as const,

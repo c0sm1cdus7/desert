@@ -3207,19 +3207,20 @@
     },
     {
       "id": 288,
-      "rule": "El programa aporta casos de tres escenas. El banco usa el turno, marco y motor reales con estado aislado; prueba por costo creciente y se frena en la primera carta que pasa todas las escenas. Conserva evidencia por huella y cuenta el gasto del banco en el diario de la casa; una interrupción no certifica un rechazo del rol.",
-      "from": "18/11 · dist-mentes-programa",
+      "rule": "El programa aporta casos de tres escenas. El banco compone el catálogo fuera de la apertura de la casa: usa el turno, marco y motor reales con estado aislado; prueba por costo creciente y se frena en la primera carta que pasa todas las escenas. Conserva evidencia válida por huella y cuenta el gasto del banco en la cuenta elegida; una interrupción no certifica un rechazo del rol.",
+      "from": "18/11 · dist-mentes-programa; 20/11 · cartas manuales",
       "guarantee": "spec",
       "evidence": ["src/runtime/minds/program-mind-bank.spec.ts", "src/runtime/minds/program-mind-neighbors.spec.ts"]
     },
     {
       "id": 289,
-      "rule": "Sin llave, con tope insuficiente o sin carta acreditada, la casa abre y explica por qué la mente no piensa. Reservas y gasto sobreviven reaperturas y recálculos. La consciencia escribe escenas y mensajes; sólo sus journeys ejecutan trabajo y únicamente con el kit vigente, incluidas las carpetas de programas instalables.",
+      "rule": "Sin llave, con tope insuficiente o sin carta asignada, la casa abre y explica por qué la mente no piensa. Reservas y gasto sobreviven reaperturas y recálculos. La consciencia escribe escenas y mensajes; sólo sus journeys ejecutan trabajo y únicamente con el kit vigente, incluidas las carpetas de programas instalables.",
       "from": "18/11 · dist-mentes-programa",
       "guarantee": "spec",
       "evidence": [
         "src/runtime/minds/program-mind-bank.spec.ts",
         "src/runtime/minds/program-mind-neighbors.spec.ts",
+        "src/runtime/minds/shared-model-budget.spec.ts",
         "src/runtime/distributions/program-mind-journeys.spec.ts"
       ]
     },
@@ -3359,6 +3360,18 @@
         "src/doors/mcp/oauth-restart.spec.ts",
         "src/doors/mcp/oauth-process-death.spec.ts",
         "src/runtime/cloud-door-root.spec.ts"
+      ]
+    },
+    {
+      "id": 303,
+      "rule": "Las cartas son manuales: abrir la casa nunca llama al banco ni a un modelo. La casa publica cada carta del catálogo con proveedor habilitado, las capacidades que la mente necesita y precio válido, sin pedir evidencia del banco. La distribución puede declarar la carta inicial de cada mente: se asigna una sola vez y nunca pisa la elección posterior del admin. Una carta declarada fuera del catálogo publicado, o para una mente que la distribución no define, impide arrancar las mentes y dice cuál.",
+      "from": "20/11 · cartas manuales",
+      "guarantee": "spec",
+      "evidence": [
+        "src/runtime/minds/program-mind-prepare.spec.ts",
+        "src/runtime/minds/program-mind-bank.spec.ts",
+        "src/runtime/minds/mind-assignment.spec.ts",
+        "src/runtime/minds/mind-model-bridge.spec.ts"
       ]
     }
   ]

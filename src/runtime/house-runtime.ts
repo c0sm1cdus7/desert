@@ -17,7 +17,7 @@ import { houseResources } from "./house-resources.ts";
 
 import { startState, type HouseOptions } from "../house/state.ts";
 import { startTools } from "../tools/start.ts";
-import type { ModelHouseOptions } from "./minds/mind-runtime-options.ts";
+import type { MindRuntimeOptions, MindSwitches, ModelHouseOptions } from "./minds/mind-runtime-options.ts";
 import type { ModelMinds } from "./minds/mind-runtime.ts";
 
 function houseContracts<X extends Program>(options: HouseOptions<X>, resources: ReturnType<typeof houseResources<X>>) {
@@ -64,7 +64,7 @@ export function startHouse<X extends Program>(
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
     const minds = loadMinds(home, options, time, resources, devices, contracts);
-    return runningHouse(home, registry, tools, time, resources, devices, minds?.ready, minds?.notices);
+    return runningHouse(home, registry, tools, time, resources, devices, minds);
   } catch (error) {
     if (!(error instanceof InvalidCreation)) report(error, "program", "program", "start");
     close();
@@ -101,8 +101,7 @@ function runningHouse<X extends Program>(
   time: TimeSource,
   resources: ReturnType<typeof houseResources<X>>,
   devices: DeviceRuntime,
-  ready?: Promise<ModelMinds | undefined>,
-  mindNotices?: () => readonly string[],
+  { ready, notices: mindNotices, bankMinds }: ReturnType<typeof loadMinds<X>>,
 ) {
   const { bus, journal, close, notices, state } = resources;
   const { dispatch: _dispatch, ...deviceAccess } = devices;
@@ -120,6 +119,7 @@ function runningHouse<X extends Program>(
     storageUnsaved: notices.unsaved,
     now: () => time.now(),
     cancelInheritedWake: (by: string, id: string) => cancelInheritedWake(state, bus, by, id),
+    bankMinds,
   };
 }
 function mindHouse<X extends Program>(
@@ -169,7 +169,8 @@ function loadMinds<X extends Program>(
 ) {
   const switches = options.mentes;
   const config = options.modelMinds;
-  if (!switches || !(switches.asistentes || switches.programas.length) || !config) return undefined;
+  const bankMinds = mindBank(home, options, time, resources, devices, contracts);
+  if (!switches || !(switches.asistentes || switches.programas.length) || !config) return { bankMinds };
   let active = true;
   let minds: ModelMinds | undefined;
   resources.stops.unshift(() => {
@@ -181,14 +182,10 @@ function loadMinds<X extends Program>(
     .then(async ({ startModelMinds }) => {
       if (!houseActive()) return undefined;
       const house = mindHouse(home, options, time, resources, () => active, devices, contracts);
-      const { prepareProgramMinds } = await import("./minds/program-mind-bank.ts");
+      const { prepareProgramMinds } = await import("./minds/program-mind-prepare.ts");
       const { fundModelMinds } = await import("./minds/model-spending-account.ts");
-      const { publishMindCards } = await import("./minds/mind-card-catalog.ts");
       if (!houseActive()) return undefined;
-      const funded = fundModelMinds(home, config, resources.stops);
-      publishMindCards(house, funded, true);
-      const prepared = await prepareProgramMinds(house, funded, switches);
-      publishMindCards(house, prepared);
+      const prepared = await prepareProgramMinds(house, fundModelMinds(home, config, resources.stops), switches);
       if (!houseActive()) return undefined;
       minds = startModelMinds(house, switches, prepared);
       return minds;
@@ -197,7 +194,27 @@ function loadMinds<X extends Program>(
       resources.close();
       throw error;
     });
-  return { ready, notices: () => minds?.notices() ?? [] };
+  return { ready, notices: () => minds?.notices() ?? [], bankMinds };
+}
+/** Composes the card catalog offline against this open house: each enabled program mind runs its cases through the
+ * bank, which records its evidence and assigns a passing card when none is assigned. Opening never calls it. */
+function mindBank<X extends Program>(
+  home: string,
+  options: ModelHouseOptions<X>,
+  time: TimeSource,
+  resources: ReturnType<typeof houseResources<X>>,
+  devices: DeviceRuntime,
+  contracts?: import("../tools/contract-port.ts").ContractFactory,
+) {
+  let open = true;
+  resources.stops.unshift(() => {
+    open = false;
+  });
+  return async (models: MindRuntimeOptions, switches: MindSwitches) => {
+    const { runProgramBank } = await import("./minds/program-mind-bank.ts");
+    const house = mindHouse(home, options, time, resources, () => open, devices, contracts);
+    return runProgramBank(house, models, switches);
+  };
 }
 export type RunningHouse<X extends Program> = ReturnType<typeof startHouse<X>>;
 /** A surface in the house's own process reads it and acts in it as one identity, with no door in between; it

@@ -24,7 +24,10 @@ export type MindBilling = Readonly<{
 }>;
 export type MindSwitches = Readonly<{ asistentes: boolean; programas: readonly string[] }>;
 export type MindRuntimeOptions = Readonly<{
+  /** Offline catalog composition only: the house never runs the bank when it opens. */
   programBank?: Readonly<{ program: Composition<Program>; cases: ReadonlyMap<string, readonly ProgramMindCase[]> }>;
+  /** Starting card per mind actor, chosen by hand; the administrator can change it afterwards. */
+  cards?: Readonly<Record<string, Readonly<{ model: string; effort: string }>>>;
   billing?: MindBilling;
   spendingAccount?: SpendingAccount;
   providerRejections?: ReadonlyMap<string, ProviderRejection>;

@@ -1,4 +1,4 @@
-// Connects certified cards to atomic reservations and settlements in the selected billing journal.
+// Connects hand-assigned cards to atomic reservations and settlements in the selected billing journal.
 import { billingAccount, billingFor } from "./mind-billing.ts";
 import { scrubDoorText } from "../../house/doors/door-material.ts";
 import { effect } from "../../house/facts.ts";
@@ -19,18 +19,11 @@ function assignedCard<X extends Program>(house: MindRuntimeHouse<X>, options: Mi
     const needs = execution.registry
       .filter(tool => actor === `mind:${tool.id}` || definition.communication.some(item => item.tool === tool.id))
       .flatMap(tool => Object.values(tool.acts).flatMap(act => act.needs ?? []));
-    const fingerprint = options.fingerprint(definition);
-    const eligible = eligibleMindCards(
-      modelCandidates(options.catalog),
-      definition.role,
-      options.providers,
-      needs,
-      fingerprint,
-    );
+    const eligible = eligibleMindCards(modelCandidates(options.catalog), options.providers, needs);
     if (!eligible.some(each => each.name === assigned.card && each.version === assigned.version)) return undefined;
     const selected = options.catalog.find(each => each.model === assigned.card && each.effort === assigned.version);
     if (!selected || assigned.capabilities.some(need => !selected.capabilities.includes(need))) return undefined;
-    return { card: selected, role: definition.role, fingerprint };
+    return { card: selected, role: definition.role };
   };
 }
 function openCall<X extends Program>(house: MindRuntimeHouse<X>, request: ModelRequest): boolean {

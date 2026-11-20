@@ -58,13 +58,6 @@ async function unavailableReason<X extends Program>(
   }
   if (!house.active()) return "interrupted";
   const account = billingAccount(billingFor(house, options), options.account);
-  const fingerprint = options.fingerprint(definition);
-  const passed = card?.results.some(
-    result =>
-      result.role === definition.role &&
-      result.passed &&
-      (["cases", "skill", "frameTexts"] as const).every(key => result.fingerprint[key] === fingerprint[key]),
-  );
   if (!hasKey) return "no-key";
   if (
     candidate &&
@@ -72,7 +65,7 @@ async function unavailableReason<X extends Program>(
       options.capNanoUsd
   )
     return "cap";
-  return options.unavailable?.get(definition.actor) ?? (!passed ? "no-card" : undefined);
+  return options.unavailable?.get(definition.actor) ?? (!card ? "no-card" : undefined);
 }
 export function programMindNotices(options: MindRuntimeOptions) {
   return [...(options.unavailable ?? [])].map(([actor, reason]) => {

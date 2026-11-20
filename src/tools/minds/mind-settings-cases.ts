@@ -1,4 +1,4 @@
-// Synthetic bank publications prepare card selection without a model or a credential.
+// Synthetic catalog publications prepare card selection without a model or a credential.
 import { identityTexts } from "../../texts/identities.texts.ts";
 import { mindCardTexts as words } from "../../texts/mind-models.texts.ts";
 import type { Case, Step } from "../promises.ts";

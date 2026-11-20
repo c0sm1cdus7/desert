@@ -1,8 +1,10 @@
+// The bank composes the catalog offline; opening a house never calls a model.
 import { afterEach, expect, it } from "vitest";
 import { programMindFixture } from "../../../tests/support/program-mind-fixture.ts";
 import { modelAccount } from "../../house/minds/model-call-state.ts";
-import { maximumProgramCall } from "./program-mind-availability.ts";
+import { maximumProgramCall, programMindNotices } from "./program-mind-availability.ts";
 import { cards } from "../../adapters/models/catalog.ts";
+import { effect } from "../../house/facts.ts";
 const fixtures: ReturnType<typeof programMindFixture>[] = [];
 const fixture = () => {
   const f = programMindFixture();
@@ -17,7 +19,9 @@ it("elige la más barata que pasa sus tres escenas y no prueba la siguiente", as
     acts: [],
     consulta: null,
   }));
-  const house = await f.open();
+  const house = await f.open({}, false);
+  expect(f.transport).not.toHaveBeenCalled();
+  await f.bank(house);
   expect(f.frames.map(frame => frame.effort)).toEqual(["high", "high", "high", "low", "low", "low"]);
   expect(new Set(f.frames.map(frame => frame.model))).toEqual(new Set(["claude-haiku-5-5"]));
   expect(house.tools.state().house.mindAssignments.get("mind:notas")?.version).toBe("low");
@@ -33,23 +37,65 @@ it("elige la más barata que pasa sus tres escenas y no prueba la siguiente", as
     ),
   ).toBe(true);
   expect(modelAccount(house.tools.state().house.modelCalls, "test").spentNanoUsd).toBeGreaterThan(0);
+  await f.bank(house);
+  expect(f.transport).toHaveBeenCalledTimes(6);
   house.close();
   const reopened = await f.open();
   expect(f.transport).toHaveBeenCalledTimes(6);
   expect(reopened.tools.state().house.mindAssignments.get("mind:notas")?.version).toBe("low");
 });
-it("sin carta que pase la casa abre, conserva el banco fallido y lo dice", async () => {
+it("sin carta que pase el banco conserva su evidencia fallida, no asigna y lo dice", async () => {
   const f = fixture();
   f.respond(() => ({ scene: "No alcanza", acts: [], consulta: null }));
-  const house = await f.open({ capNanoUsd: 10000000000 });
+  const house = await f.open({ capNanoUsd: 10000000000 }, false);
+  const prepared = await f.bank(house, { capNanoUsd: 10000000000 });
   expect(f.transport).toHaveBeenCalledTimes(cards.length * 3);
   expect(house.tools.state().house.mindAssignments.has("mind:notas")).toBe(false);
-  expect(house.mindNotices?.().join(" ")).toContain("carta");
-  house.close();
-  await f.open({ capNanoUsd: 10000000000 });
+  expect(programMindNotices(prepared).join(" ")).toContain("carta");
+  expect(house.tools.state().house.scenes.get("mind:notas")?.data.general).toContain("carta");
+  await f.bank(house, { capNanoUsd: 10000000000 });
   expect(f.transport).toHaveBeenCalledTimes(cards.length * 3);
 });
-it("el gasto del banco y del pensamiento sobrevive cerrar, reabrir y recalcular", async () => {
+it("abrir la casa no llama a ningún modelo: asigna una vez la carta declarada y respeta la del admin", async () => {
+  const f = fixture();
+  const house = await f.open();
+  expect(f.transport).not.toHaveBeenCalled();
+  expect(house.tools.state().house.mindCards.get("mind:notas")).toHaveLength(cards.length);
+  expect(house.tools.state().house.mindAssignments.get("mind:notas")).toMatchObject({
+    card: "claude-haiku-5-5",
+    version: "low",
+  });
+  expect(house.mindNotices?.()).toEqual([]);
+  house.bus.emit(effect("attended", { target: "notas" }, "ana"));
+  const choice = JSON.stringify(["claude-sonnet-5-5", "medium"]);
+  const chosen = house.tools.act({ act: "assign-mind-card", target: "notas", input: { card: choice } }, 0, "ana");
+  expect(chosen.status).toBe("accepted");
+  await (await house.minds)?.flush();
+  expect(f.frames.map(frame => frame.model)).toEqual(["claude-sonnet-5-5"]);
+  house.close();
+  const reopened = await f.open();
+  expect(reopened.tools.state().house.mindAssignments.get("mind:notas")).toMatchObject({
+    card: "claude-sonnet-5-5",
+    version: "medium",
+  });
+  const assigned = reopened.journal.replay(0, (count, event) => count + Number(event.kind === "mind-card-assigned"));
+  expect(assigned).toBe(2);
+  expect(reopened.journal.replay(0, (count, event) => count + Number(event.kind === "mind-bank-tested"))).toBe(0);
+  expect(f.transport).toHaveBeenCalledOnce();
+  f.wake(reopened);
+  await (await reopened.minds)?.flush();
+  expect(f.frames.map(frame => frame.model)).toEqual(["claude-sonnet-5-5", "claude-sonnet-5-5"]);
+});
+it("sin carta declarada ni elegida la casa abre, no llama al modelo y dice que falta la carta", async () => {
+  const f = fixture();
+  const house = await f.open({ cards: {} });
+  expect(house.tools.state().house.mindAssignments.has("mind:notas")).toBe(false);
+  expect(house.mindNotices?.().join(" ")).toContain("carta");
+  f.wake(house);
+  await (await house.minds)?.flush();
+  expect(f.transport).not.toHaveBeenCalled();
+});
+it("el gasto del pensamiento sobrevive cerrar, reabrir y recalcular", async () => {
   const f = fixture();
   const house = await f.open();
   f.wake(house);
@@ -111,7 +157,8 @@ it("el banco abre journeys y comprueba trabajo real sin escribir notas en la cas
           ],
     };
   });
-  const house = await f.open();
+  const house = await f.open({}, false);
+  await f.bank(house);
   expect(f.transport).toHaveBeenCalledTimes(9);
   expect(house.tools.state().tools.notas.count).toBe(0);
   expect(house.tools.state().house.journeys.size).toBe(0);
