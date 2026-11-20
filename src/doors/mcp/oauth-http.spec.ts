@@ -92,6 +92,50 @@ for (const http of [false, true]) {
     }
   });
 
+  it(`MCP client registrations are accepted as public clients (${http ? "HTTP" : "handler"})`, async () => {
+    const f = await oauthHouse(http);
+    try {
+      const claude = {
+        redirect_uris: ["https://claude.ai/api/mcp/auth_callback"],
+        client_name: "Claude",
+        grant_types: ["authorization_code", "refresh_token"],
+        response_types: ["code"],
+        token_endpoint_auth_method: "none",
+      };
+      const { token_endpoint_auth_method: _, ...withoutMethod } = claude;
+      for (const value of [claude, withoutMethod]) {
+        const response = await f.send("POST", "/register", JSON.stringify(value), {
+          "content-type": "application/json",
+        });
+        expect(response.status).toBe(201);
+        expect(JSON.parse(response.body)).toMatchObject({
+          token_endpoint_auth_method: "none",
+          grant_types: ["authorization_code"],
+          response_types: ["code"],
+        });
+        const { authorization } = await f.params();
+        authorization.set("client_id", responseField(response.body, "client_id"));
+        authorization.set("redirect_uri", "https://claude.ai/api/mcp/auth_callback");
+        expect((await f.send("GET", `/authorize?${authorization.toString()}`)).status).toBe(200);
+      }
+      for (const value of [
+        { ...claude, token_endpoint_auth_method: "client_secret_basic" },
+        { ...claude, grant_types: ["refresh_token"] },
+        { ...claude, grant_types: ["authorization_code", "implicit"] },
+        { ...claude, response_types: ["token"] },
+      ]) {
+        const response = await f.send("POST", "/register", JSON.stringify(value), {
+          "content-type": "application/json",
+        });
+        expect(response.status).toBe(400);
+        expect(responseField(response.body, "error")).toBe("invalid_client_metadata");
+        expect(responseField(response.body, "error_description")).toContain("none");
+      }
+    } finally {
+      await f.close();
+    }
+  });
+
   it(`IPv6 loopback ignores only the port (${http ? "HTTP" : "handler"})`, async () => {
     const f = await oauthHouse(http);
     try {

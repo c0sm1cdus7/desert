@@ -30,11 +30,13 @@ export function clientMetadata(value: unknown): OAuthClient | undefined {
     !value.redirect_uris.every(redirect) ||
     (value.client_name !== undefined &&
       (typeof value.client_name !== "string" || jsonBytes(value.client_name) > registrationLimits.nameBytes)) ||
-    value.token_endpoint_auth_method !== "none" ||
+    // Public clients only: an absent method is read as "none" and the response declares it. MCP clients usually ask
+    // for refresh_token too; it is accepted and the response grants authorization_code alone.
+    (value.token_endpoint_auth_method !== undefined && value.token_endpoint_auth_method !== "none") ||
     (value.grant_types !== undefined &&
       (!Array.isArray(value.grant_types) ||
-        value.grant_types.length !== 1 ||
-        value.grant_types[0] !== "authorization_code")) ||
+        !value.grant_types.includes("authorization_code") ||
+        !value.grant_types.every(grant => grant === "authorization_code" || grant === "refresh_token"))) ||
     (value.response_types !== undefined &&
       (!Array.isArray(value.response_types) || value.response_types.length !== 1 || value.response_types[0] !== "code"))
   )
