@@ -1,85 +1,8 @@
-import { Type } from "@sinclair/typebox";
 import { expect, it, vi } from "vitest";
-import { effect, type HouseEmission, type HouseEvent } from "../../house/facts.ts";
-import { emptyMindState, mindStep } from "../../house/minds/mind-state.ts";
+import { effect } from "../../house/facts.ts";
 import { runMindTurn } from "./mind-turn.ts";
-import type { MindFrame, ModelOutcome, TurnPorts, TurnWake } from "./mind-ports.ts";
-const frame: MindFrame = { layers: ["Casa", "Nora", "Herramientas", "Reglas"], changing: "Pedido" };
-const usage = { input: 1, output: 1, cacheWrite: 0, cacheRead: 0 };
-const act = { act: "say", target: "chat", input: { text: "Listo" } };
-const answer = { scene: "Preparando", consulta: null, acts: [act] };
-const ok = (value: unknown = answer): ModelOutcome => ({ kind: "answer", value, usage });
-const wake: TurnWake = {
-  id: "t1",
-  scope: { kind: "consciousness", actor: "assistant:franco" },
-  language: "es",
-  wake: ["e1"],
-  through: 1,
-};
-function fixture(outcomes: ModelOutcome[]) {
-  let state = emptyMindState;
-  let active = true;
-  let allowed = true;
-  let version = "v1";
-  const events: HouseEvent[] = [];
-  const emit = (emission: HouseEmission) => {
-    const event = { ...emission, id: `e${events.length + 2}`, seq: events.length + 2, at: 0 };
-    state = mindStep(state, event);
-    events.push(event);
-  };
-  const model = vi.fn<TurnPorts["model"]>(async () => {
-    await Promise.resolve();
-
-    const value = outcomes.shift();
-    if (!value) throw new Error("Sin respuesta falsa");
-    return value;
-  });
-  const execute = vi.fn<TurnPorts["execute"]>(async () => {
-    await Promise.resolve();
-    return { status: "accepted" as const, id: `a${events.length}` };
-  });
-  const ports: TurnPorts = {
-    isOpen: id => !!state.turns.get(id) && !state.turns.get(id)?.closed,
-    frame: () => frame,
-    model,
-    emit,
-    execute,
-    read: () => ({
-      active,
-      through: events.length + 1,
-      rulesVersion: version,
-      menu: [
-        {
-          tool: "chat",
-          act: "say",
-          target: "chat",
-          input: Type.Object({ text: Type.String() }),
-          scope: "communication",
-        },
-      ],
-    }),
-    allowed: () => allowed,
-    reviewReason: () => "world",
-    supervision: {},
-  };
-  return {
-    ports,
-    model,
-    execute,
-    events,
-    state: () => state,
-    deactivate: () => {
-      active = false;
-    },
-    revoke: () => {
-      allowed = false;
-    },
-    changeRules: () => {
-      version = "v2";
-    },
-    emit,
-  };
-}
+import type { TurnPorts } from "./mind-ports.ts";
+import { act, answer, fixture, frame, ok, usage, wake } from "../../../tests/support/mind-turn-fixture.ts";
 it("aplica con autor fijado, registra cierre y usa cuatro capas por el puerto exacto", async () => {
   const f = fixture([ok()]);
   const result = await runMindTurn(f.ports, wake);

@@ -45,7 +45,8 @@ export type MindSchedulePorts = Readonly<{
   nextId: () => string;
   emit: (emission: HouseEmission) => void;
   run: (wake: TurnWake) => Promise<unknown>;
-  failed: () => void;
+  /** The schedule broke; the cause travels so the host can say what broke. */
+  failed: (cause: unknown) => void;
 }>;
 function interruptedCalls(opened: HouseEvent<"mind-turn-opened">, history: readonly Event[]): number {
   const reserved = new Set(
@@ -134,12 +135,12 @@ class Schedule {
     this.dirty = true;
     this.work = this.work
       .then(() => this.drain())
-      .catch(() => {
+      .catch((cause: unknown) => {
         if (!this.live) return;
         this.dirty = false;
         this.cancel();
-        this.failure = new Error(turnNotice.text(this.ports.language, { reason: "internal" }));
-        this.ports.failed();
+        this.failure = new Error(turnNotice.text(this.ports.language, { reason: "internal" }), { cause });
+        this.ports.failed(cause);
       });
   };
   flush = async (): Promise<void> => {

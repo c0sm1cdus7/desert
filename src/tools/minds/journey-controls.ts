@@ -41,6 +41,15 @@ export class JourneyKitRefused extends Error {
     this.kit = listed;
   }
 }
+/** A wait that ends before now is the model's mistake: the turn corrects it with the house clock. */
+export class JourneyWaitRefused extends Error {
+  readonly now: string;
+  constructor(now: number) {
+    super("journey.wait.until");
+    this.name = "JourneyWaitRefused";
+    this.now = `${now} (${new Date(now).toISOString()})`;
+  }
+}
 const reviewShape = object({
   proposal: mindName,
   through: wholeNumber,
@@ -180,7 +189,7 @@ export function waitJourney(context: JourneyControlContext, input: unknown): rea
   const state = current(c);
   const journey = ownJourney(c, state);
   const data = inputOf(journeyInputs.wait, input, "wait");
-  requireMind(data.until > state.now, "journey.wait.until");
+  if (data.until <= state.now) throw new JourneyWaitRefused(state.now);
   return checked(state, [
     effect("journey-waiting", data, journey.by, causes(c, journey), journey.id),
     effect("wake-at", { id: journey.id, at: data.until }, journey.by, causes(c, journey), journey.id),

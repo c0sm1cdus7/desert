@@ -31,6 +31,8 @@ export type TurnOutcome = Readonly<{
   applied: readonly string[];
   reason?: TurnStop;
   rejection?: ProviderRejection;
+  /** What broke an internal turn, with where it broke, so the host can log it: nothing fails in silence. */
+  error?: string;
 }>;
 export type TurnCaller = Readonly<{
   call: (mind: MindActor, frame: MindFrame, schema: Record<string, unknown>) => Promise<ModelOutcome>;

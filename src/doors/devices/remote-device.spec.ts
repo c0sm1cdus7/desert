@@ -16,7 +16,12 @@ function gate() {
 }
 const receipt: Run = request =>
   Promise.resolve({ status: "accepted", reference: `result:${request.execution}`, value: "remote" });
-function start(h: Awaited<ReturnType<typeof deviceHttpHouse>>, run: Run = receipt, send: typeof fetch = fetch) {
+function start(
+  h: Awaited<ReturnType<typeof deviceHttpHouse>>,
+  run: Run = receipt,
+  send: typeof fetch = fetch,
+  report?: (reason: string) => void,
+) {
   const controller = new AbortController();
   const requests: DeviceRequest[] = [];
   const endpoint = createDeviceProcess([
@@ -39,6 +44,7 @@ function start(h: Awaited<ReturnType<typeof deviceHttpHouse>>, run: Run = receip
     fetch: send,
     signal: controller.signal,
     backoff: { first: 10, max: 40 },
+    ...(report ? { report } : {}),
   });
   const stop = async () => {
     controller.abort();
@@ -78,7 +84,7 @@ it("reports a failed device execution as unknown and keeps serving", async () =>
   fail = false;
   expect(await settle(h.act("mac"))).toMatchObject({ status: "accepted" });
 });
-it("reconnects after a dropped poll with a new session", async () => {
+it("reconnects after a dropped poll with a new session and says why the first one ended", async () => {
   const h = await deviceHttpHouse();
   let drop = 0;
   const sessions = new Set<string>();
@@ -89,12 +95,14 @@ it("reconnects after a dropped poll with a new session", async () => {
     if (request.url.endsWith(devicePaths.poll) && drop-- === 1) return Promise.reject(new TypeError("dropped"));
     return fetch(request);
   };
-  start(h, receipt, send);
+  const reasons: string[] = [];
+  start(h, receipt, send, reason => reasons.push(reason));
   await vi.waitFor(() => expect(sessions.size).toBe(1), { timeout: 3_000, interval: 10 });
   const before = h.connection("mac");
   drop = 1;
   await vi.waitFor(() => expect(sessions.size).toBe(2), { timeout: 3_000, interval: 10 });
   expect(h.connection("mac")).not.toBe(before);
+  expect(reasons).toEqual(["TypeError: dropped"]);
   expect(await settle(h.act("mac"))).toMatchObject({ status: "accepted" });
 });
 it("reconnects after the house restarts, leaving the interrupted execution unknown", async () => {

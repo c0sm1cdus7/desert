@@ -171,9 +171,9 @@ class HouseMindRuntime<X extends Program> {
         house.execution.bus.emit(emission);
       },
       run: wake => this.run(ports, wake),
-      failed: () => {
+      failed: cause => {
         this.live = false;
-        house.failed(new Error(turnNotice.text(options.language, { reason: "internal" })));
+        house.failed(new Error(turnNotice.text(options.language, { reason: "internal" }), { cause }));
       },
     };
     recoverMindSchedule({ ...schedulePorts, policies: () => this.policies(true) });

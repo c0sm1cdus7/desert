@@ -22,8 +22,10 @@ export type RemoteDeviceOptions = Readonly<{
   fetch?: typeof fetch;
   signal?: AbortSignal;
   backoff?: Readonly<{ first: number; max: number }>;
+  /** Hears why each connection ended before the next attempt; the reason never carries the session token. */
+  report?: (reason: string) => void;
 }>;
-type Link = { token: string; ready: CallResult[]; alive: boolean; flushing: boolean };
+type Link = { token: string; ready: CallResult[]; alive: boolean; flushing: boolean; cut: Error | undefined };
 const openMs = 10_000;
 class RemoteDevice {
   private readonly options: RemoteDeviceOptions;
@@ -41,8 +43,13 @@ class RemoteDevice {
     while (!this.stopped()) {
       try {
         await this.serve(await this.open());
-      } catch {
-        /* Network failures and refusals only delay the next attempt; nothing about them is printed. */
+      } catch (error) {
+        // Nothing fails in silence: the host decides where the reason goes; a failing reporter never stops the device.
+        try {
+          this.options.report?.(error instanceof Error ? `${error.name}: ${error.message}` : String(error));
+        } catch {
+          /* The device keeps serving even when its reporter breaks. */
+        }
       }
       if (this.stopped()) return;
       await pause(Math.min(max, first * 2 ** this.retries), undefined, { signal: this.signal }).catch(() => undefined);
@@ -76,12 +83,13 @@ class RemoteDevice {
     return connected.session;
   }
   private async serve(token: string) {
-    const link: Link = { token, ready: [], alive: true, flushing: false };
+    const link: Link = { token, ready: [], alive: true, flushing: false, cut: undefined };
     try {
       while (link.alive && !this.signal.aborted) await this.poll(link);
     } finally {
       link.alive = false;
     }
+    if (link.cut && !this.signal.aborted) throw link.cut;
   }
   private async poll(link: Link) {
     const text = await this.post(devicePaths.poll, { results: take(link.ready) }, pollTimeout(), link.token);
@@ -103,12 +111,13 @@ class RemoteDevice {
     link.ready.push(entry);
     this.flush(link);
   }
-  /** A second poll carries ready results at once; the house answers the older waiting poll right away. */
+  /** A second poll carries ready results at once; the house answers it without waiting and keeps the first one. */
   private flush(link: Link) {
     if (!link.alive || link.flushing || this.signal.aborted || link.ready.length === 0) return;
     link.flushing = true;
     void this.poll(link)
-      .catch(() => {
+      .catch((error: unknown) => {
+        link.cut ??= error instanceof Error ? error : new Error(String(error));
         link.alive = false;
       })
       .finally(() => {

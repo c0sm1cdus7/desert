@@ -124,11 +124,15 @@ class DeviceHttp {
     if (!input) return empty(400);
     if (!session.live()) return denied();
     session.settle(input.results);
-    const signal = AbortSignal.any([this.closing.signal, ...(request.signal ? [request.signal] : [])]);
-    try {
-      await session.wait(this.pollMs, signal);
-    } finally {
-      session.seen = this.now();
+    // A poll that brings results is answered at once: it never waits on another poll, which a proxy may queue
+    // behind it on the same connection until both time out (seen on Railway on 20/11).
+    if (input.results.length === 0) {
+      const signal = AbortSignal.any([this.closing.signal, ...(request.signal ? [request.signal] : [])]);
+      try {
+        await session.wait(this.pollMs, signal);
+      } finally {
+        session.seen = this.now();
+      }
     }
     if (this.closing.signal.aborted) return empty(503);
     if (!session.live()) return denied();

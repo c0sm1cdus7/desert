@@ -68,6 +68,25 @@ it("dispatches an action to an HTTP device and returns its receipt, ignoring unk
   expect(observed).toEqual([["mac", "run", "receipt:1", "running"]]);
   expect(h.rig.house.journal.replay<string>("", (all, event) => all + JSON.stringify(event))).not.toContain(token);
 });
+it("answers a poll that brings results at once and keeps the poll that was already waiting", async () => {
+  const h = await deviceHttpHouse({ pollMs: 1_000 });
+  const token = await connect(h, "mac", h.provision("mac"));
+  const pending = settle(h.act("mac"));
+  const [first] = (await poll(h, token)).requests;
+  if (!first || typeof first.call !== "string") throw new Error("Missing call");
+  let waitingAnswered = false;
+  const waiting = poll(h, token).then(answer => {
+    waitingAnswered = true;
+    return answer;
+  });
+  const started = Date.now();
+  const receipt = { status: "accepted", reference: "receipt:1", value: "remote" };
+  expect((await poll(h, token, [{ call: first.call, result: receipt }])).status).toBe(200);
+  expect(Date.now() - started).toBeLessThan(500);
+  expect(waitingAnswered).toBe(false);
+  expect(await pending).toMatchObject({ status: "accepted", value: "remote" });
+  expect((await waiting).status).toBe(200);
+});
 it("rejects a wrong signature, consumes the challenge and rejects it once expired", async () => {
   const h = await deviceHttpHouse();
   const signer = h.provision("mac");

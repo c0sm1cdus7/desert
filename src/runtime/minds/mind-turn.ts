@@ -8,7 +8,7 @@ import { answerSchema, validateAnswer, type AnswerFault, type MindAnswer } from 
 import { turnLimits, type TurnContext } from "../../tools/minds/mind-contract.ts";
 import type { ReviewPort } from "../../tools/minds/mind-review.ts";
 import { correctionNotice, invalidNotice, turnNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
-import { JourneyKitRefused } from "../../tools/minds/journey-controls.ts";
+import { JourneyKitRefused, JourneyWaitRefused } from "../../tools/minds/journey-controls.ts";
 import { createMindActReview, reviewMindActs } from "./mind-act-review.ts";
 import {
   createTurnCaller,
@@ -43,6 +43,7 @@ class MindTurnRun {
     const { id, scope, wake } = this.turn;
     this.write(effect("mind-scene", { turn: id, text }, scope.actor, wake, scope.process));
   }
+  private error: string | undefined;
   private finish(reason?: TurnStop): TurnOutcome {
     this.caller.close();
     const outcome = reason ? "failed" : "done";
@@ -55,6 +56,7 @@ class MindTurnRun {
       applied: [...this.applied],
       ...(reason ? { reason } : {}),
       ...(rejection ? { rejection } : {}),
+      ...(reason === "internal" && this.error ? { error: this.error } : {}),
     };
     if (!this.ports.isOpen(this.turn.id)) return result;
     if (reason) this.scene(turnNotice.text(this.turn.language, { reason, ...(rejection ? { rejection } : {}) }));
@@ -133,7 +135,7 @@ class MindTurnRun {
   private async apply(
     answer: MindAnswer,
     version: string,
-  ): Promise<TurnStop | Readonly<{ code: "kit" | "act"; correction: string }> | undefined> {
+  ): Promise<TurnStop | Readonly<{ code: "kit" | "wait" | "act"; correction: string }> | undefined> {
     for (const act of answer.acts) {
       const current = this.ports.read(this.turn.scope);
       if (!current.active || !this.ports.isOpen(this.turn.id)) return "inactive";
@@ -147,6 +149,11 @@ class MindTurnRun {
           return {
             code: "kit",
             correction: `${invalidNotice.text(this.turn.language, { reason: "kit" })} ${error.kit}`,
+          };
+        if (error instanceof JourneyWaitRefused)
+          return {
+            code: "wait",
+            correction: `${invalidNotice.text(this.turn.language, { reason: "wait" })} ${error.now}`,
           };
         throw error;
       }
@@ -177,7 +184,7 @@ class MindTurnRun {
     if (typeof failure === "object")
       return this.correct(failure.correction, [{ code: failure.code, path: "/acts" }])
         ? undefined
-        : this.finish(failure.code === "kit" ? "invalid" : "act-failed");
+        : this.finish(failure.code === "act" ? "act-failed" : "invalid");
     return this.finish(this.ports.isOpen(this.turn.id) ? failure : "inactive");
   }
   private async step(): Promise<TurnOutcome | undefined> {
@@ -207,11 +214,22 @@ class MindTurnRun {
         if (result) return result;
       }
     } catch (error) {
-      return this.finish(error instanceof TurnStopped ? error.reason : "internal");
+      if (error instanceof TurnStopped) return this.finish(error.reason);
+      this.error = internalError(error);
+      return this.finish("internal");
     } finally {
       this.caller.close();
     }
   }
+}
+/** The error's name, message and first frames; frames name code, never data from the house. */
+function internalError(error: unknown): string {
+  if (!(error instanceof Error)) return String(error).slice(0, 300);
+  const frames = (error.stack ?? "")
+    .split("\n")
+    .filter(line => line.trimStart().startsWith("at "))
+    .slice(0, 4);
+  return [`${error.name}: ${error.message}`.slice(0, 300), ...frames.map(line => line.trim())].join(" | ");
 }
 export async function runMindTurn(ports: TurnPorts, wake: TurnWake): Promise<TurnOutcome> {
   requireMind(ports, "ports");
