@@ -133,7 +133,7 @@ class MindTurnRun {
   private async apply(
     answer: MindAnswer,
     version: string,
-  ): Promise<TurnStop | Readonly<{ correction: string }> | undefined> {
+  ): Promise<TurnStop | Readonly<{ code: "kit" | "act"; correction: string }> | undefined> {
     for (const act of answer.acts) {
       const current = this.ports.read(this.turn.scope);
       if (!current.active || !this.ports.isOpen(this.turn.id)) return "inactive";
@@ -144,10 +144,15 @@ class MindTurnRun {
         result = await this.ports.execute(act, { turn: this.turn, review: this.review });
       } catch (error) {
         if (error instanceof JourneyKitRefused)
-          return { correction: `${invalidNotice.text(this.turn.language, { reason: "kit" })} ${error.kit}` };
+          return {
+            code: "kit",
+            correction: `${invalidNotice.text(this.turn.language, { reason: "kit" })} ${error.kit}`,
+          };
         throw error;
       }
       if (result.status === "inconclusive") return "act-uncertain";
+      // A tool's refusal says why; the mind gets it back to adjust, within the turn's correction budget.
+      if (result.status === "rejected" && result.reason) return { code: "act", correction: result.reason };
       if (result.status !== "accepted") return "act-failed";
       requireMind(result.id && !this.applied.includes(result.id), "act.id");
       this.applied.push(result.id);
@@ -170,7 +175,9 @@ class MindTurnRun {
     if (!this.inspect(answer).ok) return this.finish("permission");
     const failure = await this.apply(answer, version);
     if (typeof failure === "object")
-      return this.correct(failure.correction, [{ code: "kit", path: "/acts" }]) ? undefined : this.finish("invalid");
+      return this.correct(failure.correction, [{ code: failure.code, path: "/acts" }])
+        ? undefined
+        : this.finish(failure.code === "kit" ? "invalid" : "act-failed");
     return this.finish(this.ports.isOpen(this.turn.id) ? failure : "inactive");
   }
   private async step(): Promise<TurnOutcome | undefined> {

@@ -109,7 +109,11 @@ async function applyAct<X extends Program>(
         cause.every(id => event.cause.includes(id)),
     );
   const status = done.status === "interrupted" || done.status === "inconclusive" ? done.status : "rejected";
-  return { status: done.status === "accepted" ? "accepted" : status, id: origin?.id ?? turn.id };
+  const id = origin?.id ?? turn.id;
+  // Only the tool's own refusal teaches the mind something; a rule or the core stays a stop.
+  const taught = done.status === "rejected" && !("coreFailure" in done && done.coreFailure);
+  if (taught) return { status, id, ...(done.reason ? { reason: done.reason } : {}) };
+  return { status: done.status === "accepted" ? "accepted" : status, id };
 }
 export function runtimeActions<X extends Program>(
   house: MindRuntimeHouse<X>,

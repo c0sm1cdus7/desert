@@ -58,7 +58,9 @@ export type TurnPorts = Readonly<{
   execute: (
     proposal: ProposedAct,
     context: Readonly<{ turn: TurnContext; review: ReviewPort }>,
-  ) => Promise<Readonly<{ status: "accepted" | "rejected" | "interrupted" | "inconclusive"; id: string }>>;
+  ) => Promise<
+    Readonly<{ status: "accepted" | "rejected" | "interrupted" | "inconclusive"; id: string; reason?: string }>
+  >;
 }>;
 export class TurnStopped extends Error {
   readonly reason: TurnStop;

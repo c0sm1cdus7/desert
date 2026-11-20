@@ -275,3 +275,17 @@ it("stops on an unknown action result without calling it failed or running the f
   });
   expect(execute).toHaveBeenCalledOnce();
 });
+it("returns a tool's refusal to the mind as a correction, then applies its adjusted answer", async () => {
+  const f = fixture([ok(), ok()]);
+  let count = 0;
+  const execute: TurnPorts["execute"] = async () => {
+    await Promise.resolve();
+    return ++count === 1
+      ? { status: "rejected", id: "a1", reason: "Carpeta rechazada: no existe." }
+      : { status: "accepted", id: "a2" };
+  };
+  expect(await runMindTurn({ ...f.ports, execute }, wake)).toMatchObject({ outcome: "done", applied: ["a2"] });
+  expect(f.model).toHaveBeenCalledTimes(2);
+  const said = f.events.flatMap(event => (event.kind === "mind-scene" ? [event.data.text] : []));
+  expect(said).toContain("La propuesta necesita una corrección · Carpeta rechazada: no existe.");
+});
