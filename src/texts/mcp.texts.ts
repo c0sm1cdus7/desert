@@ -3,7 +3,9 @@ export const mcpTexts = {
   instructions: "La casa reúne identidades y programas. Objetos: notas/notas/<id>. Centavos: 4500 son 45,00.",
   read: `Lee identity, since, scenes, programs y notices; con program, su raíz. target elige herramienta u objeto
 (notas/notas/<id>). Identidades usa program: identities. Todos leen; el kit habilita acciones.`,
-  actions: "Lista tool, action, name, subject, purpose, input, choices y reason. program y target filtran por kit.",
+  actions: `Lista tool, action, name, subject, purpose, input, choices y reason.
+program y target eligen qué acciones listar.
+reason marca las acciones que el kit no permite.`,
   act: "Hace una acción del programa sobre el target indicado, según el kit.",
   wait: "Aguarda un cambio posterior a since, hasta 60 segundos; devuelve seq y changed.",
   parse: "El cuerpo no es JSON válido.",

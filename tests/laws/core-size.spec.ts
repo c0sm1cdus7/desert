@@ -91,10 +91,11 @@ describe("the tree of src/", () => {
   // Devices add 16 lines to Rules' 128: the shared baseline is 993, so the combined budget is 1137.
   // Mente-error: +12 líneas para la causa HTTP en escena y stdout; +1 neta para fallas de lectura del cuerpo.
   // RT-VO3: +3 líneas para explicar la raíz de confianza y +5 para comprobar SQLite entre fases de reserva.
-  it("keeps every file within 300 lines and the texts within 1158", () => {
+  // MCP MI-2: +2 líneas para distinguir selección por program/target y restricciones del kit en reason.
+  it("keeps every file within 300 lines and the texts within 1160", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1158);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1160);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

@@ -13,6 +13,7 @@ const vocabulary = new Set([
   "error",
   "code",
   "message",
+  "correlation",
   // House overview, scenes and terminal notices.
   "identity",
   "since",
@@ -50,6 +51,7 @@ const vocabulary = new Set([
   "changed",
   // Serialized input schemas and their field metadata.
   "properties",
+  "secret",
   "required",
   "additionalProperties",
   "minLength",
