@@ -10,8 +10,7 @@ import { componer } from "../../src/runtime/distributions/compose.ts";
 import { startHouse } from "../../src/runtime/house-runtime.ts";
 import { explicitKit, kitLayout } from "../../src/house/kit-selection.ts";
 import { effect } from "../../src/house/facts.ts";
-import { programMindRules } from "../../src/texts/program-mind.texts.ts";
-import type { MindRuntimeOptions } from "../../src/runtime/minds/mind-runtime-options.ts";
+import type { ProgramMindResources } from "../../src/runtime/minds/program-mind-options.ts";
 import type { Card } from "../../src/adapters/models/catalog.ts";
 import type { MindAnswer } from "../../src/tools/minds/mind-answer.ts";
 import type { ProgramMindScene } from "../../src/tools/minds/program-mind-cases.ts";
@@ -20,20 +19,6 @@ import { requestProgram, requestKit } from "./request-program.ts";
 import { talkAct, talkKit, talkProgram } from "./talk-program.ts";
 export const answer = (acts: MindAnswer["acts"] = [], scene = "Ready"): MindAnswer => ({ scene, acts, consulta: null });
 const requestShape = Type.Object({ messages: Type.Array(Type.Object({ content: Type.String() })) });
-function withAssistant(options: MindRuntimeOptions): MindRuntimeOptions {
-  return {
-    ...options,
-    definitions: [
-      ...options.definitions,
-      {
-        actor: "assistant:ana",
-        role: "assistant",
-        rules: { ...programMindRules, text: () => "Nora" },
-        communication: [{ tool: "talk", act: talkAct.act }],
-      },
-    ],
-  };
-}
 function assignAssistant(house: RequestHouse, card: Pick<Card, "model" | "effort" | "capabilities">) {
   house.bus.emit(effect("assistant-enabled", { owner: "ana", name: "Nora" }, "ana"));
   const kit = explicitKit([talkKit], kitLayout(house.registry));
@@ -50,8 +35,13 @@ class RequestMindFixture {
   readonly home = mkdtempSync(join(tmpdir(), "mind-requests-"));
   readonly distribution;
   private readonly houses: { close(): void }[] = [];
-  private response: (frame: string) => MindAnswer | Promise<MindAnswer> = () => answer();
-  constructor(scenes?: readonly [ProgramMindScene, ProgramMindScene, ProgramMindScene]) {
+  private response: (frame: string) => unknown = () => answer();
+  private readonly resources: Partial<ProgramMindResources>;
+  constructor(
+    scenes?: readonly [ProgramMindScene, ProgramMindScene, ProgramMindScene],
+    resources: Partial<ProgramMindResources> = {},
+  ) {
+    this.resources = resources;
     this.distribution = componer({
       ...sampleOptions,
       programas: [requestProgram(scenes), talkProgram],
@@ -79,19 +69,21 @@ class RequestMindFixture {
       account: "test",
       capNanoUsd: 1_000_000_000,
       cards: { "mind:notes": { model: "claude-haiku-5-5", effort: "low" } },
+      ...this.resources,
     });
   }
-  async open(enabled = true) {
+  /** Opens the house; `assistant: false` leaves Nora to be enabled while the house runs. */
+  async open(enabled = true, { assistant = true } = {}) {
     const options = await this.options();
     const house = startHouse(this.home, {
       ...this.distribution.program,
       by: "distribution",
       creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes", "talk"] }] },
-      modelMinds: withAssistant(options),
+      modelMinds: options,
       ...(!enabled ? { mentes: { asistentes: false, programas: [] } } : {}),
     });
     this.houses.push(house);
-    if (enabled && !house.tools.state().house.mindAssignments.has("assistant:ana")) {
+    if (enabled && assistant && !house.tools.state().house.mindAssignments.has("assistant:ana")) {
       const card = options.catalog[0];
       if (!card) throw new Error("card");
       assignAssistant(house, card);
@@ -120,8 +112,11 @@ class RequestMindFixture {
     rmSync(this.home, { recursive: true, force: true });
   }
 }
-export function requestMindFixture(scenes?: readonly [ProgramMindScene, ProgramMindScene, ProgramMindScene]) {
-  return new RequestMindFixture(scenes);
+export function requestMindFixture(
+  scenes?: readonly [ProgramMindScene, ProgramMindScene, ProgramMindScene],
+  extra?: ConstructorParameters<typeof RequestMindFixture>[1],
+) {
+  return new RequestMindFixture(scenes, extra);
 }
 export type RequestHouse = Awaited<ReturnType<ReturnType<typeof requestMindFixture>["open"]>>;
 export const history = (house: RequestHouse) =>

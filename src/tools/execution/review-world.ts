@@ -13,12 +13,13 @@ export async function reviewWorld<X extends Program>(
   origin: Origin,
   signal: AbortSignal | undefined,
   resume: () => Decision<X> | Promise<Decision<X>>,
+  reason: "world" | "rule" = "world",
 ): Promise<Decision<X>> {
   const scope = ports.mindScope ?? processScope(ports, origin);
   if (!scope || !ports.review) return rejected(toolTexts.unassigned);
   const request = {
     id: origin.id,
-    reason: "world" as const,
+    reason,
     scope,
     through: ports.state().through,
     acts: [

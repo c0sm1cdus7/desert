@@ -1,7 +1,8 @@
 // Declara el puerto de reglas y supervisor sin implementar pensamiento ni ejecutar modelos.
 import type { ProposedAct } from "./mind-answer.ts";
 import type { TurnContext, MindScope } from "./mind-contract.ts";
-export type ReviewReason = "open" | "end" | "desist" | "world" | "consultation";
+/** `rule`: an act a mechanical rule leaves to the supervisor's judgment. */
+export type ReviewReason = "open" | "end" | "desist" | "world" | "rule" | "consultation";
 export type ReviewRequest = Readonly<{
   id: string;
   reason: ReviewReason;

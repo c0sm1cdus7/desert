@@ -8,17 +8,39 @@ import { rulesTexts as words } from "../../texts/rules.texts.ts";
 import type { Execution, Decision } from "../execute.ts";
 import type { Program } from "../tool-contract.ts";
 export function mechanicalRules<X extends Program>(
-  ports: Pick<Execution<X>, "state" | "now" | "bus">,
+  ports: Pick<Execution<X>, "state" | "now" | "bus" | "judge">,
   origin: Pick<HouseEvent<"act">, "id" | "by" | "process">,
   action: Readonly<{ tool: string; act: string }>,
   schema: TSchema,
   input: unknown,
 ): Decision<X> | undefined {
+  const results = ruleResults(ports, origin, action, schema, input);
+  if (!results.length) return undefined;
+  ports.bus.emit(effect("rule-evaluated", { action, results }, origin.by, [origin.id], origin.process));
+  return stoppedDecision<X>(origin.by, action.tool, results, ports.judge === true);
+}
+/** Whether the active rules leave this act to the supervisor's judgment. */
+export function asksJudgment<X extends Program>(
+  ports: Pick<Execution<X>, "state" | "now">,
+  origin: Pick<HouseEvent<"act">, "by" | "process">,
+  action: Readonly<{ tool: string; act: string }>,
+  schema: TSchema,
+  input: unknown,
+): boolean {
+  return ruleResults(ports, origin, action, schema, input).some(result => result.outcome === "require-supervisor");
+}
+/** What the active rules say about an act, without writing anything: the supervisor reads it as context. */
+export function ruleResults<X extends Program>(
+  ports: Pick<Execution<X>, "state" | "now">,
+  origin: Pick<HouseEvent<"act">, "by" | "process">,
+  action: Readonly<{ tool: string; act: string }>,
+  schema: TSchema,
+  input: unknown,
+): HouseEvent<"rule-evaluated">["data"]["results"] {
   const house = ports.state().house;
   const relevant = activeRules(house.rules).filter(
     ({ definition }) => definition.action.tool === action.tool && definition.action.act === action.act,
   );
-  if (!relevant.length) return undefined;
   const context = {
     input,
     actor: origin.by,
@@ -26,22 +48,22 @@ export function mechanicalRules<X extends Program>(
     now: ports.now(),
     inJourney: origin.process !== undefined && house.journeys.has(origin.process),
   };
-  const results = relevant.map(({ definition, version }) => {
+  return relevant.map(({ definition, version }) => {
     let outcome: "block" | "require-supervisor" | "passed" = "passed";
     if (ruleProblem(definition, schema)) outcome = "block";
     else if (evaluatePredicate(definition.condition, context)) outcome = definition.effect;
     return { id: definition.id, version, outcome };
   });
-  ports.bus.emit(effect("rule-evaluated", { action, results }, origin.by, [origin.id], origin.process));
-  return stoppedDecision<X>(origin.by, action.tool, results);
 }
 function stoppedDecision<X extends Program>(
   by: string,
   tool: string,
   results: HouseEvent<"rule-evaluated">["data"]["results"],
+  judged: boolean,
 ): Decision<X> | undefined {
   const blocked = results.some(result => result.outcome === "block");
-  const waiting = results.some(result => result.outcome === "require-supervisor");
+  // With a supervisor, what asks for judgment goes to it; without one, it waits (signed 17/11).
+  const waiting = !judged && results.some(result => result.outcome === "require-supervisor");
   if (!blocked && !waiting) return undefined;
   const reason = blocked ? words.blocked : words.waiting;
   return {

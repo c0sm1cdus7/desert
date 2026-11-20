@@ -36,6 +36,9 @@ export type TurnOutcome = Readonly<{
 }>;
 export type TurnCaller = Readonly<{
   call: (mind: MindActor, frame: MindFrame, schema: Record<string, unknown>) => Promise<ModelOutcome>;
+  /** The supervisor's call: it counts within the turn, but a provider that fails or a call that is not sent leaves
+   * the act to the mechanical rules instead of stopping the turn; only an uncertain call stops it (signed 17/11). */
+  consult: (mind: MindActor, frame: MindFrame, schema: Record<string, unknown>) => Promise<ModelOutcome>;
   stopped: () => TurnStop | undefined;
   rejection: () => ProviderRejection | undefined;
   calls: () => number;
@@ -89,9 +92,13 @@ class TurnCallLedger {
     this.turn.usage.corrections = 1;
     return true;
   };
-  receive(outcome: ModelOutcome): ModelOutcome {
+  receive(outcome: ModelOutcome, soft = false): ModelOutcome {
     if (outcome.kind === "not-sent") this.count--;
     this.turn.usage.calls = this.count;
+    if (soft) {
+      if (outcome.kind === "uncertain") this.stop = "uncertain";
+      return outcome;
+    }
     if (outcome.kind === "failed" || outcome.kind === "not-sent") this.stop = outcome.reason;
     if (outcome.kind === "failed") this.rejection = outcome.rejection;
     if (outcome.kind === "uncertain") this.stop = "uncertain";
@@ -99,16 +106,16 @@ class TurnCallLedger {
     this.invalid = outcome.kind === "invalid";
     return outcome;
   }
-  async send(model: ModelPort, request: Omit<ModelRequest, "turn" | "number">, active: () => boolean) {
+  async send(model: ModelPort, request: Omit<ModelRequest, "turn" | "number">, active: () => boolean, soft = false) {
     if (this.closed || !active()) this.stop = "inactive";
     if (this.count >= 12) this.stop ??= "call-limit";
     if (this.stop) throw new TurnStopped(this.stop, this.turn);
     this.count++;
     this.turn.usage.calls = this.count;
     try {
-      return this.receive(await model({ ...request, turn: this.turn.id, number: this.count }));
+      return this.receive(await model({ ...request, turn: this.turn.id, number: this.count }), soft);
     } catch {
-      return this.receive({ kind: "uncertain" });
+      return this.receive({ kind: "uncertain" }, soft);
     }
   }
 }
@@ -118,15 +125,17 @@ export function createTurnCaller(model: ModelPort, turn: TurnContext, active: ()
   requireMind(typeof active === "function", "active");
   const ledger = new TurnCallLedger(turn);
   let queue = Promise.resolve();
+  const send = (mind: MindActor, frame: MindFrame, schema: Record<string, unknown>, soft: boolean) => {
+    const result = queue.then(() => ledger.send(model, { mind, frame, schema }, active, soft));
+    queue = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
+  };
   return {
-    call: (mind, frame, schema) => {
-      const result = queue.then(() => ledger.send(model, { mind, frame, schema }, active));
-      queue = result.then(
-        () => undefined,
-        () => undefined,
-      );
-      return result;
-    },
+    call: (mind, frame, schema) => send(mind, frame, schema, false),
+    consult: (mind, frame, schema) => send(mind, frame, schema, true),
     calls: () => ledger.count,
     correct: ledger.correct,
     pendingInvalid: () => ledger.invalid,

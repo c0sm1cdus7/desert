@@ -11,12 +11,14 @@ export function ruleControl<X extends Program>(
   cause: readonly string[],
   proposal: ProposedAct,
   tool = "journey",
+  judge = false,
 ): boolean {
   const schema = coreRuleSchema(tool, proposal.act);
   const id = cause[0];
   if (!schema || !id) return false;
   const origin = { id, by: scope.actor, process: scope.process };
-  const result = mechanicalRules(house.execution, origin, { tool, act: proposal.act }, schema, proposal.input);
+  const ports = { ...house.execution, judge };
+  const result = mechanicalRules(ports, origin, { tool, act: proposal.act }, schema, proposal.input);
   if (!result) return true;
   house.execution.bus.together(() =>
     result.effects.forEach(event =>

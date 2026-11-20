@@ -16,8 +16,14 @@ import {
 } from "../../tools/minds/journey-controls.ts";
 import type { ProposedAct } from "../../tools/minds/mind-answer.ts";
 import type { TurnPorts } from "./mind-ports.ts";
-import type { MindRuntimeHouse, MindRuntimeOptions, MindSwitches } from "./mind-runtime-options.ts";
+import {
+  supervised,
+  type MindRuntimeHouse,
+  type MindRuntimeOptions,
+  type MindSwitches,
+} from "./mind-runtime-options.ts";
 import { runtimeView } from "./mind-runtime-view.ts";
+import { definitionOf } from "./mind-definitions.ts";
 type Context = Parameters<TurnPorts["execute"]>[1];
 function controlContext<X extends Program>(
   house: MindRuntimeHouse<X>,
@@ -66,15 +72,18 @@ async function controlFacts(context: JourneyControlContext, { act, input }: Prop
   if (act === "wait") return waitJourney(context, input);
   return [];
 }
+/** Opening, ending and desisting always pass by the supervisor, so with one they never wait on a rule's judgment. */
 async function applyControl<X extends Program>(
   house: MindRuntimeHouse<X>,
   context: JourneyControlContext,
   proposal: ProposedAct,
+  supervised: boolean,
 ) {
-  if (!ruleControl(house, context.turn.scope, context.cause, proposal))
+  const judge = supervised && ["open", "end", "desist"].includes(proposal.act);
+  if (!ruleControl(house, context.turn.scope, context.cause, proposal, "journey", judge))
     return { status: "rejected" as const, id: context.turn.id };
   const facts = await controlFacts(context, proposal);
-  if (!ruleControl(house, context.turn.scope, context.cause, proposal))
+  if (!ruleControl(house, context.turn.scope, context.cause, proposal, "journey", judge))
     return { status: "rejected" as const, id: context.turn.id };
   if (!facts.length || !house.active()) return { status: "rejected" as const, id: context.turn.id };
   const events = house.execution.bus.together(() => facts.map(fact => house.execution.bus.emit(fact)));
@@ -87,11 +96,12 @@ async function applyAct<X extends Program>(
   context: Context,
   proposal: ProposedAct,
   cause: readonly string[],
+  judge: boolean,
 ): ReturnType<TurnPorts["execute"]> {
   const { turn, review } = context;
   const before = house.execution.state().through;
   const result = execute(
-    { ...house.execution, mindScope: turn.scope, review },
+    { ...house.execution, mindScope: turn.scope, review, judge },
     proposal,
     before,
     turn.scope.actor,
@@ -122,7 +132,7 @@ export function runtimeActions<X extends Program>(
 ): TurnPorts["execute"] {
   return async (proposal, context) => {
     const { turn } = context;
-    const definition = options.definitions.find(each => each.actor === turn.scope.actor);
+    const definition = definitionOf(options, house.execution.state().house, turn.scope.actor);
     requireMind(definition, "runtime.definition");
     const view = () => runtimeView(house, options, switches, turn.scope, definition);
     if (!house.active()) return { status: "interrupted", id: turn.id };
@@ -141,7 +151,8 @@ export function runtimeActions<X extends Program>(
         house,
         controlContext(house, context, cause, () => view().control),
         proposal,
+        supervised(options),
       );
-    return applyAct(house, context, proposal, cause);
+    return applyAct(house, context, proposal, cause, supervised(options));
   };
 }

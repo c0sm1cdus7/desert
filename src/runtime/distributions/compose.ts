@@ -12,7 +12,7 @@ import { declaredReactions } from "../../tools/boundaries/tool-reactions.ts";
 import { bindProgramContracts } from "./program-contracts.ts";
 import { distributionShown } from "./shown.ts";
 import type { InstalledProgram } from "../../tools/installable/runtime.ts";
-import { programMindDefinitions } from "./program-minds.ts";
+import { programMindDefinitions, talkActs } from "./program-minds.ts";
 import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
 import type { ProgramMindResources } from "../minds/program-mind-options.ts";
 import type { MindRuntimeOptions } from "../minds/mind-runtime-options.ts";
@@ -87,7 +87,7 @@ function finishDistribution(
     mindDefinitions,
     modelMinds: async resources => {
       const { programMindOptions } = await import("../minds/program-mind-options.ts");
-      return programMindOptions(program, options.programas, mindDefinitions, resources);
+      return programMindOptions(program, options.programas, mindDefinitions, resources, talkActs(installed));
     },
     program,
     shown: distributionShown(installed, options.presentacion, options.atajoUnaHerramienta),

@@ -3,17 +3,18 @@ import { programMindRules } from "../../texts/program-mind.texts.ts";
 import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
 import type { InstalledProgram } from "../../tools/installable/runtime.ts";
 import type { InstallableProgram } from "../../tools/installable/program.ts";
-export function programMindDefinitions(
-  installed: readonly (InstalledProgram & { definition: InstallableProgram })[],
-  enabled: readonly string[],
-): readonly MindDefinition[] {
-  // Minds say things only through the programs that carry messages, such as a communicator (signed 20/11).
-  const talk = installed.flatMap(item =>
+type Installed = readonly (InstalledProgram & { definition: InstallableProgram })[];
+/** Minds say things only through the programs that carry messages, such as a communicator (signed 20/11). */
+export function talkActs(installed: Installed): readonly Readonly<{ tool: string; act: string }>[] {
+  return installed.flatMap(item =>
     (item.definition.mensajes?.actos ?? []).map(act => {
       if (!Object.hasOwn(item.tool.acts, act)) throw new Error(`mensajes.actos: ${item.definition.id} ${act}`);
       return { tool: item.definition.id, act };
     }),
   );
+}
+export function programMindDefinitions(installed: Installed, enabled: readonly string[]): readonly MindDefinition[] {
+  const talk = talkActs(installed);
   return Object.freeze(
     installed
       .filter(item => enabled.includes(item.definition.id))

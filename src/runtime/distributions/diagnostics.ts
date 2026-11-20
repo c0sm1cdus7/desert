@@ -25,7 +25,8 @@ function programIssues(program: Program, ids: Set<string>, facts: Set<string>, a
       add(`${program.id}/dependencies/${dependency.name}`, "dependencia-distribucion");
   if (program.desert !== DESERT_CONTRACT) add(`${program.id}/desert`, "contrato-desert");
   if (ids.has(program.id)) add(`programas/${program.id}`, "id-repetido");
-  if (!validId(program.id) || ["identities", "preferences", "me"].includes(program.id))
+  // `supervisor` is reserved: its mind would be the house supervisor's actor, mind:supervisor.
+  if (!validId(program.id) || ["identities", "preferences", "me", "supervisor"].includes(program.id))
     add(`programas/${program.id}`, "id-invalido");
   ids.add(program.id);
   for (const fact of program.hechos) {

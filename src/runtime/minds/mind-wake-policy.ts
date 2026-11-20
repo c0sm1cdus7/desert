@@ -10,6 +10,8 @@ export type WakePolicy = Readonly<{
   name: string;
   message: (event: Event) => ProgramMessage | undefined;
   toolOf: (target: string) => string | undefined;
+  /** A mind with its own waking, such as the supervisor, which wakes when any journey closes. */
+  wakes?: (event: Event) => boolean;
 }>;
 const normalized = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 function mentions(text: string, name: string): boolean {
@@ -46,6 +48,7 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   requireMind(Number.isSafeInteger(now) && now >= 0, "now");
   const mind = parseMindActor(policy.scope.actor);
   requireMind(mind, "policy.actor");
+  if (policy.wakes) return event.by !== policy.scope.actor && policy.wakes(event);
   if (lifecycle(policy, event, history, now) || ruleWake(policy.scope, event, history)) return true;
   if (event.by === policy.scope.actor) return false;
   if (policy.scope.kind !== "consciousness") return false;

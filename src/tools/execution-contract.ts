@@ -17,6 +17,9 @@ export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: 
     devices?: DeviceDispatch;
     mindScope?: MindScope;
     review?: ReviewPort;
+    /** The house has a supervisor: what a mechanical rule leaves to judgment goes to `review` instead of waiting.
+     * It counts only for a mind acting with `review`; anyone else still waits. */
+    judge?: boolean;
     houseOwn?: (act: OwnAct<X>) => boolean;
     capabilities?: CapabilityFactory;
     running?: Map<string, RunningAct>;

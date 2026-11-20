@@ -13,6 +13,8 @@ import { runtimeView } from "./mind-runtime-view.ts";
 import type { MindMenu } from "../../tools/minds/mind-answer.ts";
 import type { Event } from "../../journal/vocabulary.ts";
 import type { runtimeModel } from "./mind-runtime-model.ts";
+import { definitionOf } from "./mind-definitions.ts";
+import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
 export function runtimeFrame<X extends Program>(
   house: MindRuntimeHouse<X>,
   options: MindRuntimeOptions,
@@ -23,10 +25,10 @@ export function runtimeFrame<X extends Program>(
   const entries = (scope: MindScope) => threadEntries(house.history(), scope);
   const thread = (scope: MindScope) => threads.read(scope, entries(scope));
   const read = (scope: MindScope, turn: TurnContext) => {
-    const definition = options.definitions.find(each => each.actor === scope.actor);
+    const definition = definitionOf(options, house.execution.state().house, scope.actor);
     requireMind(definition, "runtime.definition");
     const view = runtimeView(house, options, switches, scope, definition);
-    const snapshot = snapshotFor(view, scope, turn, options, thread(scope).entries, house.time.now());
+    const snapshot = snapshotFor(view, scope, turn, { options, definition }, thread(scope).entries, house.time.now());
     return { view, fitted: fitFrame(snapshot, turn, view.menu, model, options.maxInputTokens) };
   };
   return {
@@ -54,7 +56,7 @@ export function runtimeFrame<X extends Program>(
   };
 }
 
-function threadEntries(history: readonly Event[], scope: MindScope) {
+export function threadEntries(history: readonly Event[], scope: MindScope) {
   return history.flatMap(event => {
     if (event.by !== scope.actor || event.process !== scope.process || event.layer !== "house") return [];
     let text: string | undefined;
@@ -69,12 +71,10 @@ function snapshotFor<X extends Program>(
   view: ReturnType<typeof runtimeView<X>>,
   scope: MindScope,
   turn: TurnContext,
-  options: MindRuntimeOptions,
+  { options, definition }: Readonly<{ options: MindRuntimeOptions; definition: MindDefinition }>,
   thread: FrameSnapshot["thread"],
   now: number,
 ) {
-  const definition = options.definitions.find(each => each.actor === scope.actor);
-  requireMind(definition, "runtime.definition");
   const current = view.state.house.minds.turns.get(turn.id);
   const scene = view.state.house.minds.scenes.get(scope.process ?? scope.actor)?.data.text ?? "";
   const required = JSON.stringify({

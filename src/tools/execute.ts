@@ -14,7 +14,7 @@ import { checkedDecision } from "./execution/action-decision.ts";
 import { resolve, refusal, type Resolving } from "./execution/action-authority.ts";
 import { actionDraft } from "./execution/action-draft.ts";
 import { deviceRun, executionReach } from "./execution/device-execution.ts";
-import { enforceMechanical, mechanicalRules } from "./execution/mechanical-rules.ts";
+import { asksJudgment, enforceMechanical, mechanicalRules } from "./execution/mechanical-rules.ts";
 import { executeNested } from "./execution/nested-execution.ts";
 import { performAct, rejected } from "./execution/perform-act.ts";
 import { reviewWorld } from "./execution/review-world.ts";
@@ -68,14 +68,26 @@ const decide = <X extends Program>(
   const context = actionContext(ports, origin, found, capabilities);
   const draft = !offered && actionDraft(tool, context, value.input);
   if (draft) return draft;
-  if (!reviewed && executionReach(act) === "world" && ports.review && parseMindActor(by))
-    return () =>
-      reviewWorld(ports, value, origin, context.signal, () => {
-        const current = decide(ports, value, origin, capabilities, true);
-        return typeof current === "function" ? current() : current;
-      });
+  const reason = reviewed ? undefined : reviewReason(ports, value, origin, found);
+  const resume = () => {
+    const current = decide(ports, value, origin, capabilities, true);
+    return typeof current === "function" ? current() : current;
+  };
+  if (reason) return () => reviewWorld(ports, value, origin, context.signal, resume, reason);
   return () => runSelected(ports, value, origin, found, context);
 };
+/** A mind's act waits for its review when it leaves the house, or when a rule leaves it to the supervisor. */
+function reviewReason<X extends Program>(
+  ports: Execution<X>,
+  value: Act,
+  origin: Origin,
+  { tool, act }: ReturnType<typeof resolve<X>>,
+): "world" | "rule" | undefined {
+  if (!act || !ports.review || !parseMindActor(origin.by)) return undefined;
+  if (executionReach(act) === "world") return "world";
+  const action = { tool: tool?.id ?? origin.data.object, act: value.act };
+  return ports.judge === true && asksJudgment(ports, origin, action, act.input, value.input) ? "rule" : undefined;
+}
 
 function actionContext<X extends Program>(
   ports: Execution<X>,
@@ -152,7 +164,16 @@ export function execute<X extends Program>(
   if (!Value.Check(actEnvelope, value)) return rejected(toolTexts.invalid);
   const safeValue = prepareSimulationAct(value, ports.state(), ports.registry);
   if (!safeValue) return rejected(toolTexts.invalid);
-  return executePublic(ports, safeValue, through, by, cause, reaction);
+  // Only a mind with a review port can have a rule's judgment asked of the supervisor; anyone else waits.
+  const judging = ports.judge === true && ports.review !== undefined && parseMindActor(by) !== undefined;
+  return executePublic(
+    judging === !!ports.judge ? ports : { ...ports, judge: false },
+    safeValue,
+    through,
+    by,
+    cause,
+    reaction,
+  );
 }
 function executePublic<X extends Program>(
   ports: Execution<X>,

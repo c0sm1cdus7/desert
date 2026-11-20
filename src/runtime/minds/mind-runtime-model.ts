@@ -10,15 +10,25 @@ import { eligibleMindCards } from "./mind-assignment.ts";
 import { budgetTransaction, reserveModelCall, settleModelCall, markUncertainCall } from "./mind-call-budget.ts";
 import type { MindRuntimeHouse, MindRuntimeOptions } from "./mind-runtime-options.ts";
 import type { ModelRequest } from "./mind-ports.ts";
+import { definitionOf, supervisorActor } from "./mind-definitions.ts";
+import { mindNeeds } from "./mind-card-catalog.ts";
+/** The supervisor's card is the host's, never a house assignment; it needs only to write. */
+export function supervisorCard(options: MindRuntimeOptions) {
+  const declared = options.supervisorCard;
+  if (!declared) return undefined;
+  const eligible = eligibleMindCards(modelCandidates(options.catalog), options.providers, []);
+  if (!eligible.some(each => each.name === declared.model && each.version === declared.effort)) return undefined;
+  const card = options.catalog.find(each => each.model === declared.model && each.effort === declared.effort);
+  return card && { card, role: "supervisor" };
+}
 function assignedCard<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntimeOptions) {
   const { execution } = house;
   return (actor: MindActor) => {
-    const definition = options.definitions.find(each => each.actor === actor);
+    if (actor === supervisorActor) return supervisorCard(options);
+    const definition = definitionOf(options, execution.state().house, actor);
     const assigned = execution.state().house.mindAssignments.get(actor);
     if (!definition || !assigned) return undefined;
-    const needs = execution.registry
-      .filter(tool => actor === `mind:${tool.id}` || definition.communication.some(item => item.tool === tool.id))
-      .flatMap(tool => Object.values(tool.acts).flatMap(act => act.needs ?? []));
+    const needs = mindNeeds(house, definition);
     const eligible = eligibleMindCards(modelCandidates(options.catalog), options.providers, needs);
     if (!eligible.some(each => each.name === assigned.card && each.version === assigned.version)) return undefined;
     const selected = options.catalog.find(each => each.model === assigned.card && each.effort === assigned.version);
@@ -83,8 +93,9 @@ export function runtimeModel<X extends Program>(house: MindRuntimeHouse<X>, opti
   });
   return {
     model: (request: ModelRequest) => {
+      // A missing card is read live: the administrator can assign one while the house runs.
       const reason = options.unavailable?.get(request.mind);
-      return reason === "no-key" || reason === "no-card" || reason === "cap"
+      return reason === "no-key" || reason === "cap"
         ? Promise.resolve({ kind: "not-sent" as const, reason })
         : model(request);
     },

@@ -28,7 +28,11 @@ import {
   type MindSwitches,
 } from "./mind-runtime-options.ts";
 import type { TurnPorts, TurnWake } from "./mind-ports.ts";
+import type { Event } from "../../journal/vocabulary.ts";
 import { expandKit } from "../../house/kit-selection.ts";
+import { assignDeclaredCards, publishMindCards } from "./mind-card-catalog.ts";
+import { definitionOf, definitionsNow, liveDefinitions, supervisorActor } from "./mind-definitions.ts";
+import { houseSupervisor } from "./house-supervisor.ts";
 function validateRuntime<X extends Program>(
   house: MindRuntimeHouse<X>,
   switches: MindSwitches,
@@ -50,12 +54,15 @@ function validateRuntime<X extends Program>(
       "runtime.definition",
     );
   }
+  const reserved = house.execution.registry.some(tool => `mind:${tool.id}` === supervisorActor);
+  requireMind(!options.supervisorCard || !reserved, "runtime.supervisor");
 }
 class HouseMindRuntime<X extends Program> {
   private live = true;
   readonly house: MindRuntimeHouse<X>;
   readonly options: MindRuntimeOptions;
   readonly switches: MindSwitches;
+  readonly supervisor: ReturnType<typeof houseSupervisor<X>>;
   constructor(supplied: MindRuntimeHouse<X>, switches: MindSwitches, options: MindRuntimeOptions) {
     validateRuntime(supplied, switches, options);
     this.options = options;
@@ -69,9 +76,10 @@ class HouseMindRuntime<X extends Program> {
         running: new Map(),
       },
     };
+    this.supervisor = houseSupervisor(this.house, options);
   }
   view = (scope: MindScope) => {
-    const found = this.options.definitions.find(each => each.actor === scope.actor);
+    const found = definitionOf(this.options, this.house.execution.state().house, scope.actor);
     requireMind(found, "runtime.definition");
     return runtimeView(this.house, this.options, this.switches, scope, found);
   };
@@ -94,27 +102,25 @@ class HouseMindRuntime<X extends Program> {
         this.view(scope).control.active &&
         this.view(scope).menu.some(item => item.act === act.act && item.target === act.target),
       reviewReason: (scope, proposal) => this.reviewReason(scope, proposal),
-      supervision: options.supervision ?? {},
-      emit: emission => {
-        if (house.active()) {
-          house.execution.bus.emit(emission);
-          if (emission.kind === "mind-scene" && !emission.process)
-            house.execution.bus.emit(
-              effect(
-                "scene",
-                {
-                  general: emission.data.text,
-                  to: house.execution.state().house.scenes.get(emission.by)?.data.to ?? {},
-                },
-                emission.by,
-                emission.cause,
-              ),
-            );
-        }
-      },
+      supervision: { ...(this.supervisor ? { supervisor: this.supervisor.review } : {}), ...options.supervision },
+      emit: this.emit,
       execute: runtimeActions(house, options, switches),
     };
   }
+  private emit: TurnPorts["emit"] = emission => {
+    const { house } = this;
+    if (!house.active()) return;
+    house.execution.bus.emit(emission);
+    if (emission.kind === "mind-scene" && !emission.process)
+      house.execution.bus.emit(
+        effect(
+          "scene",
+          { general: emission.data.text, to: house.execution.state().house.scenes.get(emission.by)?.data.to ?? {} },
+          emission.by,
+          emission.cause,
+        ),
+      );
+  };
   private reviewReason(scope: MindScope, proposal: ProposedAct): ReturnType<TurnPorts["reviewReason"]> {
     const item = this.view(scope).menu.find(each => each.act === proposal.act && each.target === proposal.target);
     if (!item) return undefined;
@@ -124,7 +130,7 @@ class HouseMindRuntime<X extends Program> {
   }
   private policies = (recover = false) => {
     const { house, options, switches } = this;
-    return options.definitions
+    const minds = definitionsNow(options, house.execution.state().house)
       .filter(each => enabledMind(switches, each.actor))
       .flatMap(each => {
         const scopes: MindScope[] = [{ kind: "consciousness", actor: each.actor }];
@@ -148,8 +154,28 @@ class HouseMindRuntime<X extends Program> {
               targetTool(house.execution.registry, identityView(house.execution.state(), each.actor), target)?.id,
           }));
       });
+    return this.supervisor && house.active() ? [...minds, this.supervisor.policy(options.message)] : minds;
+  };
+  /** An assistant enabled while the house runs gets its card choices and, without a card, the default one. */
+  private assistantCards = (event: Event) => {
+    if (event.layer !== "house" || event.kind !== "assistant-enabled") return;
+    const confirmed = this.house.execution.bus.confirmation();
+    queueMicrotask(() => {
+      if (!confirmed() || !this.house.active()) return;
+      const actor = `assistant:${event.data.owner}`;
+      const minds = liveDefinitions(this.options, this.house.execution.state().house, this.switches).filter(
+        each => each.actor === actor,
+      );
+      publishMindCards(this.house, this.options, minds);
+      assignDeclaredCards(this.house, this.options, minds);
+    });
   };
   private async run(ports: TurnPorts, wake: TurnWake) {
+    if (wake.scope.actor === supervisorActor && this.supervisor) {
+      const learned = await this.supervisor.learn(wake, ports);
+      this.options.observeTurn?.(learned);
+      return learned;
+    }
     const outcome = await runMindTurn(ports, wake);
     followUpJourney(this.house, wake, outcome);
     this.options.observeTurn?.(outcome);
@@ -177,7 +203,7 @@ class HouseMindRuntime<X extends Program> {
       },
     };
     recoverMindSchedule({ ...schedulePorts, policies: () => this.policies(true) });
-    const off = house.execution.bus.on(watchRunning(house.execution));
+    const offs = [watchRunning(house.execution), this.assistantCards].map(listen => house.execution.bus.on(listen));
     const schedule = startMindSchedule(schedulePorts);
     return {
       flush: schedule.flush,
@@ -188,7 +214,7 @@ class HouseMindRuntime<X extends Program> {
       close: () => {
         this.live = false;
         schedule.close();
-        off();
+        offs.forEach(off => off());
         for (const act of house.execution.running?.values() ?? []) act.controller.abort();
       },
     };

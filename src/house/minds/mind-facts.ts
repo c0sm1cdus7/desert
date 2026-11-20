@@ -31,6 +31,7 @@ export const mindFacts = {
       Type.Literal("end"),
       Type.Literal("desist"),
       Type.Literal("world"),
+      Type.Literal("rule"),
       Type.Literal("consultation"),
     ]),
     result: Type.Union([Type.Literal("passed"), Type.Literal("rejected"), Type.Literal("failed")]),

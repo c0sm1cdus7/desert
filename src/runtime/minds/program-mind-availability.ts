@@ -16,9 +16,10 @@ export function maximumProgramCall(card: Card, tokens: number) {
 export async function programMindAvailability<X extends Program>(
   house: MindRuntimeHouse<X>,
   options: MindRuntimeOptions,
+  definitions: MindRuntimeOptions["definitions"] = options.definitions,
 ) {
   const unavailable = new Map<string, TurnStop>();
-  for (const definition of options.definitions) {
+  for (const definition of definitions) {
     if (!house.active()) break;
     const reason = await unavailableReason(house, options, definition);
     if (reason && house.active()) {

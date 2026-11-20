@@ -29,6 +29,12 @@ export type MindRuntimeOptions = Readonly<{
   programBank?: Readonly<{ program: Composition<Program>; cases: ReadonlyMap<string, readonly ProgramMindCase[]> }>;
   /** Starting card per mind actor, chosen by hand; the administrator can change it afterwards. */
   cards?: Readonly<Record<string, Readonly<{ model: string; effort: string }>>>;
+  /** The card an enabled assistant gets when it has none; the administrator can change it afterwards. */
+  assistantCard?: Readonly<{ model: string; effort: string }>;
+  /** The house supervisor's card; without one the mechanical rules decide alone (signed 17/11). */
+  supervisorCard?: Readonly<{ model: string; effort: string }>;
+  /** The acts minds say things with: those of the programs that declare `mensajes` (signed 20/11). */
+  talk?: readonly Readonly<{ tool: string; act: string }>[];
   billing?: MindBilling;
   spendingAccount?: SpendingAccount;
   providerRejections?: ReadonlyMap<string, ProviderRejection>;
@@ -64,5 +70,8 @@ export type MindRuntimeHouse<X extends Program> = Readonly<{
   active: () => boolean;
   failed: (error: Error) => void;
 }>;
+/** A house supervises when it has a supervisor's card or the host brings its own supervisor. */
+export const supervised = (options: Pick<MindRuntimeOptions, "supervisorCard" | "supervision">): boolean =>
+  options.supervisorCard !== undefined || options.supervision?.supervisor !== undefined;
 export const enabledMind = (switches: MindSwitches, actor: MindActor): boolean =>
   actor.startsWith("assistant:") ? switches.asistentes : switches.programas.includes(actor.slice(5));

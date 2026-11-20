@@ -93,10 +93,14 @@ describe("the tree of src/", () => {
   // RT-VO3: +3 líneas para explicar la raíz de confianza y +5 para comprobar SQLite entre fases de reserva.
   // MCP MI-2: +2 líneas para distinguir selección por program/target y restricciones del kit en reason.
   // 20/11: +1 for the correction a mind gets when its wait ends before now.
-  it("keeps every file within 300 lines and the texts within 1164", () => {
+  // 20/11 Asistentes y supervisor: +74 exact lines. +14 for the assistant's own rules (who it is, whose, talking
+  // only through the talk programs, journeys with its delegated kit, naming a mind to wake it, no invented
+  // permissions); +60 for supervisor.texts.ts: its house layer (with the rules that ask for its judgment), its
+  // rules, frame labels and review notices.
+  it("keeps every file within 300 lines and the texts within 1238", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1164);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1238);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));
