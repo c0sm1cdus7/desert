@@ -5,14 +5,22 @@ import type { Program } from "../../../tools/tool-contract.ts";
 import type { Found } from "../promised-keys.ts";
 import { perform, staged, type Aim } from "../promised-stage.ts";
 import { identityTexts as words } from "../../../texts/identities.texts.ts";
-function foreignMindTarget<X extends Program>(tool: ProgramTool<X>, act: string, target: string) {
+/** A mind holds its own tool and the talk tools (signed 20/11); any other tool's kit is foreign to it. */
+const holdable = (act: string, tool: string) =>
+  act === `kit:${tool}` || act.startsWith(`kit:${tool}:`) || act.startsWith(`kit:${tool}/`);
+function foreignMindTarget<X extends Program>(
+  tool: ProgramTool<X>,
+  act: string,
+  target: string,
+  talk: readonly string[],
+) {
   if (tool.id !== "identities") return false;
   if (!target.startsWith("identities/mind:")) {
     const menu = tool.acts[act]?.under;
     return menu?.startsWith("kit:") === true && tool.acts[menu] === undefined;
   }
   const own = target.slice("identities/mind:".length);
-  return act !== `kit:${own}` && !act.startsWith(`kit:${own}:`) && !act.startsWith(`kit:${own}/`);
+  return ![own, ...talk].some(each => holdable(act, each));
 }
 /** Absence is mandatory here, not a bypass: another tool's actions and identity lifecycle must never be offered. */
 export function absentMindAction<X extends Program>(
@@ -20,8 +28,9 @@ export function absentMindAction<X extends Program>(
   act: string,
   target: string,
   found: Found | undefined,
+  talk: readonly string[],
 ): boolean {
-  if (!foreignMindTarget(tool, act, target)) return false;
+  if (!foreignMindTarget(tool, act, target, talk)) return false;
   strictEqual(found, undefined, words.unexpectedAction(act, target));
   return true;
 }
@@ -31,7 +40,8 @@ export async function mindTargetCauses<X extends Program>(program: Composition<X
   const causes: string[] = [];
   await staged(program, async ({ house }) => {
     const targets = aim.tool.targets(house().tools.state());
-    for (const on of targets.filter(target => foreignMindTarget(aim.tool, aim.name, target))) {
+    const talk = house().tools.state().house.talk ?? [];
+    for (const on of targets.filter(target => foreignMindTarget(aim.tool, aim.name, target, talk))) {
       const before = house().tools.state().house;
       const input = aim.name.startsWith("kit:") ? { value: "yes" } : {};
       const done = await perform(house(), aim.tool.id, { act: aim.name, on, input });

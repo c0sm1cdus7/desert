@@ -34,7 +34,7 @@ function foreignActions<X extends Program>(seat: Seat<X>, tool: ProgramTool<X>):
     const targets = actionTargets({ tool, name, act }, seat.state());
     for (const target of targets) {
       const found = actRow(seat, { tool, name, act }, target);
-      if (absentMindAction(tool, name, target, found)) continue;
+      if (absentMindAction(tool, name, target, found, seat.state().house.talk ?? [])) continue;
       if (checkOwnRow(tool.id, name, seat.state(), target, found?.row)) continue;
       ok(found, said.notOffered(name));
       ok(found.row.off);

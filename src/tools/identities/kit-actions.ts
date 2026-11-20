@@ -80,17 +80,19 @@ export function kitActions<X extends Program>(registry: ToolRegistry<X>): Readon
   const catalog = kitCatalog(registry);
   const layout = kitLayout(registry);
   for (const tool of catalog) {
-    acts[kitAct(tool.id)] = kitAction(tool, "t", catalog.length > 1);
+    // Every tool mind may hold a talk program (signed 20/11), so only other programs can refuse another mind.
+    const otherMind = catalog.length > 1 && !tool.talks;
+    acts[kitAct(tool.id)] = kitAction(tool, "t", otherMind);
     const groups = [...new Set(Object.keys(tool.acts).map(action => herramientaDe(tool.id, action, layout)))];
     for (const group of groups) {
-      acts[kitAct(`${tool.id}/${group}`)] = kitAction(tool, "t", catalog.length > 1, undefined, group);
+      acts[kitAct(`${tool.id}/${group}`)] = kitAction(tool, "t", otherMind, undefined, group);
       Object.keys(tool.acts)
         .filter(action => herramientaDe(tool.id, action, layout) === group)
         .forEach((action, i) => {
           acts[kitAct(tool.id, action)] = kitAction(
             tool,
             i < 9 ? String(i + 1) : "",
-            catalog.length > 1,
+            otherMind,
             action,
             group,
           );
