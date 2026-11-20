@@ -89,13 +89,7 @@ export function kitActions<X extends Program>(registry: ToolRegistry<X>): Readon
       Object.keys(tool.acts)
         .filter(action => herramientaDe(tool.id, action, layout) === group)
         .forEach((action, i) => {
-          acts[kitAct(tool.id, action)] = kitAction(
-            tool,
-            i < 9 ? String(i + 1) : "",
-            otherMind,
-            action,
-            group,
-          );
+          acts[kitAct(tool.id, action)] = kitAction(tool, i < 9 ? String(i + 1) : "", otherMind, action, group);
         });
     }
   }

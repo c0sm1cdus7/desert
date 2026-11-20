@@ -1,4 +1,7 @@
 // Proves requests and replies through a talk program, concurrent work and restart recovery without a provider.
+import { localPorts } from "../house-runtime.ts";
+import { localDay } from "../../../tests/support/dated-shop.ts";
+import { houseTools } from "../../surface/bridge/assembly/house-tools.ts";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -70,6 +73,15 @@ it("a program mind may hold the talk program besides its own and its consciousne
   const kits = house.tools.state().house.selections;
   expect(kits?.get("mind:notes")?.selections).toEqual([{ kind: "program", program: "talk" }]);
   expect(kits?.has("mind:talk")).toBe(false);
+  // The admin reaches the talk program from the mind's own page; a program that is not talk has no page there.
+  const core = houseTools(localPorts(house, "ana", { recentLines: 20 }), {
+    ...f.distribution.shown,
+    day: localDay,
+  }).find(tool => tool.id === "identities");
+  const opens = core?.view("identities/mind:notes").flatMap(stack => stack.rows.map(row => row.opens));
+  expect(opens).toContain("identities/mind:notes#kit:talk");
+  expect(core?.view("identities/mind:notes#kit:talk").length).toBeGreaterThan(0);
+  expect(() => core?.view("identities/mind:talk#kit:notes")).toThrow();
 });
 it("a person asks for work through the talk program and the mind answers through it, not natively", async () => {
   const f = fixture();

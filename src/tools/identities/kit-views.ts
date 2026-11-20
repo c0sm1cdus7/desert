@@ -1,6 +1,6 @@
 // Recorre titulares, programas, herramientas y acciones mediante listas navegables sin tope numérico.
 import { sceneReading } from "./scene-reading.ts";
-import { mindTool } from "../../house/kit.ts";
+import { mindMayHold, mindTool } from "../../house/kit.ts";
 import { migrateKit } from "../../house/kit-migration.ts";
 import { storedHolderKit } from "../../house/kit-history.ts";
 import { herramientaDe, kitLayout, selectionPath } from "../../house/kit-selection.ts";
@@ -47,14 +47,33 @@ function programRows<X extends Program>({ ports }: ViewContext<X>, holder: strin
     opens: menuTarget(holder, kitMenu(tool.id)),
   }));
 }
+/** A mind's own page also opens the programs minds talk through, so the admin can give them from there. */
+function talkSection<X extends Program>(ctx: ViewContext<X>, holder: string, own: string | undefined, menu?: string) {
+  if (!own || menu) return [];
+  const house = ctx.ports.state().house;
+  const catalog = kitCatalog(ctx.ports.registry);
+  const rows = programRows(ctx, holder).filter((_, at) => {
+    const tool = catalog[at];
+    return !!tool && tool.id !== own && mindMayHold(house, own, tool.id);
+  });
+  return rows.length ? [section(words.programs, rows, words.emptyKit)] : [];
+}
+/** The program whose kit this holder may be given: any member's, or a mind's own and the talk programs. */
+function holdable<X extends Program>({ ports }: ViewContext<X>, holder: string, program?: string) {
+  const house = ports.state().house;
+  const own = mind(holder);
+  const tool = kitCatalog(ports.registry).find(tool => tool.id === program);
+  if (!tool) return undefined;
+  if (own !== undefined) return mindMayHold(house, own, tool.id) ? tool : undefined;
+  return members(house).includes(targetIdentity(holder)) ? tool : undefined;
+}
 function branchView<X extends Program>(ctx: ViewContext<X>, target: string, branch: string, notices: ViewRow[]) {
   const { ports, contract, plain, start } = ctx;
   const [holder = "", menu] = target.split("#");
   const [program, group] = branch.split("/");
-  const tool = kitCatalog(ports.registry).find(tool => tool.id === program);
   const own = mind(holder);
-  if (!tool || (own && own !== program) || (!own && !members(ports.state().house).includes(targetIdentity(holder))))
-    throw new MissingView(contract.id, target);
+  const tool = holdable(ctx, holder, program);
+  if (!tool) throw new MissingView(contract.id, target);
   const groups = [
     ...new Set(Object.keys(tool.acts).map(action => herramientaDe(tool.id, action, kitLayout(ports.registry)))),
   ];
@@ -84,6 +103,7 @@ function branchView<X extends Program>(ctx: ViewContext<X>, target: string, bran
     ...scene,
     section(folderName(tool, group), [...notices, ...folders], words.emptyActions),
     section(words.actions, acts, words.emptyActions),
+    ...talkSection(ctx, holder, own, menu),
   ];
 }
 function targetView<X extends Program>(ctx: ViewContext<X>, target: string) {
