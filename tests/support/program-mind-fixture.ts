@@ -1,4 +1,4 @@
-// Compone dos programas y presta un proveedor sintético para probar el banco y el arranque de sus mentes.
+// Composes two programs with a hand-assigned starting card and a synthetic provider for their minds.
 import "./fixture-vault.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -92,6 +92,7 @@ class ProgramMindFixture {
     transport: this.transport,
     account: "test",
     capNanoUsd: 1000000000,
+    cards: { "mind:notas": { model: "claude-haiku-5-5", effort: "low" } },
   };
   async open(
     changes: Partial<ProgramMindResources> = {},

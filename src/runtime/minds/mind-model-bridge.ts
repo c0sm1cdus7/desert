@@ -1,6 +1,6 @@
 // Conecta una carta asignada con el proveedor y conserva el costo de cada intento.
 import { callAnthropic, ModelFailure, requestBody } from "../../adapters/models/anthropic.ts";
-import { costUsd, validBankResult, type Card, type Usage } from "../../adapters/models/catalog.ts";
+import { costUsd, type Card, type Usage } from "../../adapters/models/catalog.ts";
 import { mindRequest } from "./mind-request.ts";
 import { modelFailureLog, turnNotice } from "../../texts/mind-turn.texts.ts";
 import type { MindActor } from "../../fields/mind-actor.ts";
@@ -9,13 +9,7 @@ import type { ModelOutcome, ModelRequest } from "./mind-ports.ts";
 export const providerMarginTokens = 4096;
 const zeroUsage: Usage = { input: 0, cacheWrite: 0, cacheRead: 0, output: 0 };
 type Ports = Readonly<{
-  card: (mind: MindActor) =>
-    | Readonly<{
-        card: Card;
-        role: string;
-        fingerprint: Readonly<{ cases: string; skill: string; frameTexts: string }>;
-      }>
-    | undefined;
+  card: (mind: MindActor) => Readonly<{ card: Card; role: string }> | undefined;
   key: (card: Card) => Promise<string | undefined>;
   capNanoUsd: number;
   maxInputTokens: number;
@@ -55,20 +49,7 @@ function usageOf(data: unknown): Usage | undefined {
     return undefined;
   return { input, cacheWrite, cacheRead, output };
 }
-type Assignment = NonNullable<ReturnType<Ports["card"]>>;
 type Payload = Parameters<typeof requestBody>[0];
-function eligible(assignment: Assignment): boolean {
-  const { card, role, fingerprint } = assignment;
-  const evidence = [...card.results].reverse().find(result => result.role === role);
-  return (
-    !!fingerprint.cases &&
-    !!fingerprint.skill &&
-    !!fingerprint.frameTexts &&
-    validBankResult(evidence) &&
-    evidence.passed &&
-    (["cases", "skill", "frameTexts"] as const).every(key => evidence.fingerprint[key] === fingerprint[key])
-  );
-}
 function maximumCost(card: Card, maxInputTokens: number): number {
   return Math.max(
     ...(["input", "cacheRead", "cacheWrite"] as const).map(kind =>
@@ -156,7 +137,7 @@ async function invoke(request: ModelRequest, ports: Ports): Promise<ModelOutcome
   required(request, "request");
   if (!Number.isSafeInteger(request.number) || request.number < 1 || request.number > 12) throw new Error("number");
   const assignment = ports.card(request.mind);
-  if (!assignment || !eligible(assignment)) return { kind: "not-sent", reason: "no-card" };
+  if (!assignment) return { kind: "not-sent", reason: "no-card" };
   const { card } = assignment;
   let key: string | undefined;
   try {

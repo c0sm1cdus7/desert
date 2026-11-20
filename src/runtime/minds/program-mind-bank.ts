@@ -1,4 +1,4 @@
-// Tests cards in cost order against the selected billing account and assigns the first passing card.
+// Offline catalog composition: tests cards in cost order and records which pass; the house never calls this.
 import type { ProviderRejection } from "../../fields/provider-rejection.ts";
 import { scrubDoorText } from "../../house/doors/door-material.ts";
 import type { Card, BankResult } from "../../adapters/models/catalog.ts";
@@ -25,7 +25,7 @@ type Role<X extends Program> = Readonly<{
   billing: MindBilling;
   rejections: Map<string, ProviderRejection>;
 }>;
-export async function prepareProgramMinds<X extends Program>(
+export async function runProgramBank<X extends Program>(
   house: MindRuntimeHouse<X>,
   options: MindRuntimeOptions,
   switches: MindSwitches,

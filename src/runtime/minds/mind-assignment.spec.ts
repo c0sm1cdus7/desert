@@ -1,17 +1,12 @@
 import { expect, it } from "vitest";
-import { initialMindAssignment } from "../../../tests/support/retired-helpers/mind-assignment.ts";
 import { eligibleMindCards } from "./mind-assignment.ts";
-const result = {
+const failed = {
   role: "assistant",
-  passed: true,
+  passed: false,
   cases: 3,
   scenes: 9,
-  costUsd: 0,
-  seconds: 1,
-  date: "2026-11-17",
   fingerprint: { cases: "c", skill: "s", frameTexts: "f" },
 };
-const fingerprint = result.fingerprint;
 const cards = [
   {
     name: "expensive",
@@ -19,30 +14,18 @@ const cards = [
     provider: "a",
     capabilities: ["sees"] as const,
     referenceNanoUsd: 10,
-    results: [result],
+    results: [],
   },
-  { name: "cheap", version: "1", provider: "a", capabilities: [] as const, referenceNanoUsd: 5, results: [result] },
+  { name: "cheap", version: "1", provider: "a", capabilities: [] as const, referenceNanoUsd: 5, results: [failed] },
 ];
-it("elige la más barata aprobada con llave y filtra capacidades para herramientas", () => {
-  expect(initialMindAssignment(cards, "assistant", ["a"], [], fingerprint)?.name).toBe("cheap");
-  expect(eligibleMindCards(cards, "assistant", ["a"], ["sees"], fingerprint).map(c => c.name)).toEqual(["expensive"]);
-  expect(initialMindAssignment(cards, "assistant", [], [], fingerprint)).toBeUndefined();
-  expect(eligibleMindCards(cards, "other", ["a"], [], fingerprint)).toEqual([]);
+it("offers every card of an enabled provider with the needed capabilities, whatever the bank said", () => {
+  expect(eligibleMindCards(cards, ["a"], []).map(card => card.name)).toEqual(["expensive", "cheap"]);
+  expect(eligibleMindCards(cards, ["a"], ["sees"]).map(card => card.name)).toEqual(["expensive"]);
+  expect(eligibleMindCards(cards, ["b"], [])).toEqual([]);
 });
-it("descarta evidencia vencida, escenas incompletas y una falla posterior", () => {
+it("drops cards without a valid reference price", () => {
   const first = cards[0];
   if (!first) throw new Error("card");
-  expect(eligibleMindCards(cards, "assistant", ["a"], [], { ...fingerprint, skill: "otra" })).toEqual([]);
-  expect(
-    eligibleMindCards(
-      [{ ...first, results: [result, { ...result, passed: false }] }],
-      "assistant",
-      ["a"],
-      [],
-      fingerprint,
-    ),
-  ).toEqual([]);
-  expect(
-    eligibleMindCards([{ ...first, results: [{ ...result, scenes: 8 }] }], "assistant", ["a"], [], fingerprint),
-  ).toEqual([]);
+  for (const referenceNanoUsd of [-1, 1.5, Number.NaN])
+    expect(eligibleMindCards([{ ...first, referenceNanoUsd }], ["a"], [])).toEqual([]);
 });

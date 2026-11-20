@@ -9,7 +9,7 @@ import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
 import type { MindRuntimeOptions } from "./mind-runtime-options.ts";
 export type ProgramMindResources = Pick<
   MindRuntimeOptions,
-  "key" | "transport" | "account" | "capNanoUsd" | "language" | "billing" | "spendingAccount"
+  "key" | "transport" | "account" | "capNanoUsd" | "language" | "billing" | "spendingAccount" | "cards"
 >;
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 export function programMindOptions(
