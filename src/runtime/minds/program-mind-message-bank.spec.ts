@@ -1,4 +1,4 @@
-// Runs all three message scenes through the real bank and rejects invalid or unauthorized proposed work.
+// Runs all three message scenes through the offline bank; a live turn rejects invalid or unauthorized work.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { requestMindFixture, answer, openWork, finishWork, send } from "../../../tests/support/request-mind-fixture.ts";
 import { currentTurn, respondToNotes } from "../../../tests/support/request-mind-responder.ts";
@@ -71,7 +71,9 @@ it("passes three distinct directed-message contexts with text fields and isolate
     }
     return answer(frame.includes("Escena:\nWorking") ? [] : [openWork(body)], "Working");
   });
-  const house = await f.open();
+  const house = await f.open(false);
+  expect(f.transport).not.toHaveBeenCalled();
+  await f.bank(house);
   expect(seen).toEqual(bodies);
   expect(f.transport).toHaveBeenCalledTimes(9);
   expect(house.tools.state().tools.notes.notes).toEqual([]);
@@ -80,6 +82,10 @@ it("passes three distinct directed-message contexts with text fields and isolate
     event.kind === "mind-bank-tested" ? [...values, event.data.result.passed] : values,
   );
   expect(evidence).toEqual([true]);
+  expect(house.tools.state().house.mindAssignments.get("mind:notes")).toMatchObject({
+    card: "claude-haiku-5-5",
+    version: "high",
+  });
 });
 it.each([
   ["blank", { body: " " }],
@@ -113,7 +119,13 @@ it("does not certify a card when one of its three message scenes fails", async (
       ? answer(finishWork(journey, body), "Working")
       : answer(frame.includes("Escena:\nWorking") ? [] : [openWork(body)], "Working");
   });
-  const house = await f.open();
+  const house = await f.open(false);
+  await f.bank(house);
   expect(house.tools.state().house.mindAssignments.has("mind:notes")).toBe(false);
   expect(house.tools.state().tools.notes.notes).toEqual([]);
+  const evidence = house.journal.replay<boolean[]>([], (values, event) =>
+    event.kind === "mind-bank-tested" ? [...values, event.data.result.passed] : values,
+  );
+  expect(evidence.length).toBeGreaterThan(0);
+  expect(evidence.every(passed => !passed)).toBe(true);
 });

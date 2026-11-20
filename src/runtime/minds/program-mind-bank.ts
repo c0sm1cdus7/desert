@@ -1,7 +1,7 @@
-// Offline catalog composition: tests cards in cost order and records which pass; the house never calls this.
+// Offline catalog composition: tests cards in cost order and records which pass; opening a house never runs it.
 import type { ProviderRejection } from "../../fields/provider-rejection.ts";
 import { scrubDoorText } from "../../house/doors/door-material.ts";
-import type { Card, BankResult } from "../../adapters/models/catalog.ts";
+import { validBankResult, type Card, type BankResult } from "../../adapters/models/catalog.ts";
 import type { TurnStop } from "../../texts/mind-turn.texts.ts";
 import { effect } from "../../house/facts.ts";
 import { billingAccount, billingFor } from "./mind-billing.ts";
@@ -125,6 +125,7 @@ function previousResult<X extends Program>({ house, options, definition }: Role<
         event.data.card === card.model &&
         event.data.version === card.effort &&
         event.data.result.role === definition.role &&
+        validBankResult(event.data.result) &&
         (["cases", "skill", "frameTexts"] as const).every(
           key => event.data.result.fingerprint[key] === fingerprint[key],
         ),

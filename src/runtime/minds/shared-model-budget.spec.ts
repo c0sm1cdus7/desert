@@ -1,11 +1,11 @@
-// Reproduces the auditor's two-house spending paths using only synthetic model responses.
+// Reproduces the auditor's two-house spending paths with real turns and synthetic model responses.
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, expect, it, vi } from "vitest";
 import { programMindFixture } from "../../../tests/support/program-mind-fixture.ts";
-import { cards, costUsd } from "../../adapters/models/catalog.ts";
+import { cards } from "../../adapters/models/catalog.ts";
 import { maximumProgramCall } from "./program-mind-availability.ts";
 import { modelAccount } from "../../house/minds/model-call-state.ts";
 import { openModelSpendingAccount } from "./model-spending-account.ts";
@@ -27,7 +27,12 @@ afterEach(() => {
   folders.splice(0).forEach(folder => rmSync(folder, { recursive: true, force: true }));
   vi.unstubAllGlobals();
 });
-function synthetic(approved = false) {
+const thinking = { "mind:notas": { model: "claude-fable-5-2", effort: "high" } };
+async function think(f: ReturnType<typeof fixture>, house: Awaited<ReturnType<ReturnType<typeof fixture>["open"]>>) {
+  f.wake(house);
+  await (await house.minds)?.flush();
+}
+function synthetic() {
   return vi.fn<typeof fetch>(() =>
     Promise.resolve(
       new Response(
@@ -37,7 +42,7 @@ function synthetic(approved = false) {
             {
               type: "text",
               text: JSON.stringify({
-                scene: approved ? "Banco aprobado" : "No hay novedades.",
+                scene: "No hay novedades.",
                 acts: [],
                 consulta: null,
               }),
@@ -53,35 +58,37 @@ it("shares the total across two fresh houses, reopening and reconstruction like 
   vi.stubGlobal("fetch", () => {
     throw new Error("network.forbidden");
   });
-  const settings = resources();
+  const settings = { ...resources(), cards: thinking };
   const transport = synthetic();
   const first = fixture();
   const house = await first.open({ ...settings, transport });
-  expect(transport.mock.calls.length).toBeGreaterThan(0);
+  expect(transport).not.toHaveBeenCalled();
+  await think(first, house);
+  expect(transport).toHaveBeenCalledOnce();
   expect(modelAccount(house.tools.state().house.modelCalls, "test").spentNanoUsd).toBe(0);
   house.close();
 
   const rebuilt = await first.open({ ...settings, transport }, true, "rebuilt/2");
-  expect(rebuilt.mindNotices?.().join(" ")).toContain("saldo");
+  await think(first, rebuilt);
+  expect(transport).toHaveBeenCalledTimes(2);
   rebuilt.close();
   rmSync(first.home, { recursive: true });
-  const second = fixture();
-  const fresh = await second.open({ ...settings, transport });
-  second.wake(fresh);
-  await (await fresh.minds)?.flush();
-  expect(fresh.mindNotices?.().join(" ")).toContain("saldo");
-  fresh.close();
   let exhausted = false;
-  for (let index = 0; index < 10 && !exhausted; index++) {
+  let home = first.home;
+  for (let index = 0; index < 20 && !exhausted; index++) {
     const before = transport.mock.calls.length;
     const next = fixture();
-    const blocked = await next.open({ ...settings, transport });
+    home = next.home;
+    const fresh = await next.open({ ...settings, transport });
+    await think(next, fresh);
     exhausted = before === transport.mock.calls.length;
-    expect(blocked.mindNotices?.().join(" ")).toContain("saldo");
-    blocked.close();
+    const said = [...(fresh.mindNotices?.() ?? []), fresh.tools.state().house.scenes.get("mind:notas")?.data.general];
+    expect(said.join(" ").includes("saldo")).toBe(exhausted);
+    fresh.close();
   }
   expect(exhausted).toBe(true);
-  const account = openModelSpendingAccount(second.home, settings.spendingAccount, "test", settings.capNanoUsd);
+  expect(transport.mock.calls.length).toBeGreaterThan(3);
+  const account = openModelSpendingAccount(home, settings.spendingAccount, "test", settings.capNanoUsd);
   try {
     const balance = billingAccount(account.billing, "test");
     expect(balance.spentNanoUsd).toBeGreaterThan(8e9);
@@ -90,17 +97,22 @@ it("shares the total across two fresh houses, reopening and reconstruction like 
     account.close();
   }
 });
-it("publishes certified cards while charging the bank and thinking to explicit billing", async () => {
+it("publishes every catalog card while charging the offline bank and thinking to explicit billing", async () => {
   const f = fixture();
   const settings = resources();
   const account = openModelSpendingAccount(f.home, settings.spendingAccount, "test", settings.capNanoUsd);
+  const billed = { capNanoUsd: settings.capNanoUsd, billing: account.billing };
   try {
-    const house = await f.open({ capNanoUsd: settings.capNanoUsd, billing: account.billing });
-    expect(house.tools.state().house.mindCards.get("mind:notas")).toHaveLength(1);
+    const offline = await f.open(billed, false);
+    await f.bank(offline, billed);
     const bank = billingAccount(account.billing, "test").spentNanoUsd;
     expect(bank).toBeGreaterThan(1.02e9);
-    f.wake(house);
-    await (await house.minds)?.flush();
+    expect(offline.tools.state().house.modelCalls.size).toBe(0);
+    offline.close();
+    const house = await f.open(billed);
+    expect(house.tools.state().house.mindCards.get("mind:notas")).toHaveLength(cards.length);
+    expect(billingAccount(account.billing, "test").spentNanoUsd).toBe(bank);
+    await think(f, house);
     expect(billingAccount(account.billing, "test").spentNanoUsd).toBeGreaterThan(bank);
     expect(house.tools.state().house.modelCalls.size).toBe(0);
     house.close();
@@ -117,17 +129,16 @@ it("fails visibly before transport while another house owns the account, then op
   expect(second.transport).not.toHaveBeenCalled();
   house.close();
   const next = await second.open(settings);
-  expect(second.transport).toHaveBeenCalledTimes(3);
+  expect(second.transport).not.toHaveBeenCalled();
+  await think(second, next);
+  expect(second.transport).toHaveBeenCalledOnce();
   next.close();
 });
 it("retains an in-flight reservation after closing and blocks a new house like mente", async () => {
   const settings = resources();
   const card = cards[0];
   if (!card) throw new Error("card");
-  settings.capNanoUsd =
-    settings.spendingAccount.openingNanoUsd +
-    maximumProgramCall(card, 50000) +
-    3 * Math.ceil(costUsd(card, { input: 10, output: 4, cacheRead: 0, cacheWrite: 0 }) * 1e9);
+  settings.capNanoUsd = settings.spendingAccount.openingNanoUsd + maximumProgramCall(card, 50000);
   const first = fixture();
   const house = await first.open(settings);
   let release: ((response: Response) => void) | undefined;
@@ -142,7 +153,7 @@ it("retains an in-flight reservation after closing and blocks a new house like m
   house.close();
   const db = new DatabaseSync(settings.spendingAccount.file);
   const reservations = db.prepare("select data from events where kind = 'model-call-reserved'").all();
-  expect(reservations.length).toBe(4);
+  expect(reservations.length).toBe(1);
   db.close();
   const account = openModelSpendingAccount(first.home, settings.spendingAccount, "test", settings.capNanoUsd);
   try {
@@ -152,6 +163,7 @@ it("retains an in-flight reservation after closing and blocks a new house like m
   }
   const second = fixture();
   const blocked = await second.open(settings);
+  await think(second, blocked);
   expect(second.transport).not.toHaveBeenCalled();
   expect(blocked.mindNotices?.().join(" ")).toContain("saldo");
   blocked.close();
@@ -162,12 +174,16 @@ it("keeps house-local billing when no spending account is supplied", async () =>
   const first = fixture();
   const second = fixture();
   const a = await first.open();
+  await think(first, a);
   const spent = modelAccount(a.tools.state().house.modelCalls, "test").spentNanoUsd;
+  expect(spent).toBeGreaterThan(0);
   a.close();
   const reopened = await first.open();
   expect(modelAccount(reopened.tools.state().house.modelCalls, "test").spentNanoUsd).toBe(spent);
-  expect(first.transport).toHaveBeenCalledTimes(3);
+  expect(first.transport).toHaveBeenCalledOnce();
   const fresh = await second.open();
-  expect(second.transport).toHaveBeenCalledTimes(3);
+  expect(modelAccount(fresh.tools.state().house.modelCalls, "test").spentNanoUsd).toBe(0);
+  await think(second, fresh);
+  expect(second.transport).toHaveBeenCalledOnce();
   expect(modelAccount(fresh.tools.state().house.modelCalls, "test").spentNanoUsd).toBe(spent);
 });

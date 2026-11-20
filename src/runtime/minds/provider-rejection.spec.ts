@@ -1,9 +1,11 @@
+// A provider rejection stays visible in the scene, the journal and stdout, in the bank and in a live turn.
 import { afterEach, expect, it, vi } from "vitest";
 import { issueDoorKey } from "../../house/doors/door-material.ts";
 import type { HouseEmission } from "../../house/facts.ts";
 import { runMindTurn } from "./mind-turn.ts";
 import type { ModelPort } from "./mind-ports.ts";
 import { programMindFixture } from "../../../tests/support/program-mind-fixture.ts";
+import { programMindNotices } from "./program-mind-availability.ts";
 const fixtures: ReturnType<typeof programMindFixture>[] = [];
 afterEach(() => {
   fixtures.splice(0).forEach(f => f.cleanup());
@@ -16,7 +18,7 @@ const cases = [
   [429, "rate_limit_error"],
   [529, "overloaded_error"],
 ] as const;
-it.each(cases)("conserva %s en escena, diario y stdout, con JSON y sin JSON", async (status, type) => {
+it.each(cases)("el banco conserva %s en escena, diario y stdout, con JSON y sin JSON", async (status, type) => {
   for (const json of [true, false]) {
     const f = programMindFixture();
     fixtures.push(f);
@@ -26,7 +28,8 @@ it.each(cases)("conserva %s en escena, diario y stdout, con JSON y sin JSON", as
     f.transport.mockImplementation(() =>
       Promise.resolve(new Response(json ? JSON.stringify({ error: { type, message } }) : message, { status })),
     );
-    const house = await f.open();
+    const house = await f.open({}, false);
+    const prepared = await f.bank(house);
     const expected = `${status} ${json ? type : "sin_tipo"}`;
     const scene = house.tools.state().house.scenes.get("mind:notas")?.data.general ?? "";
     const journal = house.journal.replay<string[]>([], (all, event) =>
@@ -35,7 +38,7 @@ it.each(cases)("conserva %s en escena, diario y stdout, con JSON y sin JSON", as
     expect(scene).toContain(expected);
     expect(scene).toContain("No se admite el pedido [secreto]");
     expect(journal).toContain(scene);
-    expect(house.mindNotices?.().join(" ")).toContain(expected);
+    expect(programMindNotices(prepared).join(" ")).toContain(expected);
     expect(output).toHaveBeenCalledOnce();
     expect(output.mock.calls[0]?.[0]).toContain(expected);
     expect(JSON.stringify([scene, journal, output.mock.calls]).includes(secret)).toBe(false);
@@ -143,6 +146,10 @@ it("el puente no clona ni lee entero un rechazo para buscar consumo", async () =
   const clone = vi.spyOn(response, "clone");
   f.transport.mockImplementation(() => Promise.resolve(response));
   const house = await f.open();
+  expect(f.transport).not.toHaveBeenCalled();
+  f.wake(house);
+  await (await house.minds)?.flush();
+  expect(f.transport).toHaveBeenCalledOnce();
   expect(clone).not.toHaveBeenCalled();
   expect(bytes).toBe(8192);
   expect(house.tools.state().house.scenes.get("mind:notas")?.data.general).toContain("400 sin_tipo");

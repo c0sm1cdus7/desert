@@ -50,7 +50,7 @@ it("solo administración asigna una carta elegible al asistente en Identidades",
   expect(rig.state().house.mindAssignments.get("assistant:franco")?.capabilities).toEqual(["sees"]);
 });
 
-it("invalidates persisted role certificates when the house boots again", () => {
+it("drops the persisted published cards when the house boots again", () => {
   const rig = shopRig();
   rigs.push(rig);
   rig.bus.emit(

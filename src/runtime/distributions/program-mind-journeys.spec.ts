@@ -107,7 +107,7 @@ it("abre con mente una casa creada sin pensamiento y conserva sus notas", async 
   expect(second.tools.state().tools.notas.count).toBe(1);
   expect(second.tools.state().house.mindAssignments.has("mind:notas")).toBe(true);
   expect(second.tools.state().house.scenes.get("mind:notas")?.data.general).toBe("Banco aprobado");
-  expect(f.transport).toHaveBeenCalledTimes(4);
+  expect(f.transport).toHaveBeenCalledOnce();
 });
 it("la consciencia puede dirigirse a una identidad sin recibir acciones de trabajo", async () => {
   const f = fixture();

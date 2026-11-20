@@ -1,4 +1,4 @@
-// Store administrator assignments and invalidate bank publications on each boot.
+// Store administrator assignments and drop the published card catalog on each boot until it is republished.
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { capabilities, type Capability } from "../../fields/capabilities.ts";

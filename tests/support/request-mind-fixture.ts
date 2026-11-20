@@ -1,4 +1,4 @@
-// Runs a text-field program and an assistant with a synthetic transport and a durable temporary journal.
+// Runs a text-field program and an assistant with hand-assigned cards, a synthetic transport and a durable journal.
 import "./fixture-vault.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -19,28 +19,9 @@ import { sampleOptions } from "./installable-program.ts";
 import { requestProgram, requestKit } from "./request-program.ts";
 export const answer = (acts: MindAnswer["acts"] = [], scene = "Ready"): MindAnswer => ({ scene, acts, consulta: null });
 const requestShape = Type.Object({ messages: Type.Array(Type.Object({ content: Type.String() })) });
-const assistantFingerprint = { cases: "synthetic", skill: "synthetic", frameTexts: "synthetic" };
 function withAssistant(options: MindRuntimeOptions): MindRuntimeOptions {
   return {
     ...options,
-    fingerprint: definition =>
-      definition.actor === "assistant:ana" ? assistantFingerprint : options.fingerprint(definition),
-    catalog: options.catalog.map(card => ({
-      ...card,
-      results: [
-        ...card.results,
-        {
-          role: "assistant",
-          passed: true,
-          cases: 1,
-          scenes: 3,
-          costUsd: 0,
-          seconds: 0,
-          date: "2026-11-18",
-          fingerprint: assistantFingerprint,
-        },
-      ],
-    })),
     definitions: [
       ...options.definitions,
       {
@@ -88,28 +69,37 @@ class RequestMindFixture {
       }),
     );
   });
-  async open() {
-    const options = await this.distribution.modelMinds({
+  private options() {
+    return this.distribution.modelMinds({
       language: "es",
       key: () => Promise.resolve("synthetic"),
       transport: this.transport,
       account: "test",
       capNanoUsd: 1_000_000_000,
+      cards: { "mind:notes": { model: "claude-haiku-5-5", effort: "low" } },
     });
+  }
+  async open(enabled = true) {
+    const options = await this.options();
     const house = startHouse(this.home, {
       ...this.distribution.program,
       by: "distribution",
       creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes"] }] },
       modelMinds: withAssistant(options),
+      ...(!enabled ? { mentes: { asistentes: false, programas: [] } } : {}),
     });
     this.houses.push(house);
-    if (!house.tools.state().house.mindAssignments.has("assistant:ana")) {
+    if (enabled && !house.tools.state().house.mindAssignments.has("assistant:ana")) {
       const card = options.catalog[0];
       if (!card) throw new Error("card");
       assignAssistant(house, card);
     }
     await (await house.minds)?.flush();
     return house;
+  }
+  /** Composes the catalog offline for the notes mind, as a person would before choosing its card. */
+  async bank(house: RequestHouse) {
+    return house.bankMinds(await this.options(), { asistentes: false, programas: ["notes"] });
   }
   prepare(house: RequestHouse) {
     house.bus.emit(

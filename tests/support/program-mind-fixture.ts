@@ -1,4 +1,4 @@
-// Composes two programs with a hand-assigned starting card and a synthetic provider for their minds.
+// Composes two programs with a hand-assigned starting card and a synthetic provider; runs the bank offline.
 import "./fixture-vault.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -71,6 +71,7 @@ function syntheticModel() {
     },
   };
 }
+type FixtureHouse = RunningHouse<DistributionOf<readonly [ReturnType<typeof notesFor>, typeof other]>>;
 class ProgramMindFixture {
   readonly home = mkdtempSync(join(tmpdir(), "composed-minds-"));
   readonly distribution;
@@ -99,7 +100,7 @@ class ProgramMindFixture {
     enabled = true,
     projectionVersion = this.distribution.program.projectionVersion,
   ) {
-    const modelMinds = await this.distribution.modelMinds({ ...this.resources, ...changes });
+    const modelMinds = await this.options(changes);
     const house = startHouse(this.home, {
       ...this.distribution.program,
       projectionVersion,
@@ -112,7 +113,14 @@ class ProgramMindFixture {
     await (await house.minds)?.flush();
     return house;
   }
-  wake(house: RunningHouse<DistributionOf<readonly [ReturnType<typeof notesFor>, typeof other]>>) {
+  options(changes: Partial<ProgramMindResources> = {}) {
+    return this.distribution.modelMinds({ ...this.resources, ...changes });
+  }
+  /** Composes the catalog offline against an open house, as a person would before choosing cards. */
+  async bank(house: FixtureHouse, changes: Partial<ProgramMindResources> = {}) {
+    return house.bankMinds(await this.options(changes), { asistentes: false, programas: ["notas"] });
+  }
+  wake(house: FixtureHouse) {
     house.bus.emit(effect("attended", { target: "notas/personal" }, "ana"));
     return house.tools.act({ act: "personal/add", target: "notas/personal", input: {} }, 0, "ana");
   }

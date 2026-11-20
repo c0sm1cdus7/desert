@@ -1,4 +1,4 @@
-// A mind's own place offers only cards certified by the bank for its current role.
+// A mind's own place offers the catalog cards published for it; the administrator assigns one by hand.
 import { thing } from "../../fields/fields.ts";
 import { object } from "../../fields/visible-text.ts";
 import { effect } from "../../house/facts.ts";
@@ -31,7 +31,7 @@ export function assignMindCard<X extends Program>(program?: string) {
         : undefined,
     run: ({ card }, { state, target, by }) => {
       const selected = cards(state, target).find(each => choiceId(each) === card);
-      if (!selected) throw new Error("Missing certified card");
+      if (!selected) throw new Error("Missing published card");
       return {
         status: "accepted",
         text: words.assigned,

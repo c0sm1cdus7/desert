@@ -4,11 +4,7 @@ import type { Program } from "../../tools/tool-contract.ts";
 import { eligibleMindCards } from "./mind-assignment.ts";
 import { modelCandidates } from "./mind-model-bridge.ts";
 import type { MindRuntimeHouse, MindRuntimeOptions } from "./mind-runtime-options.ts";
-export function publishMindCards<X extends Program>(
-  house: MindRuntimeHouse<X>,
-  options: MindRuntimeOptions,
-  clear = false,
-) {
+export function publishMindCards<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntimeOptions) {
   if (!house.active()) return;
   for (const definition of options.definitions) {
     const needs = house.execution.registry
@@ -16,7 +12,7 @@ export function publishMindCards<X extends Program>(
         tool => definition.actor === `mind:${tool.id}` || definition.communication.some(item => item.tool === tool.id),
       )
       .flatMap(tool => Object.values(tool.acts).flatMap(act => act.needs ?? []));
-    const cards = clear ? [] : eligibleMindCards(modelCandidates(options.catalog), options.providers, needs);
+    const cards = eligibleMindCards(modelCandidates(options.catalog), options.providers, needs);
     house.execution.bus.emit(
       effect(
         "mind-cards-published",

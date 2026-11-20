@@ -38,6 +38,6 @@ export const autonomousFacts: Readonly<Record<string, string>> = {
   "model-call-uncertain": "bank", // Retains the reservation when the result is unknown.
   "model-call-cancelled": "bank", // Releases an unused reservation.
   "mind-bank-tested": "bank", // Records role cases in three scenes with their fingerprints.
-  "mind-cards-published": "bank", // Publishes only current role certificates for card selection.
+  "mind-cards-published": "bank", // Publishes every hand-assignable catalog card for selection when minds open.
   "rule-evaluated": "journal", // Records the mechanical guard before executing the admitted action.
 };
