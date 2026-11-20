@@ -9,6 +9,7 @@ import { delegatedKit, type DelegatedKit } from "../../house/assistants/assistan
 import { identityAllowedAct } from "../../house/identities/identity-permissions.ts";
 import type { House } from "../../house/members.ts";
 import { effect, type HouseEmission } from "../../house/facts.ts";
+import { deepFreeze } from "../../journal/vocabulary.ts";
 import { assistantText, type AssistantTextKey } from "../../texts/assistant.texts.ts";
 import { identityTexts } from "../../texts/identities.texts.ts";
 import { programAct } from "../promises.ts";
@@ -119,7 +120,9 @@ function disableAssistant<X extends Program>(cases: Cases<X>["disable"]) {
   });
 }
 function delegateAssistant<X extends Program>(cases: Cases<X>["delegate"], registry: ToolRegistry<X>) {
+  // Frozen so the surface validates this large schema once: it grows with every act of every program.
   const delegateInput = object({ kit: kitInput(registry) });
+  deepFreeze(delegateInput);
   return programAct<X, typeof delegateInput>({
     ...common,
     name: w("delegate"),
@@ -163,6 +166,7 @@ function adoptAssistant<X extends Program>(cases: Cases<X>["adopt"], registry: T
     name: nameInput,
     kit: Type.Optional(kitInput(registry)),
   });
+  deepFreeze(adoptInput);
   return programAct<X, typeof adoptInput>({
     ...common,
     undoable: false,
