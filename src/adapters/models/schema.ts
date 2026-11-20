@@ -1,5 +1,6 @@
 // Translates provider schemas while checking answers against the complete local contract.
 import { checkSchemaKeywords, localKeywords } from "./schema-keywords.ts";
+import { compactProviderSchema } from "./schema-compaction.ts";
 import { isDeepStrictEqual } from "node:util";
 import { Kind, TypeGuard } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -67,7 +68,7 @@ export function providerSchema(schema: Schema): Schema {
     if (node.type === "object") result.additionalProperties = false;
     return result;
   };
-  const result = visit(schema, new Set());
+  const result = compactProviderSchema(visit(schema, new Set()));
   if (!isObject(result)) throw new Error("schema");
   return result;
 }
