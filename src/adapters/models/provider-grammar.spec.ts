@@ -2,6 +2,8 @@ import { Type } from "@sinclair/typebox";
 import { expect, it } from "vitest";
 import { answerSchema, type MindMenu } from "../../tools/minds/mind-answer.ts";
 import { matchesSchema, providerSchema } from "./schema.ts";
+import { callAnthropic } from "./anthropic.ts";
+import { cards } from "./catalog.ts";
 import { enumLimit } from "./schema-compaction.ts";
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -92,4 +94,42 @@ it("merges branches exactly while the lists are short, and the local contract ke
   const unknownReply = answer("threads/say", "communicator/threads/7", { text: "Hola", replyTo: "message-999" });
   expect(matchesSchema(providerSchema(answerSchema(huge)), unknownReply)).toBe(true);
   expect(matchesSchema(answerSchema(huge), unknownReply)).toBe(false);
+});
+it("resends a grammar the provider refuses without constraint, remembers it and reads fenced JSON", async () => {
+  const card = cards[0];
+  if (!card) throw new Error("card");
+  const schema = {
+    type: "object",
+    properties: { scene: { type: "string" } },
+    required: ["scene"],
+    description: "grammar",
+  };
+  const request = { card, maxOutputTokens: 10, layers: ["a", "b", "c", "d"] as const, changing: "x", schema };
+  const sent: Record<string, unknown>[] = [];
+  const refusal = {
+    type: "error",
+    error: { type: "invalid_request_error", message: "The compiled grammar is too large" },
+  };
+  const answer = {
+    stop_reason: "end_turn",
+    content: [{ type: "text", text: '```json\n{"scene":"ok"}\n```' }],
+    usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+  };
+  const transport: typeof fetch = (_url, init) => {
+    const body: unknown = JSON.parse(typeof init?.body === "string" ? init.body : "");
+    if (!isObject(body)) throw new Error("body");
+    sent.push(body);
+    const constrained = isObject(body.output_config) && "format" in body.output_config;
+    return Promise.resolve(
+      new Response(JSON.stringify(constrained ? refusal : answer), { status: constrained ? 400 : 200 }),
+    );
+  };
+  expect((await callAnthropic(request, "k", transport)).value).toEqual({ scene: "ok" });
+  expect((await callAnthropic(request, "k", transport)).value).toEqual({ scene: "ok" });
+  expect(sent.map(body => isObject(body.output_config) && "format" in body.output_config)).toEqual([
+    true,
+    false,
+    false,
+  ]);
+  expect(JSON.stringify(sent[1])).toContain("Respondé solo con un objeto JSON");
 });

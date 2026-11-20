@@ -1,4 +1,5 @@
 // Arma pedidos de Anthropic, lee respuestas validadas y presta el transporte HTTP.
+import { createHash } from "node:crypto";
 import { modelTexts } from "../../texts/model.texts.ts";
 import type { Card, Usage } from "./catalog.ts";
 import { providerSchema, matchesSchema } from "./schema.ts";
@@ -26,7 +27,14 @@ export class ModelFailure extends Error {
 const required = (value: unknown, name: string) => {
   if (value === undefined || value === null) throw new ModelFailure("response", `${modelTexts.missing}: ${name}`);
 };
-export function requestBody(request: Request) {
+/** The provider refuses some valid schemas for the size of their compiled grammar; those go unconstrained. */
+const grammarRefused = /compiled grammar is too large|schema is too complex/iu;
+const unconstrained = new Set<string>();
+const schemaKey = (schema: Record<string, unknown>) =>
+  createHash("sha256")
+    .update(JSON.stringify(providerSchema(schema)))
+    .digest("hex");
+export function requestBody(request: Request, constrained = !unconstrained.has(schemaKey(request.schema))) {
   required(request, "request");
   required(request.card, "card");
   required(request.maxOutputTokens, "maxOutputTokens");
@@ -43,16 +51,24 @@ export function requestBody(request: Request) {
   return {
     model: request.card.model,
     max_tokens: request.maxOutputTokens,
-    output_config: {
-      effort: request.card.effort,
-      format: { type: "json_schema", schema: providerSchema(request.schema) },
-    },
+    output_config: constrained
+      ? { effort: request.card.effort, format: { type: "json_schema", schema: providerSchema(request.schema) } }
+      : { effort: request.card.effort },
     system: request.layers.map((text, index) =>
       index === 3 ? { type: "text", text, cache_control: { type: "ephemeral" } } : { type: "text", text },
     ),
-    messages: [{ role: "user", content: request.changing }],
+    messages: [
+      {
+        role: "user",
+        content: constrained
+          ? request.changing
+          : `${request.changing}\n\n${modelTexts.jsonOnly}\n${JSON.stringify(providerSchema(request.schema))}`,
+      },
+    ],
   };
 }
+/** Unconstrained answers may come fenced; the local contract still checks the whole value. */
+const unfenced = (text: string) => /^\s*```(?:json)?\s*\n([\s\S]*?)\n```\s*$/u.exec(text)?.[1] ?? text;
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 const isList = (value: unknown): value is unknown[] => Array.isArray(value);
 const tokenCount = (value: unknown): number => {
@@ -74,7 +90,7 @@ export function readResponse(data: unknown, schema: Record<string, unknown>): { 
   if (typeof text !== "string") throw new ModelFailure("response", modelTexts.response);
   let value: unknown;
   try {
-    value = JSON.parse(text);
+    value = JSON.parse(unfenced(text));
   } catch {
     throw new ModelFailure("json", modelTexts.json);
   }
@@ -104,7 +120,24 @@ export async function callAnthropic(
   scrub: (text: string) => string = text => text,
 ) {
   if (!key) throw new ModelFailure("transport", modelTexts.key);
-  const body = JSON.stringify(requestBody(request));
+  const constrained = !unconstrained.has(schemaKey(request.schema));
+  try {
+    return await sendAnthropic(request, key, transport, scrub, constrained);
+  } catch (error) {
+    const rejection = error instanceof ModelFailure ? error.rejection : undefined;
+    if (!constrained || rejection?.status !== 400 || !grammarRefused.test(rejection.message)) throw error;
+    unconstrained.add(schemaKey(request.schema));
+    return sendAnthropic(request, key, transport, scrub, false);
+  }
+}
+async function sendAnthropic(
+  request: Request,
+  key: string,
+  transport: typeof fetch,
+  scrub: (text: string) => string,
+  constrained: boolean,
+) {
+  const body = JSON.stringify(requestBody(request, constrained));
   let response: Response;
   try {
     response = await transport("https://api.anthropic.com/v1/messages", {

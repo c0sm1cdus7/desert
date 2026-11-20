@@ -126,7 +126,7 @@ describe("esquemas anidados", () => {
       expect.objectContaining({ kind: "schema" }),
     );
     const sent = requestBody({ ...request, schema: recursive });
-    expect(sent.output_config.format.schema).toMatchObject({
+    expect(sent.output_config.format?.schema).toMatchObject({
       type: "object",
       properties: { minimum: { type: "string" }, children: { type: "array", items: {} } },
       additionalProperties: false,

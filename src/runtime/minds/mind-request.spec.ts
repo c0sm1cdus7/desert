@@ -29,7 +29,7 @@ it("diagnostica el pedido exacto con la carta, capas y menú de una mente, sin l
     expect(body.system[1]?.text).toContain("Sos la mente de Notas");
     expect(body.system[2]?.text).toContain("Anotá con las acciones");
     expect(body.system).toHaveLength(4);
-    expect(JSON.stringify(body.output_config.format.schema)).toContain("consulta");
+    expect(JSON.stringify(body.output_config.format?.schema)).toContain("consulta");
     let compared = false;
     const synthetic = f.transport.getMockImplementation();
     if (!synthetic) throw new Error("transport");

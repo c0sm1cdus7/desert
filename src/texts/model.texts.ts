@@ -12,4 +12,5 @@ export const modelTexts = {
   schema: "La respuesta no cumple el esquema completo",
   refusal: "El modelo rechazó el pedido",
   maxTokens: "El modelo alcanzó el máximo de tokens",
+  jsonOnly: "Respondé solo con un objeto JSON, sin texto alrededor, que cumpla este esquema:",
 };
