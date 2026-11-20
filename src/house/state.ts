@@ -60,12 +60,17 @@ export const startState = <X extends Program>(
     ...emptyHouse,
     identities,
     kitLayout: kitLayout(registry),
-    talk: registry.filter(tool => tool.talks).map(tool => tool.id),
+    ...talkOf(registry),
     ...(kitMigration ? { kitMigration } : {}),
   },
   by,
   tools: slices.initial,
 });
+/** Only a registry with talk programs adds the field, so houses folded before 20/11 keep their exact shape. */
+function talkOf<X extends Program>(registry: ToolRegistry<X>): { talk?: readonly string[] } {
+  const talk = registry.filter(tool => tool.talks).map(tool => tool.id);
+  return talk.length ? { talk } : {};
+}
 function houseStateStep<S extends HouseState>(state: S, event: Event): S {
   const process = processOf(event);
   const attendance = new Map(state.attendance);

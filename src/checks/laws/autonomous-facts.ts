@@ -25,7 +25,8 @@ export const autonomousFacts: Readonly<Record<string, string>> = {
   "mind-review-recorded": "minds", // Records review before continuing a journey or external action.
   "mind-turn-closed": "minds", // Closes a completed, failed or interrupted turn.
   "mind-scene": "minds", // Publishes the mind's scene at the end of its turn.
-  "mind-message": "minds", // Retains communication emitted by the mind during its turn.
+  "mind-message": "minds", // Before 20/11 a mind's native message; old journals replay it, nothing writes it now.
+  "mind-requested": "minds", // Before 20/11 a person's native request; old journals replay it, nothing writes it now.
   "journey-opened": "minds", // Records a journey accepted after review.
   "journey-plan-written": "minds", // Retains the plan of the mind's own journey.
   "journey-step-done": "minds", // Records progress on the mind's own journey.
