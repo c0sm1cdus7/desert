@@ -1,13 +1,14 @@
-// Routes native requests and causal replies to the correct mind or journey.
+// Wakes a mind for its own journeys, its rules and the program messages addressed to it.
 import { ruleWake } from "./rule-wake.ts";
-import { parseMindActor } from "../../fields/mind-actor.ts";
+import { isMindActor, parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
+import type { ProgramMessage } from "../../tools/installable/program.ts";
 import type { Event } from "../../journal/vocabulary.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
 export type WakePolicy = Readonly<{
   scope: MindScope;
   name: string;
-  message: (event: Event) => Readonly<{ text: string; to?: string }> | undefined;
+  message: (event: Event) => ProgramMessage | undefined;
   toolOf: (target: string) => string | undefined;
 }>;
 const normalized = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -23,34 +24,6 @@ function mentions(text: string, name: string): boolean {
     at = source.indexOf(wanted, at + 1);
   }
   return false;
-}
-/** Replies resume the requesting process; fresh messages need a native action or turn origin. */
-function directed(policy: WakePolicy, event: Event, history: readonly Event[]): boolean {
-  if (
-    event.layer !== "house" ||
-    (event.kind !== "mind-message" && event.kind !== "mind-requested") ||
-    event.data.to !== policy.scope.actor
-  )
-    return false;
-  const ancestors = new Set(event.cause);
-  let native = event.kind === "mind-message" && event.cause.length === 0;
-  for (const previous of [...history].reverse()) {
-    if (previous.seq >= event.seq || !ancestors.has(previous.id)) continue;
-    if (previous.layer === "house") {
-      if (previous.kind === "mind-message" && previous.by === policy.scope.actor && previous.data.to === event.by)
-        return previous.process === policy.scope.process;
-      if (
-        previous.by === event.by &&
-        ((event.kind === "mind-message" &&
-          previous.kind === "mind-turn-opened" &&
-          previous.data.turn === event.data.turn) ||
-          (previous.kind === "act" && previous.data.option === "message" && previous.data.object === event.data.to))
-      )
-        native = true;
-    }
-    previous.cause.forEach(id => ancestors.add(id));
-  }
-  return native && policy.scope.kind === "consciousness";
 }
 function lifecycle(policy: WakePolicy, event: Event, history: readonly Event[], now: number): boolean {
   if (event.layer !== "house" || event.by !== policy.scope.actor) return false;
@@ -75,11 +48,13 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   requireMind(mind, "policy.actor");
   if (lifecycle(policy, event, history, now) || ruleWake(policy.scope, event, history)) return true;
   if (event.by === policy.scope.actor) return false;
-  if (event.layer === "house" && (event.kind === "mind-message" || event.kind === "mind-requested"))
-    return directed(policy, event, history);
-  if (mind.kind === "tool" && policy.scope.kind === "consciousness")
-    return event.layer === "house" && event.kind === "act" && policy.toolOf(event.data.object) === mind.tool;
   if (policy.scope.kind !== "consciousness") return false;
-  const message = policy.message(event);
-  return !!message && (message.to === policy.scope.actor || mentions(message.text, policy.name));
+  if (mind.kind === "tool" && event.layer === "house" && event.kind === "act" && policy.toolOf(event.data.object) === mind.tool)
+    return true;
+  return addressed(policy, policy.message(event));
+}
+/** A mind wakes another mind only by naming it, so two minds in one thread never answer each other forever. */
+function addressed(policy: WakePolicy, message: ProgramMessage | undefined): boolean {
+  if (!message?.to.includes(policy.scope.actor)) return false;
+  return !isMindActor(message.by) || mentions(message.text, policy.name) || mentions(message.text, policy.scope.actor);
 }

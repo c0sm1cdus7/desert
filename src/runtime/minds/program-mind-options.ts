@@ -32,10 +32,13 @@ export function programMindOptions(
       if (!fingerprint) throw new Error("runtime.definition");
       return fingerprint;
     },
-    message: event =>
-      event.layer === "house" && (event.kind === "mind-message" || event.kind === "mind-requested")
-        ? event.data
-        : undefined,
+    message: event => {
+      for (const item of installed) {
+        const message = item.mensajes?.leer(event);
+        if (message) return message;
+      }
+      return undefined;
+    },
     textRules: [],
     rulesVersion: () => version,
     programBank: { program, cases: new Map(installed.map(item => [item.id, item.mindCases ?? []])) },

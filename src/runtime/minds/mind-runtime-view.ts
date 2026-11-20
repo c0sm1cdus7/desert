@@ -39,7 +39,7 @@ export function runtimeView<X extends Program>(
       { ...control, menu: parts.available, communication: definition.communication },
       options.language,
     ),
-    ...(active ? programCommunication(scope, definition, options, state) : []),
+    ...(active ? programCommunication(scope, definition, state) : []),
   ];
   const activity = visibleActivity(house, options, scope, state, kit);
   return { control, menu, ...parts, activity, state };
@@ -75,7 +75,7 @@ function visibleActivity<X extends Program>(
   const registry = house.execution.registry;
   return house.history().flatMap(event => {
     const message = options.message(event);
-    if (message && (!message.to || message.to === scope.actor)) return [{ id: event.id, text: message.text }];
+    if (message?.to.includes(scope.actor)) return [{ id: event.id, text: message.text }];
     if (event.layer !== "house" || event.kind !== "tool-entry") return [];
     const tool = targetTool(registry, state, event.data.target)?.id ?? event.data.tool;
     return scope.actor === `mind:${tool}` || kit.some(item => item.tool === tool)

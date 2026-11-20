@@ -5,6 +5,7 @@ import type { Language } from "../../fields/languages.ts";
 import type { MindActor } from "../../fields/mind-actor.ts";
 import type { HouseOptions } from "../../house/state.ts";
 import type { Event } from "../../journal/vocabulary.ts";
+import type { ProgramMessage } from "../../tools/installable/program.ts";
 import type { TimeSource } from "../../journal/clock.ts";
 import type { Execution } from "../../tools/execution-contract.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -44,7 +45,8 @@ export type MindRuntimeOptions = Readonly<{
   account: string;
   capNanoUsd: number;
   maxInputTokens: number;
-  message: (event: Event) => Readonly<{ text: string; to?: string }> | undefined;
+  /** Reads a program fact as a message; minds talk only through programs (signed 20/11). */
+  message: (event: Event) => ProgramMessage | undefined;
   textRules: FrameSource["textRules"];
   rulesVersion: () => string;
   supervision?: SupervisionPorts;

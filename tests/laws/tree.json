@@ -6,7 +6,6 @@
     "runtime/redemption-destination.ts": "Reserves private credential storage before redemption and preserves recovery on publication conflicts.",
     "runtime/invitation-proof.ts": "Charges each public invitation guess code-bound work without a shared legitimate lockout.",
     "adapters/models/schema-keywords.ts": "Rejects unknown schema keywords and distinguishes local field metadata from JSON validation.",
-    "tools/minds/message-act.ts": "Offers identities a native directed message through the same action engine as every house act.",
     "fields/schema-shape.ts": "Valida esquemas y recuerda sólo los que no pueden cambiar en ninguna de sus ramas.",
     "adapters/adapter-ports.ts": "Presta métodos por operación; valida datos públicos y revoca el resolvedor al terminar.",
     "adapters/compose-adapters.ts": "Fija permisos y vistas iniciales sin lecturas hasta el uso; transmite avisos y cierra préstamos con cambios.",

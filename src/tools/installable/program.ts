@@ -35,8 +35,14 @@ export type ProgramGroup<X extends import("../tool-contract.ts").Program> = Omit
   Readonly<{ palabras: ProgramWords }>;
 import type { ProgramMindCase } from "../minds/program-mind-cases.ts";
 export type { ProgramMindCase, ProgramMindScene } from "../minds/program-mind-cases.ts";
+/** How a program's fact reads as a message to minds: who it is for and the line they see. */
+export type ProgramMessage = Readonly<{ text: string; to: readonly string[]; by: string }>;
+export type MessageReader = (event: Event) => ProgramMessage | undefined;
+/** A program minds talk through: how its facts read as messages and the acts a consciousness may say them with. */
+export type ProgramTalk = Readonly<{ leer: MessageReader; actos: readonly [string, ...string[]] }>;
 export type ProgramBody<M extends ProgramMetadata> = Readonly<{
   mindCases?: readonly ProgramMindCase[];
+  mensajes?: ProgramTalk;
   purpose: string;
   skill: Skill;
   palabras: ProgramWords;
@@ -53,6 +59,7 @@ export type InstallableProgram = ProgramMetadata &
   Readonly<{
     effects?: unknown;
     mindCases?: readonly ProgramMindCase[];
+    mensajes?: ProgramTalk;
     herramientas: Readonly<Record<string, Readonly<{ acts: Readonly<Record<string, unknown>>; effects?: unknown }>>>;
     install: () => InstalledProgram;
   }>;

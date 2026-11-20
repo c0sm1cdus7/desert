@@ -15,9 +15,8 @@ export type MindTurn = Readonly<{
 export type MindState = Readonly<{
   turns: ReadonlyMap<string, MindTurn>;
   scenes: ReadonlyMap<string, HouseEvent<"mind-scene">>;
-  messages: readonly HouseEvent<"mind-message">[];
 }>;
-export const emptyMindState: MindState = { turns: new Map(), scenes: new Map(), messages: [] };
+export const emptyMindState: MindState = { turns: new Map(), scenes: new Map() };
 function isMindEvent(event: HouseEvent): event is HouseEvent<keyof typeof mindFacts> {
   return Object.hasOwn(mindFacts, event.kind);
 }
@@ -43,7 +42,8 @@ export function mindStep(state: MindState, event: HouseEvent): MindState {
   );
   if (event.kind === "mind-scene")
     return { ...state, scenes: new Map(state.scenes).set(event.process ?? event.by, event) };
-  if (event.kind === "mind-message") return { ...state, messages: [...state.messages, event] };
+  // Messages from before 20/11 stay in the journal; minds now talk only through programs.
+  if (event.kind === "mind-message") return state;
   return { ...state, turns: new Map(state.turns).set(event.data.turn, advanceTurn(previous, event)) };
 }
 function advanceTurn(

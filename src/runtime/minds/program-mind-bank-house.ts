@@ -130,9 +130,8 @@ export class ProgramMindBankHouse {
     );
   }
   async wake(scene: ProgramMindScene) {
-    const wake =
-      "kind" in scene.when ? { act: "message", target: scene.when.to, input: { text: scene.when.text } } : scene.when;
-    if (!("kind" in scene.when)) this.bus.emit(effect("attended", { target: wake.target }, "bank"));
+    const wake = scene.when;
+    this.bus.emit(effect("attended", { target: wake.target }, "bank"));
     const result = this.tools.act(wake, this.state.through, "bank");
     const done = result.status === "processing" ? await result.completion : result;
     if (done.status !== "accepted") throw new Error(`bank.wake:${done.reason}`);

@@ -7,6 +7,13 @@ export function programMindDefinitions(
   installed: readonly (InstalledProgram & { definition: InstallableProgram })[],
   enabled: readonly string[],
 ): readonly MindDefinition[] {
+  // Minds say things only through the programs that carry messages, such as a communicator (signed 20/11).
+  const talk = installed.flatMap(item =>
+    (item.definition.mensajes?.actos ?? []).map(act => {
+      if (!Object.hasOwn(item.tool.acts, act)) throw new Error(`mensajes.actos: ${item.definition.id} ${act}`);
+      return { tool: item.definition.id, act };
+    }),
+  );
   return Object.freeze(
     installed
       .filter(item => enabled.includes(item.definition.id))
@@ -22,10 +29,7 @@ export function programMindDefinitions(
                 words: JSON.stringify({ program: item.words, tools: item.groups.map(group => group.palabras) }),
               }),
           },
-          communication: [
-            { tool: "mind", act: "message" },
-            { tool: "mind", act: "scene" },
-          ],
+          communication: [{ tool: "mind", act: "scene" }, ...talk],
         }),
       ),
   );
