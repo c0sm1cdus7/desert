@@ -14,6 +14,7 @@ import { readonlyPorts } from "../../tools/boundaries/readonly-ports.ts";
 import { watchRunning } from "../../tools/execution/running-acts.ts";
 import { turnNotice } from "../../texts/mind-turn.texts.ts";
 import { runMindTurn } from "./mind-turn.ts";
+import { followUpJourney } from "./journey-follow-up.ts";
 import { startMindSchedule, recoverMindSchedule, type MindSchedulePorts } from "./mind-schedule.ts";
 import { runtimeView } from "./mind-runtime-view.ts";
 import { runtimeFrame } from "./mind-runtime-frame.ts";
@@ -150,6 +151,7 @@ class HouseMindRuntime<X extends Program> {
   };
   private async run(ports: TurnPorts, wake: TurnWake) {
     const outcome = await runMindTurn(ports, wake);
+    followUpJourney(this.house, wake, outcome);
     this.options.observeTurn?.(outcome);
     return outcome;
   }

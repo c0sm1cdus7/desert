@@ -26,7 +26,7 @@ export function runtimeFrame<X extends Program>(
     const definition = options.definitions.find(each => each.actor === scope.actor);
     requireMind(definition, "runtime.definition");
     const view = runtimeView(house, options, switches, scope, definition);
-    const snapshot = snapshotFor(view, scope, turn, options, thread(scope).entries);
+    const snapshot = snapshotFor(view, scope, turn, options, thread(scope).entries, house.time.now());
     return { view, fitted: fitFrame(snapshot, turn, view.menu, model, options.maxInputTokens) };
   };
   return {
@@ -71,6 +71,7 @@ function snapshotFor<X extends Program>(
   turn: TurnContext,
   options: MindRuntimeOptions,
   thread: FrameSnapshot["thread"],
+  now: number,
 ) {
   const definition = options.definitions.find(each => each.actor === scope.actor);
   requireMind(definition, "runtime.definition");
@@ -92,6 +93,7 @@ function snapshotFor<X extends Program>(
     activity: view.activity,
     objects: view.objects,
     thread,
+    now,
   });
 }
 function fitFrame<X extends Program>(

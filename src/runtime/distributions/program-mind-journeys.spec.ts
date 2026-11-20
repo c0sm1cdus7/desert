@@ -151,3 +151,38 @@ it("a journey kit outside the mind's kit comes back as a correction with that ki
   expect(frames[1]).toContain("notas: personal/add");
   expect(house.tools.state().house.journeys.size).toBe(1);
 });
+it("a journey turn that acted without waiting, ending or desisting gets a short wait to come back", async () => {
+  const f = fixture();
+  const house = await f.open();
+  house.bus.emit(
+    effect(
+      "kit-set",
+      { version: 2, holder: "mind:notas", kit: selectionKit([{ kind: "tool", program: "notas", tool: "personal" }]) },
+      "ana",
+    ),
+  );
+  let calls = 0;
+  f.respond(() => {
+    calls++;
+    const kit = [{ tool: "notas", acts: ["personal/add"] }];
+    if (calls === 1)
+      return {
+        scene: "Abro",
+        consulta: null,
+        acts: [{ act: "open", target: "mind:notas", input: { goal: "Anotar", kit } }],
+      };
+    return {
+      scene: "Anoté y sigo",
+      consulta: null,
+      acts: [{ act: "personal/add", target: "notas/personal", input: {} }],
+    };
+  });
+  const before = Date.now();
+  f.wake(house);
+  await (await house.minds)?.flush();
+  expect(calls).toBe(2);
+  const journey = [...house.tools.state().house.journeys.values()][0];
+  expect(journey?.closed).toBeUndefined();
+  expect(journey?.waiting?.what).toBe("Anoté y sigo");
+  expect(journey?.waiting?.until).toBeGreaterThanOrEqual(before + 90_000);
+});

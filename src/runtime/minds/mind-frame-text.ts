@@ -2,15 +2,15 @@
 import type { Language } from "../../fields/languages.ts";
 import { frameHouse, frameLabels, frameSection } from "../../texts/mind-frame.texts.ts";
 import type { FrameItem, FrameSnapshot, MindFrame } from "./mind-frame.ts";
+const present = (value: unknown) => {
+  if (value == null) throw new Error("Falta el argumento · snapshot");
+};
 export function renderMindFrame(
   snapshot: FrameSnapshot,
   language: Language,
   omitted: readonly string[] = [],
 ): MindFrame {
-  const required = (value: unknown) => {
-    if (value == null) throw new Error("Falta el argumento · snapshot");
-  };
-  required(snapshot);
+  present(snapshot);
   const labels = frameLabels.text(language, {}).split("|");
   const section = makeSection(labels, language);
   const render = (items: readonly FrameItem[]) => items.map(item => `${item.id}: ${item.text}`).join("\n");
@@ -38,6 +38,7 @@ export function renderMindFrame(
     section(6, render(snapshot.thread)),
     section(7, snapshot.wake.join(", ")),
     section(8, snapshot.required),
+    ...(snapshot.now === undefined ? [] : [section(11, `${snapshot.now} · ${new Date(snapshot.now).toISOString()}`)]),
     ...(omitted.length ? [section(9, omitted.join(", "))] : []),
   ].join("\n\n");
   return { layers, changing };

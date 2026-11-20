@@ -34,5 +34,7 @@ export const frameLabels = defineMessage({
   id: "mind.frame.labels",
   kind: "house",
   parameters: object({}),
-  texts: { es: "Mente|Herramientas|Reglas de texto|Escena|Actividad|Objetos|Hilo|Despertar|Contexto|Omitido|Alcance" },
+  texts: {
+    es: "Mente|Herramientas|Reglas de texto|Escena|Actividad|Objetos|Hilo|Despertar|Contexto|Omitido|Alcance|Ahora",
+  },
 });

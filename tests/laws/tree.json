@@ -245,6 +245,7 @@
     "runtime/house-projections.ts": "Runtime and upgrade checks restore the same complete house and clock before any effect or boot.",
     "runtime/house-resources.ts": "Abre diario, plegados y custodia, valida identidades, presta adaptadores autorizados y cierra los recursos.",
     "runtime/house-runtime.ts": "One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.",
+    "runtime/minds/journey-follow-up.ts": "Keeps an open journey alive: a turn that acted without waiting, ending or desisting gets a short wait.",
     "runtime/minds/mind-act-review.ts": "Liga cada revisión a su propuesta, alcance y reglas antes de permitir actos del turno.",
     "runtime/minds/mind-assignment.ts": "Filters hand-assignable cards by provider, capabilities and a valid reference price.",
     "runtime/minds/mind-billing.ts": "Selects explicit host billing or the existing house journal, including any opening balance.",

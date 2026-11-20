@@ -42,7 +42,10 @@ it("diagnostica el pedido exacto con la carta, capas y menú de una mente, sin l
         through: opened.seq - 1,
         wake: opened.data.wake,
       });
-      expect(JSON.stringify(diagnostic)).toBe(init.body);
+      // The frame shows the house clock; both reads run within the same moment but not the same millisecond.
+      const clock = (text: string) => text.replace(/\d{13} · \d{4}-\d{2}-\d{2}T[\d:.]+Z/gu, "<ahora>");
+      expect(clock(JSON.stringify(diagnostic))).toBe(clock(init.body));
+      expect(init.body).toMatch(/\d{13} · \d{4}-\d{2}-\d{2}T/u);
       compared = true;
       return synthetic(url, init);
     });
