@@ -22,11 +22,19 @@ const openingSchema = object({
   capNanoUsd: wholeNumber,
   spentNanoUsd: wholeNumber,
 });
-const words = vocabulary({ "model-account-opened": openingSchema });
+const capSchema = object({ capNanoUsd: wholeNumber });
+const words = vocabulary({ "model-account-opened": openingSchema, "model-account-cap-set": capSchema });
 type Opening = Readonly<{ account: string; capNanoUsd: number; spentNanoUsd: number }>;
 type State = Readonly<{ opening?: Opening; calls: ModelCalls }>;
 const initial: State = { calls: new Map() };
 function step(state: State, event: Event): State {
+  if (event.layer === "program" && event.kind === "model-account-cap-set") {
+    requireMind(state.opening && Value.Check(capSchema, event.data), "billing.cap");
+    const next = { ...state, opening: { ...state.opening, capNanoUsd: event.data.capNanoUsd } };
+    const current = balance(next);
+    requireMind(current.spentNanoUsd + current.reservedNanoUsd <= event.data.capNanoUsd, "billing.cap");
+    return next;
+  }
   if (event.layer === "program") {
     requireMind(event.kind === "model-account-opened" && !state.opening, "billing.opening");
     requireMind(Value.Check(openingSchema, event.data), "billing.opening");
@@ -87,14 +95,18 @@ export function openModelSpendingAccount(home: string, config: SpendingAccount, 
 function restoreAccount(journal: SqliteJournal, opening: Opening) {
   // Replay independently, then verify saved folds against those facts before using their balance.
   const saved = journal.replay(initial, step);
-  if (saved.opening)
+  if (saved.opening) {
     requireMind(
-      saved.opening.account === opening.account &&
-        saved.opening.capNanoUsd === opening.capNanoUsd &&
-        saved.opening.spentNanoUsd === opening.spentNanoUsd,
+      saved.opening.account === opening.account && saved.opening.spentNanoUsd === opening.spentNanoUsd,
       "billing.opening-mismatch",
     );
-  else journal.append(words.fact("model-account-opened", opening, "host"), Date.now());
+    // A signed new cap is recorded once; it never fits below what was already spent or reserved.
+    if (saved.opening.capNanoUsd !== opening.capNanoUsd) {
+      const current = balance(saved);
+      requireMind(current.spentNanoUsd + current.reservedNanoUsd <= opening.capNanoUsd, "billing.cap");
+      journal.append(words.fact("model-account-cap-set", { capNanoUsd: opening.capNanoUsd }, "host"), Date.now());
+    }
+  } else journal.append(words.fact("model-account-opened", opening, "host"), Date.now());
   const state = journal.watch("model-spending", initial, step);
   journal.restore("", true);
   return state;

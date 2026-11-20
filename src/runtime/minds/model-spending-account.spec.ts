@@ -29,11 +29,16 @@ afterEach(() => {
   accounts.splice(0).forEach(account => account.close());
   folders.splice(0).forEach(folder => rmSync(folder, { recursive: true, force: true }));
 });
-function reserve(account: ReturnType<typeof openModelSpendingAccount>, call: string, maximumNanoUsd: number) {
+function reserve(
+  account: ReturnType<typeof openModelSpendingAccount>,
+  call: string,
+  maximumNanoUsd: number,
+  limit = cap,
+) {
   const { billing } = account;
   return reserveModelCall(
     budgetTransaction(billing.bus, billing.calls, name => billingAccount(billing, name)),
-    cap,
+    limit,
     { call, turn: call, number: 1, account: "host", maximumNanoUsd, by: "mind:notes" },
   );
 }
@@ -85,9 +90,20 @@ it("refuses a second writer and rejects changes to the durable opening", () => {
   expect(() => f.open()).toThrow();
   first.close();
   expect(() => f.open("another")).toThrow("billing.opening-mismatch");
-  expect(() => f.open("host", cap + 1)).toThrow("billing.opening-mismatch");
   expect(() => f.open("host", cap, 0)).toThrow("billing.opening-mismatch");
   expect(billingAccount(f.open().billing, "host").spentNanoUsd).toBe(prior);
+});
+it("records a signed new cap once and refuses one below what was spent or reserved", async () => {
+  const f = fixture();
+  const first = f.open();
+  expect(await reserve(first, "pending", 1e9)).toBe(true);
+  first.close();
+  expect(() => f.open("host", prior + 1e9 - 1)).toThrow("billing.cap");
+  const raised = f.open("host", cap * 5);
+  expect(await reserve(raised, "more", cap, cap * 5)).toBe(true);
+  raised.close();
+  const again = f.open("host", cap * 5);
+  expect(billingAccount(again.billing, "host")).toEqual({ spentNanoUsd: prior, reservedNanoUsd: 1e9 + cap });
 });
 it("rejects relative paths and paths inside the house including symbolic aliases", () => {
   const f = fixture();

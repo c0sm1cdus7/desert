@@ -32,6 +32,7 @@ export const autonomousFacts: Readonly<Record<string, string>> = {
   "journey-waiting": "minds", // Retains a requested continuation without executing it twice.
   "journey-closed": "minds", // Closes the mind's own journey after final review.
   "model-account-opened": "bank", // Bootstrap records the host spending account opening once, outside any house.
+  "model-account-cap-set": "bank", // Bootstrap records a signed new cap once, never below what was spent or reserved.
   "model-call-reserved": "bank", // Reserves the maximum cost before a provider call.
   "model-call-started": "bank", // Records the start of an already reserved call.
   "model-call-settled": "bank", // Reconciles observed consumption of the started call.
