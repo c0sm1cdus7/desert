@@ -77,9 +77,9 @@ export const journeyNotice = defineMessage({
   }),
   texts: {
     es: ({ act, target, device, started, status, reference }) => {
-      const work = `el trabajo ${act} → ${target} que arrancó este journey (arranque: ${started || "sin resultado"})`;
-      if (status === "retired") return `Retiraron el dispositivo ${device}: el aviso de ${work} no va a llegar.`;
-      return `Avisó el dispositivo ${device}: ${work} ${ended[status]}. Referencia del aviso: ${reference}.`;
+      const work = `trabajo ${act} → ${target} que arrancó este journey (arranque: ${started || "sin resultado"})`;
+      if (status === "retired") return `Retiraron el dispositivo ${device}: el aviso del ${work} no va a llegar.`;
+      return `Avisó el dispositivo ${device}: el ${work} ${ended[status]}. Referencia del aviso: ${reference}.`;
     },
   },
 });

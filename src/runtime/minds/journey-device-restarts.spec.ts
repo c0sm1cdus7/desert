@@ -85,7 +85,7 @@ it.each(["notice", "retirement"] as const)(
     const kind = arrival === "notice" ? "device-execution-notice" : "device-retired";
     expect(wakesOf(house, id)).toEqual([["journey-opened"], [kind, "journey-resumed"]]);
     const resumed = rig.frames.find(frame => frame.includes("Tu consciencia retomó este journey: Seguí")) ?? "";
-    expect(resumed).toContain(arrival === "notice" ? told : "Retiraron el dispositivo Linux: el aviso de el trabajo");
+    expect(resumed).toContain(arrival === "notice" ? told : "Retiraron el dispositivo Linux: el aviso del trabajo");
     expect(journeyOf(house)?.closed?.data.outcome).toBe("done");
   },
   60000,
@@ -102,7 +102,7 @@ it("a disconnection wakes nobody; the device's retirement wakes the journey wait
   house.devices.retire("ana", "vm");
   await flush(house);
   expect(wakesOf(house, id)).toEqual([["journey-opened"], ["device-retired"]]);
-  const line = "Retiraron el dispositivo Linux: el aviso de el trabajo outbox/send → notes/outbox que arrancó";
+  const line = "Retiraron el dispositivo Linux: el aviso del trabajo outbox/send → notes/outbox que arrancó";
   expect(rig.frames.filter(frame => frame.includes(line))).toHaveLength(2);
   expect(journeyOf(house)?.closed?.data.outcome).toBe("done");
 }, 60000);
@@ -127,4 +127,22 @@ it("a desisted journey wakes for nothing its device says", async () => {
   expect(rig.announce(execution)).toBe("recorded");
   await flush(house);
   expect(turnsOf(house, id)).toBe(1);
+}, 60000);
+it("a restart that cuts the turn a notice woke says that notice again with the restart", async () => {
+  let cut = true;
+  const script: JourneyScript = (_, id, turn) => {
+    if (turn === 1) return answer([sendOn("Informe"), waitNotice(id)]);
+    return turn === 2 && cut ? new Promise(() => {}) : answer([endJourney(id)]);
+  };
+  const { rig, house, id, execution } = await asked(script);
+  expect(rig.announce(execution, "lost")).toBe("recorded");
+  await vi.waitFor(() => expect(turnsOf(house, id)).toBe(2));
+  house.close();
+  cut = false;
+  const again = await rig.open(script);
+  await flush(again);
+  expect(wakesOf(again, id)).toEqual([["journey-opened"], ["device-execution-notice"], ["mind-turn-closed"]]);
+  const last = rig.frames.find(frame => frame.includes("La casa se reinició durante el turno anterior")) ?? "";
+  expect(last).toContain(`${told} (arranque: inicio:${execution}) se perdió.`);
+  expect(journeyOf(again)?.closed?.data.outcome).toBe("done");
 }, 60000);

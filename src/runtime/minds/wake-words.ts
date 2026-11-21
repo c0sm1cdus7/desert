@@ -51,6 +51,18 @@ function deviceWords(event: Event, seen: Seen, language: Language, history: read
     .map(each => say(each, "retired"));
   return lines.length ? lines.join("\n") : undefined;
 }
+/** A restart cut the turn that read a device's word: the line says it again, since that turn's frame was lost. */
+function restarted(event: HouseEvent<"mind-turn-closed">, seen: Seen, language: Language, history: readonly Event[]) {
+  const cut = history.find(
+    e => e.layer === "house" && e.kind === "mind-turn-opened" && e.data.turn === event.data.turn,
+  );
+  const words = history.flatMap(e =>
+    cut?.layer === "house" && cut.kind === "mind-turn-opened" && cut.data.wake.includes(e.id)
+      ? (deviceWords(e, seen, language, history) ?? [])
+      : [],
+  );
+  return [journeyWoke.text(language, { cause: "restart", note: "" }), ...words].join("\n");
+}
 function describe(
   event: Event | undefined,
   seen: Seen,
@@ -62,7 +74,7 @@ function describe(
   if (event.kind === "device-execution-notice" || event.kind === "device-retired")
     return deviceWords(event, seen, language, history);
   if (event.kind !== "mind-turn-closed" || !event.process || !event.data.reason) return undefined;
-  if (event.data.reason === "interrupted") return journeyWoke.text(language, { cause: "restart", note: "" });
+  if (event.data.reason === "interrupted") return restarted(event, seen, language, history);
   const goal = seen.journeys.get(event.process)?.goal;
   const reason = turnNotice.text(language, { reason: event.data.reason });
   return goal === undefined ? undefined : journeyCut.text(language, { goal, reason, cuts: cutsOf(history, event) });
