@@ -109,6 +109,7 @@ describe("the tree of src/", () => {
   // 21/11 review: +9 exact in journey.texts.ts: one line counting the cut journeys that do not fit beside a scene.
   // 21/11 plan refusals: +22 exact in journey.texts.ts: what a journey hears when it gets its own plan wrong.
   // 21/11 failed turns: +4 exact in supervisor.texts.ts: the wake line of a consciousness turn that failed.
+  // 21/11 failed turns, the exception: +0 exact in supervisor.texts.ts: its sentence fits two lines that were there.
   it("keeps every file within 300 lines and the texts within 1407", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
