@@ -22,15 +22,21 @@ function stopOf(outcome: ModelOutcome): TurnStop {
   if (outcome.kind === "not-sent" || outcome.kind === "failed") return outcome.reason;
   return outcome.kind === "uncertain" ? "uncertain" : "invalid";
 }
-/** Facts after this one wake it: from its last own turn, never from before the first boot of the latest runs that
- * brought it, so nothing that happened while the house had no supervisor wakes it (older boots say nothing). */
+/** Facts after this one wake it: from its last own turn a restart did not cut, never from before the first boot of
+ * the latest runs that brought it, so nothing that happened while the house had no supervisor wakes it (older boots
+ * say nothing). It is read before the recovery closes a cut turn: a turn still open here is one the restart cut. */
 function frontier(history: readonly Event[]): number {
+  const ended = new Map(
+    history.flatMap(e => (e.layer === "house" && e.kind === "mind-turn-closed" ? [[e.data.turn, e.data]] : [])),
+  );
   const own = history.findLast(
     event =>
       event.layer === "house" &&
       event.kind === "mind-turn-opened" &&
       event.by === supervisorActor &&
-      event.process === undefined,
+      event.process === undefined &&
+      ended.has(event.data.turn) &&
+      ended.get(event.data.turn)?.reason !== "interrupted",
   );
   const boots = history.filter(
     (event): event is HouseEvent<"boot"> => event.layer === "house" && event.kind === "boot",

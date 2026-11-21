@@ -90,3 +90,36 @@ it("a wait the mind chose inside its turn wakes its journey once its hour comes"
   const loose = effect("journey-waiting", { what: "Sigo", until: 0 }, actor, ["e1"], "j1");
   expect(wakes(journey, at([opened, turn, done, loose]))).toEqual(["journey-waiting"]);
 });
+it("only the supervisor's own turn a restart cut consumed nothing; a journey's own closure wakes it instead", () => {
+  const ended = effect("journey-closed", { outcome: "done", summary: "Listo", references: [] }, actor, [], "j1");
+  const cut = (by: string, reason?: "interrupted") => [
+    effect("mind-turn-opened", { turn: "c1", wake: ["e2"] }, by, []),
+    effect(
+      "mind-turn-closed",
+      { turn: "c1", outcome: "interrupted", calls: 1, applied: [], ...(reason ? { reason } : {}) },
+      by,
+      [],
+    ),
+  ];
+  const supervisor: WakePolicy = {
+    ...consciousness,
+    scope: { kind: "consciousness", actor: "mind:supervisor" },
+    wakes: e => e.kind === "journey-closed",
+  };
+  const woken = (scope: WakePolicy, history: readonly Event[]) =>
+    pendingMindWakes([scope], history, 0).map(each => each.wake);
+  expect(woken(supervisor, at([opened, ended, ...cut("mind:supervisor", "interrupted")]))).toEqual([["e2"]]);
+  // A closure without a reason comes from before 21/11: what that turn consumed stays consumed.
+  expect(woken(supervisor, at([opened, ended, ...cut("mind:supervisor")]))).toEqual([]);
+  // Any other consciousness never repeats a turn a restart cut.
+  expect(woken(consciousness, at([opened, ended, ...cut(actor, "interrupted")]))).toEqual([]);
+  const journeyTurn = effect("mind-turn-opened", { turn: "t1", wake: ["e1"] }, actor, [], "j1");
+  const restarted = effect(
+    "mind-turn-closed",
+    { turn: "t1", outcome: "interrupted", calls: 1, applied: [], reason: "interrupted" },
+    actor,
+    [],
+    "j1",
+  );
+  expect(woken(journey, at([opened, journeyTurn, restarted]))).toEqual([["e3"]]);
+});

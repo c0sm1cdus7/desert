@@ -2,6 +2,7 @@
 import type { Language } from "../../fields/languages.ts";
 import type { Event } from "../../journal/vocabulary.ts";
 import { journeyInterrupted } from "../../texts/journey.texts.ts";
+import { awaitsNotice } from "./journey-notices.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
 import type { Program, State } from "../../tools/tool-contract.ts";
 /** The supervisor's stop wakes the consciousness that owns the journey, while the journey is still open and stopped. */
@@ -23,8 +24,9 @@ export function interruptWake(scope: MindScope, event: Event, history: readonly 
 function pendingOf<X extends Program>(state: State<X>, journey: string): string {
   const steps = state.house.journeys.get(journey)?.steps.filter(step => step.note === undefined) ?? [];
   const acts = [...state.processing.values()].filter(act => act.process === journey);
+  // Announcing work is pending until its notice, whatever its start's result said.
   const devices = [...state.house.devices.executions.values()].filter(
-    execution => execution.journey === journey && execution.status === "running",
+    execution => execution.journey === journey && awaitsNotice(execution),
   );
   return [
     ...steps.map(step => step.text),

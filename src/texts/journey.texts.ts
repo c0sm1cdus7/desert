@@ -23,7 +23,7 @@ export const journeyControlPurpose = defineMessage({
         open: "Abrir un journey con un objetivo y las acciones que necesita.",
         plan: "Anotar el plan inicial del journey con un identificador por paso.",
         done: "Marcar un paso pendiente como terminado y anotar qué quedó hecho.",
-        wait: "Poner el journey en espera hasta el momento indicado.",
+        wait: "Esperar hasta until, o con on: notice hasta el aviso de un trabajo anunciante (until opcional).",
         resume: "Retomar ahora uno de tus journeys abiertos, con una nota de qué tiene que atender.",
         end: "Terminar el journey y devolver su resumen y referencias.",
         desist: "Desistir del journey y devolver el motivo y las referencias.",
@@ -63,5 +63,23 @@ export const journeyInterrupted = defineMessage({
     es: ({ goal, reason, pending }) =>
       `El supervisor frenó tu journey «${goal}». Motivo: ${reason}\nQuedó pendiente: ${pending || "nada"}.\nNo ` +
       "corre ni despierta hasta que decidas: retomalo con resume atendiendo el motivo, o desistí con desist.",
+  },
+});
+const ended = { finished: "terminó", failed: "falló", cancelled: "se canceló", lost: "se perdió" } as const;
+const statuses = ["finished", "failed", "cancelled", "lost", "retired"] as const;
+/** Why a journey woke for its device work: how it ended, or that its device was retired and will not say (21/11). */
+export const journeyNotice = defineMessage({
+  id: "journey.notice",
+  kind: "text",
+  parameters: object({
+    ...{ act: Type.String(), target: Type.String(), device: Type.String(), started: Type.String() },
+    ...{ status: Type.Union(statuses.map(each => Type.Literal(each))), reference: Type.String() },
+  }),
+  texts: {
+    es: ({ act, target, device, started, status, reference }) => {
+      const work = `el trabajo ${act} → ${target} que arrancó este journey (arranque: ${started || "sin resultado"})`;
+      if (status === "retired") return `Retiraron el dispositivo ${device}: el aviso de ${work} no va a llegar.`;
+      return `Avisó el dispositivo ${device}: ${work} ${ended[status]}. Referencia del aviso: ${reference}.`;
+    },
   },
 });

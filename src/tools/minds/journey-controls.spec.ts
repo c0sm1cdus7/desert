@@ -31,6 +31,7 @@ function rig() {
     through: 0,
     now: 1000,
     rulesVersion: "r1",
+    notices: () => "none",
   };
   const turn: TurnContext = {
     id: "t1",

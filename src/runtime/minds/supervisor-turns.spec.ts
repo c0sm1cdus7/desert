@@ -202,3 +202,31 @@ it("wakes when ana speaks to it, and says who spoke and what", async () => {
   expect(framesOf(f).find(supervising)).toContain("ana te habló: ¿Cómo va la casa?");
   expect(said(house).at(-1)).toEqual(["mind:supervisor", JSON.stringify({ to: "ana", text: "Todo en orden" })]);
 }, 60000);
+it("a restart that cuts its own turn does not lose what woke it: it wakes again for the same line", async () => {
+  const f = fixture();
+  const house = await f.open();
+  let cut = true;
+  const judge = supervisor(() => ({ outcome: "passed", text: "Sí" }));
+  // Its first call never answers: the house goes down in the middle of its own turn.
+  f.respond(frame => {
+    if (!supervising(frame)) return quiet;
+    return cut ? new Promise(() => {}) : judge(frame);
+  });
+  expect(send(house, "mind:supervisor", "¿Cómo va la casa?").status).toBe("accepted");
+  await vi.waitFor(() => expect(moments(framesOf(f))).toEqual(["turn"]));
+  house.close();
+  cut = false;
+  const again = await f.open();
+  await (await again.minds)?.flush();
+  expect(moments(framesOf(f))).toEqual(["turn", "turn"]);
+  expect(framesOf(f).filter(supervising)[1]).toContain("ana te habló: ¿Cómo va la casa?");
+  const closings = history(again).flatMap(event =>
+    event.layer === "house" && event.kind === "mind-turn-closed" && event.by === "mind:supervisor" && !event.process
+      ? [event.data]
+      : [],
+  );
+  expect(closings.map(data => [data.outcome, data.reason])).toEqual([
+    ["interrupted", "interrupted"],
+    ["done", undefined],
+  ]);
+}, 60000);

@@ -36,6 +36,7 @@ function setup() {
       through: house.state().through,
       now: Date.now(),
       rulesVersion: "r1",
+      notices: () => "none",
     }),
   };
   const apply = (facts: readonly HouseEmission[]) => house.bus.together(() => facts.map(fact => house.bus.emit(fact)));

@@ -20,7 +20,11 @@ import {
   type JourneyAccess,
   type JourneyControl,
 } from "./journey-menu.ts";
-export type JourneyControlState = JourneyAccess & Readonly<{ through: number; now: number; rulesVersion: string }>;
+/** Whether a journey has announcing work whose notice it has not read yet ("owed"), only work on a retired device
+ * ("retired"), or nothing a device will announce ("none"). */
+export type NoticeWait = "owed" | "retired" | "none";
+export type JourneyControlState = JourneyAccess &
+  Readonly<{ through: number; now: number; rulesVersion: string; notices: (journey: string) => NoticeWait }>;
 /** The turn serializes a process and applies each returned batch atomically before running the next control. */
 export type JourneyControlContext = Readonly<{
   turn: TurnContext;
@@ -46,6 +50,15 @@ export class JourneyStopRefused extends Error {
     this.goal = goal;
   }
 }
+/** A wait on a notice that will not come is the model's mistake: nobody waits for what will not arrive (21/11). */
+export class JourneyNoticeRefused extends Error {
+  readonly retired: boolean;
+  constructor(retired: boolean) {
+    super("journey.wait.notice");
+    this.name = "JourneyNoticeRefused";
+    this.retired = retired;
+  }
+}
 /** A wait that ends before now is the model's mistake: the turn corrects it with the house clock. */
 export class JourneyWaitRefused extends Error {
   readonly now: string;
@@ -55,11 +68,14 @@ export class JourneyWaitRefused extends Error {
     this.now = `${now} (${new Date(now).toISOString()})`;
   }
 }
+/** A union's error says nothing of its fields: the branch the input chose names the field that is wrong. */
+function branchOf(schema: TSchema, input: unknown, control: JourneyControl): TSchema {
+  const chosen = (key: string) => (typeof input === "object" && input && key in input ? 1 : 0);
+  if (control === "open") return journeyInputs.open.anyOf[chosen("version")];
+  return control === "wait" ? journeyInputs.wait.anyOf[chosen("on")] : schema;
+}
 function inputOf<T extends TSchema>(schema: T, input: unknown, control: JourneyControl): Static<T> {
-  const diagnostic =
-    control === "open"
-      ? journeyInputs.open.anyOf[typeof input === "object" && input && "version" in input ? 1 : 0]
-      : schema;
+  const diagnostic = branchOf(schema, input, control);
   if (!Value.Check(schema, input)) {
     const error = Value.Errors(diagnostic, input).First();
     requireMind(false, `journey.${control}.input${error?.path ?? ""}`);
@@ -159,10 +175,18 @@ export function waitJourney(context: JourneyControlContext, input: unknown): rea
   const state = current(c);
   const journey = ownJourney(c, state);
   const data = inputOf(journeyInputs.wait, input, "wait");
-  if (data.until <= state.now) throw new JourneyWaitRefused(state.now);
+  if (data.until !== undefined && data.until <= state.now) throw new JourneyWaitRefused(state.now);
+  if ("on" in data) {
+    const owed = state.notices(journey.id);
+    if (owed !== "owed") throw new JourneyNoticeRefused(owed === "retired");
+  }
+  // Without an hour no clock is armed, and one the previous wait armed is cancelled.
+  const at = data.until ?? (journey.waiting?.until === undefined ? undefined : null);
   return checked(state, [
     effect("journey-waiting", data, journey.by, causes(c, journey), journey.id),
-    effect("wake-at", { id: journey.id, at: data.until }, journey.by, causes(c, journey), journey.id),
+    ...(at === undefined
+      ? []
+      : [effect("wake-at", { id: journey.id, at }, journey.by, causes(c, journey), journey.id)]),
   ]);
 }
 function closeJourney(
@@ -186,7 +210,7 @@ function closeJourney(
         journey.id,
       ),
     ];
-    if (journey.waiting)
+    if (journey.waiting?.until !== undefined)
       facts.push(effect("wake-at", { id: journey.id, at: null }, journey.by, causes(c, journey), journey.id));
     return checked(state, facts);
   };

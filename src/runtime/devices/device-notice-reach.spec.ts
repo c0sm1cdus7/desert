@@ -1,4 +1,4 @@
-// Who a notice reaches: never a device on an older tool version, no mind on this branch, and an in-process relay.
+// Who a notice reaches: never a device on an older tool version, only the journey that started it, and a relay.
 import { expect, it, vi } from "vitest";
 import { setup } from "../../../tests/support/device-house.ts";
 import { deviceOutbox, finished } from "../../../tests/support/device-outbox.ts";
@@ -36,7 +36,7 @@ it("never offers an announcing action at version 2 to a device still on version 
   expect((await settle(rig.act("mac"))).status).toBe("accepted");
   expect([...house().devices.executions.values()][0]?.announces).toBe(true);
 });
-it("wakes no mind with a recorded notice: the journey's wake comes in a later step", () => {
+it("wakes the journey that started the work with its recorded notice, and not its consciousness", () => {
   const rig = setup({ at: "device", tool: "shell", version: "1", announces: true });
   const mac = rig.device("mac");
   const connection = rig.house.tools.state().house.devices.devices.get("mac")?.connection ?? "";
@@ -54,8 +54,9 @@ it("wakes no mind with a recorded notice: the journey's wake comes in a later st
     toolOf: () => "agents",
   });
   const journey = { kind: "journey" as const, actor: "mind:agents" as const, process: "j1", kit: [] };
-  for (const scope of [journey, { kind: "consciousness" as const, actor: "mind:agents" as const }])
-    expect(mindWakeDecision(policy(scope), notice, history, 0)).toBe(false);
+  expect(mindWakeDecision(policy(journey), notice, history, 0)).toBe(true);
+  const consciousness = { kind: "consciousness" as const, actor: "mind:agents" as const };
+  expect(mindWakeDecision(policy(consciousness), notice, history, 0)).toBe(false);
 });
 it("relays an in-process device's notices: owed ones, new ones, held until recorded, and refusals", async () => {
   const rig = setup({ at: "device", tool: "shell", version: "1", announces: true });

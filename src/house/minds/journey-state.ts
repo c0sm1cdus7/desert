@@ -18,7 +18,8 @@ export type JourneyState = Readonly<{
   opened: string;
   steps: readonly JourneyPlanStep[];
   planned: boolean;
-  waiting?: Readonly<{ what: string; until: number }>;
+  /** A wait on a notice may have no hour: nothing reads a missing `until` as an hour. */
+  waiting?: Readonly<{ what: string; until?: number; on?: "notice" }>;
   /** What the consciousness asked this journey to attend to when it last resumed it. */
   resumed?: string;
   /** The supervisor's last stop and its reason, `frozen` until the consciousness resumes the journey. */

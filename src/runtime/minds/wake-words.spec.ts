@@ -3,6 +3,7 @@ import { expect, it } from "vitest";
 import { effect, type HouseEmission } from "../../house/facts.ts";
 import { journeyStep, type Journeys } from "../../house/minds/journey-state.ts";
 import type { Event } from "../../journal/vocabulary.ts";
+import { emptyDevices } from "../../house/devices/device-state.ts";
 import { wakeWords } from "./wake-words.ts";
 const actor = "mind:notes";
 const at = (emissions: readonly HouseEmission[]): Event[] =>
@@ -13,7 +14,7 @@ const closed = (id: string, data: Partial<HouseEmission<"mind-turn-closed">["dat
   effect("mind-turn-closed", { turn: id, outcome: "failed", calls: 12, applied: [], ...data }, actor, [], "j1");
 const journeysOf = (history: readonly Event[]): Journeys =>
   history.reduce<Journeys>((state, event) => (event.layer === "house" ? journeyStep(state, event) : state), new Map());
-it("counts every closure with a reason since the journey opened, restarts included, up to the waking one", () => {
+it("counts every cut since the journey opened up to the waking one, and no restart: no failure of the mind", () => {
   const history = at([
     opened,
     turn("t1"),
@@ -26,10 +27,10 @@ it("counts every closure with a reason since the journey opened, restarts includ
     closed("t4", { outcome: "interrupted", reason: "uncertain" }),
   ]);
   const journeys = journeysOf(history);
-  const [first] = wakeWords(history, journeys, ["e3"], "es") ?? [];
+  const [first] = wakeWords(history, { journeys, devices: emptyDevices }, ["e3"], "es") ?? [];
   expect(first).toContain("límite de doce llamadas");
   expect(first).toContain("contando este: 1.");
-  const [last] = wakeWords(history, journeys, ["e9"], "es") ?? [];
+  const [last] = wakeWords(history, { journeys, devices: emptyDevices }, ["e9"], "es") ?? [];
   expect(last).toContain("La llamada quedó incierta.");
-  expect(last).toContain("contando este: 3.");
+  expect(last).toContain("contando este: 2.");
 });

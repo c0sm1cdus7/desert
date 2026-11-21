@@ -89,7 +89,8 @@ function snapshotFor<X extends Program>(
 ) {
   const current = view.state.house.minds.turns.get(turn.id);
   const history = house.history();
-  const words = wakeWords(history, view.state.house.journeys, turn.wake, turn.language);
+  const { journeys: all, devices } = view.state.house;
+  const words = wakeWords(history, { journeys: all, devices, journey: scope.process }, turn.wake, turn.language);
   const woke = withInterrupts(words, turn.wake, history, view.state, turn.language);
   const scene = view.state.house.minds.scenes.get(scope.process ?? scope.actor)?.data.text ?? "";
   const journeys = scope.kind === "consciousness" ? ownJourneys(view.state.house.journeys, scope.actor) : [];

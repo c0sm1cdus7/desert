@@ -7,11 +7,21 @@ import type { TimeSource } from "../../journal/clock.ts";
 import type { Language } from "../../fields/languages.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
 import { turnNotice } from "../../texts/mind-turn.texts.ts";
+import { ids } from "../../house/ids.ts";
 import { mindWakeDecision, type WakePolicy } from "./mind-wake-policy.ts";
 import type { TurnWake } from "./mind-ports.ts";
 const array = (value: unknown): boolean => Array.isArray(value);
 const schedules = new WeakSet<MindSchedulePorts["bus"]>();
 const sameScope = (event: Event, scope: MindScope) => event.by === scope.actor && event.process === scope.process;
+/** The turns a restart cut, by closures of the 21/11 shape. The supervisor's own one consumed nothing: it wakes again
+ * for the same facts, as a journey does through its closure (21/11). Any other consciousness keeps its guarantee: a
+ * turn a restart cut is closed as interrupted and its call is never repeated. */
+const restartCuts = (history: readonly Event[]) =>
+  new Set(
+    history.flatMap(e =>
+      e.layer === "house" && e.kind === "mind-turn-closed" && e.data.reason === "interrupted" ? [e.data.turn] : [],
+    ),
+  );
 export type PendingMindWake = Readonly<{ scope: MindScope; wake: readonly string[]; through: number }>;
 export function pendingMindWakes(
   policies: readonly WakePolicy[],
@@ -21,16 +31,19 @@ export function pendingMindWakes(
   requireMind(array(policies), "policies");
   requireMind(array(history), "history");
   const pending: (PendingMindWake & Readonly<{ oldest: number }>)[] = [];
+  const restarted = restartCuts(history);
+  const closed = new Set(
+    history.flatMap(e => (e.layer === "house" && e.kind === "mind-turn-closed" ? [e.data.turn] : [])),
+  );
   for (const policy of policies) {
     const opened = history.filter(
       (e): e is HouseEvent<"mind-turn-opened"> =>
         e.layer === "house" && e.kind === "mind-turn-opened" && sameScope(e, policy.scope),
     );
-    const closed = new Set(
-      history.flatMap(e => (e.layer === "house" && e.kind === "mind-turn-closed" ? [e.data.turn] : [])),
-    );
     if (opened.some(e => !closed.has(e.data.turn))) continue;
-    const consumed = new Set(opened.flatMap(e => e.data.wake));
+    const own = policy.scope.actor === ids.supervisor && policy.scope.process === undefined;
+    const cut = (e: HouseEvent<"mind-turn-opened">) => own && restarted.has(e.data.turn);
+    const consumed = new Set(opened.flatMap(e => (cut(e) ? [] : e.data.wake)));
     const waking = history.filter(e => !consumed.has(e.id) && mindWakeDecision(policy, e, history, now));
     const oldest = waking[0]?.seq;
     if (oldest !== undefined)
@@ -112,9 +125,12 @@ function nextDeadline(ports: MindSchedulePorts): number | undefined {
   const policies = ports.policies().filter(p => parseMindActor(p.scope.actor));
   const deadlines: number[] = [];
   for (const event of history) {
-    if (event.layer !== "house" || event.kind !== "journey-waiting" || event.data.until <= ports.time.now()) continue;
-    const pending = pendingMindWakes(policies, history, event.data.until);
-    if (pending.some(wake => wake.wake.includes(event.id))) deadlines.push(event.data.until);
+    if (event.layer !== "house" || event.kind !== "journey-waiting") continue;
+    // A wait on a notice without an hour arms no clock: only the notice, or the device's retirement, wakes it.
+    const { until } = event.data;
+    if (until === undefined || until <= ports.time.now()) continue;
+    const pending = pendingMindWakes(policies, history, until);
+    if (pending.some(wake => wake.wake.includes(event.id))) deadlines.push(until);
   }
   return deadlines.length ? Math.min(...deadlines) : undefined;
 }

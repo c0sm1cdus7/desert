@@ -70,7 +70,9 @@ export const reviewNotice = defineMessage({
   parameters: object({ passed: Type.Boolean() }),
   texts: { es: ({ passed }) => (passed ? "La propuesta pasó la revisión." : "No se pudo revisar la propuesta.") },
 });
-const invalidReasons = ["json", "schema", "max_tokens", "refusal", "kit", "wait", "continuation", "stopped"] as const;
+const invalidReasons = [
+  ...["json", "schema", "max_tokens", "refusal", "kit", "wait", "notice", "retired", "continuation", "stopped"],
+] as const;
 export const invalidNotice = defineMessage({
   id: "mind.turn.invalid",
   kind: "text",
@@ -84,6 +86,9 @@ export const invalidNotice = defineMessage({
         refusal: "El proveedor rechazó responder.",
         kit: "El kit del journey sale de tu kit, con sus nombres exactos; si está vacío, pedíselo al admin. Tu kit:",
         wait: "La espera termina después de Ahora: until en milisegundos, mayor que",
+        notice:
+          "Este journey no tiene trabajo anunciante con un aviso por leer: nada va a avisar. Esperá con until o seguí.",
+        retired: "El trabajo anunciante de este journey corre en un dispositivo retirado: ese aviso no va a llegar.",
         continuation: "Un journey sigue hasta decir cómo sigue: cerrá con wait, end o desist, solo como último acto.",
         stopped: "Ese journey ya está frenado y su consciencia todavía no lo retomó:",
       })[reason],

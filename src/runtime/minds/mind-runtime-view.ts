@@ -6,6 +6,7 @@ import { journeyFrozen } from "../../house/minds/journey-state.ts";
 import { allowedAct, effectiveKit, present } from "../../house/kit.ts";
 import { identityView } from "../../house/members.ts";
 import type { JourneyControlState } from "../../tools/minds/journey-controls.ts";
+import { noticeWait } from "./journey-notices.ts";
 import { journeyMenu } from "../../tools/minds/journey-menu.ts";
 import type { MindMenu } from "../../tools/minds/mind-answer.ts";
 import type { MindDefinition, MindScope } from "../../tools/minds/mind-contract.ts";
@@ -75,6 +76,7 @@ function controlFor<X extends Program>(
     through: state.through,
     now: house.time.now(),
     rulesVersion: options.rulesVersion(),
+    notices: journey => noticeWait(house.history(), state.house.devices, journey),
   };
 }
 

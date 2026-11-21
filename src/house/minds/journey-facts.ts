@@ -12,7 +12,11 @@ export const journeyFacts = {
   ]),
   "journey-plan-written": object({ steps: Type.Array(object({ id: mindName, text: mindText }), { minItems: 1 }) }),
   "journey-step-done": object({ step: mindName, note: mindText }),
-  "journey-waiting": object({ what: mindText, until: wholeNumber }),
+  /** Until an hour the mind chose, or, since 21/11, until a device announces how its work ended (the hour optional). */
+  "journey-waiting": Type.Union([
+    object({ what: mindText, until: wholeNumber }),
+    object({ what: mindText, on: Type.Literal("notice"), until: Type.Optional(wholeNumber) }),
+  ]),
   /** The consciousness goes back to one of its open journeys, with what that journey should attend to. */
   "journey-resumed": object({ note: mindText }),
   /** The house supervisor stops an open journey with its reason, until its consciousness resumes it (21/11). */

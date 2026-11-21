@@ -1,7 +1,12 @@
 // Applies the acts of one answer in order: a journey hears each result, a consciousness corrects or stops.
 import { requireMind } from "../../fields/mind-errors.ts";
 import { invalidNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
-import { JourneyKitRefused, JourneyStopRefused, JourneyWaitRefused } from "../../tools/minds/journey-controls.ts";
+import {
+  JourneyKitRefused,
+  JourneyNoticeRefused,
+  JourneyStopRefused,
+  JourneyWaitRefused,
+} from "../../tools/minds/journey-controls.ts";
 import type { MindAnswer, ProposedAct } from "../../tools/minds/mind-answer.ts";
 import type { TurnContext } from "../../tools/minds/mind-contract.ts";
 import type { ReviewPort } from "../../tools/minds/mind-review.ts";
@@ -20,6 +25,10 @@ async function perform({ ports, turn, review }: Run, act: ProposedAct): Promise<
   } catch (error) {
     if (error instanceof JourneyKitRefused)
       return { code: "kit", correction: `${invalidNotice.text(turn.language, { reason: "kit" })} ${error.kit}` };
+    if (error instanceof JourneyNoticeRefused) {
+      const reason = error.retired ? "retired" : "notice";
+      return { code: "wait", correction: invalidNotice.text(turn.language, { reason }) };
+    }
     if (error instanceof JourneyWaitRefused)
       return { code: "wait", correction: `${invalidNotice.text(turn.language, { reason: "wait" })} ${error.now}` };
     if (error instanceof JourneyStopRefused)

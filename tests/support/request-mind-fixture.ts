@@ -6,8 +6,8 @@ import { join } from "node:path";
 import { vi } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { componer } from "../../src/runtime/distributions/compose.ts";
-import { startHouse } from "../../src/runtime/house-runtime.ts";
+import { componer, type DistributionOf } from "../../src/runtime/distributions/compose.ts";
+import { startHouse, type RunningHouse } from "../../src/runtime/house-runtime.ts";
 import { explicitKit, kitLayout } from "../../src/house/kit-selection.ts";
 import { effect } from "../../src/house/facts.ts";
 import type { ProgramMindResources } from "../../src/runtime/minds/program-mind-options.ts";
@@ -32,23 +32,30 @@ function assignAssistant(house: RequestHouse, card: Pick<Card, "model" | "effort
   );
 }
 type Acting = (value: unknown, through: number, by: string) => Readonly<{ status: string; reason?: string }>;
-type Opening = { assistant?: boolean; started?: (act: Acting) => void };
+type Opening = { assistant?: boolean; started?: (act: Acting, house: RequestHouse) => void };
+const composed = (scenes?: readonly [ProgramMindScene, ProgramMindScene, ProgramMindScene]) =>
+  componer({
+    ...sampleOptions,
+    programas: [requestProgram(scenes), talkProgram],
+    mentes: { asistentes: true, programas: ["notes"] },
+  });
+/** The composed tools, which a fixture may change before the house opens, as a distribution declares its own. */
+type Registry = ReturnType<typeof composed>["program"]["registry"];
 class RequestMindFixture {
   readonly home = mkdtempSync(join(tmpdir(), "mind-requests-"));
   readonly distribution;
   private readonly houses: { close(): void }[] = [];
   private response: (frame: string) => unknown = () => answer();
   private resources: Partial<ProgramMindResources>;
+  private readonly tools: (registry: Registry) => Registry;
   constructor(
     scenes?: readonly [ProgramMindScene, ProgramMindScene, ProgramMindScene],
     resources: Partial<ProgramMindResources> = {},
+    tools: (registry: Registry) => Registry = registry => registry,
   ) {
     this.resources = resources;
-    this.distribution = componer({
-      ...sampleOptions,
-      programas: [requestProgram(scenes), talkProgram],
-      mentes: { asistentes: true, programas: ["notes"] },
-    });
+    this.tools = tools;
+    this.distribution = composed(scenes);
   }
   readonly transport = vi.fn<typeof fetch>(async (_url, init) => {
     if (typeof init?.body !== "string") throw new Error("request.body");
@@ -81,13 +88,14 @@ class RequestMindFixture {
     const options = await this.options();
     const house = startHouse(this.home, {
       ...this.distribution.program,
+      registry: this.tools(this.distribution.program.registry),
       by: "distribution",
       creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes", "talk"] }] },
       modelMinds: options,
       ...(!enabled ? { mentes: { asistentes: false, programas: [] } } : {}),
     });
     this.houses.push(house);
-    started?.((value, through, by) => house.tools.act(value, through, by));
+    started?.((value, through, by) => house.tools.act(value, through, by), house);
     if (enabled && assistant && !house.tools.state().house.mindAssignments.has("assistant:ana")) {
       const card = options.catalog[0];
       if (!card) throw new Error("card");
@@ -124,10 +132,13 @@ class RequestMindFixture {
 export function requestMindFixture(
   scenes?: readonly [ProgramMindScene, ProgramMindScene, ProgramMindScene],
   extra?: ConstructorParameters<typeof RequestMindFixture>[1],
+  tools?: ConstructorParameters<typeof RequestMindFixture>[2],
 ) {
-  return new RequestMindFixture(scenes, extra);
+  return new RequestMindFixture(scenes, extra, tools);
 }
-export type RequestHouse = Awaited<ReturnType<ReturnType<typeof requestMindFixture>["open"]>>;
+export type RequestHouse = RunningHouse<
+  DistributionOf<readonly [ReturnType<typeof requestProgram>, typeof talkProgram]>
+>;
 export const history = (house: RequestHouse) =>
   house.journal.replay<import("../../src/journal/vocabulary.ts").Event[]>([], (events, event) => [...events, event]);
 /** Says a line through the talk program as ana, who first opens the thread like a person would. */
