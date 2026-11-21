@@ -1,4 +1,5 @@
 // Builds one engine tool per program, keeping each group and its encoded object destinations intact.
+import { OutsideDefect } from "../../fields/program-call.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import { vocabulary } from "../../journal/vocabulary.ts";
 import { localState, type InstalledGroup, type InstalledProgram } from "./runtime.ts";
@@ -7,6 +8,8 @@ import { folderOf, objectOf, localTarget } from "./destinations.ts";
 import type { ProgramMetadata, ProgramBody, LocalProgram, ProgramGroup } from "./program.ts";
 import type { Program, State } from "../tool-contract.ts";
 import type { ProgramTool } from "../promises-contract.ts";
+/** The names of every tool of a program. */
+type Tools = readonly string[];
 function groupReactions<X extends Program>(id: string, name: string, group: ProgramGroup<X>) {
   return Object.fromEntries(
     Object.entries(group.reactions ?? {}).map(([key, reaction]) => {
@@ -15,8 +18,9 @@ function groupReactions<X extends Program>(id: string, name: string, group: Prog
     }),
   );
 }
-function groupTool<X extends Program>(id: string, name: string, group: ProgramGroup<X>): InstalledGroup {
+function groupTool<X extends Program>(id: string, name: string, group: ProgramGroup<X>, tools: Tools): InstalledGroup {
   const stateOf = (state: State<Program>) => localState<X>(state, id);
+  const reader = (state: State<Program>) => ({ id, name, tools, own: new Set(group.targets(stateOf(state))) });
   const target = (value: string) => localTarget(id, name, value);
   const tool: ProgramTool<Program> = {
     id: folderOf(id, name),
@@ -26,7 +30,7 @@ function groupTool<X extends Program>(id: string, name: string, group: ProgramGr
       Object.entries(group.acts).map(([key, act]) => [`${name}/${key}`, adaptAction(id, name, group, act)]),
     ),
     targets: state => group.targets(stateOf(state)).map(object => objectOf(id, name, object)),
-    view: (state, value, limits) => remapView(group.view(stateOf(state), target(value), limits), id, name),
+    view: (state, value, limits) => remapView(group.view(stateOf(state), target(value), limits), reader(state)),
     summary: state => group.summary(stateOf(state)),
     ...(group.viewData ? { viewData: (s, t) => group.viewData?.(stateOf(s), target(t)) } : {}),
     ...(group.closed ? { closed: (s, t, at) => group.closed?.(stateOf(s), target(t), at) ?? false } : {}),
@@ -52,7 +56,10 @@ function groupTool<X extends Program>(id: string, name: string, group: ProgramGr
   );
   return { id: name, folder: tool.id, palabras: group.palabras, tool: { ...tool, acts: originalActs } };
 }
-function remapView(view: string, id: string, name: string): string {
+/** Who reads a view: the program, the tool that reads, every tool of the program and the things the reading tool has
+ * now, by their local ids. */
+type Reader = Readonly<{ id: string; name: string; tools: Tools; own: ReadonlySet<string> }>;
+function remapView(view: string, reader: Reader): string {
   return view
     .split("\n")
     .map(line => {
@@ -63,19 +70,31 @@ function remapView(view: string, id: string, name: string): string {
         if (error instanceof SyntaxError) return line;
         throw error;
       }
-      return JSON.stringify(remapRow(row, id, name));
+      return JSON.stringify(remapRow(row, reader, true, ""));
     })
     .join("\n");
 }
-/** What a view names by its id is a thing of this tool, or of the tool of the same program it says with `tool`:
- * as a row of a list, or as a datum of the reading of a thing, alone or among others. */
-function remapRow(row: unknown, id: string, name: string): unknown {
-  if (Array.isArray(row)) return row.map((value: unknown) => remapRow(value, id, name));
+/** What a view names by its id. A row, `{ id }` at the first level of a line, is a thing of the tool that reads. What
+ * a reading names with `tool` is a thing of that tool of the same program; a `tool` that is no text naming one fails.
+ * What it names without `tool` further in is a thing of the tool that reads when it has it, and otherwise stays the
+ * full id it is, of whoever holds it. The descent goes on inside what has an id. */
+function remapRow(row: unknown, reader: Reader, first: boolean, key: string): unknown {
+  if (Array.isArray(row)) return row.map((value: unknown) => remapRow(value, reader, false, key));
   if (!row || typeof row !== "object") return row;
-  if (!("id" in row) || typeof row.id !== "string")
-    return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, remapRow(value, id, name)]));
-  const { tool, ...thing }: Readonly<Record<string, unknown>> = { ...row };
-  return { ...thing, id: objectOf(id, typeof tool === "string" ? tool : name, row.id) };
+  const inner = Object.fromEntries(
+    Object.entries(row).map(([at, value]) => [at, at === "id" ? value : remapRow(value, reader, false, at)]),
+  );
+  if (!("id" in row) || typeof row.id !== "string") return inner;
+  const { tool, ...thing } = inner;
+  if ("tool" in row) return { ...thing, id: objectOf(reader.id, namedTool(reader, key, tool), row.id) };
+  return first || reader.own.has(row.id) ? { ...thing, id: objectOf(reader.id, reader.name, row.id) } : inner;
+}
+/** The tool a reading says its thing is of: a text that names a tool of the same program, or a defect. */
+function namedTool(reader: Reader, key: string, tool: unknown): string {
+  if (typeof tool === "string" && reader.tools.includes(tool)) return tool;
+  const where = key ? `under ${key}` : "as a row";
+  const what = `${folderOf(reader.id, reader.name)} names a thing ${where} of tool ${JSON.stringify(tool)}`;
+  throw new OutsideDefect(new Error(`${what}, which is not a tool of ${reader.id}`));
 }
 /** A tool lives in another tool of its own program, one that is itself listed among the program's tools. */
 function auditInside(id: string, groups: readonly InstalledGroup[]): void {
@@ -88,7 +107,8 @@ function auditInside(id: string, groups: readonly InstalledGroup[]): void {
   }
 }
 export function installProgram<M extends ProgramMetadata>(meta: M, body: ProgramBody<M>): InstalledProgram {
-  const groups = Object.entries(body.herramientas).map(([name, group]) => groupTool(meta.id, name, group));
+  const tools = Object.keys(body.herramientas);
+  const groups = Object.entries(body.herramientas).map(([name, group]) => groupTool(meta.id, name, group, tools));
   auditInside(meta.id, groups);
   const find = (state: State<Program>, target: string) =>
     groups.find(group => group.folder === target || group.tool.targets(state).includes(target));

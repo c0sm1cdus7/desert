@@ -137,7 +137,13 @@ const ordersOf = (state: State<Picking>, id: string) =>
   state.tools.own.orders
     .filter(each => [each.main, each.spare, ...each.extras.map(extra => extra.item)].includes(id))
     .map(each => ({ id: each.id, text: said.order(each.id), tool: "orders" }));
-const items: ProgramGroup<Picking> = {
+/** What a variant adds to the reading of every thing, under a stack that reads each of its keys. */
+type Named = Readonly<Record<string, unknown>>;
+const others = (named: Named) => {
+  const reads = Object.fromEntries(Object.keys(named).map(key => [key, key]));
+  return Object.keys(reads).length ? [{ title: "Otros", empty: "Nada", reads }] : [];
+};
+const itemsTool = (named: Named): ProgramGroup<Picking> => ({
   purpose: "Guardar cosas",
   palabras: {
     name: "Cosas",
@@ -148,6 +154,7 @@ const items: ProgramGroup<Picking> = {
     presents: [
       { title: "Cosa", empty: "Sin datos", reads: { name: "Nombre" } },
       { title: "Pedidos", empty: "Sin pedidos", reads: { orders: "Pedido" } },
+      ...others(named),
     ],
   },
   acts: { add },
@@ -157,9 +164,9 @@ const items: ProgramGroup<Picking> = {
       ? itemsOf(state)
           .map(item => JSON.stringify({ id: item.id, text: item.name }))
           .join("\n")
-      : JSON.stringify({ name: nameOf(state, target), orders: ordersOf(state, target) }),
+      : JSON.stringify({ name: nameOf(state, target), orders: ordersOf(state, target), ...named }),
   summary: state => String(itemsOf(state).length),
-};
+});
 /** A thing of the other tool, as a reading names it: its local id, its name and the tool it is of. */
 const itemRow = (state: State<Picking>, id: string) => ({ id, text: nameOf(state, id), tool: "items" });
 function orderRead(state: State<Picking>, id: string) {
@@ -199,15 +206,16 @@ const skill = defineMessage({
   parameters: Type.Object({}),
   texts: { es: "Tomá pedidos de las cosas guardadas." },
 });
-/** The composed program; `home` is the tool its orders live in. */
-export function pickingDistribution(home = "items") {
-  const program = programa(
+/** The program and how it varies: `home` is the tool its orders live in, `named` what every thing's reading adds. */
+type Variant = Readonly<{ home?: string; named?: Named }>;
+export const pickingProgram = ({ home = "items", named = {} }: Variant = {}) =>
+  programa(
     { ...definition, codigo: [import.meta.filename] },
     {
       purpose: "Elegir cosas guardadas",
       palabras: { name: "Elecciones", key: "e", itself: [] },
       skill,
-      herramientas: { items, orders: { ...orders, palabras: { ...orders.palabras, inside: home } } },
+      herramientas: { items: itemsTool(named), orders: { ...orders, palabras: { ...orders.palabras, inside: home } } },
       plegar: (own, event): Kept => {
         if (event.layer !== "program") return own;
         if (event.kind === "picking/item-added") return { ...own, items: [...own.items, event.data] };
@@ -216,10 +224,11 @@ export function pickingDistribution(home = "items") {
       summary: () => "Cosas y pedidos",
     },
   );
-  return componer({
-    programas: [program],
+/** The program composed alone. */
+export const pickingDistribution = (variant: Variant = {}) =>
+  componer({
+    programas: [pickingProgram(variant)],
     identidades: true,
     mentes: { asistentes: false, programas: [] },
     presentacion: presentation,
   });
-}

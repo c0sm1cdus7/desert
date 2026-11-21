@@ -2172,10 +2172,18 @@ Un paso `given` de un caso es una acción de la herramienta del caso. Si la acci
 programa, el paso la nombra con `tool`: `{ act: "add", tool: "items", input: { … } }`; su `on`, si lo lleva, es una
 cosa de esa herramienta. Un paso no cruza a otro programa. Prueba: `src/tools/installable/picking.spec.ts`.
 
-Lo que la lectura de una herramienta nombra como `{ id, text, detail? }` es una cosa de esa herramienta, sea una
-fila de su lista o un dato de la lectura de una cosa. Si la cosa es de otra herramienta del mismo programa, lo dice
-con `tool`: `{ id: "1", text: "Tornillo", tool: "items" }`. La base la abre con su número. Así no se nombra una cosa
-de otro programa.
+Lo que la vista de una herramienta nombra como `{ id, text, detail? }` es una cosa, y la base la abre con su número.
+De quién es la cosa:
+
+1. Una fila de la lista de la herramienta (`{ id, … }` en el primer nivel de una línea): es de esa herramienta.
+2. Lo que una lectura nombra con `tool`: `tool` es un texto que nombra una herramienta del mismo programa, y la cosa
+   es de esa herramienta: `{ id: "1", text: "Tornillo", tool: "items" }`. Si `tool` no es un texto o no nombra una
+   herramienta del programa, la lectura falla con un defecto que dice la herramienta que lee, la clave y ese `tool`.
+3. Lo que una lectura nombra sin `tool`, anidado: si es una cosa de la herramienta que lee (está en sus `targets` de
+   ese estado), es suya. Si no, pasa como está escrito: es el id completo de quien la tenga, por ejemplo
+   `notas/personal/1` de otro programa, y la base lo abre sea de la herramienta que sea.
+4. El recorrido no se corta en un objeto que tiene `id`: una lectura que trae su propio `id` en el primer nivel igual
+   abre lo que nombra adentro.
 
 Una necesidad (`needs`) de una herramienta nombra una de sus cosas o, con el nombre de la herramienta, la herramienta
 misma: `{ target: "orders", why: "sin pedidos" }`. Esa aparece en Atención con el nombre de la herramienta y abre su

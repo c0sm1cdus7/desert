@@ -1,12 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { pickingDistribution, pickingWords as said } from "../../../tests/support/installable-picking.ts";
+import {
+  pickingDistribution,
+  pickingProgram,
+  pickingWords as said,
+} from "../../../tests/support/installable-picking.ts";
+import { sampleOptions, sampleProgram } from "../../../tests/support/installable-program.ts";
 import { programChecks } from "../../checks/program-checks.ts";
 import { goTo, seated, type, view, type Seat } from "../../checks/promises/promised-keys.ts";
 import { cast, perform, staged, type House } from "../../checks/promises/promised-stage.ts";
+import { componer } from "../../runtime/distributions/compose.ts";
 import { stacksOf } from "../../surface/menus/lists.ts";
 import { distributionTexts as distribution } from "../../texts/distributions.texts.ts";
 import { surfaceTexts as surface } from "../../texts/surface.texts.ts";
+import { toolTexts as tools } from "../../texts/tools.texts.ts";
 import type { Composition } from "../promises-contract.ts";
+import type { Program } from "../tool-contract.ts";
 import { folderOf, objectOf } from "./destinations.ts";
 
 const { program, shown } = pickingDistribution();
@@ -21,7 +29,7 @@ async function accepted(house: House<Picking>, doing: Doing): Promise<void> {
 const stock = async (house: House<Picking>, ...names: readonly string[]): Promise<void> => {
   for (const name of names) await accepted(house, { act: "items/add", on: folder("items"), input: { name } });
 };
-const rowsAt = (seat: Seat<Picking>, target?: string) =>
+const rowsAt = <X extends Program>(seat: Seat<X>, target?: string) =>
   stacksOf({ kind: "view", tool: "picking", at: 0, ...(target === undefined ? {} : { target }) }, seat.tools).flatMap(
     stack => stack.rows,
   );
@@ -135,6 +143,74 @@ describe("things named across the tools of one program", () => {
       }
     }));
 });
+describe("what a reading names outside the tool that reads", () => {
+  it("opens a thing of another program that a reading names by its full id", () => {
+    const note = objectOf("notas", "personal", "same");
+    const named = { other: { id: note, text: "Nota ajena" } };
+    const beside = componer({ ...sampleOptions, programas: [pickingProgram({ named }), sampleProgram] });
+    return staged(beside.program, async ({ house }) => {
+      const added = await perform(house(), "picking", {
+        act: "items/add",
+        on: folder("items"),
+        input: { name: "Uno" },
+      });
+      expect(added.status).toBe("accepted");
+      const seat = seated(house(), cast.admin, beside.shown);
+      try {
+        goTo(seat, "picking", thingOf("items", "1"));
+        const row = rowsAt(seat, thingOf("items", "1")).find(each => each.title === "Nota ajena");
+        expect(row).toMatchObject({ opens: note, open: { kind: "view", tool: "notas", target: note } });
+        type(seat.router, row?.key ?? "");
+        expect(seat.router.screen(view).title).toBe("same");
+        expect(seat.defects).toEqual([]);
+      } finally {
+        seat.router.stop();
+      }
+    });
+  });
+  /** Opens the first thing with a variant of the program whose readings add `named`, and calls `then` on it. */
+  const reading = (
+    named: Readonly<Record<string, unknown>>,
+    then: (seat: Seat<Picking>, house: House<Picking>) => void,
+  ) => {
+    const { program, shown } = pickingDistribution({ named });
+    return staged(program, async ({ house }) => {
+      await stock(house(), "Tornillo");
+      await accepted(house(), {
+        act: "orders/take",
+        on: folder("orders"),
+        input: { main: "1", extras: [{ note: "A" }] },
+      });
+      const seat = seated(house(), cast.admin, shown);
+      try {
+        then(seat, house());
+      } finally {
+        seat.router.stop();
+      }
+    });
+  };
+  it.each([["nope"], [7]])("fails loud on a reading that names a thing of tool %j, which its program lacks", tool =>
+    reading({ bogus: { id: "1", text: "Fantasma", tool } }, (seat, house) => {
+      goTo(seat, "picking", thingOf("items", "1"));
+      expect(seat.router.screen(view).title).toBe(surface.error);
+      expect(seat.defects).toEqual([tools.defect("picking/picking")]);
+      const told = house.journal.replay<string[]>([], (all, event) =>
+        event.layer === "house" && event.kind === "tool-entry" ? [...all, event.data.diagnostic ?? ""] : all,
+      );
+      const bad = JSON.stringify(tool);
+      expect(told.join("\n")).toContain(`picking/items names a thing under bogus of tool ${bad}, which is not a tool`);
+    }),
+  );
+  it("opens what a reading names inside, also when the reading carries an id of its own", () =>
+    reading({ id: "1" }, seat => {
+      goTo(seat, "picking", thingOf("items", "1"));
+      const named = rowsAt(seat, thingOf("items", "1")).find(each => each.title === said.order("1"));
+      expect(named).toMatchObject({ opens: thingOf("orders", "1"), key: "1" });
+      type(seat.router, named?.key ?? "");
+      expect(seat.router.screen(view).title).toBe(said.order("1"));
+      expect(seat.defects).toEqual([]);
+    }));
+});
 describe("what a tool itself needs", () => {
   it("lists a need on the folder of a tool in Attention, on a row that opens the tool", () =>
     staged(program, async ({ house }) => {
@@ -189,7 +265,7 @@ describe("a tool that lives inside another of its program", () => {
       }
     }));
   it("refuses a tool that lives in itself or in one its program does not have", () => {
-    expect(() => pickingDistribution("orders")).toThrow("picking/orders lives in orders");
-    expect(() => pickingDistribution("stock")).toThrow("picking/orders lives in stock");
+    expect(() => pickingDistribution({ home: "orders" })).toThrow("picking/orders lives in orders");
+    expect(() => pickingDistribution({ home: "stock" })).toThrow("picking/orders lives in stock");
   });
 });
