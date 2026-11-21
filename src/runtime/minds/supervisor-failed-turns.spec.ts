@@ -148,7 +148,18 @@ it("reads who wrote the facts that woke the failed turn: only when all are its o
     toolOf: () => undefined,
   };
   const failed = closed({ reason: "invalid" });
-  const own = { ...closed({}, "mind:supervisor", 1), id: "e1" };
+  // Its line is a message to the mind, the fact that really wakes a consciousness.
+  const said = { to: "mind:notes", text: "¿Qué pasó?" };
+  const own: Event = {
+    layer: "program",
+    kind: "talk/said",
+    data: said,
+    by: "mind:supervisor",
+    cause: [],
+    id: "e1",
+    seq: 1,
+    at: 0,
+  };
   const other = { ...closed({}, "ana", 3), id: "e3" };
   const wakes = (...history: Event[]) => supervisorWakes(policy, 2, failed, [...history, failed]);
   expect(wakes(own, opening(["e1"]))).toBe(false);
@@ -157,11 +168,16 @@ it("reads who wrote the facts that woke the failed turn: only when all are its o
   // A fact the journal does not hold was not written by the supervisor, and a turn nothing woke is not its doing.
   expect(wakes(opening(["e1"]))).toBe(true);
   expect(wakes(own, opening([]))).toBe(true);
-  // Only its lines are its doing: a journey it stopped is not, alone or beside a line of its own.
+  // A journey it stopped is not its doing when the failed turn applied nothing, alone or beside a line of its own.
   const stop = { ...effect("journey-interrupted", { reason: "Sin visto" }, "mind:supervisor", [], "journey:j") };
   const stopped: Event = { ...stop, id: "e0", seq: 0, at: 0 };
   expect(wakes(stopped, opening(["e0"]))).toBe(true);
   expect(wakes(stopped, own, opening(["e0", "e1"]))).toBe(true);
+  // Unless the failed turn applied an act: then the stop is its doing, or the two would loop through stops.
+  const acted = closed({ reason: "invalid", applied: ["e6"] });
+  expect(supervisorWakes(policy, 2, acted, [stopped, opening(["e0"]), acted])).toBe(false);
+  expect(supervisorWakes(policy, 2, acted, [stopped, own, opening(["e0", "e1"]), acted])).toBe(false);
+  expect(supervisorWakes(policy, 2, acted, [stopped, other, opening(["e0", "e3"]), acted])).toBe(true);
   // Only the opening of that very turn counts, and a journey's cut turn wakes it whoever woke the journey.
   expect(wakes(own, opening(["e1"], "mind:notes", "other"))).toBe(true);
   const journey = { ...failed, process: "journey:j" };

@@ -12,7 +12,8 @@ export const supervisorHouse = defineMessage({
       "actúa, mente o identidad, espera tu veredicto en ese momento. Cuando una mente te consulta dentro de su " +
       "turno. Y en un turno tuyo, que despierta solo por hechos: un journey que termina, desiste, se corta o " +
       "falla, el turno de una consciencia que falla, o alguien que te habla por un programa de mensajes. No te " +
-      "despierta la falla de una mente a la que solo despertó un mensaje tuyo. Nada te despierta por reloj.\n\n" +
+      "despierta la falla de una consciencia a la que solo despertaron mensajes tuyos. Si frenaste su journey y " +
+      "falla sin haber hecho nada, sí te despierta. Nada te despierta por reloj.\n\n" +
       "Cómo leer un veredicto o una consulta: Programas trae cada programa y su propósito; Casa, la escena de " +
       "cada mente; Pedido, el acto que requiere supervisión o la pregunta; Quién actúa, su encargo, su plan y lo " +
       "último que hizo; Resultados de las reglas, lo que el código ya evaluó. Una regla que frena gana siempre: " +

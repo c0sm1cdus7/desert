@@ -140,6 +140,68 @@ it("wakes once for a consciousness that fails on the stop of its journey: a stop
   expect(framesOf(f).filter(supervising).at(-1)).toContain("Falló un turno de la consciencia de mind:notes");
   expect(journeyFrozen(journeyOf(house))).toBe(true);
 }, 60000);
+/** A supervisor that, in each of its first six own turns, stops every open journey that is not frozen. */
+const stopping = (house: RequestHouse) =>
+  supervisor(
+    () => ({ outcome: "passed", text: "Sí" }),
+    (_, turn) =>
+      turn > 6
+        ? []
+        : [...house.tools.state().house.journeys.values()]
+            .filter(journey => !journey.closed && !journeyFrozen(journey))
+            .map(journey => ({ act: "interrupt", target: journey.id, input: { reason } })),
+  );
+/** A kit that names the same tool twice: the journey it opens is refused, as a correction. */
+const adds = { tool: "notes", acts: ["personal/add"] };
+const twice = [adds, { tool: "notes", acts: ["outbox/send"] }];
+it.each(["resume", "open"] as const)(
+  "wakes once for a consciousness that %ss on the stop and then fails, however often the supervisor would stop again",
+  async first => {
+    const f = supervisedFixture();
+    fixtures.push(f);
+    const house = await f.open();
+    withSend(house);
+    const respond = script(house, "resume", []);
+    const judge = stopping(house);
+    const answered = new Set<string>();
+    /** On a stop the notes consciousness applies `first`, then an act that is refused, and never corrects it. */
+    const decide = () => {
+      const turn = currentTurn(house);
+      if (answered.has(turn.data.turn)) return { nothing: "valid" };
+      answered.add(turn.data.turn);
+      const frozen = [...house.tools.state().house.journeys.values()].find(journeyFrozen);
+      const act =
+        first === "resume"
+          ? { act: "resume", target: frozen?.id ?? "", input: { note: "Sigo" } }
+          : { act: "open", target: "mind:notes", input: { goal: "Otra", kit: [adds] } };
+      return answer([act, { act: "open", target: "mind:notes", input: { goal: "Mala", kit: twice } }]);
+    };
+    const waits = (process: string) =>
+      answer([{ act: "wait", target: process, input: { what: "El visto", until: Date.now() + 3_600_000 } }]);
+    f.respond(frame => {
+      if (supervising(frame)) return judge(frame);
+      const turn = currentTurn(house);
+      if (turn.process) return waits(turn.process);
+      return woke(house, "journey-interrupted") ? decide() : respond(frame);
+    });
+    expect(send(house, "mind:notes", "Anotá el mate").status).toBe("accepted");
+    await (await house.minds)?.flush();
+    expect(send(house, "mind:supervisor", "Frená el journey de notas").status).toBe("accepted");
+    await (await house.minds)?.flush();
+    const closed = history(house).flatMap(event =>
+      event.layer === "house" && event.kind === "mind-turn-closed" && !event.process ? [event] : [],
+    );
+    expect(closed.map(event => `${event.by} ${event.data.outcome}`)).toEqual([
+      "mind:notes done",
+      "mind:supervisor done",
+      "mind:notes failed",
+    ]);
+    // The failed turn did apply `first` before the refused act.
+    expect(closed.at(-1)?.data.applied).toHaveLength(1);
+    expect(history(house).filter(event => event.kind === "journey-interrupted")).toHaveLength(1);
+  },
+  60000,
+);
 it("while frozen, its wait does not wake it and its acts are refused, until its consciousness decides", async () => {
   const f = supervisedFixture();
   fixtures.push(f);
