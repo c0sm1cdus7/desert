@@ -42,6 +42,15 @@ export const journeyCut = defineMessage({
       (cuts === undefined ? "" : ` Turnos cortados de este journey hasta ahora, contando este: ${cuts}.`),
   },
 });
+/** The cut journeys whose lines do not fit next to the mind's own scene, counted in one line of their own. */
+export const journeyCutsMore = defineMessage({
+  id: "journey.cuts-more",
+  kind: "text",
+  parameters: object({ cuts: Type.Integer({ minimum: 1 }) }),
+  texts: {
+    es: ({ cuts }) => `Journeys cortados que no entran en esta escena: ${cuts}.`,
+  },
+});
 /** Why a journey woke, in words: the house restarted during its turn, or its consciousness went back to it. */
 export const journeyWoke = defineMessage({
   id: "journey.woke",
