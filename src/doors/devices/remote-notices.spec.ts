@@ -29,7 +29,8 @@ function start(h: Rig, outbox: ReturnType<typeof deviceOutbox>, send: typeof fet
     fetch: send,
     signal: controller.signal,
     backoff: { first: 10, max: 40 },
-    report: reason => reasons.push(reason),
+    // Each reason says what it is about: a notice's problem, or why a connection ended.
+    report: (reason, about) => reasons.push(about === "notice" ? reason : `connection: ${reason}`),
   });
   onCleanup(async () => {
     controller.abort();
@@ -72,7 +73,7 @@ it("sends a notice again after the poll carrying it was cut, and the house recor
   const id = executions(h)[0]?.execution ?? "";
   outbox.push(finished(id));
   await wait(() => expect(outbox.answers.get(id)).toBe("recorded"));
-  expect(reasons).toContain("TypeError: cut after sending");
+  expect(reasons).toContain("connection: TypeError: cut after sending");
   const count = h.rig.house.journal.replay(0, (n, event) => n + (event.kind === "device-execution-notice" ? 1 : 0));
   expect(count).toBe(1);
 });
@@ -88,7 +89,7 @@ it("fails loudly against a house older than its notices and keeps every notice f
   };
   const reasons = start(h, outbox, old);
   await wait(() => expect(reasons.length).toBeGreaterThan(1));
-  expect(new Set(reasons)).toEqual(new Set([`Error: ${deviceTexts.refusedBody}`]));
+  expect(new Set(reasons)).toEqual(new Set([`connection: Error: ${deviceTexts.refusedBody}`]));
   expect(outbox.answers.size).toBe(0);
 });
 it("sends no notices field from a device whose tools do not announce, so an older house still reads it", async () => {

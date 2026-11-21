@@ -23,10 +23,12 @@ export type RemoteDeviceOptions = Readonly<{
   fetch?: typeof fetch;
   signal?: AbortSignal;
   backoff?: Readonly<{ first: number; max: number }>;
-  /** Hears why each connection ended before the next attempt, and each notice the house refused; the reason never
-   * carries the session token. */
-  report?: (reason: string) => void;
+  /** Hears why each connection ended before the next attempt ("connection"), and each problem with a notice, such as
+   * one the house refused ("notice"); the reason never carries the session token. */
+  report?: (reason: string, about: DeviceReport) => void;
 }>;
+/** What a reported reason is about, so the host can tell a dropped connection from a notice problem. */
+type DeviceReport = "connection" | "notice";
 type Link = {
   token: string;
   ready: CallResult[];
@@ -53,7 +55,7 @@ class RemoteDevice {
       try {
         await this.serve(await this.open());
       } catch (error) {
-        this.tell(reasonOf(error));
+        this.tell(reasonOf(error), "connection");
       }
       if (this.stopped()) return;
       await pause(Math.min(max, first * 2 ** this.retries), undefined, { signal: this.signal }).catch(() => undefined);
@@ -64,9 +66,9 @@ class RemoteDevice {
     return this.signal.aborted;
   }
   /** Nothing fails in silence: the host decides where the reason goes; a failing reporter never stops the device. */
-  private tell(reason: string) {
+  private tell(reason: string, about: DeviceReport) {
     try {
-      this.options.report?.(reason);
+      this.options.report?.(reason, about);
     } catch {
       /* The device keeps serving even when its reporter breaks. */
     }
@@ -101,7 +103,7 @@ class RemoteDevice {
     if (notices)
       link.outbox = new NoticeOutbox(
         notices,
-        reason => this.tell(reason),
+        reason => this.tell(reason, "notice"),
         () => this.flush(link),
       );
     const stop = link.outbox ? await link.outbox.open(() => link.alive) : () => {};

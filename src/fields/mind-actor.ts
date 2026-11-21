@@ -4,6 +4,8 @@ import { requireMind } from "./mind-errors.ts";
 export type ToolMindActor = `mind:${string}`;
 export type AssistantActor = `assistant:${string}`;
 export type MindActor = ToolMindActor | AssistantActor;
+/** The one house supervisor: a mind with no program of its own. Programs name it here, as a thread participant. */
+export const houseSupervisor = "mind:supervisor" satisfies ToolMindActor;
 const ownerPattern = "[a-z][a-z0-9.-]{0,63}";
 export const assistantOwner = Type.String({ pattern: `^${ownerPattern}$` });
 export const mindActor = Type.Union([

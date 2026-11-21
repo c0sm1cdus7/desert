@@ -74,8 +74,18 @@ it("relays an in-process device's notices: owed ones, new ones, held until recor
   mac.connection.disconnect();
   const link = rig.reconnect("mac", mac.pair, process);
   const reasons: string[] = [];
+  const written: string[] = [];
   if (!process.notices) throw new Error("Missing notices");
-  const stop = relayNotices(link, process.notices, reason => reasons.push(reason));
+  const stop = relayNotices(
+    link,
+    process.notices,
+    reason => reasons.push(reason),
+    notice => {
+      written.push(notice.execution);
+      // A failing observer is reported and never keeps the written notice owed.
+      throw new Error("observer broke");
+    },
+  );
   await vi.waitFor(() => expect(outbox.answers.get("missing")).toBe("refused"));
   expect(reasons).toEqual([expect.stringContaining("missing")]);
   const pending = settle(rig.act("mac"));
@@ -83,9 +93,13 @@ it("relays an in-process device's notices: owed ones, new ones, held until recor
   const [id = ""] = rig.house.tools.state().house.devices.executions.keys();
   outbox.push(finished(id, { exit: 0 }));
   expect(outbox.answers.has(id)).toBe(false);
+  expect(written).toEqual([]);
   open({ status: "accepted", reference: "started" });
   await pending;
   await vi.waitFor(() => expect(outbox.answers.get(id)).toBe("recorded"));
+  // Only the notice the house wrote is heard, once its held start result let it be recorded; the refused one is not.
+  expect(written).toEqual([id]);
+  expect(reasons).toEqual([expect.stringContaining("missing"), expect.stringContaining("observer broke")]);
   stop();
   expect(outbox.listening()).toBe(0);
 });
