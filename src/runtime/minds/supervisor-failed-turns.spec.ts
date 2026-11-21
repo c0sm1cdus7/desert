@@ -157,6 +157,11 @@ it("reads who wrote the facts that woke the failed turn: only when all are its o
   // A fact the journal does not hold was not written by the supervisor, and a turn nothing woke is not its doing.
   expect(wakes(opening(["e1"]))).toBe(true);
   expect(wakes(own, opening([]))).toBe(true);
+  // Only its lines are its doing: a journey it stopped is not, alone or beside a line of its own.
+  const stop = { ...effect("journey-interrupted", { reason: "Sin visto" }, "mind:supervisor", [], "journey:j") };
+  const stopped: Event = { ...stop, id: "e0", seq: 0, at: 0 };
+  expect(wakes(stopped, opening(["e0"]))).toBe(true);
+  expect(wakes(stopped, own, opening(["e0", "e1"]))).toBe(true);
   // Only the opening of that very turn counts, and a journey's cut turn wakes it whoever woke the journey.
   expect(wakes(own, opening(["e1"], "mind:notes", "other"))).toBe(true);
   const journey = { ...failed, process: "journey:j" };

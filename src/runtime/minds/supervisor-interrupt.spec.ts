@@ -117,6 +117,29 @@ it.each(["resume", "desist"] as const)(
   },
   60000,
 );
+it("wakes once for a consciousness that fails on the stop of its journey: a stop is no line of its own", async () => {
+  const f = supervisedFixture();
+  fixtures.push(f);
+  const house = await f.open();
+  withSend(house);
+  const respond = script(house, "resume", []);
+  /** The notes consciousness never answers validly to the stop; everything else goes as scripted. */
+  const fails = (frame: string) =>
+    !supervising(frame) && !currentTurn(house).process && woke(house, "journey-interrupted");
+  f.respond(frame => (fails(frame) ? { nothing: "valid" } : respond(frame)));
+  expect(send(house, "mind:notes", "Anotá el mate").status).toBe("accepted");
+  await (await house.minds)?.flush();
+  expect(send(house, "mind:supervisor", "Frená el journey de notas").status).toBe("accepted");
+  await (await house.minds)?.flush();
+  const closings = history(house).flatMap(event =>
+    event.layer === "house" && event.kind === "mind-turn-closed" && !event.process
+      ? [`${event.by} ${event.data.outcome}`]
+      : [],
+  );
+  expect(closings).toEqual(["mind:notes done", "mind:supervisor done", "mind:notes failed", "mind:supervisor done"]);
+  expect(framesOf(f).filter(supervising).at(-1)).toContain("Falló un turno de la consciencia de mind:notes");
+  expect(journeyFrozen(journeyOf(house))).toBe(true);
+}, 60000);
 it("while frozen, its wait does not wake it and its acts are refused, until its consciousness decides", async () => {
   const f = supervisedFixture();
   fixtures.push(f);
