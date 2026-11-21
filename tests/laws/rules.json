@@ -3373,6 +3373,19 @@
         "src/runtime/minds/mind-assignment.spec.ts",
         "src/runtime/minds/mind-model-bridge.spec.ts"
       ]
+    },
+    {
+      "id": 304,
+      "rule": "Ninguna regla de tiempo decide cuándo piensa una mente: despierta por un hecho o por la hora que eligió en un wait. Un turno de journey aplica los actos de cada respuesta, le dice a la mente qué hizo cada uno (aceptado, o rechazado con su motivo, y lo que devolvió) y vuelve a llamar en el mismo turno agregando mensajes al final, sin rearmar el marco, hasta que el último acto aplicado es wait, end o desist o se agotan las doce llamadas. Una respuesta vacía vuelve como corrección. El cierre del turno lleva su motivo: el reinicio despierta al mismo journey; todo otro corte no se reintenta, queda en la escena de la casa y despierta una vez a la consciencia, que puede retomar o desistir de sus journeys abiertos. Un cierre sin motivo, anterior al 21/11, no despierta a nadie. La agenda atiende primero el despertar más viejo.",
+      "from": "21/11 · journeys por hechos, diseño firmado",
+      "guarantee": "spec",
+      "evidence": [
+        "src/runtime/distributions/program-mind-journeys.spec.ts",
+        "src/runtime/distributions/program-mind-journey-turns.spec.ts",
+        "src/runtime/minds/journey-turn.spec.ts",
+        "src/runtime/minds/journey-wakes.spec.ts",
+        "src/adapters/models/conversation.spec.ts"
+      ]
     }
   ]
 }
