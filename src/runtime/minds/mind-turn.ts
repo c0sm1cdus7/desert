@@ -192,13 +192,12 @@ class MindTurnRun {
     return resultsText(this.turn.language, reports, now.now, menus, this.turn.scope.kind === "journey");
   }
   /** A consciousness answers once. A journey's turn closes only when its last act, applied, says how it goes on;
-   * otherwise the mind hears what its acts did and answers again, with a correction of its own to spend. */
+   * otherwise the mind hears what its acts did and answers again, bounded only by the twelve calls. */
   private goOn(answer: MindAnswer, reports: readonly ActReport[], menu: TurnSnapshot["menu"]): TurnOutcome | undefined {
     const last = answer.acts.at(-1);
     const closes = !!last && continuation(menu.find(item => item.act === last.act && item.target === last.target));
     if (this.turn.scope.kind !== "journey" || (closes && reports.at(-1)?.status === "accepted")) return this.finish();
     this.talk.tell(this.results(reports));
-    this.caller.settle();
     return undefined;
   }
   private async step(): Promise<TurnOutcome | undefined> {

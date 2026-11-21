@@ -2,7 +2,7 @@
 import { Type } from "@sinclair/typebox";
 import { expect, it } from "vitest";
 import { runMindTurn } from "./mind-turn.ts";
-import type { TurnPorts, TurnWake } from "./mind-ports.ts";
+import type { ModelOutcome, TurnPorts, TurnWake } from "./mind-ports.ts";
 import { fixture, ok } from "../../../tests/support/mind-turn-fixture.ts";
 import { JourneyKitRefused, JourneyWaitRefused } from "../../tools/minds/journey-controls.ts";
 import { journeyInputs } from "../../tools/minds/journey-menu.ts";
@@ -49,21 +49,22 @@ it("a tool's refusal is a result, not a correction: the rest waits and the mind 
   expect(told).toContain("Ahora: 5");
   expect(second?.exchanges?.[0]?.answer).toBe(JSON.stringify({ scene: "Sigo", consulta: null, acts: [say, wait] }));
 });
-it("each applied answer gives the next its own correction, all within the call limit", async () => {
+it("corrections in a row go on: only the twelve calls end a journey turn (21/11)", async () => {
   const invalid = ok({ scene: "Sigo", consulta: null, acts: [] });
-  const f = fixture([answer([say]), invalid, answer([say]), invalid, answer([wait])]);
+  const f = fixture([invalid, invalid, invalid, answer([wait])]);
   const read: TurnPorts["read"] = () => ({ active: true, through: 1, rulesVersion: "v1", menu, now: 5 });
-  const outcome = await runMindTurn({ ...f.ports, read }, wake);
-  expect(outcome).toMatchObject({ outcome: "done", calls: 5 });
+  expect(await runMindTurn({ ...f.ports, read }, wake)).toMatchObject({ outcome: "done", calls: 4 });
   const faults = f.events.flatMap(event => (event.kind === "mind-answer-invalid" ? [event.data.faults] : []));
-  expect(faults).toEqual([[{ code: "continuation", path: "/acts" }], [{ code: "continuation", path: "/acts" }]]);
+  expect(faults).toHaveLength(3);
 });
-it("two corrections in a row end the turn as invalid", async () => {
+it("a journey that never says how it goes on stops at the call limit, not at a count of corrections", async () => {
   const invalid = ok({ scene: "Sigo", consulta: null, acts: [] });
-  const f = fixture([invalid, invalid]);
+  const broken: ModelOutcome = { kind: "invalid", reason: "json" };
+  const f = fixture([...Array.from({ length: 6 }, () => invalid), ...Array.from({ length: 6 }, () => broken)]);
   const read: TurnPorts["read"] = () => ({ active: true, through: 1, rulesVersion: "v1", menu, now: 5 });
-  expect(await runMindTurn({ ...f.ports, read }, wake)).toMatchObject({ outcome: "failed", reason: "invalid" });
-  expect(f.state().turns.get("t1")?.closed?.data.reason).toBe("invalid");
+  expect(await runMindTurn({ ...f.ports, read }, wake)).toMatchObject({ outcome: "failed", reason: "call-limit" });
+  expect(f.model).toHaveBeenCalledTimes(12);
+  expect(f.state().turns.get("t1")?.closed?.data).toMatchObject({ reason: "call-limit", calls: 12 });
 });
 const read: TurnPorts["read"] = () => ({ active: true, through: 1, rulesVersion: "v1", menu, now: 5 });
 /** Accepts every act but a wait that ends before the house clock, which the journey control refuses. */

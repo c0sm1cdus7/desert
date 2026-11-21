@@ -29,12 +29,16 @@ export const journeyControlPurpose = defineMessage({
       })[control],
   },
 });
-/** A journey turn cut short, said in the house scene and to the consciousness it wakes. */
+/** A journey turn cut short, said in the house scene and, with how many cuts it has, to the consciousness it wakes. */
 export const journeyCut = defineMessage({
   id: "journey.cut",
   kind: "text",
-  parameters: object({ goal: Type.String(), reason: Type.String() }),
-  texts: { es: ({ goal, reason }) => `Se cortó un turno del journey «${goal}»: ${reason} No se reintentó nada.` },
+  parameters: object({ goal: Type.String(), reason: Type.String(), cuts: Type.Optional(Type.Integer()) }),
+  texts: {
+    es: ({ goal, reason, cuts }) =>
+      `Se cortó un turno del journey «${goal}»: ${reason} No se reintentó nada.` +
+      (cuts === undefined ? "" : ` Turnos cortados de este journey hasta ahora, contando este: ${cuts}.`),
+  },
 });
 /** Why a journey woke, in words: the house restarted during its turn, or its consciousness went back to it. */
 export const journeyWoke = defineMessage({

@@ -96,14 +96,14 @@ it("un journey sin kit no ejecuta una acción aunque el transporte la proponga",
   });
   f.wake(house);
   await (await house.minds)?.flush();
-  // The journey's answer is invalid twice and its turn fails; its consciousness wakes once to hear it.
-  expect(calls).toBe(4);
+  // The journey's answer is corrected until the twelve calls run out (21/11); its consciousness wakes once to hear it.
+  expect(calls).toBe(14);
   expect(house.tools.state().tools.notas.count).toBe(1);
   const journey = [...house.tools.state().house.journeys.values()][0];
   const turns = [...house.tools.state().house.minds.turns.values()];
   expect(turns.find(turn => turn.opened.process === journey?.id)?.closed?.data).toMatchObject({
     outcome: "failed",
-    reason: "invalid",
+    reason: "call-limit",
   });
   expect(turns.at(-1)?.opened.process).toBeUndefined();
   expect(journey?.selections?.selections).toEqual([]);

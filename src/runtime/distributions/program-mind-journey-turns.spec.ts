@@ -49,6 +49,7 @@ it("the call limit ends the turn failed, says so, and wakes the consciousness on
   expect(woke[1]?.changing).toContain(
     "Se cortó un turno del journey «Anotar»: El turno llegó al límite de doce llamadas sin decir cómo sigue.",
   );
+  expect(woke[1]?.changing).toContain("Turnos cortados de este journey hasta ahora, contando este: 1.");
   expect(journey?.closed).toBeUndefined();
 });
 it("an answer with no act, no continuation and no consultation goes back as «decí cómo seguís»", async () => {

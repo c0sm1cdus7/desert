@@ -53,7 +53,7 @@ export type TurnCaller = Readonly<{
   rejection: () => ProviderRejection | undefined;
   calls: () => number;
   correct: () => boolean;
-  /** An answer whose acts were applied gives the next answer its own correction, within the same call limit. */
+  /** A consciousness answer whose acts were applied gives the next answer its own correction. */
   settle: () => void;
   pendingInvalid: () => boolean;
   close: () => void;
@@ -111,10 +111,11 @@ class TurnCallLedger {
   constructor(turn: TurnContext) {
     this.turn = turn;
   }
+  /** A journey turn corrects as often as it needs within its twelve calls (21/11); a consciousness, once. */
   correct = (): boolean => {
-    if (this.corrected) return false;
+    if (this.corrected && this.turn.scope.kind !== "journey") return false;
     this.corrected = true;
-    this.turn.usage.corrections = 1;
+    this.turn.usage.corrections += 1;
     return true;
   };
   receive(outcome: ModelOutcome, soft = false): ModelOutcome {
