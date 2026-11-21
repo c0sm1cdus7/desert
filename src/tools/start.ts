@@ -1,4 +1,4 @@
-// Comprueba y arranca herramientas, reacciones y atención; despacha actos y cierra el motor.
+// Checks and starts tools, reactions and attention; dispatches acts and closes the engine.
 import { scrubDoorValue } from "../house/doors/door-material.ts";
 import { checkComposition, checkOwn } from "./execution/composed-authority.ts";
 import { attentionEffects } from "./attention-effects.ts";

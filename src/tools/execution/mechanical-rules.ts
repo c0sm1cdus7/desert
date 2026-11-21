@@ -1,4 +1,4 @@
-// Controla reglas vigentes para todo actor y deja resultados durables antes de habilitar el acto.
+// Checks rules in force for every actor and leaves durable results before enabling the act.
 import { MechanicalRuleFailure } from "../rules/rule-failure.ts";
 import type { TSchema } from "@sinclair/typebox";
 import { effect, type HouseEvent, type HouseEmission } from "../../house/facts.ts";

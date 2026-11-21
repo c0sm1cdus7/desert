@@ -1,4 +1,4 @@
-// Declara condiciones cerradas y versiones de reglas como datos, sin expresiones ejecutables.
+// Declares closed conditions and rule versions as data, without executable expressions.
 import type { DeepReadonly } from "../../journal/readonly-state.ts";
 import { Type, type Static } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";

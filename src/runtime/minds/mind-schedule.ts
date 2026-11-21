@@ -1,4 +1,4 @@
-// Agenda despertares confirmados y recupera turnos interrumpidos sin nuevos hechos ni reenvíos.
+// Schedules confirmed wakes and recovers interrupted turns without new facts or resends.
 import { requireMind } from "../../fields/mind-errors.ts";
 import { parseMindActor } from "../../fields/mind-actor.ts";
 import { effect, type HouseEmission, type HouseEvent } from "../../house/facts.ts";

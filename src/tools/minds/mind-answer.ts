@@ -1,4 +1,4 @@
-// Construye respuestas cerradas desde el menú y comprueba propuesta, destino, alcance y permiso vigente.
+// Builds closed answers from the menu and checks proposal, destination, scope and current permission.
 import { executionDestination, type ExecutionDestination } from "../../fields/device-protocol.ts";
 import { destinationFields, destinationAllowed } from "./device-answer.ts";
 import { Type, type Static, type TSchema } from "@sinclair/typebox";

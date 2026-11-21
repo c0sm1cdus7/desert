@@ -1,4 +1,4 @@
-// Distingue al asistente de una identidad de la mente propia de una herramienta.
+// Tells an identity's assistant apart from a tool's own mind.
 import { Type } from "@sinclair/typebox";
 import { requireMind } from "./mind-errors.ts";
 export type ToolMindActor = `mind:${string}`;

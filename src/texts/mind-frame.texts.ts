@@ -1,4 +1,4 @@
-// Declara las instrucciones y los rótulos que la casa usa al armar el marco de una mente.
+// Declares the instructions and labels the house uses to build a mind's frame.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 import { object } from "../fields/visible-text.ts";

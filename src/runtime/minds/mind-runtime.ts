@@ -1,4 +1,4 @@
-// Enciende el pensamiento pedido por la distribución sobre el diario reconstruido y lo apaga con la casa.
+// Starts the thinking the distribution asks for over the rebuilt journal and stops it with the house.
 import { randomUUID } from "node:crypto";
 import { Value } from "@sinclair/typebox/value";
 import { effect } from "../../house/facts.ts";

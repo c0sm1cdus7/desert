@@ -1,4 +1,4 @@
-// Proyecta destinos, permisos y datos visibles de la casa para cada alcance del pensamiento.
+// Projects destinations, permissions and visible house data for each scope of thought.
 import type { ExecutionDestination } from "../../fields/device-protocol.ts";
 import { targetTool } from "../../house/attendance.ts";
 import { deviceChoices } from "../../house/devices/device-state.ts";

@@ -1,4 +1,4 @@
-// Reconstruye journeys sin cambiar su autor ni volver a abrir un proceso cerrado.
+// Rebuilds journeys without changing their author or reopening a closed process.
 import { migrateKit, type KitMigration } from "../kit-migration.ts";
 import { selects, herramientaDe, explicitKit, type KitLayout, type SelectionKit } from "../kit-selection.ts";
 import { Value } from "@sinclair/typebox/value";

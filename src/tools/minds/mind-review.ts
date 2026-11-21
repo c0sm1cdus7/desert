@@ -1,4 +1,4 @@
-// Declara el puerto de reglas y supervisor sin implementar pensamiento ni ejecutar modelos.
+// Declares the rules and supervisor port without implementing thought or running models.
 import type { ProposedAct } from "./mind-answer.ts";
 import type { TurnContext, MindScope } from "./mind-contract.ts";
 /** `rule`: an act a mechanical rule marks as one that requires supervision; nothing else waits for the supervisor

@@ -1,4 +1,4 @@
-// Declara los hechos públicos de turnos, consultas, revisiones, mensajes y escenas de proceso.
+// Declares the public facts of turns, consultations, reviews, messages and process scenes.
 import { executionDestination } from "../../fields/device-protocol.ts";
 import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";

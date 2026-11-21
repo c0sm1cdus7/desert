@@ -1,4 +1,4 @@
-// Presenta las cuatro capas fijas y el contenido variable del marco en el idioma de la casa.
+// Presents the four fixed layers and the variable content of the frame in the house language.
 import type { Language } from "../../fields/languages.ts";
 import { frameHouse, frameLabels, frameSection } from "../../texts/mind-frame.texts.ts";
 import type { FrameItem, FrameSnapshot, MindFrame } from "./mind-frame.ts";

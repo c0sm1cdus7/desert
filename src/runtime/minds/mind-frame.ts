@@ -1,4 +1,4 @@
-// Construye una instantánea explícita del marco de una mente en la secuencia del turno.
+// Builds an explicit snapshot of a mind's frame at the turn's sequence.
 import type { Skill, Message } from "../../fields/messages.ts";
 import type { MindDefinition, MindScope, TurnContext } from "../../tools/minds/mind-contract.ts";
 export type FrameItem = Readonly<{ id: string; text: string; covered?: boolean }>;

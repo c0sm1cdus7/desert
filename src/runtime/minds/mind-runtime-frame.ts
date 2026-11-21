@@ -1,4 +1,4 @@
-// Arma marcos visibles con el pedido completo acotado y restaura los cortes durables del hilo propio.
+// Builds visible frames with the full request bounded and restores the durable cuts of the own thread.
 import { diagnoseMindRequest, diagnoseFittedMindRequest } from "./mind-request.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { MindScope, TurnContext } from "../../tools/minds/mind-contract.ts";

@@ -1,4 +1,4 @@
-// Ofrece comunicación o trabajo autorizado y controles propios según el estado de cada journey.
+// Offers communication or authorized work and own controls according to each journey's state.
 import type { KitMigration } from "../../house/kit-migration.ts";
 import { journeyAllows } from "../../house/minds/journey-state.ts";
 import type { KitLayout } from "../../house/kit-selection.ts";

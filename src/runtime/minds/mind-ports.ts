@@ -1,4 +1,4 @@
-// Declara los puertos del turno y serializa sus doce intentos físicos compartidos.
+// Declares the turn's ports and serializes its twelve shared physical attempts.
 import type { ProviderRejection } from "../../fields/provider-rejection.ts";
 import type { Usage } from "../../adapters/models/catalog.ts";
 import type { MindActor } from "../../fields/mind-actor.ts";

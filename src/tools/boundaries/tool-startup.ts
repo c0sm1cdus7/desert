@@ -1,4 +1,4 @@
-// Bus del arranque limitado a credenciales originales y despertares propios, con autor fijado por la casa.
+// Startup bus limited to original credentials and own wakes, with the author fixed by the house.
 import { readonlyPorts } from "./readonly-ports.ts";
 import { mindOf } from "../../house/kit.ts";
 import { OutsideDefect, programCall } from "../../fields/program-call.ts";

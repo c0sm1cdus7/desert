@@ -1,4 +1,4 @@
-// Prepara el mismo pedido para medir, diagnosticar y enviar, sin acceder a una llave ni al transporte.
+// Prepares the same request to measure, diagnose and send it, without touching a key or the transport.
 import { requestBody } from "../../adapters/models/anthropic.ts";
 import type { Card } from "../../adapters/models/catalog.ts";
 import { requireMind } from "../../fields/mind-errors.ts";

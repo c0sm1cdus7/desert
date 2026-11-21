@@ -1,4 +1,4 @@
-// Valida cada condición contra campos declarados y la evalúa con datos y reloj verificables.
+// Validates each condition against declared fields and evaluates it with verifiable data and clock.
 import { Value } from "@sinclair/typebox/value";
 import type { TSchema, Static } from "@sinclair/typebox";
 import { fieldSchema, numericField, fieldValue, actorKind } from "./rule-fields.ts";

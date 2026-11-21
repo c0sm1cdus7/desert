@@ -1,4 +1,4 @@
-// Conecta una carta asignada con el proveedor y conserva el costo de cada intento.
+// Connects an assigned card to its provider and keeps the cost of each attempt.
 import { callAnthropic, ModelFailure, requestBody } from "../../adapters/models/anthropic.ts";
 import { costUsd, type Card, type Usage } from "../../adapters/models/catalog.ts";
 import { mindRequest } from "./mind-request.ts";

@@ -1,4 +1,4 @@
-// Arma pedidos de Anthropic, lee respuestas validadas y presta el transporte HTTP.
+// Builds Anthropic requests, reads validated answers and lends the HTTP transport.
 import { createHash } from "node:crypto";
 import { modelTexts } from "../../texts/model.texts.ts";
 import type { Card, Usage } from "./catalog.ts";
