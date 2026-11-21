@@ -1,4 +1,4 @@
-// Mechanical rules stop remote actions through doors and after review waits.
+// Mechanical rules stop remote actions through doors and after the supervisor's verdict.
 import { expect, it, vi } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -18,7 +18,7 @@ const proposal = {
   input: { command: "test" },
   destination: { kind: "device" as const, device: "mac" },
 };
-async function save(rig: ReturnType<typeof setup>, command: string) {
+async function save(rig: ReturnType<typeof setup>, command: string, marks = "block") {
   await settle(rig.house.tools.act({ act: "attend", input: { target: "rules" } }, 0, "ana"));
   return settle(
     rig.house.tools.act(
@@ -34,7 +34,7 @@ async function save(rig: ReturnType<typeof setup>, command: string) {
             field: { source: "input", path: "command" },
             value: { kind: "text", value: command },
           },
-          effect: "block",
+          effect: marks,
         },
       },
       0,
@@ -94,10 +94,11 @@ it.each(["ana", "beto"])("blocks a device action over MCP for %s and keeps the r
   }
 });
 
-it("rechecks the changed rule after review and before device dispatch", async () => {
+it("rechecks the changed rule after the supervisor's verdict and before device dispatch", async () => {
   const rig = setup();
   rig.device("mac");
-  expect((await save(rig, "other")).status).toBe("accepted");
+  // The device act waits for nobody for leaving the house; a rule marks it, so it waits for the verdict (21/11).
+  expect((await save(rig, "test", "require-supervisor")).status).toBe("accepted");
   rig.house.bus.emit(effect("kit-set", { holder: "mind:agents", tool: "agents", acts: ["run"] }, "ana"));
   let request: ReviewRequest | undefined;
   let resume: (result: ReviewResult) => void = () => {};
@@ -112,6 +113,7 @@ it("rechecks the changed rule after review and before device dispatch", async ()
     now: () => 1000,
     secrets: { capture: () => {}, scrub: value => value },
     devices: dispatch,
+    judge: true,
     review: {
       review: value => {
         request = value;
@@ -131,7 +133,10 @@ it("rechecks the changed rule after review and before device dispatch", async ()
   expect(dispatch).not.toHaveBeenCalled();
   expect(evaluations(rig)).toEqual(
     expect.arrayContaining([
-      { action: { tool: "agents", act: "run" }, results: [{ id: "remote-stop", version: 1, outcome: "passed" }] },
+      {
+        action: { tool: "agents", act: "run" },
+        results: [{ id: "remote-stop", version: 1, outcome: "require-supervisor" }],
+      },
       { action: { tool: "agents", act: "run" }, results: [{ id: "remote-stop", version: 2, outcome: "block" }] },
     ]),
   );

@@ -11,6 +11,7 @@ import {
   moments,
   notes,
   opus,
+  request,
   supervisedFixture,
   supervising,
   supervisor,
@@ -126,7 +127,10 @@ it("without a supervisor card a marked act is not done, the mind is told and the
   const notice = history(house).findLast(event => event.layer === "house" && event.kind === "tool-entry");
   expect(notice).toMatchObject({ data: { tool: "notes", text: rulesTexts.waiting, attention: true } });
   // It stops the journey turn as a rule that blocks does, and its consciousness hears it once.
-  expect(journeyTurns(house).map(turn => turn.closed?.data.reason)).toEqual(["act-failed"]);
+  // Each end the journey tries afterwards meets the rule that blocks, as a stop (rules waking it is another law).
+  const reasons = journeyTurns(house).map(turn => turn.closed?.data.reason);
+  expect(reasons.length).toBeGreaterThan(0);
+  expect(reasons.every(reason => reason === "act-failed")).toBe(true);
 }, 60000);
 it("a supervisor that cannot give its verdict leaves the act undone, says why, and the turn goes on", async () => {
   const f = fixture({
@@ -145,4 +149,32 @@ it("a supervisor that cannot give its verdict leaves the act undone, says why, a
   expect(house.tools.state().tools.notes.notes).toEqual([]);
   expect(JSON.stringify(history(house))).toContain(unjudged);
   expect(journeyTurns(house).map(turn => turn.closed?.data)).toMatchObject([{ outcome: "done", calls: 2 }]);
+}, 60000);
+it("a rule that changes while a marked control waits decides again: a passed verdict does not apply it", async () => {
+  const f = fixture();
+  const house = await f.open();
+  withSend(house);
+  await markedRule(house, { operator: "actor", kind: "program" }, "end");
+  const block = {
+    id: "notas-supervisadas",
+    text: "Ya no se termina",
+    action: { tool: "journey", act: "end" },
+    condition: { operator: "always" },
+    effect: "block",
+  };
+  f.respond(async frame => {
+    if (!supervising(frame)) return notes(house, frame, (_, __, id) => [end(id)]);
+    if (!request(frame)) return { scene: "Aprendí", consulta: null, acts: [] };
+    expect((await settle(house.tools.act({ act: "save", target: "rules", input: block }, 0, "ana"))).status).toBe(
+      "accepted",
+    );
+    return { outcome: "passed", text: "Sí" };
+  });
+  await think(house, "Mate el jueves");
+  expect(ruled(house).map(([, result]) => result)).toEqual(["passed"]);
+  expect([...house.tools.state().house.journeys.values()][0]?.closed).toBeUndefined();
+  // Each end the journey tries afterwards meets the rule that blocks, as a stop (rules waking it is another law).
+  const reasons = journeyTurns(house).map(turn => turn.closed?.data.reason);
+  expect(reasons.length).toBeGreaterThan(0);
+  expect(reasons.every(reason => reason === "act-failed")).toBe(true);
 }, 60000);

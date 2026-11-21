@@ -61,7 +61,7 @@ export const journeyInterrupted = defineMessage({
   parameters: object({ goal: Type.String(), reason: Type.String(), pending: Type.String() }),
   texts: {
     es: ({ goal, reason, pending }) =>
-      `El supervisor frenó tu journey «${goal}»: ${reason} Quedó pendiente: ${pending || "nada"}. No corre ni ` +
-      "despierta hasta que decidas: retomalo con resume atendiendo el motivo, o desistí con desist.",
+      `El supervisor frenó tu journey «${goal}». Motivo: ${reason}\nQuedó pendiente: ${pending || "nada"}.\nNo ` +
+      "corre ni despierta hasta que decidas: retomalo con resume atendiendo el motivo, o desistí con desist.",
   },
 });

@@ -25,13 +25,15 @@ export async function ruleControl<X extends Program>(
   const origin = { id, by: scope.actor, process: scope.process };
   const action = { tool, act: proposal.act };
   const ports = { ...house.execution, judge: supervision.supervised };
-  const result = mechanicalRules(ports, origin, action, schema, proposal.input);
-  if (result) {
+  const stopped = () => {
+    const result = mechanicalRules(ports, origin, action, schema, proposal.input);
+    if (!result) return false;
     house.execution.bus.together(() =>
       result.effects.forEach(event => house.execution.bus.emit({ ...event, cause, process: scope.process })),
     );
-    return { ok: false };
-  }
+    return true;
+  };
+  if (stopped()) return { ok: false };
   if (!supervision.supervised || !requiresSupervision(ports, origin, action, schema, proposal.input))
     return { ok: true };
   const verdict = await supervision.review.review({
@@ -42,6 +44,7 @@ export async function ruleControl<X extends Program>(
     acts: [proposal],
     turn,
   });
-  if (verdict.outcome === "passed") return { ok: true };
+  // A rule may have changed while the control waited: the rules in force decide again before it is applied.
+  if (verdict.outcome === "passed") return stopped() ? { ok: false } : { ok: true };
   return { ok: false, reason: rulesTexts.verdict(verdict.outcome, verdict.text) };
 }

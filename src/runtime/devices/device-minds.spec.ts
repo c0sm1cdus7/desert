@@ -101,7 +101,7 @@ const proposal = {
   input: { command: "test" },
   destination: { kind: "device" as const, device: "vm" },
 };
-it("preserves the journey's device choice in its menu, review and unknown result", async () => {
+it("preserves the journey's device choice in its menu and unknown result; the act waits for no review", async () => {
   const dispatch = vi.fn(() => Promise.resolve({ status: "inconclusive" as const, reason: "Resultado desconocido" }));
   const { mac, scope, menu, act, review, transport } = journeyRig(dispatch);
   expect(menu().find(item => item.act === "run")?.destinations).toEqual([
@@ -116,7 +116,8 @@ it("preserves the journey's device choice in its menu, review and unknown result
   expect(await act(proposal)).toMatchObject({
     status: "inconclusive",
   });
-  expect(review.mock.calls[0]?.[0].acts[0]?.destination).toEqual({ kind: "device", device: "vm" });
+  // A device act leaves the house, and nothing waits for the supervisor for that alone (21/11).
+  expect(review).not.toHaveBeenCalled();
   expect(dispatch.mock.calls).toHaveLength(1);
   expect(transport).not.toHaveBeenCalled();
   mac.connection.disconnect();

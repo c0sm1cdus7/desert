@@ -3256,7 +3256,7 @@
     },
     {
       "id": 292,
-      "rule": "Sin supervisor, lo que pide juicio queda sin ejecutar con aviso y resultado durable. Aprobar o cambiar la vigencia despierta a la mente o journey que quedó frenado, incluso después de reconstruir la historia; nunca reintenta el acto por sí solo. Simular muestra casos que pasan y frenan sin ejecutar el acto ni modificar la vigencia.",
+      "rule": "Sin supervisor, lo que requiere supervisión queda sin ejecutar con aviso y resultado durable. Aprobar o cambiar la vigencia despierta a la mente o journey que quedó frenado, incluso después de reconstruir la historia; nunca reintenta el acto por sí solo. Simular muestra casos que pasan y frenan sin ejecutar el acto ni modificar la vigencia.",
       "from": "17/11 12:44 y 12:56 · core-reglas, paso 1",
       "guarantee": "spec",
       "evidence": [
