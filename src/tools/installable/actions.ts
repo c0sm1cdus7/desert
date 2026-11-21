@@ -1,7 +1,7 @@
 // Adapts action callbacks and cases while guarding the owning group and folder versus object distinction.
 import { OutsideDefect } from "../../fields/program-call.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
-import type { Case, ProgramAct, Step } from "../promises-contract.ts";
+import type { Case, Did, ProgramAct, Step } from "../promises-contract.ts";
 import type { ActContext, Program, State } from "../tool-contract.ts";
 import { adaptReject, mapResult } from "./action-results.ts";
 import { folderOf, localTarget, objectOf } from "./destinations.ts";
@@ -9,6 +9,10 @@ import type { ProgramGroup } from "./program.ts";
 import { localState } from "./runtime.ts";
 const targetOf = (id: string, group: string, target?: string) =>
   target === undefined || target === group ? folderOf(id, group) : objectOf(id, group, target);
+/** A step is an act of the case's own tool unless it names another tool of the same program: never of another. */
+function didOf(id: string, group: string, { tool = group, ...did }: Did): Did {
+  return { ...did, act: `${tool}/${did.act}`, on: targetOf(id, tool, did.on) };
+}
 function casesOf<X extends Program>(id: string, group: string, cases: readonly Case<X>[]): readonly Case<Program>[] {
   const step = (each: Step): Step =>
     "days" in each ||
@@ -18,7 +22,7 @@ function casesOf<X extends Program>(id: string, group: string, cases: readonly C
     "device" in each ||
     "scene" in each
       ? each
-      : { ...each, act: `${group}/${each.act}`, on: targetOf(id, group, each.on) };
+      : didOf(id, group, each);
   return cases.map(each => ({
     ...each,
     on: targetOf(id, group, each.on),

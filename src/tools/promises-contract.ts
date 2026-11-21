@@ -9,9 +9,11 @@ import type { RunResult } from "./outside.ts";
 import type { ProgramOutside, ProgramRun } from "./promises.ts";
 import type { SoFar } from "./so-far.ts";
 import type { ActContext, ContractSetup, Program, Reach, Slices, State, Tool, ToolAct } from "./tool-contract.ts";
-/** Something that already happened before a case: an act of the program, by one of the house's identities. */
+/** Something that already happened before a case: an act of the program, by one of the house's identities. In an
+ * installable program `tool` names another tool of the same program when the act is not of the case's own. */
 export type Did = Readonly<{
   act: string;
+  tool?: string;
   input: unknown;
   destination?: import("../fields/device-protocol.ts").ExecutionDestination;
   on?: string;

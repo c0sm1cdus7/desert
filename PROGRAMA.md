@@ -2168,6 +2168,10 @@ Los hechos pertenecen al espacio de nombres del programa. Los rechazos de destin
 se comprueban por ejecución y ausencia de filas sobre cada destino ajeno; el autor no necesita inventar
 un rechazo de negocio para ese límite.
 
+Un paso `given` de un caso es una acción de la herramienta del caso. Si la acción es de otra herramienta del mismo
+programa, el paso la nombra con `tool`: `{ act: "add", tool: "items", input: { … } }`; su `on`, si lo lleva, es una
+cosa de esa herramienta. Un paso no cruza a otro programa. Prueba: `src/tools/installable/picking.spec.ts`.
+
 Quien no tiene un programa puede abrir y leer sus objetos. Las acciones de cada objeto siguen visibles,
 apagadas con el motivo del kit, aunque además exijan ser su autora. Quien tiene la acción ve el motivo de
 autoría cuando corresponde. La preferencia de esconder lo ajeno retira el programa del Menú; al desactivarla
