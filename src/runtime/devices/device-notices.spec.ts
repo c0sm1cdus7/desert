@@ -92,6 +92,27 @@ it("holds a notice that comes before its start's result and records it as soon a
   expect(kinds).toEqual(["device-execution-started", "device-execution-result", "device-execution-notice"]);
   expect(execution(rig)).toMatchObject({ status: "accepted", reference: "started", notice: { status: "finished" } });
 });
+it("keeps the first of two held notices and answers both callers once the start's result is written", async () => {
+  const rig = setup(announcing);
+  const { promise, open } = gate();
+  const mac = rig.device("mac", () => promise);
+  const pending = settle(rig.act("mac"));
+  await Promise.resolve();
+  const id = execution(rig).execution;
+  const later: string[] = [];
+  const written: string[] = [];
+  for (const status of ["failed", "finished"] as const) {
+    const heard = (answer: NoticeAnswer) => later.push(`${status}:${answer}`);
+    expect(mac.connection.announce({ ...finished(id), status }, heard, () => written.push(status))).toBe("held");
+  }
+  open({ status: "accepted", reference: "started" });
+  await pending;
+  expect(later).toEqual(["failed:recorded", "finished:recorded"]);
+  expect(written).toEqual(["failed"]);
+  expect(mac.connection.announce({ ...finished(id), status: "cancelled" }, () => {})).toBe("recorded");
+  expect(notices(rig).map(fact => fact.data)).toMatchObject([{ status: "failed" }]);
+  expect(execution(rig).notice).toMatchObject({ status: "failed" });
+});
 it("refuses a held notice when its start is rejected", async () => {
   const rig = setup(announcing);
   const { promise, open } = gate();

@@ -1,17 +1,17 @@
 // A remote device's notices for one connection: what each poll carries again until the house answers each one.
-import type { DeviceNotice, DeviceNotices, NoticeAnswer } from "../../fields/device-protocol.ts";
+import type { DeviceNotice, EndpointNotices, NoticeAnswer } from "../../fields/device-protocol.ts";
 import { deviceTexts } from "../../texts/devices.texts.ts";
 import { deviceHttpLimits } from "./device-wire.ts";
 export const reasonOf = (error: unknown) =>
   error instanceof Error ? `${error.name}: ${error.message}` : String(error);
 const bytes = (value: unknown) => Buffer.byteLength(JSON.stringify(value));
 export class NoticeOutbox {
-  private readonly notices: DeviceNotices;
+  private readonly notices: EndpointNotices;
   private readonly tell: (reason: string) => void;
   private readonly wake: () => void;
   private readonly owed = new Map<string, DeviceNotice>();
   private fresh = false;
-  constructor(notices: DeviceNotices, tell: (reason: string) => void, wake: () => void) {
+  constructor(notices: EndpointNotices, tell: (reason: string) => void, wake: () => void) {
     this.notices = notices;
     this.tell = tell;
     this.wake = wake;
@@ -22,19 +22,20 @@ export class NoticeOutbox {
       if (!alive()) return;
       this.owe(notice);
       this.wake();
-    });
+    }, this.tell);
     try {
-      for (const notice of await this.notices.pending()) this.owe(notice);
+      for (const notice of await this.notices.pending(this.tell)) this.owe(notice);
     } catch (error) {
       // What could not be read stays on disk and is read again on the next connection.
       this.tell(reasonOf(error));
     }
     return stop;
   }
-  /** A notice too large for one body travels without its value: the house needs only its status and reference. */
+  /** A notice that would not fit alone in a body travels without its value: the house needs only its status and
+   * reference. The bound is the one `offer` uses for an empty body, so every owed notice fits in one. */
   private owe(notice: DeviceNotice) {
     let kept = notice;
-    if (bytes(notice) + 64 > deviceHttpLimits.body) {
+    if (deviceHttpLimits.envelope + bytes(notice) + 1 > deviceHttpLimits.body) {
       const { value: _value, ...rest } = notice;
       kept = rest;
       this.tell(deviceTexts.noticeTrimmed(notice.execution));
@@ -46,13 +47,15 @@ export class NoticeOutbox {
   ready() {
     return this.fresh;
   }
-  /** Every unanswered notice that fits in what the body has left; the rest go in the next poll. */
+  /** Every unanswered notice that fits in what the body has left; one that does not waits for the next poll without
+   * holding back the ones behind it. */
   offer(used: number): DeviceNotice[] {
     const taken: DeviceNotice[] = [];
     let size = used;
     for (const notice of this.owed.values()) {
       const more = bytes(notice) + 1;
-      if (taken.length >= deviceHttpLimits.notices || size + more > deviceHttpLimits.body) break;
+      if (taken.length >= deviceHttpLimits.notices) break;
+      if (size + more > deviceHttpLimits.body) continue;
       taken.push(notice);
       size += more;
     }

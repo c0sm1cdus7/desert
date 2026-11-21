@@ -127,7 +127,8 @@ class RemoteDevice {
     try {
       entry = { call, result: await this.options.endpoint.receive(request) };
       // A receipt too large for one body cannot travel, so the house learns its outcome is unknown.
-      if (Buffer.byteLength(JSON.stringify(entry)) + 64 > deviceHttpLimits.body) entry = { call, failed: true };
+      const bytes = Buffer.byteLength(JSON.stringify(entry)) + 1;
+      if (deviceHttpLimits.envelope + bytes > deviceHttpLimits.body) entry = { call, failed: true };
     } catch {
       entry = { call, failed: true };
     }
@@ -156,7 +157,7 @@ const pollTimeout = () => deviceHttpLimits.pollMs + 15_000;
 /** The results that fit in one body, and the bytes they use, so notices share what is left. */
 function take(ready: CallResult[]) {
   const results: CallResult[] = [];
-  let size = 64;
+  let size: number = deviceHttpLimits.envelope;
   for (const next of ready) {
     const bytes = Buffer.byteLength(JSON.stringify(next)) + 1;
     if (results.length >= deviceHttpLimits.results || size + bytes > deviceHttpLimits.body) break;

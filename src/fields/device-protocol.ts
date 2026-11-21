@@ -79,16 +79,24 @@ export type DeviceNotices = Readonly<{
   /** Hears each notice born while connected; returns the way to stop hearing. */
   subscribe(send: (notice: DeviceNotice) => void): () => void;
 }>;
+/** Every tool's outbox joined, as the device's own transport reads it: `tell` hears each notice a tool keeps that
+ * cannot travel, named by tool and execution; it stays owed in that tool and never holds back the rest. */
+export type EndpointNotices = Readonly<{
+  pending(tell: (reason: string) => void): Promise<readonly DeviceNotice[]>;
+  acknowledge(execution: string, answer: NoticeAnswer): Promise<void>;
+  subscribe(send: (notice: DeviceNotice) => void, tell: (reason: string) => void): () => void;
+}>;
 export type DeviceEndpoint = Readonly<{
   inventory: readonly DeviceInstallation[];
   receive(request: DeviceRequest): Promise<DeviceResult>;
   /** Present when an installed tool announces; the house never reads it, only the device's own transport does. */
-  notices?: DeviceNotices;
+  notices?: EndpointNotices;
 }>;
 /** What connecting a device returns. `announce` answers at once, or holds a notice whose execution still awaits its
  * start result and tells `later` once that result is written; a disconnect drops what is held without an answer. It
- * throws while the house cannot record, so the device keeps the notice. `written` hears the one call, now or later,
- * that wrote the fact; a repeat answers "recorded" without it. */
+ * throws while the house cannot record, so the device keeps the notice. The first notice of an execution wins, held
+ * or recorded, and every caller hears its answer. `written` hears the one call, now or later, that wrote the fact; a
+ * repeat answers "recorded" without it. */
 export type DeviceLink = Readonly<{
   disconnect: () => void;
   announce: (

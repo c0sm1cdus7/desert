@@ -10,7 +10,9 @@ import {
   type DeviceEndpoint,
   type DeviceNotice,
   type DeviceNotices,
+  type EndpointNotices,
 } from "../../fields/device-protocol.ts";
+import { isRecord } from "../../fields/json-values.ts";
 import { deviceTexts } from "../../texts/devices.texts.ts";
 export type InstalledDeviceTool = Readonly<{
   tool: string;
@@ -20,20 +22,24 @@ export type InstalledDeviceTool = Readonly<{
   notices?: DeviceNotices;
 }>;
 /** One outbox for every tool that announces. Which tool owns a notice is learned again from each read and each push,
- * so an acknowledgement reaches its tool after a device restart too. */
-function joinedNotices(tools: readonly InstalledDeviceTool[]): DeviceNotices | undefined {
-  const ports = tools.flatMap(each => (each.notices ? [each.notices] : []));
+ * so an acknowledgement reaches its tool after a device restart too. A notice that is not valid is told and left out,
+ * alone: it stays owed in its tool, and the next connection tells it again. */
+function joinedNotices(tools: readonly InstalledDeviceTool[]): EndpointNotices | undefined {
+  const ports = tools.flatMap(each => (each.notices ? [{ tool: each.tool, port: each.notices }] : []));
   if (ports.length === 0) return undefined;
   const owners = new Map<string, DeviceNotices>();
-  const own = (port: DeviceNotices, notice: unknown): DeviceNotice => {
-    if (!Value.Check(deviceNotice, notice)) throw new Error(deviceTexts.invalid);
+  const own = ({ tool, port }: (typeof ports)[number], notice: unknown, tell: (reason: string) => void) => {
+    if (!Value.Check(deviceNotice, notice)) {
+      tell(deviceTexts.noticeInvalid(tool, String(isRecord(notice) ? notice.execution : notice).slice(0, 200)));
+      return [];
+    }
     owners.set(notice.execution, port);
-    return structuredClone(notice);
+    return [structuredClone(notice)];
   };
   return {
-    async pending() {
+    async pending(tell) {
       const all: DeviceNotice[] = [];
-      for (const port of ports) for (const notice of await port.pending()) all.push(own(port, notice));
+      for (const each of ports) for (const notice of await each.port.pending()) all.push(...own(each, notice, tell));
       return all;
     },
     async acknowledge(execution, answer) {
@@ -42,8 +48,8 @@ function joinedNotices(tools: readonly InstalledDeviceTool[]): DeviceNotices | u
       await port.acknowledge(execution, answer);
       owners.delete(execution);
     },
-    subscribe(send) {
-      const stops = ports.map(port => port.subscribe(notice => send(own(port, notice))));
+    subscribe(send, tell) {
+      const stops = ports.map(each => each.port.subscribe(notice => own(each, notice, tell).forEach(send)));
       return () => stops.forEach(stop => stop());
     },
   };

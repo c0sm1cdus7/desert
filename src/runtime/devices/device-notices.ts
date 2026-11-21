@@ -43,7 +43,13 @@ export function announceNotice(
     return "refused";
   if (execution.notice) return "recorded";
   if (execution.status === "running") {
-    connection.held.set(execution.execution, { notice: safe, later, written });
+    // The first held notice wins, as a recorded one does; a later caller hears the same answer when it is released.
+    const first = connection.held.get(execution.execution);
+    const both = (answer: NoticeAnswer) => {
+      first?.later(answer);
+      later(answer);
+    };
+    connection.held.set(execution.execution, first ? { ...first, later: both } : { notice: safe, later, written });
     return "held";
   }
   const { actor, journey } = execution;

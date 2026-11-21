@@ -6,7 +6,8 @@ import { settle } from "../../surface/bridge/ports/house-ports.ts";
 import { deviceTexts } from "../../texts/devices.texts.ts";
 import { createDeviceProcess } from "./device-process.ts";
 import { connectRemoteDevice } from "./remote-device.ts";
-import { devicePaths } from "./device-wire.ts";
+import { deviceHttpLimits, devicePaths } from "./device-wire.ts";
+import { NoticeOutbox } from "./remote-notices.ts";
 type Rig = Awaited<ReturnType<typeof deviceHttpHouse>>;
 const announcing = { at: "device", tool: "shell", version: "1", announces: true } as const;
 function start(h: Rig, outbox: ReturnType<typeof deviceOutbox>, send: typeof fetch = fetch) {
@@ -118,4 +119,50 @@ it("sends no notices field from a device whose tools do not announce, so an olde
   expect(endpoint.notices).toBeUndefined();
   await wait(() => expect(bodies.length).toBeGreaterThan(0));
   expect(bodies.every(body => !body.includes("notices"))).toBe(true);
+});
+it("trims a notice that would fill the body to the byte, and never lets one that waits block the rest", async () => {
+  const sized = (execution: string, bytes: number) => {
+    const empty = finished(execution, "");
+    return finished(execution, "x".repeat(bytes - Buffer.byteLength(JSON.stringify(empty))));
+  };
+  const told: string[] = [];
+  const outbox = deviceOutbox([
+    sized("whole", deviceHttpLimits.body - deviceHttpLimits.envelope),
+    sized("half", deviceHttpLimits.body / 2),
+  ]);
+  const box = new NoticeOutbox(
+    outbox.port,
+    reason => told.push(reason),
+    () => {},
+  );
+  await box.open(() => true);
+  outbox.push(finished("small"));
+  expect(told).toEqual([deviceTexts.noticeTrimmed("whole")]);
+  const busy = box.offer(deviceHttpLimits.body / 2);
+  expect(busy.map(notice => [notice.execution, "value" in notice])).toEqual([
+    ["whole", false],
+    ["small", false],
+  ]);
+  expect(box.offer(deviceHttpLimits.envelope).map(notice => notice.execution)).toEqual(["whole", "half", "small"]);
+});
+it("leaves out and names one tool's invalid notice, and still sends every other tool's", async () => {
+  const bad = { ...finished("bad"), reference: "r".repeat(201) };
+  const [a, b] = [deviceOutbox([bad]), deviceOutbox([finished("good")])];
+  const run = () => Promise.resolve({ status: "accepted", reference: "r" } as const);
+  const endpoint = createDeviceProcess([
+    { tool: "a", version: "1", actions: { run }, notices: a.port },
+    { tool: "b", version: "1", actions: { run }, notices: b.port },
+  ]);
+  if (!endpoint.notices) throw new Error("Missing notices");
+  const told: string[] = [];
+  const box = new NoticeOutbox(
+    endpoint.notices,
+    reason => told.push(reason),
+    () => {},
+  );
+  await box.open(() => true);
+  a.push({ ...bad, execution: "worse" });
+  b.push(finished("better"));
+  expect(box.offer(deviceHttpLimits.envelope).map(notice => notice.execution)).toEqual(["good", "better"]);
+  expect(told).toEqual([deviceTexts.noticeInvalid("a", "bad"), deviceTexts.noticeInvalid("a", "worse")]);
 });

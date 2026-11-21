@@ -7,6 +7,8 @@ import { socketLimits } from "../socket/wire/protocol.ts";
 export const deviceHttpLimits = {
   /** Every request body, the same bound as the socket's JSON frame. */
   body: socketLimits.json,
+  /** Bytes a poll body keeps for its own JSON around its results and notices; each entry adds a separator byte. */
+  envelope: 64,
   /** How long a poll waits for work before answering with an empty list. */
   pollMs: 25_000,
   /** A session without any poll for this long is disconnected. */

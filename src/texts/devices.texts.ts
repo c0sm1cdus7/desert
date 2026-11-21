@@ -20,6 +20,7 @@ export const deviceTexts = {
   closed: "La casa cerró la conexión. El resultado de la ejecución no se conoce.",
   refusedBody: "La casa no entendió el pedido del dispositivo: si es más vieja que el dispositivo, actualizá la casa.",
   noticeRefused: (execution: string) => `La casa rechazó el aviso de la ejecución ${execution} y no se manda más.`,
+  noticeInvalid: (tool: string, id: string) => `El aviso de ${tool} de la ejecución ${id} no es válido: no se manda.`,
   noticeTrimmed: (execution: string) => `El aviso de la ejecución ${execution} no entra en un pedido: va sin su valor.`,
 };
 export const deviceActionTexts = {
