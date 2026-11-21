@@ -39,6 +39,12 @@ function controlFacts(context: JourneyControlContext, { act, input, target }: Pr
   if (act === "wait") return waitJourney(context, input);
   return [];
 }
+/** A plan or a done its journey already used up is no act to apply: its control throws the refusal with words. If it
+ * ever returned instead, its facts would be lost and the act refused without a reason, so that fails in plain sight. */
+function refuseUsedUp(turn: Context["turn"], state: () => JourneyControlState, proposal: ProposedAct): void {
+  controlFacts({ turn, cause: [], state }, proposal);
+  requireMind(false, "journey.plan.menu");
+}
 /** Nothing waits for the supervisor but a control a rule marks: that one waits for its verdict (21/11). */
 async function applyControl<X extends Program>(
   house: MindRuntimeHouse<X>,
@@ -118,9 +124,7 @@ export function runtimeActions<X extends Program>(
     if (!house.active()) return { status: "interrupted", id: turn.id };
     const item = view().menu.find(item => item.act === proposal.act && item.target === proposal.target);
     if (!item) {
-      // A plan or a done its journey already used up is no act to apply: its control throws the refusal with words.
-      if (ownPlanControl(turn.scope, view().control, proposal))
-        controlFacts({ turn, cause: [], state: () => view().control }, proposal);
+      if (ownPlanControl(turn.scope, view().control, proposal)) refuseUsedUp(turn, () => view().control, proposal);
       return { status: "rejected", id: turn.id };
     }
     const opened = house.execution.state().house.minds.turns.get(turn.id)?.opened;
