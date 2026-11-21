@@ -52,11 +52,24 @@ function retiredWake(scope: MindScope, event: HouseEvent<"device-retired">, hist
       !ended.has(e.data.execution),
   );
 }
+/** A closing the consciousness wrote itself, desisting in a turn of its own: its causes name that turn, which carries
+ * no process. It already knows what it just did; the closing a journey writes in its own turn is news to it. */
+function ownClosing(scope: MindScope, event: HouseEvent<"journey-closed">, history: readonly Event[]): boolean {
+  return history.some(
+    e =>
+      e.layer === "house" &&
+      e.kind === "mind-turn-opened" &&
+      e.by === scope.actor &&
+      e.process === undefined &&
+      event.cause.includes(e.id),
+  );
+}
 /** The facts of a mind's own journeys that wake it; a journey never wakes because time passed without a fact. */
 export function journeyWake(scope: MindScope, event: Event, history: readonly Event[], now: number): boolean {
   if (event.layer === "house" && event.kind === "device-retired") return retiredWake(scope, event, history);
   if (event.layer !== "house" || event.by !== scope.actor) return false;
-  if (scope.kind === "consciousness") return event.kind === "journey-closed" || cutTurn(event, history);
+  if (scope.kind === "consciousness")
+    return event.kind === "journey-closed" ? !ownClosing(scope, event, history) : cutTurn(event, history);
   if (event.process !== scope.process) return false;
   const later = history.filter(e => e.seq > event.seq && e.layer === "house" && e.process === event.process);
   if (later.some(e => e.kind === "journey-closed" || (e.kind === "mind-turn-opened" && e.by === scope.actor)))

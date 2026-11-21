@@ -107,8 +107,8 @@ it("the consciousness desists from a cut journey with its reason, and nothing el
     summary: "No hace falta",
   });
   expect(turnsOf(house, journey?.id)).toHaveLength(1);
-  // It woke for the cut, then once more when its journey closed: the closure is its own fact, as before.
-  expect(seen.filter(each => !each.journey)).toHaveLength(3);
+  // It woke to open the journey and for its cut; the closing it wrote itself by desisting does not wake it again.
+  expect(seen.filter(each => !each.journey)).toHaveLength(2);
 });
 it("a journey frame keeps room for its turn's conversation, so a long thread still lets the turn go on", async () => {
   const { house, seen, journey } = await run({
