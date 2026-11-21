@@ -54,7 +54,7 @@ export function fixture(outcomes: ModelOutcome[]) {
     model,
     emit,
     execute,
-    read: () => ({ active: now.active, through: events.length + 1, rulesVersion: now.version, menu }),
+    read: () => ({ active: now.active, through: events.length + 1, rulesVersion: now.version, menu, now: 0 }),
     allowed: () => now.allowed,
     reviewReason: () => "world",
     supervision: {},

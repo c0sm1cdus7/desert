@@ -10,18 +10,23 @@ import type { ReviewPort, ReviewReason, ReviewRequest, ReviewResult } from "../.
 import { turnNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
 export type MindFrame = Readonly<{ layers: readonly [string, string, string, string]; changing: string }>;
 export type FramePort = (scope: MindScope, turn: TurnContext) => MindFrame | Readonly<{ tooLarge: true }>;
+/** One exchange after the frame: the schema the answer was asked with, the answer when it could be read, and what
+ * the house told the mind back. Later calls of a turn append exchanges and never rebuild the frame. */
+export type TurnExchange = Readonly<{ asked: Record<string, unknown>; answer?: string; told: string }>;
 export type ModelRequest = Readonly<{
   mind: MindActor;
   turn: string;
   number: number;
   frame: MindFrame;
   schema: Record<string, unknown>;
+  /** Present for a turn's own conversation, which the provider caches up to its end; absent for a one-off call. */
+  exchanges?: readonly TurnExchange[];
 }>;
 export type ModelOutcome =
   | Readonly<{ kind: "answer"; value: unknown; usage: Usage }>
   | Readonly<{ kind: "invalid"; reason: "json" | "schema" | "max_tokens" | "refusal"; usage?: Usage }>
   | Readonly<{ kind: "failed"; reason: "http" | "transport"; rejection?: ProviderRejection }>
-  | Readonly<{ kind: "not-sent"; reason: "cap" | "no-key" | "no-card" }>
+  | Readonly<{ kind: "not-sent"; reason: "cap" | "no-key" | "no-card" | "conversation-too-large" }>
   | Readonly<{ kind: "uncertain" }>;
 export type ModelPort = (request: ModelRequest) => Promise<ModelOutcome>;
 export type TurnWake = Pick<TurnContext, "id" | "scope" | "language" | "wake" | "through">;
@@ -35,7 +40,12 @@ export type TurnOutcome = Readonly<{
   error?: string;
 }>;
 export type TurnCaller = Readonly<{
-  call: (mind: MindActor, frame: MindFrame, schema: Record<string, unknown>) => Promise<ModelOutcome>;
+  call: (
+    mind: MindActor,
+    frame: MindFrame,
+    schema: Record<string, unknown>,
+    exchanges?: readonly TurnExchange[],
+  ) => Promise<ModelOutcome>;
   /** The supervisor's call: it counts within the turn, but a provider that fails or a call that is not sent leaves
    * the act to the mechanical rules instead of stopping the turn; only an uncertain call stops it (signed 17/11). */
   consult: (mind: MindActor, frame: MindFrame, schema: Record<string, unknown>) => Promise<ModelOutcome>;
@@ -43,6 +53,8 @@ export type TurnCaller = Readonly<{
   rejection: () => ProviderRejection | undefined;
   calls: () => number;
   correct: () => boolean;
+  /** An answer whose acts were applied gives the next answer its own correction, within the same call limit. */
+  settle: () => void;
   pendingInvalid: () => boolean;
   close: () => void;
 }>;
@@ -50,7 +62,14 @@ export type SupervisionPorts = {
   rules?: ReviewPort;
   supervisor?: (request: ReviewRequest, caller: TurnCaller) => Promise<ReviewResult>;
 };
-export type TurnSnapshot = Readonly<{ active: boolean; menu: MindMenu; through: number; rulesVersion: string }>;
+export type TurnSnapshot = Readonly<{
+  active: boolean;
+  menu: MindMenu;
+  through: number;
+  rulesVersion: string;
+  /** The house clock, told to a journey with its results so its next wait counts from now. */
+  now: number;
+}>;
 export type TurnPorts = Readonly<{
   frame: FramePort;
   model: ModelPort;
@@ -63,9 +82,15 @@ export type TurnPorts = Readonly<{
   execute: (
     proposal: ProposedAct,
     context: Readonly<{ turn: TurnContext; review: ReviewPort }>,
-  ) => Promise<
-    Readonly<{ status: "accepted" | "rejected" | "interrupted" | "inconclusive"; id: string; reason?: string }>
-  >;
+  ) => Promise<ExecuteResult>;
+}>;
+/** What an act did: its status, the reason a tool gave for refusing it, and what it returned (a device's receipt). */
+export type ExecuteResult = Readonly<{
+  status: "accepted" | "rejected" | "interrupted" | "inconclusive";
+  id: string;
+  reason?: string;
+  text?: string;
+  value?: unknown;
 }>;
 export class TurnStopped extends Error {
   readonly reason: TurnStop;
@@ -81,7 +106,7 @@ class TurnCallLedger {
   rejection: ProviderRejection | undefined;
   closed = false;
   invalid = false;
-  private corrected = false;
+  corrected = false;
   readonly turn: TurnContext;
   constructor(turn: TurnContext) {
     this.turn = turn;
@@ -125,8 +150,8 @@ export function createTurnCaller(model: ModelPort, turn: TurnContext, active: ()
   requireMind(typeof active === "function", "active");
   const ledger = new TurnCallLedger(turn);
   let queue = Promise.resolve();
-  const send = (mind: MindActor, frame: MindFrame, schema: Record<string, unknown>, soft: boolean) => {
-    const result = queue.then(() => ledger.send(model, { mind, frame, schema }, active, soft));
+  const send = (request: Omit<ModelRequest, "turn" | "number">, soft: boolean) => {
+    const result = queue.then(() => ledger.send(model, request, active, soft));
     queue = result.then(
       () => undefined,
       () => undefined,
@@ -134,10 +159,13 @@ export function createTurnCaller(model: ModelPort, turn: TurnContext, active: ()
     return result;
   };
   return {
-    call: (mind, frame, schema) => send(mind, frame, schema, false),
-    consult: (mind, frame, schema) => send(mind, frame, schema, true),
+    call: (mind, frame, schema, exchanges) => send({ mind, frame, schema, ...(exchanges ? { exchanges } : {}) }, false),
+    consult: (mind, frame, schema) => send({ mind, frame, schema }, true),
     calls: () => ledger.count,
     correct: ledger.correct,
+    settle: () => {
+      ledger.corrected = false;
+    },
     pendingInvalid: () => ledger.invalid,
     stopped: () => ledger.stop,
     rejection: () => ledger.rejection,

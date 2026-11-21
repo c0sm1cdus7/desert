@@ -1,10 +1,12 @@
-// Explica cierres, correcciones y revisiones del turno en el idioma de la casa.
+// Explica cierres, correcciones, revisiones y resultados del turno en el idioma de la casa.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 import { object } from "../fields/visible-text.ts";
-const reasons = {
-  "call-limit": "El turno llegó al límite de doce intentos.",
+import { turnStops, type TurnStop } from "../fields/turn-stops.ts";
+const reasons: Readonly<Record<TurnStop, string>> = {
+  "call-limit": "El turno llegó al límite de doce llamadas sin decir cómo sigue.",
   "frame-too-large": "El marco necesario no entra en el pedido.",
+  "conversation-too-large": "La conversación de este turno ya no entra en el pedido.",
   "no-key": "Falta la llave del proveedor.",
   "no-card": "Falta una carta habilitada para esta mente.",
   cap: "El saldo disponible no alcanza para otra llamada.",
@@ -22,12 +24,12 @@ const reasons = {
   interrupted: "El turno se interrumpió al cerrar la casa. No se repitió el trabajo.",
   internal: "No se pudo completar el turno por una falla interna.",
 };
-export type TurnStop = keyof typeof reasons;
+export type { TurnStop };
 export const turnNotice = defineMessage({
   id: "mind.turn.notice",
   kind: "text",
   parameters: object({
-    reason: Type.KeyOf(Type.Object(Object.fromEntries(Object.keys(reasons).map(k => [k, Type.String()])))),
+    reason: Type.Union(turnStops.map(stop => Type.Literal(stop))),
     rejection: Type.Optional(object({ status: Type.Integer(), type: Type.String(), message: Type.String() })),
   }),
   texts: {
@@ -67,7 +69,7 @@ export const reviewNotice = defineMessage({
   parameters: object({ passed: Type.Boolean() }),
   texts: { es: ({ passed }) => (passed ? "La propuesta pasó la revisión." : "No se pudo revisar la propuesta.") },
 });
-const invalidReasons = ["json", "schema", "max_tokens", "refusal", "kit", "wait"] as const;
+const invalidReasons = ["json", "schema", "max_tokens", "refusal", "kit", "wait", "continuation"] as const;
 export const invalidNotice = defineMessage({
   id: "mind.turn.invalid",
   kind: "text",
@@ -81,6 +83,35 @@ export const invalidNotice = defineMessage({
         refusal: "El proveedor rechazó responder.",
         kit: "El kit del journey sale de tu kit, con sus nombres exactos; si está vacío, pedíselo al admin. Tu kit:",
         wait: "La espera termina después de Ahora: until en milisegundos, mayor que",
+        continuation: "Un journey sigue hasta decir cómo sigue: cerrá con wait, end o desist, solo como último acto.",
       })[reason],
+  },
+});
+const resultParts = {
+  heading: "Resultados de los actos de tu respuesta anterior:",
+  accepted: "aceptado.",
+  rejected: "rechazado:",
+  skipped: "no se aplicó, porque un acto anterior fue rechazado.",
+  returned: "Devolvió:",
+  cut: "Recortado; caracteres que faltan:",
+  now: "Ahora:",
+  added: "Apareció en el menú:",
+  removed: "Salió del menú:",
+  answer: "Respuesta a tu consulta:",
+  goOn: "El turno sigue: respondé con tus próximos actos y cerrá con wait, end o desist cuando sepas cómo sigue.",
+};
+/** The words of what a journey turn tells the mind between its calls: each act's result, the clock and the menu. */
+export const turnResults = defineMessage({
+  id: "mind.turn.results",
+  kind: "text",
+  parameters: object({
+    part: Type.KeyOf(Type.Object(Object.fromEntries(Object.keys(resultParts).map(k => [k, Type.String()])))),
+  }),
+  texts: {
+    es: ({ part }) => {
+      const entry = Object.entries(resultParts).find(([key]) => key === part);
+      if (!entry) throw new Error("Parte de resultados desconocida");
+      return entry[1];
+    },
   },
 });

@@ -1,5 +1,6 @@
 // Wakes a mind for its own journeys, its rules and the program messages addressed to it.
 import { ruleWake } from "./rule-wake.ts";
+import { journeyWake } from "./journey-wakes.ts";
 import { isMindActor, parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import type { ProgramMessage } from "../../tools/installable/program.ts";
@@ -27,16 +28,6 @@ function mentions(text: string, name: string): boolean {
   }
   return false;
 }
-function lifecycle(policy: WakePolicy, event: Event, history: readonly Event[], now: number): boolean {
-  if (event.layer !== "house" || event.by !== policy.scope.actor) return false;
-  if (policy.scope.kind === "consciousness") return event.kind === "journey-closed";
-  if (event.process !== policy.scope.process) return false;
-  const later = history.filter(e => e.seq > event.seq && e.layer === "house" && e.process === event.process);
-  if (later.some(e => e.kind === "journey-closed" || (e.kind === "mind-turn-opened" && e.by === policy.scope.actor)))
-    return false;
-  if (event.kind === "journey-opened") return true;
-  return event.kind === "journey-waiting" && event.data.until <= now && !later.some(e => e.kind === "journey-waiting");
-}
 export function mindWakeDecision(policy: WakePolicy, event: Event, history: readonly Event[], now: number): boolean {
   requireMind(policy, "policy");
   requireMind(event, "event");
@@ -49,7 +40,7 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   const mind = parseMindActor(policy.scope.actor);
   requireMind(mind, "policy.actor");
   if (policy.wakes) return event.by !== policy.scope.actor && policy.wakes(event);
-  if (lifecycle(policy, event, history, now) || ruleWake(policy.scope, event, history)) return true;
+  if (journeyWake(policy.scope, event, history, now) || ruleWake(policy.scope, event, history)) return true;
   if (event.by === policy.scope.actor) return false;
   if (policy.scope.kind !== "consciousness") return false;
   if (

@@ -32,9 +32,14 @@ function state(): JourneyMenuState {
 }
 it("la consciencia recibe comunicación autorizada y apertura, sin trabajo ni controles ajenos", () => {
   const result = journeyMenu(scope, state(), "es");
-  expect(result.map(item => item.act)).toEqual(["say", "open"]);
-  expect(result.at(-1)).toMatchObject({ tool: "journey", target: actor, scope: "open" });
-  expect(result.at(-1)?.purpose).toContain("Abrir");
+  expect(result.map(item => item.act)).toEqual(["say", "open", "resume", "desist"]);
+  expect(result.find(item => item.act === "open")).toMatchObject({ tool: "journey", target: actor, scope: "open" });
+  expect(result.find(item => item.act === "open")?.purpose).toContain("Abrir");
+  // Over its own open journey the consciousness can go back to it or desist from it, by the journey's id.
+  expect(result.slice(2)).toMatchObject([
+    { tool: "journey", target: "j1", scope: "control" },
+    { tool: "journey", target: "j1", scope: "control" },
+  ]);
   const answer = {
     scene: "Preparando",
     consulta: null,
@@ -70,7 +75,11 @@ it("cruza kit actual, kit persistido y alcance del turno sin ampliar ninguno", (
       .map(item => item.act),
   ).toEqual(["write"]);
   expect(journeyMenu({ ...journey, kit: [] }, current, "es").filter(item => item.scope === "work")).toEqual([]);
-  expect(journeyMenu(scope, { ...current, communication: [] }, "es").map(item => item.act)).toEqual(["open"]);
+  expect(journeyMenu(scope, { ...current, communication: [] }, "es").map(item => item.act)).toEqual([
+    "open",
+    "resume",
+    "desist",
+  ]);
 });
 it("oculta plan repetido y ofrece done solo si hay pasos pendientes", () => {
   const s = state();

@@ -18,6 +18,8 @@ export type JourneyState = Readonly<{
   steps: readonly JourneyPlanStep[];
   planned: boolean;
   waiting?: Readonly<{ what: string; until: number }>;
+  /** What the consciousness asked this journey to attend to when it last resumed it. */
+  resumed?: string;
   closed?: HouseEvent<"journey-closed">;
 }>;
 export type Journeys = ReadonlyMap<string, JourneyState>;
@@ -28,6 +30,7 @@ export function journeyStep(state: Journeys, event: HouseEvent): Journeys {
     event.kind !== "journey-plan-written" &&
     event.kind !== "journey-step-done" &&
     event.kind !== "journey-waiting" &&
+    event.kind !== "journey-resumed" &&
     event.kind !== "journey-closed"
   )
     return state;
@@ -73,6 +76,7 @@ function advanceJourney(
     };
   }
   if (event.kind === "journey-waiting") return { ...previous, waiting: event.data };
+  if (event.kind === "journey-resumed") return { ...previous, resumed: event.data.note };
   return { ...previous, closed: event };
 }
 /** The engine, including nested acts, checks this scope against the current fold. */

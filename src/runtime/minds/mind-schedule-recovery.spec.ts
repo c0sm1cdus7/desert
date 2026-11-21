@@ -78,7 +78,7 @@ it.each([
         model,
         emit,
         frame: () => ({ layers: ["Casa", "Mente", "Skills", "Reglas"], changing: "Pedido" }),
-        read: () => ({ active: true, menu: [], through: at, rulesVersion: "none" }),
+        read: () => ({ active: true, menu: [], through: at, rulesVersion: "none", now: 0 }),
         allowed: () => true,
         isOpen: id => !!state().turns.get(id) && !state().turns.get(id)?.closed,
         reviewReason: () => undefined,
@@ -108,6 +108,7 @@ it.each([
         outcome: "interrupted",
         calls: phase === "reserved" ? 0 : 1,
         applied: [],
+        reason: "interrupted",
       });
       const later = bus.emit(emission());
       await schedule.flush();

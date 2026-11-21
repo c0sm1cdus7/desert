@@ -3,7 +3,7 @@ import { ruleControl } from "./rule-controls.ts";
 import { applyProgramCommunication } from "./program-mind-communication.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import type { Program } from "../../tools/tool-contract.ts";
-import { execute } from "../../tools/execute.ts";
+import { execute, type Decision } from "../../tools/execute.ts";
 import {
   openJourney,
   endJourney,
@@ -11,11 +11,12 @@ import {
   writeJourneyPlan,
   completeJourneyStep,
   waitJourney,
+  resumeJourney,
   type JourneyControlContext,
   type JourneyControlState,
 } from "../../tools/minds/journey-controls.ts";
 import type { ProposedAct } from "../../tools/minds/mind-answer.ts";
-import type { TurnPorts } from "./mind-ports.ts";
+import type { ExecuteResult, TurnPorts } from "./mind-ports.ts";
 import {
   supervised,
   type MindRuntimeHouse,
@@ -63,10 +64,11 @@ function controlContext<X extends Program>(
     },
   };
 }
-async function controlFacts(context: JourneyControlContext, { act, input }: ProposedAct) {
+async function controlFacts(context: JourneyControlContext, { act, input, target }: ProposedAct) {
   if (act === "open") return (await openJourney(context, input)).facts;
   if (act === "end") return (await endJourney(context, input)).facts;
-  if (act === "desist") return (await desistJourney(context, input)).facts;
+  if (act === "desist") return (await desistJourney(context, input, target)).facts;
+  if (act === "resume") return resumeJourney(context, input, target);
   if (act === "plan") return writeJourneyPlan(context, input);
   if (act === "done") return completeJourneyStep(context, input);
   if (act === "wait") return waitJourney(context, input);
@@ -90,6 +92,18 @@ async function applyControl<X extends Program>(
   const id = events[0]?.id;
   requireMind(id, "runtime.control");
   return { status: "accepted" as const, id };
+}
+/** What an accepted act returned reaches a journey with its results: its line and its value, a device's receipt. */
+function acceptedResult<X extends Program>(done: Decision<X>, id: string): ExecuteResult {
+  const text = done.effects.flatMap(each =>
+    each.layer === "house" && each.kind === "act-done" ? [each.data.text] : [],
+  )[0];
+  return {
+    status: "accepted",
+    id,
+    ...(text ? { text } : {}),
+    ...(done.value === undefined ? {} : { value: done.value }),
+  };
 }
 async function applyAct<X extends Program>(
   house: MindRuntimeHouse<X>,
@@ -123,7 +137,8 @@ async function applyAct<X extends Program>(
   // Only the tool's own refusal teaches the mind something; a rule or the core stays a stop.
   const taught = done.status === "rejected" && !("coreFailure" in done && done.coreFailure);
   if (taught) return { status, id, ...(done.reason ? { reason: done.reason } : {}) };
-  return { status: done.status === "accepted" ? "accepted" : status, id };
+  if (done.status !== "accepted") return { status, id };
+  return acceptedResult(done, id);
 }
 export function runtimeActions<X extends Program>(
   house: MindRuntimeHouse<X>,

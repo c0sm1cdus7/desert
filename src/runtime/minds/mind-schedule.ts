@@ -20,7 +20,7 @@ export function pendingMindWakes(
 ): readonly PendingMindWake[] {
   requireMind(array(policies), "policies");
   requireMind(array(history), "history");
-  const pending: PendingMindWake[] = [];
+  const pending: (PendingMindWake & Readonly<{ oldest: number }>)[] = [];
   for (const policy of policies) {
     const opened = history.filter(
       (e): e is HouseEvent<"mind-turn-opened"> =>
@@ -31,10 +31,13 @@ export function pendingMindWakes(
     );
     if (opened.some(e => !closed.has(e.data.turn))) continue;
     const consumed = new Set(opened.flatMap(e => e.data.wake));
-    const wake = history.filter(e => !consumed.has(e.id) && mindWakeDecision(policy, e, history, now)).map(e => e.id);
-    if (wake.length) pending.push({ scope: policy.scope, wake, through: history.at(-1)?.seq ?? 0 });
+    const waking = history.filter(e => !consumed.has(e.id) && mindWakeDecision(policy, e, history, now));
+    const oldest = waking[0]?.seq;
+    if (oldest !== undefined)
+      pending.push({ scope: policy.scope, wake: waking.map(e => e.id), through: history.at(-1)?.seq ?? 0, oldest });
   }
-  return pending;
+  // The oldest waking fact runs first, so a journey that works a lot never leaves the other minds without a turn.
+  return pending.sort((a, b) => a.oldest - b.oldest).map(({ scope, wake, through }) => ({ scope, wake, through }));
 }
 export type MindSchedulePorts = Readonly<{
   bus: Readonly<{ on: (listener: (event: Event) => void) => () => void; confirmation: () => () => boolean }>;
@@ -95,6 +98,7 @@ export function recoverMindSchedule(ports: MindSchedulePorts): void {
           outcome: "interrupted",
           calls: interruptedCalls(event, history),
           applied: interruptedActs(event, history),
+          reason: "interrupted",
         },
         event.by,
         [event.id],

@@ -1,15 +1,17 @@
-// Ejecuta un despertar de una mente con consulta, revisión y una sola corrección compartida.
+// Runs a mind's wake: a consciousness answers once; a journey goes on with its results until it says how it goes on.
 import { Value } from "@sinclair/typebox/value";
 import { mindFacts } from "../../house/minds/mind-facts.ts";
 import { parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import { effect, type HouseEmission } from "../../house/facts.ts";
-import { answerSchema, validateAnswer, type AnswerFault, type MindAnswer } from "../../tools/minds/mind-answer.ts";
+import { continuation, validateAnswer, type AnswerFault, type MindAnswer } from "../../tools/minds/mind-answer.ts";
 import { turnLimits, type TurnContext } from "../../tools/minds/mind-contract.ts";
 import type { ReviewPort } from "../../tools/minds/mind-review.ts";
 import { correctionNotice, invalidNotice, turnNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
-import { JourneyKitRefused, JourneyWaitRefused } from "../../tools/minds/journey-controls.ts";
 import { createMindActReview, reviewMindActs } from "./mind-act-review.ts";
+import { TurnConversation } from "./turn-conversation.ts";
+import { applyActs } from "./turn-acts.ts";
+import { consultationText, resultsText, type ActReport } from "./turn-results.ts";
 import {
   createTurnCaller,
   TurnStopped,
@@ -17,6 +19,7 @@ import {
   type TurnCaller,
   type TurnOutcome,
   type TurnPorts,
+  type TurnSnapshot,
   type TurnWake,
 } from "./mind-ports.ts";
 class MindTurnRun {
@@ -26,8 +29,10 @@ class MindTurnRun {
   readonly applied: string[] = [];
   private consulted = false;
   private readonly ports: TurnPorts;
+  private readonly talk: TurnConversation;
   constructor(ports: TurnPorts, wake: TurnWake) {
     this.ports = ports;
+    this.talk = new TurnConversation(wake.scope.kind === "journey");
     this.turn = { ...wake, limits: turnLimits, usage: { calls: 0, corrections: 0, consultations: 0 } };
     this.caller = createTurnCaller(
       ports.model,
@@ -64,7 +69,13 @@ class MindTurnRun {
     this.write(
       effect(
         "mind-turn-closed",
-        { turn: id, outcome: result.outcome, calls: result.calls, applied: result.applied },
+        {
+          turn: id,
+          outcome: result.outcome,
+          calls: result.calls,
+          applied: result.applied,
+          ...(reason ? { reason } : {}),
+        },
         scope.actor,
         wake,
         scope.process,
@@ -76,14 +87,21 @@ class MindTurnRun {
     const { id, scope, wake } = this.turn;
     if (faults) this.write(effect("mind-answer-invalid", { turn: id, faults }, scope.actor, wake, scope.process));
     if (counted ? this.caller.stopped() : !this.caller.correct()) return false;
-    this.scene(correctionNotice.text(this.turn.language, { reason }));
+    const text = correctionNotice.text(this.turn.language, { reason });
+    this.scene(text);
+    this.talk.tell(faults ? `${text}\n${JSON.stringify(faults)}` : text);
     return true;
   }
+  /** The frame is built once per turn; every later call appends to the conversation and keeps its bytes. */
   private async think(): Promise<ModelOutcome> {
     const { scope } = this.turn;
-    const frame = this.ports.frame(scope, this.turn);
-    if ("tooLarge" in frame) throw new TurnStopped("frame-too-large", this.turn);
-    return this.caller.call(scope.actor, frame, answerSchema(this.ports.read(scope).menu));
+    const build = () => {
+      const frame = this.ports.frame(scope, this.turn);
+      if ("tooLarge" in frame) throw new TurnStopped("frame-too-large", this.turn);
+      return frame;
+    };
+    const { frame, schema, exchanges } = this.talk.next(build, this.ports.read(scope).menu);
+    return this.caller.call(scope.actor, frame, schema, exchanges);
   }
   private inspect(value: unknown) {
     const snapshot = this.ports.read(this.turn.scope);
@@ -129,41 +147,8 @@ class MindTurnRun {
         scope.process,
       ),
     );
-    if (reviewed.outcome === "rejected" && !this.correct(reviewed.text)) return "rejected";
-    return undefined;
-  }
-  private async apply(
-    answer: MindAnswer,
-    version: string,
-  ): Promise<TurnStop | Readonly<{ code: "kit" | "wait" | "act"; correction: string }> | undefined> {
-    for (const act of answer.acts) {
-      const current = this.ports.read(this.turn.scope);
-      if (!current.active || !this.ports.isOpen(this.turn.id)) return "inactive";
-      if (current.rulesVersion !== version) return "review-stale";
-      if (!this.ports.allowed(this.turn.scope, act)) return "permission";
-      let result: Awaited<ReturnType<typeof this.ports.execute>>;
-      try {
-        result = await this.ports.execute(act, { turn: this.turn, review: this.review });
-      } catch (error) {
-        if (error instanceof JourneyKitRefused)
-          return {
-            code: "kit",
-            correction: `${invalidNotice.text(this.turn.language, { reason: "kit" })} ${error.kit}`,
-          };
-        if (error instanceof JourneyWaitRefused)
-          return {
-            code: "wait",
-            correction: `${invalidNotice.text(this.turn.language, { reason: "wait" })} ${error.now}`,
-          };
-        throw error;
-      }
-      if (result.status === "inconclusive") return "act-uncertain";
-      // A tool's refusal says why; the mind gets it back to adjust, within the turn's correction budget.
-      if (result.status === "rejected" && result.reason) return { code: "act", correction: result.reason };
-      if (result.status !== "accepted") return "act-failed";
-      requireMind(result.id && !this.applied.includes(result.id), "act.id");
-      this.applied.push(result.id);
-    }
+    if (reviewed.outcome === "rejected") return this.correct(reviewed.text) ? undefined : "rejected";
+    this.talk.tell(consultationText(this.turn.language, reviewed.text));
     return undefined;
   }
   private async proposal(answer: MindAnswer): Promise<TurnOutcome | undefined> {
@@ -172,7 +157,7 @@ class MindTurnRun {
       const stopped = await this.consult(answer);
       return stopped ? this.finish(stopped) : undefined;
     }
-    const version = this.ports.read(this.turn.scope).rulesVersion;
+    const { rulesVersion: version, menu } = this.ports.read(this.turn.scope);
     const reviewed = await reviewMindActs(this.ports, this.turn, this.review, answer.acts);
     const stopped = this.caller.stopped();
     if (stopped) return this.finish(stopped);
@@ -180,12 +165,27 @@ class MindTurnRun {
     if (reviewed?.outcome === "rejected") return this.correct(reviewed.text) ? undefined : this.finish("rejected");
     if (version !== this.ports.read(this.turn.scope).rulesVersion) return this.finish("review-stale");
     if (!this.inspect(answer).ok) return this.finish("permission");
-    const failure = await this.apply(answer, version);
-    if (typeof failure === "object")
-      return this.correct(failure.correction, [{ code: failure.code, path: "/acts" }])
+    const run = { ports: this.ports, turn: this.turn, review: this.review };
+    const done = await applyActs(run, answer, version, this.applied);
+    if (typeof done === "string") return this.finish(this.ports.isOpen(this.turn.id) ? done : "inactive");
+    if ("code" in done)
+      return this.correct(done.correction, [{ code: done.code, path: "/acts" }])
         ? undefined
-        : this.finish(failure.code === "act" ? "act-failed" : "invalid");
-    return this.finish(this.ports.isOpen(this.turn.id) ? failure : "inactive");
+        : this.finish(done.code === "act" ? "act-failed" : "invalid");
+    if (!this.ports.isOpen(this.turn.id)) return this.finish("inactive");
+    return this.goOn(answer, done.reports, menu);
+  }
+  /** A consciousness answers once. A journey's turn closes only when its last act, applied, says how it goes on;
+   * otherwise the mind hears what its acts did and answers again, with a correction of its own to spend. */
+  private goOn(answer: MindAnswer, reports: readonly ActReport[], menu: TurnSnapshot["menu"]): TurnOutcome | undefined {
+    const last = answer.acts.at(-1);
+    const closes = !!last && continuation(menu.find(item => item.act === last.act && item.target === last.target));
+    if (this.turn.scope.kind !== "journey" || (closes && reports.at(-1)?.status === "accepted")) return this.finish();
+    const now = this.ports.read(this.turn.scope);
+    const menus = { before: this.talk.menu(), after: now.menu };
+    this.talk.tell(resultsText(this.turn.language, reports, now.now, menus));
+    this.caller.settle();
+    return undefined;
   }
   private async step(): Promise<TurnOutcome | undefined> {
     const outcome = await this.think();
@@ -198,9 +198,12 @@ class MindTurnRun {
         ? undefined
         : this.finish("invalid");
     }
+    this.talk.answered(outcome.value);
     const checked = this.inspect(outcome.value);
+    const reason =
+      checked.ok || !checked.faults.some(fault => fault.code === "continuation") ? "schema" : "continuation";
     if (!checked.ok)
-      return this.correct(invalidNotice.text(this.turn.language, { reason: "schema" }), checked.faults)
+      return this.correct(invalidNotice.text(this.turn.language, { reason }), checked.faults)
         ? undefined
         : this.finish("invalid");
     return this.proposal(checked.answer);

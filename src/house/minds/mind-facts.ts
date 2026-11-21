@@ -4,6 +4,7 @@ import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
 import { mindName } from "../assistants/assistant-facts.ts";
 import { mindText } from "./journey-facts.ts";
+import { turnStops } from "../../fields/turn-stops.ts";
 const turn = { turn: mindName };
 const proposals = Type.Array(
   object({ act: mindName, target: mindName, input: Type.Unknown(), destination: Type.Optional(executionDestination) }),
@@ -42,6 +43,8 @@ export const mindFacts = {
     outcome: Type.Union([Type.Literal("done"), Type.Literal("failed"), Type.Literal("interrupted")]),
     calls: Type.Integer({ minimum: 0, maximum: 12 }),
     applied: Type.Array(mindName, { uniqueItems: true }),
+    /** Why a turn stopped; journals from before 21/11 close without it, and only a closure with it wakes a mind. */
+    reason: Type.Optional(Type.Union(turnStops.map(stop => Type.Literal(stop)))),
   }),
   "mind-scene": object({ ...turn, text: mindText }),
   "mind-message": object({ ...turn, to: mindName, text: mindText }),

@@ -31,6 +31,7 @@ export const autonomousFacts: Readonly<Record<string, string>> = {
   "journey-plan-written": "minds", // Retains the plan of the mind's own journey.
   "journey-step-done": "minds", // Records progress on the mind's own journey.
   "journey-waiting": "minds", // Retains a requested continuation without executing it twice.
+  "journey-resumed": "minds", // Wakes the mind's own open journey when its consciousness goes back to it.
   "journey-closed": "minds", // Closes the mind's own journey after final review.
   "model-account-opened": "bank", // Bootstrap records the host spending account opening once, outside any house.
   "model-account-cap-set": "bank", // Bootstrap records a signed new cap once, never below what was spent or reserved.

@@ -146,10 +146,11 @@ async function invoke(request: ModelRequest, ports: Ports): Promise<ModelOutcome
     return { kind: "not-sent", reason: "no-key" };
   }
   if (!key) return { kind: "not-sent", reason: "no-key" };
-  const payload = mindRequest(card, request.frame, request.schema);
+  const payload = mindRequest(card, request.frame, request.schema, request.exchanges);
   const body = requestBody(payload);
+  // The frame was fitted alone; what a turn appended after it is what can outgrow the request.
   if (new TextEncoder().encode(JSON.stringify(body)).length + providerMarginTokens > ports.maxInputTokens)
-    return { kind: "not-sent", reason: "cap" };
+    return { kind: "not-sent", reason: request.exchanges?.length ? "conversation-too-large" : "cap" };
   let maximum: number;
   try {
     maximum = maximumCost(card, ports.maxInputTokens);

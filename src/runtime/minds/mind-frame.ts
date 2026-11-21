@@ -13,6 +13,8 @@ export type FrameSource = Readonly<{
   thread: readonly FrameItem[];
   /** The house clock in milliseconds, so a journey can wait until a real moment. */
   now?: number;
+  /** What woke the mind, in words, one line per waking fact, when some fact has words. */
+  woke?: readonly string[];
 }>;
 export type FrameSnapshot = Readonly<FrameSource & { scope: MindScope; through: number; wake: readonly string[] }>;
 export type { FramePort, MindFrame } from "./mind-ports.ts";
@@ -38,6 +40,7 @@ export function buildMindFrame(scope: MindScope, turn: TurnContext, source: Fram
     scene: source.scene,
     required: source.required,
     ...(source.now === undefined ? {} : { now: source.now }),
+    ...(source.woke === undefined ? {} : { woke: [...source.woke] }),
     activity: source.activity.map(item => ({
       id: item.id,
       text: item.text,

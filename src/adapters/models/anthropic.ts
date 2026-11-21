@@ -6,12 +6,15 @@ import { providerSchema, matchesSchema } from "./schema.ts";
 import type { ProviderRejection } from "../../fields/provider-rejection.ts";
 import { readProviderError } from "./provider-error.ts";
 
+/** One exchange after the first message: the schema its answer was asked with, that answer, and what was told back. */
+type Exchange = Readonly<{ asked: Record<string, unknown>; answer?: string; told: string }>;
 type Request = {
   card: Card;
   maxOutputTokens: number;
   layers: readonly [string, string, string, string];
   changing: string;
   schema: Record<string, unknown>;
+  exchanges?: readonly Exchange[];
 };
 export type FailureKind = "http" | "transport" | "refusal" | "max_tokens" | "json" | "schema" | "response";
 export class ModelFailure extends Error {
@@ -34,6 +37,29 @@ const schemaKey = (schema: Record<string, unknown>) =>
   createHash("sha256")
     .update(JSON.stringify(providerSchema(schema)))
     .digest("hex");
+type Message = Readonly<{ role: "user" | "assistant"; content: string }>;
+const unconstrainedAsk = (schema: Record<string, unknown>): Message => ({
+  role: "user",
+  content: `${modelTexts.jsonOnly}\n${JSON.stringify(providerSchema(schema))}`,
+});
+/** Every call repeats what the earlier calls sent, byte for byte, and appends: the provider reads that prefix from
+ * its cache. An unconstrained schema travels as its own message after the one that asks, and stays in the history. */
+function conversation(request: Request, constrained: boolean): Message[] {
+  const asks = (schema: Record<string, unknown>) =>
+    unconstrained.has(schemaKey(schema)) ? [unconstrainedAsk(schema)] : [];
+  const exchanges = request.exchanges ?? [];
+  if (exchanges.some(each => typeof each.told !== "string" || !each.asked))
+    throw new ModelFailure("response", modelTexts.request);
+  return [
+    { role: "user", content: request.changing },
+    ...exchanges.flatMap((each): Message[] => [
+      ...asks(each.asked),
+      ...(each.answer === undefined ? [] : [{ role: "assistant" as const, content: each.answer }]),
+      { role: "user", content: each.told },
+    ]),
+    ...(constrained ? [] : [unconstrainedAsk(request.schema)]),
+  ];
+}
 export function requestBody(request: Request, constrained = !unconstrained.has(schemaKey(request.schema))) {
   required(request, "request");
   required(request.card, "card");
@@ -57,14 +83,9 @@ export function requestBody(request: Request, constrained = !unconstrained.has(s
     system: request.layers.map((text, index) =>
       index === 3 ? { type: "text", text, cache_control: { type: "ephemeral" } } : { type: "text", text },
     ),
-    messages: [
-      {
-        role: "user",
-        content: constrained
-          ? request.changing
-          : `${request.changing}\n\n${modelTexts.jsonOnly}\n${JSON.stringify(providerSchema(request.schema))}`,
-      },
-    ],
+    // A turn's conversation is cached up to its end, so the next call of the same turn reads it from the cache.
+    ...(request.exchanges ? { cache_control: { type: "ephemeral" } } : {}),
+    messages: conversation(request, constrained),
   };
 }
 /** Unconstrained answers may come fenced; the local contract still checks the whole value. */

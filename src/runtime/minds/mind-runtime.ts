@@ -14,7 +14,7 @@ import { readonlyPorts } from "../../tools/boundaries/readonly-ports.ts";
 import { watchRunning } from "../../tools/execution/running-acts.ts";
 import { turnNotice } from "../../texts/mind-turn.texts.ts";
 import { runMindTurn } from "./mind-turn.ts";
-import { followUpJourney, resumeInterruptedJourneys } from "./journey-follow-up.ts";
+import { journeyCutScene } from "./journey-cut-scene.ts";
 import { startMindSchedule, recoverMindSchedule, type MindSchedulePorts } from "./mind-schedule.ts";
 import { runtimeView, scopeActive } from "./mind-runtime-view.ts";
 import { runtimeFrame } from "./mind-runtime-frame.ts";
@@ -89,9 +89,10 @@ class HouseMindRuntime<X extends Program> {
       frame,
       model,
       read: scope => {
-        if (!house.active()) return { menu: [], active: false, through: 0, rulesVersion: options.rulesVersion() };
+        const now = house.time.now();
+        if (!house.active()) return { menu: [], active: false, through: 0, rulesVersion: options.rulesVersion(), now };
         const { menu, control } = this.view(scope);
-        return { menu, active: control.active, through: control.through, rulesVersion: control.rulesVersion };
+        return { menu, active: control.active, through: control.through, rulesVersion: control.rulesVersion, now };
       },
       isOpen: id =>
         house.active() &&
@@ -177,7 +178,7 @@ class HouseMindRuntime<X extends Program> {
       return learned;
     }
     const outcome = await runMindTurn(ports, wake);
-    followUpJourney(this.house, wake, outcome);
+    journeyCutScene(this.house, wake, outcome);
     this.options.observeTurn?.(outcome);
     return outcome;
   }
@@ -203,7 +204,6 @@ class HouseMindRuntime<X extends Program> {
       },
     };
     recoverMindSchedule({ ...schedulePorts, policies: () => this.policies(true) });
-    resumeInterruptedJourneys(house);
     const offs = [watchRunning(house.execution), this.assistantCards].map(listen => house.execution.bus.on(listen));
     const schedule = startMindSchedule(schedulePorts);
     return {

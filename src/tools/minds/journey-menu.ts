@@ -19,6 +19,7 @@ export const journeyInputs = {
   plan: journeyFacts["journey-plan-written"],
   done: journeyFacts["journey-step-done"],
   wait: journeyFacts["journey-waiting"],
+  resume: journeyFacts["journey-resumed"],
   end: object({ summary: mindText, references: journeyFacts["journey-closed"].properties.references }),
   desist: object({ reason: mindText, references: journeyFacts["journey-closed"].properties.references }),
 };
@@ -40,8 +41,11 @@ export type JourneyMenuState = JourneyAccess &
 export type JourneyMenu = readonly (MindMenu[number] & Readonly<{ purpose?: string }>)[];
 export const kitIncludes = (kit: DelegatedKit, tool: string, act: string): boolean =>
   kit.some(item => item.tool === tool && item.acts.includes(act));
+/** Whether an act of this mind in this journey is still running, so the journey cannot close under it. */
+export const pendingIn = (state: JourneyAccess, actor: string, process: string): boolean =>
+  state.pending.some(item => item.by === actor && item.process === process);
 export const journeyPending = (scope: MindScope, state: JourneyAccess): boolean =>
-  scope.kind === "journey" && state.pending.some(item => item.by === scope.actor && item.process === scope.process);
+  scope.kind === "journey" && pendingIn(state, scope.actor, scope.process);
 export function validateJourneyAccess(scope: MindScope, state: JourneyAccess): void {
   requireMind(scope, "scope");
   requireMind(Value.Check(mindActor, scope.actor), "scope.actor");
@@ -63,15 +67,27 @@ export function validateJourneyAccess(scope: MindScope, state: JourneyAccess): v
     requireMind(Value.Check(delegatedKit, scope.kit), "scope.kit");
   } else requireMind(Value.Check(Type.Undefined(), scope.process), "scope.process");
 }
-function controls(scope: MindScope, state: JourneyAccess, journey: JourneyState | undefined): JourneyControl[] {
-  if (scope.kind === "consciousness") return ["open"];
+type OwnControl = Readonly<{ act: JourneyControl; target: string }>;
+/** A consciousness opens journeys, and over each of its open journeys it can go back to it or desist from it. */
+function oversight(scope: MindScope, state: JourneyAccess): OwnControl[] {
+  const open = [...state.journeys.values()].filter(journey => journey.by === scope.actor && !journey.closed);
+  return [
+    { act: "open", target: scope.actor },
+    ...open.flatMap(({ id }): OwnControl[] => [
+      { act: "resume", target: id },
+      ...(pendingIn(state, scope.actor, id) ? [] : [{ act: "desist" as const, target: id }]),
+    ]),
+  ];
+}
+function controls(scope: MindScope, state: JourneyAccess, journey: JourneyState | undefined): OwnControl[] {
+  if (scope.kind === "consciousness") return oversight(scope, state);
   requireMind(journey, "journey.active");
   const result: JourneyControl[] = [];
   if (!journey.planned) result.push("plan");
   if (journey.steps.some(step => step.note === undefined)) result.push("done");
   result.push("wait");
   if (!journeyPending(scope, state)) result.push("end", "desist");
-  return result;
+  return result.map(act => ({ act, target: scope.process }));
 }
 /** The caller routes scope open/control to the turn; these entries are not tool acts. */
 export function journeyMenu(scope: MindScope, state: JourneyMenuState, language: Language): JourneyMenu {
@@ -88,10 +104,10 @@ export function journeyMenu(scope: MindScope, state: JourneyMenuState, language:
       ...item,
       scope: scope.kind === "journey" ? ("work" as const) : ("communication" as const),
     }));
-  const own = controls(scope, state, journey).map(act => ({
+  const own = controls(scope, state, journey).map(({ act, target }) => ({
     tool: "journey",
     act,
-    target: scope.process ?? scope.actor,
+    target,
     input: journeyInputs[act],
     scope: act === "open" ? ("open" as const) : ("control" as const),
     purpose: journeyControlPurpose.text(language, { control: act }),

@@ -26,7 +26,10 @@ export function actRules<X extends Program>(house: MindRuntimeHouse<X>, scope: M
   const own = scope.process ?? scope.actor;
   let tool: string | undefined = "journey";
   let schema: TSchema | undefined;
-  if (act.target === own && Object.hasOwn(journeyInputs, act.act)) schema = coreRuleSchema("journey", act.act);
+  // A consciousness's resume and desist name one of its own journeys instead of itself.
+  const journey = house.execution.state().house.journeys.get(act.target)?.by === scope.actor;
+  if ((act.target === own || journey) && Object.hasOwn(journeyInputs, act.act))
+    schema = coreRuleSchema("journey", act.act);
   else if (act.target === scope.actor && act.act === "scene")
     [tool, schema] = ["mind", coreRuleSchema("mind", "scene")];
   else {

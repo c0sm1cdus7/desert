@@ -21,7 +21,7 @@ function fixture() {
     frame: () => ({ layers: ["Casa", "Mente", "Skills", "Reglas"], changing: "Pedido" }),
     model,
     isOpen: () => open,
-    read: () => ({ active: true, menu: [], through: 1, rulesVersion: "v1" }),
+    read: () => ({ active: true, menu: [], through: 1, rulesVersion: "v1", now: 0 }),
     allowed: () => true,
     reviewReason: () => "world",
     supervision: {},

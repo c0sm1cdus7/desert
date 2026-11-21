@@ -16,7 +16,7 @@ import type { TurnContext } from "./mind-contract.ts";
 import type { ReviewPort, ReviewRequest, ReviewResult } from "./mind-review.ts";
 import {
   journeyInputs,
-  journeyPending,
+  pendingIn,
   kitIncludes,
   validateJourneyAccess,
   type JourneyAccess,
@@ -93,10 +93,12 @@ function current(context: JourneyControlContext): JourneyControlState {
   requireMind(Value.Check(mindName, state.rulesVersion), "state.rulesVersion");
   return state;
 }
-function ownJourney(context: JourneyControlContext, state: JourneyControlState): JourneyState {
+/** A journey acts on itself; a consciousness acts on the open journey of its own that the act names. */
+function ownJourney(context: JourneyControlContext, state: JourneyControlState, target?: string): JourneyState {
   const scope = context.turn.scope;
-  requireMind(scope.kind === "journey", "scope.kind");
-  const journey = state.journeys.get(scope.process);
+  const id = scope.kind === "journey" ? scope.process : target;
+  requireMind(id, "journey.target");
+  const journey = state.journeys.get(id);
   requireMind(journey && journey.by === scope.actor && !journey.closed, "journey.active");
   return journey;
 }
@@ -116,6 +118,7 @@ async function reviewed(
   control: "open" | "end" | "desist",
   input: unknown,
   build: (state: JourneyControlState) => readonly HouseEmission[],
+  target = context.turn.scope.process ?? context.turn.scope.actor,
 ): Promise<JourneyReviewOutcome> {
   const before = current(context);
   const rulesVersion = before.rulesVersion;
@@ -125,7 +128,7 @@ async function reviewed(
     reason: control,
     scope: context.turn.scope,
     through: before.through,
-    acts: [{ act: control, target: context.turn.scope.process ?? context.turn.scope.actor, input }],
+    acts: [{ act: control, target, input }],
     turn: context.turn,
   };
   deepFreeze(request.acts);
@@ -200,10 +203,11 @@ function closeJourney(
   control: "end" | "desist",
   input: unknown,
   data: Readonly<{ summary: string; references: readonly string[] }>,
+  target?: string,
 ): Promise<JourneyReviewOutcome> {
-  return reviewed(c, control, input, state => {
-    const journey = ownJourney(c, state);
-    requireMind(!journeyPending(c.turn.scope, state), "journey.pending");
+  const close = (state: JourneyControlState) => {
+    const journey = ownJourney(c, state, target);
+    requireMind(!pendingIn(state, journey.by, journey.id), "journey.pending");
     const facts: HouseEmission[] = [
       effect(
         "journey-closed",
@@ -219,15 +223,35 @@ function closeJourney(
     if (journey.waiting)
       facts.push(effect("wake-at", { id: journey.id, at: null }, journey.by, causes(c, journey), journey.id));
     return checked(state, facts);
-  });
+  };
+  return reviewed(c, control, input, close, target);
 }
 export async function endJourney(context: JourneyControlContext, input: unknown): Promise<JourneyReviewOutcome> {
   const c = contextOf(context);
+  requireMind(c.turn.scope.kind === "journey", "scope.kind");
   const data = inputOf(journeyInputs.end, input, "end");
   return closeJourney(c, "end", data, data);
 }
-export async function desistJourney(context: JourneyControlContext, input: unknown): Promise<JourneyReviewOutcome> {
+/** A journey desists from itself; its consciousness desists from one of its open journeys, named by `target`. */
+export async function desistJourney(
+  context: JourneyControlContext,
+  input: unknown,
+  target?: string,
+): Promise<JourneyReviewOutcome> {
   const c = contextOf(context);
   const data = inputOf(journeyInputs.desist, input, "desist");
-  return closeJourney(c, "desist", data, { summary: data.reason, references: data.references });
+  return closeJourney(c, "desist", data, { summary: data.reason, references: data.references }, target);
+}
+/** The consciousness goes back to one of its open journeys: the fact wakes that journey, with the note to attend. */
+export function resumeJourney(
+  context: JourneyControlContext,
+  input: unknown,
+  target: string,
+): readonly HouseEmission[] {
+  const c = contextOf(context);
+  requireMind(c.turn.scope.kind === "consciousness", "scope.kind");
+  const state = current(c);
+  const journey = ownJourney(c, state, target);
+  const data = inputOf(journeyInputs.resume, input, "resume");
+  return checked(state, [effect("journey-resumed", data, journey.by, causes(c, journey), journey.id)]);
 }

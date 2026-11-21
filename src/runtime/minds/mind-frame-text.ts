@@ -36,7 +36,7 @@ export function renderMindFrame(
     section(4, render(snapshot.activity)),
     section(5, render(snapshot.objects)),
     section(6, render(snapshot.thread)),
-    section(7, snapshot.wake.join(", ")),
+    section(7, snapshot.woke ? snapshot.woke.join("\n") : snapshot.wake.join(", ")),
     section(8, snapshot.required),
     ...(snapshot.now === undefined ? [] : [section(11, `${snapshot.now} · ${new Date(snapshot.now).toISOString()}`)]),
     ...(omitted.length ? [section(9, omitted.join(", "))] : []),

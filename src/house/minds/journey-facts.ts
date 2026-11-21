@@ -1,4 +1,4 @@
-// Declara apertura, plan, pasos, espera y cierre de procesos de una mente.
+// Declara apertura, plan, pasos, espera, retomada y cierre de procesos de una mente.
 import { selectionKitSchema } from "../kit-selection.ts";
 import { Type } from "@sinclair/typebox";
 import { wholeNumber } from "../../fields/json-values.ts";
@@ -13,6 +13,8 @@ export const journeyFacts = {
   "journey-plan-written": object({ steps: Type.Array(object({ id: mindName, text: mindText }), { minItems: 1 }) }),
   "journey-step-done": object({ step: mindName, note: mindText }),
   "journey-waiting": object({ what: mindText, until: wholeNumber }),
+  /** The consciousness goes back to one of its open journeys, with what that journey should attend to. */
+  "journey-resumed": object({ note: mindText }),
   "journey-closed": object({
     outcome: Type.Union([Type.Literal("done"), Type.Literal("desisted")]),
     summary: mindText,

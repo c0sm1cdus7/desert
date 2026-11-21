@@ -113,7 +113,7 @@ class Supervisor<X extends Program> {
   private close(wake: TurnWake, ports: LearnPorts, reason: TurnStop | undefined, calls: number): TurnOutcome {
     let outcome: TurnOutcome["outcome"] = "done";
     if (reason) outcome = reason === "uncertain" || reason === "inactive" ? "interrupted" : "failed";
-    const data = { turn: wake.id, outcome, calls, applied: [] };
+    const data = { turn: wake.id, outcome, calls, applied: [], ...(reason ? { reason } : {}) };
     if (ports.isOpen(wake.id)) ports.emit(effect("mind-turn-closed", data, supervisorActor, wake.wake));
     return { outcome, calls, applied: [], ...(reason ? { reason } : {}) };
   }

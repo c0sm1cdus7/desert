@@ -3,9 +3,15 @@ import { requestBody } from "../../adapters/models/anthropic.ts";
 import type { Card } from "../../adapters/models/catalog.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import type { FitResult } from "./mind-frame-fit.ts";
-import type { MindFrame } from "./mind-ports.ts";
-export function mindRequest(card: Card, frame: MindFrame, schema: Record<string, unknown>) {
-  return { card, maxOutputTokens: 16000, layers: frame.layers, changing: frame.changing, schema };
+import type { MindFrame, TurnExchange } from "./mind-ports.ts";
+export function mindRequest(
+  card: Card,
+  frame: MindFrame,
+  schema: Record<string, unknown>,
+  exchanges?: readonly TurnExchange[],
+) {
+  const request = { card, maxOutputTokens: 16000, layers: frame.layers, changing: frame.changing, schema };
+  return exchanges ? { ...request, exchanges } : request;
 }
 export function diagnoseMindRequest(card: Card, frame: MindFrame, schema: Record<string, unknown>) {
   return requestBody(mindRequest(card, frame, schema));

@@ -1,7 +1,7 @@
 // Construye respuestas cerradas desde el menú y comprueba propuesta, destino, alcance y permiso vigente.
 import { executionDestination, type ExecutionDestination } from "../../fields/device-protocol.ts";
 import { destinationFields, destinationAllowed } from "./device-answer.ts";
-import { Type, type TSchema } from "@sinclair/typebox";
+import { Type, type Static, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { object } from "../../fields/visible-text.ts";
 import { mindText } from "../../house/minds/journey-facts.ts";
@@ -61,12 +61,29 @@ export function answerSchema(menu: MindMenu): TSchema {
   });
 }
 const permittedScope = (context: AnswerContext, item: MindMenu[number]): boolean => {
-  if (context.scope.kind === "consciousness") return item.scope === "communication" || item.scope === "open";
+  if (context.scope.kind === "consciousness")
+    return (
+      item.scope === "communication" || item.scope === "open" || (item.scope === "control" && item.tool === "journey")
+    );
   return (
     item.scope === "control" ||
     (item.scope === "work" && context.scope.kit.some(each => each.tool === item.tool && each.acts.includes(item.act)))
   );
 };
+/** A journey's own wait, end or desist: the only acts that close a journey turn, and only as its last act. */
+export const continuation = (item: MindMenu[number] | undefined): boolean =>
+  item?.tool === "journey" && item.scope === "control" && ["wait", "end", "desist"].includes(item.act);
+/** A journey answer says how it goes on: no continuation before the last act, and never nothing at all. */
+function continuationFaults(value: Static<typeof shape>, context: AnswerContext): AnswerFault[] {
+  if (context.scope.kind !== "journey" || value.consulta) return [];
+  if (!value.acts.length) return [{ code: "continuation", path: "/acts" }];
+  return value.acts.flatMap((act, index) =>
+    index < value.acts.length - 1 &&
+    continuation(context.menu.find(item => item.act === act.act && item.target === act.target))
+      ? [{ code: "continuation", path: `/acts/${index}` }]
+      : [],
+  );
+}
 export function validateAnswer(
   value: unknown,
   context: AnswerContext,
@@ -74,7 +91,7 @@ export function validateAnswer(
   requireMind(context, "context");
   if (!Value.Check(shape, value))
     return { ok: false, faults: [...Value.Errors(shape, value)].map(error => ({ code: "shape", path: error.path })) };
-  const faults: AnswerFault[] = [];
+  const faults: AnswerFault[] = continuationFaults(value, context);
   if (!context.active) faults.push({ code: "closed", path: "/acts" });
   if (value.consulta && context.consulted) faults.push({ code: "consultation", path: "/consulta" });
   value.acts.forEach((act, index) => {

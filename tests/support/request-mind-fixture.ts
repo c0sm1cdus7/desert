@@ -52,7 +52,8 @@ class RequestMindFixture {
     if (typeof init?.body !== "string") throw new Error("request.body");
     const body: unknown = JSON.parse(init.body);
     if (!Value.Check(requestShape, body)) throw new Error("request.shape");
-    const value = await this.response(body.messages[0]?.content ?? "");
+    // The responder reads the whole conversation of the call, as the model does: the frame, then what followed it.
+    const value = await this.response(body.messages.map(message => message.content).join("\n\n"));
     return new Response(
       JSON.stringify({
         stop_reason: "end_turn",
