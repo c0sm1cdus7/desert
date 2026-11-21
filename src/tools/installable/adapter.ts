@@ -77,8 +77,19 @@ function remapRow(row: unknown, id: string, name: string): unknown {
   const { tool, ...thing }: Readonly<Record<string, unknown>> = { ...row };
   return { ...thing, id: objectOf(id, typeof tool === "string" ? tool : name, row.id) };
 }
+/** A tool lives in another tool of its own program, one that is itself listed among the program's tools. */
+function auditInside(id: string, groups: readonly InstalledGroup[]): void {
+  for (const group of groups) {
+    const outer = group.palabras.inside;
+    if (outer === undefined) continue;
+    const home = groups.find(known => known.id === outer);
+    if (!home || home === group || home.palabras.inside !== undefined)
+      throw new Error(`${group.folder} lives in ${outer}, which is not a tool ${id} lists`);
+  }
+}
 export function installProgram<M extends ProgramMetadata>(meta: M, body: ProgramBody<M>): InstalledProgram {
   const groups = Object.entries(body.herramientas).map(([name, group]) => groupTool(meta.id, name, group));
+  auditInside(meta.id, groups);
   const find = (state: State<Program>, target: string) =>
     groups.find(group => group.folder === target || group.tool.targets(state).includes(target));
   const tool: ProgramTool<Program> = {

@@ -199,14 +199,15 @@ const skill = defineMessage({
   parameters: Type.Object({}),
   texts: { es: "Tomá pedidos de las cosas guardadas." },
 });
-export function pickingDistribution() {
+/** The composed program; `home` is the tool its orders live in. */
+export function pickingDistribution(home = "items") {
   const program = programa(
     { ...definition, codigo: [import.meta.filename] },
     {
       purpose: "Elegir cosas guardadas",
       palabras: { name: "Elecciones", key: "e", itself: [] },
       skill,
-      herramientas: { items, orders },
+      herramientas: { items, orders: { ...orders, palabras: { ...orders.palabras, inside: home } } },
       plegar: (own, event): Kept => {
         if (event.layer !== "program") return own;
         if (event.kind === "picking/item-added") return { ...own, items: [...own.items, event.data] };

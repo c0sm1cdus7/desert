@@ -2181,6 +2181,11 @@ Una necesidad (`needs`) de una herramienta nombra una de sus cosas o, con el nom
 misma: `{ target: "orders", why: "sin pedidos" }`. Esa aparece en Atención con el nombre de la herramienta y abre su
 carpeta.
 
+Las palabras de una herramienta pueden decir `inside: "items"`: vive dentro de esa otra herramienta del mismo
+programa. No tiene fila en la pila **Herramientas** del programa. Se abre desde la cosa que nombra sus cosas y desde
+lo que necesita, y se la sigue encontrando por su nombre. La herramienta nombrada es del mismo programa y no vive
+dentro de otra: si no, el programa no se instala.
+
 Quien no tiene un programa puede abrir y leer sus objetos. Las acciones de cada objeto siguen visibles,
 apagadas con el motivo del kit, aunque además exijan ser su autora. Quien tiene la acción ve el motivo de
 autoría cuando corresponde. La preferencia de esconder lo ajeno retira el programa del Menú; al desactivarla

@@ -2,8 +2,8 @@
 import type { ProgramScreen, ScreenActs, Shown, SurfacePorts } from "../../surface/bridge/ports/house-ports.ts";
 import { anyToolScreen } from "../../surface/bridge/views/any-tool.ts";
 import { distributionTexts } from "../../texts/distributions.texts.ts";
-import type { InstalledProgram } from "../../tools/installable/runtime.ts";
-import type { Program } from "../../tools/tool-contract.ts";
+import type { InstalledGroup, InstalledProgram } from "../../tools/installable/runtime.ts";
+import type { Program, State } from "../../tools/tool-contract.ts";
 function filteredActions(program: InstalledProgram, acts: ScreenActs, ports: SurfacePorts<Program>): ScreenActs {
   const belongs = (key: string, target: string) =>
     program.groups.some(group => {
@@ -30,24 +30,30 @@ function filteredActions(program: InstalledProgram, acts: ScreenActs, ports: Sur
   );
   return { ...acts, actsOn, menusOn };
 }
+/** A tool that lives inside another has no row of its own among the tools its program lists: it is opened from what
+ * names its things or from what it needs, and it is still found by its name. */
+function outerRows(program: InstalledProgram) {
+  const inner = new Set(program.groups.flatMap(group => (group.palabras.inside === undefined ? [] : [group.folder])));
+  return <R extends Readonly<{ opens?: string }>>(rows: readonly R[]): R[] =>
+    rows.filter(row => row.opens === undefined || !inner.has(row.opens));
+}
+/** Whether a destination is of a tool: its folder, one of its things, or a menu of one of them. */
+const holds = (group: InstalledGroup, state: State<Program>, target: string): boolean =>
+  group.folder === target ||
+  group.tool
+    .targets(state)
+    .some(
+      object => object === target || Object.keys(group.tool.menus ?? {}).some(menu => target === `${object}#${menu}`),
+    );
 function screenFor(program: InstalledProgram, shortcut: boolean): ProgramScreen<Program> {
+  const outer = outerRows(program);
   return (ports, tool, words, acts, start) => {
     const root = anyToolScreen(ports, tool, words, acts, start);
     const groups = program.groups.map(group => ({
       group,
       screen: anyToolScreen(ports, group.tool, group.palabras, acts, start),
     }));
-    const find = (target: string) =>
-      groups.find(
-        ({ group }) =>
-          group.folder === target ||
-          group.tool
-            .targets(ports.state())
-            .some(
-              object =>
-                object === target || Object.keys(group.tool.menus ?? {}).some(menu => target === `${object}#${menu}`),
-            ),
-      );
+    const find = (target: string) => groups.find(({ group }) => holds(group, ports.state(), target));
     const filtered = filteredActions(program, acts, ports);
     const only = program.groups.length === 1 ? program.groups[0] : undefined;
     return {
@@ -62,7 +68,7 @@ function screenFor(program: InstalledProgram, shortcut: boolean): ProgramScreen<
           : (found?.screen.titleOf?.(target) ?? root.titleOf?.(target) ?? target);
       },
       view: target => {
-        if (!target) return root.view();
+        if (!target) return root.view().map(stack => ({ ...stack, rows: outer(stack.rows) }));
         const found = find(target);
         if (!found) return root.view(target);
         return found.screen.view(target === found.group.folder ? undefined : target);

@@ -4,6 +4,7 @@ import { programChecks } from "../../checks/program-checks.ts";
 import { goTo, seated, type, view, type Seat } from "../../checks/promises/promised-keys.ts";
 import { cast, perform, staged, type House } from "../../checks/promises/promised-stage.ts";
 import { stacksOf } from "../../surface/menus/lists.ts";
+import { distributionTexts as distribution } from "../../texts/distributions.texts.ts";
 import { surfaceTexts as surface } from "../../texts/surface.texts.ts";
 import type { Composition } from "../promises-contract.ts";
 import { folderOf, objectOf } from "./destinations.ts";
@@ -159,4 +160,36 @@ describe("what a tool itself needs", () => {
         seat.router.stop();
       }
     }));
+});
+describe("a tool that lives inside another of its program", () => {
+  it("has no row among the tools of its program and is opened from the thing that names it", () =>
+    staged(program, async ({ house }) => {
+      await stock(house(), "Tornillo");
+      const input = { main: "1", extras: [{ note: "Arandela" }] };
+      await accepted(house(), { act: "orders/take", on: folder("orders"), input });
+      const seat = seated(house(), cast.admin, shown);
+      try {
+        const listed = stacksOf({ kind: "view", tool: "picking", at: 0 }, seat.tools).find(
+          stack => stack.title === distribution.groups,
+        );
+        expect(listed?.rows.map(row => [row.title, row.opens])).toEqual([["Cosas", folder("items")]]);
+        /** Looking for it by its name still finds it: only its row among the listed tools is gone. */
+        const sought = stacksOf({ kind: "view", tool: "picking", at: 0, find: "Pedidos" }, seat.tools);
+        expect(sought.flatMap(stack => stack.rows.flatMap(row => row.opens ?? []))).toEqual([folder("orders")]);
+        const order = thingOf("orders", "1");
+        goTo(seat, "picking", thingOf("items", "1"));
+        const named = rowsAt(seat, thingOf("items", "1")).find(each => each.title === said.order("1"));
+        expect(named).toMatchObject({ opens: order, open: { kind: "view", tool: "picking", target: order } });
+        type(seat.router, named?.key ?? "");
+        expect(seat.router.screen(view).title).toBe(said.order("1"));
+        expect(rowsAt(seat, order).find(each => each.title === "Tornillo")).toMatchObject({ key: "1" });
+        expect(seat.defects).toEqual([]);
+      } finally {
+        seat.router.stop();
+      }
+    }));
+  it("refuses a tool that lives in itself or in one its program does not have", () => {
+    expect(() => pickingDistribution("orders")).toThrow("picking/orders lives in orders");
+    expect(() => pickingDistribution("stock")).toThrow("picking/orders lives in stock");
+  });
 });
