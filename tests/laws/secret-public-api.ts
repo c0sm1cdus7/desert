@@ -22,6 +22,8 @@ const modules: Record<string, readonly string[]> = {
   ],
   "fields/messages.ts": ["defineMessage", "MessageKind", "Message", "Skill"],
   "fields/visible-text.ts": ["object"],
+  // The supervisor's actor id, so a program names it as a participant (the Communicator, 21/11); a plain string.
+  "fields/mind-actor.ts": ["houseSupervisor"],
   "fields/fields.ts": [
     "text",
     "money",
