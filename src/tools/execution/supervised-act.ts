@@ -36,7 +36,8 @@ function verdict<X extends Program>(ports: Execution<X>, origin: Origin, through
   const scope = ports.mindScope ?? processScope(ports, origin);
   if (ports.review)
     return scope ? ports.review.review({ id: origin.id, reason: "rule", scope, through, acts: [act] }) : undefined;
-  return ports.supervisor?.()?.({ id: origin.id, by: origin.by, through, act });
+  const supervisor = ports.supervisor?.();
+  return typeof supervisor === "function" ? supervisor({ id: origin.id, by: origin.by, through, act }) : undefined;
 }
 function processScope<X extends Program>(ports: Execution<X>, origin: Origin) {
   if (!parseMindActor(origin.by)) return undefined;

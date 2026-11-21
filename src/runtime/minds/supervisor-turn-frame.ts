@@ -24,7 +24,8 @@ function cutsByJourney(history: readonly Event[]): ReadonlyMap<string, number> {
       cuts.set(e.process, (cuts.get(e.process) ?? 0) + 1);
   return cuts;
 }
-/** One item per mind: its scene, and each open journey with its goal, plan, wait, cuts and whether it is stopped. */
+/** One item per mind: its scene, and each open journey with its goal, plan, wait, cuts and whether it is stopped;
+ * a mind no longer in the house (a disabled assistant) still shows the journeys it left open. */
 function houseItems<X extends Program>(house: MindRuntimeHouse<X>): FrameItem[] {
   const state = house.execution.state().house;
   const cuts = cutsByJourney(house.history());
@@ -37,7 +38,7 @@ function houseItems<X extends Program>(house: MindRuntimeHouse<X>): FrameItem[] 
     cuts: cuts.get(id) ?? 0,
     ...(interrupted ? { interrupted } : {}),
   });
-  return mindsOf(house).map(actor => ({
+  return [...new Set([...mindsOf(house), ...open.map(each => each.by)])].map(actor => ({
     id: actor,
     text: JSON.stringify({
       scene: state.minds.scenes.get(actor)?.data.text ?? state.scenes.get(actor)?.data.general ?? "",

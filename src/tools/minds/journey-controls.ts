@@ -1,4 +1,4 @@
-// Valida controles de journeys y devuelve sus hechos al turno; ninguno espera al supervisor.
+// Checks journey controls and returns their facts to the turn; none waits for the supervisor.
 import { selectionProblem } from "../../house/kit-validation.ts";
 import { expandKit, explicitKit } from "../../house/kit-selection.ts";
 import { randomUUID } from "node:crypto";

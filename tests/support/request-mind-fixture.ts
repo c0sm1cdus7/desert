@@ -31,6 +31,8 @@ function assignAssistant(house: RequestHouse, card: Pick<Card, "model" | "effort
     ),
   );
 }
+type Acting = (value: unknown, through: number, by: string) => Readonly<{ status: string; reason?: string }>;
+type Opening = { assistant?: boolean; started?: (act: Acting) => void };
 class RequestMindFixture {
   readonly home = mkdtempSync(join(tmpdir(), "mind-requests-"));
   readonly distribution;
@@ -73,8 +75,9 @@ class RequestMindFixture {
       ...this.resources,
     });
   }
-  /** Opens the house; `assistant: false` leaves Nora to be enabled while the house runs. */
-  async open(enabled = true, { assistant = true } = {}) {
+  /** Opens the house; `assistant: false` leaves Nora to be enabled while the house runs, and `started` acts in the
+   * house, through its tools, before its minds start. */
+  async open(enabled = true, { assistant = true, started }: Opening = {}) {
     const options = await this.options();
     const house = startHouse(this.home, {
       ...this.distribution.program,
@@ -84,6 +87,7 @@ class RequestMindFixture {
       ...(!enabled ? { mentes: { asistentes: false, programas: [] } } : {}),
     });
     this.houses.push(house);
+    started?.((value, through, by) => house.tools.act(value, through, by));
     if (enabled && assistant && !house.tools.state().house.mindAssignments.has("assistant:ana")) {
       const card = options.catalog[0];
       if (!card) throw new Error("card");

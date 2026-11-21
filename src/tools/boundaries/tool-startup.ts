@@ -1,12 +1,11 @@
 // Bus del arranque limitado a credenciales originales y despertares propios, con autor fijado por la casa.
 import { readonlyPorts } from "./readonly-ports.ts";
-import { ids } from "../../house/ids.ts";
 import { mindOf } from "../../house/kit.ts";
 import { OutsideDefect, programCall } from "../../fields/program-call.ts";
 import { startupMind } from "./startup-mind.ts";
 import { journalTexts } from "../../texts/journal.texts.ts";
 import type { Bus } from "../../journal/bus.ts";
-import { effect } from "../../house/facts.ts";
+import { effect, reminderWake } from "../../house/facts.ts";
 import type { Emission, Event, Foreign } from "../../journal/vocabulary.ts";
 import type { Execution } from "../execute.ts";
 import type { Program, Tool } from "../tool-contract.ts";
@@ -108,7 +107,7 @@ function startupEmission<P extends Foreign>(
   if (
     typeof id !== "string" ||
     !id ||
-    id.startsWith(`${ids.attention}[`) ||
+    reminderWake(id) ||
     !(at === null || (typeof at === "number" && Number.isSafeInteger(at) && at >= 0))
   )
     return wakeRefuse();

@@ -1,4 +1,4 @@
-// Declara quién es el supervisor de la casa, cómo lee sus marcos y contesta, sus veredictos y por qué despertó.
+// Declares who the house supervisor is, how it reads its frames and answers, its verdicts, and why it woke.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 import { object } from "../fields/visible-text.ts";

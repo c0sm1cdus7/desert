@@ -6,6 +6,8 @@ import { object } from "../../fields/visible-text.ts";
 import { mindText } from "../../house/minds/journey-facts.ts";
 import { turnNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
 import { supervisorNotice } from "../../texts/supervisor.texts.ts";
+import type { HouseEvent } from "../../house/facts.ts";
+import type { Event } from "../../journal/vocabulary.ts";
 import type { ReviewRequest, ReviewResult } from "../../tools/minds/mind-review.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import { supervisorActor } from "./mind-definitions.ts";
@@ -20,23 +22,34 @@ function stopOf(outcome: ModelOutcome): TurnStop {
   if (outcome.kind === "not-sent" || outcome.kind === "failed") return outcome.reason;
   return outcome.kind === "uncertain" ? "uncertain" : "invalid";
 }
+/** Facts after this one wake it: from its last own turn, never from before the first boot of the latest runs that
+ * brought it, so nothing that happened while the house had no supervisor wakes it (older boots say nothing). */
+function frontier(history: readonly Event[]): number {
+  const own = history.findLast(
+    event =>
+      event.layer === "house" &&
+      event.kind === "mind-turn-opened" &&
+      event.by === supervisorActor &&
+      event.process === undefined,
+  );
+  const boots = history.filter(
+    (event): event is HouseEvent<"boot"> => event.layer === "house" && event.kind === "boot",
+  );
+  let first = boots.at(-1);
+  for (const boot of boots.toReversed()) {
+    if (!boot.data.supervised) break;
+    first = boot;
+  }
+  return Math.max(own?.seq ?? 0, first?.seq ?? history.at(-1)?.seq ?? 0);
+}
 class Supervisor<X extends Program> {
-  /** Facts after this one wake it: a new supervisor learns from now on, a known one from its last own turn. */
   readonly since: number;
   readonly house: MindRuntimeHouse<X>;
   readonly options: MindRuntimeOptions;
   constructor(house: MindRuntimeHouse<X>, options: MindRuntimeOptions) {
     this.house = house;
     this.options = options;
-    const history = house.history();
-    const own = history.findLast(
-      event =>
-        event.layer === "house" &&
-        event.kind === "mind-turn-opened" &&
-        event.by === supervisorActor &&
-        event.process === undefined,
-    );
-    this.since = own?.seq ?? history.at(-1)?.seq ?? 0;
+    this.since = frontier(house.history());
   }
   /** A verdict on an act a rule marks, or an answer to a consultation, inside the turn of whoever asks. Every marked
    * act is judged when it comes: nothing is cached, so the same act proposed again is judged again. */

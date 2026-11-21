@@ -57,7 +57,8 @@ export const houseCatalog = {
     object({ holder: name, tool: name, acts: Type.Union([names, Type.Null()]) }),
     object({ version: Type.Literal(2), holder: name, kit: selectionKitSchema }),
   ]),
-  boot: object({}),
+  /** Host startup; `supervised` when the run brings a house supervisor (21/11): older boots say nothing. */
+  boot: object({ supervised: Type.Optional(Type.Literal(true)) }),
   act: object({
     object: name,
     option: name,
@@ -98,8 +99,9 @@ export const houseCatalog = {
   ...mindHouseCatalog,
   ...ruleFacts,
 };
-/** A wake that names a reminder towards a person: before 21/11 the house repeated its call by the clock. */
-export const reminderWake = (id: string): boolean => id.startsWith(ids.attention);
+/** A wake that names a reminder towards a person, `attention:["ana","sales"]`: before 21/11 the house repeated its
+ * call by the clock. A program's own wake may start with `attention:` and is not one. */
+export const reminderWake = (id: string): boolean => id.startsWith(`${ids.attention}[`);
 /** Only version two may cross the writer boundary; the reader retains both shapes. */
 export const currentHouseCatalog = {
   ...houseCatalog,

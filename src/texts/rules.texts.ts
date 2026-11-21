@@ -1,4 +1,4 @@
-// Palabras compartidas de Reglas, sus condiciones, versiones y actos que requieren supervisión.
+// Shared words of Rules: their conditions, versions, and acts that require supervision.
 export const rulesTexts = {
   reserved: "Reglas es del core y no se otorga",
   example: "Ejemplo",
@@ -22,6 +22,8 @@ export const rulesTexts = {
   simulationResult: (reading: string) => `Simulada · Regla\n${reading}`,
   blocked: "El acto quedó frenado por una regla mecánica",
   waiting: "Requiere supervisión y la casa no tiene supervisor: el acto no se hizo y no se repite solo",
+  starting: "Requiere supervisión y el supervisor todavía no arrancó: el acto no se hizo y no se repite solo",
+  reaction: "Requiere supervisión y una reacción no espera al supervisor: el acto no se hizo",
   /** What an act that requires supervision gets when the supervisor rejects it, or gives no verdict. */
   verdict: (outcome: "rejected" | "failed", detail: string) =>
     outcome === "rejected"

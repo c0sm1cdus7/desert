@@ -1,4 +1,4 @@
-// Arma los marcos del supervisor: la casa con todos sus programas, el acto que requiere supervisión o la consulta.
+// Builds the supervisor's frames: the house with all its programs, the act that requires supervision or a consultation.
 import type { TSchema } from "@sinclair/typebox";
 import type { Language } from "../../fields/languages.ts";
 import { effectiveKit } from "../../house/kit.ts";

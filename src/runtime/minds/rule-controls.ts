@@ -9,7 +9,7 @@ import type { ReviewPort } from "../../tools/minds/mind-review.ts";
 import { rulesTexts } from "../../texts/rules.texts.ts";
 import type { MindRuntimeHouse } from "./mind-runtime-options.ts";
 /** A control passes, stops on a rule (the turn ends, as a block), or is rejected by the supervisor with words. */
-export type ControlCheck = Readonly<{ ok: true }> | Readonly<{ ok: false; reason?: string }>;
+type ControlCheck = Readonly<{ ok: true }> | Readonly<{ ok: false; reason?: string }>;
 export async function ruleControl<X extends Program>(
   house: MindRuntimeHouse<X>,
   turn: TurnContext,

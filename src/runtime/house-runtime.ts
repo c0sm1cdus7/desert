@@ -21,7 +21,8 @@ import { startTools } from "../tools/start.ts";
 import type { MindRuntimeOptions, MindSwitches, ModelHouseOptions } from "./minds/mind-runtime-options.ts";
 import type { ModelMinds } from "./minds/mind-runtime.ts";
 import type { ActVerdict } from "../tools/minds/mind-review.ts";
-type Supervision = { verdict?: ActVerdict | undefined };
+/** The supervisor's verdict once the minds start, and whether this run brings one at all. */
+type Supervision = { verdict?: ActVerdict | undefined; expected: boolean };
 
 function houseContracts<X extends Program>(options: HouseOptions<X>, resources: ReturnType<typeof houseResources<X>>) {
   const { state, journal } = resources;
@@ -62,7 +63,8 @@ export function startHouse<X extends Program>(
     seedDoorKeys(bus, () => state().house, options.founderDoorKeys);
     revokeUndeliveredCodes(bus, () => state().house);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
-    bus.emit(effect("boot", {}, by));
+    // The boot says whether this run brings a supervisor: what happens in a run without one never wakes it (21/11).
+    bus.emit(effect("boot", supervision.expected ? { supervised: true } : {}, by));
     const minds = loadMinds(home, options, time, resources, devices, contracts, supervision);
     return runningHouse(home, registry, tools, time, resources, devices, minds);
   } catch (error) {
@@ -72,13 +74,15 @@ export function startHouse<X extends Program>(
   }
 }
 /** The program's own acts and processes, and the supervisor's verdict on a marked act of an identity, which the
- * minds fill in when they start, after the house. */
+ * minds fill in when they start, after the house: until then a run that brings a supervisor says it is starting. */
 function engineChoices<X extends Program>(options: ModelHouseOptions<X>) {
-  const supervision: Supervision = {};
+  const switches = options.mentes;
+  const minds = !!switches && (switches.asistentes || switches.programas.length > 0);
+  const supervision: Supervision = { expected: minds && options.modelMinds?.supervisorCard !== undefined };
   const ports = {
     ...(options.own ? { own: options.own } : {}),
     ...(options.process ? { process: options.process } : {}),
-    supervisor: () => supervision.verdict,
+    supervisor: () => supervision.verdict ?? (supervision.expected ? ("starting" as const) : undefined),
   };
   return { supervision, ports };
 }
@@ -133,6 +137,11 @@ function runningHouse<X extends Program>(
     bankMinds,
   };
 }
+/** The minds give the verdict when they start; once they stop, or start with no supervisor, nothing is starting. */
+function supervise(supervision: Supervision, verdict: Supervision["verdict"]) {
+  supervision.verdict = verdict;
+  supervision.expected = verdict !== undefined;
+}
 function mindHouse<X extends Program>(
   home: string,
   options: ModelHouseOptions<X>,
@@ -149,7 +158,7 @@ function mindHouse<X extends Program>(
     home,
     time,
     active,
-    ...(supervision ? { supervise: (verdict: Supervision["verdict"]) => void (supervision.verdict = verdict) } : {}),
+    ...(supervision ? { supervise: (verdict: Supervision["verdict"]) => supervise(supervision, verdict) } : {}),
     execution: {
       devices: devices.dispatch,
       ...(contracts ? { contracts } : {}),

@@ -40,6 +40,12 @@ describe("clock", () => {
     expect(replaced.get("turn")?.at).toBe(300);
   });
 
+  it("arms a program's own wake that starts with «attention:», never an old reminder towards a person", () => {
+    const armed = (id: string) => clockStep(new Map(), { ...wake, data: { id, at: 200 } }).size;
+    expect(armed("attention:job")).toBe(1);
+    expect(armed('attention:["ana","sales"]')).toBe(0);
+  });
+
   it("uses injected time, rearms early callbacks and cancels its outstanding wait on stop", () => {
     const journal = new SqliteJournal(":memory:", shop);
     let now = 100;

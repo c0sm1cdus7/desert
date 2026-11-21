@@ -13,7 +13,7 @@ const made = new WeakMap<Sources, Map<string, MindDefinition>>();
 const supervisors = new WeakMap<Sources, MindDefinition>();
 /** The supervisor thinks as itself, with its scene and the talk acts: the only programs it may act on (21/11). It
  * is no assistant and no program mind, so the card catalog, the bank and the switches never list it. */
-export function supervisorDefinition(options: Sources): MindDefinition {
+function supervisorDefinition(options: Sources): MindDefinition {
   const known = supervisors.get(options);
   if (known) return known;
   const definition: MindDefinition = Object.freeze({

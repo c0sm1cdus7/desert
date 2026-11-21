@@ -17,7 +17,7 @@ export function mechanicalRules<X extends Program>(
   const results = ruleResults(ports, origin, action, schema, input);
   if (!results.length) return undefined;
   ports.bus.emit(effect("rule-evaluated", { action, results }, origin.by, [origin.id], origin.process));
-  return stoppedDecision<X>(origin.by, action.tool, results, ports.judge === true);
+  return stoppedDecision<X>(origin.by, action.tool, results, ports.judge);
 }
 /** Whether an active rule marks this act as one that requires supervision. */
 export function requiresSupervision<X extends Program>(
@@ -59,14 +59,15 @@ function stoppedDecision<X extends Program>(
   by: string,
   tool: string,
   results: HouseEvent<"rule-evaluated">["data"]["results"],
-  judged: boolean,
+  judge: Execution<X>["judge"],
 ): Decision<X> | undefined {
   const blocked = results.some(result => result.outcome === "block");
   // With a supervisor, a marked act waits for its verdict; without one it is not done, and the tool's holders are
-  // told (signed 17/11, kept 21/11).
-  const waiting = !judged && results.some(result => result.outcome === "require-supervisor");
+  // told why (signed 17/11, kept 21/11).
+  const waiting = judge !== true && results.some(result => result.outcome === "require-supervisor");
   if (!blocked && !waiting) return undefined;
-  const reason = blocked ? words.blocked : words.waiting;
+  const unjudged = typeof judge === "string" ? words[judge] : words.waiting;
+  const reason = blocked ? words.blocked : unjudged;
   return {
     status: "rejected",
     coreFailure: "forbidden",

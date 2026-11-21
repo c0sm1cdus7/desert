@@ -8,7 +8,8 @@ import { execute, type Execution } from "../execute.ts";
 import { rulesTool } from "./rules.ts";
 import { settle } from "../../surface/bridge/ports/house-ports.ts";
 import { effect } from "../../house/facts.ts";
-import type { ReviewRequest, ReviewResult } from "../minds/mind-review.ts";
+import type { ActVerdict, ReviewRequest, ReviewResult } from "../minds/mind-review.ts";
+import { rulesTexts } from "../../texts/rules.texts.ts";
 import { noCapabilities } from "../execution/execution-capabilities.ts";
 const cleanup: (() => void)[] = [];
 afterEach(() => cleanup.splice(0).forEach(close => close()));
@@ -168,5 +169,50 @@ it("si cambia el esquema instalado, la regla vigente frena hasta corregirse", as
   expect(f.rig.facts().findLast(event => event.kind === "rule-evaluated")?.data).toMatchObject({
     results: [{ id: "limit", version: 1, outcome: "block" }],
   });
+  expect(f.run).not.toHaveBeenCalled();
+});
+const marked = { ...rule, effect: "require-supervisor" };
+const passing = () =>
+  vi.fn<ActVerdict>(request =>
+    Promise.resolve({
+      proposal: request.id,
+      through: request.through,
+      rulesVersion: "v1",
+      outcome: "passed",
+      text: "Sí",
+    }),
+  );
+it("an identity's nested marked act gets the supervisor's verdict, as a direct one does", async () => {
+  const f = fixture();
+  expect((await f.save(marked)).status).toBe("accepted");
+  const verdict = passing();
+  const ports = { ...f.ports, supervisor: () => verdict };
+  const nested = await settle(execute(ports, { act: "outer", target: "probe", input: { amount: 11 } }, 0, "ana"));
+  expect(nested.status).toBe("accepted");
+  expect(verdict.mock.calls.map(([request]) => [request.by, request.act.act])).toEqual([["ana", "send"]]);
+  expect(f.run).toHaveBeenCalledOnce();
+});
+it("a marked act with no verdict is not done and says why: no supervisor, one starting, or a reaction", async () => {
+  const f = fixture();
+  expect((await f.save(marked)).status).toBe("accepted");
+  const verdict = passing();
+  const send = { act: "send", target: "probe", input: { amount: 11 } };
+  const reason = async (ports: Execution<Shop>) => (await settle(execute(ports, send, 0, "ana"))).reason;
+  expect(await reason(f.ports)).toBe(rulesTexts.waiting);
+  expect(await reason({ ...f.ports, supervisor: () => "starting" })).toBe(rulesTexts.starting);
+  // A reaction runs only acts that stay in the house: the rule marks `outer` for everyone.
+  const always = { ...marked, id: "outer", action: { tool: "probe", act: "outer" }, condition: { operator: "always" } };
+  expect((await settle(f.rig.act("ana", "save", always, "rules"))).status).toBe("accepted");
+  const reaction = { id: '["probe","r"]', notice: "n1" };
+  const outer = execute(
+    { ...f.ports, supervisor: () => verdict },
+    { ...send, act: "outer" },
+    0,
+    "mind:probe",
+    [],
+    reaction,
+  );
+  expect((await settle(outer)).reason).toBe(rulesTexts.reaction);
+  expect(verdict).not.toHaveBeenCalled();
   expect(f.run).not.toHaveBeenCalled();
 });

@@ -112,3 +112,18 @@ it("a restart closes the verdict turn it cut, and the act it was judging comes b
   expect(again.tools.state().tools.notes.notes).toEqual([]);
   expect(started.status).toBe("processing");
 });
+it("before the minds start, a house that brings a supervisor says it is starting; then the act is judged", async () => {
+  const f = fixture();
+  const first = await f.open();
+  await marked(first);
+  first.close();
+  const add = { act: "personal/add", target: "notes/personal", input: { body: "Mate" } };
+  let early: Readonly<{ status: string; reason?: string }> | undefined;
+  const house = await f.open(true, { started: act => (early = act(add, 0, "ana")) });
+  expect(early).toMatchObject({ status: "rejected", reason: rulesTexts.starting });
+  f.respond(frame =>
+    supervising(frame) ? { outcome: "passed", text: "Sí" } : { scene: "Ready", consulta: null, acts: [] },
+  );
+  expect((await settle(note(house, "Mate"))).status).toBe("accepted");
+  expect(moments(framesOf(f))).toEqual(["rule"]);
+});

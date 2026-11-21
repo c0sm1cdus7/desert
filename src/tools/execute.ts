@@ -163,11 +163,13 @@ export function execute<X extends Program>(
   if (!Value.Check(actEnvelope, value)) return rejected(toolTexts.invalid);
   const safeValue = prepareSimulationAct(value, ports.state(), ports.registry);
   if (!safeValue) return rejected(toolTexts.invalid);
-  // A mind in its turn gets the verdict through its review port; anyone else acting at a door gets it from the
-  // supervisor in a turn of its own (21/11). A reaction or a nested act of an identity keeps waiting, as before.
+  // A mind in its turn gets the verdict through its review port; anyone else, at any door and in a nested act, gets
+  // it from the supervisor in a turn of its own (21/11). A reaction never waits for one.
   const mind = ports.judge === true && ports.review !== undefined && parseMindActor(by) !== undefined;
-  const alone = !ports.review && !reaction && !ports.chain?.length && ports.supervisor?.() !== undefined;
-  return executePublic({ ...ports, judge: mind || alone }, safeValue, through, by, cause, reaction);
+  const supervisor = ports.supervisor?.();
+  const alone = !ports.review && !reaction && typeof supervisor === "function";
+  const unjudged = reaction ? "reaction" : supervisor === "starting" && "starting";
+  return executePublic({ ...ports, judge: mind || alone || unjudged }, safeValue, through, by, cause, reaction);
 }
 function executePublic<X extends Program>(
   ports: Execution<X>,

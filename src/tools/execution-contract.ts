@@ -8,6 +8,9 @@ import type { CapabilityFactory, CapabilityLease } from "./execution/execution-c
 import type { RunningAct } from "./execution/running-acts.ts";
 import type { MindScope } from "./minds/mind-contract.ts";
 import type { ActVerdict, ReviewPort } from "./minds/mind-review.ts";
+/** Why a marked act gets no verdict, besides a house with no supervisor: its minds have not started, or it is a
+ * reaction, which never waits for one. */
+type Unjudged = "starting" | "reaction";
 export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: () => number }> &
   Readonly<{ registry: ToolRegistry<X>; state: () => State<X>; own: (state: State<X>) => readonly OwnAct<X>[] }> &
   Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
@@ -18,10 +21,10 @@ export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: 
     mindScope?: MindScope;
     review?: ReviewPort;
     /** A marked act gets a verdict instead of waiting: a mind's in its turn through `review`, anyone else's from
-     * `supervisor`. `execute` sets it for each act; without a supervisor a marked act is not done and says so. */
-    judge?: boolean;
-    /** The house supervisor while one runs, read at each act because the minds start after the house (21/11). */
-    supervisor?: () => ActVerdict | undefined;
+     * `supervisor`. `execute` sets it for each act; a marked act with no verdict is not done and says why. */
+    judge?: boolean | Unjudged;
+    /** The house supervisor while one runs, or `starting` until the minds that bring it start (21/11). */
+    supervisor?: () => ActVerdict | "starting" | undefined;
     houseOwn?: (act: OwnAct<X>) => boolean;
     capabilities?: CapabilityFactory;
     running?: Map<string, RunningAct>;

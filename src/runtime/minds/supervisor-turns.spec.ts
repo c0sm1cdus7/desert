@@ -2,6 +2,7 @@
 // speaks to it; it reads the whole house, says things through the talk program and acts on no program.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { effect, type HouseEmission } from "../../house/facts.ts";
+import { explicitKit } from "../../house/kit-selection.ts";
 import type { Event } from "../../journal/vocabulary.ts";
 import { history, say, send, type RequestHouse } from "../../../tests/support/request-mind-fixture.ts";
 import {
@@ -104,6 +105,40 @@ it("a new supervisor learns from now on: nothing that closed before it wakes it 
   expect(moments(framesOf(f))).toEqual(["turn"]);
   expect(framesOf(f).find(supervising)).toContain("«Facturas el viernes»");
   expect(framesOf(f).find(supervising)).not.toContain("terminó el journey «Mate el jueves»");
+}, 60000);
+/** A journey of the notes mind opens and closes at once, as its own turn would leave it. */
+function closed(house: RequestHouse, goal: string) {
+  const process = `journey:${goal}`;
+  house.bus.emit(effect("journey-opened", { version: 2, goal, kit: explicitKit([]) }, "mind:notes", [], process));
+  house.bus.emit(
+    effect("journey-closed", { outcome: "done", summary: "Hecho", references: [] }, "mind:notes", [], process),
+  );
+}
+it("wakes for a closing a restart left pending, never for one in a run that had no supervisor", async () => {
+  const f = fixture();
+  const judge = supervisor(() => ({ outcome: "passed", text: "Sí" }));
+  f.respond(frame => (supervising(frame) ? judge(frame) : { scene: "Ready", consulta: null, acts: [] }));
+  const first = await f.open();
+  closed(first, "Uno");
+  first.close();
+  expect(moments(framesOf(f))).toEqual([]);
+  (await f.open()).close();
+  expect(moments(framesOf(f))).toEqual(["turn"]);
+  expect(framesOf(f).find(supervising)).toContain("terminó el journey «Uno»");
+  f.reopenWith({ capNanoUsd: 10e9 });
+  const alone = await f.open();
+  closed(alone, "Dos");
+  await (await alone.minds)?.flush();
+  alone.close();
+  f.reopenWith({ supervisorCard: opus, capNanoUsd: 10e9 });
+  const back = await f.open();
+  await (await back.minds)?.flush();
+  expect(moments(framesOf(f))).toEqual(["turn"]);
+  expect(
+    history(back)
+      .filter(event => event.kind === "boot")
+      .map(event => event.data),
+  ).toEqual([{ supervised: true }, { supervised: true }, {}, { supervised: true }]);
 }, 60000);
 it("reads every mind with its journeys and speaks through the talk program, and acts on no program", async () => {
   const f = fixture();

@@ -2,6 +2,8 @@
 // refused), its consciousness wakes once with the reason and resumes it, seeing the reason, or desists.
 import { setTimeout as sleep } from "node:timers/promises";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { effect } from "../../house/facts.ts";
+import { explicitKit } from "../../house/kit-selection.ts";
 import { journeyFrozen } from "../../house/minds/journey-state.ts";
 import { answer, history, send, type RequestHouse } from "../../../tests/support/request-mind-fixture.ts";
 import { currentTurn, lineOf } from "../../../tests/support/request-mind-responder.ts";
@@ -12,6 +14,7 @@ import {
   request,
   supervisedFixture,
   supervising,
+  supervisor,
 } from "../../../tests/support/supervisor-responder.ts";
 import { withSend } from "../../../tests/support/supervisor-responder.ts";
 const fixtures: ReturnType<typeof supervisedFixture>[] = [];
@@ -143,4 +146,20 @@ it("while frozen, its wait does not wake it and its acts are refused, until its 
   expect(house.tools.state().tools.notes.notes).toEqual([]);
   expect(journeyOf(house)?.closed).toBeUndefined();
   decide = true;
+}, 60000);
+it("reads every open journey, a disabled assistant's too", async () => {
+  const f = supervisedFixture();
+  fixtures.push(f);
+  const house = await f.open();
+  const opening = { version: 2 as const, goal: "Ordenar la agenda", kit: explicitKit([]) };
+  house.bus.emit(effect("journey-opened", opening, "assistant:ana", [], "journey:agenda"));
+  house.bus.emit(effect("assistant-disabled", { owner: "ana" }, "ana"));
+  const judge = supervisor(() => ({ outcome: "passed", text: "Sí" }));
+  f.respond(frame => (supervising(frame) ? judge(frame) : answer()));
+  expect(send(house, "mind:supervisor", "Mirá la casa").status).toBe("accepted");
+  await (await house.minds)?.flush();
+  const frame = framesOf(f).find(supervising) ?? "";
+  expect(frame).toMatch(
+    /assistant:ana: \{"scene":"[^"]*","journeys":\[\{"id":"journey:agenda","goal":"Ordenar la agenda"/u,
+  );
 }, 60000);
