@@ -54,6 +54,7 @@ describe("questions that pick among the program's own things", () => {
         const row = () => rowsAt(seat, folder("orders")).find(each => each.starts?.act === "orders/take");
         expect(row()).toMatchObject({ off: true, detail: said.empty });
         await stock(house(), "Tornillo", "Tuerca");
+        expect(row()).toBeDefined();
         expect(row()?.off).toBeUndefined();
         type(seat.router, "t");
         expect(question(seat)).toEqual({ ask: said.main, options: ["Tornillo", "Tuerca"] });
