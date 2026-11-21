@@ -45,8 +45,10 @@ export const asked = (question: string): string => {
   if (addresses(question)) throw new Error(`A question speaks to who reads it: ${question}`);
   return question;
 };
+/** A field's question, with `{n}` as its place among the items of a list. */
+const numbered = (schema: unknown, ctx: Ctx): string => asked(word(schema, "title")).replace("{n}", String(ctx.n));
 export const titleOf = (schema: unknown, ctx: Ctx): string =>
-  `${asked(word(schema, "title")).replace("{n}", String(ctx.n))}${ctx.optional ? ctx.optionalMark : ""}`;
+  `${numbered(schema, ctx)}${ctx.optional ? ctx.optionalMark : ""}`;
 export const armsOf = (schema: unknown): readonly unknown[] => {
   const arms = at(schema, "anyOf");
   return isList(arms) ? arms : [];
@@ -105,7 +107,8 @@ function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   const shown = (answer: string): string => (answer === "" ? absent : (things()?.shown(answer) ?? answer));
   const empty = at(schema, "empty");
   const nothing = (): string => (typeof empty === "string" ? empty : (things()?.empty ?? ""));
-  return { ask: asked(word(schema, "title")), kind: "pick", of, found, shown, valid, nothing };
+  /** Numbered like the other fields, without the optional mark: an optional thing says so with its none. */
+  return { ask: numbered(schema, ctx), kind: "pick", of, found, shown, valid, nothing };
 }
 /** A numeric prefix below the minimum can still grow: only a complete value gets a reason. */
 function numericReason(schema: TSchema, ctx: Ctx, typed: string, submitted: boolean): string | undefined {

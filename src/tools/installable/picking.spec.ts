@@ -74,13 +74,14 @@ describe("questions that pick among the program's own things", () => {
         type(seat.router, "t");
         confirm(seat);
         confirm(seat);
-        expect(question(seat).options).toEqual([said.byHand, "Tornillo", "Tuerca"]);
+        expect(question(seat)).toEqual({ ask: "Extra 1", options: [said.byHand, "Tornillo", "Tuerca"] });
         confirm(seat);
         expect(question(seat).ask).toBe(said.note);
         type(seat.router, "Arandela");
         confirm(seat);
         expect(question(seat).ask).toBe(said.more.ask);
         type(seat.router, said.more.another.key);
+        expect(question(seat).ask).toBe("Extra 2");
         seat.router.send({ kind: "down" });
         confirm(seat);
         expect(question(seat).ask).toBe(said.more.ask);

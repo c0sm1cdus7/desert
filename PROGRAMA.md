@@ -247,6 +247,8 @@ casa como la inspección de copias y el banco de pruebas usan esa misma entrada.
   reemplaza a `empty`. Si la primera pregunta no tiene ninguna respuesta elegible ni una fila disponible para
   crear, la acción sale apagada en el menú con `empty`, incluso si hay cosas pero ninguna se toma.
   Se vuelve a habilitar cuando aparece algo elegible.
+  Dentro de `many`, la pregunta de un `thing` cambia `{n}` por su posición, como los demás campos («Extra 2»), sin
+  la marca de opcional: un `thing` opcional ya lo dice con su `none`. Prueba: `src/tools/installable/picking.spec.ts`.
   En una acción ofrecida por otra herramienta se comprueba la primera pregunta que queda después de sus respuestas
   fijas. El motivo se decide una sola vez: primero que la identidad no tenga la herramienta, después `offered`,
   después `also.off` y por último `empty`. La fila y las garantías derivadas usan ese mismo orden.
