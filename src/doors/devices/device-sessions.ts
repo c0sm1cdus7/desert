@@ -1,12 +1,15 @@
-// Remote device sessions live only in memory, keyed by token digest, each with bounded calls and one waiting poll.
+// Remote device sessions live only in memory, keyed by token digest, with bounded calls, answers and one waiting poll.
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { Value } from "@sinclair/typebox/value";
 import {
   deviceResult,
   type DeviceEndpoint,
   type DeviceInstallation,
+  type DeviceLink,
+  type DeviceNotice,
   type DeviceRequest,
   type DeviceResult,
+  type NoticeAnswer,
 } from "../../fields/device-protocol.ts";
 import { deviceTexts } from "../../texts/devices.texts.ts";
 import { deviceHttpLimits, type CallResult } from "./device-wire.ts";
@@ -18,20 +21,25 @@ type Call = {
 };
 /** Sees each valid receipt before the house does; its failure never changes the receipt. */
 export type Observer = (device: string, request: DeviceRequest, result: DeviceResult) => void;
+/** Sees a notice with its value once the house recorded it; never a held or refused one, whose value nobody vouches. */
+export type NoticeObserver = (device: string, notice: DeviceNotice) => void;
 const digest = (token: string) => createHash("sha256").update(token).digest("base64url");
 export class RemoteDeviceSession {
   readonly device: string;
   seen: number;
   private readonly calls = new Map<string, Call>();
   private readonly queue: string[] = [];
+  private readonly answers = new Map<string, NoticeAnswer>();
   private waiting: (() => void) | undefined;
-  private connection: Readonly<{ disconnect: () => void }> | undefined;
+  private connection: DeviceLink | undefined;
   private ended = false;
   private readonly observe: Observer | undefined;
-  constructor(device: string, seen: number, observe?: Observer) {
+  private readonly hear: NoticeObserver | undefined;
+  constructor(device: string, seen: number, observe?: Observer, hear?: NoticeObserver) {
     this.device = device;
     this.seen = seen;
     this.observe = observe;
+    this.hear = hear;
   }
   /** A method rather than a getter, so a check made before an await is never assumed after it. */
   live() {
@@ -40,8 +48,37 @@ export class RemoteDeviceSession {
   endpoint(inventory: readonly DeviceInstallation[]): DeviceEndpoint {
     return { inventory, receive: request => this.receive(request) };
   }
-  bind(connection: Readonly<{ disconnect: () => void }>) {
+  bind(connection: DeviceLink) {
     this.connection = connection;
+  }
+  /** Each notice is answered now or, if held, when the house records it; it throws while the house cannot record. */
+  announce(notices: readonly DeviceNotice[]) {
+    const connection = this.connection;
+    if (this.ended || !connection) throw new Error(deviceTexts.unavailable);
+    for (const notice of notices) {
+      const answer = connection.announce(notice, later => this.answer(notice, later));
+      if (answer !== "held") this.answer(notice, answer);
+    }
+  }
+  private answer(notice: DeviceNotice, answer: NoticeAnswer) {
+    if (this.ended) return;
+    this.answers.set(notice.execution, answer);
+    if (answer === "recorded")
+      try {
+        this.hear?.(this.device, notice);
+      } catch {
+        /* An observer is a host's view of the work; the house already recorded the notice. */
+      }
+    this.waiting?.();
+  }
+  /** Whether a poll has answers to carry, so it does not wait. */
+  answering() {
+    return this.answers.size > 0;
+  }
+  answered() {
+    const taken = [...this.answers].slice(0, deviceHttpLimits.notices);
+    for (const [execution] of taken) this.answers.delete(execution);
+    return taken.map(([execution, answer]) => ({ execution, answer }));
   }
   private receive(request: DeviceRequest) {
     if (this.ended || this.calls.size >= deviceHttpLimits.calls)
@@ -81,7 +118,7 @@ export class RemoteDeviceSession {
   }
   /** One poll waits at a time: a newer poll answers the older one at once, so neither holds work back. */
   wait(milliseconds: number, signal: AbortSignal): Promise<void> {
-    if (this.ended || this.queue.length > 0 || signal.aborted) return Promise.resolve();
+    if (this.ended || this.queue.length > 0 || this.answers.size > 0 || signal.aborted) return Promise.resolve();
     this.waiting?.();
     return new Promise<void>(resolve => {
       const done = () => {
@@ -107,6 +144,7 @@ export class RemoteDeviceSession {
     for (const call of this.calls.values()) call.reject(new Error(deviceTexts.disconnected));
     this.calls.clear();
     this.queue.length = 0;
+    this.answers.clear();
   }
 }
 export class RemoteDeviceSessions {

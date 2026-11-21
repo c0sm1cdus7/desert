@@ -1,12 +1,12 @@
 // Serve the device door over plain HTTP: a signed challenge opens an in-memory session that long-polls for work.
-import type { DeviceEndpoint } from "../../fields/device-protocol.ts";
+import type { DeviceEndpoint, DeviceLink } from "../../fields/device-protocol.ts";
 import { createDeviceDoor } from "../../runtime/devices/device-authentication.ts";
 import { bodyFailure, empty, header, readBody, type McpRequest, type McpResponse } from "../mcp/mcp-access.ts";
-import { RemoteDeviceSession, RemoteDeviceSessions, type Observer } from "./device-sessions.ts";
+import { RemoteDeviceSession, RemoteDeviceSessions, type NoticeObserver, type Observer } from "./device-sessions.ts";
 import { challengeBody, connectBody, deviceHttpLimits, devicePaths, parsed, pollBody } from "./device-wire.ts";
 export type DeviceAccess = Readonly<{
   authentication: (id: string) => string;
-  connect: (id: string, endpoint: DeviceEndpoint) => Readonly<{ disconnect: () => void }>;
+  connect: (id: string, endpoint: DeviceEndpoint) => DeviceLink;
 }>;
 /** What a host gives the HTTP door to admit devices; the clock and waits are injectable for tests. */
 export type DeviceDoorOptions = Readonly<{
@@ -16,6 +16,8 @@ export type DeviceDoorOptions = Readonly<{
   pollMs?: number;
   /** Called with every valid result a device posts, before the house receives it. */
   observe?: Observer;
+  /** Called with each notice and its value once the house recorded it. */
+  observeNotice?: NoticeObserver;
 }>;
 const answer = (value: unknown): McpResponse => ({
   status: 200,
@@ -30,6 +32,7 @@ class DeviceHttp {
   private readonly idleMs: number;
   private readonly pollMs: number;
   private readonly observe: Observer | undefined;
+  private readonly observeNotice: NoticeObserver | undefined;
   private readonly sessions = new RemoteDeviceSessions();
   private readonly challenges = new Map<string, Readonly<{ device: string; expires: number }>>();
   private readonly door: ReturnType<typeof createDeviceDoor>;
@@ -42,6 +45,7 @@ class DeviceHttp {
     this.idleMs = options.idleMs ?? deviceHttpLimits.idleMs;
     this.pollMs = options.pollMs ?? deviceHttpLimits.pollMs;
     this.observe = options.observe;
+    this.observeNotice = options.observeNotice;
     // Only a verified signature reaches this connect, so an anonymous caller can never end a live session.
     this.door = createDeviceDoor(
       {
@@ -102,7 +106,7 @@ class DeviceHttp {
     this.challenges.delete(input.id);
     if (!pending) return denied();
     if (this.sessions.full(pending.device)) return empty(503, { "Retry-After": "30" });
-    const session = new RemoteDeviceSession(pending.device, this.now(), this.observe);
+    const session = new RemoteDeviceSession(pending.device, this.now(), this.observe, this.observeNotice);
     try {
       session.bind(this.door.connect(input.id, input.signature, session.endpoint(input.inventory)));
     } catch {
@@ -124,9 +128,16 @@ class DeviceHttp {
     if (!input) return empty(400);
     if (!session.live()) return denied();
     session.settle(input.results);
-    // A poll that brings results is answered at once: it never waits on another poll, which a proxy may queue
-    // behind it on the same connection until both time out (seen on Railway on 20/11).
-    if (input.results.length === 0) {
+    try {
+      if (input.notices) session.announce(input.notices);
+    } catch {
+      // The house cannot record now: the device keeps its notices and sends them again on its next connection.
+      return empty(503, { "Retry-After": "1" });
+    }
+    // A poll that brings results or gets answers is answered at once: it never waits on another poll, which a proxy
+    // may queue behind it on the same connection until both time out (seen on Railway on 20/11). Notices that are
+    // all held do not count, or the device and the house would spin until the start's result is written.
+    if (input.results.length === 0 && !session.answering()) {
       const signal = AbortSignal.any([this.closing.signal, ...(request.signal ? [request.signal] : [])]);
       try {
         await session.wait(this.pollMs, signal);
@@ -138,7 +149,7 @@ class DeviceHttp {
     if (!session.live()) return denied();
     // A caller that already left takes nothing, so its requests stay queued for the next poll.
     if (request.signal?.aborted) return empty(408);
-    return answer({ requests: session.take() });
+    return answer({ requests: session.take(), ...(input.notices ? { answered: session.answered() } : {}) });
   }
   close() {
     this.closing.abort();

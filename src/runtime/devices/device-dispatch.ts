@@ -1,4 +1,4 @@
-// Conserva el intento y su referencia; un corte termina la espera con resultado desconocido sin reintento.
+// Keeps the attempt and its reference; a cut ends the wait with an unknown result and no retry.
 import { Value } from "@sinclair/typebox/value";
 import { publicValue } from "../../adapters/public-value.ts";
 import {
@@ -7,21 +7,30 @@ import {
   type DeviceEndpoint,
   type DeviceRequest,
   type DeviceResult,
+  type NoticeAnswer,
 } from "../../fields/device-protocol.ts";
-import { effect } from "../../house/facts.ts";
+import { effect, type HouseEvent } from "../../house/facts.ts";
 import type { HouseBus } from "../../journal/vocabulary.ts";
 import type { DeviceDispatch } from "../../tools/execution/device-execution.ts";
 import type { ActResult, Program } from "../../tools/tool-contract.ts";
 import { deviceTexts } from "../../texts/devices.texts.ts";
+/** A notice that came before its execution's start result, waiting in the connection it came by. */
+export type HeldNotice = Readonly<{
+  notice: HouseEvent<"device-execution-notice">["data"];
+  later: (answer: NoticeAnswer) => void;
+}>;
 export type DeviceConnection = Readonly<{
   id: string;
   endpoint: DeviceEndpoint;
   pending: Map<string, (reason: string) => void>;
+  held: Map<string, HeldNotice>;
 }>;
 type DispatchPorts = Readonly<{
   bus: HouseBus;
   connection: (request: DeviceRequest) => DeviceConnection | undefined;
   scrub: (value: unknown) => unknown;
+  /** Hears that an execution's start result or unknown is written, after the act has its answer. */
+  resultWritten: (request: DeviceRequest) => void;
 }>;
 type PendingPorts<X extends Program> = DispatchPorts &
   Readonly<{
@@ -86,6 +95,7 @@ class DevicePending<X extends Program> {
         return undefined;
       }
       this.failed(error);
+      this.settleHeld();
       return undefined;
     }
     return this.deliver();
@@ -112,7 +122,13 @@ class DevicePending<X extends Program> {
       resolve({ status: "inconclusive", coreFailure: "inconclusive", reason });
     } catch (error) {
       this.failed(error);
+      return;
     }
+    this.settleHeld();
+  }
+  /** A notice held for this execution is recorded now; it runs after the act's answer, so it never changes it. */
+  private settleHeld() {
+    this.ports.resultWritten(this.ports.request);
   }
   private received(result: unknown) {
     if (this.settled) return;
@@ -132,7 +148,9 @@ class DevicePending<X extends Program> {
       this.confirm(safe);
     } catch (error) {
       this.failed(error);
+      return;
     }
+    this.settleHeld();
   }
   private confirm(result: DeviceResult) {
     const { bus, request, resolve } = this.ports;
@@ -153,16 +171,13 @@ class DevicePending<X extends Program> {
     );
   }
 }
-export function deviceDispatcher(
-  bus: HouseBus,
-  connection: DispatchPorts["connection"],
-  scrub: DispatchPorts["scrub"],
-): DeviceDispatch {
-  const ports = { bus, connection, scrub };
+export function deviceDispatcher(ports: DispatchPorts): DeviceDispatch {
+  const { bus, connection } = ports;
   return <X extends Program>(
     request: DeviceRequest,
     signal?: AbortSignal,
     beforeSend?: () => void,
+    announces?: boolean,
   ): Promise<ActResult<X>> => {
     if (!Value.Check(deviceRequest, request))
       return Promise.resolve({ status: "rejected", reason: deviceTexts.invalid });
@@ -177,8 +192,9 @@ export function deviceDispatcher(
       device,
       connection: connected.id,
       ...(journey ? { journey } : {}),
+      ...(announces ? { announces: true as const } : {}),
     };
-    // Sólo cruza la entrada pública; las credenciales y capacidades de ejecución quedan en la casa.
+    // Only public input crosses; credentials and execution capabilities stay in the house.
     const input = publicValue(request.input);
     bus.emit(effect("device-execution-started", data, actor, [execution], journey));
     return new Promise<ActResult<X>>((resolve, reject) => {

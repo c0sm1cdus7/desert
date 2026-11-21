@@ -36,7 +36,7 @@ it("rejects a different device credential, expires challenges and consumes each 
       mac.process,
     ),
   ).toThrow();
-  expect(Object.keys(mac.connection)).toEqual(["disconnect"]);
+  expect(Object.keys(mac.connection)).toEqual(["disconnect", "announce"]);
   expect(Object.hasOwn(rig.house.devices, "dispatch")).toBe(false);
 });
 it("requires acceptance and owner authority without granting administration on entry", () => {

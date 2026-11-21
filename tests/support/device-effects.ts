@@ -21,4 +21,5 @@ export const deviceEffects = (by: string) => [
   ),
   effect("device-execution-unknown", { execution: "inventada", reason: "Inventado" }, by),
   effect("device-execution-result", { execution: "inventada", status: "accepted", reference: "inventada" }, by),
+  effect("device-execution-notice", { execution: "inventada", status: "finished", reference: "inventada" }, by),
 ];

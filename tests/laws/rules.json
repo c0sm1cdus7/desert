@@ -3389,6 +3389,18 @@
         "src/runtime/devices/device-minds.spec.ts",
         "src/adapters/models/conversation.spec.ts"
       ]
+    },
+    {
+      "id": 305,
+      "rule": "Un dispositivo avisa sin que le pregunten que una ejecución anunciante que arrancó la casa terminó, falló, se canceló o se perdió. La acción declara que anuncia y queda escrito en el arranque; la casa nunca se la ofrece a un dispositivo con otra versión de la herramienta. La casa acepta el aviso solo si la ejecución existe, es de ese mismo dispositivo autenticado y aceptado, y anuncia; el autor y el journey salen de su registro. Se anota una sola vez por ejecución, al lado del resultado y nunca en su lugar, también sobre un arranque desconocido. Un aviso que llega antes del resultado del arranque se retiene en la conexión y se anota apenas se escribe ese resultado; una desconexión lo descarta. El dispositivo guarda lo que debe y lo manda hasta que la casa contesta anotado o rechazado, y un rechazo queda a la vista del dispositivo. Un dispositivo de antes no recibe nada nuevo; uno nuevo contra una casa vieja falla a la vista y no pierde avisos.",
+      "from": "21/11, journeys por hechos, diseño firmado, punto 4",
+      "guarantee": "spec",
+      "evidence": [
+        "src/runtime/devices/device-notices.spec.ts",
+        "src/runtime/devices/device-notice-reach.spec.ts",
+        "src/doors/devices/device-notices-http.spec.ts",
+        "src/doors/devices/remote-notices.spec.ts"
+      ]
     }
   ]
 }

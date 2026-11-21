@@ -1,4 +1,4 @@
-// Selecciona el lugar declarado y despacha por el puerto del core después de los controles comunes.
+// Picks the declared place and dispatches through the core's port after the common checks.
 import { Value } from "@sinclair/typebox/value";
 import { fine } from "../../fields/fields.ts";
 import type { ActionExecution, DeviceRequest, ExecutionDestination } from "../../fields/device-protocol.ts";
@@ -6,10 +6,12 @@ import { deviceTexts } from "../../texts/devices.texts.ts";
 import type { HouseEvent } from "../../house/facts.ts";
 import type { ActContext, ActResult, Program, ToolAct } from "../tool-contract.ts";
 import { hasSecretInput } from "../inputs/secret-input.ts";
+/** `announces` travels apart from the request: it is the house's record, never something the device is told. */
 export type DeviceDispatch = <X extends Program>(
   request: DeviceRequest,
   signal?: AbortSignal,
   beforeSend?: () => void,
+  announces?: boolean,
 ) => Promise<ActResult<X>>;
 export function destinationProblem(
   declaration: ActionExecution | undefined,
@@ -36,7 +38,7 @@ export function deviceRun<X extends Program>(
   return async () => {
     if (!execution || execution.at === "house" || !dispatch)
       return { status: "rejected", reason: deviceTexts.unavailable };
-    // Entregar secretos corresponde al sobre cifrado; este puerto sólo lleva entradas públicas declaradas.
+    // Handing secrets over belongs to the sealed envelope; this port carries only declared public input.
     if (hasSecretInput(act.input) || !Value.Check(act.input, input) || !fine(act.input, input))
       return { status: "rejected", reason: deviceTexts.invalid };
     check();
@@ -55,10 +57,11 @@ export function deviceRun<X extends Program>(
       },
       context.signal,
       check,
+      execution.announces === true,
     );
   };
 }
 
-/** Ejecutar en un dispositivo cruza el límite de la casa, cualquiera sea el alcance declarado. */
+/** Running on a device crosses the house's boundary, whatever reach the action declares. */
 export const executionReach = (act: { reach: "house" | "world"; execution?: ActionExecution } | undefined) =>
   act?.execution && act.execution.at !== "house" ? "world" : (act?.reach ?? "house");

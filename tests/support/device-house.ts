@@ -1,13 +1,14 @@
 import "./upgrade-vault.ts";
 import { afterEach } from "vitest";
-import { generateKeyPairSync, sign } from "node:crypto";
+import { generateKeyPairSync, sign, type KeyObject } from "node:crypto";
 import { Type } from "@sinclair/typebox";
 import { startHouse } from "../../src/runtime/house-runtime.ts";
 import { home, time } from "./upgrade-support.ts";
 import { vocabulary } from "../../src/journal/vocabulary.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
 import { createDeviceProcess } from "../../src/doors/devices/device-process.ts";
-import type { ActionExecution, DeviceRequest, DeviceResult } from "../../src/fields/device-protocol.ts";
+import type { ActionExecution, DeviceEndpoint, DeviceRequest, DeviceResult } from "../../src/fields/device-protocol.ts";
+type KeyPair = Readonly<{ privateKey: KeyObject }>;
 
 const closers: (() => void)[] = [];
 afterEach(() => {
@@ -60,13 +61,22 @@ export function setup(execution: ActionExecution = { at: "either", tool: "shell"
   const door = house.devices.door;
   const requests: DeviceRequest[] = [];
   const device = provisioner(house, door, requests);
+  /** The same machine connects again with its key and the given process, as after a dropped link. */
+  const reconnect = (id: string, pair: KeyPair, process: DeviceEndpoint = createDeviceProcess([])) => {
+    const challenge = door.challenge(id);
+    return door.connect(
+      challenge.id,
+      sign(null, Buffer.from(challenge.message), pair.privateKey).toString("base64"),
+      process,
+    );
+  };
   const act = (device: string, by = "beto") =>
     house.tools.act(
       { act: "run", target: "agents", input: { command: "test" }, destination: { kind: "device", device } },
       0,
       by,
     );
-  return { house, open, door, requests, device, act, options };
+  return { house, open, door, requests, device, reconnect, act, options };
 }
 
 function provisioner(
