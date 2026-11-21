@@ -16,7 +16,7 @@ export const supervisedFixture = (resources: Partial<ProgramMindResources> = { s
   requestMindFixture(undefined, { capNanoUsd: 10e9, ...resources });
 type Fixture = ReturnType<typeof supervisedFixture>;
 const asked = Type.Object({ reason: Type.String(), acts: Type.Array(Type.Unknown()), question: Type.Unknown() });
-/** What the supervisor was asked in a review frame, or nothing for a frame it learns with. */
+/** What the supervisor was asked for a verdict or a consultation, or nothing for a frame of its own turn. */
 export function request(frame: string) {
   const line = frame.split("Pedido:\n")[1]?.split("\n")[0];
   const value: unknown = line ? JSON.parse(line) : undefined;
@@ -30,9 +30,9 @@ export const framesOf = (f: Fixture) =>
     const body: unknown = JSON.parse(typeof call[1]?.body === "string" ? call[1].body : "{}");
     return Value.Check(shown, body) ? (body.messages[0]?.content ?? "") : "";
   });
-/** Every supervisor frame, in order: a review's reason, or "learn". */
+/** Every supervisor frame, in order: a verdict's or consultation's reason, or "turn" for a turn of its own. */
 export const moments = (frames: readonly string[]) =>
-  frames.filter(supervising).map(frame => request(frame)?.reason ?? "learn");
+  frames.filter(supervising).map(frame => request(frame)?.reason ?? "turn");
 export function withSend(house: RequestHouse) {
   const kit = explicitKit([...requestKit, ...sendKit, talkKit], kitLayout(house.registry));
   house.bus.emit(effect("kit-set", { version: 2, holder: "mind:notes", kit }, "ana"));
@@ -63,12 +63,19 @@ export async function think(house: RequestHouse, text: string) {
   expect(send(house, "mind:notes", text).status).toBe("accepted");
   await (await house.minds)?.flush();
 }
-export function supervisor(review: (reason: string, frame: string) => { outcome: string; text: string }) {
+type Own = (frame: string, turn: number) => readonly ProposedAct[];
+/** The supervisor: `review` answers verdicts and consultations; in a turn of its own it writes what it learned and,
+ * with `own`, acts (says something, interrupts a journey). */
+export function supervisor(review: (reason: string, frame: string) => { outcome: string; text: string }, own?: Own) {
   let learned = 0;
   return (frame: string) => {
     const reason = request(frame)?.reason;
     if (reason) return review(reason, frame);
     learned++;
-    return { scene: `Aprendí ${learned}: los journeys de notas terminan bien.` };
+    return {
+      scene: `Aprendí ${learned}: los journeys de notas terminan bien.`,
+      consulta: null,
+      acts: own?.(frame, learned) ?? [],
+    };
   };
 }

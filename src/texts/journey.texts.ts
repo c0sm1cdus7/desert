@@ -1,4 +1,4 @@
-// Explains a mind's journey controls, its cut turns and why a journey woke.
+// Explains a mind's journey controls, its cut and stopped turns and why a journey woke.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 import { object } from "../fields/visible-text.ts";
@@ -14,18 +14,20 @@ export const journeyControlPurpose = defineMessage({
       Type.Literal("resume"),
       Type.Literal("end"),
       Type.Literal("desist"),
+      Type.Literal("interrupt"),
     ]),
   }),
   texts: {
     es: ({ control }) =>
       ({
-        open: "Abrir un journey con un objetivo y las acciones que necesita, previa revisión.",
+        open: "Abrir un journey con un objetivo y las acciones que necesita.",
         plan: "Anotar el plan inicial del journey con un identificador por paso.",
         done: "Marcar un paso pendiente como terminado y anotar qué quedó hecho.",
         wait: "Poner el journey en espera hasta el momento indicado.",
         resume: "Retomar ahora uno de tus journeys abiertos, con una nota de qué tiene que atender.",
-        end: "Terminar el journey y devolver su resumen y referencias, previa revisión.",
-        desist: "Desistir del journey y devolver el motivo y las referencias, previa revisión.",
+        end: "Terminar el journey y devolver su resumen y referencias.",
+        desist: "Desistir del journey y devolver el motivo y las referencias.",
+        interrupt: "Frenar un journey abierto de cualquier mente, con el motivo que va a leer su consciencia.",
       })[control],
   },
 });
@@ -50,5 +52,16 @@ export const journeyWoke = defineMessage({
       cause === "restart"
         ? "La casa se reinició durante el turno anterior de este journey y no se repitió nada: mirá cómo quedó."
         : `Tu consciencia retomó este journey: ${note}`,
+  },
+});
+/** What wakes a consciousness when the supervisor stops one of its journeys: the goal, the reason and what is left. */
+export const journeyInterrupted = defineMessage({
+  id: "journey.interrupted",
+  kind: "text",
+  parameters: object({ goal: Type.String(), reason: Type.String(), pending: Type.String() }),
+  texts: {
+    es: ({ goal, reason, pending }) =>
+      `El supervisor frenó tu journey «${goal}»: ${reason} Quedó pendiente: ${pending || "nada"}. No corre ni ` +
+      "despierta hasta que decidas: retomalo con resume atendiendo el motivo, o desistí con desist.",
   },
 });

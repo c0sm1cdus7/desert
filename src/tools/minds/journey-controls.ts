@@ -1,4 +1,4 @@
-// Valida controles de journeys y devuelve sus hechos al turno después de la revisión que corresponda.
+// Valida controles de journeys y devuelve sus hechos al turno; ninguno espera al supervisor.
 import { selectionProblem } from "../../house/kit-validation.ts";
 import { expandKit, explicitKit } from "../../house/kit-selection.ts";
 import { randomUUID } from "node:crypto";
@@ -6,14 +6,12 @@ import { Type, type Static, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { requireMind } from "../../fields/mind-errors.ts";
 import { wholeNumber } from "../../fields/json-values.ts";
-import { object } from "../../fields/visible-text.ts";
 import { mindName } from "../../house/assistants/assistant-facts.ts";
 import { effect, type HouseEmission } from "../../house/facts.ts";
-import { mindText } from "../../house/minds/journey-facts.ts";
-import { journeyStep, type JourneyState } from "../../house/minds/journey-state.ts";
+import { journeyFrozen, journeyStep, type JourneyState } from "../../house/minds/journey-state.ts";
+import { ids } from "../../house/ids.ts";
 import { deepFreeze } from "../../journal/vocabulary.ts";
 import type { TurnContext } from "./mind-contract.ts";
-import type { ReviewPort, ReviewRequest, ReviewResult } from "./mind-review.ts";
 import {
   journeyInputs,
   pendingIn,
@@ -28,9 +26,7 @@ export type JourneyControlContext = Readonly<{
   turn: TurnContext;
   cause: readonly string[];
   state(): JourneyControlState;
-  review: ReviewPort;
 }>;
-export type JourneyReviewOutcome = Readonly<{ review: ReviewResult; facts: readonly HouseEmission[] }>;
 /** A journey kit outside the mind's own kit is the model's mistake: the turn corrects it instead of failing. */
 export class JourneyKitRefused extends Error {
   readonly kit: string;
@@ -39,6 +35,15 @@ export class JourneyKitRefused extends Error {
     super("journey.kit");
     this.name = "JourneyKitRefused";
     this.kit = listed;
+  }
+}
+/** A journey the supervisor already stopped is not stopped twice: the turn corrects it, naming the journey. */
+export class JourneyStopRefused extends Error {
+  readonly goal: string;
+  constructor(goal: string) {
+    super("journey.interrupted");
+    this.name = "JourneyStopRefused";
+    this.goal = goal;
   }
 }
 /** A wait that ends before now is the model's mistake: the turn corrects it with the house clock. */
@@ -50,13 +55,6 @@ export class JourneyWaitRefused extends Error {
     this.now = `${now} (${new Date(now).toISOString()})`;
   }
 }
-const reviewShape = object({
-  proposal: mindName,
-  through: wholeNumber,
-  rulesVersion: mindName,
-  text: mindText,
-  outcome: Type.Union([Type.Literal("passed"), Type.Literal("rejected"), Type.Literal("failed")]),
-});
 function inputOf<T extends TSchema>(schema: T, input: unknown, control: JourneyControl): Static<T> {
   const diagnostic =
     control === "open"
@@ -77,8 +75,6 @@ function contextOf(context: JourneyControlContext): JourneyControlContext {
   requireMind(Value.Check(Type.Literal("es"), context.turn.language), "turn.language");
   requireMind(Value.Check(Type.Array(mindName, { uniqueItems: true }), context.cause), "cause");
   requireMind(typeof context.state === "function", "state");
-  requireMind(context.review, "review");
-  requireMind(typeof context.review.review === "function", "review.review");
   validateJourneyAccess(context.turn.scope, context.state());
   const scope = structuredClone(context.turn.scope);
   deepFreeze(scope);
@@ -113,42 +109,12 @@ function checked(state: JourneyControlState, facts: readonly HouseEmission[]): r
 const causes = (context: JourneyControlContext, journey: JourneyState): readonly string[] => [
   ...new Set([...context.cause, journey.opened]),
 ];
-async function reviewed(
-  context: JourneyControlContext,
-  control: "open" | "end" | "desist",
-  input: unknown,
-  build: (state: JourneyControlState) => readonly HouseEmission[],
-  target = context.turn.scope.process ?? context.turn.scope.actor,
-): Promise<JourneyReviewOutcome> {
-  const before = current(context);
-  const rulesVersion = before.rulesVersion;
-  build(before);
-  const request: ReviewRequest = {
-    id: `proposal:${randomUUID()}`,
-    reason: control,
-    scope: context.turn.scope,
-    through: before.through,
-    acts: [{ act: control, target, input }],
-    turn: context.turn,
-  };
-  deepFreeze(request.acts);
-  const result = await context.review.review(request);
-  requireMind(Value.Check(reviewShape, result), "review.result");
-  requireMind(result.proposal === request.id, "review.proposal");
-  requireMind(result.through === request.through, "review.through");
-  requireMind(result.rulesVersion === rulesVersion, "review.rulesVersion");
-  if (result.outcome !== "passed") return { review: result, facts: [] };
-  const after = current(context);
-  requireMind(after.through === request.through, "review.through");
-  requireMind(after.rulesVersion === result.rulesVersion, "review.rulesVersion");
-  return { review: result, facts: build(after) };
-}
-export async function openJourney(context: JourneyControlContext, input: unknown): Promise<JourneyReviewOutcome> {
+export function openJourney(context: JourneyControlContext, input: unknown): readonly HouseEmission[] {
   const c = contextOf(context);
   requireMind(c.turn.scope.kind === "consciousness", "scope.kind");
   const data = inputOf(journeyInputs.open, input, "open");
   const process = `journey:${randomUUID()}`;
-  return reviewed(c, "open", data, state => {
+  const open = (state: JourneyControlState) => {
     const refuse = (valid: boolean) => {
       if (!valid) throw new JourneyKitRefused(state.kit);
     };
@@ -171,7 +137,8 @@ export async function openJourney(context: JourneyControlContext, input: unknown
         process,
       ),
     ]);
-  });
+  };
+  return open(current(c));
 }
 export function writeJourneyPlan(context: JourneyControlContext, input: unknown): readonly HouseEmission[] {
   const c = contextOf(context);
@@ -201,10 +168,9 @@ export function waitJourney(context: JourneyControlContext, input: unknown): rea
 function closeJourney(
   c: JourneyControlContext,
   control: "end" | "desist",
-  input: unknown,
   data: Readonly<{ summary: string; references: readonly string[] }>,
   target?: string,
-): Promise<JourneyReviewOutcome> {
+): readonly HouseEmission[] {
   const close = (state: JourneyControlState) => {
     const journey = ownJourney(c, state, target);
     requireMind(!pendingIn(state, journey.by, journey.id), "journey.pending");
@@ -224,23 +190,23 @@ function closeJourney(
       facts.push(effect("wake-at", { id: journey.id, at: null }, journey.by, causes(c, journey), journey.id));
     return checked(state, facts);
   };
-  return reviewed(c, control, input, close, target);
+  return close(current(c));
 }
-export async function endJourney(context: JourneyControlContext, input: unknown): Promise<JourneyReviewOutcome> {
+export function endJourney(context: JourneyControlContext, input: unknown): readonly HouseEmission[] {
   const c = contextOf(context);
   requireMind(c.turn.scope.kind === "journey", "scope.kind");
   const data = inputOf(journeyInputs.end, input, "end");
-  return closeJourney(c, "end", data, data);
+  return closeJourney(c, "end", data);
 }
 /** A journey desists from itself; its consciousness desists from one of its open journeys, named by `target`. */
-export async function desistJourney(
+export function desistJourney(
   context: JourneyControlContext,
   input: unknown,
   target?: string,
-): Promise<JourneyReviewOutcome> {
+): readonly HouseEmission[] {
   const c = contextOf(context);
   const data = inputOf(journeyInputs.desist, input, "desist");
-  return closeJourney(c, "desist", data, { summary: data.reason, references: data.references }, target);
+  return closeJourney(c, "desist", { summary: data.reason, references: data.references }, target);
 }
 /** The consciousness goes back to one of its open journeys: the fact wakes that journey, with the note to attend. */
 export function resumeJourney(
@@ -254,4 +220,19 @@ export function resumeJourney(
   const journey = ownJourney(c, state, target);
   const data = inputOf(journeyInputs.resume, input, "resume");
   return checked(state, [effect("journey-resumed", data, journey.by, causes(c, journey), journey.id)]);
+}
+/** The house supervisor stops an open journey of any mind with its reason; one already stopped is refused. */
+export function interruptJourney(
+  context: JourneyControlContext,
+  input: unknown,
+  target: string,
+): readonly HouseEmission[] {
+  const c = contextOf(context);
+  requireMind(c.turn.scope.kind === "consciousness" && c.turn.scope.actor === ids.supervisor, "scope.actor");
+  const state = current(c);
+  const journey = state.journeys.get(target);
+  requireMind(journey && !journey.closed, "journey.active");
+  const data = inputOf(journeyInputs.interrupt, input, "interrupt");
+  if (journeyFrozen(journey)) throw new JourneyStopRefused(journey.goal);
+  return checked(state, [effect("journey-interrupted", data, c.turn.scope.actor, causes(c, journey), journey.id)]);
 }

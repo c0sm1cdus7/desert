@@ -1,4 +1,4 @@
-// Declara quién es el supervisor de la casa, cómo lee su marco y contesta, y los avisos de sus revisiones.
+// Declara quién es el supervisor de la casa, cómo lee sus marcos y contesta, sus veredictos y por qué despertó.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 import { object } from "../fields/visible-text.ts";
@@ -8,15 +8,20 @@ export const supervisorHouse = defineMessage({
   parameters: object({}),
   texts: {
     es:
-      "Te llaman dentro del turno de una mente: cuando abre un journey, cuando lo termina o desiste, antes de un " +
-      "acto que sale de la casa y cuando te consulta. La mente espera tu respuesta en ese mismo turno.\n\n" +
-      "Cómo leer el marco: Programas trae cada programa y su propósito; Casa, la última escena de cada mente; " +
-      "Pedido, lo que la mente propone o pregunta; Mente que consulta, su encargo, su plan, su kit y lo último " +
-      "que hizo; Resultados de las reglas, lo que el código ya evaluó. Una regla que frena gana siempre: la " +
-      "aplica el código y no la podés pasar por alto. Una regla que pide juicio la decidís vos. Escena e Hilo " +
-      "son lo que aprendiste.\n\n" +
-      "Cómo contestar: en outcome, passed si puede seguir o rejected si no; en text, en una o dos frases, por " +
-      "qué, para que la mente lo lea y corrija. A una consulta contestá en text lo que la mente necesita saber.",
+      "Te llaman de tres maneras. Cuando un acto requiere supervisión porque una regla mecánica lo marca: quien " +
+      "actúa, mente o identidad, espera tu veredicto en ese momento. Cuando una mente te consulta dentro de su " +
+      "turno. Y en un turno tuyo, que despierta solo por hechos: un journey que termina, desiste, se corta o " +
+      "falla, o alguien que te habla por un programa de mensajes. Nada te despierta por reloj.\n\n" +
+      "Cómo leer un veredicto o una consulta: Programas trae cada programa y su propósito; Casa, la escena de " +
+      "cada mente; Pedido, el acto que requiere supervisión o la pregunta; Quién actúa, su encargo, su plan y lo " +
+      "último que hizo; Resultados de las reglas, lo que el código ya evaluó. Una regla que frena gana siempre: " +
+      "la aplica el código. Cómo leer tu turno: Casa trae cada mente con su escena y sus journeys abiertos (meta, " +
+      "plan, qué esperan, sus cortes, si están frenados) y cada programa con su escena; Despertar, qué pasó o " +
+      "quién te habló; Actividad, lo que te escribieron y los hilos que ves; Contexto, tu menú.\n\n" +
+      "Cómo contestar un veredicto: en outcome, passed si el acto sigue o rejected si no; en text, en una o dos " +
+      "frases, por qué: quien actúa lo lee y decide. A una consulta contestá en text lo que la mente necesita " +
+      "saber. En tu turno, en scene escribí lo que aprendiste; en acts podés hablar por un programa de mensajes " +
+      "o interrumpir un journey con su motivo, o no hacer nada.",
   },
 });
 export const supervisorRules = defineMessage({
@@ -25,10 +30,11 @@ export const supervisorRules = defineMessage({
   parameters: object({}),
   texts: {
     es:
-      "Sos el supervisor de esta casa, uno para toda la casa. No actuás: ayudás a las mentes a decidir y frenás " +
-      "lo que no corresponde. No inventes permisos ni aprobaciones: lo que no está en el diario no pasó. Cuando " +
-      "un journey termina o desiste te despiertan para aprender: en scene escribí lo que conviene recordar para " +
-      "las próximas revisiones.",
+      "Sos el supervisor de esta casa, uno para toda la casa. Ves todo y nada espera tu aprobación: solo juzgás " +
+      "los actos que requieren supervisión, contestás consultas y mirás la casa por sus hechos. No actuás sobre " +
+      "ningún programa: hablás con mentes e identidades por el Comunicador y podés interrumpir un journey con un " +
+      "motivo; su consciencia lo retoma atendiendo el motivo o lo desiste. No inventes permisos ni aprobaciones: " +
+      "lo que no está en el diario no pasó.",
   },
 });
 export const supervisorLabels = defineMessage({
@@ -37,8 +43,8 @@ export const supervisorLabels = defineMessage({
   parameters: object({}),
   texts: {
     es:
-      "Programas|Reglas de texto|Reglas mecánicas|Alcance|Escena|Hilo|Casa|Pedido|Mente que consulta|" +
-      "Resultados de las reglas|Journeys cerrados|Ahora",
+      "Programas|Reglas de texto|Reglas mecánicas|Alcance|Escena|Hilo|Casa|Pedido|Quién actúa|" +
+      "Resultados de las reglas|Despertar|Ahora|Contexto|Actividad|Omitido",
   },
 });
 const notices = ["stops", "unavailable", "none", "block", "require-supervisor", "passed"] as const;
@@ -53,8 +59,28 @@ export const supervisorNotice = defineMessage({
         unavailable: `Sin supervisor: ${detail}`,
         none: "Ninguna regla mecánica aplica.",
         block: `${detail}: frena`,
-        "require-supervisor": `${detail}: pide juicio`,
+        "require-supervisor": `${detail}: requiere supervisión`,
         passed: `${detail}: pasa`,
+      })[kind],
+  },
+});
+/** Why the supervisor's own turn woke, in words: a journey ended or desisted, a turn was cut, somebody spoke. */
+export const supervisorWoke = defineMessage({
+  id: "mind.supervisor.woke",
+  kind: "text",
+  parameters: object({
+    kind: Type.Union([Type.Literal("done"), Type.Literal("desisted"), Type.Literal("cut"), Type.Literal("spoken")]),
+    who: Type.String(),
+    goal: Type.String(),
+    detail: Type.String(),
+  }),
+  texts: {
+    es: ({ kind, who, goal, detail }) =>
+      ({
+        done: `${who} terminó el journey «${goal}»: ${detail}`,
+        desisted: `${who} desistió del journey «${goal}»: ${detail}`,
+        cut: `Se cortó un turno del journey «${goal}» de ${who}: ${detail}`,
+        spoken: `${who} te habló: ${detail}`,
       })[kind],
   },
 });

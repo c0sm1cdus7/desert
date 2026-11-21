@@ -32,6 +32,7 @@ export const mindEffects = (by: string, publisher = by) => [
   effect("journey-plan-written", { steps: [{ id: "s1", text: "Anotar" }] }, by, [], "j1"),
   effect("journey-step-done", { step: "s1", note: "Anotada" }, by, [], "j1"),
   effect("journey-waiting", { what: "Una respuesta", until: 1000 }, by, [], "j1"),
+  effect("journey-interrupted", { reason: "Pará: falta el permiso" }, "mind:supervisor", [], "j1"),
   effect("journey-resumed", { note: "Mirá la respuesta" }, by, [], "j1"),
   effect("journey-closed", { outcome: "done", summary: "Listo", references: [] }, by, [], "j1"),
   effect("mind-turn-opened", { turn: "t1", wake: [] }, by),

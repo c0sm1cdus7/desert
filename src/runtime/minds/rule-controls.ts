@@ -1,33 +1,47 @@
-// Aplica el control mecánico común a los controles de journeys antes y después de sus esperas.
-import { mechanicalRules } from "../../tools/execution/mechanical-rules.ts";
+// Applies the common mechanical check to a mind's controls; one a rule marks waits for the supervisor's verdict.
+import { randomUUID } from "node:crypto";
+import { mechanicalRules, requiresSupervision } from "../../tools/execution/mechanical-rules.ts";
 import { coreRuleSchema } from "../../tools/rules/rule-core-actions.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { ProposedAct } from "../../tools/minds/mind-answer.ts";
-import type { MindScope } from "../../tools/minds/mind-contract.ts";
+import type { TurnContext } from "../../tools/minds/mind-contract.ts";
+import type { ReviewPort } from "../../tools/minds/mind-review.ts";
+import { rulesTexts } from "../../texts/rules.texts.ts";
 import type { MindRuntimeHouse } from "./mind-runtime-options.ts";
-export function ruleControl<X extends Program>(
+/** A control passes, stops on a rule (the turn ends, as a block), or is rejected by the supervisor with words. */
+export type ControlCheck = Readonly<{ ok: true }> | Readonly<{ ok: false; reason?: string }>;
+export async function ruleControl<X extends Program>(
   house: MindRuntimeHouse<X>,
-  scope: MindScope,
+  turn: TurnContext,
   cause: readonly string[],
   proposal: ProposedAct,
+  supervision: Readonly<{ review: ReviewPort; supervised: boolean }>,
   tool = "journey",
-  judge = false,
-): boolean {
+): Promise<ControlCheck> {
   const schema = coreRuleSchema(tool, proposal.act);
   const id = cause[0];
-  if (!schema || !id) return false;
+  const { scope } = turn;
+  if (!schema || !id) return { ok: false };
   const origin = { id, by: scope.actor, process: scope.process };
-  const ports = { ...house.execution, judge };
-  const result = mechanicalRules(ports, origin, { tool, act: proposal.act }, schema, proposal.input);
-  if (!result) return true;
-  house.execution.bus.together(() =>
-    result.effects.forEach(event =>
-      house.execution.bus.emit({
-        ...event,
-        cause: cause,
-        process: scope.process,
-      }),
-    ),
-  );
-  return false;
+  const action = { tool, act: proposal.act };
+  const ports = { ...house.execution, judge: supervision.supervised };
+  const result = mechanicalRules(ports, origin, action, schema, proposal.input);
+  if (result) {
+    house.execution.bus.together(() =>
+      result.effects.forEach(event => house.execution.bus.emit({ ...event, cause, process: scope.process })),
+    );
+    return { ok: false };
+  }
+  if (!supervision.supervised || !requiresSupervision(ports, origin, action, schema, proposal.input))
+    return { ok: true };
+  const verdict = await supervision.review.review({
+    id: `proposal:${randomUUID()}`,
+    reason: "rule",
+    scope,
+    through: house.execution.state().through,
+    acts: [proposal],
+    turn,
+  });
+  if (verdict.outcome === "passed") return { ok: true };
+  return { ok: false, reason: rulesTexts.verdict(verdict.outcome, verdict.text) };
 }

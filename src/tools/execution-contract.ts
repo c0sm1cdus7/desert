@@ -7,7 +7,7 @@ import type { Program, State, ToolRegistry, OwnAct } from "./tool-contract.ts";
 import type { CapabilityFactory, CapabilityLease } from "./execution/execution-capabilities.ts";
 import type { RunningAct } from "./execution/running-acts.ts";
 import type { MindScope } from "./minds/mind-contract.ts";
-import type { ReviewPort } from "./minds/mind-review.ts";
+import type { ActVerdict, ReviewPort } from "./minds/mind-review.ts";
 export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: () => number }> &
   Readonly<{ registry: ToolRegistry<X>; state: () => State<X>; own: (state: State<X>) => readonly OwnAct<X>[] }> &
   Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
@@ -17,9 +17,11 @@ export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: 
     devices?: DeviceDispatch;
     mindScope?: MindScope;
     review?: ReviewPort;
-    /** The house has a supervisor: what a mechanical rule leaves to judgment goes to `review` instead of waiting.
-     * It counts only for a mind acting with `review`; anyone else still waits. */
+    /** A marked act gets a verdict instead of waiting: a mind's in its turn through `review`, anyone else's from
+     * `supervisor`. `execute` sets it for each act; without a supervisor a marked act is not done and says so. */
     judge?: boolean;
+    /** The house supervisor while one runs, read at each act because the minds start after the house (21/11). */
+    supervisor?: () => ActVerdict | undefined;
     houseOwn?: (act: OwnAct<X>) => boolean;
     capabilities?: CapabilityFactory;
     running?: Map<string, RunningAct>;

@@ -37,21 +37,12 @@ function setup() {
       now: Date.now(),
       rulesVersion: "r1",
     }),
-    review: {
-      review: request => ({
-        proposal: request.id,
-        through: request.through,
-        rulesVersion: "r1",
-        outcome: "passed",
-        text: "Admitido",
-      }),
-    },
   };
   const apply = (facts: readonly HouseEmission[]) => house.bus.together(() => facts.map(fact => house.bus.emit(fact)));
-  const open = async () => {
-    const result = await openJourney(context, { goal: "Recordar el mate", kit: [] });
-    apply(result.facts);
-    const process = result.facts[0]?.process;
+  const open = () => {
+    const facts = openJourney(context, { goal: "Recordar el mate", kit: [] });
+    apply(facts);
+    const process = facts[0]?.process;
     if (!process) throw new Error("Falta el proceso");
     return {
       ...context,
@@ -60,9 +51,9 @@ function setup() {
   };
   return { house, context, apply, open };
 }
-it("el diario reconstruye los controles y el reloj después de reiniciar", async () => {
+it("el diario reconstruye los controles y el reloj después de reiniciar", () => {
   const r = setup();
-  const context = await r.open();
+  const context = r.open();
   const until = Date.now() + 60_000;
   r.apply(writeJourneyPlan(context, { steps: [{ id: "mate", text: "Esperar la confirmación" }] }));
   r.apply(waitJourney(context, { what: "Confirmación", until }));
@@ -72,16 +63,15 @@ it("el diario reconstruye los controles y el reloj después de reiniciar", async
   r.house.restart();
   expect(r.house.state().house.journeys).toEqual(before);
   expect(r.house.facts().reduce(clockStep, new Map())).toEqual(clock);
-  const result = await endJourney(context, { summary: "Confirmado", references: [] });
-  r.apply(result.facts);
+  r.apply(endJourney(context, { summary: "Confirmado", references: [] }));
   r.house.restart();
   expect(r.house.facts().reduce(clockStep, new Map()).size).toBe(0);
   expect(r.house.state().house.journeys.get(context.turn.scope.process)?.closed?.data.outcome).toBe("done");
   expect(r.house.facts().filter(event => event.kind === "journey-closed")).toHaveLength(1);
 });
-it("un corte del lote retira tanto la espera como el reloj", async () => {
+it("un corte del lote retira tanto la espera como el reloj", () => {
   const r = setup();
-  const context = await r.open();
+  const context = r.open();
   const facts = waitJourney(context, { what: "Confirmación", until: Date.now() + 60_000 });
   const before = r.house.facts();
   expect(() =>
@@ -95,18 +85,18 @@ it("un corte del lote retira tanto la espera como el reloj", async () => {
   expect(r.house.state().house.journeys.get(context.turn.scope.process)?.waiting).toBeUndefined();
   expect(r.house.facts().reduce(clockStep, new Map()).size).toBe(0);
 });
-it("un cierre deshecho permite volver a revisar sin una devolución duplicada", async () => {
+it("un cierre deshecho permite volver a cerrar sin una devolución duplicada", () => {
   const r = setup();
-  const context = await r.open();
-  const result = await endJourney(context, { summary: "Listo", references: [] });
+  const context = r.open();
+  const facts = endJourney(context, { summary: "Listo", references: [] });
   expect(() =>
     r.house.bus.together(() => {
-      r.apply(result.facts);
+      r.apply(facts);
       throw new Error("Corte del lote");
     }),
   ).toThrow("Corte del lote");
   r.house.restart();
   expect(r.house.facts().filter(event => event.kind === "journey-closed")).toHaveLength(0);
-  r.apply((await endJourney(context, { summary: "Listo", references: [] })).facts);
+  r.apply(endJourney(context, { summary: "Listo", references: [] }));
   expect(r.house.facts().filter(event => event.kind === "journey-closed")).toHaveLength(1);
 });

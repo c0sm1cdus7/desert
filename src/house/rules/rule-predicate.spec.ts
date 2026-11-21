@@ -89,3 +89,11 @@ it("limita tamaño y profundidad, rechaza accesores y claves fuera de toda rama 
   expect(ruleProblem(definition, Type.Union([schema, Type.Object({ currency: Type.String() })]))).toBeDefined();
   expect(ruleProblem(definition, Type.Union([schema, schema]))).toBeUndefined();
 });
+it("siempre vale para todo acto y actor, sin campos; las condiciones de antes se leen igual (21/11)", () => {
+  expect(check({ operator: "always" })).toBe(true);
+  expect(evaluatePredicate({ operator: "always" }, { ...context, actor: "mind:sales", inJourney: true })).toBe(true);
+  expect(check({ operator: "not", condition: { operator: "always" } })).toBe(false);
+  const rule = { id: "x", text: "Siempre", action: { tool: "probe", act: "send" }, effect: "require-supervisor" };
+  expect(ruleProblem({ ...rule, condition: { operator: "always", field: amount } }, schema)).toBeDefined();
+  expect(ruleProblem({ ...rule, condition: { operator: "actor", kind: "program" } }, schema)).toBeUndefined();
+});

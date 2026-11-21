@@ -42,7 +42,7 @@ const add = programAct<Notes, typeof requestInput>({
     },
   ],
 });
-/** A line that leaves the house: the act the supervisor reviews before it runs. */
+/** A line that leaves the house: it waits for nobody, unless a rule marks it as one that requires supervision. */
 const send = programAct<Notes, typeof requestInput>({
   name: "send",
   enter: "send",

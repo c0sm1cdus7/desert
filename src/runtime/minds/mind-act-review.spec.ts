@@ -23,7 +23,6 @@ function fixture() {
     isOpen: () => open,
     read: () => ({ active: true, menu: [], through: 1, rulesVersion: "v1", now: 0 }),
     allowed: () => true,
-    reviewReason: () => "world",
     supervision: {},
     emit: e => {
       events.push(e);
@@ -49,9 +48,11 @@ function fixture() {
     },
   };
 }
-it.each(["open", "end", "desist", "world"] as const)("revisa %s y deja el registro con autor fijo", async reason => {
+it.each(["rule", "consultation"] as const)("revisa %s y deja el registro con autor fijo", async reason => {
   const f = fixture();
-  const result = await createMindActReview(f.ports, turn, f.caller).review(f.request(reason));
+  const request = f.request(reason);
+  const asked = reason === "consultation" ? { ...request, question: "¿Sigo?" } : request;
+  const result = await createMindActReview(f.ports, turn, f.caller).review(asked);
   expect(result.outcome).toBe("passed");
   expect(f.events).toHaveLength(1);
   expect(f.events[0]).toMatchObject({
@@ -60,7 +61,7 @@ it.each(["open", "end", "desist", "world"] as const)("revisa %s y deja el regist
     data: { reason, result: "passed", rulesVersion: "v1" },
   });
 });
-it("el adaptador de ejecución puede consultar el mismo puerto antes de un world anidado", async () => {
+it("el adaptador de ejecución puede pedir el veredicto al mismo puerto antes de un acto marcado anidado", async () => {
   const f = fixture();
   const outside = vi.fn();
   f.ports.supervision.rules = {
@@ -74,7 +75,7 @@ it("el adaptador de ejecución puede consultar el mismo puerto antes de un world
   };
   const review = createMindActReview(f.ports, turn, f.caller);
   const nested = async () => {
-    const result = await review.review(f.request("world"));
+    const result = await review.review(f.request("rule"));
     if (result.outcome === "passed") outside();
     return result;
   };
@@ -85,11 +86,11 @@ it("no acepta otro actor ni otro proceso en la revisión", async () => {
   const f = fixture();
   const review = createMindActReview(f.ports, turn, f.caller);
   await expect(
-    review.review({ ...f.request("world"), scope: { kind: "consciousness", actor: "assistant:martin" } }),
+    review.review({ ...f.request("rule"), scope: { kind: "consciousness", actor: "assistant:martin" } }),
   ).rejects.toThrow("review.scope");
   await expect(
     review.review({
-      ...f.request("world"),
+      ...f.request("rule"),
       scope: { kind: "journey", actor: turn.scope.actor, process: "other", kit: [] },
     }),
   ).rejects.toThrow("review.scope");
@@ -106,6 +107,6 @@ it("no escribe una revisión tardía luego del cierre", async () => {
       text: "Admitido",
     });
   };
-  await expect(createMindActReview(f.ports, turn, f.caller).review(f.request("world"))).rejects.toThrow();
+  await expect(createMindActReview(f.ports, turn, f.caller).review(f.request("rule"))).rejects.toThrow();
   expect(f.events).toEqual([]);
 });

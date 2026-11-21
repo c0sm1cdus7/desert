@@ -22,17 +22,18 @@ export const autonomousFacts: Readonly<Record<string, string>> = {
   "mind-answer-invalid": "minds", // Records failed validation without publishing proposed actions.
   "mind-consultation-requested": "minds", // Records a supervisor consultation within the current turn.
   "mind-consultation-answered": "minds", // Retains the answer to that consultation.
-  "mind-review-recorded": "minds", // Records review before continuing a journey or external action.
+  "mind-review-recorded": "minds", // Records a verdict on a marked act, or a consultation and its answer.
   "mind-turn-closed": "minds", // Closes a completed, failed or interrupted turn.
   "mind-scene": "minds", // Publishes the mind's scene at the end of its turn.
   "mind-message": "minds", // Before 20/11 a mind's native message; old journals replay it, nothing writes it now.
   "mind-requested": "minds", // Before 20/11 a person's native request; old journals replay it, nothing writes it now.
-  "journey-opened": "minds", // Records a journey accepted after review.
+  "journey-opened": "minds", // Records a journey its consciousness opened, with its goal and kit.
   "journey-plan-written": "minds", // Retains the plan of the mind's own journey.
   "journey-step-done": "minds", // Records progress on the mind's own journey.
   "journey-waiting": "minds", // Retains a requested continuation without executing it twice.
   "journey-resumed": "minds", // Wakes the mind's own open journey when its consciousness goes back to it.
-  "journey-closed": "minds", // Closes the mind's own journey after final review.
+  "journey-interrupted": "minds", // The house supervisor stops an open journey with its reason until it is resumed.
+  "journey-closed": "minds", // Closes the mind's own journey with its outcome, summary and references.
   "model-account-opened": "bank", // Bootstrap records the host spending account opening once, outside any house.
   "model-account-cap-set": "bank", // Bootstrap records a signed new cap once, never below what was spent or reserved.
   "model-call-reserved": "bank", // Reserves the maximum cost before a provider call.

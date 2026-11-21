@@ -108,7 +108,6 @@ it("conserva la causa del supervisor hasta el cierre del turno que lo consultó"
       isOpen: () => true,
       read: () => ({ active: true, menu: [], through: 1, rulesVersion: "v1", now: 0 }),
       allowed: () => true,
-      reviewReason: () => undefined,
       execute: () => Promise.resolve({ status: "accepted", id: "unused" }),
       supervision: {
         supervisor: async (request, caller) => {

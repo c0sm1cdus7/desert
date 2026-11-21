@@ -1,8 +1,7 @@
-// Liga cada revisión a su propuesta, alcance y reglas antes de permitir actos del turno.
+// Binds each verdict and consultation of a turn to its proposal, scope and rules, and records it.
 import { effect } from "../../house/facts.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import type { TurnContext } from "../../tools/minds/mind-contract.ts";
-import type { ProposedAct } from "../../tools/minds/mind-answer.ts";
 import type { ReviewPort, ReviewRequest, ReviewResult } from "../../tools/minds/mind-review.ts";
 import { reviewNotice } from "../../texts/mind-turn.texts.ts";
 import { answerConsultation, reviewMindProposal } from "./mind-supervision.ts";
@@ -37,30 +36,6 @@ export function createMindActReview(ports: TurnPorts, turn: TurnContext, caller:
     },
   };
 }
-export async function reviewMindActs(
-  ports: TurnPorts,
-  turn: TurnContext,
-  review: ReviewPort,
-  acts: readonly ProposedAct[],
-): Promise<ReviewResult | undefined> {
-  let last: ReviewResult | undefined;
-  for (const [index, act] of acts.entries()) {
-    const reason = ports.reviewReason(turn.scope, act);
-    if (!reason) continue;
-    const request: ReviewRequest = {
-      id: `proposal:${turn.usage.calls}:${index}`,
-      reason,
-      scope: turn.scope,
-      through: ports.read(turn.scope).through,
-      acts: [act],
-      turn,
-    };
-    last = await review.review(request);
-    if (last.outcome !== "passed") return last;
-  }
-  return last;
-}
-
 function recordReview(ports: TurnPorts, turn: TurnContext, request: ReviewRequest, result: ReviewResult): void {
   ports.emit(
     effect(

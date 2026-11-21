@@ -4,6 +4,7 @@ export function ruleDisplay(value: unknown): string {
   return JSON.stringify(value, (key: string, item: unknown) => {
     if ((key === "effect" || key === "outcome") && (item === "block" || item === "require-supervisor"))
       return ruleFormTexts.options[item].title;
+    if (key === "operator" && item === "always") return ruleFormTexts.options.always.title;
     return item;
   });
 }

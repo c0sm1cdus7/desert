@@ -81,7 +81,6 @@ it.each([
         read: () => ({ active: true, menu: [], through: at, rulesVersion: "none", now: 0 }),
         allowed: () => true,
         isOpen: id => !!state().turns.get(id) && !state().turns.get(id)?.closed,
-        reviewReason: () => undefined,
         supervision: {},
         execute: () => Promise.resolve({ status: "accepted", id: "a1" }),
       };

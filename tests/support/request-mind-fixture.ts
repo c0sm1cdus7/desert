@@ -36,7 +36,7 @@ class RequestMindFixture {
   readonly distribution;
   private readonly houses: { close(): void }[] = [];
   private response: (frame: string) => unknown = () => answer();
-  private readonly resources: Partial<ProgramMindResources>;
+  private resources: Partial<ProgramMindResources>;
   constructor(
     scenes?: readonly [ProgramMindScene, ProgramMindScene, ProgramMindScene],
     resources: Partial<ProgramMindResources> = {},
@@ -104,6 +104,10 @@ class RequestMindFixture {
         "ana",
       ),
     );
+  }
+  /** The next opening reads these resources, as a host that changes them between two runs of the same house. */
+  reopenWith(resources: Partial<ProgramMindResources>) {
+    this.resources = resources;
   }
   respond(next: typeof this.response) {
     this.response = next;

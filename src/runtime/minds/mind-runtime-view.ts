@@ -2,6 +2,7 @@
 import type { ExecutionDestination } from "../../fields/device-protocol.ts";
 import { targetTool } from "../../house/attendance.ts";
 import { deviceChoices } from "../../house/devices/device-state.ts";
+import { journeyFrozen } from "../../house/minds/journey-state.ts";
 import { allowedAct, effectiveKit, present } from "../../house/kit.ts";
 import { identityView } from "../../house/members.ts";
 import type { JourneyControlState } from "../../tools/minds/journey-controls.ts";
@@ -14,7 +15,9 @@ import type { FrameSource } from "./mind-frame.ts";
 import type { MindRuntimeHouse, MindRuntimeOptions, MindSwitches } from "./mind-runtime-options.ts";
 import { enabledMind } from "./mind-runtime-options.ts";
 import { programCommunication } from "./program-mind-communication.ts";
-/** Whether a scope can think now, read from the house alone: the schedule asks this for every scope it weighs. */
+/** Whether a scope can think now, read from the house alone: the schedule asks this for every scope it weighs. A
+ * journey the supervisor stopped is not among them, so nothing wakes it (its wait, a restart, a notice) until its
+ * consciousness resumes it. */
 export function scopeActive<X extends Program>(
   house: MindRuntimeHouse<X>,
   switches: MindSwitches,
@@ -26,7 +29,7 @@ export function scopeActive<X extends Program>(
     house.active() &&
     enabledMind(switches, scope.actor) &&
     present(house.execution.registry, state, scope.actor) &&
-    (scope.kind !== "journey" || (!!journey && !journey.closed))
+    (scope.kind !== "journey" || (!!journey && !journey.closed && !journeyFrozen(journey)))
   );
 }
 export function runtimeView<X extends Program>(

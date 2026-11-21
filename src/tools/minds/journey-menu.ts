@@ -12,6 +12,7 @@ import { delegatedKit, type DelegatedKit } from "../../house/assistants/assistan
 import { journeyFacts, mindText } from "../../house/minds/journey-facts.ts";
 import type { Journeys, JourneyState } from "../../house/minds/journey-state.ts";
 import { journeyControlPurpose } from "../../texts/journey.texts.ts";
+import { ids } from "../../house/ids.ts";
 import type { MindMenu } from "./mind-answer.ts";
 import type { MindScope } from "./mind-contract.ts";
 export const journeyInputs = {
@@ -20,6 +21,7 @@ export const journeyInputs = {
   done: journeyFacts["journey-step-done"],
   wait: journeyFacts["journey-waiting"],
   resume: journeyFacts["journey-resumed"],
+  interrupt: journeyFacts["journey-interrupted"],
   end: object({ summary: mindText, references: journeyFacts["journey-closed"].properties.references }),
   desist: object({ reason: mindText, references: journeyFacts["journey-closed"].properties.references }),
 };
@@ -68,9 +70,12 @@ export function validateJourneyAccess(scope: MindScope, state: JourneyAccess): v
   } else requireMind(Value.Check(Type.Undefined(), scope.process), "scope.process");
 }
 type OwnControl = Readonly<{ act: JourneyControl; target: string }>;
-/** A consciousness opens journeys, and over each of its open journeys it can go back to it or desist from it. */
+/** A consciousness opens journeys, and over each of its open journeys it can go back to it or desist from it. The
+ * house supervisor opens none and acts on no program: over every open journey of any mind it can only interrupt. */
 function oversight(scope: MindScope, state: JourneyAccess): OwnControl[] {
-  const open = [...state.journeys.values()].filter(journey => journey.by === scope.actor && !journey.closed);
+  const live = [...state.journeys.values()].filter(journey => !journey.closed);
+  if (scope.actor === ids.supervisor) return live.map(({ id }) => ({ act: "interrupt", target: id }));
+  const open = live.filter(journey => journey.by === scope.actor);
   return [
     { act: "open", target: scope.actor },
     ...open.flatMap(({ id }): OwnControl[] => [

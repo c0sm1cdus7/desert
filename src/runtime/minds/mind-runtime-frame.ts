@@ -15,6 +15,8 @@ import type { Event } from "../../journal/vocabulary.ts";
 import type { runtimeModel } from "./mind-runtime-model.ts";
 import { definitionOf } from "./mind-definitions.ts";
 import { wakeWords } from "./wake-words.ts";
+import { withInterrupts } from "./journey-interrupts.ts";
+import type { Journeys } from "../../house/minds/journey-state.ts";
 import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
 export function runtimeFrame<X extends Program>(
   house: MindRuntimeHouse<X>,
@@ -68,6 +70,12 @@ export function threadEntries(history: readonly Event[], scope: MindScope) {
     return text === undefined ? [] : [{ id: event.id, seq: event.seq, text }];
   });
 }
+/** A consciousness sees the goals of its open journeys, whether the supervisor stopped one, to go back to one or
+ * desist from it by its id. */
+const ownJourneys = (journeys: Journeys, actor: string) =>
+  [...journeys.values()]
+    .filter(each => each.by === actor && !each.closed)
+    .map(({ id, goal, waiting, interrupted }) => ({ id, goal, waiting, ...(interrupted ? { interrupted } : {}) }));
 function snapshotFor<X extends Program>(
   view: ReturnType<typeof runtimeView<X>>,
   scope: MindScope,
@@ -80,11 +88,11 @@ function snapshotFor<X extends Program>(
   thread: FrameSnapshot["thread"],
 ) {
   const current = view.state.house.minds.turns.get(turn.id);
-  const woke = wakeWords(house.history(), view.state.house.journeys, turn.wake, turn.language);
+  const history = house.history();
+  const words = wakeWords(history, view.state.house.journeys, turn.wake, turn.language);
+  const woke = withInterrupts(words, turn.wake, history, view.state, turn.language);
   const scene = view.state.house.minds.scenes.get(scope.process ?? scope.actor)?.data.text ?? "";
-  // A consciousness sees the goals of its open journeys, to go back to one or desist from it by its id.
-  const open = [...view.state.house.journeys.values()].filter(each => each.by === scope.actor && !each.closed);
-  const journeys = scope.kind === "consciousness" ? open.map(({ id, goal, waiting }) => ({ id, goal, waiting })) : [];
+  const journeys = scope.kind === "consciousness" ? ownJourneys(view.state.house.journeys, scope.actor) : [];
   const required = JSON.stringify({
     menu: view.menu,
     journey: scope.process ? view.state.house.journeys.get(scope.process) : undefined,

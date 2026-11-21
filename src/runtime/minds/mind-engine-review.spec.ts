@@ -1,3 +1,4 @@
+// An act a rule marks waits for the supervisor's verdict inside the engine, directly or nested; nothing else waits.
 import { Type } from "@sinclair/typebox";
 import { expect, it, vi } from "vitest";
 import { shopRig } from "../../../tests/support/shop-rig.ts";
@@ -7,6 +8,7 @@ import { execute, type Execution } from "../../tools/execute.ts";
 import { watchRunning } from "../../tools/execution/running-acts.ts";
 import { toolAct } from "../../tools/act-definition.ts";
 import type { ReviewPort, ReviewRequest, ReviewResult } from "../../tools/minds/mind-review.ts";
+import { rulesTexts } from "../../texts/rules.texts.ts";
 const result = (request: ReviewRequest, outcome: ReviewResult["outcome"]): ReviewResult => ({
   proposal: request.id,
   through: request.through,
@@ -14,7 +16,7 @@ const result = (request: ReviewRequest, outcome: ReviewResult["outcome"]): Revie
   outcome,
   text: "Revisión de prueba",
 });
-function fixture(review?: ReviewPort) {
+function fixture(review?: ReviewPort, marked = true) {
   const run = vi.fn(() => ({ status: "accepted" as const }));
   const registry = [
     ...shopRegistry,
@@ -37,6 +39,14 @@ function fixture(review?: ReviewPort) {
   const grant = (acts: string[]) =>
     rig.bus.emit(effect("kit-set", { holder: "mind:probe", tool: "probe", acts }, "ana"));
   grant(["send", "outer"]);
+  const definition = {
+    id: "marcado",
+    text: "Lo que manda una mente afuera requiere supervisión",
+    action: { tool: "probe", act: "send" },
+    condition: { operator: "always" as const },
+    effect: "require-supervisor" as const,
+  };
+  if (marked) rig.bus.emit(effect("rule-versioned", { definition, previous: null, version: 1 }, "ana"));
   const ports: Execution<Shop> = {
     bus: rig.bus,
     registry,
@@ -46,7 +56,7 @@ function fixture(review?: ReviewPort) {
     process: () => false,
     live: () => true,
     secrets: { capture: () => {}, scrub: value => value },
-    ...(review ? { review } : {}),
+    ...(review ? { review, judge: true } : {}),
     running: new Map(),
   };
   const off = rig.bus.on(watchRunning(ports));
@@ -65,11 +75,14 @@ async function act(ports: Execution<Shop>, nested: boolean) {
   const started = execute(ports, { act: nested ? "outer" : "send", target: "probe", input: {} }, 0, "mind:probe");
   return started.status === "processing" ? started.completion : started;
 }
-it.each([false, true])("el supervisor rechaza world, anidado=%s", async nested => {
+it.each([false, true])("el supervisor rechaza un acto marcado, anidado=%s", async nested => {
   const review = vi.fn<ReviewPort["review"]>(request => result(request, "rejected"));
   const f = fixture({ review });
   try {
-    expect((await act(f.ports, nested)).status).toBe("rejected");
+    expect(await act(f.ports, nested)).toMatchObject({
+      status: "rejected",
+      reason: "Rechazado por el supervisor: Revisión de prueba",
+    });
     expect(review).toHaveBeenCalledOnce();
     expect(f.run).not.toHaveBeenCalled();
     expect(review.mock.calls[0]?.[0].scope).toEqual({ kind: "consciousness", actor: "mind:probe" });
@@ -77,15 +90,46 @@ it.each([false, true])("el supervisor rechaza world, anidado=%s", async nested =
     f.close();
   }
 });
-it.each([false, true])("sin supervisor pasa, y una aprobación válida pasa: anidado=%s", async nested => {
-  for (const review of [undefined, { review: (request: ReviewRequest) => result(request, "passed") }]) {
-    const f = fixture(review);
-    try {
-      expect((await act(f.ports, nested)).status).toBe("accepted");
-      expect(f.run).toHaveBeenCalledOnce();
-    } finally {
-      f.close();
-    }
+it.each([false, true])("un acto marcado que el supervisor deja pasar se aplica: anidado=%s", async nested => {
+  const f = fixture({ review: (request: ReviewRequest) => result(request, "passed") });
+  try {
+    expect((await act(f.ports, nested)).status).toBe("accepted");
+    expect(f.run).toHaveBeenCalledOnce();
+  } finally {
+    f.close();
+  }
+});
+it.each([false, true])("un acto que sale de la casa sin regla no espera a nadie: anidado=%s", async nested => {
+  const review = vi.fn<ReviewPort["review"]>(request => result(request, "rejected"));
+  const f = fixture({ review }, false);
+  try {
+    expect((await act(f.ports, nested)).status).toBe("accepted");
+    expect(review).not.toHaveBeenCalled();
+    expect(f.run).toHaveBeenCalledOnce();
+  } finally {
+    f.close();
+  }
+});
+it("sin supervisor, el acto marcado no se hace, lo dice y avisa a quien tiene la herramienta", async () => {
+  const f = fixture();
+  try {
+    expect(await act(f.ports, false)).toMatchObject({ status: "rejected", reason: rulesTexts.waiting });
+    expect(f.run).not.toHaveBeenCalled();
+    const notice = f.rig.facts().findLast(event => event.kind === "tool-entry");
+    expect(notice).toMatchObject({ data: { tool: "probe", text: rulesTexts.waiting, attention: true } });
+  } finally {
+    f.close();
+  }
+});
+it("un veredicto que no llega deja el acto sin hacer y dice por qué", async () => {
+  const f = fixture({ review: request => ({ ...result(request, "failed"), text: "Falta la llave del proveedor." }) });
+  try {
+    const done = await act(f.ports, false);
+    expect(done).toMatchObject({ status: "rejected" });
+    expect("reason" in done && done.reason).toBe(rulesTexts.verdict("failed", "Falta la llave del proveedor."));
+    expect(f.run).not.toHaveBeenCalled();
+  } finally {
+    f.close();
   }
 });
 it.each([false, true])("revocar mientras espera impide la salida, aun si se vuelve a dar: %s", async regrant => {

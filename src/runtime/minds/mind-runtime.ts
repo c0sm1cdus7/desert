@@ -8,8 +8,6 @@ import { targetTool } from "../../house/attendance.ts";
 import { identityView } from "../../house/members.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
-import { actReach } from "../../tools/execute.ts";
-import type { ProposedAct } from "../../tools/minds/mind-answer.ts";
 import { readonlyPorts } from "../../tools/boundaries/readonly-ports.ts";
 import { watchRunning } from "../../tools/execution/running-acts.ts";
 import { turnNotice } from "../../texts/mind-turn.texts.ts";
@@ -33,6 +31,8 @@ import { expandKit } from "../../house/kit-selection.ts";
 import { assignDeclaredCards, publishMindCards } from "./mind-card-catalog.ts";
 import { definitionOf, definitionsNow, liveDefinitions, supervisorActor } from "./mind-definitions.ts";
 import { houseSupervisor } from "./house-supervisor.ts";
+import { supervisorTurnFrame } from "./supervisor-turn-frame.ts";
+import { recoverVerdictTurns, verdictTurns } from "./supervisor-verdict-turn.ts";
 function validateRuntime<X extends Program>(
   house: MindRuntimeHouse<X>,
   switches: MindSwitches,
@@ -102,7 +102,6 @@ class HouseMindRuntime<X extends Program> {
         house.active() &&
         this.view(scope).control.active &&
         this.view(scope).menu.some(item => item.act === act.act && item.target === act.target),
-      reviewReason: (scope, proposal) => this.reviewReason(scope, proposal),
       supervision: { ...(this.supervisor ? { supervisor: this.supervisor.review } : {}), ...options.supervision },
       emit: this.emit,
       execute: runtimeActions(house, options, switches),
@@ -119,13 +118,6 @@ class HouseMindRuntime<X extends Program> {
     const to = state.scenes.get(emission.by)?.data.to ?? {};
     house.execution.bus.emit(effect("scene", { general, to }, emission.by, emission.cause));
   };
-  private reviewReason(scope: MindScope, proposal: ProposedAct): ReturnType<TurnPorts["reviewReason"]> {
-    const item = this.view(scope).menu.find(each => each.act === proposal.act && each.target === proposal.target);
-    if (!item) return undefined;
-    if (item.scope === "open") return "open";
-    if (item.scope === "control" && (item.act === "end" || item.act === "desist")) return item.act;
-    return actReach(this.house.execution, scope.actor, proposal.target, proposal.act) === "world" ? "world" : undefined;
-  }
   private policies = (recover = false) => {
     const { house, options, switches } = this;
     const minds = definitionsNow(options, house.execution.state().house)
@@ -168,22 +160,27 @@ class HouseMindRuntime<X extends Program> {
       assignDeclaredCards(this.house, this.options, minds);
     });
   };
+  /** Every mind thinks through the same turn; the supervisor's turn reads its own frame of the whole house. */
   private async run(ports: TurnPorts, wake: TurnWake) {
-    if (wake.scope.actor === supervisorActor && this.supervisor) {
-      const learned = await this.supervisor.learn(wake, ports);
-      this.options.observeTurn?.(learned);
-      return learned;
-    }
     const outcome = await runMindTurn(ports, wake);
     journeyCutScene(this.house, wake, this.options.language);
     this.options.observeTurn?.(outcome);
     return outcome;
+  }
+  /** Closes what a restart cut, then lets an identity's marked act, at any door, wait for the supervisor's verdict in
+   * a turn of its own (21/11). */
+  private recover(schedulePorts: MindSchedulePorts, model: TurnPorts["model"]) {
+    const { house, options, supervisor } = this;
+    if (supervisor) recoverVerdictTurns(house);
+    recoverMindSchedule({ ...schedulePorts, policies: () => this.policies(true) });
+    house.supervise?.(supervisor && verdictTurns(house, options, model, supervisor.judged));
   }
   start() {
     const { house, options, switches } = this;
     const model = runtimeModel(house, options);
     const frames = runtimeFrame(house, options, switches, model);
     const ports = this.turnPorts(frames.frame, model.model);
+    const supervising = { ...ports, frame: supervisorTurnFrame(house, options, model, scope => this.view(scope)) };
     const schedulePorts: MindSchedulePorts = {
       bus: house.execution.bus,
       history: house.history,
@@ -194,13 +191,13 @@ class HouseMindRuntime<X extends Program> {
       emit: emission => {
         house.execution.bus.emit(emission);
       },
-      run: wake => this.run(ports, wake),
+      run: wake => this.run(wake.scope.actor === supervisorActor ? supervising : ports, wake),
       failed: cause => {
         this.live = false;
         house.failed(new Error(turnNotice.text(options.language, { reason: "internal" }), { cause }));
       },
     };
-    recoverMindSchedule({ ...schedulePorts, policies: () => this.policies(true) });
+    this.recover(schedulePorts, model.model);
     const offs = [watchRunning(house.execution), this.assistantCards].map(listen => house.execution.bus.on(listen));
     const schedule = startMindSchedule(schedulePorts);
     return {
@@ -210,6 +207,7 @@ class HouseMindRuntime<X extends Program> {
       diagnose: frames.diagnose,
       compact: frames.compact,
       close: () => {
+        house.supervise?.(undefined);
         this.live = false;
         schedule.close();
         offs.forEach(off => off());

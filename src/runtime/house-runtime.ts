@@ -3,6 +3,7 @@ import { effect } from "../house/facts.ts";
 import { cancelInheritedWake } from "../house/inherited-wake.ts";
 import { checkCreation, createHouse, identityReader, InvalidCreation } from "../house/members.ts";
 import { startClock, systemTime, type TimeSource } from "../journal/clock.ts";
+import { journeyFrozen } from "../house/minds/journey-state.ts";
 import type { Event } from "../journal/vocabulary.ts";
 import type { HousePorts } from "../surface/bridge/ports/house-ports.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
@@ -19,6 +20,8 @@ import { startState, type HouseOptions } from "../house/state.ts";
 import { startTools } from "../tools/start.ts";
 import type { MindRuntimeOptions, MindSwitches, ModelHouseOptions } from "./minds/mind-runtime-options.ts";
 import type { ModelMinds } from "./minds/mind-runtime.ts";
+import type { ActVerdict } from "../tools/minds/mind-review.ts";
+type Supervision = { verdict?: ActVerdict | undefined };
 
 function houseContracts<X extends Program>(options: HouseOptions<X>, resources: ReturnType<typeof houseResources<X>>) {
   const { state, journal } = resources;
@@ -38,10 +41,7 @@ export function startHouse<X extends Program>(
 ) {
   options = composed(options);
   const { by, registry, creation } = options;
-  const ports = {
-    ...(options.own ? { own: options.own } : {}),
-    ...(options.process ? { process: options.process } : {}),
-  };
+  const { supervision, ports } = engineChoices(options);
   const resources = houseResources(home, options, time);
   const { protection, secrets, bus, stops, report, close, state, clock } = resources;
   try {
@@ -63,7 +63,7 @@ export function startHouse<X extends Program>(
     revokeUndeliveredCodes(bus, () => state().house);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
-    const minds = loadMinds(home, options, time, resources, devices, contracts);
+    const minds = loadMinds(home, options, time, resources, devices, contracts, supervision);
     return runningHouse(home, registry, tools, time, resources, devices, minds);
   } catch (error) {
     if (!(error instanceof InvalidCreation)) report(error, "program", "program", "start");
@@ -71,10 +71,21 @@ export function startHouse<X extends Program>(
     throw error;
   }
 }
+/** The program's own acts and processes, and the supervisor's verdict on a marked act of an identity, which the
+ * minds fill in when they start, after the house. */
+function engineChoices<X extends Program>(options: ModelHouseOptions<X>) {
+  const supervision: Supervision = {};
+  const ports = {
+    ...(options.own ? { own: options.own } : {}),
+    ...(options.process ? { process: options.process } : {}),
+    supervisor: () => supervision.verdict,
+  };
+  return { supervision, ports };
+}
 function startHouseTools<X extends Program>(
   options: HouseOptions<X>,
   resources: ReturnType<typeof houseResources<X>>,
-  ports: Partial<Pick<import("../tools/execute.ts").Execution<X>, "own" | "process">>,
+  ports: Partial<Pick<import("../tools/execute.ts").Execution<X>, "own" | "process" | "supervisor">>,
   devices: DeviceRuntime,
   contracts: import("../tools/contract-port.ts").ContractFactory | undefined,
   time: TimeSource,
@@ -130,6 +141,7 @@ function mindHouse<X extends Program>(
   active: () => boolean,
   devices: DeviceRuntime,
   contracts?: import("../tools/contract-port.ts").ContractFactory,
+  supervision?: Supervision,
 ) {
   const { capabilities, state, bus, secrets, journal, report, close } = resources;
   const history = rememberedHistory<X["fact"]>(journal, bus);
@@ -137,6 +149,7 @@ function mindHouse<X extends Program>(
     home,
     time,
     active,
+    ...(supervision ? { supervise: (verdict: Supervision["verdict"]) => void (supervision.verdict = verdict) } : {}),
     execution: {
       devices: devices.dispatch,
       ...(contracts ? { contracts } : {}),
@@ -150,7 +163,7 @@ function mindHouse<X extends Program>(
       own: () => [],
       process: (id: string, by?: string) => {
         const journey = state().house.journeys.get(id);
-        return !!journey && !journey.closed && (by === undefined || journey.by === by);
+        return !!journey && !journey.closed && !journeyFrozen(journey) && (by === undefined || journey.by === by);
       },
     },
     history,
@@ -166,7 +179,8 @@ function loadMinds<X extends Program>(
   time: TimeSource,
   resources: ReturnType<typeof houseResources<X>>,
   devices: DeviceRuntime,
-  contracts?: import("../tools/contract-port.ts").ContractFactory,
+  contracts: import("../tools/contract-port.ts").ContractFactory | undefined,
+  supervision: Supervision,
 ) {
   const switches = options.mentes;
   const config = options.modelMinds;
@@ -182,7 +196,7 @@ function loadMinds<X extends Program>(
   const ready = import("./minds/mind-runtime.ts")
     .then(async ({ startModelMinds }) => {
       if (!houseActive()) return undefined;
-      const house = mindHouse(home, options, time, resources, () => active, devices, contracts);
+      const house = mindHouse(home, options, time, resources, () => active, devices, contracts, supervision);
       const { prepareProgramMinds } = await import("./minds/program-mind-prepare.ts");
       const { fundModelMinds } = await import("./minds/model-spending-account.ts");
       if (!houseActive()) return undefined;

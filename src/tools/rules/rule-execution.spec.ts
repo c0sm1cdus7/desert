@@ -88,13 +88,14 @@ it.each(["ana", "beto", "mind:probe"])("frena a %s directamente y por una llamad
     );
   expect(f.run).not.toHaveBeenCalled();
 });
-it("relee la regla cambiada durante la espera aunque el supervisor apruebe", async () => {
+it("relee la regla cambiada mientras el acto espera el veredicto, aunque el supervisor lo deje pasar", async () => {
   const f = fixture();
-  expect((await f.save({ ...rule, condition: { ...rule.condition, value: 20 } })).status).toBe("accepted");
+  expect((await f.save({ ...rule, effect: "require-supervisor" })).status).toBe("accepted");
   let finish: (result: ReviewResult) => void = () => {};
   let request: ReviewRequest | undefined;
   const ports = {
     ...f.ports,
+    judge: true,
     review: {
       review: (value: ReviewRequest) => {
         request = value;

@@ -7,6 +7,7 @@ import { requireMind } from "../../fields/mind-errors.ts";
 import type { HouseEvent } from "../facts.ts";
 import type { DelegatedKit } from "../assistants/assistant-facts.ts";
 import { journeyFacts } from "./journey-facts.ts";
+import { ids } from "../ids.ts";
 export type JourneyPlanStep = Readonly<{ id: string; text: string; note?: string }>;
 export type JourneyState = Readonly<{
   id: string;
@@ -20,6 +21,8 @@ export type JourneyState = Readonly<{
   waiting?: Readonly<{ what: string; until: number }>;
   /** What the consciousness asked this journey to attend to when it last resumed it. */
   resumed?: string;
+  /** The supervisor's last stop and its reason, `frozen` until the consciousness resumes the journey. */
+  interrupted?: Readonly<{ reason: string; frozen: boolean }>;
   closed?: HouseEvent<"journey-closed">;
 }>;
 export type Journeys = ReadonlyMap<string, JourneyState>;
@@ -31,6 +34,7 @@ export function journeyStep(state: Journeys, event: HouseEvent): Journeys {
     event.kind !== "journey-step-done" &&
     event.kind !== "journey-waiting" &&
     event.kind !== "journey-resumed" &&
+    event.kind !== "journey-interrupted" &&
     event.kind !== "journey-closed"
   )
     return state;
@@ -55,12 +59,18 @@ export function journeyStep(state: Journeys, event: HouseEvent): Journeys {
     };
     return new Map(state).set(event.process, next);
   }
+  if (event.kind === "journey-interrupted") {
+    // Only the supervisor stops a journey, which is not its own; a stopped one is not stopped twice.
+    requireMind(event.by === ids.supervisor && previous && !previous.closed, "journey.active");
+    requireMind(!journeyFrozen(previous), "journey.interrupted");
+    return new Map(state).set(event.process, { ...previous, interrupted: { reason: event.data.reason, frozen: true } });
+  }
   requireMind(previous && previous.by === event.by && !previous.closed, "journey.active");
   return new Map(state).set(event.process, advanceJourney(previous, event));
 }
 function advanceJourney(
   previous: JourneyState,
-  event: Exclude<JourneyEvent, HouseEvent<"journey-opened">>,
+  event: Exclude<JourneyEvent, HouseEvent<"journey-opened" | "journey-interrupted">>,
 ): JourneyState {
   if (event.kind === "journey-plan-written") {
     requireMind(!previous.planned, "journey.plan");
@@ -76,9 +86,19 @@ function advanceJourney(
     };
   }
   if (event.kind === "journey-waiting") return { ...previous, waiting: event.data };
-  if (event.kind === "journey-resumed") return { ...previous, resumed: event.data.note };
+  if (event.kind === "journey-resumed") {
+    const { interrupted } = previous;
+    // Resuming clears the stop; the supervisor's reason stays for the journey to read.
+    return {
+      ...previous,
+      resumed: event.data.note,
+      ...(interrupted ? { interrupted: { ...interrupted, frozen: false } } : {}),
+    };
+  }
   return { ...previous, closed: event };
 }
+/** A journey the supervisor stopped: it runs no turn and no act, and nothing wakes it, until it is resumed. */
+export const journeyFrozen = (journey: JourneyState | undefined): boolean => journey?.interrupted?.frozen === true;
 /** The engine, including nested acts, checks this scope against the current fold. */
 export function journeyAllows(
   state: Journeys,
@@ -93,6 +113,7 @@ export function journeyAllows(
   return (
     !!journey &&
     !journey.closed &&
+    !journeyFrozen(journey) &&
     journey.by === by &&
     selects(
       migrateKit(journey.selections ?? explicitKit(journey.kit), migration),

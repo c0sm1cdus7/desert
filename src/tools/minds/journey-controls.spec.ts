@@ -1,10 +1,9 @@
 import { explicitKit, programKit } from "../../house/kit-selection.ts";
-import { expect, it, vi } from "vitest";
+import { expect, it } from "vitest";
 import { type HouseEmission, type HouseEvent } from "../../house/facts.ts";
 import { journeyStep, type Journeys } from "../../house/minds/journey-state.ts";
 import { clockStep, type Deadlines } from "../../journal/clock.ts";
 import { turnLimits, type TurnContext } from "./mind-contract.ts";
-import type { ReviewPort } from "./mind-review.ts";
 import {
   openJourney,
   endJourney,
@@ -12,6 +11,9 @@ import {
   writeJourneyPlan,
   completeJourneyStep,
   waitJourney,
+  resumeJourney,
+  interruptJourney,
+  JourneyStopRefused,
   type JourneyControlContext,
   type JourneyControlState,
 } from "./journey-controls.ts";
@@ -39,16 +41,7 @@ function rig() {
     limits: turnLimits,
     usage: { calls: 0, corrections: 0, consultations: 0 },
   };
-  const review = {
-    review: vi.fn<ReviewPort["review"]>(request => ({
-      proposal: request.id,
-      through: request.through,
-      rulesVersion: "r1",
-      outcome: "passed",
-      text: "Admitido",
-    })),
-  };
-  const context: JourneyControlContext = { turn, cause: ["cause"], state: () => state, review };
+  const context: JourneyControlContext = { turn, cause: ["cause"], state: () => state };
   const apply = (facts: readonly HouseEmission[]) => {
     for (const fact of facts) {
       const event = { ...fact, id: `e${events.length + 1}`, seq: events.length + 1, at: state.now };
@@ -58,22 +51,22 @@ function rig() {
     }
     Object.assign(state, { journeys, through: events.length });
   };
-  const opened = async () => {
-    const result = await openJourney(context, { goal: "Anotar el mate", kit });
-    apply(result.facts);
-    const process = result.facts[0]?.process;
+  const opened = () => {
+    const facts = openJourney(context, { goal: "Anotar el mate", kit });
+    apply(facts);
+    const process = facts[0]?.process;
     if (!process) throw new Error("Falta el proceso");
     return {
       ...context,
       turn: { ...turn, scope: { kind: "journey", actor, process, kit } },
     } satisfies JourneyControlContext;
   };
-  return { state, context, review, apply, opened, events, clock: () => clock };
+  return { state, context, apply, opened, events, clock: () => clock };
 }
-it("abre con un ID generado, revisión y autor fijo; no emite hasta que el turno aplica", async () => {
+it("abre con un ID generado y autor fijo, sin esperar al supervisor; no emite hasta que el turno aplica", () => {
   const r = rig();
-  const result = await openJourney(r.context, { goal: "Anotar el mate", kit });
-  expect(result.review.outcome).toBe("passed");
+  const facts = openJourney(r.context, { goal: "Anotar el mate", kit });
+  const result = { facts };
   expect(r.events).toEqual([]);
   expect(result.facts).toHaveLength(1);
   expect(result.facts[0]).toMatchObject({
@@ -84,15 +77,6 @@ it("abre con un ID generado, revisión y autor fijo; no emite hasta que el turno
   });
   expect(result.facts[0]?.process).not.toBe(actor);
   expect(result.facts[0]?.process).toMatch(/^journey:/);
-  expect(r.review.review).toHaveBeenCalledOnce();
-  expect(r.review.review).toHaveBeenCalledWith(
-    expect.objectContaining({
-      reason: "open",
-      scope: r.context.turn.scope,
-      turn: r.context.turn,
-      acts: [{ act: "open", target: actor, input: { goal: "Anotar el mate", kit } }],
-    }),
-  );
   r.apply(result.facts);
   expect(r.state.journeys.size).toBe(1);
 });
@@ -107,24 +91,24 @@ it.each([
   [{ goal: "Mate", kit: [...kit, ...kit] }, "kit"],
   [{ goal: "Mate", kit: [{ tool: "notes", acts: ["write", "write"] }] }, "kit"],
   [{ goal: "Mate", kit: [{ tool: "notes", acts: ["delete"] }] }, "kit"],
-])("rechaza apertura inválida antes de revisar %#", async (input, field) => {
+])("rechaza apertura inválida %#", (input, field) => {
   const r = rig();
-  await expect(openJourney(r.context, input)).rejects.toThrow(field);
-  expect(r.review.review).not.toHaveBeenCalled();
+  expect(() => openJourney(r.context, input)).toThrow(field);
+  expect(r.events).toEqual([]);
 });
-it("rechaza identidades, otra apertura desde un journey y mente inactiva", async () => {
+it("rechaza identidades, otra apertura desde un journey y mente inactiva", () => {
   const r = rig();
-  const context = await r.opened();
-  await expect(openJourney(context, { goal: "Otro", kit })).rejects.toThrow("scope");
+  const context = r.opened();
+  expect(() => openJourney(context, { goal: "Otro", kit })).toThrow("scope");
   const invalid = { ...r.context, turn: { ...r.context.turn } };
   Object.assign(invalid.turn, { scope: { kind: "consciousness", actor: "beto" } });
-  await expect(openJourney(invalid, { goal: "Otro", kit })).rejects.toThrow("actor");
+  expect(() => openJourney(invalid, { goal: "Otro", kit })).toThrow("actor");
   Object.assign(r.state, { active: false });
-  await expect(openJourney(r.context, { goal: "Otro", kit })).rejects.toThrow("active");
+  expect(() => openJourney(r.context, { goal: "Otro", kit })).toThrow("active");
 });
-it("escribe un plan una vez y completa pasos por ID en cualquier orden", async () => {
+it("escribe un plan una vez y completa pasos por ID en cualquier orden", () => {
   const r = rig();
-  const c = await r.opened();
+  const c = r.opened();
   const plan = {
     steps: [
       { id: "one", text: "Preparar" },
@@ -139,11 +123,10 @@ it("escribe un plan una vez y completa pasos por ID en cualquier orden", async (
   r.apply(completeJourneyStep(c, { step: "one", note: "Preparado" }));
   expect([...r.state.journeys.values()][0]?.steps.map(step => step.note)).toEqual(["Preparado", "Anotado"]);
   expect(r.events.slice(1).every(event => event.cause.includes("e1") && event.by === actor)).toBe(true);
-  expect(r.review.review).toHaveBeenCalledOnce();
 });
-it("rechaza planes vacíos, IDs repetidos y argumentos faltantes sin efectos", async () => {
+it("rechaza planes vacíos, IDs repetidos y argumentos faltantes sin efectos", () => {
   const r = rig();
-  const c = await r.opened();
+  const c = r.opened();
   expect(() => writeJourneyPlan(c, { steps: [] })).toThrow("steps");
   expect(() =>
     writeJourneyPlan(c, {
@@ -157,18 +140,18 @@ it("rechaza planes vacíos, IDs repetidos y argumentos faltantes sin efectos", a
   expect(() => waitJourney(c, { what: "Respuesta" })).toThrow("until");
   expect(r.events).toHaveLength(1);
 });
-it("persiste espera y reloj, los reconstruye, reemplaza la espera y cancela al cerrar", async () => {
+it("persiste espera y reloj, los reconstruye, reemplaza la espera y cancela al cerrar", () => {
   const r = rig();
-  const c = await r.opened();
+  const c = r.opened();
   r.apply(waitJourney(c, { what: "Respuesta", until: 2000 }));
   expect(r.clock().get(c.turn.scope.process)?.at).toBe(2000);
   r.apply(waitJourney(c, { what: "Otra respuesta", until: 3000 }));
   expect(r.clock().size).toBe(1);
   expect(r.events.reduce(journeyStep, new Map())).toEqual(r.state.journeys);
   expect(r.events.reduce(clockStep, new Map())).toEqual(r.clock());
-  const result = await endJourney(c, { summary: "Quedó anotado", references: ["note:1"] });
-  expect(result.facts.map(fact => fact.kind)).toEqual(["journey-closed", "wake-at"]);
-  r.apply(result.facts);
+  const closing = endJourney(c, { summary: "Quedó anotado", references: ["note:1"] });
+  expect(closing.map(fact => fact.kind)).toEqual(["journey-closed", "wake-at"]);
+  r.apply(closing);
   expect(r.clock().size).toBe(0);
   expect([...r.state.journeys.values()][0]?.closed?.data).toEqual({
     outcome: "done",
@@ -176,25 +159,23 @@ it("persiste espera y reloj, los reconstruye, reemplaza la espera y cancela al c
     references: ["note:1"],
   });
   expect(r.events.reduce(journeyStep, new Map())).toEqual(r.state.journeys);
-  expect(r.review.review).toHaveBeenCalledTimes(2);
-  await expect(endJourney(c, { summary: "Duplicado", references: [] })).rejects.toThrow("active");
+  expect(() => endJourney(c, { summary: "Duplicado", references: [] })).toThrow("active");
   expect(() => waitJourney(c, { what: "Tarde", until: 4000 })).toThrow("active");
-  expect(r.review.review).toHaveBeenCalledTimes(2);
 });
 it.each([0, 999, 1000, -1, 1.5, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1])(
   "rechaza espera sin futuro o sin instante seguro: %s",
-  async until => {
+  until => {
     const r = rig();
-    const c = await r.opened();
+    const c = r.opened();
     expect(() => waitJourney(c, { what: "Respuesta", until })).toThrow("until");
   },
 );
-it("desiste con motivo y referencias; el cierre es la única devolución a consciencia", async () => {
+it("desiste con motivo y referencias; el cierre es la única devolución a consciencia", () => {
   const r = rig();
-  const c = await r.opened();
-  const result = await desistJourney(c, { reason: "Falta el dato", references: [] });
-  expect(result.facts).toHaveLength(1);
-  expect(result.facts[0]).toMatchObject({
+  const c = r.opened();
+  const facts = desistJourney(c, { reason: "Falta el dato", references: [] });
+  expect(facts).toHaveLength(1);
+  expect(facts[0]).toMatchObject({
     kind: "journey-closed",
     data: {
       outcome: "desisted",
@@ -202,16 +183,16 @@ it("desiste con motivo y referencias; el cierre es la única devolución a consc
       references: [],
     },
   });
-  r.apply(result.facts);
-  await expect(desistJourney(c, { reason: "Otra vez", references: [] })).rejects.toThrow("active");
+  r.apply(facts);
+  expect(() => desistJourney(c, { reason: "Otra vez", references: [] })).toThrow("active");
 });
-it("aísla dos journeys de la misma mente y rechaza operar uno ajeno", async () => {
+it("aísla dos journeys de la misma mente y rechaza operar uno ajeno", () => {
   const r = rig();
-  const first = await r.opened();
-  const second = await r.opened();
+  const first = r.opened();
+  const second = r.opened();
   expect(first.turn.scope.process).not.toBe(second.turn.scope.process);
   r.apply(writeJourneyPlan(first, { steps: [{ id: "s", text: "Anotar" }] }));
-  r.apply((await endJourney(first, { summary: "Listo", references: [] })).facts);
+  r.apply(endJourney(first, { summary: "Listo", references: [] }));
   expect(r.state.journeys.get(second.turn.scope.process)?.closed).toBeUndefined();
   const other: JourneyControlContext = {
     ...second,
@@ -222,54 +203,72 @@ it("aísla dos journeys de la misma mente y rechaza operar uno ajeno", async () 
 it.each([
   { control: "end", close: endJourney, input: { summary: "Listo", references: [] } },
   { control: "desist", close: desistJourney, input: { reason: "No sigo", references: [] } },
-])("impide $control con actos propios abiertos", async ({ close, input }) => {
+])("impide $control con actos propios abiertos", ({ close, input }) => {
   const r = rig();
-  const c = await r.opened();
+  const c = r.opened();
   Object.assign(r.state, { pending: [{ by: actor, process: c.turn.scope.process }] });
-  await expect(close(c, input)).rejects.toThrow("pending");
-  expect(r.review.review).toHaveBeenCalledOnce();
+  expect(() => close(c, input)).toThrow("pending");
 });
-it("no confunde actos de otro journey con los propios al cerrar", async () => {
+it("no confunde actos de otro journey con los propios al cerrar", () => {
   const r = rig();
-  const c = await r.opened();
+  const c = r.opened();
   Object.assign(r.state, { pending: [{ by: actor, process: "another" }] });
-  expect((await endJourney(c, { summary: "Listo", references: [] })).facts).toHaveLength(1);
+  expect(endJourney(c, { summary: "Listo", references: [] })).toHaveLength(1);
 });
-it("funciona también para la mente de una herramienta", async () => {
+it("funciona también para la mente de una herramienta", () => {
   const r = rig();
   const turn: TurnContext = { ...r.context.turn, scope: { kind: "consciousness", actor: "mind:notes" } };
-  const result = await openJourney({ ...r.context, turn }, { goal: "Anotar", kit });
-  expect(result.facts[0]?.by).toBe("mind:notes");
+  const facts = openJourney({ ...r.context, turn }, { goal: "Anotar", kit });
+  expect(facts[0]?.by).toBe("mind:notes");
 });
-it.each(["turn", "cause", "state", "review"])("nombra el argumento de contexto ausente: %s", async field => {
+it.each(["turn", "cause", "state"])("nombra el argumento de contexto ausente: %s", field => {
   const r = rig();
   const context = Object.assign({ ...r.context }, { [field]: undefined });
-  await expect(openJourney(context, { goal: "Anotar", kit })).rejects.toThrow(field);
-  expect(r.review.review).not.toHaveBeenCalled();
+  expect(() => openJourney(context, { goal: "Anotar", kit })).toThrow(field);
 });
 it.each(["journeys", "kit", "active", "pending", "through", "now", "rulesVersion"])(
   "nombra el campo de estado ausente: %s",
-  async field => {
+  field => {
     const r = rig();
     Object.assign(r.state, { [field]: undefined });
-    await expect(openJourney(r.context, { goal: "Anotar", kit })).rejects.toThrow(field);
-    expect(r.review.review).not.toHaveBeenCalled();
+    expect(() => openJourney(r.context, { goal: "Anotar", kit })).toThrow(field);
   },
 );
-it("también rechaza el cierre desde consciencia y el proceso sin journey", async () => {
+it("también rechaza el cierre desde consciencia y el proceso sin journey", () => {
   const r = rig();
-  await expect(endJourney(r.context, { summary: "Listo", references: [] })).rejects.toThrow("scope");
-  const c = await r.opened();
+  expect(() => endJourney(r.context, { summary: "Listo", references: [] })).toThrow("scope");
+  const c = r.opened();
   const absent = { ...c, turn: { ...c.turn, scope: { ...c.turn.scope, process: "absent" } } };
   expect(() => writeJourneyPlan(absent, { steps: [{ id: "s", text: "Anotar" }] })).toThrow("active");
-  await expect(desistJourney(absent, { reason: "No existe", references: [] })).rejects.toThrow("active");
+  expect(() => desistJourney(absent, { reason: "No existe", references: [] })).toThrow("active");
 });
 
-it("opens a folder journey in V2 without freezing its action list", async () => {
+it("opens a folder journey in V2 without freezing its action list", () => {
   const r = rig();
   const kit = programKit(["notes"]);
-  const result = await openJourney(r.context, { version: 2, goal: "Anotar", kit });
-  expect(result.facts[0]).toMatchObject({ kind: "journey-opened", data: { version: 2, goal: "Anotar", kit } });
-  r.apply(result.facts);
+  const facts = openJourney(r.context, { version: 2, goal: "Anotar", kit });
+  expect(facts[0]).toMatchObject({ kind: "journey-opened", data: { version: 2, goal: "Anotar", kit } });
+  r.apply(facts);
   expect([...r.state.journeys.values()][0]?.selections).toEqual(kit);
+});
+it("the supervisor stops an open journey of any mind; a second stop is refused with words until it is resumed", () => {
+  const r = rig();
+  const c = r.opened();
+  const process = c.turn.scope.process;
+  const supervisor: JourneyControlContext = {
+    ...r.context,
+    turn: { ...r.context.turn, scope: { kind: "consciousness", actor: "mind:supervisor" } },
+  };
+  expect(() => interruptJourney(r.context, { reason: "Pará" }, process)).toThrow("scope.actor");
+  const stop = interruptJourney(supervisor, { reason: "Falta el permiso de Franco" }, process);
+  expect(stop[0]).toMatchObject({ kind: "journey-interrupted", by: "mind:supervisor", process });
+  r.apply(stop);
+  expect(r.state.journeys.get(process)?.interrupted).toEqual({ reason: "Falta el permiso de Franco", frozen: true });
+  expect(() => interruptJourney(supervisor, { reason: "Otra vez" }, process)).toThrow(JourneyStopRefused);
+  r.apply(resumeJourney(r.context, { note: "Pedile el permiso a Franco" }, process));
+  expect(r.state.journeys.get(process)?.interrupted).toEqual({ reason: "Falta el permiso de Franco", frozen: false });
+  r.apply(interruptJourney(supervisor, { reason: "Todavía no" }, process));
+  r.apply(desistJourney(r.context, { reason: "Sin permiso", references: [] }, process));
+  expect(() => interruptJourney(supervisor, { reason: "Ya cerró" }, process)).toThrow("active");
+  expect(r.events.reduce(journeyStep, new Map())).toEqual(r.state.journeys);
 });

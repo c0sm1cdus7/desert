@@ -8,7 +8,7 @@ import { continuation, validateAnswer, type AnswerFault, type MindAnswer } from 
 import { turnLimits, type TurnContext } from "../../tools/minds/mind-contract.ts";
 import type { ReviewPort } from "../../tools/minds/mind-review.ts";
 import { correctionNotice, invalidNotice, turnNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
-import { createMindActReview, reviewMindActs } from "./mind-act-review.ts";
+import { createMindActReview } from "./mind-act-review.ts";
 import { TurnConversation } from "./turn-conversation.ts";
 import { applyActs } from "./turn-acts.ts";
 import { consultationText, resultsText, type ActReport } from "./turn-results.ts";
@@ -159,13 +159,8 @@ class MindTurnRun {
       const stopped = await this.consult(answer);
       return stopped ? this.finish(stopped) : undefined;
     }
+    // Nothing waits for the supervisor here: an act a rule marks waits for its verdict when it is applied (21/11).
     const { rulesVersion: version, menu } = this.ports.read(this.turn.scope);
-    const reviewed = await reviewMindActs(this.ports, this.turn, this.review, answer.acts);
-    const stopped = this.caller.stopped();
-    if (stopped) return this.finish(stopped);
-    if (reviewed?.outcome === "failed") return this.finish("review-failed");
-    if (reviewed?.outcome === "rejected") return this.correct(reviewed.text) ? undefined : this.finish("rejected");
-    if (version !== this.ports.read(this.turn.scope).rulesVersion) return this.finish("review-stale");
     if (!this.inspect(answer).ok) return this.finish("permission");
     const run = { ports: this.ports, turn: this.turn, review: this.review };
     const done = await applyActs(run, answer, version, this.applied);
@@ -252,7 +247,7 @@ export async function runMindTurn(ports: TurnPorts, wake: TurnWake): Promise<Tur
   requireMind(wake, "wake");
   requireMind(wake.scope, "scope");
   requireMind(parseMindActor(wake.scope.actor), "scope.actor");
-  for (const name of ["frame", "model", "read", "allowed", "reviewReason", "emit", "execute", "isOpen"] as const)
+  for (const name of ["frame", "model", "read", "allowed", "emit", "execute", "isOpen"] as const)
     requireMind(typeof ports[name] === "function", name);
   requireMind(ports.supervision, "supervision");
   requireMind(["consciousness", "journey"].includes(wake.scope.kind), "scope.kind");

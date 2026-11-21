@@ -101,10 +101,11 @@ describe("the tree of src/", () => {
   // woke, in words); +32 in mind-turn.texts.ts (the stop list the closing fact reads, the conversation that outgrew the
   // request, the continuation correction and the results a journey hears between calls); +2 for the frame saying a
   // journey goes on.
-  it("keeps every file within 300 lines and the texts within 1293", () => {
+  // 21/11 Supervisor nuevo: +50 exact (journey 17, supervisor 26, rules 6, mind-turn 1): stops, verdicts, its turns.
+  it("keeps every file within 300 lines and the texts within 1343", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1293);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1343);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

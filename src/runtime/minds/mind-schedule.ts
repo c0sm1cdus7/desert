@@ -51,7 +51,7 @@ export type MindSchedulePorts = Readonly<{
   /** The schedule broke; the cause travels so the host can say what broke. */
   failed: (cause: unknown) => void;
 }>;
-function interruptedCalls(opened: HouseEvent<"mind-turn-opened">, history: readonly Event[]): number {
+export function interruptedCalls(opened: HouseEvent<"mind-turn-opened">, history: readonly Event[]): number {
   const reserved = new Set(
     history.flatMap(e =>
       e.layer === "house" && e.kind === "model-call-reserved" && e.data.turn === opened.data.turn ? [e.data.call] : [],

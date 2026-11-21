@@ -16,7 +16,7 @@ const context = (): TurnContext => ({
 });
 const request = (turn: TurnContext): ReviewRequest => ({
   id: "p1",
-  reason: "world",
+  reason: "rule",
   scope: turn.scope,
   through: 1,
   acts: [],

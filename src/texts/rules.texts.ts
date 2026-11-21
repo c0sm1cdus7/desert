@@ -1,4 +1,4 @@
-// Palabras compartidas de Reglas, sus condiciones, versiones y esperas de juicio.
+// Palabras compartidas de Reglas, sus condiciones, versiones y actos que requieren supervisión.
 export const rulesTexts = {
   reserved: "Reglas es del core y no se otorga",
   example: "Ejemplo",
@@ -21,7 +21,12 @@ export const rulesTexts = {
   consulted: (reading: string) => `Consultadas · Reglas\n${reading}`,
   simulationResult: (reading: string) => `Simulada · Regla\n${reading}`,
   blocked: "El acto quedó frenado por una regla mecánica",
-  waiting: "Sin supervisor: el acto espera juicio. No se repite solo",
+  waiting: "Requiere supervisión y la casa no tiene supervisor: el acto no se hizo y no se repite solo",
+  /** What an act that requires supervision gets when the supervisor rejects it, or gives no verdict. */
+  verdict: (outcome: "rejected" | "failed", detail: string) =>
+    outcome === "rejected"
+      ? `Rechazado por el supervisor: ${detail}`
+      : `Requiere supervisión y el supervisor no dio su veredicto (${detail}): el acto no se hizo y no se repite solo`,
   name: "Reglas",
   empty: "Todavía no hay reglas",
   history: "Versiones",
@@ -81,7 +86,8 @@ export const ruleFormTexts = {
     program: { title: "Mente de programa", key: "p" },
     assistant: { title: "Asistente", key: "a" },
     block: { title: "Frena", key: "f" },
-    "require-supervisor": { title: "Requiere supervisor", key: "s" },
+    "require-supervisor": { title: "Requiere supervisión", key: "s" },
+    always: { title: "Siempre", key: "s" },
     admin: { title: "Administrador", key: "d" },
     actorKind: { title: "Tipo de actor", key: "t" },
     isAdmin: { title: "Es administrador", key: "e" },

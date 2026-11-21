@@ -1,4 +1,4 @@
-// A journey turn of several calls keeps the supervisor's moments: it reviews what leaves the house, then the end.
+// A journey turn of several calls waits for nobody: what leaves the house and the end go on without the supervisor.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import {
   end,
@@ -26,7 +26,7 @@ afterEach(() => {
   fixtures.splice(0).forEach(f => f.cleanup());
   vi.unstubAllGlobals();
 });
-it("a world act without a continuation is reviewed, applied and told back; the end after it is reviewed", async () => {
+it("an act that leaves the house is applied and told back without a verdict, and so is the end", async () => {
   const f = supervisedFixture();
   fixtures.push(f);
   const house = await f.open();
@@ -41,11 +41,11 @@ it("a world act without a continuation is reviewed, applied and told back; the e
     );
   });
   await think(house, "Mandá el pedido");
-  expect(moments(framesOf(f))).toEqual(["open", "world", "end", "learn"]);
+  expect(moments(framesOf(f))).toEqual(["turn"]);
   expect(sent(house)).toBe(1);
   const journey = [...house.tools.state().house.journeys.values()][0];
   expect(journey?.closed?.data.outcome).toBe("done");
   const turn = [...house.tools.state().house.minds.turns.values()].find(each => each.opened.process === journey?.id);
-  expect(turn?.closed?.data).toMatchObject({ outcome: "done", calls: 4 });
+  expect(turn?.closed?.data).toMatchObject({ outcome: "done", calls: 2 });
   expect(said.filter(text => text.includes("1. outbox/send → notes/outbox: aceptado."))).toHaveLength(1);
 });

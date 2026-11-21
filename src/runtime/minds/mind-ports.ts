@@ -6,7 +6,7 @@ import { requireMind } from "../../fields/mind-errors.ts";
 import type { HouseEmission } from "../../house/facts.ts";
 import type { MindScope, TurnContext } from "../../tools/minds/mind-contract.ts";
 import type { MindMenu, ProposedAct } from "../../tools/minds/mind-answer.ts";
-import type { ReviewPort, ReviewReason, ReviewRequest, ReviewResult } from "../../tools/minds/mind-review.ts";
+import type { ReviewPort, ReviewRequest, ReviewResult } from "../../tools/minds/mind-review.ts";
 import { turnNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
 export type MindFrame = Readonly<{ layers: readonly [string, string, string, string]; changing: string }>;
 export type FramePort = (scope: MindScope, turn: TurnContext) => MindFrame | Readonly<{ tooLarge: true }>;
@@ -76,7 +76,6 @@ export type TurnPorts = Readonly<{
   read: (scope: MindScope) => TurnSnapshot;
   isOpen: (id: string) => boolean;
   allowed: (scope: MindScope, proposal: ProposedAct) => boolean;
-  reviewReason: (scope: MindScope, proposal: ProposedAct) => Exclude<ReviewReason, "consultation"> | undefined;
   supervision: SupervisionPorts;
   emit: (emission: HouseEmission) => void;
   execute: (

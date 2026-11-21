@@ -28,7 +28,7 @@ export function predicateProblem(predicate: Predicate, input: TSchema): string |
     return predicate.conditions.map(child => predicateProblem(child, input)).find(Boolean);
   if (predicate.operator === "not") return predicateProblem(predicate.condition, input);
   if (predicate.operator === "schedule") return predicate.from === predicate.until ? words.invalid : undefined;
-  if (predicate.operator === "actor") return undefined;
+  if (predicate.operator === "actor" || predicate.operator === "always") return undefined;
   const schema = fieldSchema(predicate.field, input);
   if (!schema) return words.field;
   if (predicate.operator === "equal") return Value.Check(schema, literal(predicate.value)) ? undefined : words.type;
@@ -40,6 +40,7 @@ export function evaluatePredicate(predicate: Predicate, context: RuleContext): b
   if (predicate.operator === "all") return predicate.conditions.every(child => evaluatePredicate(child, context));
   if (predicate.operator === "any") return predicate.conditions.some(child => evaluatePredicate(child, context));
   if (predicate.operator === "not") return !evaluatePredicate(predicate.condition, context);
+  if (predicate.operator === "always") return true;
   if (predicate.operator === "actor")
     return (
       actorKind(context.actor) === predicate.kind && (predicate.id === undefined || predicate.id === context.actor)

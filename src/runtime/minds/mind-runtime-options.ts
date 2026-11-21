@@ -8,6 +8,7 @@ import type { Event } from "../../journal/vocabulary.ts";
 import type { ProgramMessage } from "../../tools/installable/program.ts";
 import type { TimeSource } from "../../journal/clock.ts";
 import type { Execution } from "../../tools/execution-contract.ts";
+import type { ActVerdict } from "../../tools/minds/mind-review.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
 import type { FrameSource } from "./mind-frame.ts";
@@ -15,6 +16,7 @@ import type { SupervisionPorts, TurnOutcome } from "./mind-ports.ts";
 import type { Composition } from "../../tools/promises-contract.ts";
 import type { ProgramMindCase } from "../../tools/minds/program-mind-cases.ts";
 import type { Bus } from "../../journal/bus.ts";
+import { ids } from "../../house/ids.ts";
 import type { ModelAccount, ModelCalls } from "../../house/minds/model-call-state.ts";
 import type { SpendingAccount } from "./model-spending-account.ts";
 export type MindBilling = Readonly<{
@@ -69,9 +71,13 @@ export type MindRuntimeHouse<X extends Program> = Readonly<{
   time: TimeSource;
   active: () => boolean;
   failed: (error: Error) => void;
+  /** Where the running house reads the supervisor's verdict on an identity's marked act; absent for the bank. */
+  supervise?: (verdict: ActVerdict | undefined) => void;
 }>;
 /** A house supervises when it has a supervisor's card or the host brings its own supervisor. */
 export const supervised = (options: Pick<MindRuntimeOptions, "supervisorCard" | "supervision">): boolean =>
   options.supervisorCard !== undefined || options.supervision?.supervisor !== undefined;
+/** The supervisor is no switch: it thinks while the house has its card, and only then does it get a turn. */
 export const enabledMind = (switches: MindSwitches, actor: MindActor): boolean =>
-  actor.startsWith("assistant:") ? switches.asistentes : switches.programas.includes(actor.slice(5));
+  actor === ids.supervisor ||
+  (actor.startsWith("assistant:") ? switches.asistentes : switches.programas.includes(actor.slice(5)));

@@ -1,4 +1,4 @@
-// Encauza propuestas por los controles centrales de journeys o por el motor con autor y revisión del turno.
+// Routes proposals through the journey controls or the engine, with the turn as author and its verdict port.
 import { ruleControl } from "./rule-controls.ts";
 import { applyProgramCommunication } from "./program-mind-communication.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
@@ -12,6 +12,7 @@ import {
   completeJourneyStep,
   waitJourney,
   resumeJourney,
+  interruptJourney,
   type JourneyControlContext,
   type JourneyControlState,
 } from "../../tools/minds/journey-controls.ts";
@@ -26,72 +27,35 @@ import {
 import { runtimeView } from "./mind-runtime-view.ts";
 import { definitionOf } from "./mind-definitions.ts";
 type Context = Parameters<TurnPorts["execute"]>[1];
-function controlContext<X extends Program>(
-  house: MindRuntimeHouse<X>,
-  context: Context,
-  cause: readonly string[],
-  read: () => JourneyControlState,
-): JourneyControlContext {
-  const { turn, review } = context;
-  let reviewedAt: number | undefined;
-  let recordedThrough: number | undefined;
-  return {
-    turn,
-    cause,
-    state: () => {
-      const state = read();
-      return reviewedAt !== undefined && state.through === recordedThrough ? { ...state, through: reviewedAt } : state;
-    },
-    review: {
-      review: async request => {
-        const result = await review.review(request);
-        const arrivals = house.history().filter(event => event.seq > request.through);
-        if (
-          arrivals.every(
-            event =>
-              event.layer === "house" &&
-              event.kind === "mind-review-recorded" &&
-              event.by === turn.scope.actor &&
-              event.data.turn === turn.id &&
-              event.data.proposal === request.id,
-          )
-        ) {
-          reviewedAt = request.through;
-          recordedThrough = read().through;
-        }
-        return result;
-      },
-    },
-  };
-}
-async function controlFacts(context: JourneyControlContext, { act, input, target }: ProposedAct) {
-  if (act === "open") return (await openJourney(context, input)).facts;
-  if (act === "end") return (await endJourney(context, input)).facts;
-  if (act === "desist") return (await desistJourney(context, input, target)).facts;
+function controlFacts(context: JourneyControlContext, { act, input, target }: ProposedAct) {
+  if (act === "open") return openJourney(context, input);
+  if (act === "end") return endJourney(context, input);
+  if (act === "desist") return desistJourney(context, input, target);
   if (act === "resume") return resumeJourney(context, input, target);
+  if (act === "interrupt") return interruptJourney(context, input, target);
   if (act === "plan") return writeJourneyPlan(context, input);
   if (act === "done") return completeJourneyStep(context, input);
   if (act === "wait") return waitJourney(context, input);
   return [];
 }
-/** Opening, ending and desisting always pass by the supervisor, so with one they never wait on a rule's judgment. */
+/** Nothing waits for the supervisor but a control a rule marks: that one waits for its verdict (21/11). */
 async function applyControl<X extends Program>(
   house: MindRuntimeHouse<X>,
-  context: JourneyControlContext,
+  context: Context,
+  cause: readonly string[],
+  read: () => JourneyControlState,
   proposal: ProposedAct,
   supervised: boolean,
-) {
-  const judge = supervised && ["open", "end", "desist"].includes(proposal.act);
-  if (!ruleControl(house, context.turn.scope, context.cause, proposal, "journey", judge))
-    return { status: "rejected" as const, id: context.turn.id };
-  const facts = await controlFacts(context, proposal);
-  if (!ruleControl(house, context.turn.scope, context.cause, proposal, "journey", judge))
-    return { status: "rejected" as const, id: context.turn.id };
-  if (!facts.length || !house.active()) return { status: "rejected" as const, id: context.turn.id };
+): ReturnType<TurnPorts["execute"]> {
+  const { turn, review } = context;
+  const checked = await ruleControl(house, turn, cause, proposal, { review, supervised });
+  if (!checked.ok) return { status: "rejected", id: turn.id, ...(checked.reason ? { reason: checked.reason } : {}) };
+  const facts = controlFacts({ turn, cause, state: read }, proposal);
+  if (!facts.length || !house.active()) return { status: "rejected", id: turn.id };
   const events = house.execution.bus.together(() => facts.map(fact => house.execution.bus.emit(fact)));
   const id = events[0]?.id;
   requireMind(id, "runtime.control");
-  return { status: "accepted" as const, id };
+  return { status: "accepted", id };
 }
 /** What a device act returned, accepted or rejected, is its receipt, which the device dispatch already scrubbed. A
  * house act's value stays with the code that asked for it. */
@@ -146,7 +110,7 @@ export function runtimeActions<X extends Program>(
   switches: MindSwitches,
 ): TurnPorts["execute"] {
   return async (proposal, context) => {
-    const { turn } = context;
+    const { turn, review } = context;
     const definition = definitionOf(options, house.execution.state().house, turn.scope.actor);
     requireMind(definition, "runtime.definition");
     const view = () => runtimeView(house, options, switches, turn.scope, definition);
@@ -157,17 +121,21 @@ export function runtimeActions<X extends Program>(
     requireMind(opened, "runtime.turn");
     const cause = [opened.id];
     if (item.tool === "mind") {
-      if (!ruleControl(house, turn.scope, cause, proposal, "mind")) return { status: "rejected", id: turn.id };
+      const checked = await ruleControl(
+        house,
+        turn,
+        cause,
+        proposal,
+        { review, supervised: supervised(options) },
+        "mind",
+      );
+      if (!checked.ok)
+        return { status: "rejected", id: turn.id, ...(checked.reason ? { reason: checked.reason } : {}) };
       const event = applyProgramCommunication(house, proposal, turn.scope, options.language);
       return { status: event ? "accepted" : "rejected", id: event?.id ?? turn.id };
     }
     if (item.scope === "control" || item.scope === "open")
-      return applyControl(
-        house,
-        controlContext(house, context, cause, () => view().control),
-        proposal,
-        supervised(options),
-      );
+      return applyControl(house, context, cause, () => view().control, proposal, supervised(options));
     return applyAct(house, context, proposal, cause, supervised(options));
   };
 }

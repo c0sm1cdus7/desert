@@ -51,6 +51,8 @@ export const predicateSchema = Type.Recursive(
       object({ operator: Type.Literal("all"), conditions: Type.Array(self, { minItems: 1, maxItems: 16 }) }),
       object({ operator: Type.Literal("any"), conditions: Type.Array(self, { minItems: 1, maxItems: 16 }) }),
       object({ operator: Type.Literal("not"), condition: self }),
+      /** Holds for every act, so an admin can mark an act without inventing a condition (21/11). */
+      object({ operator: Type.Literal("always") }),
     ]),
   { $id: "MechanicalPredicate" },
 );

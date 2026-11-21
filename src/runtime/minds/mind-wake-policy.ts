@@ -1,6 +1,7 @@
-// Wakes a mind for its own journeys, its rules and the program messages addressed to it.
+// Wakes a mind for its own journeys and their stops, its rules and the program messages addressed to it.
 import { ruleWake } from "./rule-wake.ts";
 import { journeyWake } from "./journey-wakes.ts";
+import { interruptWake } from "./journey-interrupts.ts";
 import { isMindActor, parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import type { ProgramMessage } from "../../tools/installable/program.ts";
@@ -11,7 +12,7 @@ export type WakePolicy = Readonly<{
   name: string;
   message: (event: Event) => ProgramMessage | undefined;
   toolOf: (target: string) => string | undefined;
-  /** A mind with its own waking, such as the supervisor, which wakes when any journey closes. */
+  /** A mind with its own waking, such as the supervisor, which wakes by journeys closing or cut and by messages. */
   wakes?: (event: Event) => boolean;
 }>;
 const normalized = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -41,6 +42,7 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   requireMind(mind, "policy.actor");
   if (policy.wakes) return event.by !== policy.scope.actor && policy.wakes(event);
   if (journeyWake(policy.scope, event, history, now) || ruleWake(policy.scope, event, history)) return true;
+  if (interruptWake(policy.scope, event, history)) return true;
   if (event.by === policy.scope.actor) return false;
   if (policy.scope.kind !== "consciousness") return false;
   if (
@@ -53,7 +55,7 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   return addressed(policy, policy.message(event));
 }
 /** A mind wakes another mind only by naming it, so two minds in one thread never answer each other forever. */
-function addressed(policy: WakePolicy, message: ProgramMessage | undefined): boolean {
+export function addressed(policy: WakePolicy, message: ProgramMessage | undefined): boolean {
   if (!message?.to.includes(policy.scope.actor)) return false;
   return !isMindActor(message.by) || mentions(message.text, policy.name) || mentions(message.text, policy.scope.actor);
 }

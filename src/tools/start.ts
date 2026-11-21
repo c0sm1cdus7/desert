@@ -9,6 +9,7 @@ import type { Event } from "../journal/vocabulary.ts";
 import { interrupt, watchRunning } from "./execution/running-acts.ts";
 import { programRule } from "../fields/program-call.ts";
 import { identityView } from "../house/members.ts";
+import { journeyFrozen } from "../house/minds/journey-state.ts";
 import { isMindActor } from "../fields/mind-actor.ts";
 import { actReach, execute, type Execution } from "./execute.ts";
 import { houseActs } from "../house/scenes.ts";
@@ -37,7 +38,8 @@ const processOf =
   <X extends Program>(ports: Starting<X>) =>
   (id: string, by?: string): boolean => {
     const journey = ports.state().house.journeys.get(id);
-    return journey ? !journey.closed && (by === undefined || journey.by === by) : (ports.process?.(id, by) ?? false);
+    if (!journey) return ports.process?.(id, by) ?? false;
+    return !journey.closed && !journeyFrozen(journey) && (by === undefined || journey.by === by);
   };
 function watchAttention<X extends Program>(ports: Execution<X>) {
   let state = ports.state();

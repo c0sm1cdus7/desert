@@ -19,6 +19,8 @@ export const mindTool = (actor: string): string | undefined =>
   actor.startsWith(ids.mind) ? actor.slice(ids.mind.length) || undefined : undefined;
 /** A mind is an actor only while its own tool exists; it never becomes an identity through a grant. */
 export const present = (registry: readonly { id: string }[], house: House, by: string): boolean => {
+  // The house supervisor has no program: it is an actor while a house runs one, which only its runtime writes as.
+  if (by === ids.supervisor) return true;
   const actor = parseMindActor(by);
   if (actor?.kind === "assistant")
     return house.assistants.get(actor.owner)?.enabled === true && house.grants.has(actor.owner);
@@ -44,6 +46,8 @@ export function allowedAct(house: House, by: string, tool: string, act: string, 
     );
   }
   if (isMindActor(by) && !actor) return false;
+  // The supervisor acts on no program: it holds only the talk programs, to speak through them (21/11).
+  if (by === ids.supervisor) return house.talk?.includes(tool) ?? false;
   if (tool === "identities") return !isMindActor(by) && identityAllowedAct(house, by, tool, act);
   const layout = registry ? kitLayout(registry) : house.kitLayout;
   const own = mindTool(by);

@@ -1,4 +1,4 @@
-// Declares the opening, plan, steps, wait, resumption and closing of a mind's processes.
+// Declares the opening, plan, steps, wait, resumption, stop and closing of a mind's processes.
 import { selectionKitSchema } from "../kit-selection.ts";
 import { Type } from "@sinclair/typebox";
 import { wholeNumber } from "../../fields/json-values.ts";
@@ -15,6 +15,8 @@ export const journeyFacts = {
   "journey-waiting": object({ what: mindText, until: wholeNumber }),
   /** The consciousness goes back to one of its open journeys, with what that journey should attend to. */
   "journey-resumed": object({ note: mindText }),
+  /** The house supervisor stops an open journey with its reason, until its consciousness resumes it (21/11). */
+  "journey-interrupted": object({ reason: mindText }),
   "journey-closed": object({
     outcome: Type.Union([Type.Literal("done"), Type.Literal("desisted")]),
     summary: mindText,

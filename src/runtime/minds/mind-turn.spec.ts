@@ -18,8 +18,9 @@ it.each(["json", "schema", "max_tokens", "refusal"] as const)("corrige una sola 
   expect(await runMindTurn(f.ports, wake)).toMatchObject({ outcome: "done", calls: 2 });
   expect(f.events.filter(e => e.kind === "mind-answer-invalid")).toHaveLength(1);
 });
-it("rechaza by inventado y comparte la corrección con una negativa posterior", async () => {
-  const f = fixture([ok({ ...answer, by: "otro" }), ok()]);
+const asking = { ...answer, consulta: { question: "¿Sigo?" } };
+it("rechaza by inventado y comparte la corrección con una consulta rechazada después", async () => {
+  const f = fixture([ok({ ...answer, by: "otro" }), ok(asking)]);
   f.ports.supervision.rules = {
     review: request => ({
       proposal: request.id,
@@ -29,11 +30,11 @@ it("rechaza by inventado y comparte la corrección con una negativa posterior", 
       text: "No corresponde",
     }),
   };
-  expect(await runMindTurn(f.ports, wake)).toMatchObject({ outcome: "failed", calls: 2 });
+  expect(await runMindTurn(f.ports, wake)).toMatchObject({ outcome: "failed", calls: 2, reason: "rejected" });
   expect(f.execute).not.toHaveBeenCalled();
 });
-it("una negativa seguida de una inválida no obtiene una tercera llamada", async () => {
-  const f = fixture([ok(), { kind: "invalid", reason: "json" }]);
+it("una consulta rechazada seguida de una inválida no obtiene una tercera llamada", async () => {
+  const f = fixture([ok(asking), { kind: "invalid", reason: "json" }]);
   f.ports.supervision.rules = {
     review: request => ({
       proposal: request.id,
@@ -103,9 +104,9 @@ it("descarta una respuesta tardía al cerrar mientras esperaba", async () => {
   expect(await runMindTurn({ ...f.ports, model }, wake)).toMatchObject({ outcome: "interrupted" });
   expect(f.execute).not.toHaveBeenCalled();
 });
-it("revoca al esperar revisión y descarta aprobación con reglas vencidas", async () => {
+it("revoca al esperar la consulta y descarta una respuesta con reglas vencidas", async () => {
   for (const invalidate of ["revoke", "changeRules"] as const) {
-    const f = fixture([ok()]);
+    const f = fixture([ok(asking)]);
     f.ports.supervision.supervisor = async request => {
       await Promise.resolve();
 
@@ -118,7 +119,7 @@ it("revoca al esperar revisión y descarta aprobación con reglas vencidas", asy
         text: "Admitido",
       };
     };
-    expect(await runMindTurn(f.ports, wake)).toMatchObject({ outcome: "failed" });
+    expect(await runMindTurn(f.ports, wake)).toMatchObject({ outcome: "failed", reason: "review-failed" });
     expect(f.execute).not.toHaveBeenCalled();
   }
 });
@@ -155,8 +156,8 @@ it("no escribe hechos tardíos cuando el turno ya fue cerrado mientras llamaba",
   expect(f.events.map(e => e.kind)).toEqual(["mind-turn-opened", "mind-turn-closed"]);
   expect(f.execute).not.toHaveBeenCalled();
 });
-it("permite doce llamadas totales durante una revisión y frena la decimotercera", async () => {
-  const f = fixture(Array.from({ length: 20 }, () => ok()));
+it("permite doce llamadas totales durante una consulta y frena la decimotercera", async () => {
+  const f = fixture([ok(asking), ...Array.from({ length: 20 }, () => ok())]);
   f.ports.supervision.supervisor = async (request, caller) => {
     for (let i = 0; i < 12; i++) await caller.call("mind:supervisor", frame, {});
     return { proposal: request.id, through: request.through, rulesVersion: "v1", outcome: "passed", text: "Listo" };
@@ -174,18 +175,14 @@ it("si cambian las reglas durante un acto, los siguientes no usan la aprobación
   expect(await runMindTurn({ ...f.ports, execute }, wake)).toMatchObject({ outcome: "failed", applied: ["a1"] });
   expect(execute).toHaveBeenCalledOnce();
 });
-it("la llamada doce permite terminar y una consulta sin lugar para continuar no aplica lo retenido", async () => {
-  for (const consultation of [false, true]) {
-    const value = consultation ? { ...answer, consulta: { question: "¿Sigo?" } } : answer;
-    const f = fixture([ok(value), ...Array.from({ length: 11 }, () => ok())]);
-    f.ports.supervision.supervisor = async (request, caller) => {
-      for (let i = 0; i < 11; i++) await caller.call("mind:supervisor", frame, {});
-      return { proposal: request.id, through: request.through, rulesVersion: "v1", outcome: "passed", text: "Listo" };
-    };
-    const result = await runMindTurn(f.ports, wake);
-    expect(result).toMatchObject({ outcome: consultation ? "failed" : "done", calls: 12 });
-    expect(f.execute).toHaveBeenCalledTimes(consultation ? 0 : 1);
-  }
+it("una consulta contestada en la llamada doce no deja lugar para seguir: lo retenido no se aplica", async () => {
+  const f = fixture([ok(asking), ...Array.from({ length: 11 }, () => ok())]);
+  f.ports.supervision.supervisor = async (request, caller) => {
+    for (let i = 0; i < 11; i++) await caller.call("mind:supervisor", frame, {});
+    return { proposal: request.id, through: request.through, rulesVersion: "v1", outcome: "passed", text: "Listo" };
+  };
+  expect(await runMindTurn(f.ports, wake)).toMatchObject({ outcome: "failed", calls: 12, reason: "call-limit" });
+  expect(f.execute).not.toHaveBeenCalled();
 });
 
 it("stops on an unknown action result without calling it failed or running the following action", async () => {
