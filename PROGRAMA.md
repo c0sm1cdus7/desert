@@ -2170,7 +2170,8 @@ un rechazo de negocio para ese límite.
 
 Un paso `given` de un caso es una acción de la herramienta del caso. Si la acción es de otra herramienta del mismo
 programa, el paso la nombra con `tool`: `{ act: "add", tool: "items", input: { … } }`; su `on`, si lo lleva, es una
-cosa de esa herramienta. Un paso no cruza a otro programa. Prueba: `src/tools/installable/picking.spec.ts`.
+cosa de esa herramienta, o su carpeta si es el nombre de la herramienta (`on: "items"`). Un paso no cruza a otro
+programa. Prueba: `src/tools/installable/picking.spec.ts`.
 
 Lo que la vista de una herramienta nombra como `{ id, text, detail? }` es una cosa, y la base la abre con su número.
 De quién es la cosa:
@@ -2189,10 +2190,14 @@ Una necesidad (`needs`) de una herramienta nombra una de sus cosas o, con el nom
 misma: `{ target: "orders", why: "sin pedidos" }`. Esa aparece en Atención con el nombre de la herramienta y abre su
 carpeta.
 
-Las palabras de una herramienta pueden decir `inside: "items"`: vive dentro de esa otra herramienta del mismo
-programa. No tiene fila en la pila **Herramientas** del programa. Se abre desde la cosa que nombra sus cosas y desde
-lo que necesita, y se la sigue encontrando por su nombre. La herramienta nombrada es del mismo programa y no vive
-dentro de otra: si no, el programa no se instala.
+Las palabras de una herramienta pueden decir `inside: "orders"`: vive dentro de esa otra herramienta del mismo
+programa. En un programa instalable no la lista nadie: no tiene fila en la pila **Herramientas** del programa ni en la
+herramienta en la que vive. Sus cosas se abren desde las cosas que las nombran (un pedido nombra sus extras), su
+carpeta solo desde Atención cuando necesita a alguien, y se la sigue encontrando por su nombre. Por eso no puede tener
+acciones sobre la herramienta (`on: "tool"`): quedarían sin camino. Las herramientas de la casa con `inside` (más
+arriba) son otra cosa: a esas la herramienta en la que viven las lista y las abre. El programa no se instala si
+`inside` nombra a la herramienta misma, una que el programa no tiene o una que vive dentro de otra, ni si la
+herramienta que vive dentro tiene una acción sobre la herramienta. Prueba: `src/tools/installable/picking.spec.ts`.
 
 Quien no tiene un programa puede abrir y leer sus objetos. Las acciones de cada objeto siguen visibles,
 apagadas con el motivo del kit, aunque además exijan ser su autora. Quien tiene la acción ve el motivo de

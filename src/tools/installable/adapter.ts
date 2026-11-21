@@ -96,15 +96,20 @@ function namedTool(reader: Reader, key: string, tool: unknown): string {
   const what = `${folderOf(reader.id, reader.name)} names a thing ${where} of tool ${JSON.stringify(tool)}`;
   throw new OutsideDefect(new Error(`${what}, which is not a tool of ${reader.id}`));
 }
-/** A tool lives in another tool of its own program, one that is itself listed among the program's tools. */
+/** A tool lives in another tool of its own program, one that is itself listed among the program's tools. Nothing
+ * lists the tool that lives inside, so it has no act on the tool: nothing would lead to it. */
 function auditInside(id: string, groups: readonly InstalledGroup[]): void {
-  for (const group of groups) {
-    const outer = group.palabras.inside;
-    if (outer === undefined) continue;
+  const inner = groups.flatMap(group =>
+    group.palabras.inside === undefined ? [] : [{ group, outer: group.palabras.inside }],
+  );
+  for (const { group, outer } of inner) {
     const home = groups.find(known => known.id === outer);
     if (!home || home === group || home.palabras.inside !== undefined)
       throw new Error(`${group.folder} lives in ${outer}, which is not a tool ${id} lists`);
   }
+  for (const { group, outer } of inner)
+    if (Object.values(group.tool.acts).some(act => act.on === "tool"))
+      throw new Error(`${group.folder} lives in ${outer} and acts on the tool, which nothing lists`);
 }
 export function installProgram<M extends ProgramMetadata>(meta: M, body: ProgramBody<M>): InstalledProgram {
   const tools = Object.keys(body.herramientas);

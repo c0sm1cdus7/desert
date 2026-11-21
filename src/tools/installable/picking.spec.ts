@@ -238,34 +238,53 @@ describe("what a tool itself needs", () => {
     }));
 });
 describe("a tool that lives inside another of its program", () => {
-  it("has no row among the tools of its program and is opened from the thing that names it", () =>
+  it("has no row among the tools of its program; its thing opens from the order and acts by keys, with no need", () =>
     staged(program, async ({ house }) => {
       await stock(house(), "Tornillo");
       const input = { main: "1", extras: [{ note: "Arandela" }] };
       await accepted(house(), { act: "orders/take", on: folder("orders"), input });
       const seat = seated(house(), cast.admin, shown);
       try {
+        const attention = stacksOf({ kind: "menu", at: 0 }, seat.tools).find(
+          stack => stack.title === surface.attentionList,
+        );
+        expect(attention?.rows).toEqual([]);
         const listed = stacksOf({ kind: "view", tool: "picking", at: 0 }, seat.tools).find(
           stack => stack.title === distribution.groups,
         );
-        expect(listed?.rows.map(row => [row.title, row.opens])).toEqual([["Cosas", folder("items")]]);
+        expect(listed?.rows.map(row => [row.title, row.opens])).toEqual([
+          ["Cosas", folder("items")],
+          ["Pedidos", folder("orders")],
+        ]);
         /** Looking for it by its name still finds it: only its row among the listed tools is gone. */
-        const sought = stacksOf({ kind: "view", tool: "picking", at: 0, find: "Pedidos" }, seat.tools);
-        expect(sought.flatMap(stack => stack.rows.flatMap(row => row.opens ?? []))).toEqual([folder("orders")]);
-        const order = thingOf("orders", "1");
-        goTo(seat, "picking", thingOf("items", "1"));
-        const named = rowsAt(seat, thingOf("items", "1")).find(each => each.title === said.order("1"));
-        expect(named).toMatchObject({ opens: order, open: { kind: "view", tool: "picking", target: order } });
+        const sought = stacksOf({ kind: "view", tool: "picking", at: 0, find: "Extras" }, seat.tools);
+        expect(sought.flatMap(stack => stack.rows.flatMap(row => row.opens ?? []))).toContain(folder("extras"));
+        const extra = thingOf("extras", "1.1");
+        goTo(seat, "picking", thingOf("orders", "1"));
+        const named = rowsAt(seat, thingOf("orders", "1")).find(each => each.title === "Arandela");
+        expect(named).toMatchObject({ opens: extra, open: { kind: "view", tool: "picking", target: extra } });
         type(seat.router, named?.key ?? "");
-        expect(seat.router.screen(view).title).toBe(said.order("1"));
-        expect(rowsAt(seat, order).find(each => each.title === "Tornillo")).toMatchObject({ key: "1" });
+        const back = rowsAt(seat, extra).find(each => each.title === said.order("1"));
+        expect(back).toMatchObject({ opens: thingOf("orders", "1") });
+        type(seat.router, "a");
+        expect(question(seat).ask).toBe(said.note);
+        type(seat.router, "Arandela fina");
+        confirm(seat);
+        await seat.router.idle();
+        expect(ordersKept(house())[0]?.extras).toEqual([{ note: "Arandela fina" }]);
         expect(seat.defects).toEqual([]);
       } finally {
         seat.router.stop();
       }
     }));
-  it("refuses a tool that lives in itself or in one its program does not have", () => {
-    expect(() => pickingDistribution({ home: "orders" })).toThrow("picking/orders lives in orders");
-    expect(() => pickingDistribution({ home: "stock" })).toThrow("picking/orders lives in stock");
+  it.each([
+    ["in itself", { extras: "extras" }, "picking/extras lives in extras"],
+    ["in one its program does not have", { extras: "stock" }, "picking/extras lives in stock"],
+    ["in one that lives inside another", { orders: "items" }, "picking/extras lives in orders"],
+  ])("refuses to install a tool that lives %s", (_, inside, thrown) => {
+    expect(() => pickingDistribution({ inside })).toThrow(thrown);
+  });
+  it("refuses to install a tool that lives inside another and acts on the tool, which nothing would lead to", () => {
+    expect(() => pickingDistribution({ onTool: true })).toThrow("picking/extras lives in orders and acts on the tool");
   });
 });
