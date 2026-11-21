@@ -131,6 +131,11 @@ const take = programAct<Picking, typeof order>({
     },
   ],
 });
+/** The orders that picked a thing, named so that the thing opens each of them. */
+const ordersOf = (state: State<Picking>, id: string) =>
+  state.tools.own.orders
+    .filter(each => [each.main, each.spare, ...each.extras.map(extra => extra.item)].includes(id))
+    .map(each => ({ id: each.id, text: said.order(each.id), tool: "orders" }));
 const items: ProgramGroup<Picking> = {
   purpose: "Guardar cosas",
   palabras: {
@@ -139,7 +144,10 @@ const items: ProgramGroup<Picking> = {
     listed: "Cosas",
     empty: "Sin cosas",
     reads: {},
-    presents: [{ title: "Cosa", empty: "Sin datos", reads: { name: "Nombre" } }],
+    presents: [
+      { title: "Cosa", empty: "Sin datos", reads: { name: "Nombre" } },
+      { title: "Pedidos", empty: "Sin pedidos", reads: { orders: "Pedido" } },
+    ],
   },
   acts: { add },
   targets: state => itemsOf(state).map(item => item.id),
@@ -148,16 +156,18 @@ const items: ProgramGroup<Picking> = {
       ? itemsOf(state)
           .map(item => JSON.stringify({ id: item.id, text: item.name }))
           .join("\n")
-      : JSON.stringify({ name: nameOf(state, target) }),
+      : JSON.stringify({ name: nameOf(state, target), orders: ordersOf(state, target) }),
   summary: state => String(itemsOf(state).length),
 };
+/** A thing of the other tool, as a reading names it: its local id, its name and the tool it is of. */
+const itemRow = (state: State<Picking>, id: string) => ({ id, text: nameOf(state, id), tool: "items" });
 function orderRead(state: State<Picking>, id: string) {
   const found = state.tools.own.orders.find(each => each.id === id);
   if (!found) throw new Error(`Unknown order ${id}`);
   return {
-    main: nameOf(state, found.main),
-    spare: found.spare === undefined ? said.none : nameOf(state, found.spare),
-    extras: found.extras.map(each => (each.item === undefined ? (each.note ?? "") : nameOf(state, each.item))),
+    main: itemRow(state, found.main),
+    spare: found.spare === undefined ? said.none : itemRow(state, found.spare),
+    extras: found.extras.map(each => (each.item === undefined ? (each.note ?? "") : itemRow(state, each.item))),
   };
 }
 const orders: ProgramGroup<Picking> = {

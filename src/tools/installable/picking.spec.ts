@@ -107,3 +107,29 @@ describe("questions that pick among the program's own things", () => {
       }
     }));
 });
+describe("things named across the tools of one program", () => {
+  it("opens the thing of another tool of the same program that a reading names", () =>
+    staged(program, async ({ house }) => {
+      await stock(house(), "Tornillo");
+      await accepted(house(), {
+        act: "orders/take",
+        on: folder("orders"),
+        input: { main: "1", extras: [{ note: "Arandela" }] },
+      });
+      const seat = seated(house(), cast.admin, shown);
+      try {
+        goTo(seat, "picking", thingOf("orders", "1"));
+        const named = rowsAt(seat, thingOf("orders", "1")).find(each => each.title === "Tornillo");
+        const item = thingOf("items", "1");
+        expect(named).toMatchObject({ opens: item, open: { kind: "view", tool: "picking", target: item }, key: "1" });
+        type(seat.router, "1");
+        expect(seat.router.screen(view).title).toBe("Tornillo");
+        expect(rowsAt(seat, item).find(each => each.title === "Nombre")).toMatchObject({ detail: "Tornillo" });
+        const back = rowsAt(seat, item).find(each => each.title === said.order("1"));
+        expect(back).toMatchObject({ opens: thingOf("orders", "1"), key: "1" });
+        expect(seat.defects).toEqual([]);
+      } finally {
+        seat.router.stop();
+      }
+    }));
+});

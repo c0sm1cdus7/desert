@@ -2172,6 +2172,11 @@ Un paso `given` de un caso es una acción de la herramienta del caso. Si la acci
 programa, el paso la nombra con `tool`: `{ act: "add", tool: "items", input: { … } }`; su `on`, si lo lleva, es una
 cosa de esa herramienta. Un paso no cruza a otro programa. Prueba: `src/tools/installable/picking.spec.ts`.
 
+Lo que la lectura de una herramienta nombra como `{ id, text, detail? }` es una cosa de esa herramienta, sea una
+fila de su lista o un dato de la lectura de una cosa. Si la cosa es de otra herramienta del mismo programa, lo dice
+con `tool`: `{ id: "1", text: "Tornillo", tool: "items" }`. La base la abre con su número. Así no se nombra una cosa
+de otro programa.
+
 Quien no tiene un programa puede abrir y leer sus objetos. Las acciones de cada objeto siguen visibles,
 apagadas con el motivo del kit, aunque además exijan ser su autora. Quien tiene la acción ve el motivo de
 autoría cuando corresponde. La preferencia de esconder lo ajeno retira el programa del Menú; al desactivarla

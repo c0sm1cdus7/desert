@@ -66,11 +66,15 @@ function remapView(view: string, id: string, name: string): string {
     })
     .join("\n");
 }
+/** What a view names by its id is a thing of this tool, or of the tool of the same program it says with `tool`:
+ * as a row of a list, or as a datum of the reading of a thing, alone or among others. */
 function remapRow(row: unknown, id: string, name: string): unknown {
   if (Array.isArray(row)) return row.map((value: unknown) => remapRow(value, id, name));
-  if (row && typeof row === "object" && "id" in row && typeof row.id === "string")
-    return { ...row, id: objectOf(id, name, row.id) };
-  return row;
+  if (!row || typeof row !== "object") return row;
+  if (!("id" in row) || typeof row.id !== "string")
+    return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, remapRow(value, id, name)]));
+  const { tool, ...thing }: Readonly<Record<string, unknown>> = { ...row };
+  return { ...thing, id: objectOf(id, typeof tool === "string" ? tool : name, row.id) };
 }
 export function installProgram<M extends ProgramMetadata>(meta: M, body: ProgramBody<M>): InstalledProgram {
   const groups = Object.entries(body.herramientas).map(([name, group]) => groupTool(meta.id, name, group));
