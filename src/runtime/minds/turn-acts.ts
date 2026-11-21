@@ -1,9 +1,11 @@
 // Applies the acts of one answer in order: a journey hears each result, a consciousness corrects or stops.
 import { requireMind } from "../../fields/mind-errors.ts";
+import { journeyPlanRefusal } from "../../texts/journey.texts.ts";
 import { invalidNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
 import {
   JourneyKitRefused,
   JourneyNoticeRefused,
+  JourneyPlanRefused,
   JourneyStopRefused,
   JourneyWaitRefused,
 } from "../../tools/minds/journey-controls.ts";
@@ -12,13 +14,13 @@ import type { TurnContext } from "../../tools/minds/mind-contract.ts";
 import type { ReviewPort } from "../../tools/minds/mind-review.ts";
 import type { ExecuteResult, TurnPorts } from "./mind-ports.ts";
 import type { ActReport } from "./turn-results.ts";
-type Refusal = Readonly<{ code: "kit" | "wait" | "stopped" | "act"; correction: string }>;
+type Refusal = Readonly<{ code: "kit" | "wait" | "plan" | "stopped" | "act"; correction: string }>;
 /** A correction carries the results of the acts its answer already applied, so the mind hears what they did. */
 type ActCorrection = Refusal & Readonly<{ reports: readonly ActReport[] }>;
 type AppliedActs = TurnStop | ActCorrection | Readonly<{ reports: readonly ActReport[] }>;
 type Run = Readonly<{ ports: TurnPorts; turn: TurnContext; review: ReviewPort }>;
-/** A kit, a wait or a second stop the mind got wrong is its mistake: it comes back as a correction instead of failing
- * the turn. */
+/** A kit, a wait, its own plan or a second stop the mind got wrong is its mistake: it comes back as a correction
+ * instead of failing the turn. */
 async function perform({ ports, turn, review }: Run, act: ProposedAct): Promise<ExecuteResult | Refusal> {
   try {
     return await ports.execute(act, { turn, review });
@@ -31,6 +33,10 @@ async function perform({ ports, turn, review }: Run, act: ProposedAct): Promise<
     }
     if (error instanceof JourneyWaitRefused)
       return { code: "wait", correction: `${invalidNotice.text(turn.language, { reason: "wait" })} ${error.now}` };
+    if (error instanceof JourneyPlanRefused) {
+      const { problem, step, pending } = error;
+      return { code: "plan", correction: journeyPlanRefusal.text(turn.language, { problem, step, pending }) };
+    }
     if (error instanceof JourneyStopRefused)
       return {
         code: "stopped",

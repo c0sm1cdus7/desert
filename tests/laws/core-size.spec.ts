@@ -107,10 +107,11 @@ describe("the tree of src/", () => {
   // that travels without its value). +1 exact line in devices.texts.ts: a tool's invalid notice, by tool and execution.
   // 21/11 step C: +23 in journey.texts.ts and mind-turn.texts.ts: a notice's wake line and two wait-on-notice refusals.
   // 21/11 review: +9 exact in journey.texts.ts: one line counting the cut journeys that do not fit beside a scene.
-  it("keeps every file within 300 lines and the texts within 1381", () => {
+  // 21/11 plan refusals: +22 exact in journey.texts.ts: what a journey hears when it gets its own plan wrong.
+  it("keeps every file within 300 lines and the texts within 1403", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1381);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1403);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

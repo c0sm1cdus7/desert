@@ -64,6 +64,14 @@ function rig() {
   };
   return { state, context, apply, opened, events, clock: () => clock };
 }
+/** Which plan mistake a control refused, or the error it threw instead. */
+const refused = (run: () => unknown): unknown => {
+  try {
+    return run();
+  } catch (error) {
+    return error instanceof Error && "problem" in error ? error.problem : error;
+  }
+};
 it("abre con un ID generado y autor fijo, sin esperar al supervisor; no emite hasta que el turno aplica", () => {
   const r = rig();
   const facts = openJourney(r.context, { goal: "Anotar el mate", kit });
@@ -121,6 +129,9 @@ it("escribe un plan una vez y completa pasos por ID en cualquier orden", () => {
   expect(() => completeJourneyStep(c, { step: "absent", note: "No" })).toThrow("step");
   r.apply(completeJourneyStep(c, { step: "two", note: "Anotado" }));
   expect(() => completeJourneyStep(c, { step: "two", note: "Otra vez" })).toThrow("step");
+  expect(refused(() => writeJourneyPlan(c, plan))).toBe("planned");
+  expect(refused(() => completeJourneyStep(c, { step: "absent", note: "No" }))).toBe("missing");
+  expect(refused(() => completeJourneyStep(c, { step: "two", note: "Otra vez" }))).toBe("done");
   r.apply(completeJourneyStep(c, { step: "one", note: "Preparado" }));
   expect([...r.state.journeys.values()][0]?.steps.map(step => step.note)).toEqual(["Preparado", "Anotado"]);
   expect(r.events.slice(1).every(event => event.cause.includes("e1") && event.by === actor)).toBe(true);
@@ -137,6 +148,8 @@ it("rechaza planes vacíos, IDs repetidos y argumentos faltantes sin efectos", (
       ],
     }),
   ).toThrow("steps");
+  const twice = { id: "s", text: "Uno" };
+  expect(refused(() => writeJourneyPlan(c, { steps: [twice, twice] }))).toBe("repeated");
   expect(() => completeJourneyStep(c, { step: "s" })).toThrow("note");
   expect(() => waitJourney(c, { what: "Respuesta" })).toThrow("until");
   expect(r.events).toHaveLength(1);

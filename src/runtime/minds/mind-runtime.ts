@@ -8,6 +8,7 @@ import { targetTool } from "../../house/attendance.ts";
 import { identityView } from "../../house/members.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
+import { ownPlanControl } from "../../tools/minds/journey-menu.ts";
 import { readonlyPorts } from "../../tools/boundaries/readonly-ports.ts";
 import { watchRunning } from "../../tools/execution/running-acts.ts";
 import { turnNotice } from "../../texts/mind-turn.texts.ts";
@@ -98,10 +99,12 @@ class HouseMindRuntime<X extends Program> {
         house.active() &&
         !!house.execution.state().house.minds.turns.get(id) &&
         !house.execution.state().house.minds.turns.get(id)?.closed,
-      allowed: (scope, act) =>
-        house.active() &&
-        this.view(scope).control.active &&
-        this.view(scope).menu.some(item => item.act === act.act && item.target === act.target),
+      allowed: (scope, act) => {
+        if (!house.active()) return false;
+        const { control, menu } = this.view(scope);
+        const offered = menu.some(item => item.act === act.act && item.target === act.target);
+        return control.active && (offered || ownPlanControl(scope, control, act));
+      },
       supervision: { ...(this.supervisor ? { supervisor: this.supervisor.review } : {}), ...options.supervision },
       emit: this.emit,
       execute: runtimeActions(house, options, switches),

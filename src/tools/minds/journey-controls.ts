@@ -68,6 +68,23 @@ export class JourneyWaitRefused extends Error {
     this.now = `${now} (${new Date(now).toISOString()})`;
   }
 }
+type PlanProblem = "planned" | "repeated" | "missing" | "done";
+/** A second plan, a repeated step id, a step outside the plan or one already done is the model's mistake with its
+ * own plan: the turn corrects it, saying which and what is still pending, instead of failing in the fold. */
+export class JourneyPlanRefused extends Error {
+  readonly problem: PlanProblem;
+  readonly step: string;
+  readonly pending: string;
+  constructor(problem: PlanProblem, journey: JourneyState, step = "") {
+    super(
+      { planned: "journey.plan", repeated: "journey.steps", missing: "journey.step", done: "journey.step" }[problem],
+    );
+    this.name = "JourneyPlanRefused";
+    this.problem = problem;
+    this.step = step;
+    this.pending = journey.steps.flatMap(each => (each.note === undefined ? [each.id] : [])).join(", ");
+  }
+}
 /** A union's error says nothing of its fields: the branch the input chose names the field that is wrong. */
 function branchOf(schema: TSchema, input: unknown, control: JourneyControl): TSchema {
   const chosen = (key: string) => (typeof input === "object" && input && key in input ? 1 : 0);
@@ -161,6 +178,10 @@ export function writeJourneyPlan(context: JourneyControlContext, input: unknown)
   const state = current(c);
   const journey = ownJourney(c, state);
   const data = inputOf(journeyInputs.plan, input, "plan");
+  if (journey.planned) throw new JourneyPlanRefused("planned", journey);
+  const ids = data.steps.map(step => step.id);
+  const repeated = ids.find((id, index) => ids.indexOf(id) !== index);
+  if (repeated !== undefined) throw new JourneyPlanRefused("repeated", journey, repeated);
   return checked(state, [effect("journey-plan-written", data, journey.by, causes(c, journey), journey.id)]);
 }
 export function completeJourneyStep(context: JourneyControlContext, input: unknown): readonly HouseEmission[] {
@@ -168,6 +189,9 @@ export function completeJourneyStep(context: JourneyControlContext, input: unkno
   const state = current(c);
   const journey = ownJourney(c, state);
   const data = inputOf(journeyInputs.done, input, "done");
+  const step = journey.steps.find(each => each.id === data.step);
+  if (!step) throw new JourneyPlanRefused("missing", journey, data.step);
+  if (step.note !== undefined) throw new JourneyPlanRefused("done", journey, data.step);
   return checked(state, [effect("journey-step-done", data, journey.by, causes(c, journey), journey.id)]);
 }
 export function waitJourney(context: JourneyControlContext, input: unknown): readonly HouseEmission[] {

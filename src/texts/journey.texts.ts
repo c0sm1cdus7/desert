@@ -31,6 +31,28 @@ export const journeyControlPurpose = defineMessage({
       })[control],
   },
 });
+const planProblems = ["planned", "repeated", "missing", "done"] as const;
+/** What a journey hears when it gets its own plan wrong: which mistake it made and, with a plan, what is pending. */
+export const journeyPlanRefusal = defineMessage({
+  id: "journey.plan-refusal",
+  kind: "text",
+  parameters: object({
+    problem: Type.Union(planProblems.map(each => Type.Literal(each))),
+    step: Type.String(),
+    pending: Type.String(),
+  }),
+  texts: {
+    es: ({ problem, step, pending }) => {
+      if (problem === "repeated") return `El plan repite el identificador «${step}»: cada paso lleva uno distinto.`;
+      const said = {
+        planned: "Este journey ya tiene su plan escrito: el plan se anota una sola vez.",
+        missing: `El paso «${step}» no existe en el plan de este journey.`,
+        done: `El paso «${step}» ya estaba hecho: un paso se marca una sola vez.`,
+      }[problem];
+      return `${said} Pasos pendientes: ${pending || "ninguno"}.`;
+    },
+  },
+});
 /** A journey turn cut short, said in the house scene and, with how many cuts it has, to the consciousness it wakes. */
 export const journeyCut = defineMessage({
   id: "journey.cut",

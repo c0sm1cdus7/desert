@@ -16,6 +16,7 @@ import {
   type JourneyControlContext,
   type JourneyControlState,
 } from "../../tools/minds/journey-controls.ts";
+import { ownPlanControl } from "../../tools/minds/journey-menu.ts";
 import type { ProposedAct } from "../../tools/minds/mind-answer.ts";
 import type { ExecuteResult, TurnPorts } from "./mind-ports.ts";
 import {
@@ -116,7 +117,12 @@ export function runtimeActions<X extends Program>(
     const view = () => runtimeView(house, options, switches, turn.scope, definition);
     if (!house.active()) return { status: "interrupted", id: turn.id };
     const item = view().menu.find(item => item.act === proposal.act && item.target === proposal.target);
-    if (!item) return { status: "rejected", id: turn.id };
+    if (!item) {
+      // A plan or a done its journey already used up is no act to apply: its control throws the refusal with words.
+      if (ownPlanControl(turn.scope, view().control, proposal))
+        controlFacts({ turn, cause: [], state: () => view().control }, proposal);
+      return { status: "rejected", id: turn.id };
+    }
     const opened = house.execution.state().house.minds.turns.get(turn.id)?.opened;
     requireMind(opened, "runtime.turn");
     const cause = [opened.id];

@@ -169,8 +169,9 @@ class MindTurnRun {
     if (!this.ports.isOpen(this.turn.id)) return this.finish("inactive");
     return this.goOn(answer, done.reports, menu);
   }
-  /** A kit, a wait or (for a consciousness) a tool refused one act: a correction. When the answer had already applied
-   * acts, the mind hears their results with it, and that answer gives the next one its own correction. */
+  /** A kit, a wait, its own plan or (for a consciousness) a tool refused one act: a correction. When the answer had
+   * already applied acts, the mind hears their results with it, and that answer gives the next one its own
+   * correction. */
   private refused(done: Refused): TurnOutcome | undefined {
     const faults = [{ code: done.code, path: "/acts" }];
     const applied = done.reports.some(report => report.status === "accepted");

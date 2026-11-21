@@ -70,6 +70,17 @@ export function validateJourneyAccess(scope: MindScope, state: JourneyAccess): v
   } else requireMind(Value.Check(Type.Undefined(), scope.process), "scope.process");
 }
 type OwnControl = Readonly<{ act: JourneyControl; target: string }>;
+/** A journey's plan and done leave its menu by what the journey itself wrote, never by a permission: proposed again
+ * after that, in the same answer, they still reach their control, which refuses them with words. */
+export const ownPlanControl = (
+  scope: MindScope,
+  state: JourneyAccess,
+  act: Readonly<{ act: string; target: string }>,
+): boolean =>
+  scope.kind === "journey" &&
+  state.active &&
+  act.target === scope.process &&
+  (act.act === "plan" || act.act === "done");
 /** A consciousness opens journeys, and over each of its open journeys it can go back to it or desist from it. The
  * house supervisor opens none and acts on no program: over every open journey of any mind it can only interrupt. */
 function oversight(scope: MindScope, state: JourneyAccess): OwnControl[] {
