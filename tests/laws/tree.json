@@ -144,7 +144,6 @@
     "fields/messages.ts": "Define mensajes con parámetros tipados y exige el idioma en cada lectura.",
     "fields/mind-actor.ts": "Distingue al asistente de una identidad de la mente propia de una herramienta.",
     "fields/mind-errors.ts": "Identifica rechazos de contratos de mente sin guardar respuestas crudas ni datos privados.",
-    "fields/turn-stops.ts": "Names every reason a mind's turn can stop for, shared by the closing fact and the words that explain it.",
     "fields/money-currency.ts": "Resuelve el símbolo con respuestas, estado, destino e instante, dentro de la frontera del programa",
     "fields/money-field.ts": "Declara dinero en centavos con una moneda fija o resuelta por el programa y comparte su formato validado.",
     "fields/program-call.ts": "Calls program code after evaluating base arguments; preserves OutsideDefect and BaseFailure across the boundary.",

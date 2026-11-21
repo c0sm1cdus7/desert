@@ -97,13 +97,14 @@ describe("the tree of src/", () => {
   // only through the talk programs, journeys with its delegated kit, naming a mind to wake it, no invented
   // permissions); +60 for supervisor.texts.ts: its house layer (with the rules that ask for its judgment), its
   // rules, frame labels and review notices.
-  // 21/11 Journeys by facts: +54 exact lines. +21 in journey.texts.ts (resume's purpose, a cut turn and why a journey
-  // woke, in words); +31 in mind-turn.texts.ts (the shared stop list, the conversation that outgrew the request, the
-  // continuation correction and the results a journey hears between calls); +2 for the frame saying a journey goes on.
-  it("keeps every file within 300 lines and the texts within 1292", () => {
+  // 21/11 Journeys by facts: +55 exact lines. +21 in journey.texts.ts (resume's purpose, a cut turn and why a journey
+  // woke, in words); +32 in mind-turn.texts.ts (the stop list the closing fact reads, the conversation that outgrew the
+  // request, the continuation correction and the results a journey hears between calls); +2 for the frame saying a
+  // journey goes on.
+  it("keeps every file within 300 lines and the texts within 1293", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1292);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1293);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

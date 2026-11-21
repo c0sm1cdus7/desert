@@ -4,7 +4,7 @@ import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
 import { mindName } from "../assistants/assistant-facts.ts";
 import { mindText } from "./journey-facts.ts";
-import { turnStops } from "../../fields/turn-stops.ts";
+import { turnStops } from "../../texts/mind-turn.texts.ts";
 const turn = { turn: mindName };
 const proposals = Type.Array(
   object({ act: mindName, target: mindName, input: Type.Unknown(), destination: Type.Optional(executionDestination) }),

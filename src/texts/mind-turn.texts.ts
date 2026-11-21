@@ -2,8 +2,7 @@
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 import { object } from "../fields/visible-text.ts";
-import { turnStops, type TurnStop } from "../fields/turn-stops.ts";
-const reasons: Readonly<Record<TurnStop, string>> = {
+const reasons = {
   "call-limit": "El turno llegó al límite de doce llamadas sin decir cómo sigue.",
   "frame-too-large": "El marco necesario no entra en el pedido.",
   "conversation-too-large": "La conversación de este turno ya no entra en el pedido.",
@@ -24,7 +23,9 @@ const reasons: Readonly<Record<TurnStop, string>> = {
   interrupted: "El turno se interrumpió al cerrar la casa. No se repitió el trabajo.",
   internal: "No se pudo completar el turno por una falla interna.",
 };
-export type { TurnStop };
+export type TurnStop = keyof typeof reasons;
+/** Every reason a turn can stop for, read from the words that explain them, for the fact that closes a turn. */
+export const turnStops = Object.keys(reasons).filter((key): key is TurnStop => Object.hasOwn(reasons, key));
 export const turnNotice = defineMessage({
   id: "mind.turn.notice",
   kind: "text",
