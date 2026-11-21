@@ -11,13 +11,16 @@ import type { Program } from "../../tools/tool-contract.ts";
 import type { TurnWake } from "./mind-ports.ts";
 import type { MindRuntimeHouse } from "./mind-runtime-options.ts";
 type Scenes = Pick<House, "minds" | "journeys">;
+/** A cut takes one line of the scene, whatever the goal's length or lines, so it leaves room for the rest. */
+const goalLimit = 300;
 /** A journey turn that stopped short for anything but a restart, in the words that woke its consciousness. */
 function cutLine(state: Scenes, turn: MindTurn, language: Language): string | undefined {
   const closed = turn.closed?.data;
   const goal = state.journeys.get(turn.opened.process ?? "")?.goal;
   if (!closed?.reason || closed.reason === "interrupted" || closed.outcome === "done" || goal === undefined)
     return undefined;
-  return journeyCut.text(language, { goal, reason: turnNotice.text(language, { reason: closed.reason }) });
+  const line = cutText(goal.replace(/\s+/gu, " ").trim(), goalLimit);
+  return journeyCut.text(language, { goal: line, reason: turnNotice.text(language, { reason: closed.reason }) });
 }
 /** The mind's house scene with a line first for each open journey whose last turn was cut. The line of a cut its
  * journey already went on from, or closed after, leaves the scene; whatever else the scene says stays. */

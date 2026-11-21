@@ -2,6 +2,7 @@
 import { afterEach, expect, it } from "vitest";
 import { effect } from "../../house/facts.ts";
 import { programMindFixture } from "../../../tests/support/program-mind-fixture.ts";
+import { withCuts } from "../minds/journey-cut-scene.ts";
 import {
   addAct,
   journeyOf,
@@ -143,6 +144,8 @@ it("the cut stays in the house scene after the consciousness answers, until the 
   const general = house.tools.state().house.scenes.get("mind:notas")?.data.general ?? "";
   expect(general).toContain("Se cortó un turno del journey «Anotar»: La llamada quedó incierta.");
   expect(general).toContain("Miro");
+  // Writing the scene again keeps one line per cut, never a copy of it.
+  expect(withCuts(house.tools.state().house, "mind:notas", "es", general)).toBe(general);
 });
 it("the scene lets the cut go once the resumed journey takes a turn", async () => {
   const { house } = await run({
@@ -193,4 +196,25 @@ it("a scene the consciousness writes by its own act also keeps the cut first", a
     "Se cortó un turno del journey «Anotar»: La llamada quedó incierta. El turno se detuvo sin repetirla. " +
       "No se reintentó nada.\nEscena propia",
   );
+});
+it("a long goal of several lines takes one bounded scene line, which leaves once the journey goes on", async () => {
+  const goal = `Anotar\nla nota ${"x".repeat(3900)}`;
+  const open = { ...openAct, input: { ...openAct.input, goal } };
+  const { house, journey } = await run({
+    consciousness: ({ call }) => (call === 1 ? [open] : []),
+    journey: ({ call, journey }) => {
+      if (call === 1) throw new Error("provider down");
+      return [waitAct(journey ?? "")];
+    },
+  });
+  if (!journey) throw new Error("journey");
+  const cut = house.tools.state().house.scenes.get("mind:notas")?.data.general ?? "";
+  const [line, ...rest] = cut.split("\n");
+  expect(line).toMatch(/^Se cortó un turno del journey «Anotar la nota x+»: La llamada quedó incierta\./u);
+  expect(line?.length).toBeLessThan(450);
+  expect(rest).toEqual(["Miro"]);
+  expect(withCuts(house.tools.state().house, "mind:notas", "es", cut)).toBe(cut);
+  house.bus.emit(effect("journey-resumed", { note: "Probá otra vez" }, "mind:notas", [], journey.id));
+  await (await house.minds)?.flush();
+  expect(house.tools.state().house.scenes.get("mind:notas")?.data.general).toBe("Miro");
 });

@@ -4,8 +4,9 @@ import { expect, it } from "vitest";
 import { runMindTurn } from "./mind-turn.ts";
 import type { TurnPorts, TurnWake } from "./mind-ports.ts";
 import { fixture, ok } from "../../../tests/support/mind-turn-fixture.ts";
-import { JourneyWaitRefused } from "../../tools/minds/journey-controls.ts";
+import { JourneyKitRefused, JourneyWaitRefused } from "../../tools/minds/journey-controls.ts";
 import { journeyInputs } from "../../tools/minds/journey-menu.ts";
+import type { MindMenu } from "../../tools/minds/mind-answer.ts";
 const wake: TurnWake = {
   id: "t1",
   scope: { kind: "journey", actor: "assistant:franco", process: "j1", kit: [{ tool: "chat", acts: ["say"] }] },
@@ -139,4 +140,70 @@ it("every call of a turn asks with the same schema, so a menu that changes keeps
   expect(second).toBe(first);
   expect(first).toContain('"const":"done"');
   expect(f.model.mock.calls[1]?.[0].exchanges?.[0]?.told).toContain("Apareció en el menú:");
+});
+it("an act that left the menu is corrected against the current menu, though the schema names it", async () => {
+  const [chat] = menu;
+  if (!chat) throw new Error("menu");
+  const control = (act: "plan" | "wait") => ({
+    tool: "journey",
+    act,
+    target: "j1",
+    input: journeyInputs[act],
+    scope: "control" as const,
+  });
+  let plans = 0;
+  const changing: TurnPorts["read"] = () => ({
+    ...read(wake.scope),
+    menu: [chat, ...(plans ? [] : [control("plan")]), control("wait")],
+  });
+  const execute: TurnPorts["execute"] = async act => {
+    await Promise.resolve();
+    if (act.act === "plan") plans++;
+    return { status: "accepted", id: `a-${act.act}-${plans}` };
+  };
+  const plan = { act: "plan", target: "j1", input: { steps: [{ id: "uno", text: "Anotar" }] } };
+  const later = { ...wait, input: { what: "Espero", until: 9 } };
+  const f = fixture([answer([plan]), answer([plan]), answer([later])]);
+  expect(await runMindTurn({ ...f.ports, execute, read: changing }, wake)).toMatchObject({ outcome: "done", calls: 3 });
+  expect(plans).toBe(1);
+  expect(f.events.flatMap(event => (event.kind === "mind-answer-invalid" ? [event.data.faults] : []))).toEqual([
+    [{ code: "menu", path: "/acts/0" }],
+  ]);
+});
+it("a consciousness hears its applied acts with a refused kit, without the journey's closing words", async () => {
+  const consciousness: TurnWake = { ...wake, scope: { kind: "consciousness", actor: "assistant:franco" } };
+  const open = { act: "open", target: "assistant:franco", input: { goal: "Anotar", kit: [] } };
+  const f = fixture([answer([say, open]), answer([say])]);
+  let count = 0;
+  const execute: TurnPorts["execute"] = async act => {
+    await Promise.resolve();
+    if (act.act === "open") throw new JourneyKitRefused([{ tool: "notas", acts: ["personal/add"] }]);
+    return { status: "accepted", id: `a${++count}` };
+  };
+  const talk: MindMenu[number] = {
+    tool: "chat",
+    act: "say",
+    target: "chat",
+    input: Type.Object({ text: Type.String() }),
+    scope: "communication",
+  };
+  const opening: MindMenu[number] = {
+    tool: "journey",
+    act: "open",
+    target: "assistant:franco",
+    input: Type.Object({
+      goal: Type.String(),
+      kit: Type.Array(Type.Object({ tool: Type.String(), acts: Type.Array(Type.String()) })),
+    }),
+    scope: "open",
+  };
+  const reading: TurnPorts["read"] = () => ({ ...read(wake.scope), menu: [talk, opening] });
+  expect(await runMindTurn({ ...f.ports, execute, read: reading }, consciousness)).toMatchObject({
+    outcome: "done",
+    calls: 2,
+  });
+  const told = f.model.mock.calls[1]?.[0].exchanges?.[0]?.told ?? "";
+  expect(told).toContain("1. say → chat: aceptado.");
+  expect(told).toContain("2. open → assistant:franco: rechazado: El kit del journey sale de tu kit");
+  expect(told).not.toContain("El turno sigue");
 });
