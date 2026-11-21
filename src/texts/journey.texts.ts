@@ -23,7 +23,7 @@ export const journeyControlPurpose = defineMessage({
         open: "Abrir un journey con un objetivo y las acciones que necesita.",
         plan: "Anotar el plan inicial del journey con un identificador por paso.",
         done: "Marcar un paso pendiente como terminado y anotar qué quedó hecho.",
-        wait: "Esperar hasta until, o con on: notice hasta el aviso de un trabajo anunciante (until opcional).",
+        wait: "Poner el journey en espera hasta until, o con on: notice hasta el aviso de su trabajo anunciante.",
         resume: "Retomar ahora uno de tus journeys abiertos, con una nota de qué tiene que atender.",
         end: "Terminar el journey y devolver su resumen y referencias.",
         desist: "Desistir del journey y devolver el motivo y las referencias.",
