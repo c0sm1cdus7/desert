@@ -137,7 +137,7 @@ it("does not attend a stale reminder while rendering after removal", () => {
     const ports = rig.ports("dora", () => 5000);
     const stale = {
       ...ports,
-      state: () => ({ ...ports.state(), attention: new Map([["sales", { delay: 1, wake: "old" }]]) }),
+      state: () => ({ ...ports.state(), attention: new Map([["sales", { since: "old" }]]) }),
     };
     const before = rig.facts().length;
     houseTools(stale, shopShown)

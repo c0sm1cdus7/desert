@@ -78,8 +78,8 @@ it("8: rejects excess, blank identity keys and another author's scene before a s
   expect(rig.state().house.scenes.get("ana")?.data).toEqual(boundary);
 });
 
-it("bumps the base fold version for durable OAuth codes and prior core migrations", () => {
-  expect(baseProjectionVersion).toBe("desert/15");
+it("bumps the base fold version for the calls without reminders, durable OAuth codes and prior core migrations", () => {
+  expect(baseProjectionVersion).toBe("desert/16");
 });
 
 it("A6: the scene schema bounds recipient names independently of current membership", () => {

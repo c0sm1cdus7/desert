@@ -89,7 +89,8 @@ export const houseCatalog = {
   "act-done": object({ object: name, act: name, text }),
   attended: object({ target: name }),
   unattended: object({ target: name }),
-  attention: object({ tool: name, delay: Type.Union([wholeNumber, Type.Null()]) }),
+  /** A tool calls an identity, or with `null` stops; a number is a reminder's delay from before 21/11. */
+  attention: object({ tool: name, delay: Type.Optional(Type.Union([wholeNumber, Type.Null()])) }),
   stimulus: object({ tool: name }),
   "wake-at": object({ id: name, at: Type.Union([wholeNumber, Type.Null()]) }),
   woke: object({ id: name }),

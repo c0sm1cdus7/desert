@@ -1,11 +1,11 @@
-// Time for the house: reminder delays, redraw interval and case instant; folds wake-ups and arms the next one.
-export const toolReminderLadder = { firstMs: 60_000, maxMs: 3_600_000, multiplier: 2 } as const;
+// Time for the house: redraw interval and case instant; folds wake-ups and arms the next one.
 const maxTimerDelayMs = 2_147_483_647;
 /** How often a screen that shows time passing is drawn again. */
 export const redrawMs = 400;
 /** Every case of a program happens at this one instant, so what it promises to read does not depend on the day. */
 export const caseInstant = Date.UTC(2026, 0, 15, 15, 0);
 import { effect } from "../house/facts.ts";
+import { ids } from "../house/ids.ts";
 import type { Event, HouseBus } from "./vocabulary.ts";
 export const systemTime: TimeSource = {
   now: () => Date.now(),
@@ -19,6 +19,8 @@ export type TimeSource = { now(): number; wait(at: number, fire: () => void): ()
 export type Deadlines = ReadonlyMap<string, { readonly at: number; readonly cause: string; readonly seq: number }>;
 export function clockStep(state: Deadlines, event: Event): Deadlines {
   if (event.layer !== "house" || (event.kind !== "wake-at" && event.kind !== "woke")) return state;
+  // The reminders towards people left on 21/11: one armed before then arms nothing and writes no `woke`.
+  if (event.data.id.startsWith(ids.attention)) return state;
   const next = new Map(state);
   if (event.kind === "wake-at" && event.data.at !== null) {
     next.set(event.data.id, { at: event.data.at, cause: event.id, seq: event.seq });

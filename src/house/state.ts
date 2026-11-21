@@ -77,7 +77,7 @@ function houseStateStep<S extends HouseState>(state: S, event: Event): S {
   const attentionBy = new Map(state.attentionBy);
   if (event.layer === "house" && (event.kind === "attended" || event.kind === "unattended"))
     attendance.set(process, attendsStep(attendance.get(process) ?? [], event));
-  if (event.layer === "house" && (event.kind === "attention" || event.kind === "wake-at"))
+  if (event.layer === "house" && event.kind === "attention")
     attentionBy.set(event.by, attentionStep(attentionBy.get(event.by) ?? new Map(), event));
   const entry = event.layer === "house" && event.kind === "tool-entry" ? [event] : [];
   return {

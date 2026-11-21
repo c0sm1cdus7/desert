@@ -1,4 +1,4 @@
-// Attention is a tool-wide stimulus with a perpetual, replayable ladder, the same for every identity of the house.
+// Attention is a tool-wide call made once per entry, the same for every identity of the house, and no clock repeats it.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { identityView } from "../house/members.ts";
 import { effect } from "../house/facts.ts";
@@ -23,19 +23,14 @@ const notices = () => rig.facts().filter(event => event.kind === "stimulus" && e
 const ana = () => identityView(rig.state(), "ana");
 
 describe("tool attention", () => {
-  it("stimulates immediately and repeats at 1, 2, 4, 8, 16, 32, 60, 60 minutes without stopping", () => {
+  it("calls once when the entry is written and never again by the clock (21/11)", () => {
     expect(sell().status).toBe("accepted");
     expect(notices()).toHaveLength(1);
     expect(ana().attention.has("sales")).toBe(true);
-    let count = 1;
-    for (const minutes of [1, 2, 4, 8, 16, 32, 60, 60, 60]) {
-      vi.advanceTimersByTime(minutes * 60_000 - 1);
-      expect(notices()).toHaveLength(count);
-      vi.advanceTimersByTime(1);
-      count += 1;
-      expect(notices()).toHaveLength(count);
-    }
-    expect(ana().attention.get("sales")?.delay).toBe(3_600_000);
+    expect(rig.facts().filter(event => event.kind === "wake-at")).toEqual([]);
+    vi.advanceTimersByTime(48 * 3_600_000);
+    expect(notices()).toHaveLength(1);
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("calls only whoever did not write the entry, and only if the tool is theirs", () => {
@@ -50,13 +45,13 @@ describe("tool attention", () => {
     }
   });
 
-  it("clears the whole tool on attending it and stops its ladder", () => {
+  it("clears the whole tool on attending it", () => {
     sell();
     vi.advanceTimersByTime(60_000);
     rig.attend("ana", "sales/s1");
     expect(ana().attention.size).toBe(0);
     vi.advanceTimersByTime(8 * 3_600_000);
-    expect(notices()).toHaveLength(2);
+    expect(notices()).toHaveLength(1);
     expect(vi.getTimerCount()).toBe(0);
   });
 
@@ -71,45 +66,39 @@ describe("tool attention", () => {
     expect(ana().attention.has("sales")).toBe(true);
   });
 
-  it("does not reset the existing ladder when another entry arrives", () => {
-    sell();
-    vi.advanceTimersByTime(30_000);
+  it("tells every new entry while it calls, without a second call", () => {
+    const first = sell();
     sell();
     expect(notices()).toHaveLength(2);
-    vi.advanceTimersByTime(30_000);
-    expect(notices()).toHaveLength(3);
-    expect(ana().attention.get("sales")?.delay).toBe(120_000);
+    expect(rig.facts().filter(event => event.kind === "attention" && event.by === "ana")).toHaveLength(1);
+    expect(ana().attention.get("sales")?.since).toBeDefined();
+    expect(first.status).toBe("accepted");
   });
 
-  it("restores attention, the remaining deadline and attended targets without replaying notices", () => {
+  it("restores attention and attended targets without replaying notices", () => {
     sell();
-    vi.advanceTimersByTime(90_000);
     const before = rig.state();
     const facts = rig.facts();
     rig.restart();
     expect(rig.state()).toEqual(before);
     expect(identityView(rig.state(), "beto").attends).toEqual(["sales"]);
-    expect(rig.facts()).toEqual(facts);
-    vi.advanceTimersByTime(89_999);
-    expect(rig.facts()).toEqual(facts);
-    vi.advanceTimersByTime(1);
-    expect(notices()).toHaveLength(3);
-    rig.attend("ana", "sales");
-    rig.restart();
     vi.advanceTimersByTime(3_600_000);
-    expect(notices()).toHaveLength(3);
-    expect(ana().attention.size).toBe(0);
+    expect(rig.facts()).toEqual(facts);
   });
 
-  it("ignores an obsolete wake after attention has been cleared and required again", () => {
-    sell();
-    const old = rig.facts().find(event => event.kind === "wake-at");
+  it("a reminder armed before 21/11 re-arms nothing: no timer, no woke, no notice, and the call still ends", () => {
+    const id = 'attention:["ana","sales"]';
+    const old = rig.bus.emit(effect("attention", { tool: "sales", delay: 60_000 }, "ana"));
+    rig.bus.emit(effect("wake-at", { id, at: 60_000 }, "ana", [old.id]));
+    expect(ana().attention.has("sales")).toBe(true);
+    rig.restart();
+    vi.advanceTimersByTime(8 * 3_600_000);
+    expect(rig.facts().filter(event => event.kind === "woke")).toEqual([]);
+    rig.bus.emit(effect("woke", { id }, "clock", [old.id]));
+    expect(notices()).toHaveLength(0);
+    expect(rig.facts().filter(event => event.kind === "wake-at")).toHaveLength(1);
     rig.attend("ana", "sales");
-    rig.act("ana", "unattend", { target: "sales" });
-    sell();
-    const count = notices().length;
-    rig.bus.emit(effect("woke", { id: old?.kind === "wake-at" ? old.data.id : "" }, "clock", [old?.id ?? ""]));
-    expect(notices()).toHaveLength(count);
+    expect(ana().attention.size).toBe(0);
   });
 
   it("calls nobody for an entry written only for the record", () => {

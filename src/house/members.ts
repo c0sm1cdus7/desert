@@ -48,7 +48,8 @@ export type House = Readonly<{
   Readonly<{ kits: ReadonlyMap<string, ReadonlyMap<string, readonly string[] | null>> }> &
   Readonly<{ scenes: ReadonlyMap<string, HouseEvent<"scene">> }> &
   Readonly<{ names: ReadonlyMap<string, string>; removed: ReadonlySet<string> }>;
-export type Attention = Readonly<{ delay: number; wake: string }>;
+/** A tool calls an identity since this fact, until the identity attends it or stops holding it. */
+export type Attention = Readonly<{ since: string }>;
 /** What a house knows of each identity: what it keeps in view, what asks for its attention, what it may read. */
 export type HouseView = Readonly<{ by: string; house: House; entries: readonly HouseEvent<"tool-entry">[] }> &
   Readonly<{ attends: readonly string[]; attendance: ReadonlyMap<string, readonly string[]> }> &

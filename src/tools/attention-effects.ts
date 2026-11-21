@@ -1,17 +1,16 @@
-// Reminders follow the actions a person can actually perform.
-import { toolReminderLadder } from "../journal/clock.ts";
+// A new entry calls whoever holds its tool once, when it is written; nothing reminds anybody by the clock.
 import { holdsAny } from "../house/kit.ts";
 import { houseStep } from "../house/members.ts";
 import { effect, type HouseEmission } from "../house/facts.ts";
 import type { Event } from "../journal/vocabulary.ts";
 import { targetTool } from "../house/attendance.ts";
 import type { Program, State, ToolRegistry } from "./tool-contract.ts";
-import { reminderId } from "../house/attention.ts";
-const reminder = (by: string, tool: string, delay: number | null, event: Event): HouseEmission[] => [
-  effect("attention", { tool, delay }, by, [event.id]),
-  effect("wake-at", { id: reminderId(by, tool), at: delay === null ? null : event.at + delay }, by, [event.id]),
-];
-/** A new entry on a tool: who it calls, and whether it starts that identity's reminders. */
+/** The tool starts calling this identity, or (with `null`) stops: one fact, no wake and no ladder (21/11). */
+const calling = (by: string, tool: string, event: Event): HouseEmission =>
+  effect("attention", { tool }, by, [event.id]);
+const stopping = (by: string, tool: string, event: Event): HouseEmission =>
+  effect("attention", { tool, delay: null }, by, [event.id]);
+/** A new entry on a tool: who it calls, and whether that identity starts being called. */
 function entryEffects<X extends Program>(
   state: State<X>,
   registry: ToolRegistry<X>,
@@ -28,7 +27,7 @@ function entryEffects<X extends Program>(
   const stimulus = effect("stimulus", { tool }, state.by, [event.id]);
   if (state.attends.some(target => targetTool(registry, state, target)?.id === tool) || state.attention.has(tool))
     return [stimulus];
-  return [...reminder(state.by, tool, toolReminderLadder.firstMs, event), stimulus];
+  return [calling(state.by, tool, event), stimulus];
 }
 export function attentionEffects<X extends Program>(
   state: State<X>,
@@ -38,7 +37,7 @@ export function attentionEffects<X extends Program>(
   if (event.layer !== "house") return [];
   if (event.kind === "attended" && event.by === state.by && !event.process) {
     const tool = targetTool(registry, state, event.data.target);
-    return tool && state.attention.has(tool.id) ? reminder(state.by, tool.id, null, event) : [];
+    return tool && state.attention.has(tool.id) ? [stopping(state.by, tool.id, event)] : [];
   }
   if (
     (event.kind === "granted" || event.kind === "kit-set" || event.kind === "removed") &&
@@ -52,14 +51,8 @@ export function attentionEffects<X extends Program>(
         Object.keys(registry.find(item => item.id === tool)?.acts ?? {}),
       )
         ? []
-        : reminder(state.by, tool, null, event),
+        : [stopping(state.by, tool, event)],
     );
-  if (event.kind === "tool-entry") return entryEffects(state, registry, event);
-  if (event.kind !== "woke") return [];
-  const current = [...state.attention].find(([tool]) => reminderId(state.by, tool) === event.data.id);
-  if (!current) return [];
-  const [tool, attention] = current;
-  if (!event.cause.includes(attention.wake)) return [];
-  const delay = Math.min(attention.delay * toolReminderLadder.multiplier, toolReminderLadder.maxMs);
-  return [...reminder(state.by, tool, delay, event), effect("stimulus", { tool }, state.by, [event.id])];
+  // A reminder armed before 21/11 fires nothing here: the clock no longer arms it, and a `woke` re-arms nothing.
+  return event.kind === "tool-entry" ? entryEffects(state, registry, event) : [];
 }
