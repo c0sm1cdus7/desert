@@ -2177,6 +2177,10 @@ fila de su lista o un dato de la lectura de una cosa. Si la cosa es de otra herr
 con `tool`: `{ id: "1", text: "Tornillo", tool: "items" }`. La base la abre con su número. Así no se nombra una cosa
 de otro programa.
 
+Una necesidad (`needs`) de una herramienta nombra una de sus cosas o, con el nombre de la herramienta, la herramienta
+misma: `{ target: "orders", why: "sin pedidos" }`. Esa aparece en Atención con el nombre de la herramienta y abre su
+carpeta.
+
 Quien no tiene un programa puede abrir y leer sus objetos. Las acciones de cada objeto siguen visibles,
 apagadas con el motivo del kit, aunque además exijan ser su autora. Quien tiene la acción ve el motivo de
 autoría cuando corresponde. La preferencia de esconder lo ajeno retira el programa del Menú; al desactivarla

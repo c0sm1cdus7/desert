@@ -4,6 +4,7 @@ import { programChecks } from "../../checks/program-checks.ts";
 import { goTo, seated, type, view, type Seat } from "../../checks/promises/promised-keys.ts";
 import { cast, perform, staged, type House } from "../../checks/promises/promised-stage.ts";
 import { stacksOf } from "../../surface/menus/lists.ts";
+import { surfaceTexts as surface } from "../../texts/surface.texts.ts";
 import type { Composition } from "../promises-contract.ts";
 import { folderOf, objectOf } from "./destinations.ts";
 
@@ -127,6 +128,32 @@ describe("things named across the tools of one program", () => {
         expect(rowsAt(seat, item).find(each => each.title === "Nombre")).toMatchObject({ detail: "Tornillo" });
         const back = rowsAt(seat, item).find(each => each.title === said.order("1"));
         expect(back).toMatchObject({ opens: thingOf("orders", "1"), key: "1" });
+        expect(seat.defects).toEqual([]);
+      } finally {
+        seat.router.stop();
+      }
+    }));
+});
+describe("what a tool itself needs", () => {
+  it("lists a need on the folder of a tool in Attention, on a row that opens the tool", () =>
+    staged(program, async ({ house }) => {
+      const seat = seated(house(), cast.admin, shown);
+      const needs = (tool?: string) =>
+        stacksOf(tool === undefined ? { kind: "menu", at: 0 } : { kind: "view", tool, at: 0 }, seat.tools)
+          .find(stack => stack.title === surface.attentionList)
+          ?.rows.filter(row => row.open?.kind === "view" && row.open.tool === "picking");
+      try {
+        const row = { title: "Pedidos", detail: said.pending, opens: folder("orders") };
+        const open = { kind: "view", tool: "picking", target: folder("orders") };
+        expect(needs()).toMatchObject([{ ...row, open }]);
+        expect(needs("picking")).toMatchObject([{ ...row, open }]);
+        type(seat.router, needs()?.[0]?.key ?? "");
+        expect(seat.router.screen(view).title).toBe("Pedidos");
+        expect(rowsAt(seat, folder("orders")).some(each => each.starts?.act === "orders/take")).toBe(true);
+        await stock(house(), "Tornillo");
+        const input = { main: "1", extras: [{ note: "Arandela" }] };
+        await accepted(house(), { act: "orders/take", on: folder("orders"), input });
+        expect([needs(), needs("picking")]).toEqual([[], []]);
         expect(seat.defects).toEqual([]);
       } finally {
         seat.router.stop();

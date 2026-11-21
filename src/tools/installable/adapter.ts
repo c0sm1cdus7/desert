@@ -2,7 +2,7 @@
 import { toolTexts } from "../../texts/tools.texts.ts";
 import { vocabulary } from "../../journal/vocabulary.ts";
 import { localState, type InstalledGroup, type InstalledProgram } from "./runtime.ts";
-import { adaptAction } from "./actions.ts";
+import { adaptAction, targetOf } from "./actions.ts";
 import { folderOf, objectOf, localTarget } from "./destinations.ts";
 import type { ProgramMetadata, ProgramBody, LocalProgram, ProgramGroup } from "./program.ts";
 import type { Program, State } from "../tool-contract.ts";
@@ -33,8 +33,9 @@ function groupTool<X extends Program>(id: string, name: string, group: ProgramGr
     ...(group.words ? { words: (s, t) => group.words?.(stateOf(s), target(t)) ?? "" } : {}),
     ...(group.needs
       ? {
+          /** What needs someone is a thing of the tool, or the tool itself: then it leads to the tool's folder. */
           needs: (s, at) =>
-            (group.needs?.(stateOf(s), at) ?? []).map(need => ({ ...need, target: objectOf(id, name, need.target) })),
+            (group.needs?.(stateOf(s), at) ?? []).map(need => ({ ...need, target: targetOf(id, name, need.target) })),
         }
       : {}),
     ...(group.draft ? { draft: (s, through, i, t, at) => group.draft?.(stateOf(s), through, i, target(t), at) } : {}),

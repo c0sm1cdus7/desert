@@ -31,6 +31,7 @@ type Picking = LocalProgram<typeof definition & { codigo: readonly [string] }>;
 export const pickingWords = {
   unknown: "cosa inexistente",
   empty: "sin cosas",
+  pending: "sin pedidos",
   none: "Ninguno",
   byHand: "A mano",
   main: "Cosa",
@@ -181,6 +182,8 @@ const orders: ProgramGroup<Picking> = {
     presents: [{ title: "Pedido", empty: "Sin datos", reads: { main: "Cosa", spare: "Repuesto", extras: "Extra" } }],
   },
   acts: { take },
+  /** What needs someone is the tool itself, not one of its things: nobody took an order yet. */
+  needs: state => (state.tools.own.orders.length ? [] : [{ target: "orders", why: said.pending }]),
   targets: state => state.tools.own.orders.map(each => each.id),
   view: (state, target) =>
     target === "orders"

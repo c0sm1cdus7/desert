@@ -7,7 +7,8 @@ import { adaptReject, mapResult } from "./action-results.ts";
 import { folderOf, localTarget, objectOf } from "./destinations.ts";
 import type { ProgramGroup } from "./program.ts";
 import { localState } from "./runtime.ts";
-const targetOf = (id: string, group: string, target?: string) =>
+/** What a program calls by its tool's own name is the tool's folder; anything else it names is one of its things. */
+export const targetOf = (id: string, group: string, target?: string) =>
   target === undefined || target === group ? folderOf(id, group) : objectOf(id, group, target);
 /** A step is an act of the case's own tool unless it names another tool of the same program: never of another. */
 function didOf(id: string, group: string, { tool = group, ...did }: Did): Did {
