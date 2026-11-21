@@ -114,17 +114,16 @@ function closed(house: RequestHouse, goal: string) {
     effect("journey-closed", { outcome: "done", summary: "Hecho", references: [] }, "mind:notes", [], process),
   );
 }
-it("wakes for a closing a restart left pending, never for one in a run that had no supervisor", async () => {
+const quiet = { scene: "Ready", consulta: null, acts: [] };
+it("never wakes for a closing in a run that had no supervisor, once its card is back", async () => {
   const f = fixture();
   const judge = supervisor(() => ({ outcome: "passed", text: "Sí" }));
-  f.respond(frame => (supervising(frame) ? judge(frame) : { scene: "Ready", consulta: null, acts: [] }));
+  f.respond(frame => (supervising(frame) ? judge(frame) : quiet));
   const first = await f.open();
   closed(first, "Uno");
+  await (await first.minds)?.flush();
   first.close();
-  expect(moments(framesOf(f))).toEqual([]);
-  (await f.open()).close();
   expect(moments(framesOf(f))).toEqual(["turn"]);
-  expect(framesOf(f).find(supervising)).toContain("terminó el journey «Uno»");
   f.reopenWith({ capNanoUsd: 10e9 });
   const alone = await f.open();
   closed(alone, "Dos");
@@ -134,11 +133,24 @@ it("wakes for a closing a restart left pending, never for one in a run that had 
   const back = await f.open();
   await (await back.minds)?.flush();
   expect(moments(framesOf(f))).toEqual(["turn"]);
+  expect(framesOf(f).filter(supervising).join("\n")).not.toContain("«Dos»");
   expect(
     history(back)
       .filter(event => event.kind === "boot")
       .map(event => event.data),
-  ).toEqual([{ supervised: true }, { supervised: true }, {}, { supervised: true }]);
+  ).toEqual([{ supervised: true }, {}, { supervised: true }]);
+}, 60000);
+it("wakes for a closing a restart left pending while it had its card on both sides", async () => {
+  const f = fixture();
+  const judge = supervisor(() => ({ outcome: "passed", text: "Sí" }));
+  f.respond(frame => (supervising(frame) ? judge(frame) : quiet));
+  const first = await f.open();
+  closed(first, "Uno");
+  first.close();
+  expect(moments(framesOf(f))).toEqual([]);
+  (await f.open()).close();
+  expect(moments(framesOf(f))).toEqual(["turn"]);
+  expect(framesOf(f).find(supervising)).toContain("terminó el journey «Uno»");
 }, 60000);
 it("reads every mind with its journeys and speaks through the talk program, and acts on no program", async () => {
   const f = fixture();
