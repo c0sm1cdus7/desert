@@ -74,26 +74,23 @@ it("un journey queda frenado; cambiar la regla lo despierta sin repetir la acciÃ
     "accepted",
   );
   let calls = 0;
+  const journeyTurn = () =>
+    [...house.tools.state().house.minds.turns.values()].find(turn => !turn.closed)?.opened.process;
   f.respond(() => {
     calls++;
-    return {
-      scene: "Trabajo pendiente",
-      consulta: null,
-      acts:
-        calls === 1
-          ? [
-              {
-                act: "open",
-                target: "mind:notas",
-                input: { goal: "Anotar", kit: [{ tool: "notas", acts: ["personal/add"] }] },
-              },
-            ]
-          : [{ act: "personal/add", target: "notas/personal", input: {} }],
+    const open = {
+      act: "open",
+      target: "mind:notas",
+      input: { goal: "Anotar", kit: [{ tool: "notas", acts: ["personal/add"] }] },
     };
+    const opening = calls === 1 ? [open] : [];
+    const acts = journeyTurn() ? [{ act: "personal/add", target: "notas/personal", input: {} }] : opening;
+    return { scene: "Trabajo pendiente", consulta: null, acts };
   });
   f.wake(house);
   await (await house.minds)?.flush();
-  expect(calls).toBe(2);
+  // The rule stops the journey's act and its turn fails; its consciousness wakes once to hear it, and nothing retries.
+  expect(calls).toBe(3);
   expect(house.tools.state().tools.notas.count).toBe(1);
   expect(
     house.journal.replay<boolean>(
@@ -107,12 +104,15 @@ it("un journey queda frenado; cambiar la regla lo despierta sin repetir la acciÃ
   ).toBe(true);
   f.respond(() => {
     calls++;
-    return { scene: "Vi el cambio; decido despuÃ©s", consulta: null, acts: [] };
+    const journey = journeyTurn() ?? "";
+    const until = Date.now() + 3_600_000;
+    const wait = { act: "wait", target: journey, input: { what: "Vi el cambio; decido despuÃ©s", until } };
+    return { scene: "Vi el cambio; decido despuÃ©s", consulta: null, acts: [wait] };
   });
   const change = { ...definition, condition: { operator: "actor", kind: "identity" } };
   await settle(house.tools.act({ act: "save", target: "rules", input: change }, 0, "ana"));
   await (await house.minds)?.flush();
-  expect(calls).toBe(3);
+  expect(calls).toBe(4);
   expect(house.tools.state().tools.notas.count).toBe(1);
 });
 it("una mente tampoco saltea el control al escribir una escena", async () => {

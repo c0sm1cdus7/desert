@@ -29,8 +29,7 @@ export function runtimeFrame<X extends Program>(
     const definition = definitionOf(options, house.execution.state().house, scope.actor);
     requireMind(definition, "runtime.definition");
     const view = runtimeView(house, options, switches, scope, definition);
-    const source = { options, definition, history: house.history() };
-    const snapshot = snapshotFor(view, scope, turn, source, thread(scope).entries, house.time.now());
+    const snapshot = snapshotFor(view, scope, turn, { options, definition, house }, thread(scope).entries);
     return { view, fitted: fitFrame(snapshot, turn, view.menu, model, options.maxInputTokens) };
   };
   return {
@@ -76,13 +75,12 @@ function snapshotFor<X extends Program>(
   {
     options,
     definition,
-    history,
-  }: Readonly<{ options: MindRuntimeOptions; definition: MindDefinition; history: readonly Event[] }>,
+    house,
+  }: Readonly<{ options: MindRuntimeOptions; definition: MindDefinition; house: MindRuntimeHouse<X> }>,
   thread: FrameSnapshot["thread"],
-  now: number,
 ) {
   const current = view.state.house.minds.turns.get(turn.id);
-  const woke = wakeWords(history, view.state.house.journeys, turn.wake, turn.language);
+  const woke = wakeWords(house.history(), view.state.house.journeys, turn.wake, turn.language);
   const scene = view.state.house.minds.scenes.get(scope.process ?? scope.actor)?.data.text ?? "";
   // A consciousness sees the goals of its open journeys, to go back to one or desist from it by its id.
   const open = [...view.state.house.journeys.values()].filter(each => each.by === scope.actor && !each.closed);
@@ -104,7 +102,7 @@ function snapshotFor<X extends Program>(
     activity: view.activity,
     objects: view.objects,
     thread,
-    now,
+    now: house.time.now(),
     ...(woke ? { woke } : {}),
   });
 }
