@@ -10,6 +10,7 @@ import { executionDestination } from "../fields/device-protocol.ts";
 import { selectionKitSchema } from "./kit-selection.ts";
 import { name, preference, scene, t, toolLimits } from "./own-acts.ts";
 import { wholeNumber } from "../fields/json-values.ts";
+import { ids } from "./ids.ts";
 import { Type } from "@sinclair/typebox";
 import { object } from "../fields/visible-text.ts";
 import type { Facts, Position, Catalog, Layer } from "../journal/vocabulary.ts";
@@ -97,6 +98,8 @@ export const houseCatalog = {
   ...mindHouseCatalog,
   ...ruleFacts,
 };
+/** A wake that names a reminder towards a person: before 21/11 the house repeated its call by the clock. */
+export const reminderWake = (id: string): boolean => id.startsWith(ids.attention);
 /** Only version two may cross the writer boundary; the reader retains both shapes. */
 export const currentHouseCatalog = {
   ...houseCatalog,

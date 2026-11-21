@@ -94,6 +94,30 @@
         "src/checks/laws/gate.ts": "Literal script contracts and lint diagnostics are inspected by the gate, not addressed to a person or model."
       },
       "exemptRules": {
+        "src/house/rules/rule-schema.ts": {
+          "reason": "The «always» condition is a rule's data value (21/11): it marks an act for supervision, it is no hidden rule.",
+          "texts": [
+            "always"
+          ]
+        },
+        "src/house/rules/rule-predicate.ts": {
+          "reason": "Validates and evaluates the «always» condition value of a rule.",
+          "texts": [
+            "always"
+          ]
+        },
+        "src/tools/rules/rule-display.ts": {
+          "reason": "Labels the «always» condition value in the rules view.",
+          "texts": [
+            "always"
+          ]
+        },
+        "src/texts/rules.texts.ts": {
+          "reason": "The label a person reads for the «always» condition in the rules form and view.",
+          "texts": [
+            "Siempre"
+          ]
+        },
         "src/checks/laws/gate.ts": {
           "reason": "The exact assertionStyle enum enforces the ban on unsafe assertions.",
           "texts": [

@@ -4,8 +4,7 @@ const maxTimerDelayMs = 2_147_483_647;
 export const redrawMs = 400;
 /** Every case of a program happens at this one instant, so what it promises to read does not depend on the day. */
 export const caseInstant = Date.UTC(2026, 0, 15, 15, 0);
-import { effect } from "../house/facts.ts";
-import { ids } from "../house/ids.ts";
+import { effect, reminderWake } from "../house/facts.ts";
 import type { Event, HouseBus } from "./vocabulary.ts";
 export const systemTime: TimeSource = {
   now: () => Date.now(),
@@ -20,7 +19,7 @@ export type Deadlines = ReadonlyMap<string, { readonly at: number; readonly caus
 export function clockStep(state: Deadlines, event: Event): Deadlines {
   if (event.layer !== "house" || (event.kind !== "wake-at" && event.kind !== "woke")) return state;
   // The reminders towards people left on 21/11: one armed before then arms nothing and writes no `woke`.
-  if (event.data.id.startsWith(ids.attention)) return state;
+  if (reminderWake(event.data.id)) return state;
   const next = new Map(state);
   if (event.kind === "wake-at" && event.data.at !== null) {
     next.set(event.data.id, { at: event.data.at, cause: event.id, seq: event.seq });
