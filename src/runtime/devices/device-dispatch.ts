@@ -18,6 +18,7 @@ import { deviceTexts } from "../../texts/devices.texts.ts";
 export type HeldNotice = Readonly<{
   notice: HouseEvent<"device-execution-notice">["data"];
   later: (answer: NoticeAnswer) => void;
+  written: () => void;
 }>;
 export type DeviceConnection = Readonly<{
   id: string;

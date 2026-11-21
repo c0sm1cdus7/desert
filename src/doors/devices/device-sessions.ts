@@ -21,7 +21,7 @@ type Call = {
 };
 /** Sees each valid receipt before the house does; its failure never changes the receipt. */
 export type Observer = (device: string, request: DeviceRequest, result: DeviceResult) => void;
-/** Sees a notice with its value once the house recorded it; never a held or refused one, whose value nobody vouches. */
+/** Sees a notice with its value once, when the house writes it; never a held or refused one, nor a repeat. */
 export type NoticeObserver = (device: string, notice: DeviceNotice) => void;
 const digest = (token: string) => createHash("sha256").update(token).digest("base64url");
 export class RemoteDeviceSession {
@@ -56,20 +56,27 @@ export class RemoteDeviceSession {
     const connection = this.connection;
     if (this.ended || !connection) throw new Error(deviceTexts.unavailable);
     for (const notice of notices) {
-      const answer = connection.announce(notice, later => this.answer(notice, later));
+      const answer = connection.announce(
+        notice,
+        later => {
+          // A held notice's answer goes out with whichever poll is waiting; the one that brought it already left.
+          this.answer(notice, later);
+          this.waiting?.();
+        },
+        () => this.heard(notice),
+      );
       if (answer !== "held") this.answer(notice, answer);
     }
   }
   private answer(notice: DeviceNotice, answer: NoticeAnswer) {
-    if (this.ended) return;
-    this.answers.set(notice.execution, answer);
-    if (answer === "recorded")
-      try {
-        this.hear?.(this.device, notice);
-      } catch {
-        /* An observer is a host's view of the work; the house already recorded the notice. */
-      }
-    this.waiting?.();
+    if (!this.ended) this.answers.set(notice.execution, answer);
+  }
+  private heard(notice: DeviceNotice) {
+    try {
+      this.hear?.(this.device, notice);
+    } catch {
+      /* An observer is a host's view of the work; the house already recorded the notice. */
+    }
   }
   /** Whether a poll has answers to carry, so it does not wait. */
   answering() {

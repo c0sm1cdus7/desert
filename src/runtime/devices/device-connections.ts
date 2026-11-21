@@ -33,9 +33,9 @@ function connectionState(bus: HouseBus, state: () => House, host: string) {
   return { connections, disconnect, stop };
 }
 function link(ports: NoticePorts, live: () => boolean, device: string, current: DeviceConnection) {
-  return (notice: unknown, later: (answer: NoticeAnswer) => void) => {
+  return (notice: unknown, later: (answer: NoticeAnswer) => void, written: () => void = () => {}) => {
     if (!live()) throw new Error(deviceTexts.unavailable);
-    return announceNotice(ports, device, current, notice, later);
+    return announceNotice(ports, device, current, notice, later, written);
   };
 }
 type Live = ReturnType<typeof connectionState>;

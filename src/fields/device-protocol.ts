@@ -87,10 +87,15 @@ export type DeviceEndpoint = Readonly<{
 }>;
 /** What connecting a device returns. `announce` answers at once, or holds a notice whose execution still awaits its
  * start result and tells `later` once that result is written; a disconnect drops what is held without an answer. It
- * throws while the house cannot record, so the device keeps the notice. */
+ * throws while the house cannot record, so the device keeps the notice. `written` hears the one call, now or later,
+ * that wrote the fact; a repeat answers "recorded" without it. */
 export type DeviceLink = Readonly<{
   disconnect: () => void;
-  announce: (notice: DeviceNotice, later: (answer: NoticeAnswer) => void) => NoticeAnswer | "held";
+  announce: (
+    notice: DeviceNotice,
+    later: (answer: NoticeAnswer) => void,
+    written?: () => void,
+  ) => NoticeAnswer | "held";
 }>;
 
 export const supportsDeviceAction = (

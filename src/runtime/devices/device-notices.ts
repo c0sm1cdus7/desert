@@ -30,6 +30,7 @@ export function announceNotice(
   connection: DeviceConnection,
   notice: unknown,
   later: HeldNotice["later"],
+  written: HeldNotice["written"],
 ): NoticeAnswer | "held" {
   const house = ports.state();
   const owner = house.devices.devices.get(device);
@@ -42,11 +43,12 @@ export function announceNotice(
     return "refused";
   if (execution.notice) return "recorded";
   if (execution.status === "running") {
-    connection.held.set(execution.execution, { notice: safe, later });
+    connection.held.set(execution.execution, { notice: safe, later, written });
     return "held";
   }
   const { actor, journey } = execution;
   ports.bus.emit(effect("device-execution-notice", safe, actor, [execution.execution], journey));
+  written();
   return "recorded";
 }
 /** Once the start's result or unknown is written, a held notice is recorded (or refused, if the start was rejected). */
@@ -56,7 +58,7 @@ export function releaseNotice(ports: NoticePorts, device: string, connection: De
   connection.held.delete(execution);
   let answer: NoticeAnswer | "held";
   try {
-    answer = announceNotice(ports, device, connection, held.notice, held.later);
+    answer = announceNotice(ports, device, connection, held.notice, held.later, held.written);
   } catch {
     // Not answered: the device still owes it and sends it again with its next poll or connection.
     return;

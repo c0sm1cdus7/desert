@@ -61,7 +61,10 @@ it("holds a notice that came with its start's result, answers recorded once writ
   const after = await poll(h, token, { notices: [finished(id, { exit: 0 })] });
   expect(after.value.answered).toEqual([{ execution: id, answer: "recorded" }]);
   expect(notices(h)).toBe(1);
-  expect(seen).toEqual([{ exit: 0 }, { exit: 0 }]);
+  expect((await poll(h, token, { notices: [finished(id, { exit: 2 })] })).value.answered).toEqual([
+    { execution: id, answer: "recorded" },
+  ]);
+  expect(seen).toEqual([{ exit: 0 }]);
 });
 it("keeps a poll whose notices are all held waiting, and answers it when the start's result lands", async () => {
   const h = await deviceHttpHouse({ execution: announcing, pollMs: 10_000 });
