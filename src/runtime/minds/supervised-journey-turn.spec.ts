@@ -26,7 +26,7 @@ afterEach(() => {
   fixtures.splice(0).forEach(f => f.cleanup());
   vi.unstubAllGlobals();
 });
-it("a world act without a continuation is reviewed, applied and told back; the end that follows is reviewed", async () => {
+it("a world act without a continuation is reviewed, applied and told back; the end after it is reviewed", async () => {
   const f = supervisedFixture();
   fixtures.push(f);
   const house = await f.open();
