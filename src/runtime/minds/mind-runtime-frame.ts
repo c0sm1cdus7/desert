@@ -106,6 +106,8 @@ function snapshotFor<X extends Program>(
     ...(woke ? { woke } : {}),
   });
 }
+/** One part in this many of the input bound is kept for a journey turn's conversation after its frame. */
+const conversationShare = 4;
 function fitFrame<X extends Program>(
   snapshot: FrameSnapshot,
   turn: TurnContext,
@@ -114,13 +116,16 @@ function fitFrame<X extends Program>(
   max: number,
 ) {
   const assignment = model.card(turn.scope.actor);
+  // A journey's turn goes on after its frame: a quarter of the bound stays free for what its calls append, and the
+  // frame is measured as a journey sends it, with its conversation's cache mark.
+  const journey = turn.scope.kind === "journey";
   return fitMindFrame(snapshot, turn.language, {
-    max,
+    max: journey ? max - Math.floor(max / conversationShare) : max,
     bound: frame =>
       new TextEncoder().encode(
         JSON.stringify(
           assignment
-            ? diagnoseMindRequest(assignment.card, frame, answerSchema(menu))
+            ? diagnoseMindRequest(assignment.card, frame, answerSchema(menu), journey ? [] : undefined)
             : { frame, schema: answerSchema(menu) },
         ),
       ).length + providerMarginTokens,

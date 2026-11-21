@@ -13,8 +13,13 @@ export function mindRequest(
   const request = { card, maxOutputTokens: 16000, layers: frame.layers, changing: frame.changing, schema };
   return exchanges ? { ...request, exchanges } : request;
 }
-export function diagnoseMindRequest(card: Card, frame: MindFrame, schema: Record<string, unknown>) {
-  return requestBody(mindRequest(card, frame, schema));
+export function diagnoseMindRequest(
+  card: Card,
+  frame: MindFrame,
+  schema: Record<string, unknown>,
+  exchanges?: readonly TurnExchange[],
+) {
+  return requestBody(mindRequest(card, frame, schema, exchanges));
 }
 export function diagnoseFittedMindRequest(card: Card | undefined, fitted: FitResult, schema: Record<string, unknown>) {
   requireMind(card, "runtime.card");

@@ -1,5 +1,6 @@
 // A journey turn goes on until its last act says how; a cut wakes its consciousness, which resumes or desists.
 import { afterEach, expect, it } from "vitest";
+import { effect } from "../../house/facts.ts";
 import { programMindFixture } from "../../../tests/support/program-mind-fixture.ts";
 import {
   addAct,
@@ -106,4 +107,29 @@ it("the consciousness desists from a cut journey with its reason, and nothing el
   expect(turnsOf(house, journey?.id)).toHaveLength(1);
   // It woke for the cut, then once more when its journey closed: the closure is its own fact, as before.
   expect(seen.filter(each => !each.journey)).toHaveLength(3);
+});
+it("a journey frame keeps room for its turn's conversation, so a long thread still lets the turn go on", async () => {
+  const { house, seen, journey } = await run({
+    consciousness: opensOnce,
+    journey: ({ call, journey }) => (call === 2 ? [addAct] : [waitAct(journey ?? "")]),
+  });
+  if (!journey) throw new Error("journey");
+  house.bus.together(() => {
+    for (let index = 0; index < 15; index++) {
+      const turn = `old-${index}`;
+      house.bus.emit(effect("mind-turn-opened", { turn, wake: [] }, "mind:notas", [], journey.id));
+      house.bus.emit(
+        effect("mind-scene", { turn, text: `${index} ${"x".repeat(3900)}` }, "mind:notas", [], journey.id),
+      );
+      house.bus.emit(
+        effect("mind-turn-closed", { turn, outcome: "done", calls: 1, applied: [] }, "mind:notas", [], journey.id),
+      );
+    }
+  });
+  house.bus.emit(effect("journey-resumed", { note: "Seguí" }, "mind:notas", [], journey.id));
+  await (await house.minds)?.flush();
+  const calls = seen.filter(each => each.journey === journey.id);
+  expect(calls).toHaveLength(3);
+  expect(calls[1]?.changing).toContain("Omitido:");
+  expect(turnsOf(house, journey.id).at(-1)?.closed?.data).toMatchObject({ outcome: "done", calls: 2 });
 });

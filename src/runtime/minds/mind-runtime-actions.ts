@@ -93,8 +93,9 @@ async function applyControl<X extends Program>(
   requireMind(id, "runtime.control");
   return { status: "accepted" as const, id };
 }
-/** What an accepted act returned reaches a journey with its results: its line and its value, a device's receipt. */
-function acceptedResult<X extends Program>(done: Decision<X>, id: string): ExecuteResult {
+/** What an accepted act returned reaches a journey with its results: its line, and a device's receipt, which the
+ * device dispatch already scrubbed. A house act's value stays with the code that asked for it. */
+function acceptedResult<X extends Program>(done: Decision<X>, id: string, device: boolean): ExecuteResult {
   const text = done.effects.flatMap(each =>
     each.layer === "house" && each.kind === "act-done" ? [each.data.text] : [],
   )[0];
@@ -102,7 +103,7 @@ function acceptedResult<X extends Program>(done: Decision<X>, id: string): Execu
     status: "accepted",
     id,
     ...(text ? { text } : {}),
-    ...(done.value === undefined ? {} : { value: done.value }),
+    ...(device && done.value !== undefined ? { value: done.value } : {}),
   };
 }
 async function applyAct<X extends Program>(
@@ -138,7 +139,7 @@ async function applyAct<X extends Program>(
   const taught = done.status === "rejected" && !("coreFailure" in done && done.coreFailure);
   if (taught) return { status, id, ...(done.reason ? { reason: done.reason } : {}) };
   if (done.status !== "accepted") return { status, id };
-  return acceptedResult(done, id);
+  return acceptedResult(done, id, proposal.destination?.kind === "device");
 }
 export function runtimeActions<X extends Program>(
   house: MindRuntimeHouse<X>,

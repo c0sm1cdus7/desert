@@ -3384,6 +3384,7 @@
         "src/runtime/distributions/program-mind-journey-turns.spec.ts",
         "src/runtime/minds/journey-turn.spec.ts",
         "src/runtime/minds/journey-wakes.spec.ts",
+        "src/runtime/minds/supervised-journey-turn.spec.ts",
         "src/adapters/models/conversation.spec.ts"
       ]
     }
