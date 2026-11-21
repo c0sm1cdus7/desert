@@ -1,4 +1,4 @@
-// Administra dispositivos del dueño y conexiones técnicas separadas de las sesiones de identidad.
+// Runs an owner's devices and their technical connections, apart from identity sessions.
 import { supportsDeviceAction, type DeviceRequest } from "../../fields/device-protocol.ts";
 import type { House } from "../../house/members.ts";
 import { readonlyState } from "../../journal/readonly-state.ts";
@@ -8,6 +8,7 @@ import type { Program, ToolRegistry } from "../../tools/tool-contract.ts";
 import { createDeviceDoor } from "./device-authentication.ts";
 import { deviceConnections, recoverDevices } from "./device-connections.ts";
 import { deviceDispatcher, type DeviceConnection } from "./device-dispatch.ts";
+type DeviceConnections = ReturnType<typeof deviceConnections>;
 const matches = (connection: DeviceConnection, tool: string, version: string, action: string) =>
   supportsDeviceAction(connection.endpoint.inventory, tool, version, action);
 function availability<X extends Program>(
@@ -51,18 +52,11 @@ function runtimeState(state: () => House) {
     },
   };
 }
-export function createDeviceRuntime<X extends Program>(
-  bus: HouseBus,
-  state: () => House,
-  registry: ToolRegistry<X>,
-  host: string,
-  scrub: (value: unknown) => unknown,
-) {
-  const access = runtimeState(state);
-  const live = deviceConnections(bus, state, host, access.ready);
-  const dispatch = deviceDispatcher(
+type Access = ReturnType<typeof runtimeState>;
+function dispatcher(bus: HouseBus, scrub: (value: unknown) => unknown, access: Access, live: DeviceConnections) {
+  return deviceDispatcher({
     bus,
-    (request: DeviceRequest) => {
+    connection: (request: DeviceRequest) => {
       access.checkOpen();
       const current = live.connections.get(request.device);
       if (!current) return undefined;
@@ -72,7 +66,25 @@ export function createDeviceRuntime<X extends Program>(
         : undefined;
     },
     scrub,
-  );
+    resultWritten: request => {
+      try {
+        live.release(request.device, request.execution);
+      } catch {
+        // The act already has its answer; a notice left unanswered is sent again by its device.
+      }
+    },
+  });
+}
+export function createDeviceRuntime<X extends Program>(
+  bus: HouseBus,
+  state: () => House,
+  registry: ToolRegistry<X>,
+  host: string,
+  scrub: (value: unknown) => unknown,
+) {
+  const access = runtimeState(state);
+  const live = deviceConnections({ bus, state, scrub }, host, access.ready);
+  const dispatch = dispatcher(bus, scrub, access, live);
   recoverDevices(bus, state(), host);
   const connection = {
     authentication: (id: string) => access.ready(id).publicKey,

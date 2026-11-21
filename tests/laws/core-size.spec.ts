@@ -103,10 +103,12 @@ describe("the tree of src/", () => {
   // journey goes on.
   // 21/11 Supervisor nuevo: +50 exact (journey 17, supervisor 26, rules 6, mind-turn 1): stops, verdicts, its turns.
   // 21/11 review: +2 in rules.texts.ts, why a marked act got no verdict: its supervisor is starting, or a reaction.
-  it("keeps every file within 300 lines and the texts within 1345", () => {
+  // 21/11 Device notices: +3 exact lines in devices.texts.ts (a house older than the device, a refused notice, one
+  // that travels without its value). +1 exact line in devices.texts.ts: a tool's invalid notice, by tool and execution.
+  it("keeps every file within 300 lines and the texts within 1349", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1345);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1349);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

@@ -1,4 +1,4 @@
-// Connect a device to a remote house over HTTPS: sign one challenge, long-poll for work and post its receipts.
+// Connect a device to a remote house over HTTPS: sign one challenge, long-poll for work, post receipts and notices.
 import { setTimeout as pause } from "node:timers/promises";
 import type { DeviceEndpoint, DeviceRequest } from "../../fields/device-protocol.ts";
 import { remoteAddress } from "../../runtime/remote-address.ts";
@@ -12,6 +12,7 @@ import {
   pollAnswer,
   type CallResult,
 } from "./device-wire.ts";
+import { NoticeOutbox, reasonOf } from "./remote-notices.ts";
 export type RemoteDeviceOptions = Readonly<{
   /** The house origin: HTTPS, or plain HTTP only on localhost. */
   url: string;
@@ -22,10 +23,18 @@ export type RemoteDeviceOptions = Readonly<{
   fetch?: typeof fetch;
   signal?: AbortSignal;
   backoff?: Readonly<{ first: number; max: number }>;
-  /** Hears why each connection ended before the next attempt; the reason never carries the session token. */
+  /** Hears why each connection ended before the next attempt, and each notice the house refused; the reason never
+   * carries the session token. */
   report?: (reason: string) => void;
 }>;
-type Link = { token: string; ready: CallResult[]; alive: boolean; flushing: boolean; cut: Error | undefined };
+type Link = {
+  token: string;
+  ready: CallResult[];
+  outbox: NoticeOutbox | undefined;
+  alive: boolean;
+  flushing: boolean;
+  cut: Error | undefined;
+};
 const openMs = 10_000;
 class RemoteDevice {
   private readonly options: RemoteDeviceOptions;
@@ -44,12 +53,7 @@ class RemoteDevice {
       try {
         await this.serve(await this.open());
       } catch (error) {
-        // Nothing fails in silence: the host decides where the reason goes; a failing reporter never stops the device.
-        try {
-          this.options.report?.(error instanceof Error ? `${error.name}: ${error.message}` : String(error));
-        } catch {
-          /* The device keeps serving even when its reporter breaks. */
-        }
+        this.tell(reasonOf(error));
       }
       if (this.stopped()) return;
       await pause(Math.min(max, first * 2 ** this.retries), undefined, { signal: this.signal }).catch(() => undefined);
@@ -58,6 +62,14 @@ class RemoteDevice {
   }
   private stopped() {
     return this.signal.aborted;
+  }
+  /** Nothing fails in silence: the host decides where the reason goes; a failing reporter never stops the device. */
+  private tell(reason: string) {
+    try {
+      this.options.report?.(reason);
+    } catch {
+      /* The device keeps serving even when its reporter breaks. */
+    }
   }
   private async post(path: string, value: unknown, milliseconds: number, token?: string) {
     const response = await this.send(remoteAddress(this.options.url, path), {
@@ -69,6 +81,7 @@ class RemoteDevice {
     });
     const text = await response.text();
     if (response.status === 401) throw new Error(deviceTexts.authentication);
+    if (response.status === 400) throw new Error(deviceTexts.refusedBody);
     if (response.status !== 200) throw new Error(deviceTexts.unavailable);
     return text;
   }
@@ -83,19 +96,30 @@ class RemoteDevice {
     return connected.session;
   }
   private async serve(token: string) {
-    const link: Link = { token, ready: [], alive: true, flushing: false, cut: undefined };
+    const link: Link = { token, ready: [], outbox: undefined, alive: true, flushing: false, cut: undefined };
+    const notices = this.options.endpoint.notices;
+    if (notices)
+      link.outbox = new NoticeOutbox(
+        notices,
+        reason => this.tell(reason),
+        () => this.flush(link),
+      );
+    const stop = link.outbox ? await link.outbox.open(() => link.alive) : () => {};
     try {
       while (link.alive && !this.signal.aborted) await this.poll(link);
     } finally {
       link.alive = false;
+      stop();
     }
     if (link.cut && !this.signal.aborted) throw link.cut;
   }
   private async poll(link: Link) {
-    const text = await this.post(devicePaths.poll, { results: take(link.ready) }, pollTimeout(), link.token);
-    const answer = parsed(pollAnswer, text);
+    const { results, size } = take(link.ready);
+    const body = link.outbox ? { results, notices: link.outbox.offer(size) } : { results };
+    const answer = parsed(pollAnswer, await this.post(devicePaths.poll, body, pollTimeout(), link.token));
     if (!answer) throw new Error(deviceTexts.invalid);
     this.retries = 0;
+    link.outbox?.settle(answer.answered ?? []);
     for (const { call, request } of answer.requests) void this.execute(link, call, request);
   }
   private async execute(link: Link, call: string, request: DeviceRequest) {
@@ -103,7 +127,8 @@ class RemoteDevice {
     try {
       entry = { call, result: await this.options.endpoint.receive(request) };
       // A receipt too large for one body cannot travel, so the house learns its outcome is unknown.
-      if (Buffer.byteLength(JSON.stringify(entry)) + 64 > deviceHttpLimits.body) entry = { call, failed: true };
+      const bytes = Buffer.byteLength(JSON.stringify(entry)) + 1;
+      if (deviceHttpLimits.envelope + bytes > deviceHttpLimits.body) entry = { call, failed: true };
     } catch {
       entry = { call, failed: true };
     }
@@ -111,9 +136,11 @@ class RemoteDevice {
     link.ready.push(entry);
     this.flush(link);
   }
-  /** A second poll carries ready results at once; the house answers it without waiting and keeps the first one. */
+  /** A second poll carries ready results and new notices at once; the house answers it without waiting and keeps
+   * the first one. */
   private flush(link: Link) {
-    if (!link.alive || link.flushing || this.signal.aborted || link.ready.length === 0) return;
+    if (!link.alive || link.flushing || this.signal.aborted) return;
+    if (link.ready.length === 0 && !link.outbox?.ready()) return;
     link.flushing = true;
     void this.poll(link)
       .catch((error: unknown) => {
@@ -127,17 +154,18 @@ class RemoteDevice {
   }
 }
 const pollTimeout = () => deviceHttpLimits.pollMs + 15_000;
+/** The results that fit in one body, and the bytes they use, so notices share what is left. */
 function take(ready: CallResult[]) {
-  const taken: CallResult[] = [];
-  let size = 64;
+  const results: CallResult[] = [];
+  let size: number = deviceHttpLimits.envelope;
   for (const next of ready) {
     const bytes = Buffer.byteLength(JSON.stringify(next)) + 1;
-    if (taken.length >= deviceHttpLimits.results || size + bytes > deviceHttpLimits.body) break;
-    taken.push(next);
+    if (results.length >= deviceHttpLimits.results || size + bytes > deviceHttpLimits.body) break;
+    results.push(next);
     size += bytes;
   }
-  ready.splice(0, taken.length);
-  return taken;
+  ready.splice(0, results.length);
+  return { results, size };
 }
 /** Runs until `signal` aborts, reconnecting with backoff after a network failure or a refused session. */
 export async function connectRemoteDevice(options: RemoteDeviceOptions): Promise<void> {

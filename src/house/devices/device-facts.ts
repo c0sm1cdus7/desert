@@ -1,7 +1,7 @@
-// Define hechos del registro, conexiones y ejecuciones de dispositivos en el diario común.
+// Defines the journal facts of device registration, connections, executions and their notices.
 import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
-import { deviceRegistration, deviceInventory } from "../../fields/device-protocol.ts";
+import { deviceRegistration, deviceInventory, noticeStatus } from "../../fields/device-protocol.ts";
 const name = Type.String({ minLength: 1 });
 const device = object({ device: name });
 export const deviceFacts = {
@@ -18,6 +18,8 @@ export const deviceFacts = {
     journey: Type.Optional(name),
     device: name,
     connection: name,
+    /** Since 21/11: the action declared that its device announces; older journals read it as not announcing. */
+    announces: Type.Optional(Type.Literal(true)),
   }),
   "device-execution-unknown": object({ execution: name, reason: Type.String() }),
   "device-execution-result": object({
@@ -25,4 +27,6 @@ export const deviceFacts = {
     status: Type.Union([Type.Literal("accepted"), Type.Literal("rejected")]),
     reference: name,
   }),
+  /** The device's authenticated word about an announcing execution; it never rewrites the execution's result. */
+  "device-execution-notice": object({ execution: name, status: noticeStatus, reference: name }),
 };

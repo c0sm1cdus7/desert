@@ -4,9 +4,16 @@ import { generateKeyPairSync, sign } from "node:crypto";
 import { setup } from "./device-house.ts";
 import { mcpDoor } from "../../src/doors/mcp/mcp-handler.ts";
 import { serveMcp } from "../../src/doors/mcp/mcp-http.ts";
-import type { Observer } from "../../src/doors/devices/device-sessions.ts";
+import type { NoticeObserver, Observer } from "../../src/doors/devices/device-sessions.ts";
+import type { ActionExecution } from "../../src/fields/device-protocol.ts";
 type House = ReturnType<typeof setup>["house"];
-type Timing = Readonly<{ idleMs?: number; pollMs?: number; observe?: Observer }>;
+type Timing = Readonly<{
+  idleMs?: number;
+  pollMs?: number;
+  observe?: Observer;
+  observeNotice?: NoticeObserver;
+  execution?: ActionExecution;
+}>;
 const cleanups: (() => unknown)[] = [];
 afterEach(async () => {
   for (const stop of cleanups.splice(0).reverse()) await stop();
@@ -23,6 +30,7 @@ function listener(timing: Timing, now: () => number) {
     idleMs: timing.idleMs ?? 60_000,
     pollMs: timing.pollMs ?? 100,
     ...(timing.observe ? { observe: timing.observe } : {}),
+    ...(timing.observeNotice ? { observeNotice: timing.observeNotice } : {}),
   });
   return {
     url: () => `http://127.0.0.1:${port}`,
@@ -61,7 +69,7 @@ function provisioner(house: () => House) {
   };
 }
 export async function deviceHttpHouse(timing: Timing = {}) {
-  const rig = setup();
+  const rig = setup(timing.execution);
   let house = rig.house;
   let at = 1_000_000;
   const net = listener(timing, () => at);

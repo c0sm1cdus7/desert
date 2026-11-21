@@ -1,4 +1,4 @@
-// Reconstruye dueños, inventarios y resultados sin convertir dispositivos en actores.
+// Rebuilds owners, inventories, results and notices without turning devices into actors.
 import { supportsDeviceAction, type ActionExecution, type DeviceInstallation } from "../../fields/device-protocol.ts";
 import type { HouseEvent } from "../facts.ts";
 import type { House } from "../members.ts";
@@ -17,6 +17,8 @@ export type DeviceExecution = HouseEvent<"device-execution-started">["data"] &
     status: "running" | "unknown" | "accepted" | "rejected";
     reference?: string;
     reason?: string;
+    /** The first notice of an announcing execution, kept beside its result and never in its place. */
+    notice?: HouseEvent<"device-execution-notice">["data"];
   }>;
 export type DeviceState = Readonly<{
   devices: ReadonlyMap<string, Device>;
@@ -47,7 +49,16 @@ export function deviceStep(house: House, event: HouseEvent): House {
         : { ...old, status: event.data.status, reference: event.data.reference };
     return { ...house, devices: { ...state, executions: new Map(state.executions).set(old.execution, execution) } };
   }
+  if (event.kind === "device-execution-notice") return noticeStep(house, event);
   return deviceLifecycle(house, event);
+}
+/** Folded once per execution, only for an announcing one whose start already has its result or ended unknown. */
+function noticeStep(house: House, event: HouseEvent<"device-execution-notice">): House {
+  const state = house.devices;
+  const old = state.executions.get(event.data.execution);
+  if (!old?.announces || old.notice || (old.status !== "accepted" && old.status !== "unknown")) return house;
+  const execution = { ...old, notice: event.data };
+  return { ...house, devices: { ...state, executions: new Map(state.executions).set(old.execution, execution) } };
 }
 function deviceLifecycle(house: House, event: HouseEvent): House {
   const state = house.devices;

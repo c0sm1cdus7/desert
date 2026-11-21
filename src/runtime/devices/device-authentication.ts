@@ -1,10 +1,10 @@
 // Authenticate device connections with expiring single-use challenges, without creating an identity session.
 import { randomUUID, randomBytes, createPublicKey, verify } from "node:crypto";
-import type { DeviceEndpoint } from "../../fields/device-protocol.ts";
+import type { DeviceEndpoint, DeviceLink } from "../../fields/device-protocol.ts";
 import { deviceTexts } from "../../texts/devices.texts.ts";
 type DeviceAccess = Readonly<{
   authentication: (id: string) => string;
-  connect: (id: string, endpoint: DeviceEndpoint) => { disconnect: () => void };
+  connect: (id: string, endpoint: DeviceEndpoint) => DeviceLink;
 }>;
 export function createDeviceDoor(runtime: DeviceAccess, now: () => number = Date.now) {
   const pending = new Map<string, Readonly<{ device: string; message: string; expires: number }>>();

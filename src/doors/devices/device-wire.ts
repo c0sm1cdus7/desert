@@ -1,12 +1,14 @@
 // Shared HTTP shapes and bounds for a device that reaches its house by challenge, connection and long polls.
 import { Type, type Static, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { deviceInventory, deviceRequest } from "../../fields/device-protocol.ts";
+import { deviceInventory, deviceNotice, deviceRequest } from "../../fields/device-protocol.ts";
 import { object } from "../../fields/visible-text.ts";
 import { socketLimits } from "../socket/wire/protocol.ts";
 export const deviceHttpLimits = {
   /** Every request body, the same bound as the socket's JSON frame. */
   body: socketLimits.json,
+  /** Bytes a poll body keeps for its own JSON around its results and notices; each entry adds a separator byte. */
+  envelope: 64,
   /** How long a poll waits for work before answering with an empty list. */
   pollMs: 25_000,
   /** A session without any poll for this long is disconnected. */
@@ -17,6 +19,8 @@ export const deviceHttpLimits = {
   delivered: 16,
   /** Results accepted in one poll body. */
   results: 64,
+  /** Notices in one poll body, and answers to them in one poll answer. */
+  notices: 64,
   /** Live sessions in one house door. */
   sessions: 256,
   /** Outstanding challenges per device. */
@@ -43,9 +47,19 @@ export const callResult = Type.Union([
   object({ call, failed: Type.Literal(true) }),
 ]);
 export type CallResult = Static<typeof callResult>;
-export const pollBody = object({ results: Type.Array(callResult, { maxItems: deviceHttpLimits.results }) });
+/** A device whose tools announce always sends `notices`, even empty; a device from before 21/11 never does. */
+export const pollBody = object({
+  results: Type.Array(callResult, { maxItems: deviceHttpLimits.results }),
+  notices: Type.Optional(Type.Array(deviceNotice, { maxItems: deviceHttpLimits.notices })),
+});
+/** `answered` comes only to a body that brought `notices`: a device from before 21/11 refuses unknown fields. */
 export const pollAnswer = object({
   requests: Type.Array(object({ call, request: deviceRequest }), { maxItems: deviceHttpLimits.delivered }),
+  answered: Type.Optional(
+    Type.Array(object({ execution: label, answer: Type.Union([Type.Literal("recorded"), Type.Literal("refused")]) }), {
+      maxItems: deviceHttpLimits.notices,
+    }),
+  ),
 });
 export type PollAnswer = Static<typeof pollAnswer>;
 export function parsed<T extends TSchema>(schema: T, text: string): Static<T> | undefined {

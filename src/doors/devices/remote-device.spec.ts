@@ -5,7 +5,7 @@ import { settle } from "../../surface/bridge/ports/house-ports.ts";
 import type { DeviceRequest, DeviceResult } from "../../fields/device-protocol.ts";
 import { createDeviceProcess } from "./device-process.ts";
 import { connectRemoteDevice } from "./remote-device.ts";
-import { devicePaths } from "./device-wire.ts";
+import { deviceHttpLimits, devicePaths } from "./device-wire.ts";
 type Run = (request: DeviceRequest) => Promise<DeviceResult>;
 function gate() {
   let resolve = () => {};
@@ -83,6 +83,20 @@ it("reports a failed device execution as unknown and keeps serving", async () =>
   expect(await settle(h.act("mac"))).toMatchObject({ status: "inconclusive" });
   fail = false;
   expect(await settle(h.act("mac"))).toMatchObject({ status: "accepted" });
+});
+it("ends a receipt that would fill the body to the byte unknown, and never lets it hold back the next", async () => {
+  const h = await deviceHttpHouse();
+  const filled: Run = request => {
+    const result = { status: "accepted", reference: `result:${request.execution}`, value: "" } as const;
+    const empty = Buffer.byteLength(JSON.stringify({ call: "0".repeat(36), result }));
+    return Promise.resolve({ ...result, value: "x".repeat(deviceHttpLimits.body - deviceHttpLimits.envelope - empty) });
+  };
+  let big = true;
+  start(h, request => (big ? filled(request) : receipt(request)));
+  await connected(h);
+  expect(await settle(h.act("mac"))).toMatchObject({ status: "inconclusive" });
+  big = false;
+  expect(await settle(h.act("mac"))).toMatchObject({ status: "accepted", value: "remote" });
 });
 it("reconnects after a dropped poll with a new session and says why the first one ended", async () => {
   const h = await deviceHttpHouse();
