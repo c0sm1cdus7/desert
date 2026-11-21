@@ -12,7 +12,7 @@ export type WakePolicy = Readonly<{
   name: string;
   message: (event: Event) => ProgramMessage | undefined;
   toolOf: (target: string) => string | undefined;
-  /** A mind with its own waking, such as the supervisor, which wakes by journeys closing or cut and by messages. */
+  /** A mind with its own waking, such as the supervisor: journeys closing or cut, failed turns and messages. */
   wakes?: (event: Event) => boolean;
 }>;
 const normalized = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();

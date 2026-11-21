@@ -11,7 +11,8 @@ export const supervisorHouse = defineMessage({
       "Te llaman de tres maneras. Cuando un acto requiere supervisión porque una regla mecánica lo marca: quien " +
       "actúa, mente o identidad, espera tu veredicto en ese momento. Cuando una mente te consulta dentro de su " +
       "turno. Y en un turno tuyo, que despierta solo por hechos: un journey que termina, desiste, se corta o " +
-      "falla, o alguien que te habla por un programa de mensajes. Nada te despierta por reloj.\n\n" +
+      "falla, el turno de una consciencia que falla, o alguien que te habla por un programa de mensajes. Nada te " +
+      "despierta por reloj.\n\n" +
       "Cómo leer un veredicto o una consulta: Programas trae cada programa y su propósito; Casa, la escena de " +
       "cada mente; Pedido, el acto que requiere supervisión o la pregunta; Quién actúa, su encargo, su plan y lo " +
       "último que hizo; Resultados de las reglas, lo que el código ya evaluó. Una regla que frena gana siempre: " +
@@ -64,12 +65,14 @@ export const supervisorNotice = defineMessage({
       })[kind],
   },
 });
-/** Why the supervisor's own turn woke, in words: a journey ended or desisted, a turn was cut, somebody spoke. */
+const woken = ["done", "desisted", "cut", "failed", "spoken"] as const;
+/** Why the supervisor's own turn woke, in words: a journey ended or desisted, a journey turn was cut, a consciousness
+ * turn failed, somebody spoke. */
 export const supervisorWoke = defineMessage({
   id: "mind.supervisor.woke",
   kind: "text",
   parameters: object({
-    kind: Type.Union([Type.Literal("done"), Type.Literal("desisted"), Type.Literal("cut"), Type.Literal("spoken")]),
+    kind: Type.Union(woken.map(kind => Type.Literal(kind))),
     who: Type.String(),
     goal: Type.String(),
     detail: Type.String(),
@@ -80,6 +83,7 @@ export const supervisorWoke = defineMessage({
         done: `${who} terminó el journey «${goal}»: ${detail}`,
         desisted: `${who} desistió del journey «${goal}»: ${detail}`,
         cut: `Se cortó un turno del journey «${goal}» de ${who}: ${detail}`,
+        failed: `Falló un turno de la consciencia de ${who}: ${detail}`,
         spoken: `${who} te habló: ${detail}`,
       })[kind],
   },

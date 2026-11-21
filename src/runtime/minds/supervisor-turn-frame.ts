@@ -46,7 +46,7 @@ function houseItems<X extends Program>(house: MindRuntimeHouse<X>): FrameItem[] 
     }),
   }));
 }
-/** Each waking fact in words: a journey that ended or desisted, a cut turn, somebody who spoke to it. */
+/** Each waking fact in words: a journey that ended or desisted, a cut or failed turn, somebody who spoke to it. */
 function woke<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntimeOptions, wake: readonly string[]) {
   const { language } = options;
   const journeys = house.execution.state().house.journeys;
@@ -56,15 +56,16 @@ function woke<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntim
     const message = event && options.message(event);
     if (message)
       return supervisorWoke.text(language, { kind: "spoken", who: message.by, goal: "", detail: message.text });
-    if (event?.layer !== "house" || !event.process) return id;
-    const goal = journeys.get(event.process)?.goal ?? event.process;
-    if (event.kind === "journey-closed") {
+    if (event?.layer !== "house") return id;
+    const goal = event.process ? (journeys.get(event.process)?.goal ?? event.process) : "";
+    if (event.kind === "journey-closed" && event.process) {
       const kind = event.data.outcome === "done" ? "done" : "desisted";
       return supervisorWoke.text(language, { kind, who: event.by, goal, detail: event.data.summary });
     }
     if (event.kind !== "mind-turn-closed" || !event.data.reason) return id;
     const detail = turnNotice.text(language, { reason: event.data.reason });
-    return supervisorWoke.text(language, { kind: "cut", who: event.by, goal, detail });
+    // A closed turn with no process is a consciousness's own: no journey to name, only the mind that failed.
+    return supervisorWoke.text(language, { kind: event.process ? "cut" : "failed", who: event.by, goal, detail });
   });
 }
 const render = (items: readonly FrameItem[]) => items.map(item => `${item.id}: ${item.text}`).join("\n");
