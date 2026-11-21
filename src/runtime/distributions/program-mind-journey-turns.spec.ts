@@ -133,3 +133,64 @@ it("a journey frame keeps room for its turn's conversation, so a long thread sti
   expect(calls[1]?.changing).toContain("Omitido:");
   expect(turnsOf(house, journey.id).at(-1)?.closed?.data).toMatchObject({ outcome: "done", calls: 2 });
 });
+it("the cut stays in the house scene after the consciousness answers, until the journey goes on", async () => {
+  const { house } = await run({
+    consciousness: opensOnce,
+    journey: () => {
+      throw new Error("provider down");
+    },
+  });
+  const general = house.tools.state().house.scenes.get("mind:notas")?.data.general ?? "";
+  expect(general).toContain("Se cortó un turno del journey «Anotar»: La llamada quedó incierta.");
+  expect(general).toContain("Miro");
+});
+it("the scene lets the cut go once the resumed journey takes a turn", async () => {
+  const { house } = await run({
+    consciousness: ({ call, opened }) =>
+      call === 2
+        ? [{ act: "resume", target: opened ?? "", input: { note: "Probá otra vez" } }]
+        : opensOnce({ call, changing: "", body: "" }),
+    journey: ({ call, journey }) => {
+      if (call === 1) throw new Error("provider down");
+      return [waitAct(journey ?? "")];
+    },
+  });
+  expect(house.tools.state().house.scenes.get("mind:notas")?.data.general).not.toContain("Se cortó");
+});
+it("a wait the old 90-second follow-up wrote after its turn wakes nothing, live or after a reopen", async () => {
+  const f = programMindFixture();
+  fixtures.push(f);
+  const first = await f.open();
+  script(f, first, { consciousness: opensOnce, journey: ({ journey }) => [waitAct(journey ?? "")] });
+  f.wake(first);
+  await (await first.minds)?.flush();
+  const journey = journeyOf(first);
+  if (!journey) throw new Error("fixture.journey");
+  const before = f.transport.mock.calls.length;
+  const until = Date.now() - 1000;
+  const opened = first.bus.emit(effect("mind-turn-opened", { turn: "old", wake: [] }, "mind:notas", [], journey.id));
+  first.bus.together(() => {
+    const data = { turn: "old", outcome: "done" as const, calls: 1, applied: [] };
+    first.bus.emit(effect("mind-turn-closed", data, "mind:notas", [opened.id], journey.id));
+    first.bus.emit(effect("journey-waiting", { what: "Sigo", until }, "mind:notas", [opened.id], journey.id));
+    first.bus.emit(effect("wake-at", { id: journey.id, at: until }, "mind:notas", [opened.id], journey.id));
+  });
+  await (await first.minds)?.flush();
+  first.close();
+  const again = await f.open();
+  await (await again.minds)?.flush();
+  expect(f.transport.mock.calls.length).toBe(before);
+});
+it("a scene the consciousness writes by its own act also keeps the cut first", async () => {
+  const { house } = await run({
+    consciousness: seen =>
+      seen.call === 2 ? [{ act: "scene", target: "mind:notas", input: { general: "Escena propia" } }] : opensOnce(seen),
+    journey: () => {
+      throw new Error("provider down");
+    },
+  });
+  expect(house.tools.state().house.scenes.get("mind:notas")?.data.general).toBe(
+    "Se cortó un turno del journey «Anotar»: La llamada quedó incierta. El turno se detuvo sin repetirla. " +
+      "No se reintentó nada.\nEscena propia",
+  );
+});

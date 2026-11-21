@@ -1,4 +1,4 @@
-// Explica los controles de los journeys de una mente, sus cortes y por qué un journey despierta.
+// Explains a mind's journey controls, its cut turns and why a journey woke.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 import { object } from "../fields/visible-text.ts";

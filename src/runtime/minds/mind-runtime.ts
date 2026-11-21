@@ -14,7 +14,7 @@ import { readonlyPorts } from "../../tools/boundaries/readonly-ports.ts";
 import { watchRunning } from "../../tools/execution/running-acts.ts";
 import { turnNotice } from "../../texts/mind-turn.texts.ts";
 import { runMindTurn } from "./mind-turn.ts";
-import { journeyCutScene } from "./journey-cut-scene.ts";
+import { journeyCutScene, withCuts } from "./journey-cut-scene.ts";
 import { startMindSchedule, recoverMindSchedule, type MindSchedulePorts } from "./mind-schedule.ts";
 import { runtimeView, scopeActive } from "./mind-runtime-view.ts";
 import { runtimeFrame } from "./mind-runtime-frame.ts";
@@ -112,15 +112,12 @@ class HouseMindRuntime<X extends Program> {
     const { house } = this;
     if (!house.active()) return;
     house.execution.bus.emit(emission);
-    if (emission.kind === "mind-scene" && !emission.process)
-      house.execution.bus.emit(
-        effect(
-          "scene",
-          { general: emission.data.text, to: house.execution.state().house.scenes.get(emission.by)?.data.to ?? {} },
-          emission.by,
-          emission.cause,
-        ),
-      );
+    if (emission.kind !== "mind-scene" || emission.process) return;
+    // The consciousness's scene is the mind's house scene, with its cut journeys first until each one goes on.
+    const state = house.execution.state().house;
+    const general = withCuts(state, emission.by, this.options.language, emission.data.text);
+    const to = state.scenes.get(emission.by)?.data.to ?? {};
+    house.execution.bus.emit(effect("scene", { general, to }, emission.by, emission.cause));
   };
   private reviewReason(scope: MindScope, proposal: ProposedAct): ReturnType<TurnPorts["reviewReason"]> {
     const item = this.view(scope).menu.find(each => each.act === proposal.act && each.target === proposal.target);
@@ -178,7 +175,7 @@ class HouseMindRuntime<X extends Program> {
       return learned;
     }
     const outcome = await runMindTurn(ports, wake);
-    journeyCutScene(this.house, wake, outcome);
+    journeyCutScene(this.house, wake, this.options.language);
     this.options.observeTurn?.(outcome);
     return outcome;
   }

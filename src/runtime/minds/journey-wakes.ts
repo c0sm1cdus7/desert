@@ -2,7 +2,7 @@
 import type { Event } from "../../journal/vocabulary.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
 /** A journey turn that failed or was cut for anything but a restart, in a journey still open with no later turn. */
-function journeyCut(event: Event, history: readonly Event[]): boolean {
+function cutTurn(event: Event, history: readonly Event[]): boolean {
   if (event.layer !== "house" || event.kind !== "mind-turn-closed" || !event.process) return false;
   // A closure without a reason comes from before 21/11: nothing historical wakes a mind.
   const { reason, outcome } = event.data;
@@ -17,7 +17,7 @@ function journeyCut(event: Event, history: readonly Event[]): boolean {
 /** The facts of a mind's own journeys that wake it; a journey never wakes because time passed without a fact. */
 export function journeyWake(scope: MindScope, event: Event, history: readonly Event[], now: number): boolean {
   if (event.layer !== "house" || event.by !== scope.actor) return false;
-  if (scope.kind === "consciousness") return event.kind === "journey-closed" || journeyCut(event, history);
+  if (scope.kind === "consciousness") return event.kind === "journey-closed" || cutTurn(event, history);
   if (event.process !== scope.process) return false;
   const later = history.filter(e => e.seq > event.seq && e.layer === "house" && e.process === event.process);
   if (later.some(e => e.kind === "journey-closed" || (e.kind === "mind-turn-opened" && e.by === scope.actor)))
@@ -25,5 +25,16 @@ export function journeyWake(scope: MindScope, event: Event, history: readonly Ev
   if (event.kind === "journey-opened" || event.kind === "journey-resumed") return true;
   // The restart recovery closes the cut turn with this reason: a new fact to look at, not a failure of the mind.
   if (event.kind === "mind-turn-closed") return event.data.reason === "interrupted";
-  return event.kind === "journey-waiting" && event.data.until <= now && !later.some(e => e.kind === "journey-waiting");
+  if (event.kind !== "journey-waiting" || afterItsTurn(event, history)) return false;
+  return event.data.until <= now && !later.some(e => e.kind === "journey-waiting");
+}
+/** A mind chooses its wait inside its turn. A wait written after its turn closed came from the 90-second follow-up
+ * deleted on 21/11: it is no hour any mind chose, so it wakes nobody. */
+function afterItsTurn(event: Event, history: readonly Event[]): boolean {
+  const turns = history.flatMap(e =>
+    e.layer === "house" && e.kind === "mind-turn-opened" && event.cause.includes(e.id) ? [e.data.turn] : [],
+  );
+  return history.some(
+    e => e.seq < event.seq && e.layer === "house" && e.kind === "mind-turn-closed" && turns.includes(e.data.turn),
+  );
 }

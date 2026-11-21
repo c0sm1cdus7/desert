@@ -5,13 +5,15 @@ import { setup } from "../../../tests/support/device-house.ts";
 import { effect } from "../../house/facts.ts";
 import { defineMessage } from "../../fields/messages.ts";
 import type { Program } from "../../tools/tool-contract.ts";
-import { answerSchema, validateAnswer } from "../../tools/minds/mind-answer.ts";
+import { answerSchema, validateAnswer, type ProposedAct } from "../../tools/minds/mind-answer.ts";
 import type { MindDefinition, MindScope, TurnContext } from "../../tools/minds/mind-contract.ts";
 import type { MindRuntimeHouse, MindRuntimeOptions } from "../minds/mind-runtime-options.ts";
 import { runtimeView } from "../minds/mind-runtime-view.ts";
 import { runtimeActions } from "../minds/mind-runtime-actions.ts";
 
-it("preserves the journey's device choice in its menu, review and unknown result", async () => {
+type Dispatch = NonNullable<MindRuntimeHouse<Program>["execution"]["devices"]>;
+/** A journey of the agents mind whose kit runs on two devices, acting through the given device dispatch. */
+function journeyRig(dispatch: Dispatch) {
   const rig = setup({ at: "device", tool: "shell", version: "1" });
   const mac = rig.device("mac");
   rig.device("vm");
@@ -50,7 +52,6 @@ it("preserves the journey's device choice in its menu, review and unknown result
     textRules: [],
     rulesVersion: () => "1",
   };
-  const dispatch = vi.fn(() => Promise.resolve({ status: "inconclusive" as const, reason: "Resultado desconocido" }));
   const house: MindRuntimeHouse<Program> = {
     home: rig.house.home,
     active: () => true,
@@ -74,21 +75,6 @@ it("preserves the journey's device choice in its menu, review and unknown result
   };
   const switches = { asistentes: false, programas: ["agents"] };
   const menu = () => runtimeView(house, options, switches, scope, definition).menu;
-  expect(menu().find(item => item.act === "run")?.destinations).toEqual([
-    { kind: "device", device: "mac" },
-    { kind: "device", device: "vm" },
-  ]);
-  const proposal = {
-    act: "run",
-    target: "agents",
-    input: { command: "test" },
-    destination: { kind: "device" as const, device: "vm" },
-  };
-  const answer = { scene: "Probando", consulta: null, acts: [proposal] };
-  expect(Value.Check(answerSchema(menu()), answer)).toBe(true);
-  expect(validateAnswer(answer, { menu: menu(), scope, active: true, consulted: false, allowed: () => true }).ok).toBe(
-    true,
-  );
   const turn: TurnContext = {
     id: "turn",
     scope,
@@ -105,7 +91,29 @@ it("preserves the journey's device choice in its menu, review and unknown result
     outcome: "passed",
     text: "Permitido",
   }));
-  expect(await runtimeActions(house, options, switches)(proposal, { turn, review: { review } })).toMatchObject({
+  const act = (proposal: ProposedAct) =>
+    runtimeActions(house, options, switches)(proposal, { turn, review: { review } });
+  return { mac, scope, menu, act, review, transport };
+}
+const proposal = {
+  act: "run",
+  target: "agents",
+  input: { command: "test" },
+  destination: { kind: "device" as const, device: "vm" },
+};
+it("preserves the journey's device choice in its menu, review and unknown result", async () => {
+  const dispatch = vi.fn(() => Promise.resolve({ status: "inconclusive" as const, reason: "Resultado desconocido" }));
+  const { mac, scope, menu, act, review, transport } = journeyRig(dispatch);
+  expect(menu().find(item => item.act === "run")?.destinations).toEqual([
+    { kind: "device", device: "mac" },
+    { kind: "device", device: "vm" },
+  ]);
+  const answer = { scene: "Probando", consulta: null, acts: [proposal] };
+  expect(Value.Check(answerSchema(menu()), answer)).toBe(true);
+  expect(validateAnswer(answer, { menu: menu(), scope, active: true, consulted: false, allowed: () => true }).ok).toBe(
+    true,
+  );
+  expect(await act(proposal)).toMatchObject({
     status: "inconclusive",
   });
   expect(review.mock.calls[0]?.[0].acts[0]?.destination).toEqual({ kind: "device", device: "vm" });
@@ -113,4 +121,15 @@ it("preserves the journey's device choice in its menu, review and unknown result
   expect(transport).not.toHaveBeenCalled();
   mac.connection.disconnect();
   expect(menu().find(item => item.act === "run")?.destinations).toEqual([{ kind: "device", device: "vm" }]);
+});
+it("hands a journey the receipt of a device act, whether the device accepted or rejected it", async () => {
+  const receipt = { exit: 1, out: "RECIBO" };
+  const rejected = vi.fn(() => Promise.resolve({ status: "rejected" as const, reason: "exit 1", value: receipt }));
+  expect(await journeyRig(rejected).act(proposal)).toMatchObject({
+    status: "rejected",
+    reason: "exit 1",
+    value: receipt,
+  });
+  const accepted = vi.fn(() => Promise.resolve({ status: "accepted" as const, effects: [], value: receipt }));
+  expect(await journeyRig(accepted).act(proposal)).toMatchObject({ status: "accepted", value: receipt });
 });

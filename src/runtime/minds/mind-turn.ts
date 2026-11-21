@@ -22,6 +22,7 @@ import {
   type TurnSnapshot,
   type TurnWake,
 } from "./mind-ports.ts";
+type Refused = Extract<Awaited<ReturnType<typeof applyActs>>, Readonly<{ code: string }>>;
 class MindTurnRun {
   readonly turn: TurnContext;
   readonly caller: TurnCaller;
@@ -32,7 +33,7 @@ class MindTurnRun {
   private readonly talk: TurnConversation;
   constructor(ports: TurnPorts, wake: TurnWake) {
     this.ports = ports;
-    this.talk = new TurnConversation(wake.scope.kind === "journey");
+    this.talk = new TurnConversation(wake.scope);
     this.turn = { ...wake, limits: turnLimits, usage: { calls: 0, corrections: 0, consultations: 0 } };
     this.caller = createTurnCaller(
       ports.model,
@@ -83,13 +84,14 @@ class MindTurnRun {
     );
     return result;
   }
-  private correct(reason: string, faults?: readonly AnswerFault[], counted = false): boolean {
+  /** `told` replaces what the mind hears, when the correction comes with the results of acts already applied. */
+  private correct(reason: string, faults?: readonly AnswerFault[], counted = false, told?: string): boolean {
     const { id, scope, wake } = this.turn;
     if (faults) this.write(effect("mind-answer-invalid", { turn: id, faults }, scope.actor, wake, scope.process));
     if (counted ? this.caller.stopped() : !this.caller.correct()) return false;
     const text = correctionNotice.text(this.turn.language, { reason });
     this.scene(text);
-    this.talk.tell(faults ? `${text}\n${JSON.stringify(faults)}` : text);
+    this.talk.tell(told ?? (faults ? `${text}\n${JSON.stringify(faults)}` : text));
     return true;
   }
   /** The frame is built once per turn; every later call appends to the conversation and keeps its bytes. */
@@ -168,12 +170,26 @@ class MindTurnRun {
     const run = { ports: this.ports, turn: this.turn, review: this.review };
     const done = await applyActs(run, answer, version, this.applied);
     if (typeof done === "string") return this.finish(this.ports.isOpen(this.turn.id) ? done : "inactive");
-    if ("code" in done)
-      return this.correct(done.correction, [{ code: done.code, path: "/acts" }])
-        ? undefined
-        : this.finish(done.code === "act" ? "act-failed" : "invalid");
+    if ("code" in done) return this.refused(done);
     if (!this.ports.isOpen(this.turn.id)) return this.finish("inactive");
     return this.goOn(answer, done.reports, menu);
+  }
+  /** A kit, a wait or (for a consciousness) a tool refused one act: a correction. When the answer had already applied
+   * acts, the mind hears their results with it, and that answer gives the next one its own correction. */
+  private refused(done: Refused): TurnOutcome | undefined {
+    const faults = [{ code: done.code, path: "/acts" }];
+    const applied = done.reports.some(report => report.status === "accepted");
+    if (applied) this.caller.settle();
+    const told = applied ? this.results(done.reports) : undefined;
+    return this.correct(done.correction, faults, false, told)
+      ? undefined
+      : this.finish(done.code === "act" ? "act-failed" : "invalid");
+  }
+  /** What the acts of the last answer did, the house clock and how the menu changed since that answer was asked. */
+  private results(reports: readonly ActReport[]): string {
+    const now = this.ports.read(this.turn.scope);
+    const menus = { before: this.talk.menu(), after: now.menu };
+    return resultsText(this.turn.language, reports, now.now, menus, this.turn.scope.kind === "journey");
   }
   /** A consciousness answers once. A journey's turn closes only when its last act, applied, says how it goes on;
    * otherwise the mind hears what its acts did and answers again, with a correction of its own to spend. */
@@ -181,9 +197,7 @@ class MindTurnRun {
     const last = answer.acts.at(-1);
     const closes = !!last && continuation(menu.find(item => item.act === last.act && item.target === last.target));
     if (this.turn.scope.kind !== "journey" || (closes && reports.at(-1)?.status === "accepted")) return this.finish();
-    const now = this.ports.read(this.turn.scope);
-    const menus = { before: this.talk.menu(), after: now.menu };
-    this.talk.tell(resultsText(this.turn.language, reports, now.now, menus));
+    this.talk.tell(this.results(reports));
     this.caller.settle();
     return undefined;
   }

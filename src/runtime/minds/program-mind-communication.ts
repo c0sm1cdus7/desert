@@ -9,6 +9,8 @@ import type { MindDefinition, MindScope } from "../../tools/minds/mind-contract.
 import type { MindMenu, ProposedAct } from "../../tools/minds/mind-answer.ts";
 import type { Program, State } from "../../tools/tool-contract.ts";
 import type { MindRuntimeHouse } from "./mind-runtime-options.ts";
+import type { Language } from "../../fields/languages.ts";
+import { withCuts } from "./journey-cut-scene.ts";
 function sceneInput<X extends Program>(state: State<X>) {
   return object({
     general: scene.properties.general,
@@ -36,13 +38,17 @@ export function programCommunication<X extends Program>(
       : [],
   );
 }
+/** The scene a consciousness writes keeps its cut journeys first, as its copied scene does. */
 export function applyProgramCommunication<X extends Program>(
   house: MindRuntimeHouse<X>,
   proposal: ProposedAct,
   scope: MindScope,
+  language: Language,
 ) {
   const { input } = proposal;
   if (scope.kind !== "consciousness" || proposal.act !== "scene" || !Value.Check(scene, input)) return undefined;
-  if (Object.keys(input.to ?? {}).some(to => !house.execution.state().house.grants.has(to))) return undefined;
-  return house.execution.bus.emit(effect("scene", input, scope.actor));
+  const state = house.execution.state().house;
+  if (Object.keys(input.to ?? {}).some(to => !state.grants.has(to))) return undefined;
+  const general = withCuts(state, scope.actor, language, input.general);
+  return house.execution.bus.emit(effect("scene", { ...input, general }, scope.actor));
 }

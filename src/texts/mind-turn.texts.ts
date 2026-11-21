@@ -1,4 +1,4 @@
-// Explica cierres, correcciones, revisiones y resultados del turno en el idioma de la casa.
+// Explains a turn's closings, corrections, reviews and results in the house's language.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 import { object } from "../fields/visible-text.ts";

@@ -77,3 +77,16 @@ it("the schedule runs the oldest pending wake first, not the first mind in its l
   expect(order([...journeys].reverse())).toEqual(["j2", "j1"]);
   expect(order([consciousness, other])).toEqual([]);
 });
+it("a wait written after its turn closed, as the old 90-second follow-up did, wakes nobody", () => {
+  const done = effect("mind-turn-closed", { turn: "t1", outcome: "done", calls: 1, applied: [] }, actor, [], "j1");
+  const waiting = effect("journey-waiting", { what: "Sigo", until: 0 }, actor, ["e2"], "j1");
+  expect(wakes(journey, at([opened, turn, done, waiting]))).toEqual([]);
+  expect(pendingMindWakes([journey, consciousness], at([opened, turn, done, waiting]), 100_000)).toEqual([]);
+});
+it("a wait the mind chose inside its turn wakes its journey once its hour comes", () => {
+  const done = effect("mind-turn-closed", { turn: "t1", outcome: "done", calls: 1, applied: [] }, actor, [], "j1");
+  const waiting = effect("journey-waiting", { what: "Sigo", until: 0 }, actor, ["e2", "e1"], "j1");
+  expect(wakes(journey, at([opened, turn, waiting, done]))).toEqual(["journey-waiting"]);
+  const loose = effect("journey-waiting", { what: "Sigo", until: 0 }, actor, ["e1"], "j1");
+  expect(wakes(journey, at([opened, turn, done, loose]))).toEqual(["journey-waiting"]);
+});

@@ -1,4 +1,4 @@
-// Declara apertura, plan, pasos, espera, retomada y cierre de procesos de una mente.
+// Declares the opening, plan, steps, wait, resumption and closing of a mind's processes.
 import { selectionKitSchema } from "../kit-selection.ts";
 import { Type } from "@sinclair/typebox";
 import { wholeNumber } from "../../fields/json-values.ts";

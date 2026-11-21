@@ -93,18 +93,16 @@ async function applyControl<X extends Program>(
   requireMind(id, "runtime.control");
   return { status: "accepted" as const, id };
 }
-/** What an accepted act returned reaches a journey with its results: its line, and a device's receipt, which the
- * device dispatch already scrubbed. A house act's value stays with the code that asked for it. */
+/** What a device act returned, accepted or rejected, is its receipt, which the device dispatch already scrubbed. A
+ * house act's value stays with the code that asked for it. */
+const receipt = <X extends Program>(done: Decision<X>, device: boolean) =>
+  device && done.value !== undefined ? { value: done.value } : {};
+/** What an accepted act returned reaches a journey with its results: its line, and a device's receipt. */
 function acceptedResult<X extends Program>(done: Decision<X>, id: string, device: boolean): ExecuteResult {
   const text = done.effects.flatMap(each =>
     each.layer === "house" && each.kind === "act-done" ? [each.data.text] : [],
   )[0];
-  return {
-    status: "accepted",
-    id,
-    ...(text ? { text } : {}),
-    ...(device && done.value !== undefined ? { value: done.value } : {}),
-  };
+  return { status: "accepted", id, ...(text ? { text } : {}), ...receipt(done, device) };
 }
 async function applyAct<X extends Program>(
   house: MindRuntimeHouse<X>,
@@ -137,9 +135,10 @@ async function applyAct<X extends Program>(
   const id = origin?.id ?? turn.id;
   // Only the tool's own refusal teaches the mind something; a rule or the core stays a stop.
   const taught = done.status === "rejected" && !("coreFailure" in done && done.coreFailure);
-  if (taught) return { status, id, ...(done.reason ? { reason: done.reason } : {}) };
+  const device = proposal.destination?.kind === "device";
+  if (taught) return { status, id, ...(done.reason ? { reason: done.reason } : {}), ...receipt(done, device) };
   if (done.status !== "accepted") return { status, id };
-  return acceptedResult(done, id, proposal.destination?.kind === "device");
+  return acceptedResult(done, id, device);
 }
 export function runtimeActions<X extends Program>(
   house: MindRuntimeHouse<X>,
@@ -159,7 +158,7 @@ export function runtimeActions<X extends Program>(
     const cause = [opened.id];
     if (item.tool === "mind") {
       if (!ruleControl(house, turn.scope, cause, proposal, "mind")) return { status: "rejected", id: turn.id };
-      const event = applyProgramCommunication(house, proposal, turn.scope);
+      const event = applyProgramCommunication(house, proposal, turn.scope, options.language);
       return { status: event ? "accepted" : "rejected", id: event?.id ?? turn.id };
     }
     if (item.scope === "control" || item.scope === "open")
