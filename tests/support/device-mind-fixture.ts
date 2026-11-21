@@ -16,8 +16,10 @@ export type JourneyScript = (frame: string, id: string, turn: number, call: numb
 /** The machine «vm»: one key for every connection, as a device keeps its own across restarts of the house. */
 const pair = generateKeyPairSync("ed25519");
 const publicKey = pair.publicKey.export({ type: "spki", format: "der" }).toString("base64");
+/** What the notes mind's consciousness answers when anything but the thread's line wakes it. */
+export type ConsciousScript = (frame: string, house: RequestHouse) => unknown;
 /** The notes mind opens one journey for the line it heard; each call of that journey answers with `journey`. */
-function script(house: RequestHouse, journey: JourneyScript, frames: string[]) {
+function script(house: RequestHouse, journey: JourneyScript, frames: string[], conscious: ConsciousScript) {
   const calls = new Map<string, number>();
   return (frame: string) => {
     frames.push(frame);
@@ -27,7 +29,7 @@ function script(house: RequestHouse, journey: JourneyScript, frames: string[]) {
       const turns = [...house.tools.state().house.minds.turns.values()].filter(t => t.opened.process === turn.process);
       return journey(frame, turn.process, turns.length, calls.get(turn.data.turn) ?? 0, house);
     }
-    if (!wokeFor(house, "talk/said")) return answer();
+    if (!wokeFor(house, "talk/said")) return conscious(frame, house);
     const kit = [{ tool: "notes", acts: ["outbox/send"] }];
     return answer([{ act: "open", target: "mind:notes", input: { goal: "Mandar el informe", kit } }]);
   };
@@ -42,7 +44,7 @@ const announcingSend = () =>
         : tool;
     }),
   );
-export function deviceMindFixture() {
+export function deviceMindFixture(conscious: ConsciousScript = () => answer()) {
   const fixture = announcingSend();
   let started: Started = request => ({ status: "accepted", reference: `inicio:${request.execution}` });
   let link: ReturnType<RequestHouse["devices"]["door"]["connect"]> | undefined;
@@ -72,7 +74,7 @@ export function deviceMindFixture() {
     fixture.open(true, {
       started: (_, house) => {
         connect(house);
-        fixture.respond(script(house, journey, frames));
+        fixture.respond(script(house, journey, frames, conscious));
         before?.(house);
       },
     });

@@ -111,7 +111,7 @@ it("only the supervisor's own turn a restart cut consumed nothing; a journey's o
   expect(woken(supervisor, at([opened, ended, ...cut("mind:supervisor", "interrupted")]))).toEqual([["e2"]]);
   // A closure without a reason comes from before 21/11: what that turn consumed stays consumed.
   expect(woken(supervisor, at([opened, ended, ...cut("mind:supervisor")]))).toEqual([]);
-  // Any other consciousness never repeats a turn a restart cut.
+  // Any other consciousness never repeats a turn a restart cut for anything but its journeys' cuts and stops.
   expect(woken(consciousness, at([opened, ended, ...cut(actor, "interrupted")]))).toEqual([]);
   const journeyTurn = effect("mind-turn-opened", { turn: "t1", wake: ["e1"] }, actor, [], "j1");
   const restarted = effect(
@@ -122,4 +122,39 @@ it("only the supervisor's own turn a restart cut consumed nothing; a journey's o
     "j1",
   );
   expect(woken(journey, at([opened, journeyTurn, restarted]))).toEqual([["e3"]]);
+});
+it("a consciousness turn a restart cut before it applied any act gives back its journeys' cuts and stops only", () => {
+  const stop = effect("journey-interrupted", { reason: "Pará" }, "mind:supervisor", [], "j1");
+  const own = (wake: string, applied: string[] = [], reason?: "interrupted") => [
+    effect("mind-turn-opened", { turn: "c1", wake: [wake] }, actor, []),
+    effect(
+      "mind-turn-closed",
+      { turn: "c1", outcome: "interrupted", calls: 1, applied, ...(reason ? { reason } : {}) },
+      actor,
+      [],
+    ),
+  ];
+  const woken = (history: readonly Event[]) => pendingMindWakes([consciousness], history, 0).map(each => each.wake);
+  const cutTurn = [opened, turn, closed({ reason: "call-limit" })];
+  expect(woken(at([...cutTurn, ...own("e3", [], "interrupted")]))).toEqual([["e3"]]);
+  expect(woken(at([opened, stop, ...own("e2", [], "interrupted")]))).toEqual([["e2"]]);
+  // A turn that already applied an act heard what woke it: a resume, a desist or a line stays its answer.
+  expect(woken(at([...cutTurn, ...own("e3", ["e9"], "interrupted")]))).toEqual([]);
+  expect(woken(at([opened, stop, ...own("e2", ["e9"], "interrupted")]))).toEqual([]);
+  // A resume is a control, not an act the turn applied: once the journey was resumed, its cut was answered.
+  const resumed = effect("journey-resumed", { note: "Seguí" }, actor, [], "j1");
+  const [hearing, restarted] = own("e3", [], "interrupted");
+  if (!hearing || !restarted) throw new Error("turn");
+  expect(woken(at([...cutTurn, hearing, resumed, restarted]))).toEqual([]);
+  // A closure without a reason comes from before 21/11, and any other failure of the turn is no restart.
+  expect(woken(at([...cutTurn, ...own("e3")]))).toEqual([]);
+  const failed = effect(
+    "mind-turn-closed",
+    { turn: "c1", outcome: "failed", calls: 1, applied: [], reason: "http" },
+    actor,
+    [],
+  );
+  expect(woken(at([...cutTurn, effect("mind-turn-opened", { turn: "c1", wake: ["e3"] }, actor, []), failed]))).toEqual(
+    [],
+  );
 });

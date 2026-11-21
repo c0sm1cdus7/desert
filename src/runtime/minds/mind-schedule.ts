@@ -13,15 +13,55 @@ import type { TurnWake } from "./mind-ports.ts";
 const array = (value: unknown): boolean => Array.isArray(value);
 const schedules = new WeakSet<MindSchedulePorts["bus"]>();
 const sameScope = (event: Event, scope: MindScope) => event.by === scope.actor && event.process === scope.process;
-/** The turns a restart cut, by closures of the 21/11 shape. The supervisor's own one consumed nothing: it wakes again
- * for the same facts, as a journey does through its closure (21/11). Any other consciousness keeps its guarantee: a
- * turn a restart cut is closed as interrupted and its call is never repeated. */
+/** The turns a restart cut, by closures of the 21/11 shape, each with whether it applied any act. */
 const restartCuts = (history: readonly Event[]) =>
-  new Set(
+  new Map(
     history.flatMap(e =>
-      e.layer === "house" && e.kind === "mind-turn-closed" && e.data.reason === "interrupted" ? [e.data.turn] : [],
+      e.layer === "house" && e.kind === "mind-turn-closed" && e.data.reason === "interrupted"
+        ? [[e.data.turn, e.data.applied.length > 0] as const]
+        : [],
     ),
   );
+/** The facts that alone move a journey its consciousness owns: its cut turn and the supervisor's stop. Nothing else
+ * wakes the consciousness for that journey again, so a restart must not take them away; once a later resume went
+ * back to that journey, the consciousness already answered it. */
+function journeyMoves(history: readonly Event[]): ReadonlySet<string> {
+  const resumed = new Map<string, number>();
+  for (const e of history)
+    if (e.layer === "house" && e.kind === "journey-resumed" && e.process) resumed.set(e.process, e.seq);
+  return new Set(
+    history.flatMap(e =>
+      e.layer === "house" &&
+      e.process !== undefined &&
+      (resumed.get(e.process) ?? 0) < e.seq &&
+      (e.kind === "journey-interrupted" ||
+        (e.kind === "mind-turn-closed" && e.data.reason !== undefined && e.data.reason !== "interrupted"))
+        ? [e.id]
+        : [],
+    ),
+  );
+}
+/** What a turn consumed. A restart is no failure of any mind (21/11): the supervisor's own turn a restart cut
+ * consumed nothing, so it wakes again for the same facts, as a journey does through its closure; a consciousness's
+ * turn a restart cut before it applied any act gives back its journeys' cuts and stops, so none of them waits forever
+ * for an unrelated wake. Anything else that woke it stays consumed: its call is never repeated. */
+function consumedBy(
+  policy: WakePolicy,
+  opened: readonly HouseEvent<"mind-turn-opened">[],
+  restarted: ReturnType<typeof restartCuts>,
+  moves: () => ReadonlySet<string>,
+) {
+  const supervisor = policy.scope.actor === ids.supervisor && policy.scope.process === undefined;
+  const consciousness = policy.scope.kind === "consciousness" && !supervisor;
+  return new Set(
+    opened.flatMap(e => {
+      const applied = restarted.get(e.data.turn);
+      if (applied === undefined) return e.data.wake;
+      if (supervisor) return [];
+      return consciousness && !applied ? e.data.wake.filter(id => !moves().has(id)) : e.data.wake;
+    }),
+  );
+}
 export type PendingMindWake = Readonly<{ scope: MindScope; wake: readonly string[]; through: number }>;
 export function pendingMindWakes(
   policies: readonly WakePolicy[],
@@ -31,19 +71,19 @@ export function pendingMindWakes(
   requireMind(array(policies), "policies");
   requireMind(array(history), "history");
   const pending: (PendingMindWake & Readonly<{ oldest: number }>)[] = [];
-  const restarted = restartCuts(history);
   const closed = new Set(
     history.flatMap(e => (e.layer === "house" && e.kind === "mind-turn-closed" ? [e.data.turn] : [])),
   );
+  const restarted = restartCuts(history);
+  let moves: ReadonlySet<string> | undefined;
+  const moved = () => (moves ??= journeyMoves(history));
   for (const policy of policies) {
     const opened = history.filter(
       (e): e is HouseEvent<"mind-turn-opened"> =>
         e.layer === "house" && e.kind === "mind-turn-opened" && sameScope(e, policy.scope),
     );
     if (opened.some(e => !closed.has(e.data.turn))) continue;
-    const own = policy.scope.actor === ids.supervisor && policy.scope.process === undefined;
-    const cut = (e: HouseEvent<"mind-turn-opened">) => own && restarted.has(e.data.turn);
-    const consumed = new Set(opened.flatMap(e => (cut(e) ? [] : e.data.wake)));
+    const consumed = consumedBy(policy, opened, restarted, moved);
     const waking = history.filter(e => !consumed.has(e.id) && mindWakeDecision(policy, e, history, now));
     const oldest = waking[0]?.seq;
     if (oldest !== undefined)
