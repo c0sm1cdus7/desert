@@ -74,7 +74,7 @@ it("wakes only for a journey that closes or is cut, or a line addressed to it, a
     message,
     toolOf: () => undefined,
   };
-  const wakes = (event: Event) => supervisorWakes(policy, 2, event);
+  const wakes = (event: Event) => supervisorWakes(policy, 2, event, []);
   const closing = effect("journey-closed", { outcome: "done", summary: "Listo", references: [] }, "mind:notes");
   expect(wakes({ ...closing, process: "journey:j", ...position(5) })).toBe(true);
   expect(wakes(closedTurn("call-limit"))).toBe(true);

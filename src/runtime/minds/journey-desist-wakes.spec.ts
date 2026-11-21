@@ -56,7 +56,7 @@ it("a closing written in a turn of the consciousness does not wake it; one writt
   expect(wakes(consciousness, at([opened, other, closing("desisted", ["e2", "e1"])]))).toEqual(["journey-closed"]);
   // The supervisor wakes for every closing, the one a consciousness wrote among them.
   const watching: WakePolicy = { ...policy({ kind: "consciousness", actor: "mind:supervisor" }), name: "supervisor" };
-  expect(desisted.filter(event => supervisorWakes(watching, 0, event)).map(event => event.kind)).toEqual([
+  expect(desisted.filter(event => supervisorWakes(watching, 0, event, desisted)).map(event => event.kind)).toEqual([
     "journey-closed",
   ]);
 });
