@@ -1,12 +1,16 @@
 // The screen door: one router per device session, screens out to whoever looks, intents in, in order, refused aloud.
 import type { TimeSource } from "../../journal/clock.ts";
 import type { Shown } from "../../surface/bridge/ports/house-ports.ts";
+import { withOpeningNotices } from "../../surface/bridge/assembly/opening-notices.ts";
+import { screenDoorTexts } from "../../texts/screen-door.texts.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { OpenHouse } from "../socket/client/open-house-router.ts";
+import { terminalError } from "../terminal/terminal-error.ts";
 import { screenLimits } from "./screen-limits.ts";
 import { current, drawAll, framed, named, refusal, type Client, type Item, type Live } from "./screen-session.ts";
+import { silentFrame } from "./screen-silence.ts";
 import { streamOf } from "./screen-stream.ts";
-import { parseLook, parseSend, type Frame, type Look, type Send } from "./screen-wire.ts";
+import { parseLook, parseSend, type Frame, type Look, type Send, type WireRefusal } from "./screen-wire.ts";
 
 /** How a program is shown on the web: its hour too, since a web server runs in no person's zone. */
 export type WebShown<X extends Program> = Shown<X> & Readonly<{ hour: (at: number) => string }>;
@@ -56,7 +60,14 @@ class Door<X extends Program> implements ScreenDoor {
     }
     const slot = known ?? this.slotOf(session, house);
     this.touch(slot);
-    const live = await this.liveOf(slot);
+    // A client that names itself to a session with no router comes back from a cut one, or from a restart.
+    const back = parsed.value.client !== undefined && !slot.live && !slot.opening;
+    const opened = await this.liveOf(slot, back).then(
+      live => ({ live }),
+      (error: unknown) => ({ error }),
+    );
+    if ("error" in opened) return this.silent(terminalError(opened.error), parsed.value.client);
+    const { live } = opened;
     const client = this.attach(live, parsed.value);
     if (!client) return refusal(live, undefined, "client");
     client.visible = parsed.value.visible;
@@ -67,8 +78,10 @@ class Door<X extends Program> implements ScreenDoor {
   }
   async send(session: string, house: string, body: unknown): Promise<Frame> {
     const slot = this.slots.get(keyOf(session, house));
-    const live = slot?.live ?? (await slot?.opening);
-    if (!slot || !live) throw new Error("A batch for a session the door does not have.");
+    const live = slot?.live ?? (await slot?.opening?.catch(() => undefined));
+    const id =
+      typeof body === "object" && body && "client" in body && typeof body.client === "string" ? body.client : "";
+    if (!slot || !live) return this.silent(screenDoorTexts.expired, id, "epoch");
     this.touch(slot);
     const parsed = parseSend(body);
     if (!parsed.ok) return refusal(live, named(live, body), parsed.reason);
@@ -114,19 +127,21 @@ class Door<X extends Program> implements ScreenDoor {
   private settle(slot: Slot): void {
     if (slot.live?.house.ended()) this.cut(slot);
   }
-  private liveOf(slot: Slot): Promise<Live> {
-    return slot.live ? Promise.resolve(slot.live) : (slot.opening ?? this.open(slot, new Map()));
+  private liveOf(slot: Slot, back = false): Promise<Live> {
+    return slot.live ? Promise.resolve(slot.live) : (slot.opening ?? this.open(slot, new Map(), back));
   }
   /** While a router is being opened, whatever else arrives for the session waits for it. */
-  private open(slot: Slot, clients: Map<string, Client>): Promise<Live> {
-    const opening = this.start(slot, clients).finally(() => {
+  private open(slot: Slot, clients: Map<string, Client>, back = false): Promise<Live> {
+    const opening = this.start(slot, clients, back).finally(() => {
       if (slot.opening === opening) slot.opening = undefined;
     });
     slot.opening = opening;
     return opening;
   }
-  private async start(slot: Slot, clients: Map<string, Client>): Promise<Live> {
-    const house = await this.host.open({ id: slot.session, house: slot.house }, this.host.shown);
+  private async start(slot: Slot, clients: Map<string, Client>, back: boolean): Promise<Live> {
+    const opened = await this.host.open({ id: slot.session, house: slot.house }, this.host.shown);
+    const notice = withOpeningNotices(opened.router, [screenDoorTexts.expired]);
+    const house = back ? { ...opened, router: notice } : opened;
     clients.forEach(client => (client.seq = 0));
     const unwatch = house.router.watch(() => {
       this.settle(slot);
@@ -151,6 +166,10 @@ class Door<X extends Program> implements ScreenDoor {
     const frame = drawAll(now, client) ?? current(now, client);
     this.settle(slot);
     return frame;
+  }
+  /** One of the two screens the door builds: a catalogued reason, at the program's hour, and no router behind. */
+  private silent(reason: string, client = "", refused?: WireRefusal): Frame {
+    return silentFrame(reason, this.host.shown.hour(this.host.time.now()), client, refused);
   }
   /** The router asked to be left behind: the session goes on in a new epoch, with the same clients looking. */
   private replace(slot: Slot, live: Live): Promise<Live> {
