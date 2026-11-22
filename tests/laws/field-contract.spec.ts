@@ -45,6 +45,6 @@ it("one currency rule records the base, with current and carried amounts as evid
 it("field descriptions say their current responsibilities once", () => {
   expect(tree["surface/router/step.ts"]?.match(/step:/gu)).toHaveLength(1);
   expect(tree["surface/router/step.ts"]).toContain("any written paste");
-  expect(tree["surface/bridge/acts/asked-act.ts"]?.match(/Compone/gu)).toHaveLength(1);
-  expect(tree["surface/bridge/acts/asked-act.ts"]).toContain("estado y destino");
+  expect(tree["surface/bridge/acts/asked-act.ts"]?.match(/Composes/gu)).toHaveLength(1);
+  expect(tree["surface/bridge/acts/asked-act.ts"]).toContain("current state and destination");
 });

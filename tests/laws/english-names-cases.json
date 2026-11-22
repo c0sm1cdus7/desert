@@ -22,8 +22,8 @@
       "src/a.ts:5: dependencia-distribucion",
       "src/a.ts:6: programs/notes:id-repetido",
       "src/texts/b.texts.ts:2: programa",
-      "src/notas/c.ts: file name",
-      "package.json: script preparar"
+      "src/notas/c.ts",
+      "package.json#scripts.preparar"
     ]
   },
   "catalog": {

@@ -55,7 +55,8 @@ function fileNames(source: ts.SourceFile, path: string, catalog: boolean): strin
   visit(source);
   return found;
 }
-/** Every name a repository gives in Spanish: in its code, its file and folder names, and its npm scripts. */
+/** Every name a repository gives in Spanish: in its code (`path:line: name`), its file and folder names (the path)
+ * and its npm scripts (`package.json#scripts.name`). */
 export function spanishNames(repo: Repository, options: NameOptions): string[] {
   const code = [...lintFiles(repo)].sort().flatMap(file => {
     const path = fromRoot(repo.root, file);
@@ -64,14 +65,13 @@ export function spanishNames(repo: Repository, options: NameOptions): string[] {
   const files = filesUnder(repo.root, () => true)
     .map(file => fromRoot(repo.root, file))
     .filter(path => spanishWordsOf(path).length)
-    .sort()
-    .map(path => `${path}: file name`);
+    .sort();
   const pkg: unknown = JSON.parse(readFileSync(join(repo.root, "package.json"), "utf8"));
   const scripts = field(pkg, "scripts");
   const named = isRecord(scripts) ? Object.keys(scripts) : [];
   return [
     ...code,
     ...files,
-    ...named.filter(name => spanishWordsOf(name).length).map(name => `package.json: script ${name}`),
+    ...named.filter(name => spanishWordsOf(name).length).map(name => `package.json#scripts.${name}`),
   ];
 }

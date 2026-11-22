@@ -132,7 +132,9 @@
           ]
         }
       },
-      "data": {},
+      "data": {
+        "src/checks/laws/spanish-names.json": "The English-names law's fixture: the Spanish words no code name may hold, and DESERT's retired names."
+      },
       "interface": {
         "src/checks/real-terminal.ts": "Drives a real terminal in the checks: it writes and reads the bytes a person's terminal would.",
         "src/doors/mcp/oauth-page.ts": "The consent page of the MCP door, written by hand until it is a screen (PROPUESTA.md, Crítica 21).",

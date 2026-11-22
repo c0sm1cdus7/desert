@@ -37,6 +37,7 @@
     "checks/laws/adapters.ts": "Law 10: external I/O belongs to the declared infrastructure and composition.",
     "checks/laws/biases.ts": "Law 20: prose lives in the declared catalog; each technical exception stays accounted for.",
     "checks/laws/cycles.ts": "Law 21: a module that reaches itself again through what runs loads half-built, so no production file closes a ring.",
+    "checks/laws/english-names.ts": "spanishNames: every code name is English outside the catalog's texts, and DESERT's retired Spanish names never return.",
     "checks/laws/gate.ts": "Law 12: the repository gate covers every test and keeps its lint rules at their limits.",
     "checks/laws/imports.ts": "Law 2: explicit dependencies and isolated adapters, including type queries and require.",
     "checks/laws/interface-code.ts": "interfaceCode: no program or distribution writes interface (files, painting imports and dependencies, bytes painted by hand, a browser's drawing), but what its map admits",
