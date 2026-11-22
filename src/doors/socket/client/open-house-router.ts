@@ -16,6 +16,8 @@ export interface OpenHouse {
   readonly watch: (changed: () => void) => () => void;
   /** Stops the router and closes the connection. */
   readonly close: () => void;
+  /** Only the entry's: a code was accepted, so the host has a key now and the door asks it to open the house. */
+  readonly admitted?: () => boolean;
 }
 /** The one way a door builds a house router: the program's registry over the connection, read with its words. */
 export function openHouseRouter<X extends Program>(

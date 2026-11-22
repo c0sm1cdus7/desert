@@ -131,6 +131,21 @@ class Door<X extends Program> implements ScreenDoor {
   private settle(slot: Slot): void {
     if (slot.live?.house.ended()) this.cut(slot);
   }
+  /** A tick of the router: an ended house closes the session, an admitted entry gives way to the house, and whoever
+   * looks gets what changed. */
+  private changed(slot: Slot): void {
+    this.settle(slot);
+    const { live } = slot;
+    if (!live) return;
+    if (!live.house.admitted?.()) {
+      drawAll(live);
+      return;
+    }
+    this.replace(slot, live).then(
+      next => drawAll(next),
+      () => this.cut(slot),
+    );
+  }
   private liveOf(slot: Slot, back = false): Promise<Live> {
     return slot.live ? Promise.resolve(slot.live) : (slot.opening ?? this.open(slot, new Map(), back));
   }
@@ -147,10 +162,7 @@ class Door<X extends Program> implements ScreenDoor {
     const notice = withOpeningNotices(opened.router, [screenDoorTexts.expired]);
     const house = back ? { ...opened, router: notice } : opened;
     clients.forEach(client => (client.seq = 0));
-    const unwatch = house.router.watch(() => {
-      this.settle(slot);
-      if (slot.live) drawAll(slot.live);
-    });
+    const unwatch = house.router.watch(() => this.changed(slot));
     const live: Live = { epoch: this.host.epoch(), house, clients, unwatch };
     slot.live = live;
     return live;
