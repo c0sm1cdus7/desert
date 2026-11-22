@@ -28,7 +28,15 @@ function mentions(text: string, name: string): boolean {
   const words = wanted.split(/\s+/u).map(literal).join("\\s+");
   return new RegExp(`(?<![\\p{L}\\p{N}_])@${words}(?![\\p{L}\\p{N}_])`, "u").test(normalized(text));
 }
-export function mindWakeDecision(policy: WakePolicy, event: Event, history: readonly Event[], now: number): boolean {
+/** `heard` is the last fact the mind already had in front of it (22/11): a message at or before it wakes nobody, so
+ * a rule that changes never wakes a mind for the past. Nothing but messages heeds it. */
+export function mindWakeDecision(
+  policy: WakePolicy,
+  event: Event,
+  history: readonly Event[],
+  now: number,
+  heard = 0,
+): boolean {
   requireMind(policy, "policy");
   requireMind(event, "event");
   requireMind(Array.isArray(history), "history");
@@ -38,6 +46,7 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   requireMind(typeof policy.toolOf === "function", "policy.toolOf");
   requireMind(typeof policy.talks === "boolean", "policy.talks");
   requireMind(Number.isSafeInteger(now) && now >= 0, "now");
+  requireMind(Number.isSafeInteger(heard) && heard >= 0, "heard");
   const mind = parseMindActor(policy.scope.actor);
   requireMind(mind, "policy.actor");
   if (policy.wakes) return event.by !== policy.scope.actor && policy.wakes(event, history);
@@ -53,7 +62,7 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
     policy.toolOf(event.data.object) === mind.tool
   )
     return true;
-  return addressed(policy, policy.message(event));
+  return event.seq > heard && addressed(policy, policy.message(event));
 }
 /** A message wakes by the shape of its thread (signed 22/11): in a thread of two, its author and one other, it always
  * wakes the other; in a group it wakes only the minds it names with «@», whoever wrote it. The thread is its author
