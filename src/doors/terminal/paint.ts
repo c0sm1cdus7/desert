@@ -1,25 +1,21 @@
 // A resolved screen into cells: each piece of the UI rules is drawn once, here, and decides nothing.
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
-import type { Body, HintKey, Screen, Span } from "../../surface/contract/contract.ts";
+import type { Body, Screen, Span } from "../../surface/contract/contract.ts";
+import { piecesOf } from "../../surface/pieces/pieces-of.ts";
+import type { ActionPiece, BarPiece, SurfacePiece, ToolbarPiece } from "../../surface/pieces/pieces.ts";
 import { blankCell, fit, put, putRight, width, type Grid } from "./cells.ts";
 import { drawFocus, drawPanel, drawRow, drawThread, keysOf } from "./thread.ts";
+export { controlNames as keyNames } from "../../surface/pieces/controls.ts";
+export { beats as barIcons } from "../../surface/pieces/piece-bar.ts";
 interface Size {
   readonly cols: number;
   readonly rows: number;
 }
-/** The name of each hint's key: every hint has one in the catalog, or the door does not compile. */
-export const keyNames: Readonly<Record<HintKey, string>> = said.controls;
 /** How many lines of content a terminal of this height has. */
 export const contentRows = (rows: number): number => rows - 8;
 const edgeOf = (cols: number): number => (cols >= 60 ? 2 : 1);
 const blockOf = (cols: number): number => Math.min(76, cols - 2 * edgeOf(cols));
 
-export const barIcons = {
-  connected: ["●", "ok"],
-  connecting: ["●", "wait"],
-  "signal-lost": ["×", "cut"],
-  disconnected: ["×", "t3"],
-} as const;
 function drawList(grid: Grid, body: Extract<Body, { kind: "list" }>, left: number, block: number): void {
   let r = 4;
   const note = (arrow: string, n?: number): void => {
@@ -36,44 +32,54 @@ function drawList(grid: Grid, body: Extract<Body, { kind: "list" }>, left: numbe
   });
 }
 
-function drawBars(grid: Grid, screen: Screen, cols: number, edge: number): void {
+/** The Barra: the title, cut to what the beat, the clock and the battery leave. */
+function drawBar(grid: Grid, bar: BarPiece, cols: number, edge: number): void {
+  const live: Span[] = [
+    { text: bar.beat.icon, tone: bar.beat.tone },
+    { ...bar.clock, text: ` ${bar.clock.text}` },
+    ...(bar.battery ? [{ ...bar.battery, text: ` ${bar.battery.text}` }] : []),
+  ];
+  const used = live.reduce((sum, span) => sum + width(span.text), 0);
+  put(grid, edge, 0, { ...bar.title, text: fit(bar.title.text, cols - 2 * edge - used - 2) });
+  putRight(grid, cols - edge, 0, live);
+}
+/** A fixed control: its key and what it does, two cells apart from the next; a narrow rail keeps only the key. */
+const fixedSpans = (action: ActionPiece, last: boolean, narrow: boolean): readonly Span[] => {
+  const gap = last ? "" : "  ";
+  const key = narrow ? `${action.key.text}${gap}` : `${action.key.text} `;
+  return [
+    { ...action.key, text: key },
+    { ...action.does, text: narrow ? "" : `${action.does.text}${gap}` },
+  ];
+};
+/** The Toolbar: the fixed controls at the left; at the right, the aids, dropped from the first while they do not
+ * fit. */
+function drawToolbar(grid: Grid, toolbar: ToolbarPiece, cols: number, edge: number): void {
   const rows = grid.length;
-  const [icon, tone] = barIcons[screen.state];
-  const bar: Span[] = [
-    { text: icon, tone },
-    { text: ` ${screen.clock}`, tone: "t1" },
-    ...(screen.battery ? [{ text: ` ${screen.battery}`, tone: "t2" } as const] : []),
-  ];
-  const used = bar.reduce((sum, span) => sum + width(span.text), 0);
-  put(grid, edge, 0, { text: fit(screen.title, cols - 2 * edge - used - 2), tone: "t1", bold: true });
-  putRight(grid, cols - edge, 0, bar);
-  put(grid, 0, 1, { text: "─".repeat(cols), tone: "line" });
-  put(grid, 0, rows - 2, { text: "─".repeat(cols), tone: "line" });
   const narrow = cols < 60;
-  const fixed: Span[] = [
-    ...(screen.menu
-      ? ([
-          { text: `${said.chords.menu}${narrow ? "  " : " "}`, tone: "t2" },
-          { text: narrow ? "" : `${said.keys.menu}  `, tone: "t3" },
-        ] as const)
-      : []),
-    { text: narrow ? said.chords.quit : `${said.chords.quit} `, tone: "t2" },
-    { text: narrow ? "" : said.keys.quit, tone: "t3" },
-  ];
+  const fixed = toolbar.fixed.flatMap((action, i) => fixedSpans(action, i === toolbar.fixed.length - 1, narrow));
   let col = edge;
   for (const span of fixed) col = put(grid, col, rows - 1, span);
-  const hints = [...screen.hints];
-  const size = (): number => hints.reduce((sum, h) => sum + width(keyNames[h.intent]) + width(h.does) + 3, 0) - 2;
-  while (hints.length && size() > cols - edge - col - 2) hints.shift();
+  const aids = [...toolbar.aids];
+  const size = (): number => aids.reduce((sum, a) => sum + width(a.key.text) + width(a.does.text) + 3, 0) - 2;
+  while (aids.length && size() > cols - edge - col - 2) aids.shift();
   putRight(
     grid,
     cols - edge,
     rows - 1,
-    hints.flatMap((h, i) => [
-      { text: `${keyNames[h.intent]} `, tone: "t2" as const },
-      { text: i === hints.length - 1 ? h.does : `${h.does}  `, tone: "t3" as const },
+    aids.flatMap((action, i) => [
+      { ...action.key, text: `${action.key.text} ` },
+      { ...action.does, text: i === aids.length - 1 ? action.does.text : `${action.does.text}  ` },
     ]),
   );
+}
+function drawBars(grid: Grid, pieces: SurfacePiece, cols: number, edge: number): void {
+  const rows = grid.length;
+  const [bar, , toolbar] = pieces.zones;
+  drawBar(grid, bar, cols, edge);
+  put(grid, 0, 1, { text: "─".repeat(cols), tone: "line" });
+  put(grid, 0, rows - 2, { text: "─".repeat(cols), tone: "line" });
+  drawToolbar(grid, toolbar, cols, edge);
 }
 
 export function paint(screen: Screen, { cols, rows }: Size): Grid {
@@ -85,7 +91,7 @@ export function paint(screen: Screen, { cols, rows }: Size): Grid {
   const edge = edgeOf(cols);
   const block = blockOf(cols);
   const left = Math.floor((cols - block) / 2);
-  drawBars(grid, screen, cols, edge);
+  drawBars(grid, piecesOf(screen), cols, edge);
   const { panel, body } = screen;
   const side = cols >= sideBySide && !panel?.full;
   if (panel && !side && (panel.full || panel.focused)) drawPanel(grid, panel, edge, cols - 2 * edge, -1);
