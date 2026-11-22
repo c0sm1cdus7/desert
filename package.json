@@ -16,6 +16,7 @@
     "gate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm laws",
     "rules": "node tests/laws/write-rules.ts",
     "screens": "node tests/support/write-wire-screens.ts",
+    "frames": "node tests/support/write-terminal-frames.ts",
     "redeem": "node src/runtime/redeem-door-cli.ts"
   },
   "devDependencies": {
