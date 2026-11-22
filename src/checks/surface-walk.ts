@@ -13,6 +13,8 @@ const tries: readonly Intent[] = [
   { kind: "switch" },
   { kind: "type", text: "x" },
   { kind: "type", text: "f" },
+  /** A space marks an option of a many question, and starts looking for something on a menu. */
+  { kind: "type", text: " " },
   { kind: "erase" },
   { kind: "cancel" },
 ];
@@ -33,8 +35,14 @@ async function replay(tools: readonly Tool[], path: readonly Intent[], rows: num
   }
   return resolve(session, tools, bar, { rows });
 }
-/** Every distinct screen within reach, each with the intents that reach it. */
-export async function surfaceWalk(fresh: () => readonly Tool[], rows: number, most: number): Promise<readonly Stop[]> {
+/** Every distinct screen within reach, each with the intents that reach it; then the screen of each path given,
+ * for what lies deeper than the walk goes before its cap: a path is written by hand, a screen never is. */
+export async function surfaceWalk(
+  fresh: () => readonly Tool[],
+  rows: number,
+  most: number,
+  also: readonly (readonly Intent[])[] = [],
+): Promise<readonly Stop[]> {
   const seen = new Map<string, Stop>();
   const queue: Intent[][] = [[]];
   let budget = most * 30; // Most paths land on a screen already seen: stop looking long before they all run out.
@@ -45,6 +53,11 @@ export async function surfaceWalk(fresh: () => readonly Tool[], rows: number, mo
     if (seen.has(key)) continue;
     seen.set(key, { screen, path });
     for (const intent of tries) queue.push([...path, intent]);
+  }
+  for (const path of also) {
+    const screen = await replay(fresh(), path, rows);
+    const key = JSON.stringify(screen);
+    if (!seen.has(key)) seen.set(key, { screen, path });
   }
   return [...seen.values()];
 }

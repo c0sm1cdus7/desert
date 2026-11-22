@@ -2,14 +2,13 @@
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { describe, expect, it } from "vitest";
-import { hintTexts, mainTexts, panelTexts, surfaceWalk } from "../../checks/surface-walk.ts";
-import { fresh } from "../../../tests/support/surface-tools.ts";
-import { contentRows } from "../../doors/terminal/paint.ts";
+import { hintTexts, mainTexts, panelTexts } from "../../checks/surface-walk.ts";
+import { walked } from "../../../tests/support/surface-tools.ts";
 import type { Intent } from "./contract.ts";
 import { pasteLimit } from "./limits.ts";
 import { parseIntent, wire, WireScreen } from "./wire.ts";
 
-const stops = await surfaceWalk(fresh, contentRows(60), 300);
+const stops = await walked();
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 /** The arm of a union a value stands for: the one whose kind it carries. */
@@ -42,7 +41,7 @@ describe("the screen as it travels", () => {
     const leaked = stops.flatMap(({ screen }) => extras(WireScreen, raw(screen), ""));
     expect(stops.some(({ screen }) => !Value.Check(WireScreen, raw(screen)))).toBe(true);
     const names = [...new Set(leaked.map(path => path.split("/").at(-1)))].sort();
-    expect(names).toEqual(["open", "opens", "starts"]);
+    expect(names).toEqual(["open", "opens", "starts", "value"]);
   });
   it("validates every wired screen against the closed shape", () => {
     const wrong = stops.flatMap(({ screen, path }) =>

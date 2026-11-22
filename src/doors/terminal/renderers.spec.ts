@@ -1,14 +1,13 @@
 // The terminal renderer against the contract: it paints, reads its own grid back as plain data and hands it to the kit.
 import { describe, expect, it } from "vitest";
-import { fresh } from "../../../tests/support/surface-tools.ts";
+import { walked } from "../../../tests/support/surface-tools.ts";
 import { conformance, type Drawn } from "../../checks/renderer-conformance.ts";
-import { surfaceWalk } from "../../checks/surface-walk.ts";
 import type { HintKey, Intent, Screen } from "../../surface/contract/contract.ts";
 import { hintSends } from "../../surface/contract/hint-sends.ts";
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import { bytesOf, textOf, type Grid } from "./cells.ts";
 import { keysOf } from "./input.ts";
-import { barIcons, contentRows, keyNames, paint } from "./paint.ts";
+import { barIcons, keyNames, paint } from "./paint.ts";
 
 const size = { cols: 200, rows: 60 };
 const split = 53;
@@ -80,7 +79,6 @@ function drawn(screen: Screen, grid: Grid): Drawn {
     controls: controlsOf(grid, screen),
   };
 }
-const walked = () => surfaceWalk(fresh, contentRows(size.rows), 300);
 
 describe("the terminal renderer, against the contract", () => {
   it("draws what the contract says on every reachable screen, and adds no word of its own", async () => {

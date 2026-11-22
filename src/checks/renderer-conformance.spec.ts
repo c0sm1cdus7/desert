@@ -1,14 +1,14 @@
 // The kit against a plain-text renderer: the right one passes everywhere; each broken one fails exactly its check.
 import { describe, expect, it } from "vitest";
-import { fresh } from "../../tests/support/surface-tools.ts";
+import { walked } from "../../tests/support/surface-tools.ts";
 import type { HintKey, Intent, Screen } from "../surface/contract/contract.ts";
 import { hintSends } from "../surface/contract/hint-sends.ts";
 import { conformance, type Drawn, type Failure } from "./renderer-conformance.ts";
-import { chosenText, mainTexts, panelTexts, surfaceWalk } from "./surface-walk.ts";
+import { chosenText, mainTexts, panelTexts } from "./surface-walk.ts";
 
 type Check = Failure["check"];
 
-const stops = await surfaceWalk(fresh, 52, 300);
+const stops = await walked();
 const screens = stops.map(stop => stop.screen);
 const hintKeys = Object.keys(hintSends).filter((key): key is HintKey => key in hintSends);
 /** The fake renderer names its controls after their hints, and its Menu control "menu": its own catalog. */

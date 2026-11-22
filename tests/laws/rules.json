@@ -3426,6 +3426,16 @@
         "src/surface/contract/wire.spec.ts",
         "src/surface/contract/wire.ts"
       ]
+    },
+    {
+      "id": 308,
+      "rule": "Las pantallas de referencia (`tests/fixtures/wire-screens.json`) son el recorrido de hoy con su forma de viaje, una por renglón, escritas por `pnpm screens` y nunca a mano; la ley las regenera en memoria y las compara. Tienen que mostrar cada forma que un renderer dibuja (cada pista, lista e hilo, cada clase de fila, de pila, de entrada y de evento, panel enfocado y completo, Menú sí y no) y nombran la que falte.",
+      "from": "22/11 · superficies, etapa 1",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/wire-screens.spec.ts",
+        "tests/support/write-wire-screens.ts"
+      ]
     }
   ]
 }
