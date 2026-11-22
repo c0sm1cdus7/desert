@@ -2,14 +2,15 @@
 import { OutsideDefect } from "../../fields/program-call.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import { vocabulary } from "../../journal/vocabulary.ts";
-import { localState, type InstalledGroup, type InstalledProgram } from "./runtime.ts";
+import { localState, ownState, type InstalledGroup, type InstalledProgram, type ProgramReadings } from "./runtime.ts";
 import { adaptAction, targetOf } from "./actions.ts";
 import { folderOf, objectOf, localTarget } from "./destinations.ts";
 import type { ProgramMetadata, ProgramBody, LocalProgram, ProgramGroup } from "./program.ts";
 import type { Program, State } from "../tool-contract.ts";
 import type { ProgramTool } from "../promises-contract.ts";
-/** The names of every tool of a program. */
+/** The names of every tool of a program, and what it reads from its providers when it requests any. */
 type Tools = readonly string[];
+type Install = Readonly<{ tools: Tools; readings?: ProgramReadings | undefined }>;
 function groupReactions<X extends Program>(id: string, name: string, group: ProgramGroup<X>) {
   return Object.fromEntries(
     Object.entries(group.reactions ?? {}).map(([key, reaction]) => {
@@ -18,8 +19,9 @@ function groupReactions<X extends Program>(id: string, name: string, group: Prog
     }),
   );
 }
-function groupTool<X extends Program>(id: string, name: string, group: ProgramGroup<X>, tools: Tools): InstalledGroup {
-  const stateOf = (state: State<Program>) => localState<X>(state, id);
+function groupTool<X extends Program>(id: string, name: string, group: ProgramGroup<X>, on: Install): InstalledGroup {
+  const { tools, readings } = on;
+  const stateOf = ownState<X>(id, readings);
   const reader = (state: State<Program>) => ({ id, name, tools, own: new Set(group.targets(stateOf(state))) });
   const target = (value: string) => localTarget(id, name, value);
   const tool: ProgramTool<Program> = {
@@ -27,7 +29,7 @@ function groupTool<X extends Program>(id: string, name: string, group: ProgramGr
     purpose: group.purpose,
     reactions: groupReactions(id, name, group),
     acts: Object.fromEntries(
-      Object.entries(group.acts).map(([key, act]) => [`${name}/${key}`, adaptAction(id, name, group, act)]),
+      Object.entries(group.acts).map(([key, act]) => [`${name}/${key}`, adaptAction(id, name, group, act, readings)]),
     ),
     targets: state => group.targets(stateOf(state)).map(object => objectOf(id, name, object)),
     view: (state, value, limits) => remapView(group.view(stateOf(state), target(value), limits), reader(state)),
@@ -99,9 +101,13 @@ function namedTool(reader: Reader, key: string, tool: unknown): string {
     ),
   );
 }
-export function installProgram<M extends ProgramMetadata>(meta: M, body: ProgramBody<M>): InstalledProgram {
-  const tools = Object.keys(body.herramientas);
-  const groups = Object.entries(body.herramientas).map(([name, group]) => groupTool(meta.id, name, group, tools));
+export function installProgram<M extends ProgramMetadata>(
+  meta: M,
+  body: ProgramBody<M>,
+  readings?: ProgramReadings,
+): InstalledProgram {
+  const on = { tools: Object.keys(body.herramientas), readings };
+  const groups = Object.entries(body.herramientas).map(([name, group]) => groupTool(meta.id, name, group, on));
   const find = (state: State<Program>, target: string) =>
     groups.find(group => group.folder === target || group.tool.targets(state).includes(target));
   const tool: ProgramTool<Program> = {
@@ -114,7 +120,7 @@ export function installProgram<M extends ProgramMetadata>(meta: M, body: Program
     groups,
     ...fromGroups(groups),
     targets: state => groups.flatMap(group => [group.folder, ...group.tool.targets(state)]),
-    summary: state => body.summary(localState<LocalProgram<M>>(state, meta.id)),
+    summary: state => body.summary(ownState<LocalProgram<M>>(meta.id, readings)(state)),
     view: (state, target, limits) =>
       target === meta.id
         ? groups.map(g => JSON.stringify({ id: g.folder, text: g.palabras.name })).join("\n")

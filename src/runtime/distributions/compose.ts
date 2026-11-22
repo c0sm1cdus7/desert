@@ -9,7 +9,7 @@ import { DESERT_CONTRACT, type InstallableProgram, type LocalProgram } from "../
 import { CompositionError, diagnostico } from "./diagnostics.ts";
 import type { CompositionOptions, RequireValid } from "./validation-types.ts";
 import { declaredReactions } from "../../tools/boundaries/tool-reactions.ts";
-import { bindProgramContracts } from "./program-contracts.ts";
+import { bindProgramContracts, installPrograms } from "./program-contracts.ts";
 import { distributionShown } from "./shown.ts";
 import type { InstalledProgram } from "../../tools/installable/runtime.ts";
 import { programMindDefinitions, talkActs } from "./program-minds.ts";
@@ -45,7 +45,7 @@ export function componer<const O extends DistributionOptions>(
 export function componer(options: DistributionOptions): Distribution<Program> {
   const issues = diagnostico(options);
   if (issues.length) throw new CompositionError(issues);
-  const installed = options.programas.map(program => ({ definition: program, ...program.install() }));
+  const { packages, installed } = installPrograms(options.programas);
   declaredReactions({ registry: installed.map(p => p.tool) });
   const roots = [
     fileURLToPath(new URL("../../", import.meta.url)),
@@ -59,7 +59,7 @@ export function componer(options: DistributionOptions): Distribution<Program> {
   };
   const program: Composition<Program> = {
     contractSetup: bindProgramContracts(
-      options.programas,
+      packages,
       installed.map(p => p.tool),
     ),
     identities: options.identidades,

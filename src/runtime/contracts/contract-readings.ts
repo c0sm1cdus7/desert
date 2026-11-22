@@ -5,7 +5,13 @@ import { Value } from "@sinclair/typebox/value";
 import { readonlyState } from "../../journal/readonly-state.ts";
 import { publicValue } from "../../adapters/public-value.ts";
 import type { Program, State } from "../../tools/tool-contract.ts";
-import type { ContractCut, ContractPort, ContractReading, ContractPublicNotice } from "../../tools/contract-port.ts";
+import type {
+  ContractCut,
+  ContractPort,
+  ContractReading,
+  ContractPublicNotice,
+  StateReading,
+} from "../../tools/contract-port.ts";
 import type { ContractHistory } from "./contract-history.ts";
 import type { ContractPackage, ContractOffer, ContractRequest } from "../../tools/contracts/package-contracts.ts";
 import { projectValue } from "./project-value.ts";
@@ -21,6 +27,29 @@ function ownState<X extends Program>(provider: ContractPackage, state: State<X>)
   if (own === null || typeof own !== "object" || Array.isArray(own)) throw new Error(contractTexts.invalidValue);
   return readonlyState(Object.fromEntries(Object.entries(own)));
 }
+/** A provider's object as its projector reads it from a state, checked against the offer and trimmed to the request:
+ * the same reading at a cut and in the state a consumer's callback receives. */
+export function projection<X extends Program>(
+  provider: ContractPackage,
+  have: ContractOffer["objetos"][string] | undefined,
+  need: ContractRequest["objetos"][string],
+  state: State<X> | undefined,
+  key: unknown,
+): StateReading {
+  try {
+    if (!have || !Value.Check(need.clave, publicValue(key))) return coreFailure("invalid-reference");
+    if (!state) return { status: "unavailable" };
+    const project = provider.proyectores[have.proyector];
+    if (!project) return coreFailure("defect");
+    const value = project(ownState(provider, state), readonlyState(publicValue(key)));
+    if (value === undefined) return { status: "unavailable" };
+    const copy = publicValue(value);
+    if (!Value.Check(have.datos, copy)) return coreFailure("defect");
+    return { status: "found", value: projectValue(need.datos, copy) };
+  } catch {
+    return coreFailure("defect");
+  }
+}
 function readObject<X extends Program>(
   provider: ContractPackage,
   have: ContractOffer["objetos"][string] | undefined,
@@ -31,26 +60,11 @@ function readObject<X extends Program>(
 ): ContractReading {
   if (!scope.allowed()) return coreFailure("forbidden");
   if (!scope.valid(cut)) return coreFailure("invalid-reference");
-  try {
-    const safe = publicValue(key);
-    if (!have || !Value.Check(need.clave, safe)) return coreFailure("invalid-reference");
-    const state = scope.history.at(cut.sequence);
-    if (!state) return { status: "unavailable", sequence: cut.sequence };
-    const project = provider.proyectores[have.proyector];
-    if (!project) return coreFailure("defect");
-    const value = project(ownState(provider, state), readonlyState(safe));
-    if (value === undefined) return { status: "unavailable", sequence: cut.sequence };
-    const copy = publicValue(value);
-    if (!Value.Check(have.datos, copy)) return coreFailure("defect");
-    return {
-      status: "found",
-      sequence: cut.sequence,
-      value: projectValue(need.datos, copy),
-      reference: readonlyState({ provider: provider.id, artifact: provider.artifact, key: safe }),
-    };
-  } catch {
-    return coreFailure("defect");
-  }
+  const read = projection(provider, have, need, scope.history.at(cut.sequence), key);
+  if (read.status === "unavailable") return { status: "unavailable", sequence: cut.sequence };
+  if (read.status !== "found") return read;
+  const reference = { provider: provider.id, artifact: provider.artifact, key: publicValue(key) };
+  return { ...read, sequence: cut.sequence, reference: readonlyState(reference) };
 }
 export function objectPorts<X extends Program>(
   provider: ContractPackage,

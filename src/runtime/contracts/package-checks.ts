@@ -19,6 +19,8 @@ function shapes(half: ContractInterface, base: string): string[] {
         );
   for (const [name, object] of Object.entries(half.objetos)) {
     if (!supportedReading(object.lectura)) errors.push(`${base}/objetos/${name}:lectura-no-soportada`);
+    // A consumer reads each object by its name beside `can` (state.readings): no object takes that name.
+    if (name === "can") errors.push(`${base}/objetos/${name}:nombre-reservado`);
     errors.push(...schemaInclusion(object.clave, object.clave, `${base}/objetos/${name}/clave`, "entrada"));
     errors.push(...schemaInclusion(object.datos, object.datos, `${base}/objetos/${name}/datos`, "lectura"));
   }

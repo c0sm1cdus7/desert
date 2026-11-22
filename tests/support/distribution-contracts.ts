@@ -31,7 +31,7 @@ const candidate: Composition<Program> = {
     step: Object.fromEntries(installed.map(program => [program.id, program.step])),
   },
 };
-function openHouse<X extends Program>(
+export function openHouse<X extends Program>(
   program: Pick<Composition<X>, "words" | "slices"> & { registry: ToolRegistry<X> },
   path = ":memory:",
   selections?: readonly Selection[],

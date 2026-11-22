@@ -9,6 +9,14 @@ export type ContractReading =
   | CoreFailure
   | Readonly<{ status: "unavailable"; sequence: number }>
   | Readonly<{ status: "found"; sequence: number; value: unknown; reference: ContractReference }>;
+/** A provider's object as a consumer reads it from the state it already has: no cut, no reference. */
+export type StateReading =
+  CoreFailure | Readonly<{ status: "unavailable" }> | Readonly<{ status: "found"; value: unknown }>;
+/** What a consumer reads of one contract: each requested object by its key, and whether whoever looks holds a
+ * requested action of the provider in their kit. */
+export type ContractReader = Readonly<{ can: (action: string) => boolean }> &
+  Readonly<Record<string, (key: unknown) => StateReading>>;
+export type ContractReadings = Readonly<Record<string, ContractReader>>;
 export type ContractPublicNotice = Readonly<{
   id: string;
   sequence: number;

@@ -7,6 +7,7 @@ import { runContractCases } from "../../runtime/contracts/contract-gate.ts";
 import type { DistributionOptions } from "../../runtime/distributions/compose.ts";
 import {
   bindProgramContracts,
+  installPrograms,
   programContracts,
   type ContractCertification,
 } from "../../runtime/distributions/program-contracts.ts";
@@ -30,7 +31,7 @@ export type {
 } from "../../tools/contracts/contract-types.ts";
 /** The composition a distribution is about to make, before it has evidence: the same programs, installed. */
 function candidate(options: Omit<DistributionOptions, "contratos">): Composition<Program> {
-  const installed = options.programas.map(program => ({ id: program.id, ...program.install() }));
+  const { packages, installed } = installPrograms(options.programas);
   const roots = [
     fileURLToPath(new URL("../../", import.meta.url)),
     ...options.presentacion.codigo,
@@ -38,13 +39,13 @@ function candidate(options: Omit<DistributionOptions, "contratos">): Composition
   ];
   const registry = installed.map(program => program.tool);
   return {
-    contractSetup: bindProgramContracts(options.programas, registry),
+    contractSetup: bindProgramContracts(packages, registry),
     identities: options.identidades,
     projectionVersion: codeProjectionVersion(roots),
     registry,
     slices: {
-      initial: Object.fromEntries(installed.map(program => [program.id, program.initial])),
-      step: Object.fromEntries(installed.map(program => [program.id, program.step])),
+      initial: Object.fromEntries(installed.map(program => [program.definition.id, program.initial])),
+      step: Object.fromEntries(installed.map(program => [program.definition.id, program.step])),
     },
     words: vocabulary(Object.fromEntries(options.programas.flatMap(p => p.hechos.map(f => [f.nombre, f.forma])))),
   };

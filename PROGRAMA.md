@@ -2398,6 +2398,18 @@ para reaccionar a un aviso corresponde el corte que trae ese aviso. El acceso ex
 la casa, aunque el corte sea anterior. Las referencias incluyen proveedor y artefacto: `readReference`
 rechaza redirigir una referencia histórica a otra instalación. Migrarlas requiere trabajo explícito.
 
+Un programa instalable también lee a su proveedor fuera de `run`: en todo lo que lee (`offered`, `stops`,
+`confirms`, `datum`, `today`, `choices`, `view`, `needs`, `closed`, `words`, `summary` y `run`) su estado trae
+`state.readings["contrato"].objeto(clave)`, una por cada objeto pedido. Es la misma lectura que `read`, sobre el estado
+que la función ya recibe y sin corte: el proyector del proveedor, validado contra la oferta y recortado al esquema
+pedido. Da `{ status: "found", value }`, `{ status: "unavailable" }` o un fallo del core (`invalid-reference` para
+una clave fuera del esquema, `defect` si el proyector falla). `state.readings["contrato"].can("acción")` dice si
+quien mira (`state.by`) tiene en su kit la acción pedida del proveedor, con `allowedAct`: así una acción que la
+necesita se apaga con su motivo en vez de fallar al correr. `plegar` nunca recibe lecturas, y el estado crudo del
+proveedor sigue fuera de alcance. `componer` instala cada programa con sus lecturas (`installPrograms`), desde los
+mismos paquetes que enlazan sus contratos; un programa que no pide nada no las tiene. Ningún objeto se puede
+llamar `can` (`nombre-reservado`). Prueba: `src/tools/installable/contract-readings.spec.ts`.
+
 El pedido lleva casos declarativos: preparación, actor, acciones, lecturas y avisos esperados.
 `runContractCases` recibe los artefactos, las huellas de core y ejecutor y una fábrica de casas aisladas con
 adaptadores falsos. La fábrica interpreta la preparación declarada; nunca debe abrir una casa viva. La

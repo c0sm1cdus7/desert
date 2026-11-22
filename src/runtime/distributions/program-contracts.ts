@@ -8,6 +8,7 @@ import { copyContractPackages } from "../contracts/contract-record.ts";
 import { checkContractBindings, createContractRuntime } from "../contracts/contract-runtime.ts";
 import type { ContractPackage } from "../../tools/contracts/package-contracts.ts";
 import { validateContractPrograms } from "../contracts/validate-contracts.ts";
+import { stateReadings } from "../contracts/state-readings.ts";
 export type ContractualProgram = InstallableProgram &
   Partial<Pick<ContractPackage, "artifact" | "ofrece" | "pide" | "proyectores">>;
 export type ContractCertification = Readonly<{
@@ -58,14 +59,24 @@ export function distributionContractIssues(
   });
 }
 
+/** Installs every program with what it reads from its providers, by the same packages its contracts bind. */
+export function installPrograms<P extends ContractualProgram>(programs: readonly P[]) {
+  const packages = copyContractPackages(programContracts(programs));
+  const registry: ToolRegistry<Program>[number][] = [];
+  const installed = programs.map(definition => ({
+    definition,
+    ...definition.install(stateReadings(packages, definition.id, () => registry)),
+  }));
+  registry.push(...installed.map(program => program.tool));
+  return { packages, installed };
+}
 /** Bind before returning a composition; each opening receives its own journal and cuts. */
 const boundPackages = new WeakMap<object, readonly ContractPackage[]>();
 export const packagesForContracts = (setup: object) => boundPackages.get(setup);
 export function bindProgramContracts(
-  programs: readonly ContractualProgram[],
+  packages: readonly ContractPackage[],
   registry: ToolRegistry<Program>,
 ): ContractSetup<Program> {
-  const packages = copyContractPackages(programContracts(programs));
   checkContractBindings(packages, { registry });
   const setup: ContractSetup<Program> = source =>
     createContractRuntime(packages, source, contractHistory(source.initial, source.slices, source.events)).context;

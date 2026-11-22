@@ -4,7 +4,7 @@ export type ViewLimits = Readonly<{ recentLines: number }> &
   /** The instant of the reading, for what a tool reads by the day: what is due today. */
   Readonly<{ now: number }>;
 import type { ActionExecution } from "../fields/device-protocol.ts";
-import type { ContractAccess, ContractFailureReason, ContractFactory } from "./contract-port.ts";
+import type { ContractAccess, ContractFailureReason, ContractFactory, ContractReadings } from "./contract-port.ts";
 import type { Capability } from "../fields/capabilities.ts";
 import type { Skill } from "../fields/messages.ts";
 import type { DeepReadonly } from "../journal/readonly-state.ts";
@@ -23,7 +23,9 @@ export type HouseState = HouseView &
   Readonly<{ processing: ReadonlyMap<string, HouseEvent<"act-started">>; through: number }> &
   Readonly<{ acts: ReadonlyMap<string, HouseEvent<"act">>; wakeOwners: ReadonlyMap<string, string> }>;
 export type State<X extends Program> = HouseState &
-  Readonly<{ tools: { readonly [K in keyof X["tools"]]: DeepReadonly<X["tools"][K]> } }>;
+  Readonly<{ tools: { readonly [K in keyof X["tools"]]: DeepReadonly<X["tools"][K]> } }> &
+  /** What an installable program reads from its providers, by contract, in all it reads: never while it folds. */
+  Readonly<{ readings?: ContractReadings }>;
 /** What each tool keeps: where it starts, and how each fact moves it. A tool without a step does not exist. */
 export type Slices<X extends Program> = Readonly<{
   initial: State<X>["tools"];

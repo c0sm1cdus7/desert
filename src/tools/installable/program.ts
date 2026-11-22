@@ -7,7 +7,7 @@ import type { DeepReadonly } from "../../journal/readonly-state.ts";
 import type { ProgramTool } from "../promises-contract.ts";
 import type { State } from "../tool-contract.ts";
 import { installProgram } from "./adapter.ts";
-import type { InstalledProgram } from "./runtime.ts";
+import type { InstalledProgram, ProgramReadings } from "./runtime.ts";
 export const DESERT_CONTRACT = 1;
 export type FactDefinition = Readonly<{ nombre: string; forma: TSchema }>;
 export type ProgramMetadata = Readonly<{
@@ -75,15 +75,20 @@ export type InstallableProgram = ProgramMetadata &
     mindCases?: readonly ProgramMindCase[];
     mensajes?: ProgramTalk;
     herramientas: Readonly<Record<string, Readonly<{ acts: Readonly<Record<string, unknown>>; effects?: unknown }>>>;
-    install: () => InstalledProgram;
+    /** Installs it; composing passes what it reads from its providers, when it requests any. */
+    install: (readings?: ProgramReadings) => InstalledProgram;
   }>;
 export function programa<const M extends ProgramMetadata, const B extends ProgramBody<NoInfer<M>>>(
   metadata: M,
   body: B,
-): M & B & Readonly<{ install: () => InstalledProgram }> {
+): M & B & Readonly<{ install: (readings?: ProgramReadings) => InstalledProgram }> {
   const ownMetadata = { ...metadata };
   const ownBody = { ...body };
-  const definition = { ...ownMetadata, ...ownBody, install: () => installProgram(ownMetadata, ownBody) };
+  const definition = {
+    ...ownMetadata,
+    ...ownBody,
+    install: (readings?: ProgramReadings) => installProgram(ownMetadata, ownBody, readings),
+  };
   deepFreeze(ownMetadata);
   deepFreeze(ownBody);
   deepFreeze(definition);

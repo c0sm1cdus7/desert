@@ -6,7 +6,7 @@ import type { ActContext, Program, State } from "../tool-contract.ts";
 import { adaptReject, mapResult } from "./action-results.ts";
 import { folderOf, localTarget, objectOf } from "./destinations.ts";
 import type { ProgramGroup } from "./program.ts";
-import { localState } from "./runtime.ts";
+import { ownState, type ProgramReadings } from "./runtime.ts";
 /** What a program calls by its tool's own name is the tool's folder; anything else it names is one of its things. */
 export const targetOf = (id: string, group: string, target?: string) =>
   target === undefined || target === group ? folderOf(id, group) : objectOf(id, group, target);
@@ -39,8 +39,9 @@ export function adaptAction<X extends Program>(
   group: string,
   owner: ProgramGroup<X>,
   act: ProgramAct<X>,
+  readings?: ProgramReadings,
 ): ProgramAct<Program> {
-  const stateOf = (state: State<Program>) => localState<X>(state, id);
+  const stateOf = ownState<X>(id, readings);
   const target = (value: string) => localTarget(id, group, value);
   const accepts = (state: State<Program>, value: string) =>
     act.on === "tool"
