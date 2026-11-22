@@ -112,10 +112,11 @@ describe("the tree of src/", () => {
   // 21/11 failed turns, the exception: +0 exact in supervisor.texts.ts: its sentence fits two lines that were there.
   // 21/11 stops that loop: +1 exact in supervisor.texts.ts: a stopped consciousness that fails having done nothing.
   // 22/11 surfaces, stage 1: +1 exact in surface.texts.ts: the seven key names move out of paint.ts, unchanged.
-  it("keeps every file within 300 lines and the texts within 1409", () => {
+  // 22/11 surfaces, stage 2: +15 exact in screen-door.texts.ts: the entry's words and mask, a cut session's notice.
+  it("keeps every file within 300 lines and the texts within 1424", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1409);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1424);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));
