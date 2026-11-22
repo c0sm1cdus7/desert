@@ -1,9 +1,9 @@
 // Walks a surface by its own intents, from a fresh set of tools each time, so no path has to be written by hand.
-import type { Hint, Intent, Screen, Span, ThreadEvent } from "../../src/surface/contract/contract.ts";
-import type { Tool } from "../../src/surface/contract/shown-tool.ts";
-import { resolve } from "../../src/surface/router/resolve.ts";
-import { actOf, start, type Session } from "../../src/surface/session/screen.ts";
-import { finished, settled, step } from "../../src/surface/router/step.ts";
+import type { Hint, Intent, Screen, Span, ThreadEvent } from "../surface/contract/contract.ts";
+import type { Tool } from "../surface/contract/shown-tool.ts";
+import { resolve } from "../surface/router/resolve.ts";
+import { actOf, start, type Session } from "../surface/session/screen.ts";
+import { finished, settled, step } from "../surface/router/step.ts";
 
 const bar = { state: "connected", clock: "14:32", now: 5_000 } as const;
 const tries: readonly Intent[] = [
@@ -34,7 +34,7 @@ async function replay(tools: readonly Tool[], path: readonly Intent[], rows: num
   return resolve(session, tools, bar, { rows });
 }
 /** Every distinct screen within reach, each with the intents that reach it. */
-export async function walk(fresh: () => readonly Tool[], rows: number, most: number): Promise<readonly Stop[]> {
+export async function surfaceWalk(fresh: () => readonly Tool[], rows: number, most: number): Promise<readonly Stop[]> {
   const seen = new Map<string, Stop>();
   const queue: Intent[][] = [[]];
   let budget = most * 30; // Most paths land on a screen already seen: stop looking long before they all run out.

@@ -51,6 +51,8 @@
     "checks/opacity/opacity-derived.ts": "Ejecuta todos los casos de cada acción y exige cobertura real con referencias en cada posición secreta.",
     "checks/opacity/secret-cases.ts": "Enumera obligaciones por posición y rama secreta, y sus caminos en cada caso.",
     "checks/program-checks.ts": "programChecks: every derived check of a program in one list, for the gate that runs them all",
+    "checks/renderer-conformance.ts": "conformance, Drawn, Failure: what any renderer drew for a Screen, as plain data, against the contract; named failures",
+    "checks/surface-walk.ts": "surfaceWalk, Stop: every screen a surface reaches by its own intents, with the texts each must show",
     "checks/promise-temporaries.ts": "Workspace-scoped temporary houses, reclaimed after a day only when their owner process is gone",
     "checks/promises/answers/checked-reason.ts": "withReason: derived screen comparisons retain prior reasons when adding discarded-key advice",
     "checks/promises/answers/current.ts": "Derived check that repeating current answers stops before an act runs",

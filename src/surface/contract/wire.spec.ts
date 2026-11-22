@@ -2,14 +2,14 @@
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { describe, expect, it } from "vitest";
-import { hintTexts, mainTexts, panelTexts, walk } from "../../../tests/support/surface-walk.ts";
+import { hintTexts, mainTexts, panelTexts, surfaceWalk } from "../../checks/surface-walk.ts";
 import { fresh } from "../../../tests/support/surface-tools.ts";
 import { contentRows } from "../../doors/terminal/paint.ts";
 import type { Intent } from "./contract.ts";
 import { pasteLimit } from "./limits.ts";
 import { parseIntent, wire, WireScreen } from "./wire.ts";
 
-const stops = await walk(fresh, contentRows(60), 300);
+const stops = await surfaceWalk(fresh, contentRows(60), 300);
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 /** The arm of a union a value stands for: the one whose kind it carries. */

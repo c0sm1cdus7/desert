@@ -1,6 +1,6 @@
 // Every renderer against what the contract hands it, on every screen the surface can reach.
 import { describe, expect, it } from "vitest";
-import { chosenText, hintTexts, mainTexts, panelTexts, walk } from "../../../tests/support/surface-walk.ts";
+import { chosenText, hintTexts, mainTexts, panelTexts, surfaceWalk } from "../../checks/surface-walk.ts";
 import { fresh } from "../../../tests/support/surface-tools.ts";
 import type { HintKey, Screen } from "../../surface/contract/contract.ts";
 import { hintSends } from "../../surface/contract/hint-sends.ts";
@@ -53,12 +53,12 @@ const check = (screen: Screen, label: string): void => {
 
 describe("the terminal renderer, against the contract", () => {
   it("shows what the contract says on every reachable screen", async () => {
-    const stops = await walk(fresh, contentRows(size.rows), 300);
+    const stops = await surfaceWalk(fresh, contentRows(size.rows), 300);
     expect(stops.length).toBeGreaterThan(50);
     for (const { screen, path } of stops) check(screen, JSON.stringify(path.map(step => step.kind)));
   });
   it("reaches a thread with a panel, a walk with options and a result", async () => {
-    const screens = (await walk(fresh, contentRows(size.rows), 300)).map(stop => stop.screen);
+    const screens = (await surfaceWalk(fresh, contentRows(size.rows), 300)).map(stop => stop.screen);
     expect(screens.some(screen => screen.panel?.focused)).toBe(true);
     expect(screens.some(screen => screen.panel && !screen.panel.focused)).toBe(true);
     expect(screens.some(screen => screen.body.kind === "thread" && screen.body.options?.length)).toBe(true);

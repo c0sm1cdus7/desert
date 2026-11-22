@@ -152,6 +152,12 @@ const names = [
   "walkedChecks",
   "walking",
   "wroteSince",
+  // Surfaces, stage 1: the renderer-neutral conformance kit and the walk it runs on.
+  "conformance",
+  "Drawn",
+  "Failure",
+  "surfaceWalk",
+  "Stop",
 ];
 it("preserves the public testing entry's value and type exports", () => {
   const file = join(root, "src/testing.ts");
