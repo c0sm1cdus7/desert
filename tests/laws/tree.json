@@ -97,6 +97,8 @@
     "doors/socket/client/connection-state.ts": "Última vista recibida, reloj de la casa extrapolado y cuatro estados de conexión.",
     "doors/socket/client/socket-connection.ts": "Conexión reemplazable; tres estados inválidos consecutivos en la misma secuencia cierran con causa del catálogo.",
     "doors/socket/client/socket-ports.ts": "HousePorts remoto con observación automática explícita y defecto sin entrada ni diagnóstico del cliente.",
+    "doors/screen/screen-limits.ts": "screenLimits: the bounds of the screen door (idle cut, batch, rows, clients, revs, keepalive) in one typed constant.",
+    "doors/screen/screen-wire.ts": "WireFrame, WireSend, WireLook and their parsers: what the screen door sends and takes, browser-safe, never throwing.",
     "doors/socket/client/open-house-router.ts": "openHouseRouter: the one way a door builds a house router over a socket connection, with no TTY.",
     "doors/socket/peers/environment-door-keys.ts": "Compone llaves de puertas desde variables declaradas y rechaza material repetido aun con otra codificación.",
     "doors/socket/peers/peer-input.ts": "Lectura por turnos de marcos con pausa de entrada, plazo por cuerpo y liberación al cortar.",
