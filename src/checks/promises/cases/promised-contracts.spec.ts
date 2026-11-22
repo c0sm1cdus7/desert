@@ -1,7 +1,7 @@
 // A consumer's cases run on the whole composition: they load the provider, promise its facts and fix a kit.
 import { Type } from "@sinclair/typebox";
 import { expect, it } from "vitest";
-import { documentProgram } from "../../../../tests/support/contract-programs.ts";
+import { askableDocumentProgram, documentProgram } from "../../../../tests/support/contract-programs.ts";
 import { input, rejection } from "../../../../tests/support/distribution-contracts.ts";
 import { presentation } from "../../../../tests/support/installable-program.ts";
 import { text } from "../../../fields/fields.ts";
@@ -93,16 +93,8 @@ const consumer = programa(metadata, {
   herramientas: { facturacion: { ...group, palabras: words("Facturación", "f"), acts: { facturar } } },
   plegar: own => own,
 });
-/** The fixture provider, with a question the derived checks can ask: they ask every act of the composition. */
-const fiscal = documentProgram.herramientas.fiscal;
-const emitir = { ...fiscal.acts.emitir, input: Type.Object({ venta: text("Venta", "v1") }) };
-const { id, version, desert, codigo, hechos, inicial } = documentProgram;
-const provider = programa(
-  { id, version, desert, codigo, hechos, inicial },
-  { ...documentProgram, herramientas: { fiscal: { ...fiscal, acts: { emitir } } } },
-);
 const options = {
-  programas: [consumer, provider],
+  programas: [consumer, askableDocumentProgram],
   identidades: true,
   mentes: { asistentes: false, programas: [] },
   presentacion: presentation,

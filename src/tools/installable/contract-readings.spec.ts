@@ -1,13 +1,19 @@
 // A consumer reads its provider's objects from the state each callback already receives, trimmed to what it asks.
 import { Type } from "@sinclair/typebox";
 import { afterAll, afterEach, expect, it } from "vitest";
-import { documentProgram } from "../../../tests/support/contract-programs.ts";
+import { askableDocumentProgram, documentProgram } from "../../../tests/support/contract-programs.ts";
+import { distributionRig } from "../../../tests/support/distribution-rig.ts";
 import { input, openHouse, rejection } from "../../../tests/support/distribution-contracts.ts";
 import { presentation } from "../../../tests/support/installable-program.ts";
 import { certifyContracts } from "../../checks/contracts/public-contracts.ts";
 import { identityView } from "../../house/members.ts";
 import { structuralContractErrors } from "../../runtime/contracts/package-checks.ts";
 import { componer } from "../../runtime/distributions/compose.ts";
+import { localPorts } from "../../runtime/house-runtime.ts";
+import { text, when } from "../../fields/fields.ts";
+import { settle } from "../../surface/bridge/ports/house-ports.ts";
+import { walked } from "../../surface/bridge/acts/asked-act.ts";
+import { houseTools, questionsFor } from "../../surface/bridge/assembly/house-tools.ts";
 import { programContracts } from "../../runtime/distributions/program-contracts.ts";
 import { startTools } from "../start.ts";
 import type { State } from "../tool-contract.ts";
@@ -51,6 +57,14 @@ const request = {
     },
   ],
 } as const;
+/** A note asked only once the provider has the receipt: `when` reads the local state with its readings. */
+const asks: unknown[] = [];
+const noting = Type.Object({
+  nota: when(text("Nota", "algo"), (_answered, _at, state: State<Reader>, target: string) => {
+    asks.push([Object.keys(state.tools).join(), target]);
+    return estado(state) !== undefined;
+  }),
+});
 const group = { purpose: "leer comprobantes", targets: () => [], summary: () => "", palabras: words("Lector", "l") };
 const consumer = programa(metadata, {
   ...group,
@@ -77,6 +91,17 @@ const consumer = programa(metadata, {
           run: () => ({ status: "accepted" }),
           cases: [{ promise: "Se apaga sin comprobante", input: {}, then: { refused: "sin comprobante" } }],
         }),
+        anotar: programAct<Reader, typeof noting>({
+          name: "anotar",
+          enter: "anotar",
+          purpose: "anotar el comprobante",
+          key: "a",
+          on: "tool",
+          undoable: true,
+          input: noting,
+          run: () => ({ status: "accepted", text: "Anotado · v1" }),
+          cases: [{ promise: "Anota sin nota", input: {}, then: { says: "Anotado · v1", facts: [] } }],
+        }),
       },
     },
   },
@@ -86,12 +111,12 @@ const consumer = programa(metadata, {
   },
 });
 const options = {
-  programas: [consumer, documentProgram],
+  programas: [consumer, askableDocumentProgram],
   identidades: true,
   mentes: { asistentes: false, programas: [] },
   presentacion: presentation,
 } as const;
-const { program } = componer({ ...options, contratos: await certifyContracts(options) });
+const { program, shown } = componer({ ...options, contratos: await certifyContracts(options) });
 const house = openHouse(program, ":memory:", [{ kind: "program", program: "ventas" }]);
 afterEach(() => {
   seen = undefined;
@@ -139,4 +164,28 @@ it("keeps `can` from naming an object, since a consumer reads each object by its
   const objetos = { can: request.objetos.comprobante };
   const shadowed = { ...half, pide: { "documentos-fiscales": { ...request, objetos } } };
   expect(structuralContractErrors([shadowed])).toContain("ventas/documentos-fiscales/objetos/can:nombre-reservado");
+});
+it("asks a field whose when reads the state only as it calls for it, on the local state and target", async () => {
+  const rig = distributionRig(program);
+  try {
+    const ports = localPorts(rig.house(), "ana", { recentLines: 20 });
+    const tools = houseTools(ports, shown);
+    const act = reader?.acts["lector/anotar"];
+    if (!act) throw new Error("missing act");
+    const own = { tool: "ventas", name: "lector/anotar", act };
+    const { ask, walk } = walked(
+      { ...ports, act: value => ports.act(value, ports.state().through) },
+      own,
+      questionsFor(ports, shown, () => tools),
+    );
+    expect(ask.next([], "ventas/lector")).toBeNull();
+    expect(walk.next([], "ventas/lector")?.ask).not.toBe("Nota");
+    rig.attend("documentos/fiscal");
+    expect((await settle(rig.act("fiscal/emitir", "documentos/fiscal", { venta: "v1" }))).status).toBe("accepted");
+    expect(ask.next([], "ventas/lector")?.ask).toBe("Nota");
+    expect(walk.next([], "ventas/lector")?.ask).toBe("Nota");
+    expect(asks.at(-1)).toEqual(["own", "lector"]);
+  } finally {
+    rig.close();
+  }
 });

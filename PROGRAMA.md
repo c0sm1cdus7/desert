@@ -189,7 +189,12 @@ casa como la inspección de copias y el banco de pruebas usan esa misma entrada.
   guardado, se vuelve a validar el vacío como confirmado: un importe obligatorio dice «falta completar».
   Si sigue correspondiendo un motivo del valor, se muestra actualizado, incluso junto al Error de la acción.
   La memoria de una acción sigue siendo local: reiniciar el dispositivo la pierde.
-- Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, (respondido, instante) => …)`).
+- Un campo puede decir cuándo se pregunta, según lo respondido antes y según la casa:
+  `when(campo, (respondido, instante, estado, destino) => …)`. `estado` es la casa como la ve quien responde y
+  `destino`, aquello sobre lo que se hace la acción (vacío si la puerta no lo nombra). En un instalable, `when`
+  recibe, como todo lo que el programa lee, su estado propio con sus lecturas (`state.readings`) y su destino local.
+  MCP no mira `when`: por esa puerta, `stops` dice el motivo si falta el dato. Pruebas:
+  `src/surface/bridge/questions/asking.spec.ts` y `src/tools/installable/contract-readings.spec.ts`.
 - `holding(campo, (valor, instante) => motivoOIndefinido)` recibe el mismo reloj que `run`, `stops` y `among`.
   Conserva los motivos que el campo ya tenía: primero comprueba el campo y después la regla agregada, solo si
   el campo acepta. Por ejemplo, agregar una regla a `day` no permite guardar un día inexistente. Se pueden
@@ -1067,9 +1072,8 @@ Al actualizar un programa:
 - Dar un paso en memoria como operación de la base (Capibara lo arma con piezas para recorrer todos los caminos).
 - Separar en la acción los motivos que dependen de lo que se responde de los que dependen del estado.
 - Leer un texto largo que envuelva y se desplace (Capibara lo pagina en su herramienta de normas).
-- Preguntar según el estado de la casa, y no solo según lo respondido antes (`when` mira lo respondido): una alícuota
-  solo si la organización es Responsable inscripto. Y un campo que se pregunte según lo respondido y además sea
-  opcional.
+- Un campo que se pregunte según lo respondido y además sea opcional. (Preguntar según el estado de la casa ya se
+  puede: `when` recibe estado y destino.)
 - Opciones de una pregunta que salen del estado o de afuera (los puntos de venta que dice el fisco): hoy se resuelven
   volviéndolas cosas de la herramienta.
 - Un valor sugerido para una pregunta que no sea «lo que el dato es hoy» (`today` marca además «actual» e impide

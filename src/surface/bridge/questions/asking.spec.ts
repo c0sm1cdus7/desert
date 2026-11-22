@@ -187,6 +187,28 @@ describe("a field that is asked only when what came before calls for it", () => 
   });
 });
 
+describe("a field asked as the state and the target say", () => {
+  type Kept = Readonly<{ registered: boolean }>;
+  const kept: { state: Kept } = { state: { registered: false } };
+  const seen: string[] = [];
+  const vat = (_answered: Readonly<Record<string, unknown>>, _at: number, state: Kept, target: string) => {
+    seen.push(target);
+    return state.registered;
+  };
+  const item = object({ name: text("Nombre", "Nombre"), rate: when(text("Alícuota", "21"), vat) });
+  const ask = asking(item, { ...words, state: () => kept.state, target: "sales/s1" });
+
+  it("is asked, and read back, only while the state calls for it, on the target it is asked on", () => {
+    expect(ask.next(["Café"])).toBeNull();
+    expect(ask.answers({ name: "Café" })).toEqual(["Café"]);
+    kept.state = { registered: true };
+    expect(ask.next(["Café"])?.ask).toBe("Alícuota");
+    expect(ask.input(["Café", "21"])).toEqual({ name: "Café", rate: "21" });
+    expect(ask.answers({ name: "Café", rate: "21" })).toEqual(["Café", "21"]);
+    expect(seen.at(-1)).toBe("sales/s1");
+  });
+});
+
 describe("a day that is usually today", () => {
   const since = object({ from: day("Desde", "today"), to: day("Hasta") });
 

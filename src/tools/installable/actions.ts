@@ -1,5 +1,6 @@
 // Adapts action callbacks and cases while guarding the owning group and folder versus object distinction.
 import { OutsideDefect } from "../../fields/program-call.ts";
+import { isAsker, type Asked } from "../../fields/fields.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import type { Case, Did, Outcome, ProgramAct, Step } from "../promises-contract.ts";
 type Done = Exclude<Outcome<Program>, Readonly<{ refused: string }>>;
@@ -74,8 +75,11 @@ export function adaptAction<X extends Program>(
     return result instanceof Promise ? result.then(mapped) : mapped(result);
   };
   const plain = plainAction(act);
+  const asked = (asks: Asked) => (answered: Answered, at: number, state: State<Program>, on: string) =>
+    asks(answered, at, stateOf(state), on === "" || on === id ? group : target(on));
   return {
     ...plain,
+    input: localAsks(act.input, asked),
     on: "thing",
     folder: folderOf(id, group),
     refuses: [...act.refuses, toolTexts.unknown],
@@ -121,6 +125,28 @@ function adaptQuestions<X extends Program>(
   };
 }
 
+type Answered = Readonly<Record<string, unknown>>;
+/** A question a program asks only as the house says (`when`) reads, as everything else it reads, its own state with
+ * its readings and its local target. A declaration without one stays the very same. */
+function localAsks<T>(schema: T, asked: (asks: Asked) => Asked<State<Program>>): T;
+function localAsks(schema: unknown, asked: (asks: Asked) => Asked<State<Program>>): unknown {
+  if (!asksSomewhere(schema)) return schema;
+  if (Array.isArray(schema)) return schema.map((each: unknown): unknown => localAsks(each, asked));
+  if (schema === null || typeof schema !== "object") return schema;
+  const copy: Record<string | symbol, unknown> = {};
+  for (const key of Reflect.ownKeys(schema)) {
+    const value: unknown = Reflect.get(schema, key);
+    copy[key] = key === "when" && isAsker(value) ? asked(value) : localAsks(value, asked);
+  }
+  return copy;
+}
+const asksSomewhere = (schema: unknown): boolean =>
+  schema !== null &&
+  typeof schema === "object" &&
+  Reflect.ownKeys(schema).some(key => {
+    const value: unknown = Reflect.get(schema, key);
+    return key === "when" ? isAsker(value) : asksSomewhere(value);
+  });
 function plainAction<X extends Program>(act: ProgramAct<X>) {
   const {
     confirms: _confirms,

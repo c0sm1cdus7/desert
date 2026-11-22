@@ -1,6 +1,7 @@
 // Programas instalables independientes para ejercer los contratos por el adaptador del núcleo.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../../src/fields/messages.ts";
+import { text } from "../../src/fields/fields.ts";
 import { programa, programAct, type LocalProgram } from "../../src/tools/installable/program.ts";
 import { programContracts } from "../../src/runtime/distributions/program-contracts.ts";
 import { documents, sales, input } from "./contract-packages.ts";
@@ -150,4 +151,15 @@ export const salesProgram = programa(salesMetadata, {
   plegar: own => own,
 });
 export const contractPrograms = [salesProgram, documentProgram] as const;
+/** The same provider, with a question the surface and the derived checks can ask: they ask every act composed. */
+const fiscal = documentProgram.herramientas.fiscal;
+const askedInput = Type.Object({ venta: text("Venta", "v1") });
+const { id, version, desert, codigo, hechos, inicial } = documentProgram;
+export const askableDocumentProgram = programa(
+  { id, version, desert, codigo, hechos, inicial },
+  {
+    ...documentProgram,
+    herramientas: { fiscal: { ...fiscal, acts: { emitir: { ...fiscal.acts.emitir, input: askedInput } } } },
+  },
+);
 export const contractPackages = programContracts(contractPrograms);
