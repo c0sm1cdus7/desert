@@ -38,12 +38,16 @@ const sameCommitment = (a: Commitment, b: Commitment): boolean =>
  * its title and the row is there, as it was on the screen the person saw. */
 const pointedHolds = (seen: Commitment, now: Commitment, row: string): boolean =>
   seen.title === now.title && seen.rows.includes(row) && now.rows.includes(row);
-/** S6: whether every intent of a batch still means, on the screen now, what it meant on the screen seen. */
-export const holds = (seen: Commitment, now: Commitment, intents: readonly Intent[]): boolean =>
-  intents.every(intent => {
+/** S6: whether every intent of a batch still means, on the screen now, what it meant on the screen seen. A choose
+ * takes its row, and what it opens nobody has seen yet: nothing after it in the batch may commit to anything. */
+export function holds(seen: Commitment, now: Commitment, intents: readonly Intent[]): boolean {
+  const pointed = intents.findIndex(intent => intent.kind === "choose");
+  if (pointed >= 0 && intents.slice(pointed + 1).some(guarded)) return false;
+  return intents.every(intent => {
     if (intent.kind === "choose") return pointedHolds(seen, now, intent.row);
     return !guarded(intent) || sameCommitment(seen, now);
   });
+}
 /** S7: whether an intent commits to what is on screen. No default: a new kind of intent does not compile here until
  * someone says whether it is guarded. Typing, moving, leaving and pasting apply to where the session is. */
 export function guarded(intent: Intent): boolean {
