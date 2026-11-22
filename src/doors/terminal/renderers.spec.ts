@@ -1,9 +1,8 @@
 // Every renderer against what the contract hands it, on every screen the surface can reach.
 import { describe, expect, it } from "vitest";
-import { rulesTool, seed } from "../../../tests/support/surface-rules.ts";
 import { chosenText, hintTexts, mainTexts, panelTexts, walk } from "../../../tests/support/surface-walk.ts";
+import { fresh } from "../../../tests/support/surface-tools.ts";
 import type { HintKey, Intent, Screen } from "../../surface/contract/contract.ts";
-import type { Tool } from "../../surface/contract/shown-tool.ts";
 import { bytesOf, textOf, type Grid } from "./cells.ts";
 import { keysOf } from "./input.ts";
 import { contentRows, keyNames, paint } from "./paint.ts";
@@ -21,35 +20,6 @@ const inOrder = (seen: string, expected: readonly string[]): string | undefined 
   }
   return undefined;
 };
-const conversationTool = (): Tool => {
-  const said = [
-    { id: "a", who: [{ text: "Vos", tone: "t1" as const }], text: "Hola" },
-    {
-      id: "b",
-      who: [{ text: "Nora", tone: "being" as const }],
-      text: "Te dejé esto.",
-      attachments: [{ id: "doc", title: "notas.md", detail: "archivo" }],
-    },
-  ];
-  return {
-    id: "talk",
-    name: "Comunicador",
-    place: { key: "c", section: "tools" },
-    summary: () => "1 sin leer",
-    view: () => [],
-    acts: {},
-    conversation: {
-      said: () => said,
-      live: () => null,
-      send: text => {
-        said.push({ id: `m${said.length}`, who: [{ text: "Vos", tone: "t1" }], text });
-        return Promise.resolve(undefined);
-      },
-      open: () => ({ title: "notas.md", detail: "archivo", lines: [[{ text: "Una nota", tone: "t1" }]] }),
-    },
-  };
-};
-const fresh = (): readonly Tool[] => [conversationTool(), rulesTool(seed())];
 const column = (lines: readonly string[], from: number, to?: number): string =>
   squeeze(lines.map(line => line.slice(from, to).replace(/[─│]/gu, "")).join(""));
 const highlighted = (grid: Grid): string =>

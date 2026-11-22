@@ -3415,6 +3415,17 @@
         "src/runtime/minds/wake-words.spec.ts",
         "src/runtime/minds/supervisor-turns.spec.ts"
       ]
+    },
+    {
+      "id": 307,
+      "rule": "La pantalla viaja con su forma cerrada: `wire` arma cada objeto campo por campo, sin spread, sin Object.assign y sin ida y vuelta por JSON, así que una clave que el contrato no nombra nunca sale; `WireScreen` y `Screen` son el mismo tipo, campos opcionales incluidos, o no compila. Una intención que llega pasa `parseIntent` o se rechaza con uno de sus motivos: forma, tipo, largo o control de una tecla, largo de un pegado.",
+      "from": "22/11 · superficies, etapa 1",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/wire-shape.spec.ts",
+        "src/surface/contract/wire.spec.ts",
+        "src/surface/contract/wire.ts"
+      ]
     }
   ]
 }
