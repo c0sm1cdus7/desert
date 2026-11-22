@@ -9,6 +9,7 @@ import type { Event } from "../../journal/vocabulary.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
 export type WakePolicy = Readonly<{
   scope: MindScope;
+  /** The name people see: a program's name in its words, an assistant's given name, the supervisor's. */
   name: string;
   message: (event: Event) => ProgramMessage | undefined;
   toolOf: (target: string) => string | undefined;
@@ -18,18 +19,14 @@ export type WakePolicy = Readonly<{
   wakes?: (event: Event, history: readonly Event[]) => boolean;
 }>;
 const normalized = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+const literal = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+/** Named (signed 22/11): «@» and the name, the «@» at the start or after no letter, digit or «_», the name ending the
+ * text or followed by none of those; case, accents and any run of whitespace inside the name do not matter. */
 function mentions(text: string, name: string): boolean {
-  const source = normalized(text);
-  const wanted = normalized(name);
-  requireMind(wanted.trim(), "policy.name");
-  let at = source.indexOf(wanted);
-  while (at >= 0) {
-    const before = Array.from(source.slice(0, at)).at(-1) ?? "";
-    const after = Array.from(source.slice(at + wanted.length))[0] ?? "";
-    if (!/[\p{L}\p{N}_]/u.test(before) && !/[\p{L}\p{N}_]/u.test(after)) return true;
-    at = source.indexOf(wanted, at + 1);
-  }
-  return false;
+  const wanted = normalized(name).trim();
+  requireMind(wanted, "policy.name");
+  const words = wanted.split(/\s+/u).map(literal).join("\\s+");
+  return new RegExp(`(?<![\\p{L}\\p{N}_])@${words}(?![\\p{L}\\p{N}_])`, "u").test(normalized(text));
 }
 export function mindWakeDecision(policy: WakePolicy, event: Event, history: readonly Event[], now: number): boolean {
   requireMind(policy, "policy");
@@ -59,9 +56,9 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   return addressed(policy, policy.message(event));
 }
 /** A message wakes by the shape of its thread (signed 22/11): in a thread of two, its author and one other, it always
- * wakes the other; in a group it wakes only the minds it names, whoever wrote it. The thread is its author and its
- * readers, whether or not the reader lists the author. Two minds in a thread of two may answer each other without
- * end: only their judgement stops them, since no code decides when a mind acts. */
+ * wakes the other; in a group it wakes only the minds it names with «@», whoever wrote it. The thread is its author
+ * and its readers, whether or not the reader lists the author. Two minds in a thread of two may answer each other
+ * without end: only their judgement stops them, since no code decides when a mind acts. */
 export function addressed(policy: WakePolicy, message: ProgramMessage | undefined): boolean {
   if (!message?.to.includes(policy.scope.actor) || message.by === policy.scope.actor) return false;
   if (new Set([message.by, ...message.to]).size === 2) return true;

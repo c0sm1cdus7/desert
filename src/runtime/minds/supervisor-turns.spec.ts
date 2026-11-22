@@ -91,8 +91,13 @@ it("wakes only for a journey that closes or is cut, or a line addressed to it, a
   const group = "mind:supervisor,ana";
   expect(wakes(line("mind:notes", "Listo", group))).toBe(false);
   expect(wakes(line("beto", "¿Cómo va?", group))).toBe(false);
-  expect(wakes(line("beto", "Supervisor, ¿cómo va?", group))).toBe(true);
-  expect(wakes(line("mind:supervisor", "supervisor, listo", group))).toBe(false);
+  expect(wakes(line("beto", "@Supervisor, ¿cómo va?", group))).toBe(true);
+  expect(wakes(line("beto", "@mind:supervisor, ¿cómo va?", group))).toBe(true);
+  // 22/11: in a group only «@» and its name name it; the bare word, as in a notice or a report, names nobody.
+  expect(wakes(line("beto", "Supervisor, ¿cómo va?", group))).toBe(false);
+  expect(wakes(line("beto", "el supervisor me frenó", group))).toBe(false);
+  expect(wakes(line("beto", "Sin supervisor: se cortó", group))).toBe(false);
+  expect(wakes(line("mind:supervisor", "@supervisor, listo", group))).toBe(false);
   const waiting = effect("journey-waiting", { what: "Algo", until: 9 }, "mind:notes", [], "journey:j");
   expect(wakes({ ...waiting, ...position(5) })).toBe(false);
 });
