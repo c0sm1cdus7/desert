@@ -94,7 +94,7 @@ export function talkBody(place: Talk, talk: Conversation): Body {
     kind: "thread",
     events: eventsOf(place, talk),
     ...(stop && !stop.attachment && place.typed ? { reference: quoteOf(stop.said) } : {}),
-    ...(place.inPanel ? {} : { entry: { typed: place.typed, caret: place.caret, placeholder } }),
+    ...(place.inPanel ? {} : { entry: { typed: place.typed, caret: place.caret, placeholder, keyboard: "text" } }),
   };
 }
 export const talkPanel = (place: Talk, talk: Conversation): Panel | undefined =>

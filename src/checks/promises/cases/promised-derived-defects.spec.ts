@@ -61,7 +61,7 @@ it("compares entire reasons in reason positions, preserving legitimate text else
   const body = {
     kind: "thread",
     events: [{ nested: true, text: [{ text: derivedWords.cause, tone: "t3" }] }],
-    entry: { typed: "", caret: 0, placeholder: "Monto" },
+    entry: { typed: "", caret: 0, placeholder: "Monto", keyboard: "digits" },
   } as const;
   const screen = { title: "Venta", state: "connected", clock: "00:00", menu: false, hints: [], body } as const;
   expect(() => quietScreen(screen)).not.toThrow();

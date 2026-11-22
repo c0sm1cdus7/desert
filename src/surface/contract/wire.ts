@@ -9,6 +9,7 @@ const count = Type.Integer({ minimum: 0 });
 const tones = ["bg", "t1", "t2", "t3", "line", "being", "ok", "wait", "cut", "d1", "d2", "d3", "d4", "d5"] as const;
 const hintKeys = ["move", "confirm", "cancel", "mark", "switch", "full", "find"] as const;
 const states = ["connected", "connecting", "signal-lost", "disconnected"] as const;
+const keypads = ["digits", "decimal", "text"] as const;
 const WireTone = Type.Union(tones.map(tone => Type.Literal(tone)));
 const WireSpan = closed({
   text: Type.String(),
@@ -53,6 +54,8 @@ const WireEntry = closed({
   typed: Type.String(),
   caret: count,
   placeholder: Type.String(),
+  keyboard: Type.Union(keypads.map(keypad => Type.Literal(keypad))),
+  secret: Type.Optional(Type.Literal(true)),
   suggested: Type.Optional(Type.Literal(true)),
   remaining: Type.Optional(Type.String()),
   padding: Type.Optional(count),
@@ -157,7 +160,13 @@ function eventOf(from: ThreadEvent): Static<typeof WireEvent> {
 }
 type Thread = Extract<Body, { kind: "thread" }>;
 function entryOf(from: NonNullable<Thread["entry"]>): Static<typeof WireEntry> {
-  const to: Static<typeof WireEntry> = { typed: from.typed, caret: from.caret, placeholder: from.placeholder };
+  const to: Static<typeof WireEntry> = {
+    typed: from.typed,
+    caret: from.caret,
+    placeholder: from.placeholder,
+    keyboard: from.keyboard,
+  };
+  if (from.secret !== undefined) to.secret = from.secret;
   if (from.suggested !== undefined) to.suggested = from.suggested;
   if (from.remaining !== undefined) to.remaining = from.remaining;
   if (from.padding !== undefined) to.padding = from.padding;
