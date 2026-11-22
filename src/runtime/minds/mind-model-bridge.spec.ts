@@ -181,7 +181,7 @@ it("un error HTTP del proveedor se liquida en cero y no deja la reserva incierta
   expect(outcome).toEqual({
     kind: "failed",
     reason: "http",
-    rejection: { status: 529, type: "sin_tipo", message: "El proveedor no informó un mensaje de error." },
+    rejection: { status: 529, type: "untyped", message: "El proveedor no informó un mensaje de error." },
   });
   expect(settled).toEqual([{ usage: { input: 0, cacheWrite: 0, cacheRead: 0, output: 0 }, amount: 0 }]);
   expect(uncertain).toBe(0);

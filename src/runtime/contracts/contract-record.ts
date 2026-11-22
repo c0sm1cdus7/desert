@@ -9,10 +9,10 @@ export function contractRecord<T>(entries: Iterable<readonly [string, T]>): Read
 export function copyContractPackages(programs: readonly ContractPackage[]): readonly ContractPackage[] {
   return programs.map(program => ({
     ...program,
-    herramientas: Value.Clone(program.herramientas),
-    hechos: [...program.hechos],
-    ofrece: Value.Clone(program.ofrece),
-    pide: Value.Clone(program.pide),
-    proyectores: { ...program.proyectores },
+    tools: Value.Clone(program.tools),
+    facts: [...program.facts],
+    offers: Value.Clone(program.offers),
+    requests: Value.Clone(program.requests),
+    projectors: { ...program.projectors },
   }));
 }

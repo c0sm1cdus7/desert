@@ -17,7 +17,7 @@ it("liberar por la API dentro de una transacción rechaza el segundo agregado an
     );
     const store = rig.open(bridge.ledger),
       session = store.begin(custodyScope);
-    const refs = { key: session.capture(Buffer.from("inventado")) };
+    const refs = { key: session.capture(Buffer.from("invented")) };
     session.replace("signing", refs, 0);
     const before = store.facts();
     expect(() => bridge.transaction(() => journal.batch(() => session.release("signing", 1)))).toThrow(
@@ -44,7 +44,7 @@ for (const status of [null, 44])
     const store = new SecretCustody(rig.file, rig.home, keys);
     try {
       const session = store.begin(custodyScope),
-        refs = { key: session.capture(Buffer.from("inventado")) };
+        refs = { key: session.capture(Buffer.from("invented")) };
       fail = true;
       expect(() => session.replace("signing", refs, 0)).not.toThrow();
       expect(store.anchorPending()).toBe(true);
@@ -69,7 +69,7 @@ it("una apertura con el ancla todavía pendiente muestra el aviso y la siguiente
   });
   const first = new SecretCustody(rig.file, rig.home, keys),
     session = first.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("inventado")) };
+  const refs = { key: session.capture(Buffer.from("invented")) };
   fail = true;
   session.replace("signing", refs, 0);
   first.close();
@@ -94,7 +94,7 @@ it("dos lotes explícitos se rechazan antes del commit y el siguiente intento no
     );
     const store = rig.open(bridge.ledger),
       session = store.begin(custodyScope);
-    const refs = { key: session.capture(Buffer.from("inventado")) };
+    const refs = { key: session.capture(Buffer.from("invented")) };
     expect(() =>
       bridge.transaction(() =>
         journal.batch(() => {

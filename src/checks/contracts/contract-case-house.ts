@@ -21,7 +21,7 @@ export function prepareContractHouse<X extends Program>(program: Composition<X>,
     home,
     {
       ...program,
-      mentes: { asistentes: false, programas: [] },
+      minds: { assistants: false, programs: [] },
       by: "house",
       secretKeys: new MemoryHouseKeys(),
       creation: { admin: "ana", assignments: identities.map(identity => ({ identity, tools })) },

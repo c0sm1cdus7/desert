@@ -85,8 +85,8 @@ it("g04: a growing list sends its addition and idle lookups send no state", asyn
     expect(await c.until(() => c.states.length === 2)).toBe(true);
     expect(bytes).toBeLessThan(8192);
     expect(c.states.at(-1)).toEqual(identityView(f.house().tools.state(), "ana"));
-    c.send({ tipo: "leer", id: "catalog", qué: "catalogo" });
-    expect(await c.until(() => c.messages.some(m => m.tipo === "respuesta"))).toBe(true);
+    c.send({ type: "read", id: "catalog", what: "catalog" });
+    expect(await c.until(() => c.messages.some(m => m.type === "response"))).toBe(true);
     await delay(20);
     expect(c.states).toHaveLength(2);
   } finally {

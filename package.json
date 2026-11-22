@@ -7,8 +7,8 @@
     "node": ">=24"
   },
   "scripts": {
-    "format": "prettier --write \"{src,tests}/**/*.ts\" \"*.{js,ts,json}\"",
-    "format:check": "prettier --check \"{src,tests}/**/*.ts\" \"*.{js,ts,json}\"",
+    "format": "prettier --write \"{src,scripts,tests}/**/*.ts\" \"*.{js,ts,json}\"",
+    "format:check": "prettier --check \"{src,scripts,tests}/**/*.ts\" \"*.{js,ts,json}\"",
     "lint": "eslint --max-warnings 0 .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --project specs",
@@ -17,7 +17,8 @@
     "rules": "node tests/laws/write-rules.ts",
     "screens": "node tests/support/write-wire-screens.ts",
     "frames": "node tests/support/write-terminal-frames.ts",
-    "redeem": "node src/runtime/redeem-door-cli.ts"
+    "redeem": "node src/runtime/redeem-door-cli.ts",
+    "migrate-names": "node scripts/migrate-stored-names.ts"
   },
   "devDependencies": {
     "@types/node": "24.19.2",
@@ -36,7 +37,8 @@
     "program": "tests/support/shop-program.ts",
     "laws": {
       "code": [
-        "src"
+        "src",
+        "scripts"
       ],
       "base": null,
       "adapters": [
@@ -50,6 +52,7 @@
         "src/storage/": "Composition and infrastructure can use adapters.",
         "src/keychain/": "Composition and infrastructure can use adapters.",
         "src/adapters/": "Composition and infrastructure can use adapters.",
+        "scripts/": "The stored-name migration is maintenance infrastructure over the journal store.",
         "src/tools/": "Composition and infrastructure can use adapters.",
         "src/surface/bridge/": "Composition and infrastructure can use adapters.",
         "src/doors/socket/server/serve-program.ts": "Relocated composition keeps its adapter access.",
@@ -71,6 +74,7 @@
         "src/keychain/": "Infrastructure owns external I/O.",
         "src/runtime/": "Infrastructure owns external I/O.",
         "src/checks/": "Infrastructure owns external I/O.",
+        "scripts/": "The stored-name migration command owns its process exit code and its messages.",
         "src/doors/socket/server/serve-program.ts": "Relocated door owns its external I/O.",
         "src/doors/socket/server/server-process.ts": "Relocated door owns its external I/O.",
         "src/doors/socket/server/socket-listener.ts": "Relocated door owns its external I/O.",
@@ -93,6 +97,7 @@
         "src/keychain/custody/custody-migration.ts": "the legacy secret store SQL read during custody adoption",
         "src/storage/journal-store.ts": "the journal's SQL",
         "src/storage/journal-reader.ts": "the read-only journal's SQL, extracted from journal-store",
+        "src/runtime/stored-names.ts": "the stored-name migration's SQL over the journal it rewrites",
         "src/checks/laws/gate.ts": "Literal script contracts and lint diagnostics are inspected by the gate, not addressed to a person or model."
       },
       "exemptRules": {
@@ -139,8 +144,8 @@
     }
   },
   "exports": {
-    "./programa": "./src/tools/installable/program.ts",
-    "./componer": "./src/runtime/distributions/compose.ts",
+    "./program": "./src/tools/installable/program.ts",
+    "./compose": "./src/runtime/distributions/compose.ts",
     "./contracts": "./src/checks/contracts/public-contracts.ts",
     "./messages": "./src/fields/messages.ts",
     "./fields": "./src/fields/fields.ts",

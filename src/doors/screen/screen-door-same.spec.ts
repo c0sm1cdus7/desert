@@ -49,12 +49,12 @@ async function behindTheDoor(remote: Fixture) {
 async function settled(a: Router, door: ReturnType<typeof screenDoor>, behind: OpenHouse[], frame: Frame) {
   for (let n = 0; n < 4; n++) {
     a.screen({ rows: 26 });
-    frame = await door.look("s", "casa", { ...view, client: frame.client });
+    frame = await door.look("s", "house", { ...view, client: frame.client });
     await a.idle();
     await behind[0]?.router.idle();
     await delay(10);
   }
-  return door.look("s", "casa", { ...view, client: frame.client });
+  return door.look("s", "house", { ...view, client: frame.client });
 }
 const acts = (f: Fixture) =>
   f
@@ -69,13 +69,13 @@ it.each(keyLists.map((keys, n) => [n, keys] as const))(
     const { door, behind, end } = await behindTheDoor(remote);
     const a = houseRouter(localPorts(local.house(), "ana", { recentLines: 40 }), shown);
     try {
-      let frame = await door.look("s", "casa", view);
+      let frame = await door.look("s", "house", view);
       for (const [index, key] of keys.entries()) {
         const intents = keysOf(key);
         intents.forEach(intent => a.send(intent));
         if (intents.length) {
           const body = { epoch: frame.epoch, client: frame.client, seq: frame.seq + 1, rev: frame.rev, intents };
-          frame = await door.send("s", "casa", body);
+          frame = await door.send("s", "house", body);
           expect([index, frame.refused]).toEqual([index, undefined]);
         }
         frame = await settled(a, door, behind, frame);

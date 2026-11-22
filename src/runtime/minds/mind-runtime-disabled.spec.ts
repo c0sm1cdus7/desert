@@ -13,9 +13,9 @@ import type { ModelHouseOptions } from "./mind-runtime-options.ts";
 vi.mock("./mind-runtime.ts", () => {
   throw new Error("Se cargó pensamiento apagado");
 });
-it.each([undefined, { asistentes: false, programas: [] }])(
+it.each([undefined, { assistants: false, programs: [] }])(
   "sin pensamiento no carga el runtime y mantiene automatizaciones con sus permisos: %j",
-  async mentes => {
+  async minds => {
     const home = mkdtempSync(join(tmpdir(), "mind-disabled-"));
     const run = vi.fn(() => ({ status: "accepted" as const }));
     const results: string[] = [];
@@ -41,7 +41,7 @@ it.each([undefined, { asistentes: false, programas: [] }])(
       slices: shopSlices,
       registry: [...shopRegistry, probe],
       creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["probe"] }] },
-      ...(mentes ? { mentes } : {}),
+      ...(minds ? { minds } : {}),
     };
     const house = startHouse(home, options);
     try {
@@ -60,10 +60,10 @@ it.each([undefined, { asistentes: false, programas: [] }])(
   },
 );
 it.each([
-  { mentes: { asistentes: true, programas: [] } },
-  { mentes: { asistentes: false, programas: ["missing"] } },
-  { mentes: { asistentes: false, programas: ["sales", "sales"] } },
-  { identities: true, mentes: { asistentes: true, programas: [] } },
+  { minds: { assistants: true, programs: [] } },
+  { minds: { assistants: false, programs: ["missing"] } },
+  { minds: { assistants: false, programs: ["sales", "sales"] } },
+  { identities: true, minds: { assistants: true, programs: [] } },
 ])("rechaza interruptores inválidos antes de abrir la casa: %j", changed => {
   const home = mkdtempSync(join(tmpdir(), "mind-invalid-"));
   try {
@@ -77,7 +77,7 @@ it.each([
         creation: { admin: "ana", assignments: [] },
         ...changed,
       }),
-    ).toThrow("mentes");
+    ).toThrow("minds");
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

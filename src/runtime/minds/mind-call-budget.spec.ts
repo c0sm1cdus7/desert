@@ -35,7 +35,7 @@ it("el diario confirma una reserva antes de que otra use el saldo", async () => 
   try {
     const transact = budgetTransaction(rig.bus, () => rig.state().house.modelCalls);
     const data = {
-      call: "uno",
+      call: "one",
       turn: "t1",
       number: 1,
       account: "a",
@@ -44,10 +44,10 @@ it("el diario confirma una reserva antes de que otra use el saldo", async () => 
     };
     const results = await Promise.all([
       reserveModelCall(transact, 10, data),
-      reserveModelCall(transact, 10, { ...data, call: "dos", turn: "t2", by: "mind:supervisor" }),
+      reserveModelCall(transact, 10, { ...data, call: "two", turn: "t2", by: "mind:supervisor" }),
     ]);
     expect(results).toEqual([true, false]);
-    expect(rig.state().house.modelCalls.get("uno")?.status).toBe("reserved");
+    expect(rig.state().house.modelCalls.get("one")?.status).toBe("reserved");
   } finally {
     rig.close();
   }

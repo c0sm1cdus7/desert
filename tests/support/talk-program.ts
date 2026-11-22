@@ -2,7 +2,7 @@
 import { Value } from "@sinclair/typebox/value";
 import { text } from "../../src/fields/fields.ts";
 import { object } from "../../src/fields/visible-text.ts";
-import { programa, programAct, type LocalProgram } from "../../src/tools/installable/program.ts";
+import { defineProgram, programAct, type LocalProgram } from "../../src/tools/installable/program.ts";
 import { sampleBody, sampleMetadata } from "./installable-program.ts";
 export const talkInput = object({
   to: text("To", "Who reads it"),
@@ -11,9 +11,9 @@ export const talkInput = object({
 const metadata = {
   ...sampleMetadata,
   id: "talk",
-  codigo: [import.meta.filename],
-  hechos: [{ nombre: "talk/said", forma: talkInput }],
-  inicial: (): { lines: { by: string; to: string; text: string }[] } => ({ lines: [] }),
+  code: [import.meta.filename],
+  facts: [{ kind: "talk/said", schema: talkInput }],
+  initial: (): { lines: { by: string; to: string; text: string }[] } => ({ lines: [] }),
 } as const;
 type Talk = LocalProgram<typeof metadata>;
 const say = programAct<Talk, typeof talkInput>({
@@ -40,28 +40,27 @@ const say = programAct<Talk, typeof talkInput>({
 /** The act a consciousness says lines with, and its kit entry. */
 export const talkAct = { act: "thread/say", target: "talk/thread" } as const;
 export const talkKit = { tool: "talk", acts: ["thread/say"] };
-export const talkProgram = programa(metadata, {
+export const talkProgram = defineProgram(metadata, {
   purpose: "Talk in one thread",
   skill: sampleBody.skill,
-  palabras: { ...sampleBody.palabras, name: "Talk", key: "k" },
-  herramientas: {
+  words: { ...sampleBody.words, name: "Talk", key: "k" },
+  tools: {
     thread: {
       purpose: "Say lines to one reader",
-      palabras: { ...sampleBody.palabras, name: "Thread", key: "k" },
+      words: { ...sampleBody.words, name: "Thread", key: "k" },
       acts: { say },
       targets: () => [],
       view: state => JSON.stringify(state.tools.own.lines),
       summary: () => "Thread",
     },
   },
-  plegar: (own, event) =>
-    event.layer === "program" ? { lines: [...own.lines, { by: event.by, ...event.data }] } : own,
+  fold: (own, event) => (event.layer === "program" ? { lines: [...own.lines, { by: event.by, ...event.data }] } : own),
   summary: () => "Talk",
-  mensajes: {
-    leer: event =>
+  messages: {
+    read: event =>
       event.layer === "program" && event.kind === "talk/said" && Value.Check(talkInput, event.data)
         ? { text: event.data.text, to: event.data.to.split(","), by: event.by }
         : undefined,
-    actos: ["thread/say"],
+    acts: ["thread/say"],
   },
 });

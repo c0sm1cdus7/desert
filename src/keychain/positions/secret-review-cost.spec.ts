@@ -5,7 +5,7 @@ import { effect } from "../../house/facts.ts";
 import { ownAct } from "../../tools/act-definition.ts";
 it("16.000 declaraciones no vuelven a filtrar toda la actividad por cada acción", () => {
   const rig = fixture(secret, undefined, {}, { own: () => [] });
-  rig.set({ value: "dato" });
+  rig.set({ value: "datum" });
   const state = rig.house.tools.state();
   const entry = state.entries[0];
   if (!entry) throw new Error("Falta actividad de la fixture");
@@ -34,7 +34,7 @@ it("16.000 declaraciones no vuelven a filtrar toda la actividad por cada acción
 });
 it("una declaración dinámica que sí lee actividad conserva la vista privada de la identidad", () => {
   const rig = fixture();
-  rig.set({ value: "dato" });
+  rig.set({ value: "datum" });
   rig.house.bus.emit(
     effect(
       "tool-entry",

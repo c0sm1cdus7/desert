@@ -24,7 +24,7 @@ export function socketPorts<X extends Program>(
     act: clientRequests(connection),
     observe: value => observe(value, 0),
     defect: (_error, tool, target, option) => {
-      if (connection.status() === "connected") connection.send({ tipo: "defecto", tool, target, option });
+      if (connection.status() === "connected") connection.send({ type: "default", tool, target, option });
       return toolTexts.baseFailure;
     },
   };

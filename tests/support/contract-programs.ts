@@ -2,7 +2,7 @@
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../../src/fields/messages.ts";
 import { text } from "../../src/fields/fields.ts";
-import { programa, programAct, type LocalProgram } from "../../src/tools/installable/program.ts";
+import { defineProgram, programAct, type LocalProgram } from "../../src/tools/installable/program.ts";
 import { programContracts } from "../../src/runtime/distributions/program-contracts.ts";
 import { documents, sales, input } from "./contract-packages.ts";
 const words = (name: string, key: string) => ({ name, key, listed: name, empty: "Sin datos", reads: {}, presents: [] });
@@ -13,12 +13,12 @@ const skill = defineMessage({
   texts: { es: "Usá las acciones declaradas por el programa." },
 });
 const metadata = {
-  id: "documentos",
+  id: "documents",
   version: "3.0.0",
   desert: 1,
-  codigo: [import.meta.filename],
-  hechos: [{ nombre: "documentos/emitido", forma: Type.Object({ venta: Type.String(), comprobante: Type.String() }) }],
-  inicial: () => ({ fiscal: new Map<string, unknown>() }),
+  code: [import.meta.filename],
+  facts: [{ kind: "documents/issued", schema: Type.Object({ sale: Type.String(), voucher: Type.String() }) }],
+  initial: () => ({ fiscal: new Map<string, unknown>() }),
 } as const;
 type Documents = LocalProgram<typeof metadata>;
 const group = {
@@ -26,21 +26,21 @@ const group = {
   targets: () => [],
   view: () => "",
   summary: () => "",
-  palabras: words("Fiscal", "f"),
+  words: words("Fiscal", "f"),
 };
-export const documentProgram = programa(metadata, {
+export const documentProgram = defineProgram(metadata, {
   ...group,
-  palabras: words("Documentos", "d"),
+  words: words("Documentos", "d"),
   skill,
   artifact: documents().artifact,
-  ofrece: documents().ofrece,
-  pide: documents().pide,
-  proyectores: documents().proyectores,
-  herramientas: {
+  offers: documents().offers,
+  requests: documents().requests,
+  projectors: documents().projectors,
+  tools: {
     fiscal: {
       ...group,
       acts: {
-        emitir: programAct<Documents, ReturnType<typeof input>, readonly ["invalida"]>({
+        issue: programAct<Documents, ReturnType<typeof input>, readonly ["invalida"]>({
           name: "emitir",
           enter: "emitir",
           purpose: "emitir un comprobante",
@@ -50,18 +50,18 @@ export const documentProgram = programa(metadata, {
           input: input(),
           outside: ["invalida"],
           run: (value, context) =>
-            value.venta === "invalid"
-              ? { status: "rejected", reason: "invalida", value: { codigo: "invalida" } }
+            value.sale === "invalid"
+              ? { status: "rejected", reason: "invalida", value: { code: "invalida" } }
               : {
                   status: "accepted",
-                  value: { id: value.venta, numero: "1" },
-                  effects: context.state.tools.own.fiscal.has(value.venta)
+                  value: { id: value.sale, number: "1" },
+                  effects: context.state.tools.own.fiscal.has(value.sale)
                     ? []
                     : [
                         {
                           layer: "program",
-                          kind: "documentos/emitido",
-                          data: { venta: value.venta, comprobante: value.venta },
+                          kind: "documents/issued",
+                          data: { sale: value.sale, voucher: value.sale },
                           by: context.by,
                           cause: [],
                         },
@@ -70,47 +70,44 @@ export const documentProgram = programa(metadata, {
           cases: [
             {
               promise: "Emite un comprobante",
-              input: { venta: "v1" },
-              then: { says: "", facts: [{ kind: "documentos/emitido", data: { venta: "v1", comprobante: "v1" } }] },
+              input: { sale: "v1" },
+              then: { says: "", facts: [{ kind: "documents/issued", data: { sale: "v1", voucher: "v1" } }] },
             },
           ],
         }),
       },
     },
   },
-  plegar: (own, event) =>
-    event.kind === "documentos/emitido"
+  fold: (own, event) =>
+    event.kind === "documents/issued"
       ? {
-          fiscal: new Map([
-            ...own.fiscal,
-            [event.data.comprobante, { numero: "1", estado: "emitido", privado: "oculto" }],
-          ]),
+          fiscal: new Map([...own.fiscal, [event.data.voucher, { number: "1", state: "issued", privado: "hidden" }]]),
         }
       : own,
 });
 const salesMetadata = {
-  id: "ventas",
+  id: "sales",
   version: "2.0.0",
   desert: 1,
-  codigo: [import.meta.filename],
-  hechos: [],
-  inicial: () => ({}),
+  code: [import.meta.filename],
+  facts: [],
+  initial: () => ({}),
 } as const;
 type Sales = LocalProgram<typeof salesMetadata>;
-export const salesProgram = programa(salesMetadata, {
+export const salesProgram = defineProgram(salesMetadata, {
   ...group,
-  palabras: words("Ventas", "v"),
+  words: words("Ventas", "v"),
   skill,
   artifact: sales().artifact,
-  ofrece: sales().ofrece,
-  pide: sales().pide,
-  proyectores: sales().proyectores,
-  herramientas: {
-    facturacion: {
+  offers: sales().offers,
+  requests: sales().requests,
+  projectors: sales().projectors,
+  tools: {
+    billing: {
       ...group,
-      palabras: words("Facturación", "f"),
+      words: words("Facturación", "f"),
       acts: {
-        leer: programAct<Sales, ReturnType<typeof input>>({
+        read: programAct<Sales, ReturnType<typeof input>>({
           name: "leer",
           enter: "leer",
           purpose: "leer el comprobante y sus avisos",
@@ -119,19 +116,19 @@ export const salesProgram = programa(salesMetadata, {
           undoable: true,
           input: input(),
           run: (value, context) => {
-            const port = context.contracts?.["documentos-fiscales"];
+            const port = context.contracts?.["fiscal-documents"];
             if (!port || !context.cut) throw new Error("Missing contractual context");
             return {
               status: "accepted",
               value: {
-                reading: port.objects.comprobante?.read(value.venta, context.cut),
-                notices: port.notices.emitido?.(context.cut),
+                reading: port.objects.voucher?.read(value.sale, context.cut),
+                notices: port.notices.issued?.(context.cut),
               },
             };
           },
-          cases: [{ promise: "Lee sin comprobante previo", input: { venta: "v1" }, then: { says: "", facts: [] } }],
+          cases: [{ promise: "Lee sin comprobante previo", input: { sale: "v1" }, then: { says: "", facts: [] } }],
         }),
-        facturar: programAct<Sales, ReturnType<typeof input>>({
+        invoice: programAct<Sales, ReturnType<typeof input>>({
           name: "facturar",
           enter: "facturar",
           purpose: "facturar una venta",
@@ -141,25 +138,25 @@ export const salesProgram = programa(salesMetadata, {
           input: input(),
           run: async (value, context) => ({
             status: "accepted",
-            value: await context.contracts?.["documentos-fiscales"]?.actions.emitir?.(value),
+            value: await context.contracts?.["fiscal-documents"]?.actions.issue?.(value),
           }),
-          cases: [{ promise: "Pide el comprobante", input: { venta: "v1" }, then: { says: "", facts: [] } }],
+          cases: [{ promise: "Pide el comprobante", input: { sale: "v1" }, then: { says: "", facts: [] } }],
         }),
       },
     },
   },
-  plegar: own => own,
+  fold: own => own,
 });
 export const contractPrograms = [salesProgram, documentProgram] as const;
 /** The same provider, with a question the surface and the derived checks can ask: they ask every act composed. */
-const fiscal = documentProgram.herramientas.fiscal;
-const askedInput = Type.Object({ venta: text("Venta", "v1") });
-const { id, version, desert, codigo, hechos, inicial } = documentProgram;
-export const askableDocumentProgram = programa(
-  { id, version, desert, codigo, hechos, inicial },
+const fiscal = documentProgram.tools.fiscal;
+const askedInput = Type.Object({ sale: text("Venta", "v1") });
+const { id, version, desert, code, facts, initial } = documentProgram;
+export const askableDocumentProgram = defineProgram(
+  { id, version, desert, code, facts, initial },
   {
     ...documentProgram,
-    herramientas: { fiscal: { ...fiscal, acts: { emitir: { ...fiscal.acts.emitir, input: askedInput } } } },
+    tools: { fiscal: { ...fiscal, acts: { issue: { ...fiscal.acts.issue, input: askedInput } } } },
   },
 );
 export const contractPackages = programContracts(contractPrograms);

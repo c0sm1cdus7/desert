@@ -39,7 +39,7 @@ it("11: directs a need only to its holder, while undirected needs still reach al
   expect(read("outsider")).toEqual([]);
 });
 
-it.each(["nadie", "mind:sales", "carla"])("shows a need for %s to all holders instead of dropping it", to => {
+it.each(["nobody", "mind:sales", "carla"])("shows a need for %s to all holders instead of dropping it", to => {
   const rig = shopRig({ grants: { ana: ["sales"], beto: ["sales"], carla: [] } });
   rigs.push(rig);
   const tool = { ...salesTool, needs: () => [{ target: "sales", why: "Pendiente", to }] };
@@ -48,7 +48,7 @@ it.each(["nadie", "mind:sales", "carla"])("shows a need for %s to all holders in
     return noticesOf({ ...ports, act: value => ports.act(value, 0) }, tool, { name: "Ventas" }).notices().needs;
   };
   for (const me of ["ana", "beto"]) expect(read(me)).toEqual([{ title: "Ventas", detail: "Pendiente" }]);
-  for (const me of ["carla", "nadie", "mind:sales"]) expect(read(me)).toEqual([]);
+  for (const me of ["carla", "nobody", "mind:sales"]) expect(read(me)).toEqual([]);
 });
 
 it("reassigns Attention as its recipient loses, regains and leaves the tool across restart", () => {

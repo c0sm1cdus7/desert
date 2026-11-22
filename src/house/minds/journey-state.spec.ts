@@ -34,7 +34,7 @@ it("rechaza autor de identidad, proceso ausente, plan duplicado y paso ausente o
   const plan = effect("journey-plan-written", { steps: [{ id: "s", text: "Anotar" }] }, by, [], "j");
   rig.bus.emit(plan);
   expect(() => rig.bus.emit(plan)).toThrow();
-  expect(() => rig.bus.emit(effect("journey-step-done", { step: "otro", note: "No" }, by, [], "j"))).toThrow();
+  expect(() => rig.bus.emit(effect("journey-step-done", { step: "other", note: "No" }, by, [], "j"))).toThrow();
   const done = effect("journey-step-done", { step: "s", note: "Sí" }, by, [], "j");
   rig.bus.emit(done);
   expect(() => rig.bus.emit(done)).toThrow();

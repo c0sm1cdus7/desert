@@ -131,12 +131,12 @@ export type ProgramAct<X extends Program, O extends readonly string[] = readonly
 export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
   Readonly<{ acts: Readonly<Record<string, ProgramAct<X>>>; menus?: Readonly<Record<string, Menu>> }> &
   /** Installed groups retain their local presentation and action placement under one engine owner. */
-  Readonly<{ groups?: readonly Readonly<{ tool: ProgramTool<X>; palabras: ProgramWords }>[] }> &
+  Readonly<{ groups?: readonly Readonly<{ tool: ProgramTool<X>; words: ProgramWords }>[] }> &
   /** Whether one of its things takes nothing new any more (archived, canceled): a question that picks among its
    * things does not offer it. */
   Readonly<{ closed?: (state: State<X>, target: string, at: number) => boolean }> &
   /** The words one of its things is found by, beyond what its row on the list already says. */
-  Readonly<{ words?: (state: State<X>, target: string) => string }> &
+  Readonly<{ findWords?: (state: State<X>, target: string) => string }> &
   /** The things of the tool that need someone to act, each saying why: read from what the tool keeps and from
    * what time it is, since what waits today is late tomorrow. */
   Readonly<{ needs?: (state: State<X>, now: number) => readonly Need[] }>;
@@ -146,7 +146,7 @@ export type Composition<X extends Program> = AdapterComposition &
     contractSetup?: ContractSetup<X>;
     identities?: boolean;
     kitMigration?: KitMigration;
-    mentes?: Readonly<{ asistentes: boolean; programas: readonly string[] }>;
+    minds?: Readonly<{ assistants: boolean; programs: readonly string[] }>;
     projectionVersion: CalculationVersion;
     words: Vocabulary<X["fact"]>;
     registry: readonly ProgramTool<X>[];

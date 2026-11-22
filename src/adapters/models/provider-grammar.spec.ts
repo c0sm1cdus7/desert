@@ -62,7 +62,7 @@ function houseMenu(threads: number, messages: number): MindMenu {
 }
 const answer = (act: string, target: string, input: unknown) => ({
   scene: "Listo",
-  consulta: null,
+  consultation: null,
   acts: [{ act, target, input }],
 });
 it("keeps the grammar the same size and inside the documented limits however much the house grows", () => {
@@ -85,7 +85,7 @@ it("merges branches exactly while the lists are short, and the local contract ke
     expect(matchesSchema(local, said)).toBe(true);
   }
   expect(matchesSchema(sent, answer("threads/say", "communicator/threads/9", { text: "Hola" }))).toBe(false);
-  expect(matchesSchema(sent, answer("threads/say", "communicator/threads/1", { text: "x", replyTo: "otro" }))).toBe(
+  expect(matchesSchema(sent, answer("threads/say", "communicator/threads/1", { text: "x", replyTo: "other" }))).toBe(
     false,
   );
   const crossed = answer("threads/add", "mind:communicator", { identity: "franco" });

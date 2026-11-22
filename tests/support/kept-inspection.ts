@@ -20,7 +20,7 @@ export const offer = {
   cases: [{ promise: "resultado sintético", input: {}, then: { says: "Consultado", facts: [] } }],
   outside: ["sin firma"],
 } as const;
-export const firmar = programAct<Shop, typeof input, typeof offer.outside>({
+export const sign = programAct<Shop, typeof input, typeof offer.outside>({
   ...offer,
   name: "firmar",
   enter: "firmar",
@@ -32,7 +32,7 @@ export const firmar = programAct<Shop, typeof input, typeof offer.outside>({
     effects: [ctx.credentials.replace("signing", await imported(ctx), ctx.credentials.revision("signing"))],
   }),
 });
-export const usar = programAct<Shop, typeof input, typeof offer.outside>({
+export const use = programAct<Shop, typeof input, typeof offer.outside>({
   ...offer,
   name: "usar",
   enter: "usar",
@@ -59,7 +59,7 @@ export const inspectionShown = {
     },
   },
 };
-export function keptFixture(acts: Readonly<Record<string, ProgramAct<Shop>>> = { firmar, usar }) {
+export function keptFixture(acts: Readonly<Record<string, ProgramAct<Shop>>> = { sign, use }) {
   const rig = adapterHouse(acts, { view: () => "{}" });
   const folder = mkdtempSync(join(tmpdir(), "kept-inspection-spec-"));
   folders.push(folder);

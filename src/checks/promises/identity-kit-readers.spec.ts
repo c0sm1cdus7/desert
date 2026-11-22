@@ -85,10 +85,10 @@ it("unknown or foreign mind menus never offer a kit edit", async () => {
       tool => tool.id === "identities",
     );
     for (const target of [
-      "identities/mind:inventada",
+      "identities/mind:invented",
       "identities/mind:sales#tools",
       "identities/mind:sales#kit:payments",
-      "identities/inventada#tools",
+      "identities/invented#tools",
     ])
       expect(() => core?.view(target)).toThrow();
     expect(

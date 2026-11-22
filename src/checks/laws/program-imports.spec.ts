@@ -31,7 +31,7 @@ it.each([
 it("admits only DESERT public paths, owned code and the exact requested contract", () => {
   const repo = lawRepository({
     "package.json": manifest([{ kind: "contract", name: "documents/fiscal" }]),
-    "src/a.ts": 'import "desert/programa"; import "./b.ts"; import "documents/fiscal";',
+    "src/a.ts": 'import "desert/program"; import "./b.ts"; import "documents/fiscal";',
     "src/b.ts": "export {};",
     "node_modules/documents/package.json": JSON.stringify({
       name: "documents",
@@ -75,7 +75,7 @@ for (const testDistribution of [false, true])
     "testing",
     "runtime",
     "runtime/cloud",
-    "componer",
+    "compose",
     "calculation",
     "doors/terminal",
     "doors/socket",

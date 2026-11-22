@@ -38,7 +38,7 @@ it.each([
   expect(interfaceCode(lawRepository({ "src/a.ts": code }), none)).toEqual([`src/a.ts → ${specifier}`]);
 });
 it("I2: admits what does not paint, among them a name that only starts like a framework", () => {
-  const code = 'import "desert/programa"; import "lite"; import "inkwell"; import "./b.ts"; import "node:fs";';
+  const code = 'import "desert/program"; import "lite"; import "inkwell"; import "./b.ts"; import "node:fs";';
   expect(interfaceCode(lawRepository({ "src/a.ts": code, "src/b.ts": "export {};" }), none)).toEqual([]);
 });
 it("I3: refuses a framework among the dependencies or the development dependencies", () => {

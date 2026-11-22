@@ -53,7 +53,7 @@ it.each([false, true])("protects state, journal and envelopes across restart (hi
       }
       if (phase === "resync") {
         await h.act("revoke-key", { key: founderId }, "identities/ana");
-        client.send({ tipo: "sincronizar" });
+        client.send({ type: "sync" });
         await tick();
       }
       expect(has(client.state(), material)).toBe(false);

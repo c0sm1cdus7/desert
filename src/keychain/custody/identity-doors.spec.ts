@@ -26,7 +26,7 @@ const cases: [string, boolean][] = [
     "MIND:casa",
     "mind :casa",
     "mind：casa",
-    "mіnd:casa",
+    "mіnd:house",
     "mind:",
     "Kenon",
     "KENON",

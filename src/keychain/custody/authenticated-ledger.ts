@@ -75,7 +75,7 @@ export class AuthenticatedLedger implements CredentialLedger {
           extra < 0 ? secretTexts.shorterLedger : this.anchorDifference(prefix !== head.authentication),
           latestBindings(facts)
             .map(f => `${f.actor}/${f.tool}/${f.target}/${f.slot}`)
-            .join(", ") || "ninguno",
+            .join(", ") || secretTexts.noBindings,
         ),
       );
     if (extra) this.anchor({ count: facts.length, authentication: last });

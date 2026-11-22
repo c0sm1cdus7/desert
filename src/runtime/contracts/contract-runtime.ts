@@ -23,10 +23,10 @@ export function checkContractBindings<X extends Program>(
 ) {
   const errors = structuralContractErrors(programs);
   for (const program of programs)
-    for (const [tool, actions] of Object.entries(program.herramientas)) {
+    for (const [tool, actions] of Object.entries(program.tools)) {
       const bound = ports.registry.find(each => each.id === program.id);
       const missing = actions.filter(action => !bound || !Object.hasOwn(bound.acts, `${tool}/${action}`));
-      errors.push(...missing.map(action => `${program.id}/${tool}/${action}:ruta-sin-ejecutor`));
+      errors.push(...missing.map(action => `${program.id}/${tool}/${action}:route-without-executor`));
     }
   if (errors.length) throw new ContractCompositionError(errors);
 }
@@ -37,14 +37,14 @@ function requestedPorts<X extends Program>(
   scope: ReadingScope<X>,
 ) {
   return contractRecord(
-    Object.entries(programs.find(program => program.id === consumer)?.pide ?? {}).map(([name, request]) => {
-      const provider = programs.find(program => Object.hasOwn(program.ofrece, name));
-      const offer = provider?.ofrece[name];
-      if (!provider || !offer) throw new ContractCompositionError([`sin-proveedor:${consumer}/${name}`]);
+    Object.entries(programs.find(program => program.id === consumer)?.requests ?? {}).map(([name, request]) => {
+      const provider = programs.find(program => Object.hasOwn(program.offers, name));
+      const offer = provider?.offers[name];
+      if (!provider || !offer) throw new ContractCompositionError([`no-provider:${consumer}/${name}`]);
       const actions = contractRecord(
-        Object.entries(request.acciones).map(([name, need]) => {
-          const have = offer.acciones[name];
-          if (!have) throw new ContractCompositionError([`${name}:ausente`]);
+        Object.entries(request.actions).map(([name, need]) => {
+          const have = offer.actions[name];
+          if (!have) throw new ContractCompositionError([`${name}:missing`]);
           return [name, contractAction(need, have, provider.id, invocation)];
         }),
       );

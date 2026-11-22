@@ -4,7 +4,7 @@ import { effectRefusalTexts } from "../texts/tools.texts.ts";
 import {
   actionSelection,
   covers,
-  herramientaDe,
+  toolOf,
   kitLayout,
   selectionPath,
   type KitProgram,
@@ -20,7 +20,7 @@ export function selectionProblem(kit: SelectionKit, registry: readonly KitProgra
     if (!program) return effectRefusalTexts.unassignedTool;
     const actions = Object.keys(program.acts ?? {});
     if (selection.kind === "program") continue;
-    if (!actions.some(action => herramientaDe(program.id, action, layout) === selection.tool))
+    if (!actions.some(action => toolOf(program.id, action, layout) === selection.tool))
       return effectRefusalTexts.unknownAct;
     if (
       selection.kind === "action" &&

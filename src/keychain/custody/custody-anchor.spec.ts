@@ -10,7 +10,7 @@ describe.each(keyProviders)("$name", provider => {
       const rig = custodyRig(provider.open),
         store = rig.open(),
         session = store.begin(custodyScope);
-      const refs = { key: session.capture(Buffer.from("inventado")) };
+      const refs = { key: session.capture(Buffer.from("invented")) };
       const anchor = rig.keys.anchor.bind(rig.keys);
       const fail = vi.spyOn(rig.keys, "anchor").mockImplementation((house, head) => {
         if (after) anchor(house, head);
@@ -27,7 +27,7 @@ describe.each(keyProviders)("$name", provider => {
     const rig = custodyRig(provider.open),
       store = rig.open(),
       session = store.begin(custodyScope);
-    const refs = { key: session.capture(Buffer.from("inventado")) };
+    const refs = { key: session.capture(Buffer.from("invented")) };
     const head = vi.spyOn(rig.keys, "head");
     session.replace("one", refs, 0);
     session.replace("two", refs, 0);
@@ -43,7 +43,7 @@ describe.each(keyProviders)("$name", provider => {
       const rig = custodyRig(provider.open),
         store = rig.open(),
         session = store.begin(custodyScope);
-      const refs = { key: session.capture(Buffer.from("inventado")) };
+      const refs = { key: session.capture(Buffer.from("invented")) };
       session.replace("one", refs, 0);
       session.replace("two", refs, 0);
       store.close();
@@ -64,7 +64,7 @@ describe.each(keyProviders)("$name", provider => {
     const rig = custodyRig(provider.open),
       store = rig.open(),
       session = store.begin(custodyScope);
-    const refs = { key: session.capture(Buffer.from("inventado")) };
+    const refs = { key: session.capture(Buffer.from("invented")) };
     session.replace("signing", refs, 0);
     const head = custodyHead(store.facts());
     store.close();
@@ -80,7 +80,7 @@ describe.each(keyProviders)("$name", provider => {
     const rig = custodyRig(provider.open),
       store = rig.open(),
       session = store.begin(custodyScope);
-    const refs = { key: session.capture(Buffer.from("inventado")) };
+    const refs = { key: session.capture(Buffer.from("invented")) };
     const anchor = vi.spyOn(rig.keys, "anchor").mockImplementation(() => {
       throw new Error("corte");
     });
@@ -106,8 +106,8 @@ describe.each(keyProviders)("$name", provider => {
     const rig = custodyRig(provider.open),
       store = rig.open(),
       session = store.begin(custodyScope);
-    session.replace("signing", { key: session.capture(Buffer.from("uno")) }, 0);
-    const refs = { key: session.capture(Buffer.from("dos")) };
+    session.replace("signing", { key: session.capture(Buffer.from("one")) }, 0);
+    const refs = { key: session.capture(Buffer.from("two")) };
     session.replace("signing", refs, 1);
     store.close();
     const db = new CustodyDatabase(rig.file);

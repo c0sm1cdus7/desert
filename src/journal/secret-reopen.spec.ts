@@ -19,9 +19,9 @@ const composition = (options: HouseOptions<P>): Composition<P> => ({
   registry: options.registry.map(tool => ({ ...tool, acts: {} })),
 });
 for (const [name, schema, material] of [
-  ["máximo", Type.String({ secret: true, maxLength: 13 }), "inventado"],
+  ["máximo", Type.String({ secret: true, maxLength: 13 }), "invented"],
   ["mínimo", Type.String({ secret: true, minLength: 50 }), "x".repeat(50)],
-  ["forma", Type.String({ secret: true, pattern: "^inventado$" }), "inventado"],
+  ["schema", Type.String({ secret: true, pattern: "^invented$" }), "invented"],
 ] as const) {
   const prepare = () => {
     const words = vocabulary({ "sale-registered": Type.Object({ value: schema, copy: Type.String() }) });

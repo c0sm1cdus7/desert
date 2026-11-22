@@ -260,7 +260,7 @@ async function wait<X extends Program>(
       Math.min(60, seconds) * 1000,
       signal,
     );
-    return toolResult(JSON.stringify({ seq: changed.seq, changed: changed.cambio }));
+    return toolResult(JSON.stringify({ seq: changed.seq, changed: changed.change }));
   } finally {
     waits.set(by, (waits.get(by) ?? 1) - 1);
   }

@@ -27,7 +27,7 @@ for (const damage of ["lost", "broken", "omitted", "foreign", "malformed-account
       keys = new MacOSHouseKeys(fake.command);
     const store = new SecretCustody(rig.file, rig.home, keys),
       session = store.begin(custodyScope);
-    const ref = session.capture(Buffer.from("inventado"));
+    const ref = session.capture(Buffer.from("invented"));
     session.replace("signing", { key: ref }, 0);
     keys.key("other-secret-one", true).fill(0);
     const id = indexId(fake);
@@ -62,7 +62,7 @@ it("aceptar recrea un ancla perdida después de verificar", () => {
     keys = new MacOSHouseKeys(fake.command);
   const store = new SecretCustody(rig.file, rig.home, keys),
     session = store.begin(custodyScope);
-  session.replace("signing", { key: session.capture(Buffer.from("inventado")) }, 0);
+  session.replace("signing", { key: session.capture(Buffer.from("invented")) }, 0);
   const head = custodyHead(store.facts());
   store.close();
   for (const id of fake.saved.keys())
@@ -128,7 +128,7 @@ it("300 rotaciones dejan una sola cuenta viva; abrir y olvidar siguen funcionand
   const store = new SecretCustody(rig.file, rig.home, keys),
     session = store.begin(custodyScope);
   for (let i = 0; i < 300; i++) {
-    session.replace("signing", { key: session.capture(Buffer.from("inventado")) }, i);
+    session.replace("signing", { key: session.capture(Buffer.from("invented")) }, i);
     expect([...fake.saved.keys()].filter(id => id.includes("-secret-"))).toHaveLength(1);
     expect(fake.calls.filter(call => call.args[0] === "-i").every(call => call.input.length <= 4096)).toBe(true);
     fake.calls.length = 0;
@@ -149,7 +149,7 @@ it("olvidar encuentra también la llave pendiente cuya fila ya se borró y cuyo 
   });
   const store = new SecretCustody(rig.file, rig.home, provider),
     session = store.begin(custodyScope);
-  const ref = session.capture(Buffer.from("inventado"));
+  const ref = session.capture(Buffer.from("invented"));
   session.replace("signing", { key: ref }, 0);
   failing = true;
   expect(() => session.release("signing", 1)).toThrow("E-CUSTODY-CLEANUP");

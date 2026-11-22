@@ -75,7 +75,7 @@ it("cuts settle without rejection; offline sends nothing; reconnection only quer
   const sent: string[] = [];
   const send = connection.send;
   connection.send = m => {
-    sent.push(m.tipo);
+    sent.push(m.type);
     return send(m);
   };
   const pending = settle(ports.act({ act: "receive", target: "payments", input: { payment: "p", amount: 9 } }, 0));
@@ -92,7 +92,7 @@ it("cuts settle without rejection; offline sends nothing; reconnection only quer
   await delay(20);
   await attach();
   await delay(20);
-  expect(sent.filter(tipo => tipo === "acto")).toHaveLength(1);
+  expect(sent.filter(type => type === "act")).toHaveLength(1);
   expect(sent).toContain("leer");
   expect(f.house().tools.state().tools.payments.received).toBe(9);
   expect(ports.state().tools.payments.received).toBe(9);

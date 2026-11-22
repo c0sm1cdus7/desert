@@ -54,7 +54,7 @@ function installableFacts(graph: CatalogGraph, node: ts.Node, found: Map<string,
   if (seen.has(node)) return;
   seen.add(node);
   visitNodes(node, child => {
-    if (ts.isPropertyAssignment(child) && child.name.getText() === "nombre")
+    if (ts.isPropertyAssignment(child) && child.name.getText() === "kind")
       for (const kind of values(graph, child.initializer)) found.set(kind, nodeLocation(child));
     if (ts.isIdentifier(child)) {
       for (const declaration of graph.symbol(child)?.declarations ?? [])
@@ -85,7 +85,7 @@ export function factCoverage(graph: CatalogGraph, autonomous = autonomousFacts):
   if (core) for (const kind of Object.keys(houseCatalog)) declared.set(kind, nodeLocation(core));
   for (const file of graph.production)
     visitNodes(file, node => {
-      if (ts.isPropertyAssignment(node) && node.name.getText() === "hechos")
+      if (ts.isPropertyAssignment(node) && node.name.getText() === "facts")
         installableFacts(graph, node.initializer, declared);
       for (const kind of literalFact(graph, node, !!core)) {
         if (!declared.has(kind)) declared.set(kind, nodeLocation(node));

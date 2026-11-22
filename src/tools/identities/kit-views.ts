@@ -3,7 +3,7 @@ import { sceneReading } from "./scene-reading.ts";
 import { mindMayHold, mindTool } from "../../house/kit.ts";
 import { migrateKit } from "../../house/kit-migration.ts";
 import { storedHolderKit } from "../../house/kit-history.ts";
-import { herramientaDe, kitLayout, selectionPath } from "../../house/kit-selection.ts";
+import { toolOf, kitLayout, selectionPath } from "../../house/kit-selection.ts";
 import { selectionProblem } from "../../house/kit-validation.ts";
 import { MissingView } from "../../surface/contract/missing-view.ts";
 import { section, type Start, type SurfacePorts } from "../../surface/bridge/ports/house-ports.ts";
@@ -74,9 +74,7 @@ function branchView<X extends Program>(ctx: ViewContext<X>, target: string, bran
   const own = mind(holder);
   const tool = holdable(ctx, holder, program);
   if (!tool) throw new MissingView(contract.id, target);
-  const groups = [
-    ...new Set(Object.keys(tool.acts).map(action => herramientaDe(tool.id, action, kitLayout(ports.registry)))),
-  ];
+  const groups = [...new Set(Object.keys(tool.acts).map(action => toolOf(tool.id, action, kitLayout(ports.registry))))];
   if (group !== undefined && !groups.includes(group)) throw new MissingView(contract.id, target);
   const folders =
     group === undefined

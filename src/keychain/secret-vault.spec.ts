@@ -12,7 +12,7 @@ import type { Program } from "../tools/tool-contract.ts";
 const schema = Type.Object({ value: Type.String({ secret: true }) });
 for (const [name, value] of [
   ["vacío", ""],
-  ["uno", "Ω"],
+  ["one", "Ω"],
   ["once", "abcdefghijk"],
   ["doce", "abcdefghijkl"],
   ["trece", "abcdefghijklm"],

@@ -25,7 +25,7 @@ const context: AnswerContext = {
 };
 const answer = {
   scene: "Preparando una nota",
-  consulta: null,
+  consultation: null,
   acts: [{ act: "write", target: "notes", input: { text: "Mate mañana", detail: { number: 1 } } }],
 };
 it("reserva doce intentos físicos compartidos y una corrección y consulta", () => {
@@ -37,8 +37,8 @@ it.each([
   { ...answer, process: "ajeno" },
   { ...answer, scene: "\u200b" },
   { ...answer, scene: "x".repeat(4001) },
-  { ...answer, consulta: { question: "" } },
-  { ...answer, acts: [{ ...answer.acts[0], target: "otra" }] },
+  { ...answer, consultation: { question: "" } },
+  { ...answer, acts: [{ ...answer.acts[0], target: "other" }] },
   { ...answer, acts: [{ ...answer.acts[0], by: "ana" }] },
   { ...answer, acts: [{ act: "write", target: "notes", input: { text: "", detail: { number: 0 } } }] },
   { ...answer, acts: Array.from({ length: 33 }, () => answer.acts[0]) },
@@ -47,7 +47,7 @@ it.each([
 });
 it("rechaza permiso retirado, consulta repetida, cierre, trabajo en consciencia y kit ampliado", () => {
   expect(validateAnswer(answer, { ...context, allowed: () => false }).ok).toBe(false);
-  expect(validateAnswer({ ...answer, consulta: { question: "¿Sigo?" } }, { ...context, consulted: true }).ok).toBe(
+  expect(validateAnswer({ ...answer, consultation: { question: "¿Sigo?" } }, { ...context, consulted: true }).ok).toBe(
     false,
   );
   expect(validateAnswer(answer, { ...context, active: false }).ok).toBe(false);

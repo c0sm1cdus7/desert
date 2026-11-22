@@ -10,12 +10,12 @@ export type ContractCase = Readonly<{
   prepare: unknown;
   steps: readonly ContractCaseStep[];
 }>;
-export type ContractRequest = ContractInterface & Readonly<{ casos: readonly ContractCase[] }>;
+export type ContractRequest = ContractInterface & Readonly<{ cases: readonly ContractCase[] }>;
 export type ContractOffer = Readonly<{
   version: string;
-  acciones: Readonly<Record<string, ContractAction & Readonly<{ ruta: string }>>>;
-  objetos: Readonly<Record<string, ContractObject & Readonly<{ proyector: string }>>>;
-  avisos: Readonly<Record<string, ContractNotice & Readonly<{ hecho: string }>>>;
+  actions: Readonly<Record<string, ContractAction & Readonly<{ route: string }>>>;
+  objects: Readonly<Record<string, ContractObject & Readonly<{ projector: string }>>>;
+  notices: Readonly<Record<string, ContractNotice & Readonly<{ fact: string }>>>;
 }>;
 export type ContractProjector = (own: Readonly<Record<string, unknown>>, key: unknown) => unknown;
 export type ContractPackage = Readonly<{
@@ -23,9 +23,9 @@ export type ContractPackage = Readonly<{
   version: string;
   artifact: string;
   desert: number;
-  herramientas: Readonly<Record<string, readonly string[]>>;
-  hechos: readonly string[];
-  proyectores: Readonly<Record<string, ContractProjector>>;
-  ofrece: Readonly<Record<string, ContractOffer>>;
-  pide: Readonly<Record<string, ContractRequest>>;
+  tools: Readonly<Record<string, readonly string[]>>;
+  facts: readonly string[];
+  projectors: Readonly<Record<string, ContractProjector>>;
+  offers: Readonly<Record<string, ContractOffer>>;
+  requests: Readonly<Record<string, ContractRequest>>;
 }>;

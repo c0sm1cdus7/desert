@@ -3,8 +3,8 @@ import { fileURLToPath } from "node:url";
 import { text } from "../../src/fields/fields.ts";
 import { defineMessage } from "../../src/fields/messages.ts";
 import { object } from "../../src/fields/visible-text.ts";
-import { componer } from "../../src/runtime/distributions/compose.ts";
-import { programa, programAct, Type } from "../../src/tools/installable/program.ts";
+import { compose } from "../../src/runtime/distributions/compose.ts";
+import { defineProgram, programAct, Type } from "../../src/tools/installable/program.ts";
 import type { ProgramGroup } from "../../src/tools/installable/program.ts";
 import type { Event } from "../../src/journal/vocabulary.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
@@ -64,7 +64,7 @@ const note = programAct<Picking, typeof written>({
 /** The extras of the orders: one act on each extra, which its order also opens. */
 const extras: ProgramGroup<Picking> = {
   purpose: "Anotar los extras de los pedidos",
-  palabras: {
+  words: {
     name: "Extras",
     key: "x",
     listed: "Extras",
@@ -87,7 +87,7 @@ const extras: ProgramGroup<Picking> = {
   summary: state => String(extrasOf(state).length),
 };
 /** A fact folded into what the program keeps; a note replaces what was written of that extra. */
-function plegar(own: Kept, event: Event<Picking["fact"]>): Kept {
+function fold(own: Kept, event: Event<Picking["fact"]>): Kept {
   if (event.layer !== "program") return own;
   if (event.kind === "picking/item-added") return { ...own, items: [...own.items, event.data] };
   if (event.kind === "picking/order-taken") return { ...own, orders: [...own.orders, event.data] };
@@ -108,29 +108,29 @@ const skill = defineMessage({
 /** How the program varies: what each item's reading adds. */
 type Variant = Readonly<{ named?: Named }>;
 export const pickingProgram = ({ named = {} }: Variant = {}) =>
-  programa(
+  defineProgram(
     {
       ...definition,
-      codigo: [import.meta.filename, fileURLToPath(new URL("./installable-picking-tools.ts", import.meta.url))],
+      code: [import.meta.filename, fileURLToPath(new URL("./installable-picking-tools.ts", import.meta.url))],
     },
     {
       purpose: "Elegir cosas guardadas",
-      palabras: { name: "Elecciones", key: "e", itself: [] },
+      words: { name: "Elecciones", key: "e", itself: [] },
       skill,
-      herramientas: {
+      tools: {
         items: itemsTool(named),
         orders,
         extras,
       },
-      plegar,
+      fold,
       summary: () => "Cosas, pedidos y sus extras",
     },
   );
 /** The program composed alone. */
 export const pickingDistribution = (variant: Variant = {}) =>
-  componer({
-    programas: [pickingProgram(variant)],
-    identidades: true,
-    mentes: { asistentes: false, programas: [] },
-    presentacion: presentation,
+  compose({
+    programs: [pickingProgram(variant)],
+    identities: true,
+    minds: { assistants: false, programs: [] },
+    shown: presentation,
   });

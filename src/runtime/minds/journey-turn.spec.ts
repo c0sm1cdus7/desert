@@ -26,7 +26,7 @@ const menu = [
 ];
 const say = { act: "say", target: "chat", input: { text: "Hola" } };
 const wait = { act: "wait", target: "j1", input: { what: "Espero", until: 2 } };
-const answer = (acts: readonly unknown[]) => ok({ scene: "Sigo", consulta: null, acts });
+const answer = (acts: readonly unknown[]) => ok({ scene: "Sigo", consultation: null, acts });
 it("a tool's refusal is a result, not a correction: the rest waits and the mind answers again", async () => {
   const f = fixture([answer([say, wait]), answer([say, wait])]);
   let count = 0;
@@ -47,10 +47,10 @@ it("a tool's refusal is a result, not a correction: the rest waits and the mind 
   expect(told).toContain("1. say → chat: rechazado: Muy largo");
   expect(told).toContain("2. wait → j1: no se aplicó");
   expect(told).toContain("Ahora: 5");
-  expect(second?.exchanges?.[0]?.answer).toBe(JSON.stringify({ scene: "Sigo", consulta: null, acts: [say, wait] }));
+  expect(second?.exchanges?.[0]?.answer).toBe(JSON.stringify({ scene: "Sigo", consultation: null, acts: [say, wait] }));
 });
 it("corrections in a row go on: only the twelve calls end a journey turn (21/11)", async () => {
-  const invalid = ok({ scene: "Sigo", consulta: null, acts: [] });
+  const invalid = ok({ scene: "Sigo", consultation: null, acts: [] });
   const f = fixture([invalid, invalid, invalid, answer([wait])]);
   const read: TurnPorts["read"] = () => ({ active: true, through: 1, rulesVersion: "v1", menu, now: 5 });
   expect(await runMindTurn({ ...f.ports, read }, wake)).toMatchObject({ outcome: "done", calls: 4 });
@@ -58,7 +58,7 @@ it("corrections in a row go on: only the twelve calls end a journey turn (21/11)
   expect(faults).toHaveLength(3);
 });
 it("a journey that never says how it goes on stops at the call limit, not at a count of corrections", async () => {
-  const invalid = ok({ scene: "Sigo", consulta: null, acts: [] });
+  const invalid = ok({ scene: "Sigo", consultation: null, acts: [] });
   const broken: ModelOutcome = { kind: "invalid", reason: "json" };
   const f = fixture([...Array.from({ length: 6 }, () => invalid), ...Array.from({ length: 6 }, () => broken)]);
   const read: TurnPorts["read"] = () => ({ active: true, through: 1, rulesVersion: "v1", menu, now: 5 });
@@ -94,7 +94,7 @@ it("acts applied before a refused wait reach the mind with the correction, in on
 });
 it("a refused wait after applied acts gets its own correction, even when the last one was spent", async () => {
   const later = { ...wait, input: { what: "Espero", until: 9 } };
-  const empty = ok({ scene: "Sigo", consulta: null, acts: [] });
+  const empty = ok({ scene: "Sigo", consultation: null, acts: [] });
   const f = fixture([empty, answer([say, wait]), answer([later])]);
   const outcome = await runMindTurn({ ...f.ports, execute: refusingPastWaits(), read }, wake);
   expect(outcome).toMatchObject({ outcome: "done", calls: 3, applied: ["a1", "a2"] });
@@ -133,8 +133,8 @@ it("every call of a turn asks with the same schema, so a menu that changes keeps
     planned ||= act.act === "plan";
     return { status: "accepted", id: `a-${act.act}` };
   };
-  const plan = { act: "plan", target: "j1", input: { steps: [{ id: "uno", text: "Anotar" }] } };
-  const done = { act: "done", target: "j1", input: { step: "uno", note: "Anotado" } };
+  const plan = { act: "plan", target: "j1", input: { steps: [{ id: "one", text: "Anotar" }] } };
+  const done = { act: "done", target: "j1", input: { step: "one", note: "Anotado" } };
   const f = fixture([answer([plan]), answer([done, { ...wait, input: { what: "Espero", until: 9 } }])]);
   expect(await runMindTurn({ ...f.ports, execute, read: changing }, wake)).toMatchObject({ outcome: "done", calls: 2 });
   const [first, second] = f.model.mock.calls.map(call => JSON.stringify(call[0].schema));
@@ -162,7 +162,7 @@ it("an act that left the menu is corrected against the current menu, though the 
     if (act.act === "plan") plans++;
     return { status: "accepted", id: `a-${act.act}-${plans}` };
   };
-  const plan = { act: "plan", target: "j1", input: { steps: [{ id: "uno", text: "Anotar" }] } };
+  const plan = { act: "plan", target: "j1", input: { steps: [{ id: "one", text: "Anotar" }] } };
   const later = { ...wait, input: { what: "Espero", until: 9 } };
   const f = fixture([answer([plan]), answer([plan]), answer([later])]);
   expect(await runMindTurn({ ...f.ports, execute, read: changing }, wake)).toMatchObject({ outcome: "done", calls: 3 });
@@ -178,7 +178,7 @@ it("a consciousness hears its applied acts with a refused kit, without the journ
   let count = 0;
   const execute: TurnPorts["execute"] = async act => {
     await Promise.resolve();
-    if (act.act === "open") throw new JourneyKitRefused([{ tool: "notas", acts: ["personal/add"] }]);
+    if (act.act === "open") throw new JourneyKitRefused([{ tool: "notes", acts: ["personal/add"] }]);
     return { status: "accepted", id: `a${++count}` };
   };
   const talk: MindMenu[number] = {

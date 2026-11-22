@@ -31,7 +31,7 @@ for (const trigger of ["woke", "stimulus"] as const)
       }
     });
     if (trigger === "woke") {
-      bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:inicio", at: Date.now() + 5 } });
+      bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:start", at: Date.now() + 5 } });
       await vi.advanceTimersByTimeAsync(10);
     } else {
       const pending = mind.act();
@@ -57,25 +57,25 @@ it("a caught inner rollback preserves the outer facts, folds, sequence and pendi
   rig.kit(null);
   const bus = rig.house().bus;
   bus.together(() => {
-    bus.emit(effect("scene", { general: "afuera" }, "ana"));
+    bus.emit(effect("scene", { general: "outside" }, "ana"));
     expect(() =>
       bus.together(() => {
         bus.emit(effect("scene", { general: "adentro" }, "ana"));
         rig.mind.schedule(Date.now() + 5);
-        throw new Error("interno");
+        throw new Error("internal");
       }),
-    ).toThrow("interno");
-    expect(rig.house().tools.state().house.scenes.get("ana")?.data.general).toBe("afuera");
+    ).toThrow("internal");
+    expect(rig.house().tools.state().house.scenes.get("ana")?.data.general).toBe("outside");
     rig.mind.schedule(Date.now() + 50);
   });
   rig.restart();
-  expect(rig.house().tools.state().house.scenes.get("ana")?.data.general).toBe("afuera");
+  expect(rig.house().tools.state().house.scenes.get("ana")?.data.general).toBe("outside");
   await vi.advanceTimersByTimeAsync(100);
   expect(rig.mind.pending).toHaveLength(1);
   expect(await rig.mind.pending[0]).toEqual({ status: "accepted" });
   const facts = rig.facts();
   expect(facts.map(e => e.seq)).toEqual(facts.map((_, i) => i + 1));
-  expect(facts.filter(e => e.kind === "scene").map(e => e.data.general)).toEqual(["afuera"]);
+  expect(facts.filter(e => e.kind === "scene").map(e => e.data.general)).toEqual(["outside"]);
   rig.restart();
   await vi.advanceTimersByTimeAsync(100);
   expect(rig.mind.pending).toHaveLength(1);

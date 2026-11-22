@@ -8,7 +8,7 @@ it("una llave robada abre solo su secreto; la del registro no abre ninguno", () 
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = [session.capture(Buffer.from("uno")), session.capture(Buffer.from("dos"))];
+  const refs = [session.capture(Buffer.from("one")), session.capture(Buffer.from("two"))];
   store.close();
   const db = new CustodyDatabase(rig.file),
     house = db.identity(),
@@ -39,9 +39,9 @@ it("abrir y vincular no piden llaves de secretos; un uso pide solo la suya y bor
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("uno")) };
+  const refs = { key: session.capture(Buffer.from("one")) };
   session.replace("signing", refs, 0);
-  store.keep(Buffer.from("dos"));
+  store.keep(Buffer.from("two"));
   store.close();
   const copies: Uint8Array[] = [],
     accounts: string[] = [],
@@ -58,7 +58,7 @@ it("abrir y vincular no piden llaves de secretos; un uso pide solo la suya y bor
   expect(accounts.some(account => account.includes("-secret-"))).toBe(false);
   accounts.length = 0;
   await again.adapter(next, ["signing"]).use(refs, values => {
-    expect(Buffer.from(values.key ?? []).toString()).toBe("uno");
+    expect(Buffer.from(values.key ?? []).toString()).toBe("one");
     expect(copies.every(copy => copy.every(byte => byte === 0))).toBe(true);
     return 1;
   });
@@ -71,7 +71,7 @@ it("un fallo parcial al preparar un par borra el primer material sin llamar al a
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { a: session.capture(Buffer.from("uno")), b: session.capture(Buffer.from("dos")) };
+  const refs = { a: session.capture(Buffer.from("one")), b: session.capture(Buffer.from("two")) };
   session.replace("signing", refs, 0);
   const decrypt = vi.spyOn(CustodyCipher.prototype, "open"),
     key = rig.keys.key.bind(rig.keys);
@@ -89,7 +89,7 @@ it("un fallo parcial al preparar un par borra el primer material sin llamar al a
 it("M18: cerrar durante uso borra lo prestado inmediatamente y al finalizar", async () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("inventado")) };
+  const refs = { key: session.capture(Buffer.from("invented")) };
   let finish = () => {},
     borrowed: Uint8Array | undefined;
   const work = store.adapter(session, []).use(refs, values => {
@@ -115,7 +115,7 @@ it("un ingreso denegado borra su búfer y la falta tardía de proveedor dice qu�
   const rig = custodyRig(),
     store = new SecretCustody(rig.file, rig.home),
     session = store.begin(custodyScope);
-  const value = Buffer.from("inventado");
+  const value = Buffer.from("invented");
   expect(() => session.capture(value)).toThrow(/E-CUSTODY-PROVIDER.*secretKeys/u);
   expect(value.every(byte => byte === 0)).toBe(true);
   store.close();

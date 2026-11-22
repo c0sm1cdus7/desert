@@ -42,7 +42,7 @@ function deviceModules(root: string) {
   writeFileSync(
     join(root, "src/input.ts"),
     `// Shares a public schema with the executor.
-import { Type } from "desert/programa";
+import { Type } from "desert/program";
 export const input = Type.Object({});
 `,
   );
@@ -79,7 +79,7 @@ function deviceAction(root: string) {
   const texts = join(root, "src/texts.ts");
   writeFileSync(texts, readFileSync(texts, "utf8").replace("Anotada · Nota", "Terminada · Ejecución · toy"));
   const distribution = join(root, "tests/distribution.ts");
-  writeFileSync(distribution, readFileSync(distribution, "utf8").replace("identidades: false", "identidades: true"));
+  writeFileSync(distribution, readFileSync(distribution, "utf8").replace("identities: false", "identities: true"));
 }
 
 function deviceChecks(root: string): void {

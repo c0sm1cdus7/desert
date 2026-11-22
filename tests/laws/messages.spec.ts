@@ -2,13 +2,13 @@ import { expect, it } from "vitest";
 import { messageCoverage } from "../../src/checks/laws/message-coverage.ts";
 import { hiddenRules } from "../../src/checks/laws/prompts.ts";
 import { lawRepository } from "../support/law-repository.ts";
-import { root } from "../support/sources.ts";
+import { root, ownCode } from "../support/sources.ts";
 
 const declaration = (kind: string, texts: string) =>
   'import { defineMessage } from "../fields/messages.ts";\n' +
   `export const words = defineMessage({ id: "test.words", kind: "${kind}", parameters: {}, texts: ${texts} });`;
 it("gives every production message text in every declared language", () => {
-  expect(messageCoverage({ root, code: ["src"] })).toEqual([]);
+  expect(messageCoverage({ root, code: ownCode })).toEqual([]);
 });
 it("turns red for a missing translation, including a newly declared language", () => {
   const repo = lawRepository({ "src/texts/sample.ts": declaration("text", '{ es: "Hola" }') });

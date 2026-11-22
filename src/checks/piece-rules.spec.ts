@@ -116,7 +116,7 @@ const rowPieces = (change: (row: RowPiece) => RowPiece): Change =>
   });
 const texts = (change: (row: RowPiece & { as: "text" }) => RowPiece): Change =>
   rowPieces(r => (r.as === "text" ? change(r) : r));
-const sent = { kind: "choose", row: "otra" } as const;
+const sent = { kind: "choose", row: "other" } as const;
 /** One wrong piece per check of the three additions, on the first golden screen that shows what it holds. */
 const added: readonly (readonly [string, string, (screen: Screen) => boolean, Change])[] = [
   ["a-row-sends-its-choice", "a row with an id", s => rowsOf(s).some(r => r.id), texts(({ sends: _, ...r }) => r)],

@@ -36,7 +36,7 @@ it("agotar el tope entre escenas no certifica un rechazo del rol y el banco sigu
   await f.bank(house);
   expect(f.transport).toHaveBeenCalledTimes(4);
   expect(modelAccount(house.tools.state().house.modelCalls, "test").spentNanoUsd).toBe(spent * 4);
-  expect(house.tools.state().house.mindAssignments.has("mind:notas")).toBe(true);
+  expect(house.tools.state().house.mindAssignments.has("mind:notes")).toBe(true);
 });
 it("el banco vuelve a probar una carta cuya evidencia tiene otra huella", async () => {
   const f = fixture();
@@ -47,11 +47,11 @@ it("el banco vuelve a probar una carta cuya evidencia tiene otra huella", async 
     effect(
       "mind-bank-tested",
       {
-        mind: "mind:notas",
+        mind: "mind:notes",
         card: card.model,
         version: "high",
         result: {
-          role: "program:notas",
+          role: "program:notes",
           passed: true,
           cases: 1,
           scenes: 3,
@@ -61,7 +61,7 @@ it("el banco vuelve a probar una carta cuya evidencia tiene otra huella", async 
           fingerprint: { cases: "old", skill: "old", frameTexts: "old" },
         },
       },
-      "mind:notas",
+      "mind:notes",
     ),
   );
   await f.bank(house);
@@ -86,7 +86,7 @@ it("el banco no reutiliza evidencia inconsistente aunque tenga la huella vigente
     fingerprint: options.fingerprint(definition),
   };
   house.bus.emit(
-    effect("mind-bank-tested", { mind: "mind:notas", card: card.model, version: "high", result }, "mind:notas"),
+    effect("mind-bank-tested", { mind: "mind:notes", card: card.model, version: "high", result }, "mind:notes"),
   );
   await f.bank(house);
   expect(f.transport).toHaveBeenCalledTimes(3);
@@ -112,7 +112,7 @@ it("cerrar durante el banco conserva la reserva incierta y descarta la respuesta
     const reopened = await f.open({ capNanoUsd: 0 });
     expect(modelAccount(reopened.tools.state().house.modelCalls, "test").reservedNanoUsd).toBeGreaterThan(0);
     expect(reopened.journal.replay(0, (count, event) => count + Number(event.kind === "mind-bank-tested"))).toBe(0);
-    expect(reopened.tools.state().house.mindAssignments.get("mind:notas")?.version).toBe("low");
+    expect(reopened.tools.state().house.mindAssignments.get("mind:notes")?.version).toBe("low");
   } finally {
     release();
     house.close();

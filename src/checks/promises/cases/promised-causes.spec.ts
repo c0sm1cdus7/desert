@@ -19,7 +19,7 @@ type Mode = "offered" | "stops" | "wrong" | "among";
 const detail = "causa no declarada";
 const initial = [{ act: "register", on: "sales", input: { sale: "s1", total: 100 } }];
 function broken(mode: Mode): Composition<Shop> {
-  const value = mode === "among" ? "sales/s1" : "dato";
+  const value = mode === "among" ? "sales/s1" : "datum";
   const written = mode === "wrong" ? holding(text("Dato", "Nombre"), () => detail) : text("Dato", "Nombre");
   const field = mode === "among" ? thing("Dato", "sales", undefined, undefined, "sin ventas") : written;
   const input = object({ value: field });
@@ -46,7 +46,7 @@ for (const mode of ["offered", "stops", "wrong", "among"] satisfies readonly Mod
         const done = await perform(house(), "payments", {
           act: "probe",
           input: {
-            value: mode === "among" ? "sales/s1" : "dato",
+            value: mode === "among" ? "sales/s1" : "datum",
           },
         });
         expect(done).toMatchObject({
@@ -69,7 +69,7 @@ for (const mode of ["offered", "stops", "wrong", "among"] satisfies readonly Mod
         const seat = seated(house(), cast.admin, shopShown);
         try {
           type(seat.router, "pb");
-          if (mode === "wrong" || mode === "stops") type(seat.router, "dato");
+          if (mode === "wrong" || mode === "stops") type(seat.router, "datum");
           const screen = JSON.stringify(seat.router.screen(view));
           expect(screen).toContain("E-PROG-1");
           expect(screen).not.toContain(detail);

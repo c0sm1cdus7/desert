@@ -24,8 +24,8 @@ describe("cartas y Anthropic", () => {
     const args = {
       card: first,
       maxOutputTokens: 16000,
-      layers: ["casa", "mente", "skills", "reglas"] as const,
-      changing: "ahora",
+      layers: ["house", "mind", "skills", "rules"] as const,
+      changing: "now",
       schema: {
         type: "object",
         properties: { text: { type: "string", minLength: 2 } },
@@ -49,12 +49,12 @@ describe("cartas y Anthropic", () => {
         },
       },
       system: [
-        { type: "text", text: "casa" },
-        { type: "text", text: "mente" },
+        { type: "text", text: "house" },
+        { type: "text", text: "mind" },
         { type: "text", text: "skills" },
-        { type: "text", text: "reglas", cache_control: { type: "ephemeral" } },
+        { type: "text", text: "rules", cache_control: { type: "ephemeral" } },
       ],
-      messages: [{ role: "user", content: "ahora" }],
+      messages: [{ role: "user", content: "now" }],
     };
     expect(requestBody(args)).toEqual(expected);
     const transport: typeof fetch = (_url, init) => {

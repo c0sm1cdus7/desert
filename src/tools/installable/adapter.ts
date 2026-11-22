@@ -36,7 +36,7 @@ function groupTool<X extends Program>(id: string, name: string, group: ProgramGr
     summary: state => group.summary(stateOf(state)),
     ...(group.viewData ? { viewData: (s, t) => group.viewData?.(stateOf(s), target(t)) } : {}),
     ...(group.closed ? { closed: (s, t, at) => group.closed?.(stateOf(s), target(t), at) ?? false } : {}),
-    ...(group.words ? { words: (s, t) => group.words?.(stateOf(s), target(t)) ?? "" } : {}),
+    ...(group.findWords ? { findWords: (s, t) => group.findWords?.(stateOf(s), target(t)) ?? "" } : {}),
     ...(group.needs
       ? {
           /** What needs someone is a thing of the tool, or the tool itself: then it leads to the tool's folder. */
@@ -56,7 +56,7 @@ function groupTool<X extends Program>(id: string, name: string, group: ProgramGr
       return [`${name}/${key}`, { ...adapted, on: act.on, ...(act.under ? { under: `${name}/${act.under}` } : {}) }];
     }),
   );
-  return { id: name, folder: tool.id, palabras: group.palabras, tool: { ...tool, acts: originalActs } };
+  return { id: name, folder: tool.id, words: group.words, tool: { ...tool, acts: originalActs } };
 }
 /** Who reads a view: the program, the tool that reads, every tool of the program and the things the reading tool has
  * now, by their local ids. */
@@ -106,42 +106,42 @@ export function installProgram<M extends ProgramMetadata>(
   body: ProgramBody<M>,
   readings?: ProgramReadings,
 ): InstalledProgram {
-  const on = { tools: Object.keys(body.herramientas), readings };
-  const groups = Object.entries(body.herramientas).map(([name, group]) => groupTool(meta.id, name, group, on));
+  const on = { tools: Object.keys(body.tools), readings };
+  const groups = Object.entries(body.tools).map(([name, group]) => groupTool(meta.id, name, group, on));
   const find = (state: State<Program>, target: string) =>
     groups.find(group => group.folder === target || group.tool.targets(state).includes(target));
   const tool: ProgramTool<Program> = {
     id: meta.id,
-    name: body.palabras.name,
+    name: body.words.name,
     purpose: body.purpose,
     skill: body.skill,
-    ...(body.mensajes ? { talks: true } : {}),
-    facts: meta.hechos.map(f => f.nombre),
+    ...(body.messages ? { talks: true } : {}),
+    facts: meta.facts.map(f => f.kind),
     groups,
     ...fromGroups(groups),
     targets: state => groups.flatMap(group => [group.folder, ...group.tool.targets(state)]),
     summary: state => body.summary(ownState<LocalProgram<M>>(meta.id, readings)(state)),
     view: (state, target, limits) =>
       target === meta.id
-        ? groups.map(g => JSON.stringify({ id: g.folder, text: g.palabras.name })).join("\n")
+        ? groups.map(g => JSON.stringify({ id: g.folder, text: g.words.name })).join("\n")
         : requiredGroup(find(state, target)).tool.view(state, target, limits),
     needs: (s, at) => groups.flatMap(g => g.tool.needs?.(s, at) ?? []),
     closed: (s, t, at) => find(s, t)?.tool.closed?.(s, t, at) ?? false,
-    words: (s, t) => find(s, t)?.tool.words?.(s, t) ?? "",
+    findWords: (s, t) => find(s, t)?.tool.findWords?.(s, t) ?? "",
     draft: (s, through, i, t, at) => find(s, t)?.tool.draft?.(s, through, i, t, at),
   };
   return {
     tool,
     groups,
-    words: body.palabras,
-    initial: meta.inicial(),
+    words: body.words,
+    initial: meta.initial(),
     step: foldProgram(meta, body),
   };
 }
 /** What a program gathers from its tools: their names, reactions, menus and acts, each act on a thing. */
 function fromGroups(groups: readonly InstalledGroup[]) {
   return {
-    toolNames: Object.fromEntries(groups.map(group => [group.id, group.palabras.name])),
+    toolNames: Object.fromEntries(groups.map(group => [group.id, group.words.name])),
     reactions: Object.fromEntries(groups.flatMap(group => Object.entries(group.tool.reactions ?? {}))),
     actionTools: Object.fromEntries(
       groups.flatMap(group => Object.keys(group.tool.acts).map(action => [action, group.id])),
@@ -163,14 +163,14 @@ function programVocabulary<M extends ProgramMetadata>(
   meta: M,
 ): import("../../journal/vocabulary.ts").Vocabulary<LocalProgram<M>["fact"]>;
 function programVocabulary(meta: ProgramMetadata) {
-  return vocabulary(Object.fromEntries(meta.hechos.map(fact => [fact.nombre, fact.forma])));
+  return vocabulary(Object.fromEntries(meta.facts.map(fact => [fact.kind, fact.schema])));
 }
 
 function foldProgram<M extends ProgramMetadata>(meta: M, body: ProgramBody<M>): InstalledProgram["step"] {
   const ownWords = programVocabulary(meta);
   return (_own, event, before) => {
     const state = localState<LocalProgram<M>>(before, meta.id);
-    if (event.layer === "program" && !meta.hechos.some(fact => fact.nombre === event.kind)) return state.tools.own;
-    return body.plegar(state.tools.own, ownWords.read(event), state);
+    if (event.layer === "program" && !meta.facts.some(fact => fact.kind === event.kind)) return state.tools.own;
+    return body.fold(state.tools.own, ownWords.read(event), state);
   };
 }

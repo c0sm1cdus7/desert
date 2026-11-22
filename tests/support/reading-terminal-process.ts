@@ -8,7 +8,7 @@ const path = process.argv[2];
 const stream = path ? connect(path) : Duplex.from({ readable: process.stdin, writable: process.stdout });
 let cut = false;
 connection.receive(message => {
-  if (message.tipo === "cortado") cut = true;
+  if (message.type === "cut") cut = true;
 });
 await connection.attach(stream);
 process.send?.({ ready: true });

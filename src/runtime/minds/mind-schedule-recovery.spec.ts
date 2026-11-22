@@ -71,7 +71,7 @@ it.each([
       const model = vi.fn<ModelPort>(() =>
         Promise.resolve({
           kind: "answer",
-          value: { scene: "Listo", consulta: null, acts: [] },
+          value: { scene: "Listo", consultation: null, acts: [] },
           usage: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 },
         }),
       );

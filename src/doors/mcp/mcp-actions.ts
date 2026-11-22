@@ -28,18 +28,18 @@ export async function mcpAct<X extends Program>(
   if (declared?.id !== tool || !Object.hasOwn(declared.acts, action)) return toolResult(said.action, true);
   if (!allowedAct(state.house, by, tool, action)) return toolResult(toolTexts.kitRefusal(tool), true);
   const attendance: RequestAct = {
-    tipo: "acto",
+    type: "act",
     id: randomUUID(),
     act: "attend",
     input: { target },
     through: state.through,
   };
   const attended = await book.act(by, attendance, signal);
-  if (attended.tipo !== "resultado" || attended.status !== "accepted") return toolResult(said.failed, true);
+  if (attended.type !== "result" || attended.status !== "accepted") return toolResult(said.failed, true);
   const result = await book.act(
     by,
     {
-      tipo: "acto",
+      type: "act",
       id: randomUUID(),
       act: action,
       ...(destination ? { destination } : {}),
@@ -52,12 +52,12 @@ export async function mcpAct<X extends Program>(
   return actionResult(house, result, tool, action);
 }
 function actionResult<X extends Program>(house: McpHouse<X>, result: ServerMessage, tool: string, action: string) {
-  if (result.tipo === "rechazo") return toolResult(result.motivo, true);
-  if (result.tipo !== "resultado") return toolResult(said.failed, true);
+  if (result.type === "rejection") return toolResult(result.reason, true);
+  if (result.type !== "result") return toolResult(said.failed, true);
   if (result.status !== "accepted") return toolResult(result.reason ?? said.failed, true);
   // The act's own result says what was done; the activity entry for the others repeats the same words.
-  const done = result.efectos.filter(event => event.kind === "act-done").map(event => event.data.text);
-  const texts = [...new Set(done.length ? done : result.efectos.map(event => event.data.text))];
+  const done = result.effects.filter(event => event.kind === "act-done").map(event => event.data.text);
+  const texts = [...new Set(done.length ? done : result.effects.map(event => event.data.text))];
   const response = toolResult(stripVTControlCharacters(house.tools.prepare(texts.join("\n") || said.accepted)));
   const code =
     tool === "identities" && ["new", "invite"].includes(action)

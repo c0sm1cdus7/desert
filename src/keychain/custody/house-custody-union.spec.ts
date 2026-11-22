@@ -86,7 +86,7 @@ for (const mode of ["removed", "replaced"])
     const keys = vi.spyOn(rig.options.secretKeys, "key");
     try {
       // A direct secret-bearing act event reaches the same kept boundary as an action ingress.
-      const event = effect("act", { object: "vault", option: "set", input: { value: "inventado" } }, "ana");
+      const event = effect("act", { object: "vault", option: "set", input: { value: "invented" } }, "ana");
       expect(() => rig.bus().emit(event)).toThrow(expect.objectContaining({ code: "WRITER_LEASE_LOST" }));
       expect(keep.mock.calls.length).toBe(0);
       expect(intent.mock.calls.length).toBe(0);
@@ -142,7 +142,7 @@ it("el control del registro propio conserva su receptor y rechaza antes de crear
   const keys = vi.spyOn(rig.options.secretKeys, "key");
   try {
     owned = false;
-    const buffer = Buffer.from("inventado");
+    const buffer = Buffer.from("invented");
     expect(() => custody.keep(buffer)).toThrow("escritor perdido");
     expect(buffer.every(byte => byte === 0)).toBe(true);
     expect(intent.mock.calls.length).toBe(0);

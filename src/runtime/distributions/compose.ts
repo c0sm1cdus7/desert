@@ -6,7 +6,7 @@ import type { Program, Slices } from "../../tools/tool-contract.ts";
 import type { Composition } from "../../tools/promises-contract.ts";
 import type { Shown } from "../../surface/bridge/ports/house-ports.ts";
 import { DESERT_CONTRACT, type InstallableProgram, type LocalProgram } from "../../tools/installable/program.ts";
-import { CompositionError, diagnostico } from "./diagnostics.ts";
+import { CompositionError, diagnose } from "./diagnostics.ts";
 import type { CompositionOptions, RequireValid } from "./validation-types.ts";
 import { declaredReactions } from "../../tools/boundaries/tool-reactions.ts";
 import { bindProgramContracts, installPrograms } from "./program-contracts.ts";
@@ -18,12 +18,12 @@ import type { ProgramMindResources } from "../minds/program-mind-options.ts";
 import type { MindRuntimeOptions } from "../minds/mind-runtime-options.ts";
 export type DistributionOf<T extends readonly InstallableProgram[]> = {
   fact: LocalProgram<T[number]>["fact"];
-  tools: { readonly [P in T[number] as P["id"]]: ReturnType<P["inicial"]> };
+  tools: { readonly [P in T[number] as P["id"]]: ReturnType<P["initial"]> };
 };
 export type DistributionOptions = CompositionOptions &
   Readonly<{
-    atajoUnaHerramienta?: boolean;
-    presentacion: Omit<Shown<Program>, "words" | "screens"> & Readonly<{ codigo: readonly [string, ...string[]] }>;
+    singleToolShortcut?: boolean;
+    shown: Omit<Shown<Program>, "words" | "screens"> & Readonly<{ code: readonly [string, ...string[]] }>;
   }>;
 export type Distribution<X extends Program> = Readonly<{
   program: Composition<X>;
@@ -32,25 +32,25 @@ export type Distribution<X extends Program> = Readonly<{
   shown: Shown<X>;
   manifest: Readonly<{
     desert: number;
-    programas: readonly Readonly<{ id: string; version: string; calculation: string }>[];
-    mentes: CompositionOptions["mentes"];
-    identidades: boolean;
+    programs: readonly Readonly<{ id: string; version: string; calculation: string }>[];
+    minds: CompositionOptions["minds"];
+    identities: boolean;
   }>;
   calculation: ReturnType<typeof codeProjectionVersion>;
-  mentes: CompositionOptions["mentes"];
+  minds: CompositionOptions["minds"];
 }>;
-export function componer<const O extends DistributionOptions>(
+export function compose<const O extends DistributionOptions>(
   options: O & RequireValid<NoInfer<O>>,
-): Distribution<DistributionOf<O["programas"]>>;
-export function componer(options: DistributionOptions): Distribution<Program> {
-  const issues = diagnostico(options);
+): Distribution<DistributionOf<O["programs"]>>;
+export function compose(options: DistributionOptions): Distribution<Program> {
+  const issues = diagnose(options);
   if (issues.length) throw new CompositionError(issues);
-  const { packages, installed } = installPrograms(options.programas);
+  const { packages, installed } = installPrograms(options.programs);
   declaredReactions({ registry: installed.map(p => p.tool) });
   const roots = [
     fileURLToPath(new URL("../../", import.meta.url)),
-    ...options.presentacion.codigo,
-    ...options.programas.flatMap(program => program.codigo),
+    ...options.shown.code,
+    ...options.programs.flatMap(program => program.code),
   ];
   const calculation = codeProjectionVersion(roots);
   const slices: Slices<Program> = {
@@ -62,15 +62,15 @@ export function componer(options: DistributionOptions): Distribution<Program> {
       packages,
       installed.map(p => p.tool),
     ),
-    identities: options.identidades,
-    mentes: Object.freeze({
-      asistentes: options.mentes.asistentes,
-      programas: Object.freeze([...options.mentes.programas]),
+    identities: options.identities,
+    minds: Object.freeze({
+      assistants: options.minds.assistants,
+      programs: Object.freeze([...options.minds.programs]),
     }),
     projectionVersion: calculation,
     slices,
     registry: installed.map(p => p.tool),
-    words: vocabulary(Object.fromEntries(options.programas.flatMap(p => p.hechos.map(f => [f.nombre, f.forma])))),
+    words: vocabulary(Object.fromEntries(options.programs.flatMap(p => p.facts.map(f => [f.kind, f.schema])))),
   };
   return finishDistribution(options, installed, program, calculation);
 }
@@ -81,40 +81,40 @@ function finishDistribution(
   calculation: ReturnType<typeof codeProjectionVersion>,
 ): Distribution<Program> {
   const manifest = manifestOf(options);
-  const mentes = manifest.mentes;
-  const mindDefinitions = programMindDefinitions(installed, mentes.programas);
+  const minds = manifest.minds;
+  const mindDefinitions = programMindDefinitions(installed, minds.programs);
   return {
     mindDefinitions,
     modelMinds: async resources => {
       const { programMindOptions } = await import("../minds/program-mind-options.ts");
-      return programMindOptions(program, options.programas, mindDefinitions, resources, talkActs(installed));
+      return programMindOptions(program, options.programs, mindDefinitions, resources, talkActs(installed));
     },
     program,
-    shown: distributionShown(installed, options.presentacion, options.atajoUnaHerramienta),
+    shown: distributionShown(installed, options.shown, options.singleToolShortcut),
     manifest,
     calculation,
-    mentes,
+    minds,
   };
 }
 function manifestOf(options: DistributionOptions) {
-  const mentes = Object.freeze({
-    asistentes: options.mentes.asistentes,
-    programas: Object.freeze([...options.mentes.programas]),
+  const minds = Object.freeze({
+    assistants: options.minds.assistants,
+    programs: Object.freeze([...options.minds.programs]),
   });
   return Object.freeze({
     desert: DESERT_CONTRACT,
-    identidades: options.identidades,
-    mentes,
-    programas: Object.freeze(
-      options.programas.map(p =>
+    identities: options.identities,
+    minds,
+    programs: Object.freeze(
+      options.programs.map(p =>
         Object.freeze({
           id: p.id,
           version: p.version,
-          calculation: codeProjectionVersion(p.codigo).value,
+          calculation: codeProjectionVersion(p.code).value,
         }),
       ),
     ),
   });
 }
-export { diagnostico, CompositionError } from "./diagnostics.ts";
+export { diagnose, CompositionError } from "./diagnostics.ts";
 export type { CompositionErrors } from "./validation-types.ts";

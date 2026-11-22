@@ -6,7 +6,7 @@ import { clientFrame, frameReader, serverFrame } from "./frame.ts";
 import { readClient, readServer, socketLimits } from "./protocol.ts";
 
 it("frames survive every split, coalescing and exact JSON limit", () => {
-  const hello = { tipo: "hola", protocolo: 1, node: process.versions.node, token: "test" } as const;
+  const hello = { type: "hello", protocol: 1, node: process.versions.node, token: "test" } as const;
   const bytes = clientFrame(hello);
   expect(bytes.length).toBeGreaterThan(5);
   for (let split = 0; split <= bytes.length; split++) {
@@ -23,7 +23,7 @@ it("frames survive every split, coalescing and exact JSON limit", () => {
   expect(got).toHaveLength(2);
 });
 it("server encoding validates and preserves maps and sets in binary state", () => {
-  expect(serverFrame({ tipo: "cerrando" }).length).toBeGreaterThan(5);
+  expect(serverFrame({ type: "closing" }).length).toBeGreaterThan(5);
   const state = { map: new Map([["a", new Set([1, 2])]]) };
   const encoded = stateFrame(state);
   expect(encoded[4]).toBe(1);
@@ -34,7 +34,7 @@ it.each([
   wire({}, 7),
   Buffer.alloc(5),
   Buffer.from([0, 0, 0, 2, 0, 123]),
-  wire({ tipo: "chau", identidad: "ana" }),
+  wire({ type: "bye", identity: "ana" }),
 ])("rejects broken and forbidden frames before delivering anything", bytes => {
   const got: unknown[] = [];
   const reader = frameReader("client", value => got.push(value));
@@ -50,11 +50,11 @@ it("rejects overflow at the header and truncated EOF", () => {
   expect(() => reader.end()).toThrow();
 });
 it("TypeBox rejects undeclared fields on both sides", () => {
-  expect(() => readClient({ tipo: "hola", protocolo: 1, node: "24", token: "t", puerta: "terminal" })).toThrow();
-  expect(() => readServer({ tipo: "resultado", id: "a", status: "invented", efectos: [] })).toThrow();
+  expect(() => readClient({ type: "hello", protocol: 1, node: "24", token: "t", door: "terminal" })).toThrow();
+  expect(() => readServer({ type: "result", id: "a", status: "invented", effects: [] })).toThrow();
 });
 it("accepts exactly the JSON frame limit and rejects the next byte, including a header without its type", () => {
-  const base = { tipo: "acto", id: "a", act: "prefer", input: "", through: 0 } as const;
+  const base = { type: "act", id: "a", act: "prefer", input: "", through: 0 } as const;
   const room = socketLimits.json - Buffer.byteLength(JSON.stringify(base));
   const message = { ...base, input: "a".repeat(room) };
   const bytes = clientFrame(message);
@@ -68,11 +68,11 @@ it("accepts exactly the JSON frame limit and rejects the next byte, including a 
   expect(() => frameReader("client", () => {}).push(header)).toThrow();
 });
 it("rejects bad UTF-8, partial payloads and states beyond 16 MiB", () => {
-  const bytes = wire({ tipo: "hola", protocolo: 1, node: "a", token: "t" });
+  const bytes = wire({ type: "hello", protocol: 1, node: "a", token: "t" });
   bytes[bytes.indexOf(Buffer.from('"a"')) + 1] = 255;
   expect(() => frameReader("client", () => {}).push(bytes)).toThrow();
   const reader = frameReader("client", () => {});
-  reader.push(wire({ tipo: "chau" }).subarray(0, 6));
+  reader.push(wire({ type: "bye" }).subarray(0, 6));
   expect(() => reader.end()).toThrow();
   expect(() => stateFrame(Buffer.alloc(16 * 1024 * 1024))).toThrow();
 });

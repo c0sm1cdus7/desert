@@ -60,7 +60,7 @@ function isMember<X extends Program>(
     (key.live?.() ?? current.doors.keys.get(key.id)?.revoked === false)
   )
     return true;
-  peer.end({ tipo: "cortado", motivo: socketTexts.removed });
+  peer.end({ type: "cut", reason: socketTexts.removed });
   return false;
 }
 

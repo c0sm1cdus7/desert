@@ -115,11 +115,11 @@ class MindTurnRun {
     });
   }
   private async consult(answer: MindAnswer): Promise<TurnStop | undefined> {
-    requireMind(answer.consulta, "consulta");
+    requireMind(answer.consultation, "consultation");
     this.consulted = true;
     this.turn.usage.consultations = 1;
     const { id, scope, wake } = this.turn;
-    const question = answer.consulta.question;
+    const question = answer.consultation.question;
     this.write(
       effect(
         "mind-consultation-requested",
@@ -155,7 +155,7 @@ class MindTurnRun {
   }
   private async proposal(answer: MindAnswer): Promise<TurnOutcome | undefined> {
     this.scene(answer.scene);
-    if (answer.consulta) {
+    if (answer.consultation) {
       const stopped = await this.consult(answer);
       return stopped ? this.finish(stopped) : undefined;
     }

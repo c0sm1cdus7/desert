@@ -16,11 +16,11 @@ it("N8: the terminal visibly reports a quota refusal once per second and keeps r
   const entering = connection.attach(pair[0]);
   pair[1].write(
     serverFrame({
-      tipo: "bienvenida",
-      protocolo: houseProtocolVersion,
-      identidad: "ana",
+      type: "welcome",
+      protocol: houseProtocolVersion,
+      identity: "ana",
       admin: true,
-      ahora: 0,
+      now: 0,
       seq: 1,
     }),
   );
@@ -29,12 +29,12 @@ it("N8: the terminal visibly reports a quota refusal once per second and keeps r
   try {
     await entering;
     for (let i = 0; i < 100; i++)
-      pair[1].write(serverFrame({ tipo: "rechazo", id: "defecto", motivo: socketTexts.quota }));
+      pair[1].write(serverFrame({ type: "rejection", id: "default", reason: socketTexts.quota }));
     await new Promise<void>(resolve => setImmediate(resolve));
     expect(output).toHaveBeenCalledExactlyOnceWith(`${socketTexts.quota}\n`);
     expect(connection.status()).toBe("connected");
     now = 1000;
-    pair[1].write(serverFrame({ tipo: "rechazo", id: "wait", motivo: socketTexts.quota }));
+    pair[1].write(serverFrame({ type: "rejection", id: "wait", reason: socketTexts.quota }));
     await new Promise<void>(resolve => setImmediate(resolve));
     expect(output).toHaveBeenCalledTimes(2);
     expect(connection.state()).toEqual(state);

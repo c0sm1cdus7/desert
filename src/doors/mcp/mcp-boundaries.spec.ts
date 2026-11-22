@@ -73,7 +73,7 @@ it("rejects unknown targets and invalid tool arguments without exposing exceptio
     ["wait", { since: -1, seconds: 0 }],
     ["wait", { since: 0, seconds: -1 }],
     ["act", { program: "sales", action: "register", data: [] }],
-    ["sincronizar", {}],
+    ["sync", {}],
     ["read", { program: "sales", extra: true }],
   ] as const) {
     expect(JSON.parse((await h.call(name, args)).body)).toMatchObject({ error: { code: -32602 } });

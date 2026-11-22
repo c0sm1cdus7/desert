@@ -3,13 +3,13 @@ import { Type } from "@sinclair/typebox";
 import { programAct, DESERT_CONTRACT, type LocalProgram } from "../../src/tools/installable/program.ts";
 import { defineMessage } from "../../src/fields/messages.ts";
 export const sampleDefinition = {
-  id: "notas",
+  id: "notes",
   version: "1.0.0",
   desert: DESERT_CONTRACT,
-  hechos: [{ nombre: "notas/anotada", forma: Type.Object({ value: Type.Number() }) }],
-  inicial: () => ({ count: 0 }),
+  facts: [{ kind: "notes/added", schema: Type.Object({ value: Type.Number() }) }],
+  initial: () => ({ count: 0 }),
 } as const;
-export type Sample = LocalProgram<typeof sampleDefinition & { codigo: readonly [string] }>;
+export type Sample = LocalProgram<typeof sampleDefinition & { code: readonly [string] }>;
 const skill = defineMessage({
   id: "fixture.installable.skill",
   kind: "skill",
@@ -41,7 +41,7 @@ function action(on: "tool" | "thing") {
         effects: [
           {
             layer: "program",
-            kind: "notas/anotada",
+            kind: "notes/added",
             data: { value: ctx.state.tools.own.count + 1 },
             by: ctx.by,
             cause: [],
@@ -54,14 +54,14 @@ function action(on: "tool" | "thing") {
         promise: "Anota una vez",
         input: {},
         ...(on === "thing" ? { on: "same" } : {}),
-        then: { says: "Anotada", facts: [{ kind: "notas/anotada", data: { value: 1 } }] },
+        then: { says: "Anotada", facts: [{ kind: "notes/added", data: { value: 1 } }] },
       },
     ],
   });
 }
 const group = {
   purpose: "Guardar notas",
-  palabras: words,
+  words: words,
   acts: { add: action("tool"), edit: action("thing") },
   targets: () => ["same", "a/b#c"],
   view: (state: import("../../src/tools/tool-contract.ts").State<Sample>, target: string) =>
@@ -72,10 +72,10 @@ const group = {
 };
 export const sampleBody = {
   purpose: "Guardar notas",
-  palabras: words,
+  words: words,
   skill,
-  herramientas: { personal: group, shared: { ...group, palabras: { ...words, name: "Compartidas", key: "c" } } },
-  plegar: (own: Sample["tools"]["own"], event: import("../../src/journal/vocabulary.ts").Event<Sample["fact"]>) =>
+  tools: { personal: group, shared: { ...group, words: { ...words, name: "Compartidas", key: "c" } } },
+  fold: (own: Sample["tools"]["own"], event: import("../../src/journal/vocabulary.ts").Event<Sample["fact"]>) =>
     event.layer === "program" ? { count: event.data.value } : own,
   summary: () => "Dos carpetas",
 };

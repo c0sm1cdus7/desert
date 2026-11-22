@@ -7,22 +7,22 @@ import { staged, perform } from "../../checks/promises/promised-stage.ts";
 import { programAct, type Composition, type ProgramTool } from "../promises.ts";
 import { effect } from "../../house/facts.ts";
 import { actorDisplayName } from "../../house/actor-display.ts";
-const catalog = { "nota-anotada": object({ text: text("Nota", "Texto") }) };
+const catalog = { "note-added": object({ text: text("Nota", "Texto") }) };
 type Notes = {
   fact: ProgramFacts<typeof catalog>;
-  tools: { notas: readonly { text: string; by: string }[]; conversacion: number };
+  tools: { notes: readonly { text: string; by: string }[]; conversation: number };
 };
 const words = vocabulary(catalog);
 const notes: ProgramTool<Notes> = {
-  id: "notas",
+  id: "notes",
   purpose: "Notas de prueba",
-  facts: ["nota-anotada"],
+  facts: ["note-added"],
   targets: () => [],
   view: () => "Notas",
   summary: () => "Notas",
   acts: {
-    anotar: programAct<Notes, (typeof catalog)["nota-anotada"]>({
-      input: catalog["nota-anotada"],
+    note: programAct<Notes, (typeof catalog)["note-added"]>({
+      input: catalog["note-added"],
       name: "anotar",
       enter: "anotar",
       purpose: "guardar una nota",
@@ -32,7 +32,7 @@ const notes: ProgramTool<Notes> = {
       run: (input, { by }) => ({
         status: "accepted",
         text: "Anotada · Nota",
-        effects: [words.fact("nota-anotada", input, by)],
+        effects: [words.fact("note-added", input, by)],
       }),
       cases: [{ promise: "anota", input: { text: "Mate" }, then: { says: "Anotada · Nota", facts: [] } }],
     }),
@@ -40,7 +40,7 @@ const notes: ProgramTool<Notes> = {
 };
 const conversation: ProgramTool<Notes> = {
   ...notes,
-  id: "conversacion",
+  id: "conversation",
   facts: [],
   acts: {
     decir: programAct<Notes, ReturnType<typeof object>>({
@@ -62,17 +62,16 @@ const program: Composition<Notes> = {
   words,
   registry: [notes, conversation],
   slices: {
-    initial: { notas: [], conversacion: 0 },
+    initial: { notes: [], conversation: 0 },
     step: {
-      notas: (kept, event) =>
-        event.kind === "nota-anotada" ? [...kept, { text: event.data.text, by: event.by }] : kept,
-      conversacion: kept => kept,
+      notes: (kept, event) => (event.kind === "note-added" ? [...kept, { text: event.data.text, by: event.by }] : kept),
+      conversation: kept => kept,
     },
   },
 };
 const kit = [
-  { tool: "conversacion", acts: ["decir"] },
-  { tool: "notas", acts: ["anotar"] },
+  { tool: "conversation", acts: ["decir"] },
+  { tool: "notes", acts: ["note"] },
 ];
 const on = "identities/franco";
 const adoption = { act: "adopt-assistant", by: "franco", on, input: { legacy: "nora", name: "Nora", kit } };
@@ -82,7 +81,7 @@ const setup = async (house: Parameters<typeof perform<Notes>>[0]) => {
       (
         await perform(house, "identities", {
           act: "new",
-          input: { identity, name: identity === "franco" ? "Franco" : identity, tools: ["notas", "conversacion"] },
+          input: { identity, name: identity === "franco" ? "Franco" : identity, tools: ["notes", "conversation"] },
         })
       ).status,
     ).toBe("accepted");
@@ -93,9 +92,9 @@ const domain = (effects: readonly { kind: string }[]) =>
 it("Railway: Franco adopta nora con conversación y notas, conserva autoría y persiste", async () => {
   await staged(program, async ({ house, reopen }) => {
     await setup(house());
-    await perform(house(), "notas", { act: "anotar", by: "nora", input: { text: "Mate de ayer" } });
+    await perform(house(), "notes", { act: "note", by: "nora", input: { text: "Mate de ayer" } });
     const old = house().journal.replay<unknown[]>([], (events, e) =>
-      e.kind === "nota-anotada" ? [...events, e] : events,
+      e.kind === "note-added" ? [...events, e] : events,
     );
     const result = await perform(house(), "identities", adoption);
     expect(result.status).toBe("accepted");
@@ -116,7 +115,7 @@ it("Railway: Franco adopta nora con conversación y notas, conserva autoría y p
       selections: explicitKit(kit),
     });
     expect(
-      house().journal.replay<unknown[]>([], (events, e) => (e.kind === "nota-anotada" ? [...events, e] : events)),
+      house().journal.replay<unknown[]>([], (events, e) => (e.kind === "note-added" ? [...events, e] : events)),
     ).toEqual(old);
     house().bus.emit(
       effect(
@@ -126,10 +125,10 @@ it("Railway: Franco adopta nora con conversación y notas, conserva autoría y p
       ),
     );
     expect(
-      (await perform(house(), "notas", { act: "anotar", by: "assistant:franco", input: { text: "Mate de mañana" } }))
+      (await perform(house(), "notes", { act: "note", by: "assistant:franco", input: { text: "Mate de mañana" } }))
         .status,
     ).toBe("accepted");
-    expect(house().tools.state().tools.notas).toEqual([
+    expect(house().tools.state().tools.notes).toEqual([
       { text: "Mate de ayer", by: "nora" },
       { text: "Mate de mañana", by: "assistant:franco" },
     ]);
@@ -182,7 +181,7 @@ it("adopta a la identidad ya retirada y rechaza un kit inválido sin retirarla a
     await setup(house());
     const bad = await perform(house(), "identities", {
       ...adoption,
-      input: { ...adoption.input, kit: [{ tool: "inventada", acts: [] }] },
+      input: { ...adoption.input, kit: [{ tool: "invented", acts: [] }] },
     });
     expect(bad.status).toBe("rejected");
     expect(domain(bad.effects)).toEqual([]);

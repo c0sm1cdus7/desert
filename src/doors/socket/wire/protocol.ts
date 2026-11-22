@@ -3,7 +3,7 @@ import { executionDestination } from "../../../fields/device-protocol.ts";
 import { wholeNumber } from "../../../fields/json-values.ts";
 import { actLimits } from "../../../house/own-acts.ts";
 /** Local house wire: equality includes the complete Node version because state uses v8 serialization. */
-export const houseProtocolVersion = 3;
+export const houseProtocolVersion = 4;
 export const socketLimits = {
   /** A JSON frame holds an act within its bound plus room for the envelope, so what a mind may ask also travels. */
   json: actLimits.inputBytes + 64 * 1024,
@@ -29,11 +29,11 @@ const text = Type.String();
 
 const id = { id: name };
 const correlation = { correlation: Type.Optional(Type.Literal("sha256")) };
-const tag = <T extends string>(tipo: T) => ({ tipo: Type.Literal(tipo) });
+const tag = <T extends string>(type: T) => ({ type: Type.Literal(type) });
 const clientProtocol = Type.Union([
-  object({ ...tag("hola"), protocolo: wholeNumber, node: name, token: name }),
+  object({ ...tag("hello"), protocol: wholeNumber, node: name, token: name }),
   object({
-    ...tag("acto"),
+    ...tag("act"),
     ...id,
     act: name,
     target: Type.Optional(name),
@@ -41,12 +41,12 @@ const clientProtocol = Type.Union([
     destination: Type.Optional(executionDestination),
     through: wholeNumber,
   }),
-  object({ ...tag("leer"), ...id, qué: name, desde: Type.Optional(wholeNumber) }),
-  object({ ...tag("esperar"), ...id, hasta: wholeNumber }),
-  object({ ...tag("defecto"), tool: name, target: name, option: name }),
-  object(tag("sincronizar")),
-  object(tag("apagar")),
-  object(tag("chau")),
+  object({ ...tag("read"), ...id, what: name, since: Type.Optional(wholeNumber) }),
+  object({ ...tag("wait"), ...id, until: wholeNumber }),
+  object({ ...tag("default"), tool: name, target: name, option: name }),
+  object(tag("sync")),
+  object(tag("shutdown")),
+  object(tag("bye")),
 ]);
 const status = Type.Union(
   (["accepted", "rejected", "draft", "inconclusive", "interrupted", "processing"] as const).map(value =>
@@ -69,39 +69,39 @@ const done = object({
 });
 const serverProtocol = Type.Union([
   object({
-    ...tag("bienvenida"),
-    protocolo: wholeNumber,
-    identidad: name,
+    ...tag("welcome"),
+    protocol: wholeNumber,
+    identity: name,
     admin: Type.Boolean(),
-    ahora: wholeNumber,
+    now: wholeNumber,
     seq: wholeNumber,
   }),
   object({
-    ...tag("estado"),
+    ...tag("state"),
     seq: wholeNumber,
-    ahora: wholeNumber,
+    now: wholeNumber,
     base: Type.Union([wholeNumber, Type.Null()]),
-    huella: Type.String({ pattern: "^[a-f0-9]{64}$" }),
+    fingerprint: Type.String({ pattern: "^[a-f0-9]{64}$" }),
     bytes: wholeNumber,
   }),
   object({
-    ...tag("resultado"),
+    ...tag("result"),
     ...correlation,
     ...id,
     status,
     reason: Type.Optional(text),
     private: Type.Optional(text),
-    efectos: Type.Array(Type.Union([notice, done])),
+    effects: Type.Array(Type.Union([notice, done])),
   }),
-  object({ ...tag("respuesta"), ...correlation, ...id, seq: wholeNumber, datos: Type.Unknown() }),
-  object({ ...tag("rechazo"), ...correlation, id: Type.Optional(name), motivo: text }),
-  object({ ...tag("cortado"), motivo: text }),
-  object(tag("cerrando")),
+  object({ ...tag("response"), ...correlation, ...id, seq: wholeNumber, data: Type.Unknown() }),
+  object({ ...tag("rejection"), ...correlation, id: Type.Optional(name), reason: text }),
+  object({ ...tag("cut"), reason: text }),
+  object(tag("closing")),
 ]);
 export type ClientMessage = Static<typeof clientProtocol>;
 export type ServerMessage = Static<typeof serverProtocol>;
-export type RequestAct = Extract<ClientMessage, { tipo: "acto" }>;
-export type ResultMessage = Extract<ServerMessage, { tipo: "resultado" }>;
+export type RequestAct = Extract<ClientMessage, { type: "act" }>;
+export type ResultMessage = Extract<ServerMessage, { type: "result" }>;
 export function readClient(value: unknown): ClientMessage {
   if (!Value.Check(clientProtocol, value)) throw new Error("Invalid client message");
   return value;

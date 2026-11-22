@@ -6,7 +6,7 @@ import { listsOf, section, type ProgramScreen, type ToolWords } from "../../src/
 import type { ViewRow } from "../../src/surface/contract/shown-tool.ts";
 import { programAct } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
-import { pesos, shop, type Shop } from "./shop.ts";
+import { ars, shop, type Shop } from "./shop.ts";
 import { shopWith, shownWith } from "./shop-variants.ts";
 
 const taken = object({});
@@ -80,7 +80,7 @@ const owing = (state: State<Shop>) =>
   [...state.tools.sales.keys()]
     .map(sale => `sales/${sale}`)
     .filter(target => owed(state, target) > 0)
-    .map(target => ({ target, why: `Debe ${pesos(owed(state, target))}` }));
+    .map(target => ({ target, why: `Debe ${ars(owed(state, target))}` }));
 export const settlingShop = shopWith({ sales: { needs: owing, acts: { settle } } });
 /** The same shop, whose sales never say they need anyone: what its cases promise of that is not kept. */
 export const carelessShop = shopWith({ sales: { needs: () => [], acts: { settle } } });

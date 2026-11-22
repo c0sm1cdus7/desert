@@ -20,27 +20,27 @@ it("a quota refusal retries a lost payment lookup without sending the act again"
     pairs.push(pair);
     const reader = frameReader("client", value => {
       const message = readClient(value);
-      if (message.tipo === "hola") {
+      if (message.type === "hello") {
         pair[1].write(
           serverFrame({
-            tipo: "bienvenida",
-            protocolo: houseProtocolVersion,
-            identidad: "ana",
+            type: "welcome",
+            protocol: houseProtocolVersion,
+            identity: "ana",
             admin: true,
-            ahora: 0,
+            now: 0,
             seq: 1,
           }),
         );
         const view = { through: 1, by: "ana", house: {}, tools: {}, acts: new Map(), entries: [] };
         stateTransfer(view, undefined, 0).forEach(frame => pair[1].write(frame));
-      } else if (message.tipo === "acto") actIds.push(message.id);
-      else if (message.tipo === "leer") {
+      } else if (message.type === "act") actIds.push(message.id);
+      else if (message.type === "read") {
         lookups.push(message.id);
         pair[1].write(
           serverFrame(
             lookups.length === 1
-              ? { tipo: "rechazo", id: message.id, motivo: socketTexts.quota }
-              : { tipo: "resultado", id: message.id, status: "accepted", efectos: [] },
+              ? { type: "rejection", id: message.id, reason: socketTexts.quota }
+              : { type: "result", id: message.id, status: "accepted", effects: [] },
           ),
         );
       }
@@ -49,7 +49,7 @@ it("a quota refusal retries a lost payment lookup without sending the act again"
     return connection.attach(pair[0]);
   };
   connection.receive(message => {
-    if (message.tipo === "resultado") results.push(message.id);
+    if (message.type === "result") results.push(message.id);
   });
   try {
     await open();

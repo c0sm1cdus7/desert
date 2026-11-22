@@ -9,7 +9,7 @@ it("R1: Menu, sale, also payment, confirmation and changed price all show the sa
   const rig = shopRig({ registry: moneyRegistry });
   rig.attend("ana", "sales");
   rig.act("ana", "seed", { sale: "dollars", total: 5000 }, "sales");
-  rig.act("ana", "seed", { sale: "pesos", total: 5000 }, "sales");
+  rig.act("ana", "seed", { sale: "ars", total: 5000 }, "sales");
   const router = houseRouter(
     rig.ports("ana", () => 17),
     shopShown,

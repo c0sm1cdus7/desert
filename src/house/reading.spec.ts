@@ -97,7 +97,7 @@ it("does not keep legacy channels in newly folded house state", () => {
 });
 
 it("opens a saved journal with channel and recipient facts and reads its entry in every identity view", () => {
-  const directory = mkdtempSync(join(tmpdir(), "casa-kit-legacy-"));
+  const directory = mkdtempSync(join(tmpdir(), "house-kit-legacy-"));
   const file = join(directory, "journal.sqlite");
   const raw = new DatabaseSync(file);
   raw.exec(`

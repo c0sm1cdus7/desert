@@ -68,16 +68,16 @@ it("isolates overlapping inspections and releases the scope after failure", asyn
 
 it("reads every declared folder, retaining specs while leaving hidden folders and installed packages out", () => {
   const repo = lawRepository({
-    "arranque/start.ts": "export {};",
+    "startup/start.ts": "export {};",
     "src/a.spec.ts": "export {};",
     "src/.hidden/a.ts": "export {};",
     "src/node_modules/a.ts": "export {};",
     "src/data.json": "{}",
   });
-  expect(codeFiles({ ...repo, code: ["src", "arranque"] }).map(file => fromRoot(repo.root, file))).toEqual([
+  expect(codeFiles({ ...repo, code: ["src", "startup"] }).map(file => fromRoot(repo.root, file))).toEqual([
     "src/a.spec.ts",
     "src/a.ts",
-    "arranque/start.ts",
+    "startup/start.ts",
   ]);
   expect(filesUnder(join(repo.root, "src"), path => !path.endsWith(".ts"))).toEqual([join(repo.root, "src/data.json")]);
 });

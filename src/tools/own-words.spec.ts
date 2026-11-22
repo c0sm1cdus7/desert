@@ -12,7 +12,7 @@ import { short, worded } from "./act-words.ts";
 /** Every text under a set of words, with where it is; what a text is built from is said with specimen words. */
 const textsIn = (words: unknown, path = ""): [string, string][] => {
   if (typeof words === "string") return [[path, words]];
-  if (typeof words === "function") return textsIn(Reflect.apply(words, undefined, ["uno", "dos", "tres"]), path);
+  if (typeof words === "function") return textsIn(Reflect.apply(words, undefined, ["one", "two", "tres"]), path);
   if (words === null || typeof words !== "object") return [];
   return Object.entries(words).flatMap(([key, value]) => textsIn(value, path ? `${path}.${key}` : key));
 };

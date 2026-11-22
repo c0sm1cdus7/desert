@@ -10,7 +10,7 @@ const tool: Tool = {
   id: "shop",
   name: "Tienda",
   place: { key: "t", section: "tools" },
-  summary: () => "ventas",
+  summary: () => "sales",
   acts: {},
   has: () => true,
   view: () => {

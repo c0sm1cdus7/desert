@@ -4,7 +4,7 @@ import { fixture, secret, field, has } from "../../../tests/support/secret-rig.t
 for (const [label, value] of [
   ["corto", "demo-pass"],
   ["vocabulario", "sale-registered"],
-  ["uno", "Ω"],
+  ["one", "Ω"],
 ] as const) {
   it(`el rechazo asíncrono y su causa reciben solo referencias: ${label}`, async () => {
     const rig = fixture(secret, input =>

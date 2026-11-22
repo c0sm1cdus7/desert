@@ -17,9 +17,9 @@ it("only catalog tools and acts have declarations; no arbitrary kit-set is offer
       "sales",
       "payments",
     ]);
-    for (const act of ["kit-set", "kit:inventada:register", "kit:sales:inventada", "kit:identities:new"])
+    for (const act of ["kit-set", "kit:invented:register", "kit:sales:invented", "kit:identities:new"])
       expect(core?.acts).not.toHaveProperty(act);
-    expect((await perform(house(), "identities", change("kit:sales:inventada", "yes"))).status).toBe("rejected");
+    expect((await perform(house(), "identities", change("kit:sales:invented", "yes"))).status).toBe("rejected");
   });
 });
 it("cuts one action, preserves other tools and cuts, grants whole tools, and survives reopening", async () => {

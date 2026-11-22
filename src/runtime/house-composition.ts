@@ -43,25 +43,19 @@ function checkComposedCreation<X extends Program>(options: HouseOptions<X>) {
 export function composed<X extends Program>(given: ModelHouseOptions<X>): ModelHouseOptions<X> {
   const options = {
     ...given,
-    registry: coreRegistry(
-      given.registry,
-      given.by,
-      given.identities,
-      given.mentes?.asistentes,
-      given.mentes?.programas,
-    ),
+    registry: coreRegistry(given.registry, given.by, given.identities, given.minds?.assistants, given.minds?.programs),
   };
   requireProjectionVersion(options.projectionVersion);
-  if (options.mentes) {
-    const { asistentes, programas } = options.mentes;
-    requireMind(typeof asistentes === "boolean" && Array.isArray(programas), "mentes");
-    requireMind(!asistentes || options.identities, "mentes.identities");
-    requireMind(new Set(programas).size === programas.length, "mentes.duplicate");
+  if (options.minds) {
+    const { assistants, programs } = options.minds;
+    requireMind(typeof assistants === "boolean" && Array.isArray(programs), "minds");
+    requireMind(!assistants || options.identities, "minds.identities");
+    requireMind(new Set(programs).size === programs.length, "minds.duplicate");
     requireMind(
-      programas.every(id => id !== "identities" && options.registry.some(tool => tool.id === id)),
-      "mentes.program",
+      programs.every(id => id !== "identities" && options.registry.some(tool => tool.id === id)),
+      "minds.program",
     );
-    requireMind(!(asistentes || programas.length) || options.modelMinds, "mentes.options");
+    requireMind(!(assistants || programs.length) || options.modelMinds, "minds.options");
   }
   if (options.kitMigration) checkKitMigration(options.kitMigration, options.registry);
   if (!options.by) throw new Error("An explicit identity is required");

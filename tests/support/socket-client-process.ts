@@ -4,10 +4,10 @@ const path = process.argv[2];
 if (!path) throw new Error("Missing socket path");
 const client = await probe(path);
 client.hello("ana-terminal");
-if (!(await client.until(() => client.messages.some(m => m.tipo === "bienvenida")))) process.exitCode = 1;
+if (!(await client.until(() => client.messages.some(m => m.type === "welcome")))) process.exitCode = 1;
 else {
   client.send({
-    tipo: "acto",
+    type: "act",
     id: process.argv[3] ?? "test",
     act: "prefer",
     input: { hide: "empty", on: true },

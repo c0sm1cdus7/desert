@@ -53,7 +53,7 @@ function pureProgramEntry(source: ts.SourceFile): boolean {
     if (
       !node.moduleSpecifier ||
       !ts.isStringLiteral(node.moduleSpecifier) ||
-      node.moduleSpecifier.text !== "desert/programa"
+      node.moduleSpecifier.text !== "desert/program"
     )
       return true;
     if (ts.isImportDeclaration(node) ? node.importClause?.phaseModifier === ts.SyntaxKind.TypeKeyword : node.isTypeOnly)
@@ -125,7 +125,7 @@ export function pureShared(own: ReadonlySet<string>, devices: ReadonlySet<string
         importsIn(source).every(specifier => {
           if (specifier.startsWith(".")) return inspect(resolve(dirname(target), specifier));
           return (
-            ["desert/programa", "desert/messages", "desert/fields", "desert/program-types"].includes(specifier) ||
+            ["desert/program", "desert/messages", "desert/fields", "desert/program-types"].includes(specifier) ||
             /^desert\/fields\/[a-z][a-z0-9-]*$/u.test(specifier)
           );
         })

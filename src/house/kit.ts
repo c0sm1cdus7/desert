@@ -7,7 +7,7 @@ import { allowed, identityAllowedAct } from "./identities/identity-permissions.t
 import { ids } from "./ids.ts";
 import { holderKit, mindMayHold } from "./kit-history.ts";
 export { mindMayHold } from "./kit-history.ts";
-import { herramientaDe, kitLayout, selects } from "./kit-selection.ts";
+import { toolOf, kitLayout, selects } from "./kit-selection.ts";
 import type { House } from "./members.ts";
 import { journeyAllows } from "./minds/journey-state.ts";
 import { systemTool } from "./system-tools.ts";
@@ -52,7 +52,7 @@ export function allowedAct(house: House, by: string, tool: string, act: string, 
   const layout = registry ? kitLayout(registry) : house.kitLayout;
   const own = mindTool(by);
   if (own !== undefined)
-    return mindMayHold(house, own, tool) && selects(holderKit(house, by), tool, herramientaDe(tool, act, layout), act);
+    return mindMayHold(house, own, tool) && selects(holderKit(house, by), tool, toolOf(tool, act, layout), act);
   return identityAllowedAct(house, by, tool, act, layout);
 }
 /** Whether a holder can act at least once on a tool. */

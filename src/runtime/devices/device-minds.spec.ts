@@ -73,7 +73,7 @@ function journeyRig(dispatch: Dispatch) {
       devices: dispatch,
     },
   };
-  const switches = { asistentes: false, programas: ["agents"] };
+  const switches = { assistants: false, programs: ["agents"] };
   const menu = () => runtimeView(house, options, switches, scope, definition).menu;
   const turn: TurnContext = {
     id: "turn",
@@ -108,7 +108,7 @@ it("preserves the journey's device choice in its menu and unknown result; the ac
     { kind: "device", device: "mac" },
     { kind: "device", device: "vm" },
   ]);
-  const answer = { scene: "Probando", consulta: null, acts: [proposal] };
+  const answer = { scene: "Probando", consultation: null, acts: [proposal] };
   expect(Value.Check(answerSchema(menu()), answer)).toBe(true);
   expect(validateAnswer(answer, { menu: menu(), scope, active: true, consulted: false, allowed: () => true }).ok).toBe(
     true,

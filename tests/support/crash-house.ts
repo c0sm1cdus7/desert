@@ -34,8 +34,8 @@ pair[0].on("data", (bytes: Buffer) => {
     if (
       message &&
       typeof message === "object" &&
-      "tipo" in message &&
-      message.tipo === "resultado" &&
+      "type" in message &&
+      message.type === "result" &&
       "id" in message &&
       message.id === "lost"
     ) {

@@ -4,7 +4,7 @@ import { money } from "../../src/fields/fields.ts";
 import { anyToolScreen } from "../../src/surface/bridge/views/any-tool.ts";
 import { section, type ProgramScreen } from "../../src/surface/bridge/ports/house-ports.ts";
 import { programAct } from "../../src/tools/promises.ts";
-import { pesos, shop, type Shop } from "./shop.ts";
+import { ars, shop, type Shop } from "./shop.ts";
 import { shopWith, shownWith } from "./shop-variants.ts";
 
 const marked = object({ paid: money("Cobrado") });
@@ -21,7 +21,7 @@ const mark = programAct<Shop, typeof marked>({
   on: "thing",
   under: "marks",
   input: marked,
-  confirms: ({ paid }) => `Marcar · ${pesos(paid)}`,
+  confirms: ({ paid }) => `Marcar · ${ars(paid)}`,
   refuses: ["over"],
   stops: ({ paid }, state, target) =>
     typeof paid === "number" && paid > (state.tools.sales.get(nameOf(target))?.total ?? 0) ? "over" : undefined,
@@ -66,7 +66,7 @@ const marking =
         const total = ports.state().tools.sales.get(nameOf(thing ?? ""))?.total;
         if (thing === undefined || total === undefined) return plain.view(target);
         const row = (paid: number, key: string, title: string) =>
-          start("mark", thing, { today: { paid }, asks: [1], key, title, detail: pesos(paid) });
+          start("mark", thing, { today: { paid }, asks: [1], key, title, detail: ars(paid) });
         const more = row(total + 1, "d", "de más");
         const over = knows ? { ...more, off: true, detail: `${more.detail ?? ""} · over` } : more;
         return [section("Marcas", [row(total, "t", "todo"), over])];

@@ -23,7 +23,7 @@ it("frena la acción publicada sin emitir hechos del proveedor", async () => {
           definition: {
             id: "documents",
             text: "No emitir",
-            action: { tool: "documentos", act: "fiscal/emitir" },
+            action: { tool: "documents", act: "fiscal/issue" },
             condition: { operator: "actor", kind: "identity" },
             effect: "block",
           },
@@ -31,13 +31,13 @@ it("frena la acción publicada sin emitir hechos del proveedor", async () => {
         "ana",
       ),
     );
-    for (const target of ["ventas/facturacion", "documentos/fiscal"])
+    for (const target of ["sales/billing", "documents/fiscal"])
       engine.act({ act: "attend", input: { target } }, 0, "beto");
     const result = await settle(
-      engine.act({ act: "facturacion/facturar", target: "ventas/facturacion", input: { venta: "v1" } }, 0, "beto"),
+      engine.act({ act: "billing/invoice", target: "sales/billing", input: { sale: "v1" } }, 0, "beto"),
     );
     expect(result.value).toEqual({ status: "core-failure", reason: "forbidden" });
-    expect(house.events().filter(event => event.kind === "documentos/emitido")).toEqual([]);
+    expect(house.events().filter(event => event.kind === "documents/issued")).toEqual([]);
     expect(house.events().filter(event => event.kind === "rule-evaluated")).toMatchObject([
       { by: "beto", data: { results: [{ outcome: "block" }] } },
     ]);

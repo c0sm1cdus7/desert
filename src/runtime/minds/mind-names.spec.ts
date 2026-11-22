@@ -34,7 +34,7 @@ const callsFor = async (f: ReturnType<typeof requestMindFixture>, house: Request
   await (await house.minds)?.flush();
   return f.transport.mock.calls.length - before;
 };
-const accidental = ["notas@example.com", "x@notas", "@Notash", "identities/mind:notes", "mind:notes, anotá"];
+const accidental = ["notes@example.com", "x@notes", "@Notash", "identities/mind:notes", "mind:notes, anotá"];
 it("22/11: in a group [ana, mind:notes, beto] only «@Notas» or «@mind:notes» wakes the notes mind", async () => {
   const f = track(requestMindFixture());
   const house = await f.open();
@@ -80,7 +80,7 @@ it("22/11: a given name made only of accents names nobody by it and stops no min
 it("22/11: the supervisor is named «@Supervisor» in a group, never by the word «supervisor»", async () => {
   const f = track(supervisedFixture());
   const house = await f.open();
-  f.respond(frame => (supervising(frame) ? { scene: "Visto", consulta: null, acts: [] } : answer()));
+  f.respond(frame => (supervising(frame) ? { scene: "Visto", consultation: null, acts: [] } : answer()));
   await (await house.minds)?.flush();
   const group = "mind:supervisor,beto";
   for (const text of ["el supervisor me frenó", "Sin supervisor: nada", "supervisor, mirá", "x@supervisor"])

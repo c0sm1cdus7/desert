@@ -5,12 +5,12 @@ import { distributionRig } from "../../../tests/support/distribution-rig.ts";
 import { sampleOptions } from "../../../tests/support/installable-program.ts";
 import { mcpActions, mcpCatalog, mcpResult } from "../../../tests/support/mcp-results.ts";
 import { rpcRequest } from "../../../tests/support/door-house.ts";
-import { componer } from "../../runtime/distributions/compose.ts";
+import { compose } from "../../runtime/distributions/compose.ts";
 import { effect } from "../../house/facts.ts";
 import { mcpDoor } from "./mcp-handler.ts";
 
 it("describes selection and disabled actions in tools/list for an identity without permission", async () => {
-  const rig = distributionRig(componer(sampleOptions).program);
+  const rig = distributionRig(compose(sampleOptions).program);
   rig
     .house()
     .bus.emit(effect("granted", { version: 2, identity: "martin", kit: { version: 2, selections: [] } }, "ana"));
@@ -31,8 +31,8 @@ it("describes selection and disabled actions in tools/list for an identity witho
     expect(description).toContain("program y target eligen qué acciones listar.");
     expect(description).toContain("reason marca las acciones que el kit no permite.");
     const call = async (name: string, args: unknown) => mcpResult(await send("tools/call", { name, arguments: args }));
-    const program = "notas",
-      target = "notas/personal";
+    const program = "notes",
+      target = "notes/personal";
     const all = await call("actions", { program });
     const selected = await call("actions", { program, target });
     expect(all.isError).toBe(false);

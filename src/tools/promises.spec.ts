@@ -6,7 +6,7 @@ import { toolTexts } from "../texts/tools.texts.ts";
 import { programAct, type Offered } from "./promises.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
 import {
-  pesos,
+  ars,
   registerCases,
   registerOffer,
   shop,
@@ -120,7 +120,7 @@ describe("what an act says cannot go on, given to it whole", () => {
     refuses: ["total de más"],
     /** At the question it says by how much; the cause it declares is what any other door is refused with. */
     stops: ({ total }) =>
-      typeof total === "number" && total > 9000 ? `total de más · ${pesos(total - 9000)}` : undefined,
+      typeof total === "number" && total > 9000 ? `total de más · ${ars(total - 9000)}` : undefined,
     run: (told, { by }) => ({
       status: "accepted",
       text: "Registrada",

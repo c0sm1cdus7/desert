@@ -7,7 +7,7 @@ import type { ContractReadings } from "../contract-port.ts";
 export type InstalledGroup = Readonly<{
   id: string;
   folder: string;
-  palabras: ProgramWords;
+  words: ProgramWords;
   tool: ProgramTool<Program>;
 }>;
 export type InstalledProgram = Readonly<{

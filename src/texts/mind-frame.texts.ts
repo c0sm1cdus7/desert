@@ -22,7 +22,7 @@ export const frameHouse = defineMessage({
       "nada que hacer, dejalo vacío. Como consciencia hablás, abrís journeys y retomás o desistís de los tuyos; " +
       "el trabajo se hace dentro de un journey, con su kit. Los identificadores los pone la casa: no los " +
       "inventes.\n\n" +
-      "Consultar al supervisor: si dudás de lo que vas a hacer, escribí tu pregunta en consulta. Tus actos " +
+      "Consultar al supervisor: si dudás de lo que vas a hacer, escribí tu pregunta en consultation. Tus actos " +
       "esperan, el supervisor contesta y volvés a responder en este mismo turno. Se consulta una vez por turno.",
   },
 });

@@ -13,21 +13,21 @@ for (const [name, code] of Object.entries(selectionCases))
   });
 const types =
   "type Accion = (arg: string) => unknown; type Entrada = { modulo: string; accion: string; arg: string };" +
-  "const acciones: Record<string, Record<string, Accion>> = { ventas: { listar: a => a } };";
+  "const actions: Record<string, Record<string, Accion>> = { sales: { listar: a => a } };";
 const attacks = {
-  "05 corchetes": "return acciones[e.modulo]?.[e.accion]?.(e.arg);",
+  "05 corchetes": "return actions[e.modulo]?.[e.accion]?.(e.arg);",
   "05 desestructurada":
-    "const { [e.modulo]: modulo } = acciones; const { [e.accion]: accion } = modulo ?? {}; return accion?.(e.arg);",
+    "const { [e.modulo]: modulo } = actions; const { [e.accion]: accion } = modulo ?? {}; return accion?.(e.arg);",
   "E3 join":
-    "const k = ['con', 'structor'].join(''); const { [k]: primero } = acciones;" +
+    "const k = ['con', 'structor'].join(''); const { [k]: primero } = actions;" +
     "const { [k]: fabrica } = primero ?? {}; return fabrica?.('return process');",
   "gemela asignación":
     "let m: Record<string, Accion> | undefined; let a: Accion | undefined;" +
-    "({ [e.modulo]: m } = acciones); ({ [e.accion]: a } = m ?? {}); return a?.(e.arg);",
+    "({ [e.modulo]: m } = actions); ({ [e.accion]: a } = m ?? {}); return a?.(e.arg);",
   "gemela parámetro":
     "const sacar = (k: string, { [k]: v }: Record<string, Record<string, Accion>>) => v;" +
     "const sacar2 = (k: string, { [k]: v }: Record<string, Accion>) => v;" +
-    "return sacar2(e.accion, sacar(e.modulo, acciones) ?? {})?.(e.arg);",
+    "return sacar2(e.accion, sacar(e.modulo, actions) ?? {})?.(e.arg);",
 };
 for (const [name, body] of Object.entries(attacks))
   it(`212 selección: rechaza ${name}`, () => {
@@ -37,7 +37,7 @@ for (const [name, body] of Object.entries(attacks))
 
 it("212 selección: E3 original sin any ni aserciones", () => {
   const code =
-    "type Fabrica = (codigo: string) => () => unknown;" +
+    "type Fabrica = (code: string) => () => unknown;" +
     "const k = ['con', 'structor'].join(''); const tabla: Record<string, Record<string, Fabrica>> = {};" +
     "export function run(): unknown { const { [k]: primero } = tabla;" +
     "const { [k]: fabrica } = primero ?? {}; return fabrica?.('return process')(); }";

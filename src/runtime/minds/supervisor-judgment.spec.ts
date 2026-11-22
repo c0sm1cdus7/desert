@@ -164,7 +164,7 @@ it("a rule that changes while a marked control waits decides again: a passed ver
   };
   f.respond(async frame => {
     if (!supervising(frame)) return notes(house, frame, (_, __, id) => [end(id)]);
-    if (!request(frame)) return { scene: "Aprendí", consulta: null, acts: [] };
+    if (!request(frame)) return { scene: "Aprendí", consultation: null, acts: [] };
     expect((await settle(house.tools.act({ act: "save", target: "rules", input: block }, 0, "ana"))).status).toBe(
       "accepted",
     );

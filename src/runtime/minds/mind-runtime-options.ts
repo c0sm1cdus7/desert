@@ -25,7 +25,7 @@ export type MindBilling = Readonly<{
   balance?: (account: string) => ModelAccount;
   active: () => boolean;
 }>;
-export type MindSwitches = Readonly<{ asistentes: boolean; programas: readonly string[] }>;
+export type MindSwitches = Readonly<{ assistants: boolean; programs: readonly string[] }>;
 export type MindRuntimeOptions = Readonly<{
   /** Offline catalog composition only: the house never runs the bank when it opens. */
   programBank?: Readonly<{ program: Composition<Program>; cases: ReadonlyMap<string, readonly ProgramMindCase[]> }>;
@@ -61,7 +61,7 @@ export type MindRuntimeOptions = Readonly<{
 }>;
 export type ModelHouseOptions<X extends Program> = HouseOptions<X> &
   Readonly<{
-    mentes?: MindSwitches;
+    minds?: MindSwitches;
     modelMinds?: MindRuntimeOptions;
   }>;
 export type MindRuntimeHouse<X extends Program> = Readonly<{
@@ -80,4 +80,4 @@ export const supervised = (options: Pick<MindRuntimeOptions, "supervisorCard" | 
 /** The supervisor is no switch: it thinks while the house has its card, and only then does it get a turn. */
 export const enabledMind = (switches: MindSwitches, actor: MindActor): boolean =>
   actor === ids.supervisor ||
-  (actor.startsWith("assistant:") ? switches.asistentes : switches.programas.includes(actor.slice(5)));
+  (actor.startsWith("assistant:") ? switches.assistants : switches.programs.includes(actor.slice(5)));

@@ -64,7 +64,7 @@ it("reads sales through both doors before and after kit removal while actions re
     expect(overview.body).toContain("DIRECTED-ANA");
     expect(client.state().house.scenes.get("ana")?.data.to?.ana).toBe("DIRECTED-ANA");
     expect([key, code, h.founder].some(material => has(client.state(), material))).toBe(false);
-    client.send({ tipo: "sincronizar" });
+    client.send({ type: "sync" });
     await tick();
     expect(client.state().tools.sales.has("after")).toBe(true);
   } finally {
@@ -154,12 +154,12 @@ it.each(["whole", "compound"])(
     try {
       for (const revoked of [false, true]) {
         if (revoked) await h.act("revoke-key", { key: h.access().get(key)?.id }, "identities/beto");
-        for (const what of ["catalogo", "pedido", "unknown"]) client.send({ tipo: "leer", id, qué: what });
+        for (const what of ["catalog", "request", "unknown"]) client.send({ type: "read", id, what: what });
         await tick();
         expect(messages).toContainEqual(expect.objectContaining({ id: requestDigest(id), correlation: "sha256" }));
         expect(JSON.stringify(messages)).not.toContain(key);
       }
-      const action = { tipo: "acto", id, act: "prefer", input: { hide: "empty", on: true }, through: 0 } as const;
+      const action = { type: "act", id, act: "prefer", input: { hide: "empty", on: true }, through: 0 } as const;
       client.send(action);
       await tick();
       client.send(action);
@@ -174,14 +174,14 @@ it.each(["whole", "compound"])(
       expect(acts).toBe(1);
       expect(messages).toContainEqual(
         expect.objectContaining({
-          tipo: "resultado",
+          type: "result",
           id: requestDigest(id),
           status: "accepted",
           correlation: "sha256",
         }),
       );
       expect(JSON.stringify(messages)).not.toContain(key);
-      client.send({ tipo: "leer", id: "ordinary", qué: "catalogo" });
+      client.send({ type: "read", id: "ordinary", what: "catalog" });
       await tick();
       expect(messages).toContainEqual(expect.objectContaining({ id: "ordinary" }));
       expect(h.history()).not.toContain(key);
@@ -206,15 +206,15 @@ it.each(["hello", "frame"])(
       if (mode === "hello") client.hello(h.founder, { node: h.founder });
       else {
         client.hello(h.founder);
-        expect(await client.until(() => client.messages.some(message => message.tipo === "bienvenida"))).toBe(true);
-        client.send({ tipo: "leer", id: "ordinary-catalog", qué: "catalogo" });
+        expect(await client.until(() => client.messages.some(message => message.type === "welcome"))).toBe(true);
+        client.send({ type: "read", id: "ordinary-catalog", what: "catalog" });
         expect(
           await client.until(() =>
             client.messages.some(message => "id" in message && message.id === "ordinary-catalog"),
           ),
         ).toBe(true);
         expect(JSON.stringify(client.messages)).toContain("sales");
-        client.socket.write(wire({ tipo: "leer", id: h.founder, qué: "catalogo", forbidden: h.founder }));
+        client.socket.write(wire({ type: "read", id: h.founder, what: "catalog", forbidden: h.founder }));
       }
       await client.until(() => client.closed());
       expect(client.closed()).toBe(true);

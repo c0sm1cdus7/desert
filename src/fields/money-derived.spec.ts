@@ -9,7 +9,7 @@ it("PE1: derived checks reject a screen that offers Enter beside an unresolved m
   h.send({ kind: "confirm" });
   const blocked = h.screen();
   expect(() => quietScreen(blocked)).not.toThrow();
-  const broken = { ...blocked, hints: [...blocked.hints, { intent: "confirm", does: "anotar" } as const] };
+  const broken = { ...blocked, hints: [...blocked.hints, { intent: "confirm", does: "note" } as const] };
   expect(() => quietScreen(broken)).toThrow();
 });
 it("CR1: the derived expected screen adds a rejected key beside the existing reason", () => {

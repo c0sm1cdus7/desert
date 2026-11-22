@@ -12,7 +12,7 @@ async function drainHouse<X extends Program>(
   report: (text: string) => void = text => process.stderr.write(`${text}\n`),
 ) {
   for (const peer of peers)
-    if (peer.key()) peer.send({ tipo: "cerrando" });
+    if (peer.key()) peer.send({ type: "closing" });
     else peer.end();
   const waiting = idleHouse(house, pending);
   let timer: NodeJS.Timeout | undefined;

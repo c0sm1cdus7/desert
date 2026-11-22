@@ -11,7 +11,7 @@ it.each(["whole", "compound"])("deduplicates %s identifiers across journal repla
   const key = h.access().redeem(invitationCode(await h.act("invite", { door: "agent" }, "identities/beto"))).key;
   if (!key) throw new Error("Missing test key");
   const id = mode === "whole" ? key : `word_${key}-end`;
-  const action = { tipo: "acto", id, act: "prefer", input: { hide: "empty", on: true }, through: 0 } as const;
+  const action = { type: "act", id, act: "prefer", input: { hide: "empty", on: true }, through: 0 } as const;
   try {
     for (const restart of [false, true]) {
       if (restart) {
@@ -26,17 +26,17 @@ it.each(["whole", "compound"])("deduplicates %s identifiers across journal repla
       try {
         client.send(action);
         await tick();
-        client.send({ tipo: "leer", id, qué: "pedido" });
+        client.send({ type: "read", id, what: "request" });
         await tick();
         expect(
           messages.filter(
             message =>
-              typeof message === "object" && message !== null && "tipo" in message && message.tipo === "resultado",
+              typeof message === "object" && message !== null && "type" in message && message.type === "result",
           ),
         ).toHaveLength(2);
         expect(messages).toContainEqual(
           expect.objectContaining({
-            tipo: "resultado",
+            type: "result",
             id: requestDigest(id),
             status: "accepted",
             correlation: "sha256",
@@ -45,7 +45,7 @@ it.each(["whole", "compound"])("deduplicates %s identifiers across journal repla
         client.send({ ...action, input: { hide: "empty", on: false } });
         await tick();
         expect(messages).toContainEqual(
-          expect.objectContaining({ tipo: "rechazo", id: requestDigest(id), correlation: "sha256" }),
+          expect.objectContaining({ type: "rejection", id: requestDigest(id), correlation: "sha256" }),
         );
         expect(JSON.stringify(messages).includes(key)).toBe(false);
         const count = h

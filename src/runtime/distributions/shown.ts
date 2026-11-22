@@ -43,7 +43,7 @@ function screenFor(program: InstalledProgram, shortcut: boolean): ProgramScreen<
     const root = anyToolScreen(ports, tool, words, acts, start);
     const groups = program.groups.map(group => ({
       group,
-      screen: anyToolScreen(ports, group.tool, group.palabras, acts, start),
+      screen: anyToolScreen(ports, group.tool, group.words, acts, start),
     }));
     const find = (target: string) => groups.find(({ group }) => holds(group, ports.state(), target));
     const filtered = filteredActions(program, acts, ports);
@@ -56,7 +56,7 @@ function screenFor(program: InstalledProgram, shortcut: boolean): ProgramScreen<
       titleOf: target => {
         const found = find(target);
         return found?.group.folder === target
-          ? found.group.palabras.name
+          ? found.group.words.name
           : (found?.screen.titleOf?.(target) ?? root.titleOf?.(target) ?? target);
       },
       view: target => {

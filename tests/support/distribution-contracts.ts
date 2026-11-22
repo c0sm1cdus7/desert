@@ -13,7 +13,7 @@ import type { ActResult, Program, ToolRegistry } from "../../src/tools/tool-cont
 import type { Composition } from "../../src/tools/promises-contract.ts";
 import { contractHistory } from "../../src/runtime/contracts/contract-history.ts";
 import { runContractCases } from "../../src/runtime/contracts/contract-gate.ts";
-import { componer, type DistributionOf } from "../../src/runtime/distributions/compose.ts";
+import { compose, type DistributionOf } from "../../src/runtime/distributions/compose.ts";
 import { contractPrograms, contractPackages } from "./contract-programs.ts";
 import { presentation } from "./installable-program.ts";
 export { input, rejection, receipt, sales, documents, required } from "./contract-packages.ts";
@@ -24,10 +24,10 @@ const installed = contractPrograms.map(program => ({ id: program.id, ...program.
 const candidate: Composition<Program> = {
   identities: true,
   projectionVersion: "fixture-contract-candidate",
-  words: vocabulary({ "documentos/emitido": contractPrograms[1].hechos[0].forma }),
+  words: vocabulary({ "documents/issued": contractPrograms[1].facts[0].schema }),
   registry: installed.map(program => program.tool),
   slices: {
-    initial: { documentos: contractPrograms[1].inicial(), ventas: contractPrograms[0].inicial() },
+    initial: { documents: contractPrograms[1].initial(), sales: contractPrograms[0].initial() },
     step: Object.fromEntries(installed.map(program => [program.id, program.step])),
   },
 };
@@ -71,35 +71,35 @@ export function contractSelections(preparation: unknown): readonly Selection[] {
 }
 export const contractCertification = await runContractCases({
   programs: contractPackages,
-  provider: "documentos",
-  consumer: "ventas",
-  contract: "documentos-fiscales",
+  provider: "documents",
+  consumer: "sales",
+  contract: "fiscal-documents",
   build,
   prepare: preparation => openHouse(candidate, ":memory:", contractSelections(preparation)),
 });
 export const contractOptions = {
-  programas: contractPrograms,
-  identidades: true,
-  mentes: { asistentes: false, programas: [] },
-  presentacion: presentation,
-  contratos: { build, ...contractCertification },
+  programs: contractPrograms,
+  identities: true,
+  minds: { assistants: false, programs: [] },
+  shown: presentation,
+  contracts: { build, ...contractCertification },
 } as const;
 export function contractHouse(
   override?: () => ActResult<Demo> | Promise<ActResult<Demo>>,
   path = ":memory:",
   selections?: readonly Selection[],
 ) {
-  const { program } = componer(contractOptions);
+  const { program } = compose(contractOptions);
   const registry = program.registry.map(tool => {
-    const action = tool.acts["fiscal/emitir"];
-    return override && tool.id === "documentos" && action
+    const action = tool.acts["fiscal/issue"];
+    return override && tool.id === "documents" && action
       ? {
           ...tool,
           acts: {
             ...tool.acts,
-            "fiscal/emitir": {
+            "fiscal/issue": {
               ...toolAct<Demo, ReturnType<typeof input>>(input(), override),
-              folder: "documentos/fiscal",
+              folder: "documents/fiscal",
               on: "thing" as const,
             },
           },

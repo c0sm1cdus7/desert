@@ -10,7 +10,7 @@ it("diagnostica el pedido exacto con la carta, capas y menú de una mente, sin l
     if (!minds) throw new Error("minds");
     const turn = {
       id: "diagnostic",
-      scope: { kind: "consciousness", actor: "mind:notas" } as const,
+      scope: { kind: "consciousness", actor: "mind:notes" } as const,
       language: "es" as const,
       through: house.tools.state().through,
       wake: [],
@@ -24,8 +24,8 @@ it("diagnostica el pedido exacto con la carta, capas y menú de una mente, sin l
     expect(key).not.toHaveBeenCalled();
     expect(f.transport).not.toHaveBeenCalled();
     expect(house.tools.state()).toEqual(before);
-    expect(body.model).toBe(before.house.mindAssignments.get("mind:notas")?.card);
-    expect(body.output_config.effort).toBe(before.house.mindAssignments.get("mind:notas")?.version);
+    expect(body.model).toBe(before.house.mindAssignments.get("mind:notes")?.card);
+    expect(body.output_config.effort).toBe(before.house.mindAssignments.get("mind:notes")?.version);
     expect(body.system[1]?.text).toContain("Sos la mente de Notas");
     expect(body.system[2]?.text).toContain("Anotá con las acciones");
     expect(body.system).toHaveLength(4);

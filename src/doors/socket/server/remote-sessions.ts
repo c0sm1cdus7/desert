@@ -52,7 +52,8 @@ function acceptPeer<X extends Program>(session: Session<X>, peers: Set<Peer>, st
   const peer = socketPeer(
     stream,
     message => {
-      if (message.tipo === "apagar") peer.send({ tipo: "rechazo", id: "apagar", motivo: socketTexts.unavailable });
+      if (message.type === "shutdown")
+        peer.send({ type: "rejection", id: "shutdown", reason: socketTexts.unavailable });
       else receivePeer(session, peer, message);
     },
     () => peers.delete(peer),

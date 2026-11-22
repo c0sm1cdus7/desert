@@ -52,7 +52,7 @@ for (const [name, typed, reason] of [
   ["vacío", "", "falta completar"],
   ["corto", "xxx", "mínimo 8 caracteres"],
   ["pegado largo", "x".repeat(14), "máximo 13 caracteres"],
-  ["forma", "inventado", "formato inválido"],
+  ["schema", "invented", "formato inválido"],
   ["unicode", "🔒".repeat(7), "mínimo 8 caracteres"],
 ] as const)
   it(`H3: Enter explica el secreto ${name} en la terminal sin material ni referencia`, () => {

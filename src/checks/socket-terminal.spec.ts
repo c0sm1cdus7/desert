@@ -23,7 +23,7 @@ function server(home: string) {
   };
 }
 it("unix: two real terminals keep their screens through server death, reconnect and terminal exit", async () => {
-  const home = mkdtempSync("/tmp/casa-pty-");
+  const home = mkdtempSync("/tmp/house-pty-");
   const first = server(home);
   let second: ReturnType<typeof server> | undefined;
   const terminals: ReturnType<typeof realTerminal>[] = [];
@@ -70,7 +70,7 @@ it("unix: two real terminals keep their screens through server death, reconnect 
 }, 15000);
 
 it("unix: an unknown key shows only its catalog rejection on a real terminal and exits nonzero", async () => {
-  const home = mkdtempSync("/tmp/casa-pty-denied-");
+  const home = mkdtempSync("/tmp/house-pty-denied-");
   const running = server(home);
   let terminal: ReturnType<typeof realTerminal> | undefined;
   try {

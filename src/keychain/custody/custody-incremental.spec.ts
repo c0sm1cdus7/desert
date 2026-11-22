@@ -70,7 +70,7 @@ it("cada apertura vuelve a verificar toda la historia y la lectura abierta sigue
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  session.replace("signing", { key: session.capture(Buffer.from("inventado")) }, 0);
+  session.replace("signing", { key: session.capture(Buffer.from("invented")) }, 0);
   store.close();
   const tails = vi.spyOn(CustodyDatabase.prototype, "factsAfter");
   const opened = rig.open();

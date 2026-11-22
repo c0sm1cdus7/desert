@@ -1,22 +1,22 @@
 // Two installable programs keep human names distinct from every program and tool path.
-import { programa, programAct, Type, type LocalProgram } from "../../src/tools/installable/program.ts";
-import { componer } from "../../src/runtime/distributions/compose.ts";
+import { defineProgram, programAct, Type, type LocalProgram } from "../../src/tools/installable/program.ts";
+import { compose } from "../../src/runtime/distributions/compose.ts";
 import { sampleMetadata, sampleBody, sampleOptions } from "./installable-program.ts";
-const group = sampleBody.herramientas.personal;
+const group = sampleBody.tools.personal;
 const personal = {
   ...group,
-  palabras: { ...group.palabras, name: "Personales" },
+  words: { ...group.words, name: "Personales" },
   view: (state: Parameters<typeof group.view>[0], target: string) =>
     ["same", "a/b#c"].includes(target)
       ? group.view(state, target)
       : JSON.stringify({ id: "same", text: "Nota de Lucía" }),
 };
-const notes = programa(sampleMetadata, {
+const notes = defineProgram(sampleMetadata, {
   ...sampleBody,
-  herramientas: { personal, shared: { ...personal, palabras: { ...personal.palabras, name: "Compartidas" } } },
+  tools: { personal, shared: { ...personal, words: { ...personal.words, name: "Compartidas" } } },
   summary: state => (state.tools.own.count === 1 ? "1 nota" : `${state.tools.own.count} notas`),
 });
-const conversationMetadata = { ...sampleMetadata, id: "conversacion", hechos: [] } as const;
+const conversationMetadata = { ...sampleMetadata, id: "conversation", facts: [] } as const;
 const input = Type.Object({});
 const speak = programAct<LocalProgram<typeof conversationMetadata>, typeof input>({
   name: "decir",
@@ -29,9 +29,9 @@ const speak = programAct<LocalProgram<typeof conversationMetadata>, typeof input
   run: () => ({ status: "accepted", text: "Dicho · Mensaje", effects: [] }),
   cases: [{ promise: "Comparte un mensaje", input: {}, then: { says: "Dicho · Mensaje", facts: [] } }],
 });
-const conversation = programa(conversationMetadata, {
+const conversation = defineProgram(conversationMetadata, {
   ...sampleBody,
-  palabras: { ...sampleBody.palabras, name: "Conversación", key: "c" },
-  herramientas: { dialogo: { ...personal, palabras: { ...personal.palabras, name: "Diálogo" }, acts: { speak } } },
+  words: { ...sampleBody.words, name: "Conversación", key: "c" },
+  tools: { dialogo: { ...personal, words: { ...personal.words, name: "Diálogo" }, acts: { speak } } },
 });
-export const wordsDistribution = componer({ ...sampleOptions, programas: [notes, conversation] });
+export const wordsDistribution = compose({ ...sampleOptions, programs: [notes, conversation] });

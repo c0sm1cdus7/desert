@@ -7,8 +7,8 @@ import { keptChecks } from "../../checks/kept/kept-journals.ts";
 for (const withKeys of [false, true])
   it(`C1: abre y recorre firmar y usar, proveedor=${withKeys}, sin tocar el original ni el llavero`, async () => {
     const fixture = keptFixture();
-    expect((await fixture.rig.act("firmar")).status).toBe("accepted");
-    expect((await fixture.rig.act("usar")).status).toBe("accepted");
+    expect((await fixture.rig.act("sign")).status).toBe("accepted");
+    expect((await fixture.rig.act("use")).status).toBe("accepted");
     fixture.save();
     const before = readFileSync(fixture.file);
     const keys = new MemoryHouseKeys();

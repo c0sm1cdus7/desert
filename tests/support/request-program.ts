@@ -2,7 +2,12 @@
 import { Type } from "@sinclair/typebox";
 import { text, day, quantity } from "../../src/fields/fields.ts";
 import { object } from "../../src/fields/visible-text.ts";
-import { programa, programAct, type LocalProgram, type ProgramMindScene } from "../../src/tools/installable/program.ts";
+import {
+  defineProgram,
+  programAct,
+  type LocalProgram,
+  type ProgramMindScene,
+} from "../../src/tools/installable/program.ts";
 import { sampleBody, sampleMetadata } from "./installable-program.ts";
 export const requestInput = object({
   body: { ...text("Note", "What to remember"), verbatim: true },
@@ -12,13 +17,13 @@ export const requestInput = object({
 const metadata = {
   ...sampleMetadata,
   id: "notes",
-  codigo: [import.meta.filename],
-  hechos: [
-    { nombre: "notes/stored", forma: requestInput },
-    { nombre: "notes/imported", forma: requestInput },
-    { nombre: "notes/sent", forma: requestInput },
+  code: [import.meta.filename],
+  facts: [
+    { kind: "notes/stored", schema: requestInput },
+    { kind: "notes/imported", schema: requestInput },
+    { kind: "notes/sent", schema: requestInput },
   ],
-  inicial: (): { notes: string[] } => ({ notes: [] }),
+  initial: (): { notes: string[] } => ({ notes: [] }),
 } as const;
 type Notes = LocalProgram<typeof metadata>;
 const add = programAct<Notes, typeof requestInput>({
@@ -76,14 +81,14 @@ const bankScene: ProgramMindScene = {
 export function requestProgram(
   scenes: readonly [ProgramMindScene, ProgramMindScene, ProgramMindScene] = [bankScene, bankScene, bankScene],
 ) {
-  return programa(metadata, {
+  return defineProgram(metadata, {
     purpose: "Remember notes",
     skill: sampleBody.skill,
-    palabras: sampleBody.palabras,
-    herramientas: {
+    words: sampleBody.words,
+    tools: {
       personal: {
         purpose: "Remember notes",
-        palabras: sampleBody.palabras,
+        words: sampleBody.words,
         acts: { add },
         targets: () => [],
         view: state => JSON.stringify(state.tools.own.notes),
@@ -91,14 +96,14 @@ export function requestProgram(
       },
       outbox: {
         purpose: "Send notes out",
-        palabras: { ...sampleBody.palabras, name: "Outbox", key: "o" },
+        words: { ...sampleBody.words, name: "Outbox", key: "o" },
         acts: { send },
         targets: () => [],
         view: () => "Outbox",
         summary: () => "Outbox",
       },
     },
-    plegar: (own, event) =>
+    fold: (own, event) =>
       event.layer === "program" && event.kind !== "notes/sent" ? { notes: [...own.notes, event.data.body] } : own,
     summary: () => "Notes",
     mindCases: [{ id: "request", scenes }],

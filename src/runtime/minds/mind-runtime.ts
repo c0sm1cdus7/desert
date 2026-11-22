@@ -48,7 +48,7 @@ function validateRuntime<X extends Program>(
     "runtime.duplicate",
   );
   for (const definition of options.definitions) requireMind(Value.Check(mindActor, definition.actor), "runtime.actor");
-  for (const program of switches.programas) {
+  for (const program of switches.programs) {
     requireMind(house.execution.registry.find(tool => tool.id === program)?.skill?.kind === "skill", "runtime.skill");
     requireMind(
       options.definitions.some(each => each.actor === `mind:${program}`),

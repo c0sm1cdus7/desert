@@ -36,11 +36,11 @@ it("rejects malformed options, missing reasons and escaping repository paths", (
 });
 it("detects compiled startup code omitted from the law folders", () => {
   const repo = lawRepository({
-    "arranque/start.ts": "export {};",
-    "tsconfig.json": JSON.stringify({ include: ["src/**/*.ts", "arranque/**/*.ts"] }),
+    "startup/start.ts": "export {};",
+    "tsconfig.json": JSON.stringify({ include: ["src/**/*.ts", "startup/**/*.ts"] }),
   });
-  expect(uncoveredCode(repo, { base: null })).toEqual(["arranque/start.ts"]);
-  expect(uncoveredCode({ ...repo, code: ["src", "arranque"] }, { base: null })).toEqual([]);
+  expect(uncoveredCode(repo, { base: null })).toEqual(["startup/start.ts"]);
+  expect(uncoveredCode({ ...repo, code: ["src", "startup"] }, { base: null })).toEqual([]);
 });
 
 it.each([

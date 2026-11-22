@@ -25,7 +25,7 @@ it("calls view, targets, summary, words, needs and action methods with their own
       datum() {
         expect(this).toBe(action);
         calls.push("datum");
-        return "venta";
+        return "sale";
       },
       among() {
         expect(this).toBe(action);
@@ -56,10 +56,10 @@ it("calls view, targets, summary, words, needs and action methods with their own
         calls.push("summary");
         return salesTool.summary(state);
       },
-      words() {
+      findWords() {
         expect(this).toBe(owned);
         calls.push("words");
-        return "venta";
+        return "sale";
       },
       needs() {
         expect(this).toBe(owned);
@@ -122,7 +122,7 @@ it("preserves the original action declaration when programAct builds its callbac
     },
     datum() {
       expect(this).toBe(declaration);
-      return "venta";
+      return "sale";
     },
     confirms() {
       expect(this).toBe(declaration);
@@ -139,7 +139,7 @@ it("preserves the original action declaration when programAct builds its callbac
     const state = house().tools.state();
     expect(action.offered?.(state, "sales", 0)).toBeUndefined();
     expect(action.today?.(state, "sales", 0)).toEqual({ sale: "sales/s2" });
-    expect(action.datum?.(state, "sales")).toBe("venta");
+    expect(action.datum?.(state, "sales")).toBe("sale");
     expect(action.confirms?.({ sale: "sales/s1" }, state, "sales", 0)).toBe("Revisar venta");
     expect((await perform(house(), "sales", { act: "review", input: { sale: "sales/s1" } })).status).toBe("accepted");
   });

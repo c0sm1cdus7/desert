@@ -67,8 +67,8 @@ async function checkArtifact(
     !isRecord(definition) ||
     typeof definition.id !== "string" ||
     typeof definition.install !== "function" ||
-    !Array.isArray(definition.codigo) ||
-    !definition.codigo.every((path: unknown) => typeof path === "string")
+    !Array.isArray(definition.code) ||
+    !definition.code.every((path: unknown) => typeof path === "string")
   )
     throw new Error(`${entry} must export an installable program`);
   if (
@@ -76,8 +76,8 @@ async function checkArtifact(
     JSON.stringify(programDependencies(field(desert, "dependencies")))
   )
     throw new Error("desert.dependencies differs from the program declaration");
-  const installed = field(field(composed, "manifest"), "programas");
-  const calculation = codeProjectionVersion(definition.codigo).value;
+  const installed = field(field(composed, "manifest"), "programs");
+  const calculation = codeProjectionVersion(definition.code).value;
   if (
     !program.registry.some(tool => tool.id === definition.id) ||
     !Array.isArray(installed) ||

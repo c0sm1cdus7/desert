@@ -5,7 +5,7 @@ export function houseChange(
   since: number,
   milliseconds: number,
   signal: AbortSignal,
-): Promise<{ seq: number; cambio: boolean }> {
+): Promise<{ seq: number; change: boolean }> {
   return new Promise(resolve => {
     let stop = () => {};
     const finish = () => {
@@ -13,7 +13,7 @@ export function houseChange(
       clearTimeout(timer);
       signal.removeEventListener("abort", finish);
       const seq = sequence();
-      resolve({ seq, cambio: seq > since });
+      resolve({ seq, change: seq > since });
     };
     stop = watch(() => {
       if (sequence() > since) finish();

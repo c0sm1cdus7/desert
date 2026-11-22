@@ -15,11 +15,11 @@ import { houseOutput } from "./house-output.ts";
 import { launchHouse } from "./launch-house.ts";
 import { socketTexts } from "../../texts/socket.texts.ts";
 it.each(["hard", "symbolic"])("N13: output refuses a %s link without changing its target", kind => {
-  const home = mkdtempSync("/tmp/casa-link-");
+  const home = mkdtempSync("/tmp/house-link-");
   try {
     const target = join(home, "other");
     writeFileSync(target, "untouched", { mode: 0o640 });
-    (kind === "hard" ? linkSync : symlinkSync)(target, join(home, "casa.log"));
+    (kind === "hard" ? linkSync : symlinkSync)(target, join(home, "house.log"));
     expect(() => closeSync(houseOutput(home))).toThrow();
     expect(readFileSync(target, "utf8")).toBe("untouched");
     expect(statSync(target).mode & 0o777).toBe(0o640);
@@ -28,13 +28,13 @@ it.each(["hard", "symbolic"])("N13: output refuses a %s link without changing it
   }
 });
 it("N9: the failed detached startup records its safe cause before replying", async () => {
-  const home = mkdtempSync("/tmp/casa-cause-");
+  const home = mkdtempSync("/tmp/house-cause-");
   try {
     const program = join(import.meta.dirname, "../../../tests/support/shop-program.ts");
     writeFileSync(join(home, "package.json"), JSON.stringify({ desert: { program } }));
-    mkdirSync(join(home, "casa.sock"));
+    mkdirSync(join(home, "house.sock"));
     await expect(launchHouse(home, home)).rejects.toThrow(socketTexts.startFailed);
-    const text = readFileSync(join(home, "casa.log"), "utf8");
+    const text = readFileSync(join(home, "house.log"), "utf8");
     expect(text).toContain("EISDIR");
     expect(text).not.toContain(" at ");
     expect(text).not.toContain(home);
@@ -44,7 +44,7 @@ it("N9: the failed detached startup records its safe cause before replying", asy
   }
 });
 it("N10: detached stdout and stderr stay bounded after launch and retain recent output", async () => {
-  const home = mkdtempSync("/tmp/casa-cap-");
+  const home = mkdtempSync("/tmp/house-cap-");
   let pid = 0;
   try {
     writeFileSync(join(home, "package.json"), JSON.stringify({ desert: { program: "entry.mjs" } }));
@@ -63,7 +63,7 @@ it("N10: detached stdout and stderr stay bounded after launch and retain recent 
     );
     await launchHouse(home, home);
     pid = Number(readFileSync(join(home, "pid"), "utf8"));
-    const path = join(home, "casa.log");
+    const path = join(home, "house.log");
     for (const fd of [1, 2]) {
       writeFileSync(join(home, `go${fd}`), "go");
       await vi.waitFor(() => expect(readFileSync(path, "utf8")).toContain(`fin-${fd}`));

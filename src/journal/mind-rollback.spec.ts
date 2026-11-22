@@ -27,7 +27,7 @@ it("cola: un together deshecho durante una entrega no llega a la mente", async (
   const results: unknown[] = [];
   // la mente de desk actúa cada vez que oye su propio wake-at (cualquier programa podría oír así)
   desk.startup().bus.on("wake-at", e => {
-    if (e.data.id === "desk:dos") {
+    if (e.data.id === "desk:two") {
       heardId = e.id;
       results.push(desk.act());
     }
@@ -38,7 +38,7 @@ it("cola: un together deshecho durante una entrega no llega a la mente", async (
     if (once++) return;
     try {
       desk.startup().bus.together(() => {
-        desk.startup().bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:dos", at: Date.now() + 5 } });
+        desk.startup().bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:two", at: Date.now() + 5 } });
         desk.startup().bus.emit({ layer: "house", kind: "wake-at", data: { id: "other:zero", at: null } });
       });
     } catch {
@@ -86,7 +86,7 @@ it("anidado plano: un together interno que falla y se atrapa no se deshace, pero
     try {
       rig.bus.together(() => {
         rig.bus.emit(effect("stimulus", { tool: "desk" }, "shop"));
-        throw new Error("interno");
+        throw new Error("internal");
       });
     } catch {
       /* el de afuera sigue */
@@ -161,7 +161,7 @@ it("planoPrograma: el together fallido dentro de un acto no queda escrito", () =
     if (e.by !== "ana") return;
     try {
       desk.startup().bus.together(() => {
-        desk.startup().bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:medio", at: null } });
+        desk.startup().bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:middle", at: null } });
         desk.startup().bus.emit({ layer: "house", kind: "wake-at", data: { id: "other:ajeno", at: null } });
       });
     } catch (error) {
@@ -170,11 +170,11 @@ it("planoPrograma: el together fallido dentro de un acto no queda escrito", () =
   });
   rig.attend("ana", "sales");
   const r = rig.act("ana", "register", { sale: "s", total: 1 }, "sales");
-  const medio = rig
+  const middle = rig
     .facts()
-    .filter(e => e.kind === "wake-at" && e.data.id === "desk:medio")
+    .filter(e => e.kind === "wake-at" && e.data.id === "desk:middle")
     .map(e => e.by);
   expect(caught).not.toBe("");
   expect(r.status).toBe("accepted");
-  expect(medio).toEqual([]);
+  expect(middle).toEqual([]);
 });

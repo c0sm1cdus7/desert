@@ -12,16 +12,16 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
     fixture = await socketHouse(transport);
     return fixture;
   };
-  it.each([{ protocolo: 999 }, { node: "0.0.0" }])("rejects incompatible hello with both versions: %j", async extra => {
+  it.each([{ protocol: 999 }, { node: "0.0.0" }])("rejects incompatible hello with both versions: %j", async extra => {
     const f = await setup();
     const c = await f.client();
     c.hello("ana-terminal", extra);
     await c.until(c.closed);
-    expect(c.messages[0]?.tipo).toBe("rechazo");
+    expect(c.messages[0]?.type).toBe("rejection");
     const first = c.messages[0];
-    const reason = first?.tipo === "rechazo" ? first.motivo : "";
-    expect(reason).toContain("protocolo" in extra ? "999" : "0.0.0");
-    expect(reason).toContain("protocolo" in extra ? String(houseProtocolVersion) : process.versions.node);
+    const reason = first?.type === "rejection" ? first.reason : "";
+    expect(reason).toContain("protocol" in extra ? "999" : "0.0.0");
+    expect(reason).toContain("protocol" in extra ? String(houseProtocolVersion) : process.versions.node);
     expect(c.states).toHaveLength(0);
   });
   it.each(["oversize", "json", "schema", "v8", "unknown", "zero"])("invalid %s closes only that peer", async kind => {
@@ -30,7 +30,7 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
     expect(good.states).toHaveLength(1);
     const before = f.house().tools.state().through;
     const bad = await f.client();
-    let bytes = wire({ tipo: "hola", protocolo: "one" });
+    let bytes = wire({ type: "hello", protocol: "one" });
     if (kind === "oversize") {
       bytes = Buffer.alloc(5);
       bytes.writeUInt32BE(socketLimits.json + 2);
@@ -59,12 +59,12 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
   }, 7000);
   it("an agent-origin key receives terminal state but cannot forge its identity", async () => {
     const f = await setup();
-    const c = await f.client("beto-agente");
-    expect(c.messages[0]?.tipo).toBe("bienvenida");
+    const c = await f.client("beto-agent");
+    expect(c.messages[0]?.type).toBe("welcome");
     expect(await c.until(() => c.states.length === 1)).toBe(true);
     expect(c.states).toHaveLength(1);
     const forged = await f.client();
-    forged.hello("beto-agente", { puerta: "terminal", identidad: "ana" });
+    forged.hello("beto-agent", { door: "terminal", identity: "ana" });
     expect(await forged.until(forged.closed)).toBe(true);
     expect(forged.states).toHaveLength(0);
     expect(forged.messages).toHaveLength(0);

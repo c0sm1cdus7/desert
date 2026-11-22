@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { privateFileMode, privateDirectoryMode } from "../../../storage/home.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
 function prepareSocket(home: string, opened: string): string {
-  const path = join(home, "casa.sock");
+  const path = join(home, "house.sock");
   // macOS sockaddr_un.sun_path has 104 bytes including its trailing NUL.
   if (Buffer.byteLength(path) >= 104) throw new SocketOpeningError(socketTexts.path(path));
   if (realpathSync(home) !== realpathSync(opened)) throw new Error(socketTexts.home);
@@ -29,7 +29,7 @@ async function listen(server: Server, path: string) {
 }
 export async function openHouseSocket(home: string, opened: string, accept: (stream: Duplex) => void) {
   const path = prepareSocket(home, opened);
-  const pid = join(home, "casa.pid");
+  const pid = join(home, "house.pid");
   const server = createServer(accept);
   const stopAccepting = () => new Promise<void>(resolve => server.close(() => resolve()));
   const remove = () => {

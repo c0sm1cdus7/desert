@@ -21,7 +21,7 @@ for (const name of [
   "houseTools",
   "startRouter",
   "startTerminal",
-  "componer",
+  "compose",
   "startTools",
   "startClock",
   "createHouse",
@@ -63,7 +63,7 @@ it("follows cyclic barrels without losing a host export and rejects unresolved r
 });
 it("expands every allowed fields entry from the export map and excludes testing", () => {
   const entries = programEntryFiles(root);
-  expect(entries["desert/programa"]).toBe(join(root, "src/tools/installable/program.ts"));
+  expect(entries["desert/program"]).toBe(join(root, "src/tools/installable/program.ts"));
   expect(entries["desert/fields/messages"]).toBe(join(root, "src/fields/messages.ts"));
   expect(entries["desert/testing"]).toBeUndefined();
 });

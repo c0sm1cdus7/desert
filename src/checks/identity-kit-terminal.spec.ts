@@ -11,7 +11,7 @@ it("real terminal grants one action, cuts a running act, removes the whole tool 
     await t.press("1", "registrar");
     await t.press("1", "actual");
     await t.press("s", "Guardado");
-    expect(await t.probe("beto", "register", { sale: "uno", total: 100 })).toContain("accepted");
+    expect(await t.probe("beto", "register", { sale: "one", total: 100 })).toContain("accepted");
     expect(await t.probe("beto", "wait", {}, "rejected")).toContain("fuera del kit");
     await t.press("\x1b", "registrar");
     expect(t.term.screen().join("\n")).toContain("sí");
@@ -24,7 +24,7 @@ it("real terminal grants one action, cuts a running act, removes the whole tool 
     await t.press("s", "Guardado");
     expect(await t.untilFile("result.json", "interrupted")).toContain("sacada");
     expect(await t.untilFile("observed.json", "sacada")).toContain("sacada");
-    expect(await t.probe("beto", "register", { sale: "dos", total: 200 }, "rejected")).toContain("fuera del kit");
+    expect(await t.probe("beto", "register", { sale: "two", total: 200 }, "rejected")).toContain("fuera del kit");
     expect(await t.untilFile("observed.json", "fuera del kit")).toContain("0 acciones");
     await t.press("\x1b", "registrar");
     expect(t.term.screen().join("\n")).toContain("no");

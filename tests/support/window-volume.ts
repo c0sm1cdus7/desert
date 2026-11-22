@@ -4,7 +4,7 @@ import { houseRouter } from "../../src/surface/bridge/assembly/house-router.ts";
 import { houseTools } from "../../src/surface/bridge/assembly/house-tools.ts";
 import { resolve } from "../../src/surface/router/resolve.ts";
 import { start } from "../../src/surface/session/screen.ts";
-import { pesos, shopShown } from "./shop.ts";
+import { ars, shopShown } from "./shop.ts";
 import { windowShop } from "./window-shop.ts";
 
 type Rig = ReturnType<typeof windowShop>;
@@ -28,7 +28,7 @@ const registryOf = (rig: Rig, calls: Calls, count: number, notices: number) => {
     needs: () => Array.from({ length: notices / 2 }, (_, i) => ({ target: `${id}/s${i + 1}`, why: "Pendiente" })),
     view: (...args: Parameters<typeof rig.sales.view>) => {
       const [state, target, limits] = args;
-      if (target !== id) return JSON.stringify({ total: pesos(1500), paid: pesos(0), by: "ana" });
+      if (target !== id) return JSON.stringify({ total: ars(1500), paid: ars(0), by: "ana" });
       calls[id]++;
       return [...state.tools.sales.keys()]
         .slice(-limits.recentLines)

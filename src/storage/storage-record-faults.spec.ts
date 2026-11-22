@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { expect, it } from "vitest";
 import { recordFiles, storageNotices, type RecordFiles } from "./storage-notices.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
-const warning = { name: "ventas", reason: "versión del cálculo cambiada · ñandú 🧉" };
+const warning = { name: "sales", reason: "versión del cálculo cambiada · ñandú 🧉" };
 const failure = (code: string) => Object.assign(new Error(code), { code });
 const log = (home: string) => join(home, "storage-notices.jsonl");
 const lines = (home: string) =>

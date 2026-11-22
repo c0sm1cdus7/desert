@@ -8,7 +8,7 @@ import { effect } from "../house/facts.ts";
 
 for (const [name, value] of [
   ["vacío", ""],
-  ["uno", "Ω"],
+  ["one", "Ω"],
   ["once auditor", "abcdefghijk"],
   ["doce", "abcdefghijkl"],
   ["trece", "abcdefghijklm"],

@@ -49,9 +49,9 @@ for (const committed of [false, true])
     const rig = custodyRig(),
       store = rig.open(ledger),
       session = store.begin(custodyScope);
-    const old = { key: session.capture(Buffer.from("uno")) };
+    const old = { key: session.capture(Buffer.from("one")) };
     session.replace("signing", old, 0);
-    const next = { key: session.capture(Buffer.from("dos")) };
+    const next = { key: session.capture(Buffer.from("two")) };
     fail = true;
     expect(() => session.replace("signing", next, 1)).toThrow();
     store.close();

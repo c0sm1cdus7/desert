@@ -10,13 +10,13 @@ import type { RequestAct, ResultMessage, ServerMessage } from "../wire/protocol.
 import { jsonData } from "./json-data.ts";
 import { requestContent } from "./request-content.ts";
 export type RequestHouse<X extends Program> = Pick<RunningHouse<X>, "tools" | "journal" | "bus">;
-type Saved = { content: string; id: string; effects: ResultMessage["efectos"]; result?: ResultMessage };
+type Saved = { content: string; id: string; effects: ResultMessage["effects"]; result?: ResultMessage };
 const legacyPrefix = "socket-request:";
 /** The two causes of a socket act that name the door's request, not a fact: its key and its content's hash. */
 export const requestCauses = [legacyPrefix, "socket-content:"] as const;
 const prefix = `${requestCauses[0]}sha256:`;
 const requestKey = (by: string, id: string) => `${prefix}${JSON.stringify([by, requestDigest(id)])}`;
-function receipt(event: Event): ResultMessage["efectos"] {
+function receipt(event: Event): ResultMessage["effects"] {
   if (event.layer !== "house") return [];
   if (event.kind === "act-done") {
     const { object, act, text } = event.data;
@@ -45,7 +45,7 @@ function history() {
     saved.effects.push(...receipt(event));
     if (event.layer === "house" && event.kind === "act-result") {
       const { status, reason } = event.data;
-      saved.result = { tipo: "resultado", id: "", status, ...(reason ? { reason } : {}), efectos: saved.effects };
+      saved.result = { type: "result", id: "", status, ...(reason ? { reason } : {}), effects: saved.effects };
     }
   };
   return { requests, record };
@@ -60,18 +60,18 @@ export function requestBook<X extends Program>(house: RequestHouse<X>) {
   for (const saved of requests.values()) {
     if (!saved.result || (saved.result.status === "interrupted" && saved.result.reason === toolTexts.interrupted))
       saved.result = {
-        tipo: "resultado",
+        type: "result",
         id: "",
         status: "interrupted",
         reason: socketTexts.interrupted,
-        efectos: saved.effects,
+        effects: saved.effects,
       };
   }
   const stop = house.bus.on(record);
   const lookup = (by: string, id: string): ResultMessage | undefined => {
     const saved = requests.get(requestKey(by, id)) ?? requests.get(`${legacyPrefix}${JSON.stringify([by, id])}`);
     return (
-      saved && (saved.result ? { ...saved.result, id } : { tipo: "resultado", id, status: "processing", efectos: [] })
+      saved && (saved.result ? { ...saved.result, id } : { type: "result", id, status: "processing", effects: [] })
     );
   };
   return { act: actRequest(house, requests, lookup), lookup, stop };
@@ -84,12 +84,12 @@ function actRequest<X extends Program>(
 ) {
   const act = async (by: string, request: RequestAct, signal?: AbortSignal): Promise<ServerMessage> => {
     const { id } = request;
-    if (signal?.aborted) return { tipo: "rechazo", id, motivo: socketTexts.unavailable };
-    if (!jsonData(request)) return { tipo: "rechazo", id, motivo: socketTexts.invalidData };
+    if (signal?.aborted) return { type: "rejection", id, reason: socketTexts.unavailable };
+    if (!jsonData(request)) return { type: "rejection", id, reason: socketTexts.invalidData };
     const content = requestFingerprint(request);
     const key = requestKey(by, id);
     const saved = requests.get(key) ?? requests.get(`${legacyPrefix}${JSON.stringify([by, id])}`);
-    if (saved && saved.content !== content) return { tipo: "rechazo", id, motivo: socketTexts.reused };
+    if (saved && saved.content !== content) return { type: "rejection", id, reason: socketTexts.reused };
     const previous = lookup(by, id);
     if (previous) return previous;
     requests.set(key, { id: key, content, effects: [] });
@@ -98,15 +98,15 @@ function actRequest<X extends Program>(
       const started = runRequest(house, by, request, [key, `socket-content:${content}`], signal);
       const result = started.status === "processing" ? await started.completion : started;
       done = {
-        tipo: "resultado",
+        type: "result",
         id,
         status: result.status,
-        efectos: requests.get(key)?.effects ?? [],
+        effects: requests.get(key)?.effects ?? [],
         ...(result.reason ? { reason: result.reason } : {}),
         ...(result.private ? { private: result.private } : {}),
       };
     } catch {
-      done = { tipo: "resultado", id, status: "interrupted", reason: socketTexts.interrupted, efectos: [] };
+      done = { type: "result", id, status: "interrupted", reason: socketTexts.interrupted, effects: [] };
     }
     const final = requests.get(key);
     if (final) {

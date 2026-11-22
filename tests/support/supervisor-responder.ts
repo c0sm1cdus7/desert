@@ -49,7 +49,7 @@ export function notes(house: RequestHouse, frame: string, work: Work, consult = 
   const answered = house.tools.state().house.minds.turns.get(turn.data.turn)?.answer;
   const heard = history(house).flatMap(event => (turn.data.wake.includes(event.id) ? (lineOf(event) ?? []) : []));
   if (!heard.length) return answer();
-  if (consult && !answered) return { scene: "Dudo", acts: [], consulta: { question: "¿Lo anoto y lo mando?" } };
+  if (consult && !answered) return { scene: "Dudo", acts: [], consultation: { question: "¿Lo anoto y lo mando?" } };
   const kit = [
     { tool: "notes", acts: [...requestKit.flatMap(each => each.acts), ...sendKit.flatMap(each => each.acts)] },
   ];
@@ -74,7 +74,7 @@ export function supervisor(review: (reason: string, frame: string) => { outcome:
     learned++;
     return {
       scene: `Aprendí ${learned}: los journeys de notas terminan bien.`,
-      consulta: null,
+      consultation: null,
       acts: own?.(frame, learned) ?? [],
     };
   };

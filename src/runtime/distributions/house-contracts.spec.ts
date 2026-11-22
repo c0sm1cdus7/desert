@@ -1,6 +1,6 @@
 import "../../../tests/support/upgrade-vault.ts";
 import { expect, it } from "vitest";
-import { componer } from "./compose.ts";
+import { compose } from "./compose.ts";
 import { startHouse } from "../house-runtime.ts";
 import { home, time } from "../../../tests/support/upgrade-support.ts";
 import { contractOptions, type Demo } from "../../../tests/support/distribution-contracts.ts";
@@ -12,17 +12,17 @@ import type { ActResult } from "../../tools/tool-contract.ts";
 
 function setup(override?: () => ActResult<Demo> | Promise<ActResult<Demo>>) {
   const path = home();
-  const { program } = componer(contractOptions);
+  const { program } = compose(contractOptions);
   const registry = program.registry.map(tool => {
-    const action = tool.acts["fiscal/emitir"];
+    const action = tool.acts["fiscal/issue"];
     return override && action
       ? {
           ...tool,
           acts: {
             ...tool.acts,
-            "fiscal/emitir": {
+            "fiscal/issue": {
               ...toolAct<Demo, ReturnType<typeof input>>(input(), override),
-              folder: "documentos/fiscal",
+              folder: "documents/fiscal",
               on: "thing" as const,
             },
           },
@@ -35,36 +35,36 @@ function setup(override?: () => ActResult<Demo> | Promise<ActResult<Demo>>) {
     by: "demo",
     creation: {
       admin: "ana",
-      assignments: ["ana", "beto"].map(identity => ({ identity, tools: ["ventas", "documentos"] })),
+      assignments: ["ana", "beto"].map(identity => ({ identity, tools: ["sales", "documents"] })),
     },
   };
   const open = () => startHouse(path, options, time);
   const house = open();
-  for (const target of ["ventas/facturacion", "documentos/fiscal"])
+  for (const target of ["sales/billing", "documents/fiscal"])
     house.tools.act({ act: "attend", input: { target } }, 0, "beto");
   return {
     house,
     open,
-    act: (venta = "v1") =>
-      house.tools.act({ act: "facturacion/facturar", target: "ventas/facturacion", input: { venta } }, 0, "beto"),
+    act: (sale = "v1") =>
+      house.tools.act({ act: "billing/invoice", target: "sales/billing", input: { sale } }, 0, "beto"),
   };
 }
 it("executes certified contracts through startHouse and preserves their receipts on reopen", async () => {
   const rig = setup();
   try {
     expect((await settle(rig.act())).value).toEqual({ status: "accepted", value: { id: "v1" } });
-    expect(rig.house.tools.state().tools.documentos.fiscal.get("v1")).toMatchObject({ numero: "1" });
+    expect(rig.house.tools.state().tools.documents.fiscal.get("v1")).toMatchObject({ number: "1" });
     const events = rig.house.journal.replay<import("../../journal/vocabulary.ts").Event<Demo["fact"]>[]>(
       [],
       (all, event) => [...all, event],
     );
-    const consumer = events.find(e => e.kind === "act" && e.data.option === "facturacion/facturar");
-    const provider = events.find(e => e.kind === "act" && e.data.option === "fiscal/emitir");
+    const consumer = events.find(e => e.kind === "act" && e.data.option === "billing/invoice");
+    const provider = events.find(e => e.kind === "act" && e.data.option === "fiscal/issue");
     expect(provider?.cause).toContain(consumer?.id);
-    expect(events.find(e => e.kind === "documentos/emitido")?.cause).toContain(provider?.id);
+    expect(events.find(e => e.kind === "documents/issued")?.cause).toContain(provider?.id);
     expect(events).toContainEqual(
       expect.objectContaining({
-        kind: "documentos/emitido",
+        kind: "documents/issued",
         by: "beto",
       }),
     );
@@ -73,13 +73,13 @@ it("executes certified contracts through startHouse and preserves their receipts
   }
   const reopened = rig.open();
   try {
-    expect(reopened.tools.state().tools.documentos.fiscal.get("v1")).toMatchObject({ numero: "1" });
+    expect(reopened.tools.state().tools.documents.fiscal.get("v1")).toMatchObject({ number: "1" });
     const read = await settle(
-      reopened.tools.act({ act: "facturacion/leer", target: "ventas/facturacion", input: { venta: "v1" } }, 0, "beto"),
+      reopened.tools.act({ act: "billing/read", target: "sales/billing", input: { sale: "v1" } }, 0, "beto"),
     );
     expect(read.value).toMatchObject({
-      reading: { status: "found", value: { numero: "1", estado: "emitido" } },
-      notices: [{ author: "beto", value: { venta: "v1", comprobante: "v1" } }],
+      reading: { status: "found", value: { number: "1", state: "issued" } },
+      notices: [{ author: "beto", value: { sale: "v1", voucher: "v1" } }],
     });
     expect(JSON.stringify(read.value)).not.toContain("privado");
   } finally {
@@ -89,7 +89,7 @@ it("executes certified contracts through startHouse and preserves their receipts
 it("preserves business refusal through the public opening", async () => {
   const rig = setup();
   try {
-    expect((await settle(rig.act("invalid"))).value).toEqual({ status: "rejected", value: { codigo: "invalida" } });
+    expect((await settle(rig.act("invalid"))).value).toEqual({ status: "rejected", value: { code: "invalida" } });
   } finally {
     rig.house.close();
   }
@@ -118,18 +118,18 @@ it.each(["revoke", "close"])("interrupts a provider waiting during %s", async mo
       rig.house.bus.emit(
         effect(
           "kit-set",
-          { version: 2, holder: "beto", kit: { version: 2, selections: [{ kind: "program", program: "ventas" }] } },
+          { version: 2, holder: "beto", kit: { version: 2, selections: [{ kind: "program", program: "sales" }] } },
           "ana",
         ),
       );
     finish?.({
       status: "accepted",
-      value: { id: "v1", numero: "1" },
+      value: { id: "v1", number: "1" },
       effects: [
         {
           layer: "program",
-          kind: "documentos/emitido",
-          data: { venta: "v1", comprobante: "v1" },
+          kind: "documents/issued",
+          data: { sale: "v1", voucher: "v1" },
           by: "beto",
           cause: [],
         },
@@ -143,7 +143,7 @@ it.each(["revoke", "close"])("interrupts a provider waiting during %s", async mo
   }
   const reopened = rig.open();
   try {
-    expect(reopened.tools.state().tools.documentos.fiscal.size).toBe(0);
+    expect(reopened.tools.state().tools.documents.fiscal.size).toBe(0);
     if (mode === "close")
       expect(
         reopened.journal.replay<number>(
@@ -162,18 +162,18 @@ it("refuses revoked provider permissions before dispatch", async () => {
     rig.house.bus.emit(
       effect(
         "kit-set",
-        { version: 2, holder: "beto", kit: { version: 2, selections: [{ kind: "program", program: "ventas" }] } },
+        { version: 2, holder: "beto", kit: { version: 2, selections: [{ kind: "program", program: "sales" }] } },
         "ana",
       ),
     );
     expect((await settle(rig.act())).value).toEqual({ status: "core-failure", reason: "forbidden" });
-    expect(rig.house.tools.state().tools.documentos.fiscal.size).toBe(0);
+    expect(rig.house.tools.state().tools.documents.fiscal.size).toBe(0);
   } finally {
     rig.house.close();
   }
 });
 it("rejects a certified declaration whose installed executor is missing", () => {
-  const [sales, documents] = contractOptions.programas;
+  const [sales, documents] = contractOptions.programs;
   const missing = {
     ...documents,
     install: () => {
@@ -181,5 +181,5 @@ it("rejects a certified declaration whose installed executor is missing", () => 
       return { ...installed, tool: { ...installed.tool, acts: {} } };
     },
   };
-  expect(() => componer({ ...contractOptions, programas: [sales, missing] })).toThrow();
+  expect(() => compose({ ...contractOptions, programs: [sales, missing] })).toThrow();
 });

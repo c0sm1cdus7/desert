@@ -13,7 +13,7 @@ it("H4: caracteriza la ventana pendiente entre revisar la historia y tomar el es
   const original = protection.protectedHouse;
   const spy = vi.spyOn(protection, "protectedHouse").mockImplementation((home, options) => {
     const reviewed = original(home, options);
-    previous.append(words.fact("sale-registered", { value: "inventado", copy: "público" }, "ana"), 1000);
+    previous.append(words.fact("sale-registered", { value: "invented", copy: "público" }, "ana"), 1000);
     previous.close();
     return reviewed;
   });
@@ -21,7 +21,7 @@ it("H4: caracteriza la ventana pendiente entre revisar la historia y tomar el es
     const opened = startHouse(rig.path, rig.options, time);
     try {
       expect(
-        opened.tools.state().tools.vault.some(e => e.kind === "sale-registered" && e.data.value === "inventado"),
+        opened.tools.state().tools.vault.some(e => e.kind === "sale-registered" && e.data.value === "invented"),
       ).toBe(true);
     } finally {
       opened.close();
@@ -32,5 +32,5 @@ it("H4: caracteriza la ventana pendiente entre revisar la historia y tomar el es
   }
   // The written mark also skips that fact at the next ordinary opening.
   rig.restart();
-  expect(rig.facts().some(e => e.kind === "sale-registered" && e.data.value === "inventado")).toBe(true);
+  expect(rig.facts().some(e => e.kind === "sale-registered" && e.data.value === "invented")).toBe(true);
 });

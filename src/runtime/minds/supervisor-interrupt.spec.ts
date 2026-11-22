@@ -46,7 +46,7 @@ function script(house: RequestHouse, after: "resume" | "desist", seen: string[])
       const stop = { act: "interrupt", target, input: { reason } };
       const acts = woke(house, "talk/said") && !stopped ? [stop, stop] : [];
       stopped ||= acts.length > 0;
-      return { scene: "Frené el journey de notas", consulta: null, acts };
+      return { scene: "Frené el journey de notas", consultation: null, acts };
     }
     seen.push(frame);
     const turn = currentTurn(house);

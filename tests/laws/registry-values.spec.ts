@@ -32,12 +32,12 @@ for (const [name, main, tool] of [
   ],
   [
     "propiedad de objeto",
-    "import { herramientas } from '../lib/t.ts'; export const program = { registry: [herramientas.ventas] };",
-    'export const herramientas = { ventas: { id: "v", acts: {} } };',
+    "import { tools } from '../lib/t.ts'; export const program = { registry: [tools.sales] };",
+    'export const tools = { sales: { id: "v", acts: {} } };',
   ],
   [
     "export default",
-    "import ventas from '../lib/t.ts'; export const program = { registry: [ventas] };",
+    "import sales from '../lib/t.ts'; export const program = { registry: [sales] };",
     'export default { id: "v", acts: {} };',
   ],
   [

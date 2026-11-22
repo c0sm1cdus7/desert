@@ -60,7 +60,7 @@ it.each([
     const f = fixture();
     const house = await f.open();
     await marked(house);
-    f.respond(frame => (supervising(frame) ? { outcome, text } : { scene: "Ready", consulta: null, acts: [] }));
+    f.respond(frame => (supervising(frame) ? { outcome, text } : { scene: "Ready", consultation: null, acts: [] }));
     const started = note(house, "Mate");
     expect(started.status).toBe("processing");
     const done = await settle(started);
@@ -100,7 +100,7 @@ it("a restart closes the verdict turn it cut, and the act it was judging comes b
   const f = fixture();
   const house = await f.open();
   await marked(house);
-  f.respond(frame => (supervising(frame) ? new Promise(() => {}) : { scene: "Ready", consulta: null, acts: [] }));
+  f.respond(frame => (supervising(frame) ? new Promise(() => {}) : { scene: "Ready", consultation: null, acts: [] }));
   const started = note(house, "Mate");
   await vi.waitFor(() => expect(framesOf(f).filter(supervising)).toHaveLength(1));
   house.close();
@@ -122,7 +122,7 @@ it("before the minds start, a house that brings a supervisor says it is starting
   const house = await f.open(true, { started: act => (early = act(add, 0, "ana")) });
   expect(early).toMatchObject({ status: "rejected", reason: rulesTexts.starting });
   f.respond(frame =>
-    supervising(frame) ? { outcome: "passed", text: "Sí" } : { scene: "Ready", consulta: null, acts: [] },
+    supervising(frame) ? { outcome: "passed", text: "Sí" } : { scene: "Ready", consultation: null, acts: [] },
   );
   expect((await settle(note(house, "Mate"))).status).toBe("accepted");
   expect(moments(framesOf(f))).toEqual(["rule"]);

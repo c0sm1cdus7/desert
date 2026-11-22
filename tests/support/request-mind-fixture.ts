@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { vi } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { componer, type DistributionOf } from "../../src/runtime/distributions/compose.ts";
+import { compose, type DistributionOf } from "../../src/runtime/distributions/compose.ts";
 import { startHouse, type RunningHouse } from "../../src/runtime/house-runtime.ts";
 import { explicitKit, kitLayout } from "../../src/house/kit-selection.ts";
 import { effect } from "../../src/house/facts.ts";
@@ -17,7 +17,11 @@ import type { ProgramMindScene } from "../../src/tools/minds/program-mind-cases.
 import { sampleOptions } from "./installable-program.ts";
 import { requestProgram, requestKit } from "./request-program.ts";
 import { talkAct, talkKit, talkProgram } from "./talk-program.ts";
-export const answer = (acts: MindAnswer["acts"] = [], scene = "Ready"): MindAnswer => ({ scene, acts, consulta: null });
+export const answer = (acts: MindAnswer["acts"] = [], scene = "Ready"): MindAnswer => ({
+  scene,
+  acts,
+  consultation: null,
+});
 const requestShape = Type.Object({ messages: Type.Array(Type.Object({ content: Type.String() })) });
 function assignAssistant(house: RequestHouse, card: Pick<Card, "model" | "effort" | "capabilities">) {
   house.bus.emit(effect("assistant-enabled", { owner: "ana", name: "Nora" }, "ana"));
@@ -34,10 +38,10 @@ function assignAssistant(house: RequestHouse, card: Pick<Card, "model" | "effort
 type Acting = (value: unknown, through: number, by: string) => Readonly<{ status: string; reason?: string }>;
 type Opening = { assistant?: boolean; started?: (act: Acting, house: RequestHouse) => void };
 const composed = (scenes?: readonly [ProgramMindScene, ProgramMindScene, ProgramMindScene]) =>
-  componer({
+  compose({
     ...sampleOptions,
-    programas: [requestProgram(scenes), talkProgram],
-    mentes: { asistentes: true, programas: ["notes"] },
+    programs: [requestProgram(scenes), talkProgram],
+    minds: { assistants: true, programs: ["notes"] },
   });
 /** The composed tools, which a fixture may change before the house opens, as a distribution declares its own. */
 type Registry = ReturnType<typeof composed>["program"]["registry"];
@@ -92,7 +96,7 @@ class RequestMindFixture {
       by: "distribution",
       creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes", "talk"] }] },
       modelMinds: options,
-      ...(!enabled ? { mentes: { asistentes: false, programas: [] } } : {}),
+      ...(!enabled ? { minds: { assistants: false, programs: [] } } : {}),
     });
     this.houses.push(house);
     started?.((value, through, by) => house.tools.act(value, through, by), house);
@@ -106,7 +110,7 @@ class RequestMindFixture {
   }
   /** Composes the catalog offline for the notes mind, as a person would before choosing its card. */
   async bank(house: RequestHouse) {
-    return house.bankMinds(await this.options(), { asistentes: false, programas: ["notes"] });
+    return house.bankMinds(await this.options(), { assistants: false, programs: ["notes"] });
   }
   prepare(house: RequestHouse) {
     house.bus.emit(

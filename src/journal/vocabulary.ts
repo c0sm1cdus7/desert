@@ -7,7 +7,6 @@ import { object, visibleText } from "../fields/visible-text.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 import {
   currentHouseCatalog,
-  currentCoreValue,
   name,
   type HouseEmission,
   names,
@@ -98,9 +97,7 @@ export function vocabulary<C extends Catalog>(program: Own<C>) {
     emission: Type.Unsafe<Emission<ProgramFacts<C>>>(currentSchema(program, provenance)),
     read: (value: unknown) => {
       if (!Value.Check(event, value)) throw new Error(journalTexts.invalidEvent);
-      const normalized = currentCoreValue(value);
-      if (!Value.Check(event, normalized)) throw new Error(journalTexts.invalidEvent);
-      const read = structuredClone(stateResult(normalized));
+      const read = structuredClone(stateResult(value));
       deepFreeze(read);
       return read;
     },

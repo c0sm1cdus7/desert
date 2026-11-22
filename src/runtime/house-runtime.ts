@@ -76,8 +76,8 @@ export function startHouse<X extends Program>(
 /** The program's own acts and processes, and the supervisor's verdict on a marked act of an identity, which the
  * minds fill in when they start, after the house: until then a run that brings a supervisor says it is starting. */
 function engineChoices<X extends Program>(options: ModelHouseOptions<X>) {
-  const switches = options.mentes;
-  const minds = !!switches && (switches.asistentes || switches.programas.length > 0);
+  const switches = options.minds;
+  const minds = !!switches && (switches.assistants || switches.programs.length > 0);
   const supervision: Supervision = { expected: minds && options.modelMinds?.supervisorCard !== undefined };
   const ports = {
     ...(options.own ? { own: options.own } : {}),
@@ -191,10 +191,10 @@ function loadMinds<X extends Program>(
   contracts: import("../tools/contract-port.ts").ContractFactory | undefined,
   supervision: Supervision,
 ) {
-  const switches = options.mentes;
+  const switches = options.minds;
   const config = options.modelMinds;
   const bankMinds = mindBank(home, options, time, resources, devices, contracts);
-  if (!switches || !(switches.asistentes || switches.programas.length) || !config) return { bankMinds };
+  if (!switches || !(switches.assistants || switches.programs.length) || !config) return { bankMinds };
   let active = true;
   let minds: ModelMinds | undefined;
   resources.stops.unshift(() => {

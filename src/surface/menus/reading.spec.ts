@@ -15,7 +15,7 @@ const options = Array.from({ length: 90 }, (_, index) => ({
 const tool: Tool = {
   id: "shop",
   name: "Tienda",
-  summary: () => "ventas",
+  summary: () => "sales",
   place: { key: "t", section: "tools" },
   view: () => [{ title: "Ventas", rows: options }],
   acts: {

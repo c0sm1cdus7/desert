@@ -3,7 +3,7 @@ import { program, shown } from "../../../tests/support/shop-program.ts";
 import { programChecks } from "../program-checks.ts";
 import { staged } from "./promised-stage.ts";
 const first = program.registry[0]?.id ?? "";
-const minded = { ...program, mentes: { asistentes: false, programas: [first] } };
+const minded = { ...program, minds: { assistants: false, programs: [first] } };
 it("opens a staged house for a composition that turns on a program mind, with its minds off", async () => {
   await staged(minded, ({ house }) => {
     expect(house().tools.state().house.grants.size).toBeGreaterThan(0);

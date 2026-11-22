@@ -16,7 +16,7 @@ const refusedBefore = (result: ContractExecution) =>
   result.status === "rejected" && result.reason !== undefined ? { reason: result.reason } : undefined;
 export function contractAction(
   need: ContractAction,
-  have: ContractAction & { ruta: string },
+  have: ContractAction & { route: string },
   provider: string,
   invocation: ContractInvocation,
 ): (input: unknown) => Promise<ContractResponse> {
@@ -24,11 +24,11 @@ export function contractAction(
     if (invocation.signal?.aborted || invocation.alive?.() === false) return coreFailure("interrupted");
     try {
       const safe = publicValue(input);
-      if (!Value.Check(need.entrada, safe) || !Value.Check(have.entrada, safe)) return coreFailure("invalid-reference");
-      const slash = have.ruta.lastIndexOf("/");
+      if (!Value.Check(need.input, safe) || !Value.Check(have.input, safe)) return coreFailure("invalid-reference");
+      const slash = have.route.lastIndexOf("/");
       const result = await invocation.execute({
-        target: `${provider}/${have.ruta.slice(0, slash)}`,
-        act: have.ruta,
+        target: `${provider}/${have.route.slice(0, slash)}`,
+        act: have.route,
         input: safe,
       });
       if (result.coreFailure && !result.declined) return coreFailure(result.coreFailure);
@@ -37,8 +37,8 @@ export function contractAction(
       if (result.status !== "accepted" && result.status !== "rejected") return coreFailure("defect");
       const said = result.value ?? refusedBefore(result);
       if (said === undefined) return coreFailure("defect");
-      const schema = result.status === "accepted" ? have.salida : have.rechazos;
-      const wanted = result.status === "accepted" ? need.salida : need.rechazos;
+      const schema = result.status === "accepted" ? have.output : have.rejections;
+      const wanted = result.status === "accepted" ? need.output : need.rejections;
       const value = publicValue(said);
       if (!Value.Check(schema, value)) return coreFailure("defect");
       return { status: result.status, value: projectValue(wanted, value) };

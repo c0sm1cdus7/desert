@@ -4,7 +4,7 @@ for (const failure of [false, true])
   it(`cerrar dentro del callback rechaza su resultado, incluso si falla: ${failure}`, async () => {
     const store = custodyRig().open(),
       session = store.begin(custodyScope);
-    const refs = { key: session.capture(Buffer.from("inventado")) };
+    const refs = { key: session.capture(Buffer.from("invented")) };
     await expect(
       store.adapter(session, []).use(refs, () => {
         store.close();
@@ -16,7 +16,7 @@ for (const failure of [false, true])
 it("cerrar borra y rechaza dos usos concurrentes sin ejecutar mantenimiento sobre la base cerrada", async () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("inventado")) };
+  const refs = { key: session.capture(Buffer.from("invented")) };
   let resume = () => {};
   const wait = new Promise<void>(resolve => {
     resume = resolve;

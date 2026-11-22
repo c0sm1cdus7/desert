@@ -20,7 +20,7 @@ const uses: Readonly<Record<string, (tool: Tool) => unknown>> = {
   targets: tool => tool.has?.("sales/s1"),
   view: tool => tool.view("sales/s1"),
   summary: tool => tool.summary(),
-  words: tool => tool.find?.("s1"),
+  findWords: tool => tool.find?.("s1"),
   needs: tool => tool.notices?.(),
   today: tool => tool.acts.register?.today?.(),
   datum: tool => tool.acts.register?.datum?.(),

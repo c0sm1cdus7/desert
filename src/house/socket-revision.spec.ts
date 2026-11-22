@@ -46,9 +46,9 @@ it.each(["constructor", "toString", "__proto__", "hasOwnProperty"])(
     try {
       const c = await f.client("beto-terminal");
       const before = f.house().tools.state().through;
-      c.send({ tipo: "defecto", tool: "payments", target: "payments", option });
-      expect(await c.until(() => c.messages.some(m => m.tipo === "rechazo"))).toBe(true);
-      expect(c.messages.at(-1)).toMatchObject({ tipo: "rechazo", motivo: toolTexts.unknown });
+      c.send({ type: "default", tool: "payments", target: "payments", option });
+      expect(await c.until(() => c.messages.some(m => m.type === "rejection"))).toBe(true);
+      expect(c.messages.at(-1)).toMatchObject({ type: "rejection", reason: toolTexts.unknown });
       expect(f.house().tools.state().through).toBe(before);
     } finally {
       await f.close();
@@ -61,16 +61,16 @@ it("N8: two thousand cheap requests have a per-connection quota and visible refu
   try {
     const c = await f.client("beto-terminal");
     const before = f.house().tools.state().through;
-    for (let i = 0; i < 2000; i++) c.send({ tipo: "defecto", tool: "payments", target: "payments", option: "receive" });
+    for (let i = 0; i < 2000; i++) c.send({ type: "default", tool: "payments", target: "payments", option: "receive" });
     expect(
       await c.until(
-        () => c.messages.filter(m => m.tipo === "respuesta" || m.tipo === "rechazo").length === 2000,
+        () => c.messages.filter(m => m.type === "response" || m.type === "rejection").length === 2000,
         30000,
       ),
     ).toBe(true);
-    expect(c.messages.filter(m => m.tipo === "respuesta")).toHaveLength(32);
-    expect(c.messages.filter(m => m.tipo === "rechazo")).toHaveLength(1968);
-    expect(c.messages.filter(m => m.tipo === "rechazo").every(m => m.motivo === socketTexts.quota)).toBe(true);
+    expect(c.messages.filter(m => m.type === "response")).toHaveLength(32);
+    expect(c.messages.filter(m => m.type === "rejection")).toHaveLength(1968);
+    expect(c.messages.filter(m => m.type === "rejection").every(m => m.reason === socketTexts.quota)).toBe(true);
     expect(
       f
         .house()
@@ -78,8 +78,8 @@ it("N8: two thousand cheap requests have a per-connection quota and visible refu
         .entries.filter(e => e.seq > before && e.data.author === "beto" && e.data.text === toolTexts.baseFailure),
     ).toHaveLength(32);
     const other = await f.client("ana-terminal");
-    other.send({ tipo: "leer", qué: "catalogo", id: "other" });
-    expect(await other.until(() => other.messages.some(m => m.tipo === "respuesta" && m.id === "other"))).toBe(true);
+    other.send({ type: "read", what: "catalog", id: "other" });
+    expect(await other.until(() => other.messages.some(m => m.type === "response" && m.id === "other"))).toBe(true);
   } finally {
     await f.close();
   }

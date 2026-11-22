@@ -123,8 +123,8 @@ export function defaultsIn(schema: unknown, path = "$"): void {
  * the provider's cases cover them, in its own gate, so the consumer needs no case of its own. */
 function contractCauses<X extends Program>(program: Composition<X>, aim: Aim<X>): readonly string[] {
   const packages = program.contractSetup ? (packagesForContracts(program.contractSetup) ?? []) : [];
-  const requests = Object.values(packages.find(each => each.id === aim.tool.id)?.pide ?? {});
-  const refusals = requests.flatMap(request => Object.values(request.acciones).map(action => action.rechazos));
+  const requests = Object.values(packages.find(each => each.id === aim.tool.id)?.requests ?? {});
+  const refusals = requests.flatMap(request => Object.values(request.actions).map(action => action.rejections));
   return aim.act.refuses.filter(reason => refusals.some(schema => Value.Check(schema, { reason })));
 }
 /** What an act declares has to add up: a case the house accepts, and a case for each cause it may refuse with. */

@@ -64,24 +64,24 @@ class Connection<X extends Program> implements SocketConnection<X> {
         this.view.setStatus("connecting");
         if (!this.reported) process.stderr.write(`${socketTexts.stateMismatch}\n`);
         this.reported = true;
-        this.stream?.write(clientFrame({ tipo: "sincronizar" }));
+        this.stream?.write(clientFrame({ type: "sync" }));
         return false;
       }
     }
-    if (value.tipo === "estado") this.sequence = value.seq;
+    if (value.type === "state") this.sequence = value.seq;
     this.view.metadata(value);
     this.listeners.forEach(listener => listener(value));
     this.notice(value);
-    if (value.tipo === "cortado" || (value.tipo === "rechazo" && !value.id)) this.close();
-    else if (value.tipo === "cerrando") {
+    if (value.type === "cut" || (value.type === "rejection" && !value.id)) this.close();
+    else if (value.type === "closing") {
       this.view.setStatus("signal-lost");
       this.stream?.destroy();
     }
     return false;
   }
   private notice(message: ServerMessage) {
-    if (message.tipo === "cortado") process.stderr.write(`${message.motivo}\n`);
-    if (message.tipo !== "rechazo" || message.motivo !== socketTexts.quota) return;
+    if (message.type === "cut") process.stderr.write(`${message.reason}\n`);
+    if (message.type !== "rejection" || message.reason !== socketTexts.quota) return;
     const now = performance.now();
     if (now - this.quotaNotice < socketLimits.requestMs) return;
     this.quotaNotice = now;

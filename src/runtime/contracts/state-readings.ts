@@ -11,10 +11,10 @@ export function stateReadings(
   consumer: string,
   registry: () => ToolRegistry<Program>,
 ): ((state: State<Program>) => ContractReadings) | undefined {
-  const requests = Object.entries(packages.find(program => program.id === consumer)?.pide ?? {}).flatMap(
+  const requests = Object.entries(packages.find(program => program.id === consumer)?.requests ?? {}).flatMap(
     ([name, request]) => {
-      const provider = packages.find(program => Object.hasOwn(program.ofrece, name));
-      const offer = provider?.ofrece[name];
+      const provider = packages.find(program => Object.hasOwn(program.offers, name));
+      const offer = provider?.offers[name];
       return provider && offer ? [{ name, request, provider, offer }] : [];
     },
   );
@@ -23,13 +23,13 @@ export function stateReadings(
     Object.fromEntries(
       requests.map(({ name, request, provider, offer }): [string, ContractReader] => {
         const objects = Object.fromEntries(
-          Object.entries(request.objetos).map(([object, need]) => [
+          Object.entries(request.objects).map(([object, need]) => [
             object,
-            (key: unknown) => projection(provider, offer.objetos[object], need, state, key),
+            (key: unknown) => projection(provider, offer.objects[object], need, state, key),
           ]),
         );
         const can = (action: string) => {
-          const route = Object.hasOwn(request.acciones, action) ? offer.acciones[action]?.ruta : undefined;
+          const route = Object.hasOwn(request.actions, action) ? offer.actions[action]?.route : undefined;
           return route !== undefined && allowedAct(state.house, state.by, provider.id, route, registry());
         };
         return [name, Object.assign(objects, { can })];

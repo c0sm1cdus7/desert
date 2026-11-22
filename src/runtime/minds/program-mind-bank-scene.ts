@@ -20,7 +20,7 @@ export async function runProgramMindScene(
     house.prepare(definition, card, scene);
     minds = startModelMinds(
       house,
-      { asistentes: false, programas: [definition.actor.slice(5)] },
+      { assistants: false, programs: [definition.actor.slice(5)] },
       {
         ...options,
         definitions: [definition],

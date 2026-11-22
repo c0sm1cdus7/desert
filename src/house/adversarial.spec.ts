@@ -21,26 +21,23 @@ const open = (acts = desk.acts) => {
 const nothing = object({});
 
 it("A1: only identities receive program own acts; a mind receives its scene", async () => {
-  const programOwn = ownAct<Shop, typeof nothing>(
-    "me",
-    "programa-propio",
-    { input: nothing, purpose: "x" },
-    (_i, { by }) => accepted(effect("scene", { general: `escrito por ${by}` }, by)),
+  const programOwn = ownAct<Shop, typeof nothing>("me", "own-program", { input: nothing, purpose: "x" }, (_i, { by }) =>
+    accepted(effect("scene", { general: `escrito por ${by}` }, by)),
   );
   const nestedOwn = toolAct<Shop, typeof nothing>(
     nothing,
     async (_input, context) =>
-      (await context.execute?.({ act: "programa-propio", input: {} })) ?? { status: "inconclusive" },
+      (await context.execute?.({ act: "own-program", input: {} })) ?? { status: "inconclusive" },
   );
   const rig = shopRig({
     registry: [...shopRegistry, { ...desk, acts: { ...desk.acts, nestedOwn } }],
     own: () => [programOwn],
   });
   rigs.push(rig);
-  expect(allowedAct(rig.state().house, "mind:desk", "desk", "programa-propio")).toBe(false);
-  for (const acts of [undefined, [], null, ["programa-propio"]]) {
+  expect(allowedAct(rig.state().house, "mind:desk", "desk", "own-program")).toBe(false);
+  for (const acts of [undefined, [], null, ["own-program"]]) {
     if (acts !== undefined) kit(rig, "mind:desk", acts);
-    expect(rig.act("mind:desk", "programa-propio", {})).toMatchObject({
+    expect(rig.act("mind:desk", "own-program", {})).toMatchObject({
       status: "rejected",
       reason: toolTexts.unknown,
     });
@@ -52,7 +49,7 @@ it("A1: only identities receive program own acts; a mind receives its scene", as
   });
   expect(rig.state().house.scenes.has("mind:desk")).toBe(false);
   expect(rig.act("mind:desk", "scene", { general: "Mi escena" }).status).toBe("accepted");
-  expect(rig.act("beto", "programa-propio", {})).toMatchObject({ status: "rejected", effects: [] });
+  expect(rig.act("beto", "own-program", {})).toMatchObject({ status: "rejected", effects: [] });
   expect(rig.state().house.scenes.has("beto")).toBe(false);
 });
 

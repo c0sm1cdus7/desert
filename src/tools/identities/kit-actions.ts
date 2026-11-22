@@ -1,6 +1,6 @@
 // Declara cómo dar y sacar programas, herramientas y acciones del kit con nombres visibles.
 import { holderKit } from "../../house/kit-history.ts";
-import { actionSelection, covers, herramientaDe, kitLayout } from "../../house/kit-selection.ts";
+import { actionSelection, covers, toolOf, kitLayout } from "../../house/kit-selection.ts";
 import { object } from "../../fields/visible-text.ts";
 import { oneOf, option } from "../../fields/fields.ts";
 import { allowedAct } from "../../house/kit.ts";
@@ -44,7 +44,7 @@ function kitAction<X extends Program>(tool: Tool<X>, key: string, otherMind: boo
   const saved = words.saved(label, action !== undefined ? "action" : folderLevel);
   return programAct<X, typeof input>({
     name: label.toLowerCase(),
-    enter: "guardar",
+    enter: words.kitEnter,
     purpose: words.kitPurpose,
     key,
     on: "thing",
@@ -83,11 +83,11 @@ export function kitActions<X extends Program>(registry: ToolRegistry<X>): Readon
     // Every tool mind may hold a talk program (signed 20/11), so only other programs can refuse another mind.
     const otherMind = catalog.length > 1 && !tool.talks;
     acts[kitAct(tool.id)] = kitAction(tool, "t", otherMind);
-    const groups = [...new Set(Object.keys(tool.acts).map(action => herramientaDe(tool.id, action, layout)))];
+    const groups = [...new Set(Object.keys(tool.acts).map(action => toolOf(tool.id, action, layout)))];
     for (const group of groups) {
       acts[kitAct(`${tool.id}/${group}`)] = kitAction(tool, "t", otherMind, undefined, group);
       Object.keys(tool.acts)
-        .filter(action => herramientaDe(tool.id, action, layout) === group)
+        .filter(action => toolOf(tool.id, action, layout) === group)
         .forEach((action, i) => {
           acts[kitAct(tool.id, action)] = kitAction(tool, i < 9 ? String(i + 1) : "", otherMind, action, group);
         });
@@ -98,9 +98,7 @@ export function kitActions<X extends Program>(registry: ToolRegistry<X>): Readon
 export const kitMenus = <X extends Program>(registry: ToolRegistry<X>) =>
   Object.fromEntries(
     kitCatalog(registry).flatMap(tool => {
-      const groups = [
-        ...new Set(Object.keys(tool.acts).map(action => herramientaDe(tool.id, action, kitLayout(registry)))),
-      ];
+      const groups = [...new Set(Object.keys(tool.acts).map(action => toolOf(tool.id, action, kitLayout(registry))))];
       return [tool.id, ...groups.map(group => `${tool.id}/${group}`)].map(id => [
         kitMenu(id),
         {

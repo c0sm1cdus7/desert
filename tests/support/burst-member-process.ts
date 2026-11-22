@@ -7,17 +7,17 @@ const transport = path ?? Duplex.from({ readable: process.stdin, writable: proce
 const client = await probe(transport);
 client.hello("beto-terminal");
 await client.until(() => client.states.length === 1, 30000);
-client.send({ tipo: "acto", id: "attend", act: "attend", input: { target: "payments" }, through: 0 });
+client.send({ type: "act", id: "attend", act: "attend", input: { target: "payments" }, through: 0 });
 await client.result("attend");
 process.send?.({ ready: true });
 process.on("message", () => {
   const frames = [];
   for (let i = 0; i < 2000; i++)
-    frames.push(clientFrame({ tipo: "defecto", tool: "payments", target: "payments", option: "receive" }));
+    frames.push(clientFrame({ type: "default", tool: "payments", target: "payments", option: "receive" }));
   for (let i = 0; i < 300; i++)
     frames.push(
       clientFrame({
-        tipo: "acto",
+        type: "act",
         id: `p${i}`,
         act: "receive",
         target: "payments",
@@ -27,12 +27,12 @@ process.on("message", () => {
     );
   client.socket.write(Buffer.concat(frames));
   void client
-    .until(() => client.messages.filter(m => m.tipo === "resultado").length === 301, 60000)
+    .until(() => client.messages.filter(m => m.type === "result").length === 301, 60000)
     .then(() => {
-      const results = client.messages.filter(m => m.tipo === "resultado" && m.id !== "attend");
+      const results = client.messages.filter(m => m.type === "result" && m.id !== "attend");
       process.send?.({
         payments: results.length,
-        accepted: results.filter(m => m.tipo === "resultado" && m.status === "accepted").length,
+        accepted: results.filter(m => m.type === "result" && m.status === "accepted").length,
         closed: client.closed(),
       });
     });

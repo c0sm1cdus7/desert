@@ -31,7 +31,7 @@ it("several acts in one answer that ends with a continuation close the turn in o
     journey: ({ journey }) => [addAct, addAct, waitAct(journey ?? "")],
   });
   expect(seen.filter(each => each.journey)).toHaveLength(1);
-  expect(house.tools.state().tools.notas.count).toBe(3);
+  expect(house.tools.state().tools.notes.count).toBe(3);
   expect(turnsOf(house, journey?.id).map(turn => turn.closed?.data)).toMatchObject([
     { outcome: "done", calls: 1, applied: [expect.any(String), expect.any(String), expect.any(String)] },
   ]);
@@ -40,7 +40,7 @@ it("several acts in one answer that ends with a continuation close the turn in o
 it("the call limit ends the turn failed, says so, and wakes the consciousness once", async () => {
   const { house, seen, journey } = await run({ consciousness: opensOnce, journey: () => [addAct] });
   expect(seen.filter(each => each.journey)).toHaveLength(12);
-  expect(house.tools.state().tools.notas.count).toBe(13);
+  expect(house.tools.state().tools.notes.count).toBe(13);
   expect(turnsOf(house, journey?.id).map(turn => turn.closed?.data)).toMatchObject([
     { outcome: "failed", calls: 12, reason: "call-limit" },
   ]);
@@ -69,7 +69,7 @@ it("a continuation before the last act is corrected before any act runs", async 
     consciousness: opensOnce,
     journey: ({ call, journey }) => (call === 1 ? [waitAct(journey ?? ""), addAct] : [waitAct(journey ?? "")]),
   });
-  expect(house.tools.state().tools.notas.count).toBe(1);
+  expect(house.tools.state().tools.notes.count).toBe(1);
   expect(turnsOf(house, journey?.id)[0]?.invalid.map(event => event.data.faults)).toEqual([
     [{ code: "continuation", path: "/acts/0" }],
   ]);
@@ -119,16 +119,16 @@ it("a journey frame keeps room for its turn's conversation, so a long thread sti
   house.bus.together(() => {
     for (let index = 0; index < 15; index++) {
       const turn = `old-${index}`;
-      house.bus.emit(effect("mind-turn-opened", { turn, wake: [] }, "mind:notas", [], journey.id));
+      house.bus.emit(effect("mind-turn-opened", { turn, wake: [] }, "mind:notes", [], journey.id));
       house.bus.emit(
-        effect("mind-scene", { turn, text: `${index} ${"x".repeat(3900)}` }, "mind:notas", [], journey.id),
+        effect("mind-scene", { turn, text: `${index} ${"x".repeat(3900)}` }, "mind:notes", [], journey.id),
       );
       house.bus.emit(
-        effect("mind-turn-closed", { turn, outcome: "done", calls: 1, applied: [] }, "mind:notas", [], journey.id),
+        effect("mind-turn-closed", { turn, outcome: "done", calls: 1, applied: [] }, "mind:notes", [], journey.id),
       );
     }
   });
-  house.bus.emit(effect("journey-resumed", { note: "Seguí" }, "mind:notas", [], journey.id));
+  house.bus.emit(effect("journey-resumed", { note: "Seguí" }, "mind:notes", [], journey.id));
   await (await house.minds)?.flush();
   const calls = seen.filter(each => each.journey === journey.id);
   expect(calls).toHaveLength(3);
@@ -142,11 +142,11 @@ it("the cut stays in the house scene after the consciousness answers, until the 
       throw new Error("provider down");
     },
   });
-  const general = house.tools.state().house.scenes.get("mind:notas")?.data.general ?? "";
+  const general = house.tools.state().house.scenes.get("mind:notes")?.data.general ?? "";
   expect(general).toContain("Se cortó un turno del journey «Anotar»: La llamada quedó incierta.");
   expect(general).toContain("Miro");
   // Writing the scene again keeps one line per cut, never a copy of it.
-  expect(withCuts(house.tools.state().house, "mind:notas", "es", general)).toBe(general);
+  expect(withCuts(house.tools.state().house, "mind:notes", "es", general)).toBe(general);
 });
 it("the scene lets the cut go once the resumed journey takes a turn", async () => {
   const { house } = await run({
@@ -159,7 +159,7 @@ it("the scene lets the cut go once the resumed journey takes a turn", async () =
       return [waitAct(journey ?? "")];
     },
   });
-  expect(house.tools.state().house.scenes.get("mind:notas")?.data.general).not.toContain("Se cortó");
+  expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).not.toContain("Se cortó");
 });
 it("a wait the old 90-second follow-up wrote after its turn wakes nothing, live or after a reopen", async () => {
   const f = programMindFixture();
@@ -172,12 +172,12 @@ it("a wait the old 90-second follow-up wrote after its turn wakes nothing, live 
   if (!journey) throw new Error("fixture.journey");
   const before = f.transport.mock.calls.length;
   const until = Date.now() - 1000;
-  const opened = first.bus.emit(effect("mind-turn-opened", { turn: "old", wake: [] }, "mind:notas", [], journey.id));
+  const opened = first.bus.emit(effect("mind-turn-opened", { turn: "old", wake: [] }, "mind:notes", [], journey.id));
   first.bus.together(() => {
     const data = { turn: "old", outcome: "done" as const, calls: 1, applied: [] };
-    first.bus.emit(effect("mind-turn-closed", data, "mind:notas", [opened.id], journey.id));
-    first.bus.emit(effect("journey-waiting", { what: "Sigo", until }, "mind:notas", [opened.id], journey.id));
-    first.bus.emit(effect("wake-at", { id: journey.id, at: until }, "mind:notas", [opened.id], journey.id));
+    first.bus.emit(effect("mind-turn-closed", data, "mind:notes", [opened.id], journey.id));
+    first.bus.emit(effect("journey-waiting", { what: "Sigo", until }, "mind:notes", [opened.id], journey.id));
+    first.bus.emit(effect("wake-at", { id: journey.id, at: until }, "mind:notes", [opened.id], journey.id));
   });
   await (await first.minds)?.flush();
   first.close();
@@ -188,12 +188,12 @@ it("a wait the old 90-second follow-up wrote after its turn wakes nothing, live 
 it("a scene the consciousness writes by its own act also keeps the cut first", async () => {
   const { house } = await run({
     consciousness: seen =>
-      seen.call === 2 ? [{ act: "scene", target: "mind:notas", input: { general: "Escena propia" } }] : opensOnce(seen),
+      seen.call === 2 ? [{ act: "scene", target: "mind:notes", input: { general: "Escena propia" } }] : opensOnce(seen),
     journey: () => {
       throw new Error("provider down");
     },
   });
-  expect(house.tools.state().house.scenes.get("mind:notas")?.data.general).toBe(
+  expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toBe(
     "Se cortó un turno del journey «Anotar»: La llamada quedó incierta. El turno se detuvo sin repetirla. " +
       "No se reintentó nada.\nEscena propia",
   );
@@ -209,13 +209,13 @@ it("a long goal of several lines takes one bounded scene line, which leaves once
     },
   });
   if (!journey) throw new Error("journey");
-  const cut = house.tools.state().house.scenes.get("mind:notas")?.data.general ?? "";
+  const cut = house.tools.state().house.scenes.get("mind:notes")?.data.general ?? "";
   const [line, ...rest] = cut.split("\n");
   expect(line).toMatch(/^Se cortó un turno del journey «Anotar la nota x+»: La llamada quedó incierta\./u);
   expect(line?.length).toBeLessThan(450);
   expect(rest).toEqual(["Miro"]);
-  expect(withCuts(house.tools.state().house, "mind:notas", "es", cut)).toBe(cut);
-  house.bus.emit(effect("journey-resumed", { note: "Probá otra vez" }, "mind:notas", [], journey.id));
+  expect(withCuts(house.tools.state().house, "mind:notes", "es", cut)).toBe(cut);
+  house.bus.emit(effect("journey-resumed", { note: "Probá otra vez" }, "mind:notes", [], journey.id));
   await (await house.minds)?.flush();
-  expect(house.tools.state().house.scenes.get("mind:notas")?.data.general).toBe("Miro");
+  expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toBe("Miro");
 });

@@ -18,8 +18,8 @@ export const programChecks = <X extends Program>(program: Composition<X>, shown:
     program.registry,
     "house",
     program.identities,
-    program.mentes?.asistentes,
-    program.mentes?.programas,
+    program.minds?.assistants,
+    program.minds?.programs,
   );
   const house = { ...program, registry };
   const surface = withPersonalWords(registry, withRulesWords(registry, withIdentityWords(registry, shown)));

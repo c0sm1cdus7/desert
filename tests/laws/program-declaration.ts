@@ -16,7 +16,7 @@ export function programDirectory(
   const array = access.parent;
   if (!ts.isArrayLiteralExpression(array)) return false;
   const property = array.parent;
-  if (!ts.isPropertyAssignment(property) || property.name.getText() !== "codigo") return false;
+  if (!ts.isPropertyAssignment(property) || property.name.getText() !== "code") return false;
   const metadata = property.parent;
   const call = metadata.parent;
   if (!ts.isCallExpression(call) || call.arguments[0] !== metadata) return false;

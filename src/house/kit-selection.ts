@@ -23,7 +23,7 @@ export type KitProgram = Readonly<{
 export type KitLayout = Readonly<Record<string, Readonly<Record<string, string>>>>;
 export const selectionKit = (selections: readonly Selection[]): SelectionKit => ({ version: 2, selections });
 /** Transitional port: a Tool is a program; its default historical tool has the same id. */
-export const herramientaDe = (program: string, action: string, layout: KitLayout = {}): string =>
+export const toolOf = (program: string, action: string, layout: KitLayout = {}): string =>
   layout[program]?.[action] ?? program;
 export const kitLayout = (registry: readonly KitProgram[]): KitLayout =>
   Object.fromEntries(
@@ -51,7 +51,7 @@ export const actionSelection = (
   action: string,
   layout: KitLayout = {},
 ): Extract<Selection, { kind: "action" }> => {
-  const tool = herramientaDe(program, action, layout);
+  const tool = toolOf(program, action, layout);
   return { kind: "action", program, tool, action: actionName(tool, action) };
 };
 export const selects = (kit: SelectionKit, program: string, tool: string, action: string): boolean =>
@@ -63,7 +63,7 @@ export function expandKit(kit: SelectionKit, registry: readonly KitProgram[]) {
   const layout = kitLayout(registry);
   return registry.flatMap(program => {
     const acts = Object.keys(program.acts ?? {}).filter(action =>
-      selects(kit, program.id, herramientaDe(program.id, action, layout), action),
+      selects(kit, program.id, toolOf(program.id, action, layout), action),
     );
     return acts.length ? [{ tool: program.id, acts }] : [];
   });

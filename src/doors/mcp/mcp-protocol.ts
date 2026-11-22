@@ -56,8 +56,6 @@ export function toolCall(params: unknown): { name: keyof typeof mcpInputs; args:
   if (name !== "read" && name !== "actions" && name !== "act" && name !== "wait")
     throw new RpcError(-32602, said.params);
   const args: unknown = params.arguments ?? {};
-  if (name !== "wait" && isRecord(args) && Object.hasOwn(args, "herramienta"))
-    throw new RpcError(-32602, said.programParameter);
   if (
     !isRecord(args) ||
     (args.target !== undefined && args.program === undefined) ||

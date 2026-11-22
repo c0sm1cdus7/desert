@@ -33,8 +33,8 @@ it("una unión malformada no deja su contenido en el diagnóstico", () => {
     Type.Object({ kind: Type.Literal("public"), value: Type.String() }),
   ]);
   const rig = fixture(shape);
-  expect(rig.set({ kind: "unknown", value: "dato-inventado" }).status).toBe("rejected");
-  expect(has(rig.facts(), "dato-inventado")).toBe(false);
+  expect(rig.set({ kind: "unknown", value: "datum-invented" }).status).toBe("rejected");
+  expect(has(rig.facts(), "datum-invented")).toBe(false);
 });
 it("dos acciones intercaladas reciben referencias distintas y conservan sus datos públicos", async () => {
   const release: (() => void)[] = [];
@@ -45,7 +45,7 @@ it("dos acciones intercaladas reciben referencias distintas y conservan sus dato
       new Promise<ActResult<P>>(resolve => {
         const value = String(field(input, "value"));
         expect(ref(value)).toBe(true);
-        const other = index++ === 0 ? "segundo-dato" : "primer-dato";
+        const other = index++ === 0 ? "second-datum" : "first-datum";
         release.push(() =>
           resolve({
             status: "accepted",
@@ -55,35 +55,35 @@ it("dos acciones intercaladas reciben referencias distintas y conservan sus dato
         );
       }),
   );
-  const a = rig.set({ value: "primer-dato" });
-  const b = rig.set({ value: "segundo-dato" });
+  const a = rig.set({ value: "first-datum" });
+  const b = rig.set({ value: "second-datum" });
   expect(a.status === "processing" && b.status === "processing").toBe(true);
   release[1]?.();
   release[0]?.();
   if (a.status !== "processing" || b.status !== "processing") throw new Error("No inició");
   const [first, second] = await Promise.all([a.completion, b.completion]);
-  expect(has(first, "primer-dato")).toBe(false);
-  expect(has(first, "segundo-dato")).toBe(true);
-  expect(has(second, "segundo-dato")).toBe(false);
-  expect(has(second, "primer-dato")).toBe(true);
+  expect(has(first, "first-datum")).toBe(false);
+  expect(has(first, "second-datum")).toBe(true);
+  expect(has(second, "second-datum")).toBe(false);
+  expect(has(second, "first-datum")).toBe(true);
   rig.ports().act({ act: "attend", input: { target: "other" } }, 0);
-  expect(has(rig.set({ value: "primer-dato" }, "other"), "primer-dato")).toBe(true);
+  expect(has(rig.set({ value: "first-datum" }, "other"), "first-datum")).toBe(true);
   rig.restart();
   const entry = rig.house.bus.emit(
-    effect("tool-entry", { tool: "vault", target: "vault", author: "ana", text: "primer-dato" }, "ana"),
+    effect("tool-entry", { tool: "vault", target: "vault", author: "ana", text: "first-datum" }, "ana"),
   );
-  expect(entry.data.text).toBe("primer-dato");
+  expect(entry.data.text).toBe("first-datum");
 });
 it("conserva lo escrito al reiniciar y da referencias nuevas en cada casa", () => {
   const a = fixture();
   const b = fixture();
-  a.set({ value: "dato-inventado" });
-  b.set({ value: "dato-inventado" });
+  a.set({ value: "datum-invented" });
+  b.set({ value: "datum-invented" });
   const first = field(inputOf(a), "value");
   expect(ref(first) && first !== field(inputOf(b), "value")).toBe(true);
   a.restart();
   expect(field(inputOf(a), "value")).toBe(first);
-  a.set({ value: "dato-inventado" });
+  a.set({ value: "datum-invented" });
   expect(field(inputOf(a), "value")).not.toBe(first);
 });
 it("resuelve acciones propias, destinos de cosas y llamadas anidadas", async () => {

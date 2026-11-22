@@ -10,7 +10,7 @@ import type { ContractPackage } from "../../tools/contracts/package-contracts.ts
 import { validateContractPrograms } from "../contracts/validate-contracts.ts";
 import { stateReadings } from "../contracts/state-readings.ts";
 export type ContractualProgram = InstallableProgram &
-  Partial<Pick<ContractPackage, "artifact" | "ofrece" | "pide" | "proyectores">>;
+  Partial<Pick<ContractPackage, "artifact" | "offers" | "requests" | "projectors">>;
 export type ContractCertification = Readonly<{
   build: ContractBuild;
   evidence?: readonly ContractEvidence[];
@@ -21,18 +21,16 @@ export function programContracts(programs: readonly ContractualProgram[]): reado
     id: program.id,
     version: program.version,
     desert: program.desert,
-    artifact: program.artifact ?? codeProjectionVersion(program.codigo).value,
-    herramientas: Object.fromEntries(
-      Object.entries(program.herramientas).map(([name, group]) => [name, Object.keys(group.acts)]),
-    ),
-    hechos: program.hechos.map(fact => fact.nombre),
-    proyectores: program.proyectores ?? {},
-    ofrece: program.ofrece ?? {},
-    pide: program.pide ?? {},
+    artifact: program.artifact ?? codeProjectionVersion(program.code).value,
+    tools: Object.fromEntries(Object.entries(program.tools).map(([name, group]) => [name, Object.keys(group.acts)])),
+    facts: program.facts.map(fact => fact.kind),
+    projectors: program.projectors ?? {},
+    offers: program.offers ?? {},
+    requests: program.requests ?? {},
   }));
 }
 export function distributionContracts(programs: readonly ContractualProgram[], certification?: ContractCertification) {
-  if (!programs.some(program => program.ofrece !== undefined || program.pide !== undefined))
+  if (!programs.some(program => program.offers !== undefined || program.requests !== undefined))
     return { errors: [], rows: [] };
   return validateContractPrograms(
     programContracts(programs),
@@ -50,9 +48,9 @@ export function distributionContractIssues(
     const [first = "", ...rest] = error.split(":");
     const detail = rest.join(":");
     // El núcleo ya informa estos motivos; no duplicamos sus caminos con el formato contractual.
-    if (["contrato-desert", "id-repetido", "hecho-repetido", "hecho-ajeno"].includes(first)) return [];
+    if (["desert-contract", "duplicate-id", "duplicate-fact", "foreign-fact"].includes(first)) return [];
     return [
-      ["sin-proveedor", "dos-o-mas-proveedores", "ciclo"].includes(first)
+      ["no-provider", "multiple-providers", "cycle"].includes(first)
         ? { path: detail, reason: first }
         : { path: first, reason: detail },
     ];

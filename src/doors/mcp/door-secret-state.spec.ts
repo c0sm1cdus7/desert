@@ -40,7 +40,7 @@ it("never transfers secret material or door keys in initial state, differences o
       );
       expect([key, material, value].some(secret => read.body.includes(secret))).toBe(false);
     }
-    client.send({ tipo: "sincronizar" });
+    client.send({ type: "sync" });
     await new Promise(resolve => setTimeout(resolve, 30));
     expect(has(client.state(), material)).toBe(false);
   } finally {

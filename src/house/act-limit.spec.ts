@@ -39,7 +39,7 @@ function opened() {
     const peer = await probe(near);
     door.accept(far);
     peer.hello("ana-terminal");
-    await peer.until(() => peer.messages.some(m => m.tipo === "bienvenida"));
+    await peer.until(() => peer.messages.some(m => m.type === "welcome"));
     return peer;
   };
   return { mind, rig, client };
@@ -56,10 +56,10 @@ it("the mind takes an act at the exact bound and refuses one byte more in view, 
 it("the same act at the exact bound enters by the terminal; a frame one byte past its limit cuts only it", async () => {
   const { rig, client } = opened();
   const ana = await client();
-  ana.send({ tipo: "acto", id: "mirar", act: "attend", input: { target: "desk" }, through: 0 });
-  expect((await ana.result("mirar"))?.status).toBe("accepted");
+  ana.send({ type: "act", id: "look", act: "attend", input: { target: "desk" }, through: 0 });
+  expect((await ana.result("look"))?.status).toBe("accepted");
   const border = sized(actLimits.inputBytes);
-  const message = { tipo: "acto", id: "borde", ...border, through: 0 } as const;
+  const message = { type: "act", id: "borde", ...border, through: 0 } as const;
   const frame = clientFrame(message);
   expect(frame.length - 5).toBeLessThanOrEqual(socketLimits.json);
   expect(frame.length - 5 - actLimits.inputBytes).toBeLessThan(64 * 1024);
@@ -74,16 +74,16 @@ it("the same act at the exact bound enters by the terminal; a frame one byte pas
   other.socket.write(header);
   expect(await other.until(other.closed)).toBe(true);
   expect(rig.house().tools.state().through).toBe(before);
-  ana.send({ tipo: "acto", id: "sigue", act: "attend", input: { target: "desk" }, through: 0 });
+  ana.send({ type: "act", id: "sigue", act: "attend", input: { target: "desk" }, through: 0 });
   expect((await ana.result("sigue"))?.status).toBe("accepted");
 });
 it("today the terminal still carries an act between the act bound and the frame limit (contracts step)", async () => {
   const { mind, client } = opened();
   const ana = await client();
-  ana.send({ tipo: "acto", id: "mirar", act: "attend", input: { target: "desk" }, through: 0 });
-  await ana.result("mirar");
+  ana.send({ type: "act", id: "look", act: "attend", input: { target: "desk" }, through: 0 });
+  await ana.result("look");
   const over = sized(actLimits.inputBytes + 1);
   expect(await mind.startup().act(over)).toStrictEqual({ status: "rejected", reason: toolTexts.invalid });
-  ana.send({ tipo: "acto", id: "pasado", ...over, through: 0 });
+  ana.send({ type: "act", id: "pasado", ...over, through: 0 });
   expect(await ana.result("pasado")).toMatchObject({ status: "accepted" });
 });

@@ -33,7 +33,7 @@ it("un error transformado del adaptador nunca llega a acción, resultado ni diag
   const rig = setup(
     {
       send: toolAct(Type.Object({}), async (_, context) => {
-        await call(context, "inspect", { key: "secret:inventada" });
+        await call(context, "inspect", { key: "secret:invented" });
         return { status: "accepted" };
       }),
     },

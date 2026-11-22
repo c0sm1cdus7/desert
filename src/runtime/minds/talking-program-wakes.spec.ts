@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { effect } from "../../house/facts.ts";
 import { explicitKit, kitLayout } from "../../house/kit-selection.ts";
-import { componer } from "../distributions/compose.ts";
+import { compose } from "../distributions/compose.ts";
 import { startHouse } from "../house-runtime.ts";
 import { sampleOptions } from "../../../tests/support/installable-program.ts";
 import { requestProgram, requestKit } from "../../../tests/support/request-program.ts";
@@ -28,10 +28,10 @@ afterEach(() => {
 });
 const card = { model: "claude-haiku-5-5", effort: "low" };
 const distribution = () =>
-  componer({
+  compose({
     ...sampleOptions,
-    programas: [requestProgram(), talkProgram],
-    mentes: { asistentes: false, programas: ["notes", "talk"] },
+    programs: [requestProgram(), talkProgram],
+    minds: { assistants: false, programs: ["notes", "talk"] },
   });
 /** A house with the notes mind and the talk program's own mind; `woke` lists, call by call, whose turn was open. */
 async function talking() {

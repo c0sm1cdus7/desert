@@ -111,7 +111,7 @@ it("answers notifications, ping and the fixed tool list without initialization s
 it.each([
   [[], -32600],
   [{ jsonrpc: "1.0", id: 1, method: "ping" }, -32600],
-  [{ jsonrpc: "2.0", id: 1, method: "apagar" }, -32601],
+  [{ jsonrpc: "2.0", id: 1, method: "shutdown" }, -32601],
   [{ jsonrpc: "2.0", id: 1, method: "initialize", params: {} }, -32602],
   [{ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "act", arguments: {} } }, -32602],
 ])("rejects invalid protocol messages %#", async (message, code) => {

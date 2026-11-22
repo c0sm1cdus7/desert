@@ -67,7 +67,7 @@ it("g01 c2: a promised body expires after hello, including a later partial frame
     header.writeUInt32BE(1024 * 1024);
     const output = vi.spyOn(process.stderr, "write").mockReturnValue(true);
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
-    c.socket.write(Buffer.concat([clientFrame({ tipo: "leer", id: "cat", qué: "catalogo" }), header]));
+    c.socket.write(Buffer.concat([clientFrame({ type: "read", id: "cat", what: "catalog" }), header]));
     await vi.advanceTimersByTimeAsync(socketLimits.frameMs);
     expect(c.closed()).toBe(true);
     vi.useRealTimers();
@@ -77,7 +77,7 @@ it("g01 c2: a promised body expires after hello, including a later partial frame
   }
 }, 7000);
 it("g01 l: reading one byte at a time never concatenates the accumulated frame", () => {
-  const bytes = clientFrame({ tipo: "acto", id: "large", act: "prefer", input: "a".repeat(32_000), through: 0 });
+  const bytes = clientFrame({ type: "act", id: "large", act: "prefer", input: "a".repeat(32_000), through: 0 });
   const concat = vi.spyOn(Buffer, "concat").mockImplementation(() => {
     throw new Error("A frame prefix was copied");
   });
@@ -106,8 +106,8 @@ it("g09: 300 unfinished introductions stay under 256 MiB RSS growth and release 
     expect(pairs.filter(pair => !pair[1].destroyed)).toHaveLength(socketLimits.unintroduced);
     expect(process.memoryUsage().rss - start).toBeLessThan(256 * 1024 * 1024);
     expect(report).toHaveBeenCalledWith(`${socketTexts.busy}\n`);
-    good.send({ tipo: "leer", id: "cat", qué: "catalogo" });
-    expect(await good.until(() => good.messages.some(m => m.tipo === "respuesta"))).toBe(true);
+    good.send({ type: "read", id: "cat", what: "catalog" });
+    expect(await good.until(() => good.messages.some(m => m.type === "response"))).toBe(true);
     pairs.forEach(pair => pair.forEach(s => s.destroy()));
     await delay(10);
     expect((await f.client("ana-terminal")).states).toHaveLength(1);

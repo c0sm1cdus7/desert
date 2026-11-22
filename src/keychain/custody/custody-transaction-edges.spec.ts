@@ -132,8 +132,8 @@ it("si falla la segunda fila del agregado SQLite descarta también la primera y 
 it("un reemplazo directo dentro de un lote rechazado no purga la versión que vuelve a quedar vigente", async () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
-  const first = { key: session.capture(Buffer.from("uno")) },
-    next = { key: session.capture(Buffer.from("dos")) };
+  const first = { key: session.capture(Buffer.from("one")) },
+    next = { key: session.capture(Buffer.from("two")) };
   session.replace("signing", first, 0);
   expect(() =>
     store.deferCleanup(() => {
@@ -144,5 +144,5 @@ it("un reemplazo directo dentro de un lote rechazado no purga la versión que vu
   expect(session.current("signing")?.refs).toEqual(first);
   await expect(
     store.adapter(session, ["signing"]).use(first, values => Buffer.from(values.key ?? []).toString()),
-  ).resolves.toBe("uno");
+  ).resolves.toBe("one");
 });

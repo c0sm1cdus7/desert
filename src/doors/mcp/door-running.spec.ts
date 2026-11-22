@@ -99,9 +99,9 @@ it.each([
         const peer = await probe(client);
         socket.accept(server);
         peer.hello(key);
-        expect(await peer.until(() => peer.messages.some(message => message.tipo === "bienvenida"))).toBe(true);
+        expect(await peer.until(() => peer.messages.some(message => message.type === "welcome"))).toBe(true);
         peer.send({
-          tipo: "acto",
+          type: "act",
           id: "attend",
           act: "attend",
           input: { target: "sales" },
@@ -109,7 +109,7 @@ it.each([
         });
         await peer.result("attend");
         peer.send({
-          tipo: "acto",
+          type: "act",
           id: "register",
           act: "register",
           target: "sales",

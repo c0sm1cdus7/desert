@@ -38,13 +38,13 @@ for (const mode of ["factory", "sync", "async", "thenable"] as const)
       },
     };
     const { lease } = composed(adapter);
-    await expect(call(lease, "inspect", { key: "secret:inventada" })).rejects.toMatchObject({
+    await expect(call(lease, "inspect", { key: "secret:invented" })).rejects.toMatchObject({
       code: "E-ADAPTER-FAILED",
       message: "E-ADAPTER-FAILED",
       stack: "E-ADAPTER-FAILED",
     });
     try {
-      await call(lease, "inspect", { key: "secret:inventada" });
+      await call(lease, "inspect", { key: "secret:invented" });
     } catch (error) {
       expect(error).not.toHaveProperty("cause");
       expect(String(error)).not.toContain(synthetic);
@@ -64,7 +64,7 @@ for (const result of [
 ])
   it("rechaza salida inválida, campos extra, capacidades y getters sin transportarlos", async () => {
     const { lease } = composed({ ...signer, open: () => ({ inspect: () => result }) });
-    await expect(call(lease, "inspect", { key: "secret:inventada" })).rejects.toThrow("E-ADAPTER-OUTPUT");
+    await expect(call(lease, "inspect", { key: "secret:invented" })).rejects.toThrow("E-ADAPTER-OUTPUT");
     lease.close();
   });
 it("valida entrada antes de abrir y no ofrece métodos que la fábrica no declaró", async () => {
@@ -80,7 +80,7 @@ it("valida entrada antes de abrir y no ofrece métodos que la fábrica no declar
     },
   });
   await expect(call(lease, "inspect", { key: 42 })).rejects.toThrow("E-ADAPTER-INPUT");
-  await expect(call(lease, "inspect", { key: "secret:inventada", extra: true })).rejects.toThrow("E-ADAPTER-INPUT");
+  await expect(call(lease, "inspect", { key: "secret:invented", extra: true })).rejects.toThrow("E-ADAPTER-INPUT");
   expect(opens).toBe(0);
   expect(lease.ports.signer).not.toHaveProperty("hidden");
   lease.close();

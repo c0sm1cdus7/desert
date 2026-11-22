@@ -16,7 +16,7 @@ vi.mock("../../house/own-acts.ts", async importOriginal => {
 import { adapterHouse } from "../../../tests/support/adapter-house.ts";
 import { imported, call } from "../../../tests/support/declared-adapters.ts";
 import type { Shop } from "../../../tests/support/shop.ts";
-import { firmar, inspectionShown, declaredRegistry } from "../../../tests/support/kept-inspection.ts";
+import { sign, inspectionShown, declaredRegistry } from "../../../tests/support/kept-inspection.ts";
 import { toolAct } from "../../tools/act-definition.ts";
 import type { Composition } from "../../tools/promises.ts";
 import { MemoryHouseKeys } from "./house-keys.ts";
@@ -35,7 +35,7 @@ import * as vault from "./open-secret-vault.ts";
 for (const bound of [true, false])
   for (const withKeys of [false, true])
     it(`B3: abre y recorre antes y después de renovar, vínculos=${bound}, proveedor=${withKeys}`, async () => {
-      const rig = adapterHouse({ rotate: firmar }, { view: () => "{}" });
+      const rig = adapterHouse({ rotate: sign }, { view: () => "{}" });
       if (bound) expect((await rig.act("rotate")).status).toBe("accepted");
       rig.close();
       const folder = mkdtempSync(join(tmpdir(), "kept-custody-"));

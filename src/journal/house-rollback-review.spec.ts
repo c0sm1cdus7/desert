@@ -16,23 +16,23 @@ it("N2 por el reloj (escritura de primer nivel real): el oyente del woke abre un
   let r: Promise<unknown> | undefined;
   const bus = desk.startup().bus;
   bus.on("wake-at", e => {
-    if (e.data.id === "desk:dos") {
+    if (e.data.id === "desk:two") {
       heard = e.id;
       r = desk.act();
     }
   });
   bus.on("woke", e => {
-    if (e.data.id !== "desk:uno") return;
+    if (e.data.id !== "desk:one") return;
     try {
       bus.together(() => {
-        bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:dos", at: null } });
+        bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:two", at: null } });
         throw new Error("el programa se arrepiente");
       });
     } catch {
       /* atrapado */
     }
   });
-  bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:uno", at: Date.now() + 5 } });
+  bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:one", at: Date.now() + 5 } });
   await tick(80);
   const facts = rig.facts();
   expect(heard).toBe("");
@@ -49,13 +49,13 @@ it("N2 control: el mismo together desde un temporizador (sin entrega en curso)",
   let r: Promise<unknown> | undefined;
   const bus = desk.startup().bus;
   bus.on("wake-at", e => {
-    if (e.data.id === "desk:dos") r = desk.act();
+    if (e.data.id === "desk:two") r = desk.act();
   });
   await new Promise<void>(resolve =>
     setTimeout(() => {
       try {
         bus.together(() => {
-          bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:dos", at: null } });
+          bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:two", at: null } });
           throw new Error("x");
         });
       } catch {
@@ -77,7 +77,7 @@ it("N5programa: together interno atrapado dentro del acto de una persona", () =>
   let heard = "";
   let r: Promise<unknown> | undefined;
   bus.on("wake-at", e => {
-    if (e.data.id === "desk:medio") {
+    if (e.data.id === "desk:middle") {
       heard = e.id;
       r = desk.act();
     }
@@ -86,7 +86,7 @@ it("N5programa: together interno atrapado dentro del acto de una persona", () =>
     if (e.by !== "ana") return;
     try {
       bus.together(() => {
-        bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:medio", at: null } });
+        bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:middle", at: null } });
         bus.emit({ layer: "house", kind: "wake-at", data: { id: "other:ajeno", at: null } });
       });
     } catch {
@@ -94,12 +94,12 @@ it("N5programa: together interno atrapado dentro del acto de una persona", () =>
     }
   });
   rig.attend("ana", "sales");
-  const persona = rig.act("ana", "register", { sale: "s", total: 1 }, "sales");
+  const person = rig.act("ana", "register", { sale: "s", total: 1 }, "sales");
   const facts = rig.facts();
-  expect(persona.status).toBe("accepted");
+  expect(person.status).toBe("accepted");
   expect(heard).toBe("");
   expect(r).toBeUndefined();
-  expect(facts.filter(e => e.kind === "wake-at" && e.data.id === "desk:medio")).toEqual([]);
+  expect(facts.filter(e => e.kind === "wake-at" && e.data.id === "desk:middle")).toEqual([]);
 });
 
 it("N5b solo por el programa: together anidado desde un temporizador, el interno falla y se atrapa", async () => {
@@ -111,7 +111,7 @@ it("N5b solo por el programa: together anidado desde un temporizador, el interno
   let heard = "";
   let r: Promise<unknown> | undefined;
   bus.on("wake-at", e => {
-    if (e.data.id === "desk:interno") {
+    if (e.data.id === "desk:internal") {
       heard = e.id;
       r = desk.act();
     }
@@ -121,20 +121,20 @@ it("N5b solo por el programa: together anidado desde un temporizador, el interno
       bus.together(() => {
         try {
           bus.together(() => {
-            bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:interno", at: null } });
-            throw new Error("interno");
+            bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:internal", at: null } });
+            throw new Error("internal");
           });
         } catch {
           /* el de afuera sigue */
         }
-        bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:afuera", at: null } });
+        bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:outside", at: null } });
       });
       resolve();
     }, 0),
   );
   const facts = rig.facts();
   expect(heard).not.toBe("");
-  expect(facts.filter(e => e.kind === "wake-at" && e.data.id === "desk:interno")).toEqual([]);
+  expect(facts.filter(e => e.kind === "wake-at" && e.data.id === "desk:internal")).toEqual([]);
   expect(await r).toMatchObject({ status: "rejected" });
-  expect(facts.filter(e => e.kind === "wake-at").map(e => e.data.id)).toEqual(["desk:afuera"]);
+  expect(facts.filter(e => e.kind === "wake-at").map(e => e.data.id)).toEqual(["desk:outside"]);
 });

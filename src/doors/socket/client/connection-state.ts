@@ -22,7 +22,7 @@ export function connectionState<X extends Program>() {
   const receiver = stateReceiver();
   let identity = "";
   let state: Screen["state"] = "disconnected";
-  let clock = { ahora: 0, received: performance.now(), seq: -1 };
+  let clock = { now: 0, received: performance.now(), seq: -1 };
   const watchers = new Set<() => void>();
   const status = (next: Screen["state"]) => {
     state = next;
@@ -34,19 +34,18 @@ export function connectionState<X extends Program>() {
       return view;
     },
     identity: () => identity,
-    now: () => clock.ahora + performance.now() - clock.received,
+    now: () => clock.now + performance.now() - clock.received,
     status: () => state,
     setStatus: status,
     watch: (watch: () => void) => addWatch(watchers, watch),
     reset: receiver.reset,
     metadata: (message: ServerMessage) => {
-      if (message.tipo === "estado") {
+      if (message.type === "state") {
         receiver.begin(message);
         clock.seq = message.seq;
       }
-      if (message.tipo === "bienvenida") identity = message.identidad;
-      if (message.tipo === "bienvenida")
-        clock = { ahora: message.ahora, received: performance.now(), seq: message.seq };
+      if (message.type === "welcome") identity = message.identity;
+      if (message.type === "welcome") clock = { now: message.now, received: performance.now(), seq: message.seq };
     },
     accept: (bytes: Buffer): boolean => {
       const next = checkedState<X>(receiver, bytes, view, clock.seq, identity);

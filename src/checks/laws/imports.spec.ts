@@ -47,11 +47,11 @@ it("catches dependencies across a program and the current base adapter roots", (
     "src/a.ts": 'import { x } from "#desert/storage/x.ts"; import { y } from "#desert/keychain/y.ts";',
     "desert/src/storage/x.ts": "export const x = 1;",
     "desert/src/keychain/y.ts": "export const y = 1;",
-    "arranque/start.ts": 'import "../src/a.ts";',
+    "startup/start.ts": 'import "../src/a.ts";',
     "package.json": JSON.stringify({ type: "module", imports: { "#desert/*": "./desert/src/*" } }),
   });
   const options = { base: "desert", adapters: [], adapterUsers: {} };
-  expect(strayImports({ ...repo, code: ["src", "arranque"] }, options)).toEqual([
+  expect(strayImports({ ...repo, code: ["src", "startup"] }, options)).toEqual([
     "src/a.ts → #desert/storage/x.ts",
     "src/a.ts → #desert/keychain/y.ts",
   ]);

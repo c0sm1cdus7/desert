@@ -1,6 +1,6 @@
 import tseslint from "typescript-eslint";
 
-const sources = ["src/**/*.ts", "tests/**/*.ts", "vitest.config.ts"];
+const sources = ["src/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts", "vitest.config.ts"];
 const functionLines = { skipBlankLines: true, skipComments: true };
 
 export default tseslint.config(

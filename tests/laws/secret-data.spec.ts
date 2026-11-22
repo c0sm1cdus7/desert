@@ -10,11 +10,11 @@ for (const [name, code] of Object.entries(dataCases))
   for (const mode of ["directo", "bucle", "importado"])
     it(`212 datos: admite ${name} ${mode}`, () => {
       const body = mode === "bucle" ? `for (let vuelta = 0; vuelta < 2; vuelta++) { ${code} }` : code;
-      const helper = `export function leer() { ${body} }`;
+      const helper = `export function read() { ${body} }`;
       const sources =
         mode === "importado"
           ? {
-              "tool.ts": "import { leer } from './helper.ts'; export const tool = { acts: { run: leer } };",
+              "tool.ts": "import { read } from './helper.ts'; export const tool = { acts: { run: read } };",
               "helper.ts": helper,
             }
           : { "tool.ts": helper };

@@ -14,7 +14,7 @@ const failure = async (body: ConstructorParameters<typeof Response>[0], status =
 };
 it.each([400, 401, 404, 429, 529])("conserva %s aunque no venga un sobre JSON", async status => {
   for (const body of [null, "", "{", "<html>proxy</html>", JSON.stringify({ error: null }), "42"])
-    expect(await failure(body, status)).toMatchObject({ kind: "http", rejection: { status, type: "sin_tipo" } });
+    expect(await failure(body, status)).toMatchObject({ kind: "http", rejection: { status, type: "untyped" } });
 });
 it("acota la lectura a 8 KiB y cancela sin consumir el resto del cuerpo", async () => {
   let bytes = 0;
@@ -30,7 +30,7 @@ it("acota la lectura a 8 KiB y cancela sin consumir el resto del cuerpo", async 
     { highWaterMark: 0 },
   );
   const error = await failure(stream);
-  expect(error).toMatchObject({ kind: "http", rejection: { status: 400, type: "sin_tipo" } });
+  expect(error).toMatchObject({ kind: "http", rejection: { status: 400, type: "untyped" } });
   expect(bytes).toBe(8192);
   expect(cancel).toHaveBeenCalledOnce();
 });
@@ -38,7 +38,7 @@ it("un cuerpo roto conserva HTTP y no reemplaza el rechazo por una falla JSON o 
   const stream = new ReadableStream<Uint8Array>({ start: controller => controller.error(new Error("broken")) });
   expect(await failure(stream)).toMatchObject({
     kind: "http",
-    rejection: { status: 400, type: "sin_tipo", message: "No se pudo leer el cuerpo de error del proveedor." },
+    rejection: { status: 400, type: "untyped", message: "No se pudo leer el cuerpo de error del proveedor." },
   });
 });
 it("redacta tipo, mensaje, causa y stack antes de recortar y quita controles de terminal", async () => {

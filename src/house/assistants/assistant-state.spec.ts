@@ -35,7 +35,7 @@ it("el administrador habilita y asigna carta; solo el titular delega, incluso co
   expect(assistantOfIdentity(rig.state().house, "beto")?.name).toBe("Nora");
   expect(() => rig.bus.emit(effect("assistant-kit-set", { owner: "beto", kit: [] }, "ana"))).toThrow();
   expect(() =>
-    rig.bus.emit(effect("mind-card-assigned", { mind: actor, card: "otra", version: "v1", capabilities: [] }, "beto")),
+    rig.bus.emit(effect("mind-card-assigned", { mind: actor, card: "other", version: "v1", capabilities: [] }, "beto")),
   ).toThrow();
   expect(present([desk], rig.state().house, actor)).toBe(true);
   expect(allowedAct(rig.state().house, actor, "desk", "say", [desk])).toBe(true);

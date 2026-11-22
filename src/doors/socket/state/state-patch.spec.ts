@@ -48,6 +48,6 @@ it("a matching final hash cannot bypass the required base sequence", () => {
   const receiver = stateReceiver();
   const value = { through: 9 };
   const bytes = serialize({ kind: "put", value });
-  receiver.begin({ tipo: "estado", seq: 9, ahora: 0, bytes: bytes.length, base: 8, huella: stateHash(value) });
+  receiver.begin({ type: "state", seq: 9, now: 0, bytes: bytes.length, base: 8, fingerprint: stateHash(value) });
   expect(() => receiver.accept(bytes, { through: 7 })).toThrow("State base mismatch");
 });

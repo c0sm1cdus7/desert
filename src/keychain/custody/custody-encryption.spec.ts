@@ -61,8 +61,8 @@ describe.each(keyProviders)("$name", providerCase => {
   it("mover o alterar un registro rompe la autenticación aunque la llave sea la misma", () => {
     const path = home(),
       custody = open(path);
-    const first = custody.keep(Buffer.from("uno")),
-      second = custody.keep(Buffer.from("dos"));
+    const first = custody.keep(Buffer.from("one")),
+      second = custody.keep(Buffer.from("two"));
     custody.close();
     const db = new CustodyDatabase(join(path, "fixture.sqlite"));
     const payload = db.rows().find(row => row.ref === first)?.payload;

@@ -7,7 +7,7 @@ import { call } from "../../../tests/support/declared-adapters.ts";
 import type { Shop } from "../../../tests/support/shop.ts";
 import { offer, input, keptFixture, inspectionShown, inspectionAct } from "../../../tests/support/kept-inspection.ts";
 import { keptChecks } from "../../checks/kept/kept-journals.ts";
-const consultar = programAct<Shop, typeof input, typeof offer.outside>({
+const query = programAct<Shop, typeof input, typeof offer.outside>({
   ...offer,
   name: "consultar",
   enter: "consultar",
@@ -19,7 +19,7 @@ const consultar = programAct<Shop, typeof input, typeof offer.outside>({
   },
 });
 it("C1: recorre el adaptador sin credenciales vinculadas y cuenta la acción impedida", async () => {
-  const fixture = keptFixture({ consultar });
+  const fixture = keptFixture({ query });
   fixture.save();
   const check = keptChecks(fixture.program, inspectionShown, fixture.folder)[1];
   expect(check).toBeDefined();
@@ -34,7 +34,7 @@ for (const failure of [
 ])
   it(`C1: una falla ${failure.name} con el mismo texto sigue siendo falla del programa`, async () => {
     const fixture = keptFixture({
-      consultar: inspectionAct("consultar", "c", () => {
+      query: inspectionAct("query", "c", () => {
         throw failure;
       }),
     });
@@ -68,10 +68,10 @@ it("C1: corta reemplazo y liberación, sigue otra rama y conserva su escritura",
 });
 it("C1: la negativa sobrevive una acción anidada", async () => {
   const fixture = keptFixture({
-    consultar,
+    query,
     anidada: inspectionAct("anidada", "a", async (_, ctx) => {
       if (!ctx.execute) throw new Error("ejecución anidada ausente");
-      await ctx.execute({ act: "consultar", target: "vault", input: {} });
+      await ctx.execute({ act: "query", target: "vault", input: {} });
       return { status: "accepted" };
     }),
   });

@@ -27,22 +27,22 @@ function recovery<X extends Program>(connection: SocketConnection<X>) {
   const uncertain = new Set<string>();
   const lookup = recovering(connection, uncertain);
   connection.receive(message => {
-    if (message.tipo !== "resultado" && message.tipo !== "rechazo") return;
+    if (message.type !== "result" && message.type !== "rejection") return;
     const id = correlatedRequestId(message, pending.keys(), uncertain);
     if (!id) return;
-    if (message.tipo === "rechazo" && message.motivo === socketTexts.quota && uncertain.has(id)) {
+    if (message.type === "rejection" && message.reason === socketTexts.quota && uncertain.has(id)) {
       lookup.later();
       return;
     }
-    if (message.tipo === "resultado" && message.status === "processing") return;
+    if (message.type === "result" && message.status === "processing") return;
     const waiting = pending.get(id);
     pending.delete(id);
     uncertain.delete(id);
-    if (message.tipo === "rechazo") waiting?.done({ status: "rejected", reason: message.motivo, effects: [] });
+    if (message.type === "rejection") waiting?.done({ status: "rejected", reason: message.reason, effects: [] });
     else if (message.status !== "processing")
       waiting?.done({
         status: message.status,
-        effects: message.efectos,
+        effects: message.effects,
         ...(message.reason ? { reason: message.reason } : {}),
         ...(message.private ? { private: message.private } : {}),
       });
@@ -78,7 +78,7 @@ export function clientRequests<X extends Program>(connection: SocketConnection<X
     });
     const result: ExecutionResult<X> = { status: "processing", effects: [], completion };
     pending.set(id, { key, result, done });
-    if (!connection.send({ tipo: "acto", id, ...value, through })) {
+    if (!connection.send({ type: "act", id, ...value, through })) {
       pending.delete(id);
       uncertain.add(id);
       done(interrupted());
@@ -92,7 +92,7 @@ function recovering<X extends Program>(connection: SocketConnection<X>, uncertai
   let timer: NodeJS.Timeout | undefined;
   const now = () => {
     if (connection.status() === "connected")
-      for (const id of uncertain) connection.send({ tipo: "leer", id, qué: "pedido" });
+      for (const id of uncertain) connection.send({ type: "read", id, what: "request" });
   };
   return {
     now,

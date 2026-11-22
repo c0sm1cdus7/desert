@@ -3,7 +3,7 @@ export const distributionEntryFixture = `
 import assert from "node:assert/strict";
 import { join } from "node:path";
 import { program as toy } from "toy";
-import { componer } from "desert/componer";
+import { compose } from "desert/compose";
 import { startHouse, localPorts } from "desert/runtime";
 import { MemoryHouseKeys } from "desert/testing";
 import { houseRouter } from "desert/surface/house-router";
@@ -12,8 +12,8 @@ import { environmentDoorKeys } from "desert/doors/keys";
 import { mcpDoor } from "desert/doors/mcp/handler";
 import { serveMcp } from "desert/doors/mcp";
 
-const { program, shown } = componer({ programas: [toy], identidades: true,
-  mentes: { asistentes: false, programas: [] }, presentacion: { codigo: [import.meta.filename],
+const { program, shown } = compose({ programs: [toy], identities: true,
+  minds: { assistants: false, programs: [] }, shown: { code: [import.meta.filename],
   locale: { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" } } });
 const options = { ...program, by: "fixture",
   creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["toy"] }] } };

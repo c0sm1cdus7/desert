@@ -9,7 +9,7 @@ export function houseOutput(home: string): number {
   if (!lstatSync(home).isDirectory() || lstatSync(home).isSymbolicLink()) throw new Error(socketTexts.startFailed);
   chmodSync(home, privateDirectoryMode);
   const fd = openSync(
-    join(home, "casa.log"),
+    join(home, "house.log"),
     constants.O_WRONLY | constants.O_CREAT | constants.O_APPEND | constants.O_NOFOLLOW,
     privateFileMode,
   );

@@ -23,7 +23,7 @@ export type HouseOptions<X extends Program> = AdapterComposition &
     contractSetup?: ContractSetup<X>;
     identities?: boolean;
     kitMigration?: KitMigration;
-    mentes?: Readonly<{ asistentes: boolean; programas: readonly string[] }>;
+    minds?: Readonly<{ assistants: boolean; programs: readonly string[] }>;
   }>;
 import { readonlyState, stateResult } from "../journal/readonly-state.ts";
 import { openActs } from "../tools/execution/open-acts.ts";

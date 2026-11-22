@@ -54,7 +54,7 @@ it("a result dropped after commit is recovered by id without a second effect", a
   let lost: ServerMessage | undefined;
   terminal[1].on("data", (bytes: Buffer) => server[0].write(bytes));
   server[0].on("data", (bytes: Buffer) => {
-    if (drop && bytes[4] === 0 && bytes.subarray(5).toString().includes('"resultado"')) {
+    if (drop && bytes[4] === 0 && bytes.subarray(5).toString().includes('"type":"result"')) {
       lost = readServer(JSON.parse(bytes.subarray(5).toString()));
       terminal[0].destroy();
       terminal[1].destroy();
@@ -72,7 +72,7 @@ it("a result dropped after commit is recovered by id without a second effect", a
       ports.act({ act: "receive", target: "payments", input: { payment: "p", amount: 13 } }, 0),
     );
     expect(answer.status).toBe("interrupted");
-    expect(lost).toMatchObject({ tipo: "resultado", status: "accepted" });
+    expect(lost).toMatchObject({ type: "result", status: "accepted" });
     const pair = duplexPair();
     f.attach(pair[1]);
     const received: ServerMessage[] = [];
@@ -80,10 +80,10 @@ it("a result dropped after commit is recovered by id without a second effect", a
     await connection.attach(pair[0]);
     await delay(20);
     expect(received).toContainEqual(lost);
-    const id = lost?.tipo === "resultado" ? lost.id : "missing";
+    const id = lost?.type === "result" ? lost.id : "missing";
     second = await f.client("ana-terminal");
     second.send({
-      tipo: "acto",
+      type: "act",
       id,
       act: "receive",
       target: "payments",
@@ -143,16 +143,14 @@ it("reconnecting during an unfinished act queries again when its final state arr
     c.connection.receive(m => replies.push(m));
     const send = c.connection.send;
     c.connection.send = m => {
-      sends.push(m.tipo);
+      sends.push(m.type);
       return send(m);
     };
     await c.connection.attach(second[0]);
     expect((await answer).status).toBe("interrupted");
-    await expect
-      .poll(() => replies)
-      .toContainEqual(expect.objectContaining({ tipo: "resultado", status: "processing" }));
+    await expect.poll(() => replies).toContainEqual(expect.objectContaining({ type: "result", status: "processing" }));
     finish();
-    await expect.poll(() => replies).toContainEqual(expect.objectContaining({ tipo: "resultado", status: "accepted" }));
+    await expect.poll(() => replies).toContainEqual(expect.objectContaining({ type: "result", status: "accepted" }));
     expect(sends).not.toContain("acto");
     expect(c.ports.state().tools.payments.received).toBe(19);
   } finally {
@@ -178,7 +176,7 @@ it("recovery preserves an interrupted result that already had its own reason", a
     );
     await f.reopen();
     const c = await f.client("ana-terminal");
-    c.send({ tipo: "leer", qué: "pedido", id: "ended" });
+    c.send({ type: "read", what: "request", id: "ended" });
     expect(await c.result("ended")).toMatchObject({ status: "interrupted", reason: "La persona canceló" });
   } finally {
     await f.close();

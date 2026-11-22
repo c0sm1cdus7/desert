@@ -28,24 +28,24 @@ export function receivePeer<X extends Program>(session: Session<X>, peer: Peer, 
     return;
   }
   if (signal.aborted) {
-    peer.send({ tipo: "rechazo", motivo: said.closing });
+    peer.send({ type: "rejection", reason: said.closing });
     return;
   }
-  if (message.tipo === "chau" || message.tipo === "hola") {
+  if (message.type === "bye" || message.type === "hello") {
     peer.end();
     return;
   }
-  if (message.tipo !== "acto" && !peer.budget.take(message.tipo === "esperar")) {
-    peer.send({ tipo: "rechazo", id: "id" in message ? message.id : message.tipo, motivo: said.quota });
+  if (message.type !== "act" && !peer.budget.take(message.type === "wait")) {
+    peer.send({ type: "rejection", id: "id" in message ? message.id : message.type, reason: said.quota });
     return;
   }
-  if (message.tipo === "sincronizar") {
+  if (message.type === "sync") {
     peer.reportMismatch();
     delivery.sendState(peer, true);
     return;
   }
-  if (message.tipo === "apagar") {
-    if (peer.key()?.identity !== house.tools.state().house.admin) peer.send({ tipo: "rechazo", motivo: said.admin });
+  if (message.type === "shutdown") {
+    if (peer.key()?.identity !== house.tools.state().house.admin) peer.send({ type: "rejection", reason: said.admin });
     else shutdown();
     return;
   }
@@ -64,12 +64,12 @@ function routeAndReply<X extends Program>(session: Session<X>, peer: Peer, messa
       }),
     )
     .catch(() => {
-      peer.send({ tipo: "rechazo", motivo: said.failed });
+      peer.send({ type: "rejection", reason: said.failed });
     });
   pending.add(work);
   void work.finally(() => {
     pending.delete(work);
-    if (message.tipo === "esperar") peer.budget.finish();
+    if (message.type === "wait") peer.budget.finish();
   });
 }
 function welcome<X extends Program>(
@@ -79,28 +79,28 @@ function welcome<X extends Program>(
   message: ClientMessage,
   state: () => void,
 ) {
-  if (message.tipo !== "hola") {
+  if (message.type !== "hello") {
     peer.end();
     return;
   }
   const key = keys.get(message.token);
   /** Identities are always outside the house; a tool's mind never enters through the door. */
   if (!key || isMindActor(key.identity) || !present(house.registry, house.tools.state().house, key.identity)) {
-    peer.end({ tipo: "rechazo", motivo: said.denied });
+    peer.end({ type: "rejection", reason: said.denied });
     return;
   }
   const mismatch = helloFailure(message);
   if (mismatch) {
-    peer.end({ tipo: "rechazo", motivo: mismatch });
+    peer.end({ type: "rejection", reason: mismatch });
     return;
   }
   peer.enter(key);
   peer.send({
-    tipo: "bienvenida",
-    protocolo: houseProtocolVersion,
-    identidad: key.identity,
+    type: "welcome",
+    protocol: houseProtocolVersion,
+    identity: key.identity,
     admin: house.tools.state().house.admin === key.identity,
-    ahora: house.now(),
+    now: house.now(),
     seq: house.tools.state().through,
   });
   state();

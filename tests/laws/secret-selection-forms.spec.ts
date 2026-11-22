@@ -2,10 +2,10 @@ import { expect, it } from "vitest";
 import { secretBoundaryViolations } from "./secret-boundaries.ts";
 const policy = { composition: [], adapters: [], custody: [], publicTypes: [], tools: ["tool.ts"] };
 const forms = {
-  corchetes: "export function leer(o: T, k: string) { return o[k]; }",
-  declaración: "export function leer(o: T, k: string) { const { [k]: v } = o; return v; }",
-  asignación: "export function leer(o: T, k: string) { let v: unknown; ({ [k]: v } = o); return v; }",
-  parámetro: "export function leer(k: string, { [k]: v }: T) { return v; }",
+  corchetes: "export function read(o: T, k: string) { return o[k]; }",
+  declaración: "export function read(o: T, k: string) { const { [k]: v } = o; return v; }",
+  asignación: "export function read(o: T, k: string) { let v: unknown; ({ [k]: v } = o); return v; }",
+  parámetro: "export function read(k: string, { [k]: v }: T) { return v; }",
 };
 const values = {
   texto: "string",
@@ -57,7 +57,7 @@ for (const [form, body] of Object.entries(forms))
   });
 for (const [name, code] of Object.entries({
   module: "export const cargar = module.require;",
-  Reflect: "export const leer = Reflect.get;",
+  Reflect: "export const read = Reflect.get;",
   asignaciónReservada: "const o = {}; let v: unknown; ({ ['con' + 'structor']: v } = o);",
   asignaciónLiteral: "const o = {}; let v: unknown; ({ constructor: v } = o);",
   asignaciónProto: "const o = {}; let v: unknown; ({ __proto__: v } = o);",
@@ -65,8 +65,8 @@ for (const [name, code] of Object.entries({
   declaraciónConvertida: "const o = {} as Record<string, number>; const k = 'a'; const { [k]: v } = o;",
   asignaciónConvertida: "const o = {} as Record<string, number>; const k = 'a'; let v; ({ [k]: v } = o);",
   parámetroConvertido:
-    "function leer(k: string, { [k]: v }: Record<string, number>) { return v; }" +
-    "leer('a', {} as Record<string, number>);",
+    "function read(k: string, { [k]: v }: Record<string, number>) { return v; }" +
+    "read('a', {} as Record<string, number>);",
 }))
   it(`212 formas: rechaza ${name}`, () => {
     expect(secretBoundaryViolations({ "tool.ts": code }, policy).length).toBeGreaterThan(0);

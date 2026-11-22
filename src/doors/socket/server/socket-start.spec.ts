@@ -10,22 +10,22 @@ afterEach(async () => {
 it("rejects an overlong macOS socket path verbatim, never shortening it", async () => {
   fixture = await socketHouse("stream");
   const path = `${fixture.home}/${"ñ".repeat(60)}`;
-  await expect(serveHouse(fixture.house(), path, doorKeys)).rejects.toThrow(`${path}/casa.sock`);
+  await expect(serveHouse(fixture.house(), path, doorKeys)).rejects.toThrow(`${path}/house.sock`);
 });
 it("a closed writer cannot remove a previous socket or pid", async () => {
   fixture = await socketHouse("stream");
-  const path = `${fixture.home}/casa.sock`;
+  const path = `${fixture.home}/house.sock`;
   writeFileSync(path, "old socket marker");
-  writeFileSync(`${fixture.home}/casa.pid`, "old pid marker");
+  writeFileSync(`${fixture.home}/house.pid`, "old pid marker");
   fixture.house().close();
   await expect(serveHouse(fixture.house(), fixture.home, doorKeys)).rejects.toThrow();
   expect(readFileSync(path, "utf8")).toBe("old socket marker");
-  expect(readFileSync(`${fixture.home}/casa.pid`, "utf8")).toBe("old pid marker");
+  expect(readFileSync(`${fixture.home}/house.pid`, "utf8")).toBe("old pid marker");
 });
 
 it("a lost writer lease cannot clean an existing socket", async () => {
   const f = await socketHouse("stream");
-  const path = `${f.home}/casa.sock`;
+  const path = `${f.home}/house.sock`;
   try {
     writeFileSync(path, "old socket marker");
     renameSync(`${f.home}/journal.sqlite.writer.sqlite`, `${f.home}/old-writer.sqlite`);
@@ -41,8 +41,8 @@ it("a lost writer lease cannot clean an existing socket", async () => {
 
 it("a writer for another home cannot remove this home's socket", async () => {
   const f = await socketHouse("stream");
-  const other = mkdtempSync("/tmp/casa-other-");
-  const path = `${other}/casa.sock`;
+  const other = mkdtempSync("/tmp/house-other-");
+  const path = `${other}/house.sock`;
   try {
     writeFileSync(path, "another house socket");
     await expect(serveHouse(f.house(), other, doorKeys)).rejects.toThrow();
@@ -55,7 +55,7 @@ it("a writer for another home cannot remove this home's socket", async () => {
 
 it("g02: startup failure does not claim a successfully closed house", async () => {
   fixture = await socketHouse("stream");
-  mkdirSync(`${fixture.home}/casa.sock`);
+  mkdirSync(`${fixture.home}/house.sock`);
   const output = vi.spyOn(process.stderr, "write").mockReturnValue(true);
   try {
     await expect(serveHouse(fixture.house(), fixture.home, doorKeys)).rejects.toThrow();

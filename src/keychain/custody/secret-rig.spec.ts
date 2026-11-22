@@ -6,7 +6,7 @@ for (const value of ["ASCII", "Ω", "ñ🔒", "uno\ndos", "\0‮"]) {
     cyclic.self = cyclic;
     for (const data of [{ x: value }, new Error(value, { cause: { x: value } }), cyclic]) {
       expect(has(data, value)).toBe(true);
-      expect(has(data, "ausente-inventado")).toBe(false);
+      expect(has(data, "missing-invented")).toBe(false);
     }
   });
 }

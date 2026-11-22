@@ -103,7 +103,7 @@ for (const testDistribution of [false, true])
     "doors/keys",
     "doors/mcp/handler",
     "runtime",
-    "componer",
+    "compose",
     "doors/terminal",
     "doors/socket",
     "doors/mcp",

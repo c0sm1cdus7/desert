@@ -4,35 +4,35 @@ import { schemaInclusion } from "./schema-inclusion.ts";
 
 export function compareContracts(request: ContractInterface, offer: ContractInterface, path: string): string[] {
   const errors: string[] = [];
-  for (const [name, need] of Object.entries(request.acciones)) {
-    const have = Object.hasOwn(offer.acciones, name) ? offer.acciones[name] : undefined,
-      base = `${path}/acciones/${name}`;
+  for (const [name, need] of Object.entries(request.actions)) {
+    const have = Object.hasOwn(offer.actions, name) ? offer.actions[name] : undefined,
+      base = `${path}/actions/${name}`;
     if (!have) {
-      errors.push(`${base}:ausente`);
+      errors.push(`${base}:missing`);
       continue;
     }
-    errors.push(...schemaInclusion(need.entrada, have.entrada, `${base}/entrada`, "entrada"));
-    errors.push(...schemaInclusion(have.salida, need.salida, `${base}/salida`, "lectura"));
-    errors.push(...schemaInclusion(have.rechazos, need.rechazos, `${base}/rechazos`, "lectura"));
+    errors.push(...schemaInclusion(need.input, have.input, `${base}/input`, "input"));
+    errors.push(...schemaInclusion(have.output, need.output, `${base}/output`, "reading"));
+    errors.push(...schemaInclusion(have.rejections, need.rejections, `${base}/rejections`, "reading"));
   }
-  for (const [name, need] of Object.entries(request.objetos)) {
-    const have = Object.hasOwn(offer.objetos, name) ? offer.objetos[name] : undefined,
-      base = `${path}/objetos/${name}`;
+  for (const [name, need] of Object.entries(request.objects)) {
+    const have = Object.hasOwn(offer.objects, name) ? offer.objects[name] : undefined,
+      base = `${path}/objects/${name}`;
     if (!have) {
-      errors.push(`${base}:ausente`);
+      errors.push(`${base}:missing`);
       continue;
     }
-    errors.push(...schemaInclusion(need.clave, have.clave, `${base}/clave`, "entrada"));
-    errors.push(...schemaInclusion(have.datos, need.datos, `${base}/datos`, "lectura"));
+    errors.push(...schemaInclusion(need.key, have.key, `${base}/key`, "input"));
+    errors.push(...schemaInclusion(have.data, need.data, `${base}/data`, "reading"));
   }
-  for (const [name, need] of Object.entries(request.avisos)) {
-    const have = Object.hasOwn(offer.avisos, name) ? offer.avisos[name] : undefined,
-      base = `${path}/avisos/${name}`;
+  for (const [name, need] of Object.entries(request.notices)) {
+    const have = Object.hasOwn(offer.notices, name) ? offer.notices[name] : undefined,
+      base = `${path}/notices/${name}`;
     if (!have) {
-      errors.push(`${base}:ausente`);
+      errors.push(`${base}:missing`);
       continue;
     }
-    errors.push(...schemaInclusion(have.datos, need.datos, `${base}/datos`, "lectura"));
+    errors.push(...schemaInclusion(have.data, need.data, `${base}/data`, "reading"));
   }
   return errors;
 }

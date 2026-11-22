@@ -6,7 +6,7 @@ for (const field of ["id", "actor", "tool", "target", "slot", "cause", "revision
     const rig = custodyRig(),
       store = rig.open(),
       session = store.begin(custodyScope);
-    const refs = { key: session.capture(Buffer.from("inventado")) };
+    const refs = { key: session.capture(Buffer.from("invented")) };
     session.replace("signing", refs, 0);
     store.close();
     const db = new DatabaseSync(rig.file);

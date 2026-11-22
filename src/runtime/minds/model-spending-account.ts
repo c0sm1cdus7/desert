@@ -48,6 +48,8 @@ function step(state: State, event: Event): State {
   }
   return { ...state, calls: modelCallStep(state.calls, event) };
 }
+/** How an account journal reads and folds, for whoever checks one outside a running house. */
+export const spendingAccountFold = { words, initial, step };
 function balance(state: State) {
   requireMind(state.opening, "billing.opening");
   const current = modelAccount(state.calls, state.opening.account);

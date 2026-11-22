@@ -50,7 +50,7 @@ function signingDoor(remote: Awaited<ReturnType<typeof socketHouse>>) {
 it("signs in, reaches the Menu, opens a tool and runs an act, over local HTTP with one stream", async () => {
   const remote = await socketHouse("stream");
   const door = signingDoor(remote);
-  const http = await screenHttp(door, "casa");
+  const http = await screenHttp(door, "house");
   const client = await screenClient(http.url, "sesion=una-sesion", 26);
   const act = async (intents: readonly Intent[]) => expect((await client.act(intents)).refused).toBeUndefined();
   try {

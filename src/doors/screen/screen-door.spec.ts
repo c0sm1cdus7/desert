@@ -209,7 +209,7 @@ describe("an ended house, and what a client sent", () => {
     const a = await door.look("s", "h", view);
     const refused = await door.send("s", "h", { ...batch(a, 1, pasted), extra: "clave-secreta" });
     expect(failed).toBeInstanceOf(Error);
-    expect([lost, failed, refused].filter(said => (JSON.stringify(said) + String(said)).includes("clave"))).toEqual([]);
+    expect([lost, failed, refused].filter(said => (JSON.stringify(said) + String(said)).includes("key"))).toEqual([]);
   });
 });
 describe("the cut of a session nobody looks at", () => {

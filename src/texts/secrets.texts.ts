@@ -5,6 +5,7 @@ export const secretTexts = {
   missingKey: "Falta la llave de este secreto; recuperala del llavero o de una copia de sus llaves",
   missingCopy: "Esta copia no tiene las llaves de su casa; trasladá sus llaves y su ancla al proveedor",
   missingAnchor: "Esta copia no tiene ancla; recuperá sus llaves y ancla o revisá la copia antes de aceptarla",
+  noBindings: "ninguno",
   shorterLedger: "El registro es más corto; pueden haberse quitado renglones.",
   differentAnchor: "El ancla no está en este registro; otra copia pudo avanzar o la historia cambió.",
   incompleteBatch: "Hay más de un agregado o un lote incompleto después del ancla.",

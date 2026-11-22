@@ -7,9 +7,9 @@ const toyFiles = {
   "src/a.ts": "export {};",
   "src/texts.ts": `// Names the toy's action and its result.
 import { defineMessage } from "desert/messages";
-import { Type } from "desert/programa";
+import { Type } from "desert/program";
 export const words = { name: "Juguete", key: "j", itself: [] };
-export const actionWords = { name: "anotar", enter: "anotar", key: "a", purpose: "guardar una nota" };
+export const actionWords = { name: "note", enter: "note", key: "a", purpose: "guardar una nota" };
 export const saved = "Anotada · Nota";
 export const promise = "Anota una vez";
 export const skill = defineMessage({ id: "toy.skill", kind: "skill", parameters: Type.Object({}),
@@ -17,28 +17,28 @@ export const skill = defineMessage({ id: "toy.skill", kind: "skill", parameters:
 `,
   "src/metadata.ts": `// Declares the toy's state and facts.
 export const metadata = { id: "toy", version: "1.0.0", desert: 1,
-  hechos: [], inicial: () => 0 } as const;
+  facts: [], initial: () => 0 } as const;
 `,
   "src/notes.ts": `// Declares the toy's single tool without composition privileges.
-import { programAct, Type, type LocalProgram } from "desert/programa";
+import { programAct, Type, type LocalProgram } from "desert/program";
 import { words, actionWords, saved, promise } from "./texts.ts";
 import { metadata } from "./metadata.ts";
 const input = Type.Object({});
-const add = programAct<LocalProgram<typeof metadata & { codigo: readonly [string] }>, typeof input>({
+const add = programAct<LocalProgram<typeof metadata & { code: readonly [string] }>, typeof input>({
   ...actionWords, on: "tool", undoable: true, input,
   run: () => ({ status: "accepted", text: saved, effects: [] }),
   cases: [{ promise, input: {}, then: { says: saved, facts: [] } }] });
-export const notes = { purpose: actionWords.purpose, palabras: words, acts: { add }, targets: () => [],
+export const notes = { purpose: actionWords.purpose, words: words, acts: { add }, targets: () => [],
   view: () => "", summary: () => words.name };
 `,
   "src/program.ts": `// Declares the toy independently of its test distribution.
-import { programa } from "desert/programa";
+import { defineProgram } from "desert/program";
 import { words, actionWords, skill } from "./texts.ts";
 import { metadata } from "./metadata.ts";
 import { notes } from "./notes.ts";
-export const program = programa({ ...metadata, codigo: [import.meta.dirname] }, {
-  purpose: actionWords.purpose, palabras: words, skill,
-  herramientas: { notes }, plegar: own => own, summary: () => words.name });
+export const program = defineProgram({ ...metadata, code: [import.meta.dirname] }, {
+  purpose: actionWords.purpose, words: words, skill,
+  tools: { notes }, fold: own => own, summary: () => words.name });
 `,
 };
 export function installablePackage(shortcut = false) {
@@ -63,11 +63,11 @@ function packageFiles(shortcut: boolean) {
     }),
     ...toyFiles,
     "tests/distribution.ts": `// Composes the toy for the base's complete derived gate.
-import { componer } from "desert/componer";
+import { compose } from "desert/compose";
 import { program as toy } from "../src/program.ts";
-export const { program, shown, manifest } = componer({ programas: [toy], identidades: false,
-  atajoUnaHerramienta: ${shortcut},
-  mentes: { asistentes: false, programas: [] }, presentacion: { codigo: [import.meta.filename],
+export const { program, shown, manifest } = compose({ programs: [toy], identities: false,
+  singleToolShortcut: ${shortcut},
+  minds: { assistants: false, programs: [] }, shown: { code: [import.meta.filename],
     locale: { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" } } });
 `,
     "vitest.config.ts":

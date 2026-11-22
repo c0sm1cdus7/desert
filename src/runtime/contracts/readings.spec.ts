@@ -20,15 +20,15 @@ export function readingRig(provider = documents()) {
   });
   for (const tool of house.ports.registry) engine.act({ act: "attend", input: { target: tool.id } }, 0, "beto");
   const access = () =>
-    runtime.open("ventas", {
-      tool: "ventas",
+    runtime.open("sales", {
+      tool: "sales",
       by: "beto",
       execute: async act => {
         const result = engine.act(act, house.ports.state().through, "beto");
         return result.status === "processing" ? await result.completion : result;
       },
     });
-  const port = access().contracts["documentos-fiscales"];
+  const port = access().contracts["fiscal-documents"];
   if (!port) throw new Error("missing fixture contract");
   return {
     ...house,
@@ -46,24 +46,24 @@ describe("contractual reads", () => {
     const rig = readingRig();
     try {
       const before = rig.access().cut;
-      await rig.port.actions.emitir?.({ venta: "v1" });
-      const notices = rig.port.notices.emitido?.(rig.access().cut);
+      await rig.port.actions.issue?.({ sale: "v1" });
+      const notices = rig.port.notices.issued?.(rig.access().cut);
       if (!isNotices(notices) || !notices[0]) throw new Error("missing notice");
       const notice = notices[0];
-      const atNotice = rig.port.objects.comprobante?.read("v1", notice.cut);
+      const atNotice = rig.port.objects.voucher?.read("v1", notice.cut);
       expect(atNotice).toMatchObject({
         status: "found",
         sequence: notice.sequence,
-        value: { numero: "1", estado: "emitido" },
+        value: { number: "1", state: "issued" },
       });
-      expect(atNotice && "value" in atNotice ? atNotice.value : null).not.toHaveProperty("privado");
-      await rig.port.actions.emitir?.({ venta: "v2" });
-      expect(rig.port.objects.comprobante?.read("v1", before)).toEqual({
+      expect(atNotice && "value" in atNotice ? atNotice.value : null).not.toHaveProperty("private");
+      await rig.port.actions.issue?.({ sale: "v2" });
+      expect(rig.port.objects.voucher?.read("v1", before)).toEqual({
         status: "unavailable",
         sequence: before.sequence,
       });
-      expect(rig.port.objects.comprobante?.read("v1", notice.cut)).toEqual(atNotice);
-      expect(rig.port.objects.comprobante?.read("v2", notice.cut)).toEqual({
+      expect(rig.port.objects.voucher?.read("v1", notice.cut)).toEqual(atNotice);
+      expect(rig.port.objects.voucher?.read("v2", notice.cut)).toEqual({
         status: "unavailable",
         sequence: notice.sequence,
       });
@@ -78,26 +78,26 @@ describe("contractual reads", () => {
   it("cannot invent cuts, name undeclared dependencies or redirect a historical reference", async () => {
     const rig = readingRig();
     try {
-      expect(Object.keys(rig.access().contracts)).toEqual(["documentos-fiscales"]);
-      expect(rig.access().contracts.notas).toBeUndefined();
-      expect(rig.access().contracts.documentos).toBeUndefined();
-      expect(rig.port.objects.comprobante?.read("v1", { sequence: 0 })).toEqual({
+      expect(Object.keys(rig.access().contracts)).toEqual(["fiscal-documents"]);
+      expect(rig.access().contracts.notes).toBeUndefined();
+      expect(rig.access().contracts.documents).toBeUndefined();
+      expect(rig.port.objects.voucher?.read("v1", { sequence: 0 })).toEqual({
         status: "core-failure",
         reason: "invalid-reference",
       });
-      await rig.port.actions.emitir?.({ venta: "v1" });
-      const result = rig.port.objects.comprobante?.read("v1", rig.access().cut);
+      await rig.port.actions.issue?.({ sale: "v1" });
+      const result = rig.port.objects.voucher?.read("v1", rig.access().cut);
       if (result?.status !== "found") throw new Error("missing receipt");
-      expect(rig.port.objects.comprobante?.readReference(result.reference, rig.access().cut)).toEqual(result);
+      expect(rig.port.objects.voucher?.readReference(result.reference, rig.access().cut)).toEqual(result);
       expect(
-        rig.port.objects.comprobante?.readReference({ ...result.reference, provider: "otro" }, rig.access().cut),
+        rig.port.objects.voucher?.readReference({ ...result.reference, provider: "other" }, rig.access().cut),
       ).toEqual({ status: "core-failure", reason: "invalid-reference" });
       rig.ports.bus.emit(effect("removed", { identity: "beto" }, "ana"));
-      expect(rig.port.objects.comprobante?.read("v1", rig.access().cut)).toEqual({
+      expect(rig.port.objects.voucher?.read("v1", rig.access().cut)).toEqual({
         status: "core-failure",
         reason: "forbidden",
       });
-      expect(rig.port.notices.emitido?.(rig.access().cut)).toEqual({ status: "core-failure", reason: "forbidden" });
+      expect(rig.port.notices.issued?.(rig.access().cut)).toEqual({ status: "core-failure", reason: "forbidden" });
     } finally {
       rig.stop();
     }
@@ -107,23 +107,23 @@ describe("contractual reads", () => {
     const provider = documents();
     const rig = readingRig({
       ...provider,
-      proyectores: {
-        comprobante: own => {
+      projectors: {
+        voucher: own => {
           keys = Object.keys(own);
           const state = own.fiscal;
           if (state instanceof Map) state.clear();
-          return { numero: "1", estado: "emitido" };
+          return { number: "1", state: "issued" };
         },
       },
     });
     try {
-      await rig.port.actions.emitir?.({ venta: "v1" });
-      expect(rig.port.objects.comprobante?.read("v1", rig.access().cut)).toEqual({
+      await rig.port.actions.issue?.({ sale: "v1" });
+      expect(rig.port.objects.voucher?.read("v1", rig.access().cut)).toEqual({
         status: "core-failure",
         reason: "defect",
       });
       expect(keys).toEqual(["fiscal"]);
-      expect(rig.ports.state().tools.documentos.fiscal.size).toBe(1);
+      expect(rig.ports.state().tools.documents.fiscal.size).toBe(1);
     } finally {
       rig.stop();
     }

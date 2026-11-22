@@ -13,9 +13,9 @@ const setup = async (hold?: Promise<void>) => {
   fixture = await socketHouse("stream", hold);
   return fixture;
 };
-const attend = (id: string) => ({ tipo: "acto", id, act: "attend", input: { target: "payments" }, through: 0 });
+const attend = (id: string) => ({ type: "act", id, act: "attend", input: { target: "payments" }, through: 0 });
 const pay = (id: string) => ({
-  tipo: "acto",
+  type: "act",
   id,
   act: "receive",
   target: "payments",
@@ -68,7 +68,7 @@ it("members with no tools see the same tools and peer activity as identityView",
 it("unauthenticated requests disclose no catalog, results or state and cannot act", async () => {
   const f = await setup();
   const seq = f.house().tools.state().through;
-  for (const request of [{ tipo: "leer", id: "x", qué: "catalogo" }, pay("x"), { tipo: "apagar" }]) {
+  for (const request of [{ type: "read", id: "x", what: "catalog" }, pay("x"), { type: "shutdown" }]) {
     const c = await f.client();
     c.send(request);
     expect(await c.until(c.closed)).toBe(true);
@@ -77,7 +77,7 @@ it("unauthenticated requests disclose no catalog, results or state and cannot ac
   }
   const bad = await f.client("invalid-key");
   expect(await bad.until(bad.closed)).toBe(true);
-  expect(bad.messages.map(message => message.tipo)).toEqual(["rechazo"]);
+  expect(bad.messages.map(message => message.type)).toEqual(["rejection"]);
   expect(f.house().tools.state().through).toBe(seq);
 });
 it("revocation during an act suppresses its result and all subsequent state", async () => {
@@ -93,7 +93,7 @@ it("revocation during an act suppresses its result and all subsequent state", as
   const count = c.states.length;
   held.resolve();
   await delay(20);
-  expect(c.messages.some(m => m.tipo === "resultado" && m.id === "p")).toBe(false);
+  expect(c.messages.some(m => m.type === "result" && m.id === "p")).toBe(false);
   expect(c.states).toHaveLength(count);
 });
 it("graceful shutdown waits for an act, delivers its outcome, and rejects new accepts", async () => {
@@ -111,7 +111,7 @@ it("graceful shutdown waits for an act, delivers its outcome, and rejects new ac
   });
   await delay(30);
   expect(settled).toBe(false);
-  expect(await c.until(() => c.messages.some(m => m.tipo === "cerrando"))).toBe(true);
+  expect(await c.until(() => c.messages.some(m => m.type === "closing"))).toBe(true);
   expect(c.closed()).toBe(false);
   held.resolve();
   expect(await closing).toEqual({ remaining: 0 });
@@ -135,7 +135,7 @@ it("revoking the credential during shutdown still interrupts its pending act", a
   held.resolve();
   expect(await closing).toEqual({ remaining: 0 });
   expect(f.house().tools.state().tools.payments.received).toBe(0);
-  expect(c.messages.some(message => message.tipo === "resultado" && message.id === "p")).toBe(false);
+  expect(c.messages.some(message => message.type === "result" && message.id === "p")).toBe(false);
 });
 it("ten-second deadline counts unresolved acts and restart never repeats them", async () => {
   const held = heldAct();
@@ -169,14 +169,14 @@ it("ten-second deadline counts unresolved acts and restart never repeats them", 
 it("only admin may shut down; disconnecting one peer leaves the house alive", async () => {
   const f = await setup();
   const b = await f.client("beto-terminal");
-  b.send({ tipo: "apagar" });
-  expect(await b.until(() => b.messages.some(m => m.tipo === "rechazo"))).toBe(true);
-  b.send({ tipo: "chau" });
+  b.send({ type: "shutdown" });
+  expect(await b.until(() => b.messages.some(m => m.type === "rejection"))).toBe(true);
+  b.send({ type: "bye" });
   expect(await b.until(b.closed)).toBe(true);
   const a = await f.client("ana-terminal");
-  a.send({ tipo: "apagar" });
+  a.send({ type: "shutdown" });
   expect(await a.until(a.closed)).toBe(true);
-  expect(a.messages.some(m => m.tipo === "cerrando")).toBe(true);
+  expect(a.messages.some(m => m.type === "closing")).toBe(true);
 });
 
 function heldAct() {

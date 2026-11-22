@@ -1,46 +1,46 @@
 import { expect, it } from "vitest";
 import { Type } from "@sinclair/typebox";
-import { componer, diagnostico, CompositionError } from "./compose.ts";
+import { compose, diagnose, CompositionError } from "./compose.ts";
 import { contractOptions, contractCertification, required } from "../../../tests/support/distribution-contracts.ts";
 import { contractPrograms, documentProgram, salesProgram } from "../../../tests/support/contract-programs.ts";
-const missing = { path: "ventas/documentos-fiscales/casos/emitir-y-leer", reason: "caso-no-declarado" };
+const missing = { path: "sales/fiscal-documents/cases/issue-and-read", reason: "undeclared-case" };
 it("composes the installed halves only after their consumer cases passed", () => {
   expect(contractCertification.evidence.map(row => row.result)).toEqual(["passed"]);
-  expect(diagnostico(contractOptions)).toEqual([]);
-  expect(componer(contractOptions).program.registry.map(program => program.id)).toEqual(["ventas", "documentos"]);
-  const { contratos: _certification, ...unverified } = contractOptions;
-  expect(diagnostico(unverified)).toEqual([missing]);
-  expect(() => componer(unverified)).toThrow(CompositionError);
+  expect(diagnose(contractOptions)).toEqual([]);
+  expect(compose(contractOptions).program.registry.map(program => program.id)).toEqual(["sales", "documents"]);
+  const { contracts: _certification, ...unverified } = contractOptions;
+  expect(diagnose(unverified)).toEqual([missing]);
+  expect(() => compose(unverified)).toThrow(CompositionError);
 });
 it("preserves all contract paths alongside the core composition diagnostics", () => {
-  const offer = required(documentProgram.ofrece["documentos-fiscales"]);
-  const action = required(offer.acciones.emitir);
+  const offer = required(documentProgram.offers["fiscal-documents"]);
+  const action = required(offer.actions.issue);
   const options = {
     ...contractOptions,
-    programas: [
+    programs: [
       salesProgram,
       {
         ...documentProgram,
-        ofrece: {
-          "documentos-fiscales": {
+        offers: {
+          "fiscal-documents": {
             ...offer,
-            acciones: {
-              emitir: { ...action, entrada: Type.Object({ venta: Type.Number() }, { additionalProperties: false }) },
+            actions: {
+              issue: { ...action, input: Type.Object({ sale: Type.Number() }, { additionalProperties: false }) },
             },
           },
         },
       },
     ],
-    mentes: { asistentes: false, programas: ["ausente"] },
+    minds: { assistants: false, programs: ["missing"] },
   };
-  const issues = diagnostico(options);
+  const issues = diagnose(options);
   expect(issues).toEqual([
-    { path: "mentes/programas/ausente", reason: "mente-ausente" },
-    { path: "ventas/documentos-fiscales/acciones/emitir/entrada.venta", reason: "valor-incompatible" },
+    { path: "minds/programs/missing", reason: "missing-mind" },
+    { path: "sales/fiscal-documents/actions/issue/input.sale", reason: "incompatible-value" },
     missing,
   ]);
   try {
-    Reflect.apply(componer, undefined, [options]);
+    Reflect.apply(compose, undefined, [options]);
     throw new Error("Expected rejection");
   } catch (error) {
     expect(error).toBeInstanceOf(CompositionError);
@@ -49,49 +49,49 @@ it("preserves all contract paths alongside the core composition diagnostics", ()
 });
 it("does not accept evidence from another executor or copied rows", () => {
   expect(
-    diagnostico({
+    diagnose({
       ...contractOptions,
-      contratos: { ...contractOptions.contratos, build: { core: "fixture-core", executor: "otro" } },
+      contracts: { ...contractOptions.contracts, build: { core: "fixture-core", executor: "other" } },
     }),
   ).toEqual([missing]);
   expect(
-    diagnostico({
+    diagnose({
       ...contractOptions,
-      contratos: { ...contractOptions.contratos, evidence: contractCertification.evidence.map(row => ({ ...row })) },
+      contracts: { ...contractOptions.contracts, evidence: contractCertification.evidence.map(row => ({ ...row })) },
     }),
   ).toEqual([missing]);
 });
 it("reports missing providers and invalid offered routes through composition", () => {
-  expect(diagnostico({ ...contractOptions, programas: [salesProgram] })).toEqual([
-    { path: "ventas/documentos-fiscales", reason: "sin-proveedor" },
+  expect(diagnose({ ...contractOptions, programs: [salesProgram] })).toEqual([
+    { path: "sales/fiscal-documents", reason: "no-provider" },
   ]);
-  const offer = required(documentProgram.ofrece["documentos-fiscales"]);
+  const offer = required(documentProgram.offers["fiscal-documents"]);
   const changed = {
     ...documentProgram,
-    ofrece: {
-      "documentos-fiscales": {
+    offers: {
+      "fiscal-documents": {
         ...offer,
-        acciones: { emitir: { ...required(offer.acciones.emitir), ruta: "fiscal/borrar" } },
+        actions: { issue: { ...required(offer.actions.issue), route: "fiscal/borrar" } },
       },
     },
   };
-  expect(diagnostico({ ...contractOptions, programas: [contractPrograms[0], changed] })).toEqual([
-    { path: "documentos/documentos-fiscales/acciones/emitir", reason: "ruta-ajena:fiscal/borrar" },
+  expect(diagnose({ ...contractOptions, programs: [contractPrograms[0], changed] })).toEqual([
+    { path: "documents/fiscal-documents/actions/issue", reason: "foreign-route:fiscal/borrar" },
     missing,
   ]);
 });
 it("rejects both routes of a cycle when composing independently valid halves", () => {
-  const empty = { acciones: {}, objetos: {}, avisos: {} };
+  const empty = { actions: {}, objects: {}, notices: {} };
   const options = {
     ...contractOptions,
-    programas: [
-      { ...salesProgram, ofrece: { "ventas-publicas": { ...empty, version: "1.0.0" } } },
-      { ...documentProgram, pide: { "ventas-publicas": { ...empty, casos: [] } } },
+    programs: [
+      { ...salesProgram, offers: { "public-sales": { ...empty, version: "1.0.0" } } },
+      { ...documentProgram, requests: { "public-sales": { ...empty, cases: [] } } },
     ],
   } as const;
-  expect(diagnostico(options).filter(issue => issue.reason === "ciclo")).toEqual([
-    { path: "ventas-[documentos-fiscales]->documentos-[ventas-publicas]->ventas", reason: "ciclo" },
-    { path: "documentos-[ventas-publicas]->ventas-[documentos-fiscales]->documentos", reason: "ciclo" },
+  expect(diagnose(options).filter(issue => issue.reason === "cycle")).toEqual([
+    { path: "sales-[fiscal-documents]->documents-[public-sales]->sales", reason: "cycle" },
+    { path: "documents-[public-sales]->sales-[fiscal-documents]->documents", reason: "cycle" },
   ]);
-  expect(() => componer(options)).toThrow(CompositionError);
+  expect(() => compose(options)).toThrow(CompositionError);
 });

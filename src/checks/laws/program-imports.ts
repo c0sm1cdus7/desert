@@ -11,7 +11,7 @@ import { importsIn } from "./imports.ts";
 
 // Public package visibility does not grant a program the host's composition or custody authority.
 const programEntries = new Set([
-  "desert/programa",
+  "desert/program",
   "desert/messages",
   "desert/fields",
   "desert/journal",

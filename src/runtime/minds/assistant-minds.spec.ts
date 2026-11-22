@@ -153,10 +153,10 @@ it("the assistant reads its own rules: its name, its owner and the talk programs
     capNanoUsd: 1,
   });
   const nora = options.fingerprint(assistantDefinition(options, "ana", "Nora"));
-  const otra = options.fingerprint(assistantDefinition(options, "beto", "Otra"));
-  expect(nora.cases).toBe(otra.cases);
+  const other = options.fingerprint(assistantDefinition(options, "beto", "Otra"));
+  expect(nora.cases).toBe(other.cases);
   expect(nora.frameTexts).toBe(options.fingerprint(f.distribution.mindDefinitions[0] ?? definition).frameTexts);
-  expect(nora.skill).not.toBe(otra.skill);
+  expect(nora.skill).not.toBe(other.skill);
 });
 it("disabling the assistant stops it: a line to it wakes nothing, and enabling it again brings it back", async () => {
   const f = fixture();

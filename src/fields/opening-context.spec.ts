@@ -16,9 +16,9 @@ it("checks at the case instant after its elapsed days", async () => {
   const { program, aim } = openingFixture({
     input: object({ sale: thing("Venta", "sales", undefined, undefined, "sin ventas"), detail: field }),
     cases: [{ ...openingCase, at, given: [...openingCase.given, { days: 1 }] }],
-    also: { ...also, opens: () => ({ detail: "ahora" }) },
+    also: { ...also, opens: () => ({ detail: "now" }) },
   });
-  await expect(openingChecks(program, aim, shopShown)).rejects.toThrow(/detail.*ahora/u);
+  await expect(openingChecks(program, aim, shopShown)).rejects.toThrow(/detail.*now/u);
 });
 it("checks as the case identity instead of always as the administrator", async () => {
   const { also } = openingFixture();

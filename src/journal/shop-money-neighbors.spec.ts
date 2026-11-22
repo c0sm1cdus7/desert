@@ -6,7 +6,7 @@ it("reads two sales and a payment from stored cents after replay", () => {
   const rig = shopRig();
   try {
     rig.bus.emit(shop.fact("sale-registered", { sale: "una", total: 1500 }, "ana"));
-    rig.bus.emit(shop.fact("sale-registered", { sale: "otra", total: 1 }, "ana"));
+    rig.bus.emit(shop.fact("sale-registered", { sale: "other", total: 1 }, "ana"));
     rig.bus.emit(shop.fact("payment-received", { payment: "p", sale: "una", amount: 501 }, "ana"));
     rig.restart();
     const state = rig.state();

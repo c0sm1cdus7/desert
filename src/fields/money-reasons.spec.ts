@@ -8,12 +8,12 @@ import type { Asking } from "../surface/session/walk-state.ts";
 
 it.each([
   ["mínimo", "pantalla"],
-  ["programa", "pantalla"],
+  ["defineProgram", "pantalla"],
   ["mínimo", "tecla"],
-  ["programa", "tecla"],
+  ["defineProgram", "tecla"],
 ] as const)("Q1: %s / %s checks the empty amount in the new currency", (state, entrance) => {
   const h = readyMatrix(state);
-  if (state === "programa") h.send({ kind: "confirm" });
+  if (state === "defineProgram") h.send({ kind: "confirm" });
   expect(JSON.stringify(h.screen())).toContain(state === "mínimo" ? "mínimo $ 0,01" : "importe retenido");
   h.sale.currency = "US$";
   if (entrance === "tecla") h.send({ kind: "erase" });

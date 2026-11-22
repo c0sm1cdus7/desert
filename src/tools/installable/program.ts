@@ -9,22 +9,22 @@ import type { State } from "../tool-contract.ts";
 import { installProgram } from "./adapter.ts";
 import type { InstalledProgram, ProgramReadings } from "./runtime.ts";
 export const DESERT_CONTRACT = 1;
-export type FactDefinition = Readonly<{ nombre: string; forma: TSchema }>;
+export type FactDefinition = Readonly<{ kind: string; schema: TSchema }>;
 export type ProgramMetadata = Readonly<{
   dependencies?: readonly Readonly<{ kind: "contract" | "distribution"; name: string }>[];
   id: string;
   version: `${number}.${number}.${number}`;
   desert: number;
-  codigo: readonly [string, ...string[]];
-  hechos: readonly FactDefinition[];
-  inicial: () => unknown;
+  code: readonly [string, ...string[]];
+  facts: readonly FactDefinition[];
+  initial: () => unknown;
 }>;
 export type FactCatalog<M extends ProgramMetadata> = {
-  [F in M["hechos"][number] as F["nombre"]]: F["forma"];
+  [F in M["facts"][number] as F["kind"]]: F["schema"];
 };
 export type LocalProgram<M extends ProgramMetadata> = {
   fact: ProgramFacts<FactCatalog<M>>;
-  tools: { own: ReturnType<M["inicial"]> };
+  tools: { own: ReturnType<M["initial"]> };
 };
 import type { ProgramWords } from "../../fields/installable-words.ts";
 export type { ProgramWords } from "../../fields/installable-words.ts";
@@ -32,7 +32,7 @@ export type ProgramGroup<X extends import("../tool-contract.ts").Program> = Omit
   ProgramTool<X>,
   "id" | "facts" | "skill" | "start" | "groups"
 > &
-  Readonly<{ palabras: ProgramWords }>;
+  Readonly<{ words: ProgramWords }>;
 import type { ProgramMindCase } from "../minds/program-mind-cases.ts";
 export type { ProgramMindCase, ProgramMindScene } from "../minds/program-mind-cases.ts";
 /** How a program's fact reads as a message to minds: who it is for and the line they see. `to` and `by` make the
@@ -41,7 +41,7 @@ export type { ProgramMindCase, ProgramMindScene } from "../minds/program-mind-ca
 export type ProgramMessage = Readonly<{ text: string; to: readonly string[]; by: string }>;
 export type MessageReader = (event: Event) => ProgramMessage | undefined;
 /** A program minds talk through: how its facts read as messages and the acts a consciousness may say them with. */
-export type ProgramTalk = Readonly<{ leer: MessageReader; actos: readonly [string, ...string[]] }>;
+export type ProgramTalk = Readonly<{ read: MessageReader; acts: readonly [string, ...string[]] }>;
 import type { ContractPackage } from "../contracts/package-contracts.ts";
 export type {
   ContractCase,
@@ -54,19 +54,19 @@ export type {
 export type { ContractAction, ContractInterface, ContractNotice, ContractObject } from "../contracts/contract-types.ts";
 /** Its own half of each contract, published with it: what it offers, what it requests, and the projectors its offers
  * read. Composing checks them; a program that neither offers nor requests leaves them out. */
-type ContractHalf = Partial<Pick<ContractPackage, "artifact" | "ofrece" | "pide" | "proyectores">>;
+type ContractHalf = Partial<Pick<ContractPackage, "artifact" | "offers" | "requests" | "projectors">>;
 export type ProgramBody<M extends ProgramMetadata> = Readonly<{
   mindCases?: readonly ProgramMindCase[];
-  mensajes?: ProgramTalk;
+  messages?: ProgramTalk;
   purpose: string;
   skill: Skill;
-  palabras: ProgramWords;
-  herramientas: Readonly<Record<string, ProgramGroup<LocalProgram<M>>>>;
-  plegar: (
-    own: DeepReadonly<ReturnType<M["inicial"]>>,
+  words: ProgramWords;
+  tools: Readonly<Record<string, ProgramGroup<LocalProgram<M>>>>;
+  fold: (
+    own: DeepReadonly<ReturnType<M["initial"]>>,
     event: Event<LocalProgram<M>["fact"]>,
     before: State<LocalProgram<M>>,
-  ) => DeepReadonly<ReturnType<M["inicial"]>>;
+  ) => DeepReadonly<ReturnType<M["initial"]>>;
   summary: (state: State<LocalProgram<M>>) => string;
   effects?: unknown;
 }> &
@@ -75,12 +75,12 @@ export type InstallableProgram = ProgramMetadata &
   Readonly<{
     effects?: unknown;
     mindCases?: readonly ProgramMindCase[];
-    mensajes?: ProgramTalk;
-    herramientas: Readonly<Record<string, Readonly<{ acts: Readonly<Record<string, unknown>>; effects?: unknown }>>>;
+    messages?: ProgramTalk;
+    tools: Readonly<Record<string, Readonly<{ acts: Readonly<Record<string, unknown>>; effects?: unknown }>>>;
     /** Installs it; composing passes what it reads from its providers, when it requests any. */
     install: (readings?: ProgramReadings) => InstalledProgram;
   }>;
-export function programa<const M extends ProgramMetadata, const B extends ProgramBody<NoInfer<M>>>(
+export function defineProgram<const M extends ProgramMetadata, const B extends ProgramBody<NoInfer<M>>>(
   metadata: M,
   body: B,
 ): M & B & Readonly<{ install: (readings?: ProgramReadings) => InstalledProgram }> {

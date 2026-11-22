@@ -95,7 +95,7 @@ class SocketHttp<X extends Program> {
       if (channel.wire.destroyed) return empty(409);
       const message = readClient(JSON.parse(body));
       // The HTTP header is the sole credential; a hello body cannot switch identities.
-      if (message.tipo === "hola") message.token = header(request, "authorization")?.replace(/^Bearer /i, "") ?? "";
+      if (message.type === "hello") message.token = header(request, "authorization")?.replace(/^Bearer /i, "") ?? "";
       if (channel.wire.writableLength > socketLimits.pendingBytes) {
         channel.stop();
         return empty(429);

@@ -1,7 +1,7 @@
 // Describe programas y carpetas otorgables sin limitar la cantidad de filas.
 import { systemTool } from "../../house/system-tools.ts";
 import { holderKit } from "../../house/kit-history.ts";
-import { covers, herramientaDe } from "../../house/kit-selection.ts";
+import { covers, toolOf } from "../../house/kit-selection.ts";
 import { allowedAct, mindMayHold, mindTool } from "../../house/kit.ts";
 import type { House } from "../../house/members.ts";
 import type { Program, Tool, ToolRegistry } from "../tool-contract.ts";
@@ -19,8 +19,7 @@ export function kitDatum(house: House, holder: string, tool: string, actions: re
   if (holderKit(house, holder).selections.some(selection => covers(selection, branch))) return words.all;
   const count = actions.filter(
     act =>
-      (group === undefined || herramientaDe(tool, act, house.kitLayout) === group) &&
-      allowedAct(house, holder, tool, act),
+      (group === undefined || toolOf(tool, act, house.kitLayout) === group) && allowedAct(house, holder, tool, act),
   ).length;
   return count ? words.someActions : words.noActions;
 }

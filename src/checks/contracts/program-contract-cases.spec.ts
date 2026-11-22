@@ -1,16 +1,16 @@
 // The ordinary program gate executes consumer cases, including a provider that returns the wrong result.
 import { expect, it } from "vitest";
 import { contractOptions } from "../../../tests/support/distribution-contracts.ts";
-import { componer } from "../../runtime/distributions/compose.ts";
+import { compose } from "../../runtime/distributions/compose.ts";
 import { contractChecks } from "./program-contract-cases.ts";
 it("runs consumer requests at the provider gate", async () => {
-  const { program } = componer(contractOptions);
+  const { program } = compose(contractOptions);
   const checks = contractChecks(program);
   expect(checks.length).toBeGreaterThan(0);
   for (const check of checks) await check.run();
 });
 it("turns the gate red for a provider that breaks a consumer case", async () => {
-  const { program } = componer(contractOptions);
+  const { program } = compose(contractOptions);
   const broken = {
     ...program,
     registry: program.registry.map(tool => ({

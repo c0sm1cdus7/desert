@@ -5,7 +5,7 @@ import { expect, it } from "vitest";
 import { launchHouse } from "./launch-house.ts";
 import { socketTexts } from "../../texts/socket.texts.ts";
 it("g05 d2: the launched house leaves shutdown and unfinished acts in owner-only output", async () => {
-  const root = mkdtempSync("/tmp/casa-output-");
+  const root = mkdtempSync("/tmp/house-output-");
   const entry = join(import.meta.dirname, "../../../tests/support/logged-house.ts");
   writeFileSync(join(root, "package.json"), JSON.stringify({ desert: { program: entry } }));
   let pid = 0;
@@ -13,7 +13,7 @@ it("g05 d2: the launched house leaves shutdown and unfinished acts in owner-only
     await launchHouse(root, root);
     pid = Number(readFileSync(join(root, "fixture.pid"), "utf8"));
     process.kill(pid, "SIGTERM");
-    const path = join(root, "casa.log");
+    const path = join(root, "house.log");
     const until = Date.now() + 12000;
     while ((!existsSync(path) || !readFileSync(path, "utf8").includes(socketTexts.pending(1))) && Date.now() < until)
       await delay(20);

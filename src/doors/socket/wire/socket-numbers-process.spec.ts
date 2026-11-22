@@ -37,23 +37,23 @@ it("s05: two processes survive rejected -0, legacy -0 and an ordinary sale", asy
       if (!client) throw new Error("Missing fixture client");
       client.receive(message => answers.push(message));
       await client.attach(pair[0]);
-      client.send({ tipo: "acto", id: `att${terminal}`, act: "attend", input: { target: "sales" }, through: 0 });
+      client.send({ type: "act", id: `att${terminal}`, act: "attend", input: { target: "sales" }, through: 0 });
     }
-    await vi.waitFor(() => expect(answers.filter(m => m.tipo === "resultado")).toHaveLength(2));
+    await vi.waitFor(() => expect(answers.filter(m => m.type === "result")).toHaveLength(2));
     const body = Buffer.from(
-      '{"tipo":"acto","id":"negative","act":"register","target":"sales",' +
+      '{"type":"act","id":"negative","act":"register","target":"sales",' +
         '"input":{"sale":"gift","total":-0},"through":0}',
     );
     const header = Buffer.alloc(5);
     header.writeUInt32BE(body.length + 1);
     pairs[1]?.[0].write(Buffer.concat([header, body]));
     await vi.waitFor(() =>
-      expect(answers).toContainEqual({ tipo: "rechazo", id: "negative", motivo: socketTexts.invalidData }),
+      expect(answers).toContainEqual({ type: "rejection", id: "negative", reason: socketTexts.invalidData }),
     );
     child.send({ op: "legacy" });
     await vi.waitFor(() => expect(messages).toContainEqual({ legacy: true }));
     clients[0]?.send({
-      tipo: "acto",
+      type: "act",
       id: "ordinary",
       act: "register",
       target: "sales",
@@ -61,9 +61,7 @@ it("s05: two processes survive rejected -0, legacy -0 and an ordinary sale", asy
       through: 0,
     });
     await vi.waitFor(() =>
-      expect(answers).toContainEqual(
-        expect.objectContaining({ tipo: "resultado", id: "ordinary", status: "accepted" }),
-      ),
+      expect(answers).toContainEqual(expect.objectContaining({ type: "result", id: "ordinary", status: "accepted" })),
     );
     child.send({ op: "view" });
     await vi.waitFor(() =>

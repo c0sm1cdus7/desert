@@ -53,6 +53,7 @@ export const identityTexts = {
     ]
       .filter(Boolean)
       .join(" · ") || "0 acciones",
+  kitEnter: "guardar",
   kitPurpose: "acciones que puede hacer",
   give: "dar",
   take: "sacar",

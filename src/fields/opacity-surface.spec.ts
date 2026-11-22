@@ -72,7 +72,7 @@ it("confirms y stops de una acción reciben referencias antes de ejecutar", asyn
 it("cancelar no deja material canjeable en las referencias vistas por callbacks", () => {
   const input = Type.Object({ value: Type.String({ secret: true, title: "Material", maxLength: 4 }) });
   const ask = asking(input, words);
-  const visible = ask.input(["dato"]);
+  const visible = ask.input(["datum"]);
   const rig = fixture(input);
   // Replaying a callback's object is external material: its reference text exceeds this field's bound.
   expect(rig.set(visible).status).toBe("rejected");

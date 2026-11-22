@@ -1,7 +1,7 @@
 import { uncataloguedWords, staleWordExemptions } from "../../src/checks/laws/biases.ts";
 import { describe, expect, it } from "vitest";
-import { root } from "../support/sources.ts";
-const repo = { root, code: ["src"] };
+import { root, ownCode } from "../support/sources.ts";
+const repo = { root, code: ownCode };
 import pkg from "../../package.json" with { type: "json" };
 const options = pkg.desert.laws;
 /**

@@ -24,8 +24,8 @@ function scenario(point = 0, after = false) {
   const store = new SecretCustody(rig.file, rig.home, provider);
   try {
     const session = store.begin(custodyScope);
-    session.replace("signing", { key: session.capture(Buffer.from("uno")) }, 0);
-    session.replace("signing", { key: session.capture(Buffer.from("dos")) }, 1);
+    session.replace("signing", { key: session.capture(Buffer.from("one")) }, 0);
+    session.replace("signing", { key: session.capture(Buffer.from("two")) }, 1);
     session.release("signing", 2);
   } catch (error) {
     if (!state.interrupted) throw error;

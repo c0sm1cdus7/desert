@@ -2,7 +2,7 @@
 import {
   actionSelection,
   covers,
-  herramientaDe,
+  toolOf,
   selectionKit,
   type KitLayout,
   type Selection,
@@ -21,7 +21,7 @@ export function editKit(
   return selectionKit(
     rest.flatMap(selection => {
       if (!covers(selection, branch)) return [selection];
-      const groups = [...new Set(actions.map(action => herramientaDe(branch.program, action, layout)))];
+      const groups = [...new Set(actions.map(action => toolOf(branch.program, action, layout)))];
       const siblings: Selection[] =
         selection.kind === "program" && branch.kind !== "program"
           ? groups.filter(tool => tool !== branch.tool).map(tool => ({ kind: "tool", program: branch.program, tool }))
@@ -32,7 +32,7 @@ export function editKit(
             .filter(
               action =>
                 !covers(branch, actionSelection(branch.program, action, layout)) &&
-                herramientaDe(branch.program, action, layout) === branch.tool,
+                toolOf(branch.program, action, layout) === branch.tool,
             )
             .map(action => actionSelection(branch.program, action, layout)),
         );

@@ -22,7 +22,7 @@ function incoming(socket: Duplex) {
   const messages: ServerMessage[] = [];
   const states: unknown[] = [];
   const order: string[] = [];
-  const timeline: (ServerMessage | { tipo: "v8"; state: unknown })[] = [];
+  const timeline: (ServerMessage | { type: "v8"; state: unknown })[] = [];
   let closed = false;
   const view = connectionState();
   const reader = frameReader("server", value => {
@@ -30,14 +30,14 @@ function incoming(socket: Duplex) {
       if (!view.accept(value)) return;
       const state: unknown = view.state();
       states.push(state);
-      timeline.push({ tipo: "v8", state });
+      timeline.push({ type: "v8", state });
       order.push("v8");
     } else {
       const message = readServer(value);
       view.metadata(message);
       messages.push(message);
       timeline.push(message);
-      order.push(message.tipo);
+      order.push(message.type);
     }
   });
   socket.on("error", () => {});
@@ -73,13 +73,13 @@ export async function probe(path: string | Duplex) {
     },
     hello: (token = "ana-terminal", extra = {}) => {
       socket.write(
-        wire({ tipo: "hola", protocolo: houseProtocolVersion, node: process.versions.node, token, ...extra }),
+        wire({ type: "hello", protocol: houseProtocolVersion, node: process.versions.node, token, ...extra }),
       );
     },
     result: async (id: string) => {
-      await received.until(() => received.messages.some(m => m.tipo === "resultado" && m.id === id));
+      await received.until(() => received.messages.some(m => m.type === "result" && m.id === id));
       return received.messages.find(
-        (m): m is Extract<ServerMessage, { tipo: "resultado" }> => m.tipo === "resultado" && m.id === id,
+        (m): m is Extract<ServerMessage, { type: "result" }> => m.type === "result" && m.id === id,
       );
     },
   };

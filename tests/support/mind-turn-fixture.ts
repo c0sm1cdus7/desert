@@ -7,7 +7,7 @@ import type { MindFrame, ModelOutcome, TurnPorts, TurnWake } from "../../src/run
 export const frame: MindFrame = { layers: ["Casa", "Nora", "Herramientas", "Reglas"], changing: "Pedido" };
 export const usage = { input: 1, output: 1, cacheWrite: 0, cacheRead: 0 };
 export const act = { act: "say", target: "chat", input: { text: "Listo" } };
-export const answer = { scene: "Preparando", consulta: null, acts: [act] };
+export const answer = { scene: "Preparando", consultation: null, acts: [act] };
 export const ok = (value: unknown = answer): ModelOutcome => ({ kind: "answer", value, usage });
 export const wake: TurnWake = {
   id: "t1",

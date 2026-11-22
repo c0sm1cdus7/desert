@@ -16,7 +16,7 @@ it("keeps desert/contracts out of a program, which still imports the contract ty
   expect(programImports(certifying)).toEqual(["src/a.ts → desert/contracts"]);
   const typed = installablePackage();
   const path = join(typed.root, "src/notes.ts");
-  const types = 'import type { ContractPackage, ContractOffer, ContractCase } from "desert/programa";';
+  const types = 'import type { ContractPackage, ContractOffer, ContractCase } from "desert/program";';
   writeFileSync(
     path,
     `${readFileSync(path, "utf8")}${types}\nexport type Halves = [ContractPackage, ContractOffer, ContractCase];\n`,

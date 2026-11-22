@@ -18,9 +18,9 @@ it.each(["json", "schema", "max_tokens", "refusal"] as const)("corrige una sola 
   expect(await runMindTurn(f.ports, wake)).toMatchObject({ outcome: "done", calls: 2 });
   expect(f.events.filter(e => e.kind === "mind-answer-invalid")).toHaveLength(1);
 });
-const asking = { ...answer, consulta: { question: "¿Sigo?" } };
+const asking = { ...answer, consultation: { question: "¿Sigo?" } };
 it("rechaza by inventado y comparte la corrección con una consulta rechazada después", async () => {
-  const f = fixture([ok({ ...answer, by: "otro" }), ok(asking)]);
+  const f = fixture([ok({ ...answer, by: "other" }), ok(asking)]);
   f.ports.supervision.rules = {
     review: request => ({
       proposal: request.id,
@@ -48,7 +48,7 @@ it("una consulta rechazada seguida de una inválida no obtiene una tercera llama
   expect(f.execute).not.toHaveBeenCalled();
 });
 it("retiene los actos de consulta y reemplaza la propuesta después de sin supervisor", async () => {
-  const f = fixture([ok({ ...answer, consulta: { question: "¿Sigo?" } }), ok({ ...answer, acts: [] })]);
+  const f = fixture([ok({ ...answer, consultation: { question: "¿Sigo?" } }), ok({ ...answer, acts: [] })]);
   expect(await runMindTurn(f.ports, wake)).toMatchObject({ outcome: "done", calls: 2 });
   expect(f.execute).not.toHaveBeenCalled();
   expect(f.events.find(e => e.kind === "mind-consultation-answered")?.data).toMatchObject({
@@ -57,7 +57,7 @@ it("retiene los actos de consulta y reemplaza la propuesta después de sin super
   });
 });
 it("la consulta no restituye una corrección consumida y una segunda consulta es inválida", async () => {
-  const queried = ok({ ...answer, consulta: { question: "¿Sigo?" } });
+  const queried = ok({ ...answer, consultation: { question: "¿Sigo?" } });
   const f = fixture([{ kind: "invalid", reason: "schema" }, queried, queried]);
   expect(await runMindTurn(f.ports, wake)).toMatchObject({ outcome: "failed", calls: 3 });
   expect(f.execute).not.toHaveBeenCalled();

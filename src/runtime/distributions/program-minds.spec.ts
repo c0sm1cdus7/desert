@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
-import { componer } from "./compose.ts";
+import { compose } from "./compose.ts";
 import { sampleOptions } from "../../../tests/support/installable-program.ts";
 import { startHouse, localPorts } from "../house-runtime.ts";
 import { requestProgram } from "../../../tests/support/request-program.ts";
@@ -11,8 +11,8 @@ import { talkProgram } from "../../../tests/support/talk-program.ts";
 import { assistantMindRules } from "../../texts/program-mind.texts.ts";
 import { supervisorHouse } from "../../texts/supervisor.texts.ts";
 it("deriva una mente y abre sin llave, con el motivo visible", async () => {
-  const distribution = componer({ ...sampleOptions, mentes: { asistentes: false, programas: ["notas"] } });
-  expect(distribution.mindDefinitions.map(mind => [mind.actor, mind.role])).toEqual([["mind:notas", "program:notas"]]);
+  const distribution = compose({ ...sampleOptions, minds: { assistants: false, programs: ["notes"] } });
+  expect(distribution.mindDefinitions.map(mind => [mind.actor, mind.role])).toEqual([["mind:notes", "program:notes"]]);
   const modelMinds = await distribution.modelMinds({
     language: "es",
     key: () => Promise.resolve(undefined),
@@ -25,22 +25,22 @@ it("deriva una mente y abre sin llave, con el motivo visible", async () => {
     ...distribution.program,
     modelMinds,
     by: "test",
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notas"] }] },
+    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes"] }] },
   });
   try {
     await (await house.minds)?.flush();
     expect(localPorts(house, "ana", { recentLines: 20 }).openingNotices?.().join(" ")).toContain("llave");
-    expect(house.tools.state().house.scenes.get("mind:notas")?.data.general).toContain("llave");
+    expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toContain("llave");
   } finally {
     house.close();
     rmSync(home, { recursive: true, force: true });
   }
 });
 it("22/11: each mind knows what wakes it and how it is named; a talking program's mind is not told of its acts", () => {
-  const distribution = componer({
+  const distribution = compose({
     ...sampleOptions,
-    programas: [requestProgram(), talkProgram],
-    mentes: { asistentes: false, programas: ["notes", "talk"] },
+    programs: [requestProgram(), talkProgram],
+    minds: { assistants: false, programs: ["notes", "talk"] },
   });
   const rules = (actor: string) =>
     distribution.mindDefinitions.find(mind => mind.actor === actor)?.rules.text("es", {}) ?? "";

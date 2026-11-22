@@ -14,9 +14,9 @@ for (const [tool, option, reason] of [
       f.house().bus.emit(effect("kit-set", { holder: "beto", tool: "payments", acts: [] }, "ana"));
       const c = await f.client("beto-terminal");
       const before = f.house().tools.state().through;
-      c.send({ tipo: "defecto", tool, target: tool, option });
-      expect(await c.until(() => c.messages.some(m => m.tipo === "rechazo"))).toBe(true);
-      expect(c.messages.at(-1)).toMatchObject({ tipo: "rechazo", motivo: reason });
+      c.send({ type: "default", tool, target: tool, option });
+      expect(await c.until(() => c.messages.some(m => m.type === "rejection"))).toBe(true);
+      expect(c.messages.at(-1)).toMatchObject({ type: "rejection", reason: reason });
       expect(f.house().tools.state().through).toBe(before);
     } finally {
       await f.close();

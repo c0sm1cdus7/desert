@@ -14,7 +14,7 @@ const hostNames = new Set([
   "houseTools",
   "startRouter",
   "startTerminal",
-  "componer",
+  "compose",
   "startTools",
   "startClock",
   "createHouse",

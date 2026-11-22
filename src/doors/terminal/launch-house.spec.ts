@@ -3,7 +3,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { expect, it } from "vitest";
 import { launchHouse } from "./launch-house.ts";
 function fixture(body: string) {
-  const root = realpathSync(mkdtempSync("/tmp/casa-launch-"));
+  const root = realpathSync(mkdtempSync("/tmp/house-launch-"));
   writeFileSync(`${root}/package.json`, JSON.stringify({ type: "module", desert: { program: "entry.mjs" } }));
   writeFileSync(
     `${root}/entry.mjs`,

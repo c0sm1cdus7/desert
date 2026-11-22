@@ -21,7 +21,7 @@ it("retains the technical cause and names the actual amount without labeling oth
   );
   expect(defects.failed(error)).toContain("Propina");
   expect(defects.failed(error)).not.toContain("Total");
-  expect(defects.failed(new Error("otro"))).toBe("E-BASE-1 · Falló la base");
+  expect(defects.failed(new Error("other"))).toBe("E-BASE-1 · Falló la base");
 });
 
 it("keeps the invalid cents and their cause in the support entry", async () => {

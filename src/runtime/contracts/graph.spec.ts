@@ -1,20 +1,20 @@
 import { expect, it } from "vitest";
 import { diagnoseContracts } from "./contract-graph.ts";
-const empty = { acciones: {}, objetos: {}, avisos: {} };
+const empty = { actions: {}, objects: {}, notices: {} };
 it("reports absent and ambiguous providers without picking one", () => {
   expect(
     diagnoseContracts([
-      { id: "ventas", ofrece: {}, pide: { fiscal: empty, faltante: empty } },
-      { id: "a", ofrece: { fiscal: empty }, pide: {} },
-      { id: "b", ofrece: { fiscal: empty }, pide: {} },
+      { id: "sales", offers: {}, requests: { fiscal: empty, faltante: empty } },
+      { id: "a", offers: { fiscal: empty }, requests: {} },
+      { id: "b", offers: { fiscal: empty }, requests: {} },
     ]),
-  ).toEqual(["dos-o-mas-proveedores:ventas/fiscal", "sin-proveedor:ventas/faltante"]);
+  ).toEqual(["multiple-providers:sales/fiscal", "no-provider:sales/faltante"]);
 });
 it("reports both complete routes through a cycle", () => {
   expect(
     diagnoseContracts([
-      { id: "a", ofrece: { x: empty }, pide: { y: empty } },
-      { id: "b", ofrece: { y: empty }, pide: { x: empty } },
+      { id: "a", offers: { x: empty }, requests: { y: empty } },
+      { id: "b", offers: { y: empty }, requests: { x: empty } },
     ]),
-  ).toEqual(["ciclo:a-[y]->b-[x]->a", "ciclo:b-[x]->a-[y]->b"]);
+  ).toEqual(["cycle:a-[y]->b-[x]->a", "cycle:b-[x]->a-[y]->b"]);
 });

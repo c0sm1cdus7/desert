@@ -45,12 +45,12 @@ class HttpStream extends Duplex {
       const response = await this.send(this.url, {
         method: "POST",
         headers: { ...this.headers, "Content-Type": "application/json" },
-        body: JSON.stringify(message.tipo === "hola" ? { ...message, token: "http" } : message),
+        body: JSON.stringify(message.type === "hello" ? { ...message, token: "http" } : message),
         redirect: "error",
         signal: AbortSignal.any([this.controller.signal, AbortSignal.timeout(socketLimits.frameMs)]),
       });
       await response.body?.cancel();
-      if (response.status === 401) this.push(serverFrame({ tipo: "cortado", motivo: socketTexts.denied }));
+      if (response.status === 401) this.push(serverFrame({ type: "cut", reason: socketTexts.denied }));
       if (response.status !== 202) throw new Error(socketTexts.beforeState);
     }
   }

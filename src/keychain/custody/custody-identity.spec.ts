@@ -93,7 +93,7 @@ it("si falta la llave con material guardado, jamás se pide crearla (a5/a9)", ()
             forget() {},
             key: (_id, create) => {
               calls.push(create);
-              throw new Error("ausente");
+              throw new Error("missing");
             },
           }),
         ),

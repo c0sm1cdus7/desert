@@ -27,7 +27,7 @@ it("holds: mente propia y existente; identidad con herramienta aunque su kit est
     grants: new Map([
       ["ana", ["sales"]],
       ["beto", ["vault"]],
-      ["mind:viejo", ["vault"]],
+      ["mind:old", ["vault"]],
     ]),
     kits: new Map([["beto", new Map([["vault", []]])]]),
   };
@@ -38,7 +38,7 @@ it("holds: mente propia y existente; identidad con herramienta aunque su kit est
     holds(registry, house, "carla", "vault"),
     holds(registry, house, "ana", "vault"),
     holds(registry, house, "beto", "vault"),
-    holds(registry, house, "mind:viejo", "vault"),
+    holds(registry, house, "mind:old", "vault"),
     holds(registry, house, "mind:", "vault"),
   ]).toEqual([false, true, false, false, false, true, false, false]);
 });

@@ -29,7 +29,7 @@ it("p9: una acción propia secreta ofrecida más tarde dice que falta secretKeys
   });
   try {
     offered = true;
-    expect(() => house.tools.act({ act: "set", target: "own", input: { value: "inventado" } }, 0, "ana")).toThrow(
+    expect(() => house.tools.act({ act: "set", target: "own", input: { value: "invented" } }, 0, "ana")).toThrow(
       /E-CUSTODY-PROVIDER.*secretKeys/u,
     );
   } finally {

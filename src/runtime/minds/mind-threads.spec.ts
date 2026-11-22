@@ -31,7 +31,7 @@ it("separates the consciousness and journeys of different minds", () => {
   const empty = { entries: [], compacted: [] };
   const a = { actor: "assistant:franco" };
   const b = { actor: "assistant:franco", process: "viaje" };
-  const c = { actor: "mind:notas", process: "viaje" };
+  const c = { actor: "mind:notes", process: "viaje" };
   const bank = putThread(
     putThread(putThread(new Map(), a, appendThread(empty, { seq: 1, id: "a", text: "uno" })), b, empty),
     c,
@@ -40,5 +40,5 @@ it("separates the consciousness and journeys of different minds", () => {
   expect(threadWindow(threadFor(bank, a)).map(entry => entry.id)).toEqual(["a"]);
   expect(threadWindow(threadFor(bank, b))).toEqual([]);
   expect(threadWindow(threadFor(bank, c))).toEqual([]);
-  expect(() => threadFor(bank, { actor: "mind:otra" })).toThrow("Hilo ausente");
+  expect(() => threadFor(bank, { actor: "mind:other" })).toThrow("Hilo ausente");
 });

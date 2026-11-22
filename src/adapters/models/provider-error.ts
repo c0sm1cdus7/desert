@@ -56,7 +56,7 @@ export async function readProviderError(
 ): Promise<ProviderRejection> {
   const { text: body, limited } = await errorBody(response);
   let partial = limited;
-  let type = "sin_tipo";
+  let type = "untyped";
   let message = body || modelTexts.errorBodyEmpty;
   try {
     const data: unknown = JSON.parse(body);

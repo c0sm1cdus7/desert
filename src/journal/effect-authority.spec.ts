@@ -71,7 +71,7 @@ for (const by of ["ana", "beto", "mind:sales"]) {
   });
 }
 it.each(["rejected", "interrupted", "inconclusive"] as const)("también valida efectos de %s", async status => {
-  const rig = effectRig(({ by }) => ({ status, reason: "motivo", effects: [effect("handed", { to: "beto" }, by)] }));
+  const rig = effectRig(({ by }) => ({ status, reason: "reason", effects: [effect("handed", { to: "beto" }, by)] }));
   rigs.push(rig);
   expect(await settle(rig.act("ana", "forge", {}, "sales"))).toMatchObject({ status: "rejected", effects: [] });
   expect(rig.state().house.admin).toBe("ana");

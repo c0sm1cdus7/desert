@@ -16,16 +16,12 @@ function start(path = ":memory:") {
   for (const by of ["beto", "ana"])
     for (const tool of house.ports.registry) engine.act({ act: "attend", input: { target: tool.id } }, 0, by);
   const act = async (by: string, sale: string) => {
-    const result = engine.act(
-      { act: "facturacion/facturar", target: "ventas/facturacion", input: { venta: sale } },
-      0,
-      by,
-    );
+    const result = engine.act({ act: "billing/invoice", target: "sales/billing", input: { sale: sale } }, 0, by);
     return result.status === "processing" ? await result.completion : result;
   };
   const scope = () =>
-    runtime.open("ventas", {
-      tool: "ventas",
+    runtime.open("sales", {
+      tool: "sales",
       by: "beto",
       execute: async action => {
         const result = engine.act(action, 0, "beto");
@@ -52,24 +48,24 @@ it("reopens an older journal and reconstructs the exact notice cut without runni
     const first = start(path);
     try {
       await first.act("beto", "v1");
-      sequence = required(first.events().find(event => event.kind === "documentos/emitido")).seq;
+      sequence = required(first.events().find(event => event.kind === "documents/issued")).seq;
       await first.act("beto", "v2");
     } finally {
       first.stop();
     }
     const reopened = start(path);
     try {
-      const port = required(reopened.scope().contracts["documentos-fiscales"]);
-      expect(port.objects.comprobante?.read("v1", reopened.runtime.cut(sequence))).toMatchObject({
+      const port = required(reopened.scope().contracts["fiscal-documents"]);
+      expect(port.objects.voucher?.read("v1", reopened.runtime.cut(sequence))).toMatchObject({
         status: "found",
         sequence,
-        value: { numero: "1", estado: "emitido" },
+        value: { number: "1", state: "issued" },
       });
-      expect(port.objects.comprobante?.read("v2", reopened.runtime.cut(sequence))).toEqual({
+      expect(port.objects.voucher?.read("v2", reopened.runtime.cut(sequence))).toEqual({
         status: "unavailable",
         sequence,
       });
-      expect(reopened.events().filter(event => event.kind === "documentos/emitido")).toHaveLength(2);
+      expect(reopened.events().filter(event => event.kind === "documents/issued")).toHaveLength(2);
     } finally {
       reopened.stop();
     }
@@ -88,10 +84,10 @@ it("concurrent callers keep independent actors and causes through the same provi
     expect(
       rig
         .events()
-        .filter(event => event.kind === "documentos/emitido")
+        .filter(event => event.kind === "documents/issued")
         .map(event => event.by),
     ).toEqual(["beto", "ana"]);
-    for (const event of rig.events().filter(event => event.kind === "documentos/emitido")) {
+    for (const event of rig.events().filter(event => event.kind === "documents/issued")) {
       const origin = rig.events().find(parent => event.cause.includes(parent.id) && parent.kind === "act");
       expect(origin?.by).toBe(event.by);
     }

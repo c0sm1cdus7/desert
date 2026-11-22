@@ -51,10 +51,10 @@ export function clientStream(
   const ready = attachmentWait(stream);
   const reader = frameReader("server", value => {
     const message = Buffer.isBuffer(value) ? value : readServer(value);
-    if (!Buffer.isBuffer(message) && message.tipo === "estado") ready.begin();
+    if (!Buffer.isBuffer(message) && message.type === "state") ready.begin();
     if (receive(message)) ready.complete();
-    else if (!Buffer.isBuffer(message) && message.tipo === "rechazo" && !message.id)
-      ready.reject(new Error(message.motivo));
+    else if (!Buffer.isBuffer(message) && message.type === "rejection" && !message.id)
+      ready.reject(new Error(message.reason));
   });
   stream.on("data", (bytes: Buffer) => {
     try {
@@ -71,6 +71,6 @@ export function clientStream(
     ready.closed();
     lost();
   });
-  stream.write(clientFrame({ tipo: "hola", protocolo: houseProtocolVersion, node: process.versions.node, token }));
+  stream.write(clientFrame({ type: "hello", protocol: houseProtocolVersion, node: process.versions.node, token }));
   return ready.promise;
 }

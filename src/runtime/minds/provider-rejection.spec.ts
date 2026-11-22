@@ -30,8 +30,8 @@ it.each(cases)("el banco conserva %s en escena, diario y stdout, con JSON y sin 
     );
     const house = await f.open({}, false);
     const prepared = await f.bank(house);
-    const expected = `${status} ${json ? type : "sin_tipo"}`;
-    const scene = house.tools.state().house.scenes.get("mind:notas")?.data.general ?? "";
+    const expected = `${status} ${json ? type : "untyped"}`;
+    const scene = house.tools.state().house.scenes.get("mind:notes")?.data.general ?? "";
     const journal = house.journal.replay<string[]>([], (all, event) =>
       event.layer === "house" && event.kind === "scene" ? [...all, event.data.general] : all,
     );
@@ -70,7 +70,7 @@ it.each(cases)(
     );
     f.wake(house);
     await (await house.minds)?.flush();
-    const scene = house.tools.state().house.scenes.get("mind:notas")?.data.general;
+    const scene = house.tools.state().house.scenes.get("mind:notes")?.data.general;
     expect(scene).toContain(`${status} ${type}: No se admite [secreto] ni [secreto]`);
     const journal = house.journal.replay<string[]>([], (all, event) =>
       event.layer === "house" && event.kind === "mind-scene" ? [...all, event.data.text] : all,
@@ -81,7 +81,7 @@ it.each(cases)(
     expect(JSON.stringify([scene, journal, output.mock.calls]).includes(planted)).toBe(false);
     house.close();
     const reopened = await f.open();
-    expect(reopened.tools.state().house.scenes.get("mind:notas")?.data.general).toBe(scene);
+    expect(reopened.tools.state().house.scenes.get("mind:notes")?.data.general).toBe(scene);
     expect(f.transport).toHaveBeenCalledOnce();
     expect(output).toHaveBeenCalledOnce();
   },
@@ -95,7 +95,7 @@ it("conserva la causa del supervisor hasta el cierre del turno que lo consultó"
       request.number === 1
         ? {
             kind: "answer",
-            value: { scene: "Consultando", consulta: { question: "¿Sigo?" }, acts: [] },
+            value: { scene: "Consultando", consultation: { question: "¿Sigo?" }, acts: [] },
             usage: { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 },
           }
         : { kind: "failed", reason: "http", rejection },
@@ -116,7 +116,7 @@ it("conserva la causa del supervisor hasta el cierre del turno que lo consultó"
         },
       },
     },
-    { id: "t1", scope: { kind: "consciousness", actor: "mind:notas" }, language: "es", wake: [], through: 1 },
+    { id: "t1", scope: { kind: "consciousness", actor: "mind:notes" }, language: "es", wake: [], through: 1 },
   );
   expect(result).toMatchObject({ outcome: "failed", calls: 2, reason: "http", rejection });
   const scene = events.filter(event => event.kind === "mind-scene").at(-1);
@@ -151,5 +151,5 @@ it("el puente no clona ni lee entero un rechazo para buscar consumo", async () =
   expect(f.transport).toHaveBeenCalledOnce();
   expect(clone).not.toHaveBeenCalled();
   expect(bytes).toBe(8192);
-  expect(house.tools.state().house.scenes.get("mind:notas")?.data.general).toContain("400 sin_tipo");
+  expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toContain("400 sin_tipo");
 });

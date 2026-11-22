@@ -12,7 +12,7 @@ it("cuenta todas las ramas impedidas antes de deduplicar el estado, aunque ningu
             branches: [],
             unavailable: { tool: "vault", action: path[0]?.kind ?? "", reason: "liberar credencial" },
           }
-        : { fingerprint: "inicio", branches },
+        : { fingerprint: "start", branches },
     );
   const coverage = await breadthFirst(replay);
   expect(coverage.unavailable).toEqual([

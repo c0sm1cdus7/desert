@@ -17,14 +17,14 @@ it("elige la más barata que pasa sus tres escenas y no prueba la siguiente", as
   f.respond(request => ({
     scene: request.effort === "high" ? "No alcanza" : "Banco aprobado",
     acts: [],
-    consulta: null,
+    consultation: null,
   }));
   const house = await f.open({}, false);
   expect(f.transport).not.toHaveBeenCalled();
   await f.bank(house);
   expect(f.frames.map(frame => frame.effort)).toEqual(["high", "high", "high", "low", "low", "low"]);
   expect(new Set(f.frames.map(frame => frame.model))).toEqual(new Set(["claude-haiku-5-5"]));
-  expect(house.tools.state().house.mindAssignments.get("mind:notas")?.version).toBe("low");
+  expect(house.tools.state().house.mindAssignments.get("mind:notes")?.version).toBe("low");
   const evidence = house.journal.replay<string[]>([], (results, event) =>
     event.kind === "mind-bank-tested"
       ? [...results, `${event.data.version}:${event.data.result.passed}:${event.data.result.scenes}`]
@@ -42,17 +42,17 @@ it("elige la más barata que pasa sus tres escenas y no prueba la siguiente", as
   house.close();
   const reopened = await f.open();
   expect(f.transport).toHaveBeenCalledTimes(6);
-  expect(reopened.tools.state().house.mindAssignments.get("mind:notas")?.version).toBe("low");
+  expect(reopened.tools.state().house.mindAssignments.get("mind:notes")?.version).toBe("low");
 });
 it("sin carta que pase el banco conserva su evidencia fallida, no asigna y lo dice", async () => {
   const f = fixture();
-  f.respond(() => ({ scene: "No alcanza", acts: [], consulta: null }));
+  f.respond(() => ({ scene: "No alcanza", acts: [], consultation: null }));
   const house = await f.open({ capNanoUsd: 10000000000 }, false);
   const prepared = await f.bank(house, { capNanoUsd: 10000000000 });
   expect(f.transport).toHaveBeenCalledTimes(cards.length * 3);
-  expect(house.tools.state().house.mindAssignments.has("mind:notas")).toBe(false);
+  expect(house.tools.state().house.mindAssignments.has("mind:notes")).toBe(false);
   expect(programMindNotices(prepared).join(" ")).toContain("carta");
-  expect(house.tools.state().house.scenes.get("mind:notas")?.data.general).toContain("carta");
+  expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toContain("carta");
   await f.bank(house, { capNanoUsd: 10000000000 });
   expect(f.transport).toHaveBeenCalledTimes(cards.length * 3);
 });
@@ -60,21 +60,21 @@ it("abrir la casa no llama a ningún modelo: asigna una vez la carta declarada y
   const f = fixture();
   const house = await f.open();
   expect(f.transport).not.toHaveBeenCalled();
-  expect(house.tools.state().house.mindCards.get("mind:notas")).toHaveLength(cards.length);
-  expect(house.tools.state().house.mindAssignments.get("mind:notas")).toMatchObject({
+  expect(house.tools.state().house.mindCards.get("mind:notes")).toHaveLength(cards.length);
+  expect(house.tools.state().house.mindAssignments.get("mind:notes")).toMatchObject({
     card: "claude-haiku-5-5",
     version: "low",
   });
   expect(house.mindNotices?.()).toEqual([]);
-  house.bus.emit(effect("attended", { target: "notas" }, "ana"));
+  house.bus.emit(effect("attended", { target: "notes" }, "ana"));
   const choice = JSON.stringify(["claude-sonnet-5-5", "medium"]);
-  const chosen = house.tools.act({ act: "assign-mind-card", target: "notas", input: { card: choice } }, 0, "ana");
+  const chosen = house.tools.act({ act: "assign-mind-card", target: "notes", input: { card: choice } }, 0, "ana");
   expect(chosen.status).toBe("accepted");
   await (await house.minds)?.flush();
   expect(f.frames.map(frame => frame.model)).toEqual(["claude-sonnet-5-5"]);
   house.close();
   const reopened = await f.open();
-  expect(reopened.tools.state().house.mindAssignments.get("mind:notas")).toMatchObject({
+  expect(reopened.tools.state().house.mindAssignments.get("mind:notes")).toMatchObject({
     card: "claude-sonnet-5-5",
     version: "medium",
   });
@@ -89,7 +89,7 @@ it("abrir la casa no llama a ningún modelo: asigna una vez la carta declarada y
 it("sin carta declarada ni elegida la casa abre, no llama al modelo y dice que falta la carta", async () => {
   const f = fixture();
   const house = await f.open({ cards: {} });
-  expect(house.tools.state().house.mindAssignments.has("mind:notas")).toBe(false);
+  expect(house.tools.state().house.mindAssignments.has("mind:notes")).toBe(false);
   expect(house.mindNotices?.().join(" ")).toContain("carta");
   f.wake(house);
   await (await house.minds)?.flush();
@@ -112,7 +112,7 @@ it("el gasto del pensamiento sobrevive cerrar, reabrir y recalcular", async () =
   f.wake(reopened);
   await (await reopened.minds)?.flush();
   expect(f.transport).toHaveBeenCalledTimes(count);
-  expect(reopened.tools.state().house.scenes.get("mind:notas")?.data.general).toContain("saldo");
+  expect(reopened.tools.state().house.scenes.get("mind:notes")?.data.general).toContain("saldo");
 });
 it.each(["no-key", "cap"])("abre con %s sin llamar al transporte", async reason => {
   const f = fixture();
@@ -127,32 +127,32 @@ it.each(["no-key", "cap"])("abre con %s sin llamar al transporte", async reason 
 it("el banco abre journeys y comprueba trabajo real sin escribir notas en la casa viva", async () => {
   const f = programMindFixture({
     given: [],
-    kit: [{ tool: "notas", acts: ["personal/add"] }],
-    when: { act: "personal/add", target: "notas/personal", input: {} },
-    check: events => events.filter(event => event.layer === "program" && event.by === "mind:notas").length === 1,
+    kit: [{ tool: "notes", acts: ["personal/add"] }],
+    when: { act: "personal/add", target: "notes/personal", input: {} },
+    check: events => events.filter(event => event.layer === "program" && event.by === "mind:notes").length === 1,
   });
   fixtures.push(f);
   f.respond(request => {
-    const journey = request.changing.match(/^Alcance:\nmind:notas \/ (journey:[a-f0-9-]+)/)?.[1];
+    const journey = request.changing.match(/^Alcance:\nmind:notes \/ (journey:[a-f0-9-]+)/)?.[1];
     if (journey)
       return {
         scene: "Banco aprobado",
-        consulta: null,
+        consultation: null,
         acts: [
-          { act: "personal/add", target: "notas/personal", input: {} },
+          { act: "personal/add", target: "notes/personal", input: {} },
           { act: "end", target: journey, input: { summary: "Terminé", references: [] } },
         ],
       };
     return {
       scene: "Banco aprobado",
-      consulta: null,
+      consultation: null,
       acts: request.changing.includes("Escena:\nBanco aprobado")
         ? []
         : [
             {
               act: "open",
-              target: "mind:notas",
-              input: { goal: "Anotar", kit: [{ tool: "notas", acts: ["personal/add"] }] },
+              target: "mind:notes",
+              input: { goal: "Anotar", kit: [{ tool: "notes", acts: ["personal/add"] }] },
             },
           ],
     };
@@ -160,8 +160,8 @@ it("el banco abre journeys y comprueba trabajo real sin escribir notas en la cas
   const house = await f.open({}, false);
   await f.bank(house);
   expect(f.transport).toHaveBeenCalledTimes(9);
-  expect(house.tools.state().tools.notas.count).toBe(0);
+  expect(house.tools.state().tools.notes.count).toBe(0);
   expect(house.tools.state().house.journeys.size).toBe(0);
   expect(house.tools.state().house.modelCalls.size).toBe(9);
-  expect(house.tools.state().house.mindAssignments.has("mind:notas")).toBe(true);
+  expect(house.tools.state().house.mindAssignments.has("mind:notes")).toBe(true);
 });

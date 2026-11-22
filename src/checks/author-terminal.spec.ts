@@ -6,7 +6,7 @@ import { realTerminal } from "./real-terminal.ts";
 const entry = join(import.meta.dirname, "../../tests/support/author-terminal-open.ts");
 const authors = [
   ["lucia", "Lucía"],
-  ["sin-nombre", "sin-nombre"],
+  ["unnamed", "unnamed"],
   ["retirada", "Inés"],
   ["mind:sales", "mente de Ventas"],
   ["assistant:lucia", "Nora, por Lucía"],

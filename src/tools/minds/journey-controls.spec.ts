@@ -95,7 +95,7 @@ it.each([
   [{ goal: "Mate" }, "kit"],
   [{ goal: " ", kit }, "goal"],
   [{ goal: "x".repeat(4001), kit }, "goal"],
-  [{ goal: "Mate", kit, process: "inventado" }, "process"],
+  [{ goal: "Mate", kit, process: "invented" }, "process"],
   [{ goal: "Mate", kit, by: "ana" }, "by"],
   [{ goal: "Mate", kit: [...kit, ...kit] }, "kit"],
   [{ goal: "Mate", kit: [{ tool: "notes", acts: ["write", "write"] }] }, "kit"],

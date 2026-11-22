@@ -23,7 +23,7 @@ it("la composición presta métodos, mantiene revisión inicial y deja hechos si
   expect(next.credentials.current("signing")).toEqual({ revision: 1, refs });
   expect(await call(next, "inspect", refs)).toEqual({ valid: true });
   const changed = next.credentials.current("signing");
-  if (changed) Object.assign(changed.refs, { key: "secret:inventada" });
+  if (changed) Object.assign(changed.refs, { key: "secret:invented" });
   expect(next.credentials.current("signing")?.refs).toEqual(refs);
   next.apply(next.credentials.release("signing", 1), true);
   next.close();
@@ -59,7 +59,7 @@ it("cada método limita herramientas y vínculos; otra identidad, objeto o casa 
   first.apply(first.credentials.replace("signing", refs, 0), true);
   for (const other of [
     { ...scope, actor: "bea" },
-    { ...scope, target: "otro" },
+    { ...scope, target: "other" },
   ]) {
     const next = create(store, () => true)(other);
     await expect(call(next, "inspect", refs)).rejects.toThrow("E-ADAPTER-FAILED");

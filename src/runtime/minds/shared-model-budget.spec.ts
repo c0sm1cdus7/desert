@@ -27,7 +27,7 @@ afterEach(() => {
   folders.splice(0).forEach(folder => rmSync(folder, { recursive: true, force: true }));
   vi.unstubAllGlobals();
 });
-const thinking = { "mind:notas": { model: "claude-fable-5-2", effort: "high" } };
+const thinking = { "mind:notes": { model: "claude-fable-5-2", effort: "high" } };
 async function think(f: ReturnType<typeof fixture>, house: Awaited<ReturnType<ReturnType<typeof fixture>["open"]>>) {
   f.wake(house);
   await (await house.minds)?.flush();
@@ -44,7 +44,7 @@ function synthetic() {
               text: JSON.stringify({
                 scene: "No hay novedades.",
                 acts: [],
-                consulta: null,
+                consultation: null,
               }),
             },
           ],
@@ -82,7 +82,7 @@ it("shares the total across two fresh houses, reopening and reconstruction like 
     const fresh = await next.open({ ...settings, transport });
     await think(next, fresh);
     exhausted = before === transport.mock.calls.length;
-    const said = [...(fresh.mindNotices?.() ?? []), fresh.tools.state().house.scenes.get("mind:notas")?.data.general];
+    const said = [...(fresh.mindNotices?.() ?? []), fresh.tools.state().house.scenes.get("mind:notes")?.data.general];
     expect(said.join(" ").includes("saldo")).toBe(exhausted);
     fresh.close();
   }
@@ -110,7 +110,7 @@ it("publishes every catalog card while charging the offline bank and thinking to
     expect(offline.tools.state().house.modelCalls.size).toBe(0);
     offline.close();
     const house = await f.open(billed);
-    expect(house.tools.state().house.mindCards.get("mind:notas")).toHaveLength(cards.length);
+    expect(house.tools.state().house.mindCards.get("mind:notes")).toHaveLength(cards.length);
     expect(billingAccount(account.billing, "test").spentNanoUsd).toBe(bank);
     await think(f, house);
     expect(billingAccount(account.billing, "test").spentNanoUsd).toBeGreaterThan(bank);

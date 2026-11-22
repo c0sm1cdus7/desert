@@ -6,9 +6,9 @@ import { validateContractPrograms } from "./validate-contracts.ts";
 const build = { core: "core-commit", executor: "executor-commit" };
 const options = () => ({
   programs: [sales(), documents()],
-  provider: "documentos",
-  consumer: "ventas",
-  contract: "documentos-fiscales",
+  provider: "documents",
+  consumer: "sales",
+  contract: "fiscal-documents",
   build,
   prepare: (preparation: unknown) => contractHouse(undefined, ":memory:", contractSelections(preparation)),
 });
@@ -16,16 +16,14 @@ describe("consumer cases at the provider gate", () => {
   it("executes real calls, notices, reads and idempotence and fingerprints the evidence", async () => {
     const setup = options();
     const before = validateContractPrograms(setup.programs, build);
-    expect(before.errors).toEqual(["ventas/documentos-fiscales/casos/emitir-y-leer:caso-no-declarado"]);
+    expect(before.errors).toEqual(["sales/fiscal-documents/cases/issue-and-read:undeclared-case"]);
     expect(before.rows[0]?.status).toBe("casos no comprobados");
     const run = await runContractCases(setup);
     expect(run.evidence.map(row => row.result)).toEqual(["passed"]);
     expect(run.evidence[0]?.hash).toMatch(/^[a-f0-9]{64}$/);
     expect(validateContractPrograms(setup.programs, build, run.evidence, run.verify)).toEqual({
       errors: [],
-      rows: [
-        { consumer: "ventas", provider: "documentos", contract: "documentos-fiscales", status: "casos comprobados" },
-      ],
+      rows: [{ consumer: "sales", provider: "documents", contract: "fiscal-documents", status: "casos comprobados" }],
     });
     const repeat = await runContractCases(setup);
     expect(repeat.evidence[0]?.offer).toBe(run.evidence[0]?.offer);
@@ -34,7 +32,7 @@ describe("consumer cases at the provider gate", () => {
   it("never accepts copied evidence, another offer, artifact, case or executor", async () => {
     const setup = options();
     const run = await runContractCases(setup);
-    const missing = ["ventas/documentos-fiscales/casos/emitir-y-leer:caso-no-declarado"];
+    const missing = ["sales/fiscal-documents/cases/issue-and-read:undeclared-case"];
     expect(
       validateContractPrograms(
         setup.programs,
@@ -52,10 +50,10 @@ describe("consumer cases at the provider gate", () => {
     ])
       expect(validateContractPrograms([sales(), provider], build, run.evidence, run.verify).errors).toEqual(missing);
     const consumer = sales(),
-      request = required(consumer.pide["documentos-fiscales"]);
+      request = required(consumer.requests["fiscal-documents"]);
     const changed = {
       ...consumer,
-      pide: { "documentos-fiscales": { ...request, casos: request.casos.map(c => ({ ...c, actor: "ana" })) } },
+      requests: { "fiscal-documents": { ...request, cases: request.cases.map(c => ({ ...c, actor: "ana" })) } },
     };
     expect(validateContractPrograms([changed, documents()], build, run.evidence, run.verify).errors).toEqual(missing);
   });
@@ -79,13 +77,13 @@ describe("consumer cases at the provider gate", () => {
   it("rejects a case outside its request before preparing a house", async () => {
     const setup = options(),
       consumer = sales(),
-      request = required(consumer.pide["documentos-fiscales"]);
+      request = required(consumer.requests["fiscal-documents"]);
     const changed = {
       ...consumer,
-      pide: {
-        "documentos-fiscales": {
+      requests: {
+        "fiscal-documents": {
           ...request,
-          casos: request.casos.map(c => ({
+          cases: request.cases.map(c => ({
             ...c,
             steps: [{ kind: "action" as const, name: "borrar", input: {}, expect: {} }],
           })),
@@ -102,7 +100,7 @@ describe("consumer cases at the provider gate", () => {
           return contractHouse();
         },
       }),
-    ).rejects.toMatchObject({ errors: ["ventas/documentos-fiscales/casos/emitir-y-leer/0:fuera-del-pedido"] });
+    ).rejects.toMatchObject({ errors: ["sales/fiscal-documents/cases/issue-and-read/0:outside-request"] });
     expect(preparations).toBe(0);
   });
 });

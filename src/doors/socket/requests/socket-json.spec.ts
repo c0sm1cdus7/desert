@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { socketHouse } from "../../../../tests/support/socket-house.ts";
 import { requestBook } from "./request-book.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
+import { houseProtocolVersion } from "../wire/protocol.ts";
 import { stateHash } from "../state/state-hash.ts";
 import { jsonData } from "./json-data.ts";
 it.each([
@@ -21,8 +22,8 @@ it.each([
   const book = requestBook(f.house());
   try {
     const before = f.house().tools.state().through;
-    const answer = await book.act("ana", { tipo: "acto", id: "invalid", act: "attend", input, through: 0 });
-    expect(answer).toEqual({ tipo: "rechazo", id: "invalid", motivo: socketTexts.invalidData });
+    const answer = await book.act("ana", { type: "act", id: "invalid", act: "attend", input, through: 0 });
+    expect(answer).toEqual({ type: "rejection", id: "invalid", reason: socketTexts.invalidData });
     expect(f.house().tools.state().through).toBe(before);
   } finally {
     book.stop();
@@ -36,18 +37,18 @@ it("raw -0 and overflow write nothing; a valid request still works", async () =>
     for (const number of ["-0", "1e999", "-1e999", "-1e-999"]) {
       const before = f.house().tools.state().through;
       const body = Buffer.from(
-        `{"tipo":"acto","id":"${number}","act":"register","target":"sales",` +
+        `{"type":"act","id":"${number}","act":"register","target":"sales",` +
           `"input":{"sale":"gift","total":${number}},"through":0}`,
       );
       const header = Buffer.alloc(5);
       header.writeUInt32BE(body.length + 1);
       c.socket.write(Buffer.concat([header, body]));
-      expect(await c.until(() => c.messages.some(m => m.tipo === "rechazo" && m.id === number))).toBe(true);
+      expect(await c.until(() => c.messages.some(m => m.type === "rejection" && m.id === number))).toBe(true);
       expect(f.house().tools.state().through).toBe(before);
     }
-    c.send({ tipo: "acto", id: "ok", act: "attend", input: { target: "sales" }, through: 0 });
+    c.send({ type: "act", id: "ok", act: "attend", input: { target: "sales" }, through: 0 });
     expect((await c.result("ok"))?.status).toBe("accepted");
-    c.send({ tipo: "acto", id: "-0", act: "register", target: "sales", input: { sale: "gift", total: 0 }, through: 0 });
+    c.send({ type: "act", id: "-0", act: "register", target: "sales", input: { sale: "gift", total: 0 }, through: 0 });
     expect((await c.result("-0"))?.status).toBe("accepted");
     const before = stateHash(f.house().tools.state().tools);
     await f.reopen();
@@ -89,19 +90,19 @@ it("JSON validation rejects hidden losses without invoking getters or toJSON, an
   for (let n = 0; n < 4000; n++) deep = { nested: deep };
   expect(jsonData(deep)).toBe(true);
 });
-it("protocol 2 cannot enter a house using the new fingerprint encoding", async () => {
+it.each([2, 3])("protocol %i, older than the house's English wire, cannot enter", async protocol => {
   const f = await socketHouse("stream");
   try {
     const c = await f.client();
-    c.hello("ana-terminal", { protocolo: 2 });
+    c.hello("ana-terminal", { protocol });
     expect(await c.until(c.closed)).toBe(true);
-    expect(c.messages).toEqual([{ tipo: "rechazo", motivo: socketTexts.version(3, 2) }]);
+    expect(c.messages).toEqual([{ type: "rejection", reason: socketTexts.version(houseProtocolVersion, protocol) }]);
     expect(c.states).toEqual([]);
   } finally {
     await f.close();
   }
 });
-it.each(['{"tipo":"leer","id":"invalid","qué":"catalogo","desde":-0}', '{"tipo":"esperar","id":"invalid","hasta":-0}'])(
+it.each(['{"type":"read","id":"invalid","what":"catalog","since":-0}', '{"type":"wait","id":"invalid","until":-0}'])(
   "JSON validation also guards the other request paths: %s",
   async json => {
     const f = await socketHouse("stream");
@@ -113,7 +114,7 @@ it.each(['{"tipo":"leer","id":"invalid","qué":"catalogo","desde":-0}', '{"tipo"
       header.writeUInt32BE(body.length + 1);
       c.socket.write(Buffer.concat([header, body]));
       expect(await c.until(() => c.messages.some(m => "id" in m && m.id === "invalid"))).toBe(true);
-      expect(c.messages.at(-1)).toEqual({ tipo: "rechazo", id: "invalid", motivo: socketTexts.invalidData });
+      expect(c.messages.at(-1)).toEqual({ type: "rejection", id: "invalid", reason: socketTexts.invalidData });
       expect(f.house().tools.state().through).toBe(before);
     } finally {
       await f.close();

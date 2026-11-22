@@ -36,8 +36,8 @@ export const server = {
 };
 
 import { runProgramServer } from "../../src/doors/socket/server/server-process.ts";
-import { programa } from "../../src/tools/installable/program.ts";
-import { componer } from "../../src/runtime/distributions/compose.ts";
+import { defineProgram } from "../../src/tools/installable/program.ts";
+import { compose } from "../../src/runtime/distributions/compose.ts";
 import { sampleDefinition, sampleBody } from "./installable-body.ts";
 import { startCloudHouse } from "../../src/runtime/cloud-house.ts";
 import { founderDoorKeys } from "../../src/doors/socket/peers/environment-door-keys.ts";
@@ -46,13 +46,13 @@ import { serveMcp } from "../../src/doors/mcp/mcp-http.ts";
 import type { KeyEnvironment } from "../../src/runtime/environment-key.ts";
 export async function runSample(home: string, args: readonly string[], environment: KeyEnvironment) {
   if (args[0] === "--installable") {
-    const installed = componer({
-      programas: [
-        programa({ ...sampleDefinition, codigo: [join(import.meta.dirname, "installable-body.ts")] }, sampleBody),
+    const installed = compose({
+      programs: [
+        defineProgram({ ...sampleDefinition, code: [join(import.meta.dirname, "installable-body.ts")] }, sampleBody),
       ],
-      identidades: true,
-      mentes: { asistentes: false, programas: [] },
-      presentacion: { codigo: [import.meta.filename], locale: shopShown.locale },
+      identities: true,
+      minds: { assistants: false, programs: [] },
+      shown: { code: [import.meta.filename], locale: shopShown.locale },
     });
     await runProgramServer(installed.program, { ...server, creation: { admin: "ana", assignments: [] } }, home);
   } else if (args[0] === "--cloud") await runCloudSample(home, args, environment);

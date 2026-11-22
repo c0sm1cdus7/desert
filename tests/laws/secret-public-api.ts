@@ -4,7 +4,7 @@ import { join } from "node:path";
 const modules: Record<string, readonly string[]> = {
   "house/identities/identity-name.ts": ["identityNameProblem"],
   "tools/installable/program.ts": [
-    "programa",
+    "defineProgram",
     "programAct",
     "DESERT_CONTRACT",
     "Type",
@@ -101,7 +101,7 @@ export function secretPublicApi(base: string): Readonly<Record<string, readonly 
     ["@sinclair/typebox/value", ["Value"]],
   ];
   const packages: Record<string, string> = {
-    programa: "tools/installable/program.ts",
+    defineProgram: "tools/installable/program.ts",
     messages: "fields/messages.ts",
     fields: "fields/fields.ts",
     journal: "journal/vocabulary.ts",

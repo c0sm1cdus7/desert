@@ -128,8 +128,8 @@ it("B4: admite un registro tipado, renombrado y con spread de herramientas separ
     fixture({
       "src/main.ts": `import type { Composition } from '${root}/src/tools/promises.ts';
       import { tools } from '../lib/tools.ts';
-      const programa: Composition<any> = { registry: [...tools] } as any;
-      export { programa as program };`,
+      const defineProgram: Composition<any> = { registry: [...tools] } as any;
+      export { defineProgram as program };`,
       "lib/tools.ts": 'const tool = { id: "t", acts: {} }; export const tools = [tool];',
     }),
   ).toEqual([]);

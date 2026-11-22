@@ -22,8 +22,8 @@ it("opening prepares minds with no model call: publishes the catalog, assigns th
   expect(f.transport).not.toHaveBeenCalled();
   expect(count(house, "model-call-reserved")).toBe(0);
   expect(count(house, "mind-bank-tested")).toBe(0);
-  expect(house.tools.state().house.mindCards.get("mind:notas")).toHaveLength(cards.length);
-  expect(house.tools.state().house.mindAssignments.get("mind:notas")).toMatchObject({
+  expect(house.tools.state().house.mindCards.get("mind:notes")).toHaveLength(cards.length);
+  expect(house.tools.state().house.mindAssignments.get("mind:notes")).toMatchObject({
     card: "claude-haiku-5-5",
     version: "low",
   });
@@ -39,43 +39,43 @@ it("assigns a declared card once and never over an existing assignment", async (
   house.bus.emit(
     effect(
       "mind-card-assigned",
-      { mind: "mind:notas", card: "claude-opus-5-5", version: "high", capabilities: ["sees"] },
+      { mind: "mind:notes", card: "claude-opus-5-5", version: "high", capabilities: ["sees"] },
       "ana",
     ),
   );
   assignDeclaredCards(runtime, options);
   expect(count(house, "mind-card-assigned")).toBe(2);
-  expect(house.tools.state().house.mindAssignments.get("mind:notas")).toMatchObject({
+  expect(house.tools.state().house.mindAssignments.get("mind:notes")).toMatchObject({
     card: "claude-opus-5-5",
     version: "high",
   });
 });
 it.each([
-  ["a model outside the catalog", { model: "claude-otro", effort: "low" }, {}],
+  ["a model outside the catalog", { model: "claude-other", effort: "low" }, {}],
   ["an effort outside the catalog", { model: "claude-haiku-5-5", effort: "max" }, {}],
   ["a provider that is not enabled", { model: "claude-haiku-5-5", effort: "low" }, { providers: [] }],
 ])("throws mind.card for a declared card with %s", async (_name, declared, changes) => {
   const { f, house, runtime } = await closedMinds();
-  const options = { ...(await f.options({ cards: { "mind:notas": declared } })), ...changes };
+  const options = { ...(await f.options({ cards: { "mind:notes": declared } })), ...changes };
   publishMindCards(runtime, options);
-  expect(() => assignDeclaredCards(runtime, options)).toThrow("mind.card: mind:notas");
-  expect(house.tools.state().house.mindAssignments.has("mind:notas")).toBe(false);
+  expect(() => assignDeclaredCards(runtime, options)).toThrow("mind.card: mind:notes");
+  expect(house.tools.state().house.mindAssignments.has("mind:notes")).toBe(false);
 });
 it("refuses a declared card for a mind the distribution does not define; a mindless house reads none", async () => {
   const f = programMindFixture();
   fixtures.push(f);
-  const cards = { "mind:nadie": { model: "claude-haiku-5-5", effort: "low" } };
+  const cards = { "mind:nobody": { model: "claude-haiku-5-5", effort: "low" } };
   const quiet = await f.open({ cards }, false);
   expect(quiet.tools.state().house.mindAssignments.size).toBe(0);
   quiet.close();
-  await expect(f.open({ cards })).rejects.toThrow("mind.card: mind:nadie");
+  await expect(f.open({ cards })).rejects.toThrow("mind.card: mind:nobody");
   expect(f.transport).not.toHaveBeenCalled();
 });
 it("a house whose declared card is outside the catalog fails to start its minds and says which", async () => {
   const f = programMindFixture();
   fixtures.push(f);
-  await expect(f.open({ cards: { "mind:notas": { model: "claude-otro", effort: "low" } } })).rejects.toThrow(
-    "mind.card: mind:notas",
+  await expect(f.open({ cards: { "mind:notes": { model: "claude-other", effort: "low" } } })).rejects.toThrow(
+    "mind.card: mind:notes",
   );
   expect(f.transport).not.toHaveBeenCalled();
 });

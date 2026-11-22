@@ -127,7 +127,7 @@ function closed(house: RequestHouse, goal: string) {
     effect("journey-closed", { outcome: "done", summary: "Hecho", references: [] }, "mind:notes", [], process),
   );
 }
-const quiet = { scene: "Ready", consulta: null, acts: [] };
+const quiet = { scene: "Ready", consultation: null, acts: [] };
 it("never wakes for a closing in a run that had no supervisor, once its card is back", async () => {
   const f = fixture();
   const judge = supervisor(() => ({ outcome: "passed", text: "Sí" }));
@@ -208,7 +208,7 @@ it("wakes when ana speaks to it, and says who spoke and what", async () => {
     () => ({ outcome: "passed", text: "Sí" }),
     () => [say("ana", "Todo en orden")],
   );
-  f.respond(frame => (supervising(frame) ? judge(frame) : { scene: "Ready", consulta: null, acts: [] }));
+  f.respond(frame => (supervising(frame) ? judge(frame) : { scene: "Ready", consultation: null, acts: [] }));
   expect(send(house, "mind:supervisor", "¿Cómo va la casa?").status).toBe("accepted");
   await (await house.minds)?.flush();
   expect(moments(framesOf(f))).toEqual(["turn"]);

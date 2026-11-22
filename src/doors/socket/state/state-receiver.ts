@@ -24,7 +24,7 @@ function isPatch(value: unknown): value is StatePatch {
   return Value.Check(patchSchema, value);
 }
 export function stateReceiver() {
-  let header: Extract<ServerMessage, { tipo: "estado" }> | undefined;
+  let header: Extract<ServerMessage, { type: "state" }> | undefined;
   let chunks: Buffer[] = [];
   let received = 0;
   const reset = () => {
@@ -34,7 +34,7 @@ export function stateReceiver() {
   };
   return {
     reset,
-    begin: (message: Extract<ServerMessage, { tipo: "estado" }>) => {
+    begin: (message: Extract<ServerMessage, { type: "state" }>) => {
       if (header) throw new Error("Unfinished state");
       header = message;
     },
@@ -50,8 +50,8 @@ export function stateReceiver() {
       const patch: unknown = deserialize(encoded);
       if (!isPatch(patch)) throw new Error("Invalid state patch");
       const value = applyStatePatch(meta.base === null ? undefined : before, patch);
-      if (stateHash(value) !== meta.huella) throw new Error("State fingerprint mismatch");
-      return { value, hash: meta.huella };
+      if (stateHash(value) !== meta.fingerprint) throw new Error("State fingerprint mismatch");
+      return { value, hash: meta.fingerprint };
     },
   };
 }

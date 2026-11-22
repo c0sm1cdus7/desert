@@ -24,7 +24,7 @@ const context: AnswerContext = {
 };
 const answer = {
   scene: "Preparando una nota",
-  consulta: null,
+  consultation: null,
   acts: [{ act: "write", target: "notes", input: { text: "Mate mañana", detail: { number: 1 } } }],
 };
 it("construye ramas concretas cerradas y conserva restricciones locales al reducir el transporte", () => {

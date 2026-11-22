@@ -4,38 +4,38 @@ import { resolve } from "node:path";
 it("types the independent positive and reports exactly each isolated static negative", () => {
   const file = resolve("tests/support/installable-type-fixture.ts");
   const source = `
-import { componer, type CompositionErrors } from "../../src/runtime/distributions/compose.ts";
+import { compose, type CompositionErrors } from "../../src/runtime/distributions/compose.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
 import type { Sample } from "./installable-program.ts";
 import { sampleOptions as base, sampleProgram as p } from "./installable-program.ts";
-export const good = componer(base);
+export const good = compose(base);
 export type Good = CompositionErrors<typeof base>;
-const contract = { ...base, programas: [{ ...p, desert: 2 }] } as const;
-const ids = { ...base, programas: [{ ...p, hechos: [] }, { ...p, hechos: [] }] } as const;
-const facts = { ...base, programas: [{ ...p, hechos: [...p.hechos, ...p.hechos] }] } as const;
-const foreign = { ...base, programas: [{ ...p, hechos: [{ ...p.hechos[0], nombre: "ajeno/x" }] }] } as const;
-const mind = { ...base, mentes: { asistentes: false, programas: ["absent"] } } as const;
-const assistants = { ...base, identidades: false, mentes: { asistentes: true, programas: [] } } as const;
-const reactions = { ...base, programas: [{ ...p, effects: () => [] }] } as const;
+const contract = { ...base, programs: [{ ...p, desert: 2 }] } as const;
+const ids = { ...base, programs: [{ ...p, facts: [] }, { ...p, facts: [] }] } as const;
+const facts = { ...base, programs: [{ ...p, facts: [...p.facts, ...p.facts] }] } as const;
+const foreign = { ...base, programs: [{ ...p, facts: [{ ...p.facts[0], kind: "ajeno/x" }] }] } as const;
+const mind = { ...base, minds: { assistants: false, programs: ["absent"] } } as const;
+const assistants = { ...base, identities: false, minds: { assistants: true, programs: [] } } as const;
+const reactions = { ...base, programs: [{ ...p, effects: () => [] }] } as const;
 export type Contract = CompositionErrors<typeof contract>;
 export type Ids = CompositionErrors<typeof ids>;
 export type Facts = CompositionErrors<typeof facts>;
 export type Foreign = CompositionErrors<typeof foreign>;
 export type Mind = CompositionErrors<typeof mind>;
 export type Assistants = CompositionErrors<typeof assistants>;
-const distro = { ...base, programas: [{ ...p, dependencies: [{ kind: "distribution", name: "void" }] }] } as const;
+const distro = { ...base, programs: [{ ...p, dependencies: [{ kind: "distribution", name: "void" }] }] } as const;
 export type Distro = CompositionErrors<typeof distro>;
 export type Reactions = CompositionErrors<typeof reactions>;
 // Both halves are runtime data: this type does not compare schemas or traverse contracts.
-const runtime = { ...base, programas: [{
+const runtime = { ...base, programs: [{
   ...p,
-  ofrece: { loop: { version: "1", acciones: {}, objetos: {}, avisos: {} } },
-  pide: { loop: { acciones: {}, objetos: {}, avisos: {}, casos: [] } },
+  offers: { loop: { version: "1", actions: {}, objects: {}, notices: {} } },
+  requests: { loop: { actions: {}, objects: {}, notices: {}, cases: [] } },
 }] } as const;
 export type RuntimeCycle = CompositionErrors<typeof runtime>;
-componer(runtime);
-componer(contract); componer(ids); componer(facts); componer(foreign);
-componer(mind); componer(assistants); componer(reactions); componer(distro);
+compose(runtime);
+compose(contract); compose(ids); compose(facts); compose(foreign);
+compose(mind); compose(assistants); compose(reactions); compose(distro);
 declare const state: State<Sample>;
 state.tools.elsewhere;
 state.tools.own.count = 42;
@@ -76,14 +76,14 @@ state.tools.own.count = 42;
   );
   expect(actual).toEqual({
     Good: [],
-    Contract: ["notas/desert:contrato-desert"],
-    Ids: ["programas/notas:id-repetido"],
-    Facts: ["hechos/notas/anotada:hecho-repetido"],
-    Foreign: ["notas/hechos/ajeno/x:hecho-ajeno"],
-    Mind: ["mentes/programas/absent:mente-ausente"],
-    Assistants: ["mentes/asistentes:asistentes-requiere-identidades"],
-    Distro: ["notas/dependencies/void:dependencia-distribucion"],
-    Reactions: ["notas/effects:reacciones-no-soportadas"],
+    Contract: ["notes/desert:desert-contract"],
+    Ids: ["programs/notes:duplicate-id"],
+    Facts: ["facts/notes/added:duplicate-fact"],
+    Foreign: ["notes/facts/ajeno/x:foreign-fact"],
+    Mind: ["minds/programs/absent:missing-mind"],
+    Assistants: ["minds/assistants:assistants-require-identities"],
+    Distro: ["notes/dependencies/void:distribution-dependency"],
+    Reactions: ["notes/effects:unsupported-reactions"],
     RuntimeCycle: [],
   });
   const diagnostics = ts.getPreEmitDiagnostics(program);

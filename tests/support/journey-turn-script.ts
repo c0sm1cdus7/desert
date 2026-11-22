@@ -9,10 +9,10 @@ type Fixture = ReturnType<typeof programMindFixture>;
 type House = Awaited<ReturnType<Fixture["open"]>>;
 export const openAct = {
   act: "open",
-  target: "mind:notas",
-  input: { goal: "Anotar", kit: [{ tool: "notas", acts: ["personal/add"] }] },
+  target: "mind:notes",
+  input: { goal: "Anotar", kit: [{ tool: "notes", acts: ["personal/add"] }] },
 };
-export const addAct = { act: "personal/add", target: "notas/personal", input: {} };
+export const addAct = { act: "personal/add", target: "notes/personal", input: {} };
 export const waitAct = (id: string): ProposedAct => ({
   act: "wait",
   target: id,
@@ -34,7 +34,7 @@ export function script(f: Fixture, house: House, answers: Readonly<{ consciousne
   house.bus.emit(
     effect(
       "kit-set",
-      { version: 2, holder: "mind:notas", kit: selectionKit([{ kind: "tool", program: "notas", tool: "personal" }]) },
+      { version: 2, holder: "mind:notes", kit: selectionKit([{ kind: "tool", program: "notes", tool: "personal" }]) },
       "ana",
     ),
   );
@@ -53,7 +53,7 @@ export function script(f: Fixture, house: House, answers: Readonly<{ consciousne
     };
     seen.push(now);
     const answer = journey ? answers.journey(now) : answers.consciousness(now);
-    return "scene" in answer ? answer : { scene: journey ? "Trabajo" : "Miro", consulta: null, acts: answer };
+    return "scene" in answer ? answer : { scene: journey ? "Trabajo" : "Miro", consultation: null, acts: answer };
   });
   return seen;
 }

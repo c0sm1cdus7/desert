@@ -74,7 +74,7 @@ function prepareCopy<X extends Program>(given: InspectionProgram<X>, file: strin
   // Composed as a live house composes it: the core pieces it asked for, and the guard on every new identity name.
   const program = {
     ...given,
-    registry: coreRegistry(given.registry, runner, given.identities, given.mentes?.asistentes, given.mentes?.programas),
+    registry: coreRegistry(given.registry, runner, given.identities, given.minds?.assistants, given.minds?.programs),
   };
   checkReopenedState<X>(file, { ...program, by: runner });
   return { program, runner, last };

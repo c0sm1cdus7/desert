@@ -21,12 +21,12 @@ afterEach(() => fixtures.splice(0).forEach(f => f.cleanup()));
 it("dos programas: solo Notas piensa, escribe su escena y un journey actúa con el kit dado", async () => {
   const f = fixture();
   const house = await f.open();
-  expect(f.distribution.mindDefinitions.map(mind => mind.actor)).toEqual(["mind:notas"]);
+  expect(f.distribution.mindDefinitions.map(mind => mind.actor)).toEqual(["mind:notes"]);
   expect(house.tools.state().house.mindAssignments.has("mind:agenda")).toBe(false);
   house.bus.emit(
     effect(
       "kit-set",
-      { version: 2, holder: "mind:notas", kit: selectionKit([{ kind: "tool", program: "notas", tool: "personal" }]) },
+      { version: 2, holder: "mind:notes", kit: selectionKit([{ kind: "tool", program: "notes", tool: "personal" }]) },
       "ana",
     ),
   );
@@ -36,12 +36,12 @@ it("dos programas: solo Notas piensa, escribe su escena y un journey actúa con 
     if (calls === 1)
       return {
         scene: "Voy a anotar",
-        consulta: null,
+        consultation: null,
         acts: [
           {
             act: "open",
-            target: "mind:notas",
-            input: { goal: "Anotar", kit: [{ tool: "notas", acts: ["personal/add"] }] },
+            target: "mind:notes",
+            input: { goal: "Anotar", kit: [{ tool: "notes", acts: ["personal/add"] }] },
           },
         ],
       };
@@ -50,19 +50,19 @@ it("dos programas: solo Notas piensa, escribe su escena y un journey actúa con 
     if (calls === 2)
       return {
         scene: "Anoté",
-        consulta: null,
+        consultation: null,
         acts: [
-          { act: "personal/add", target: "notas/personal", input: {} },
+          { act: "personal/add", target: "notes/personal", input: {} },
           { act: "end", target: journey, input: { summary: "Terminé", references: [] } },
         ],
       };
     return {
       scene: "Terminé",
-      consulta: null,
+      consultation: null,
       acts: [
         {
           act: "scene",
-          target: "mind:notas",
+          target: "mind:notes",
           input: { general: "La nota está lista", to: { ana: "Ana, revisá la nota." } },
         },
       ],
@@ -71,17 +71,17 @@ it("dos programas: solo Notas piensa, escribe su escena y un journey actúa con 
   f.wake(house);
   await (await house.minds)?.flush();
   expect(calls).toBe(3);
-  expect(house.tools.state().tools.notas.count).toBe(2);
+  expect(house.tools.state().tools.notes.count).toBe(2);
   expect([...house.tools.state().house.journeys.values()][0]?.closed?.data.outcome).toBe("done");
-  expect([...house.tools.state().house.minds.turns.values()].every(turn => turn.opened.by === "mind:notas")).toBe(true);
-  expect(house.tools.state().house.scenes.get("mind:notas")?.data).toEqual({
+  expect([...house.tools.state().house.minds.turns.values()].every(turn => turn.opened.by === "mind:notes")).toBe(true);
+  expect(house.tools.state().house.scenes.get("mind:notes")?.data).toEqual({
     general: "La nota está lista",
     to: { ana: "Ana, revisá la nota." },
   });
   const authors = house.journal.replay<string[]>([], (authors, event) =>
     event.layer === "program" ? [...authors, event.by] : authors,
   );
-  expect(authors).toEqual(["ana", "mind:notas"]);
+  expect(authors).toEqual(["ana", "mind:notes"]);
 });
 it("un journey sin kit no ejecuta una acción aunque el transporte la proponga", async () => {
   const f = fixture();
@@ -90,15 +90,15 @@ it("un journey sin kit no ejecuta una acción aunque el transporte la proponga",
   f.respond(() => {
     calls++;
     const process = [...house.tools.state().house.minds.turns.values()].find(turn => !turn.closed)?.opened.process;
-    const opening = calls === 1 ? [{ act: "open", target: "mind:notas", input: { goal: "Anotar", kit: [] } }] : [];
-    const acts = process ? [{ act: "personal/add", target: "notas/personal", input: {} }] : opening;
-    return { scene: "Intento anotar", consulta: null, acts };
+    const opening = calls === 1 ? [{ act: "open", target: "mind:notes", input: { goal: "Anotar", kit: [] } }] : [];
+    const acts = process ? [{ act: "personal/add", target: "notes/personal", input: {} }] : opening;
+    return { scene: "Intento anotar", consultation: null, acts };
   });
   f.wake(house);
   await (await house.minds)?.flush();
   // The journey's answer is corrected until the twelve calls run out (21/11); its consciousness wakes once to hear it.
   expect(calls).toBe(14);
-  expect(house.tools.state().tools.notas.count).toBe(1);
+  expect(house.tools.state().tools.notes.count).toBe(1);
   const journey = [...house.tools.state().house.journeys.values()][0];
   const turns = [...house.tools.state().house.minds.turns.values()];
   expect(turns.find(turn => turn.opened.process === journey?.id)?.closed?.data).toMatchObject({
@@ -112,13 +112,13 @@ it("abre con mente una casa creada sin pensamiento y conserva sus notas", async 
   const f = fixture();
   const first = await f.open({}, false);
   f.wake(first);
-  expect(first.tools.state().tools.notas.count).toBe(1);
+  expect(first.tools.state().tools.notes.count).toBe(1);
   expect(f.transport).not.toHaveBeenCalled();
   first.close();
   const second = await f.open();
-  expect(second.tools.state().tools.notas.count).toBe(1);
-  expect(second.tools.state().house.mindAssignments.has("mind:notas")).toBe(true);
-  expect(second.tools.state().house.scenes.get("mind:notas")?.data.general).toBe("Banco aprobado");
+  expect(second.tools.state().tools.notes.count).toBe(1);
+  expect(second.tools.state().house.mindAssignments.has("mind:notes")).toBe(true);
+  expect(second.tools.state().house.scenes.get("mind:notes")?.data.general).toBe("Banco aprobado");
   expect(f.transport).toHaveBeenCalledOnce();
 });
 it("la consciencia ya no tiene mensaje nativo: habla por programas y un mensaje propuesto no deja hechos", async () => {
@@ -127,15 +127,15 @@ it("la consciencia ya no tiene mensaje nativo: habla por programas y un mensaje 
   const house = await f.open();
   f.respond(() => ({
     scene: "Le avisé a Ana",
-    consulta: null,
-    acts: [{ act: "message", target: "mind:notas", input: { to: "ana", text: "Revisá la nota." } }],
+    consultation: null,
+    acts: [{ act: "message", target: "mind:notes", input: { to: "ana", text: "Revisá la nota." } }],
   }));
   f.wake(house);
   await (await house.minds)?.flush();
   const kinds = house.journal.replay<string[]>([], (kinds, event) => [...kinds, event.kind]);
   expect(kinds).not.toContain("mind-message");
   expect(kinds).toContain("mind-turn-closed");
-  expect(house.tools.state().tools.notas.count).toBe(1);
+  expect(house.tools.state().tools.notes.count).toBe(1);
 });
 it("a journey kit outside the mind's kit comes back as a correction with that kit, then it opens", async () => {
   const f = fixture();
@@ -143,7 +143,7 @@ it("a journey kit outside the mind's kit comes back as a correction with that ki
   house.bus.emit(
     effect(
       "kit-set",
-      { version: 2, holder: "mind:notas", kit: selectionKit([{ kind: "tool", program: "notas", tool: "personal" }]) },
+      { version: 2, holder: "mind:notes", kit: selectionKit([{ kind: "tool", program: "notes", tool: "personal" }]) },
       "ana",
     ),
   );
@@ -153,17 +153,21 @@ it("a journey kit outside the mind's kit comes back as a correction with that ki
     calls++;
     frames.push(request.body);
     const kit =
-      calls === 1 ? [{ tool: "notas/personal", acts: ["personal/add"] }] : [{ tool: "notas", acts: ["personal/add"] }];
+      calls === 1 ? [{ tool: "notes/personal", acts: ["personal/add"] }] : [{ tool: "notes", acts: ["personal/add"] }];
     return calls <= 2
-      ? { scene: "Abro", consulta: null, acts: [{ act: "open", target: "mind:notas", input: { goal: "Anotar", kit } }] }
-      : { scene: "Listo", consulta: null, acts: [] };
+      ? {
+          scene: "Abro",
+          consultation: null,
+          acts: [{ act: "open", target: "mind:notes", input: { goal: "Anotar", kit } }],
+        }
+      : { scene: "Listo", consultation: null, acts: [] };
   });
   f.wake(house);
   await (await house.minds)?.flush();
   const turns = [...house.tools.state().house.minds.turns.values()];
   expect(turns[0]?.closed?.data.outcome).toBe("done");
   expect(turns[0]?.invalid.map(event => event.data.faults)).toEqual([[{ code: "kit", path: "/acts" }]]);
-  expect(frames[1]).toContain("notas: personal/add");
+  expect(frames[1]).toContain("notes: personal/add");
   expect(house.tools.state().house.journeys.size).toBe(1);
 });
 it("a journey answer without a continuation goes on in its turn, sees its results and keeps the frame", async () => {
@@ -186,7 +190,7 @@ it("a journey answer without a continuation goes on in its turn, sees its result
   // The second call repeats the first byte for byte and appends the answer and what the acts did.
   expect(second?.slice(0, first?.length)).toEqual(first);
   expect(second?.slice(first?.length).map(message => message.role)).toEqual(["assistant", "user"]);
-  expect(second?.at(-1)?.content).toContain("1. personal/add → notas/personal: aceptado. Anotada");
+  expect(second?.at(-1)?.content).toContain("1. personal/add → notes/personal: aceptado. Anotada");
   expect(second?.at(-1)?.content).toContain("Ahora:");
   expect(JSON.parse(calls[1]?.body ?? "{}")).toMatchObject({ cache_control: { type: "ephemeral" } });
 });
@@ -226,7 +230,7 @@ it("a restart wakes the journey through its interrupted closure, with no wait of
   await (await first.minds)?.flush();
   const journey = journeyOf(first);
   if (!journey) throw new Error("fixture.journey");
-  const cut = first.bus.emit(effect("mind-turn-opened", { turn: "cut", wake: [] }, "mind:notas", [], journey.id));
+  const cut = first.bus.emit(effect("mind-turn-opened", { turn: "cut", wake: [] }, "mind:notes", [], journey.id));
   first.close();
   const again = await f.open();
   const state = again.tools.state().house;

@@ -16,7 +16,7 @@ it("un arranque de mente inválido rechaza la preparación y libera el anfitrió
         by: "shop",
         identities: true,
         creation: { admin: "ana", assignments: [] },
-        mentes: { asistentes: true, programas: [] },
+        minds: { assistants: true, programs: [] },
         modelMinds: {
           language: "es",
           definitions: [],

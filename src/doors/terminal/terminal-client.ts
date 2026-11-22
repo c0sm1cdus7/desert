@@ -33,7 +33,7 @@ export async function connectTerminal<X extends Program>(
   home: string,
   token: string,
 ): Promise<SocketConnection<X>> {
-  const path = resolve(home, "casa.sock");
+  const path = resolve(home, "house.sock");
   if (Buffer.byteLength(path) >= 104) throw new SocketOpeningError(socketTexts.path(path));
   const connection = socketConnection<X>(token);
   try {

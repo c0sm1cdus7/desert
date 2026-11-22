@@ -3,21 +3,21 @@ import { startTerminal } from "../../src/doors/terminal/boot.ts";
 import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
 import { localPorts, startHouse } from "../../src/runtime/house-runtime.ts";
 import { houseRouter } from "../../src/surface/bridge/assembly/house-router.ts";
-import { componer } from "../../src/runtime/distributions/compose.ts";
-import { programa } from "../../src/tools/installable/program.ts";
+import { compose } from "../../src/runtime/distributions/compose.ts";
+import { defineProgram } from "../../src/tools/installable/program.ts";
 import { effect } from "../../src/house/facts.ts";
 import { sampleBody, sampleMetadata, sampleOptions } from "./installable-program.ts";
 const home = process.argv[2];
 if (!home) throw new Error("A synthetic home is required");
-const single = programa(sampleMetadata, {
+const single = defineProgram(sampleMetadata, {
   ...sampleBody,
-  herramientas: { personal: sampleBody.herramientas.personal },
+  tools: { personal: sampleBody.tools.personal },
 });
-const { program, shown } = componer({
+const { program, shown } = compose({
   ...sampleOptions,
-  programas: [single],
-  atajoUnaHerramienta: process.argv[3] === "shortcut",
-  mentes: { asistentes: true, programas: [] },
+  programs: [single],
+  singleToolShortcut: process.argv[3] === "shortcut",
+  minds: { assistants: true, programs: [] },
 });
 /** Assistants are on, so the house needs an explicit model configuration; nothing here thinks or calls out. */
 const modelMinds = {
@@ -43,7 +43,7 @@ const house = startHouse(home, {
   creation: {
     admin: "ana",
     assignments: [
-      { identity: "ana", tools: ["notas"] },
+      { identity: "ana", tools: ["notes"] },
       { identity: "legacy", tools: [] },
     ],
   },

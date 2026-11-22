@@ -22,7 +22,7 @@ it("a wrong fingerprint never publishes a view, visibly requests a full view and
   let corrupt = false;
   const requests: string[] = [];
   const reader = frameReader("client", value => {
-    requests.push(readClient(value).tipo);
+    requests.push(readClient(value).type);
   });
   terminal[1].on("data", (bytes: Buffer) => {
     reader.push(bytes);
@@ -31,9 +31,9 @@ it("a wrong fingerprint never publishes a view, visibly requests a full view and
   server[0].on("data", (bytes: Buffer) => {
     if (corrupt && bytes[4] === 0) {
       const message = readServer(JSON.parse(bytes.subarray(5).toString()));
-      if (message.tipo === "estado") {
+      if (message.type === "state") {
         corrupt = false;
-        terminal[1].write(serverFrame({ ...message, huella: "0".repeat(64) }));
+        terminal[1].write(serverFrame({ ...message, fingerprint: "0".repeat(64) }));
         return;
       }
     }
@@ -50,7 +50,7 @@ it("a wrong fingerprint never publishes a view, visibly requests a full view and
     corrupt = true;
     f.house().bus.emit(effect("preferred", { hide: "empty", on: true }, "ana"));
     await vi.waitFor(() => expect(connection.state().through).toBe(f.house().tools.state().through));
-    expect(requests.filter(tipo => tipo === "sincronizar")).toEqual(["sincronizar"]);
+    expect(requests.filter(type => type === "sync")).toEqual(["sync"]);
     expect(output.mock.calls.filter(([text]) => text === `${socketTexts.stateMismatch}\n`)).toHaveLength(2);
     expect(shown).toEqual([before, identityView(f.house().tools.state(), "ana")]);
   } finally {
@@ -65,12 +65,12 @@ it("M18: a valid hash for another identity is still refused", async () => {
   try {
     const state = connectionState();
     state.metadata({
-      tipo: "bienvenida",
-      protocolo: houseProtocolVersion,
-      identidad: "ana",
+      type: "welcome",
+      protocol: houseProtocolVersion,
+      identity: "ana",
       admin: true,
       seq: f.house().tools.state().through,
-      ahora: 0,
+      now: 0,
     });
     const reader = frameReader("server", value => {
       if (Buffer.isBuffer(value)) state.accept(value);
@@ -88,14 +88,14 @@ it("M17: a connected transport still sends no acts while waiting for its verifie
   const pair = duplexPair();
   const sent: string[] = [];
   const reader = frameReader("client", value => {
-    sent.push(readClient(value).tipo);
+    sent.push(readClient(value).type);
   });
   pair[1].on("data", (bytes: Buffer) => reader.push(bytes));
   const entering = connection.attach(pair[0]).catch(() => undefined);
   try {
     await delay(10);
-    expect(connection.send({ tipo: "apagar" })).toBe(false);
-    expect(sent).toEqual(["hola"]);
+    expect(connection.send({ type: "shutdown" })).toBe(false);
+    expect(sent).toEqual(["hello"]);
   } finally {
     connection.close();
     pair[1].destroy();
@@ -119,7 +119,7 @@ it("five terminals share one full encoding and one changed encoding per identity
     f.house().bus.emit(effect("preferred", { hide: "empty", on: false }, "ana"));
     for (const c of clients) {
       expect(await c.until(c.closed)).toBe(true);
-      expect(c.messages.at(-1)).toEqual({ tipo: "cortado", motivo: socketTexts.stateFailed });
+      expect(c.messages.at(-1)).toEqual({ type: "cut", reason: socketTexts.stateFailed });
     }
     expect(output).toHaveBeenCalledWith(`${socketTexts.stateFailed}\n`);
   } finally {
@@ -134,8 +134,8 @@ it("M15: removing an identity ends its streams synchronously before another queu
     pair[0].resume();
     pair[0].write(
       clientFrame({
-        tipo: "hola",
-        protocolo: houseProtocolVersion,
+        type: "hello",
+        protocol: houseProtocolVersion,
         node: process.versions.node,
         token: "beto-terminal",
       }),
@@ -154,12 +154,12 @@ it("a matching fingerprint with a different sequence is never published", async 
   try {
     const view = connectionState();
     view.metadata({
-      tipo: "bienvenida",
-      protocolo: houseProtocolVersion,
-      identidad: "ana",
+      type: "welcome",
+      protocol: houseProtocolVersion,
+      identity: "ana",
       admin: true,
       seq: 0,
-      ahora: 0,
+      now: 0,
     });
     const reader = frameReader("server", value => {
       if (Buffer.isBuffer(value)) {
@@ -167,7 +167,7 @@ it("a matching fingerprint with a different sequence is never published", async 
         return;
       }
       const message = readServer(value);
-      view.metadata(message.tipo === "estado" ? { ...message, seq: message.seq + 1 } : message);
+      view.metadata(message.type === "state" ? { ...message, seq: message.seq + 1 } : message);
     });
     const frames = stateTransfer(identityView(f.house().tools.state(), "ana"), undefined, 0);
     expect(() => frames.forEach(frame => reader.push(frame))).toThrow("Invalid house state");

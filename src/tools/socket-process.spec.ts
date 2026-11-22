@@ -25,7 +25,7 @@ function child(file: string, args: string[], cwd: string) {
 }
 it("unix: two independent client processes act without creating storage", async () => {
   const f = await socketHouse("unix");
-  const work = mkdtempSync("/tmp/casa-client-");
+  const work = mkdtempSync("/tmp/house-client-");
   try {
     const files = readdirSync(f.home).sort();
     const a = child(peer, [f.server().path, "a"], work);
@@ -42,17 +42,17 @@ it("unix: two independent client processes act without creating storage", async 
   }
 });
 it.each(["SIGINT", "SIGTERM"] as const)("unix: %s closes the server and removes socket and pid", async signal => {
-  const home = mkdtempSync("/tmp/casa-proc-");
+  const home = mkdtempSync("/tmp/house-proc-");
   const server = child(runner, [home], home);
   try {
     await ready(server);
     expect(server.output()).toBe("ready\n");
-    expect(statSync(`${home}/casa.sock`).mode & 0o777).toBe(0o600);
-    expect(statSync(`${home}/casa.pid`).mode & 0o777).toBe(0o600);
+    expect(statSync(`${home}/house.sock`).mode & 0o777).toBe(0o600);
+    expect(statSync(`${home}/house.pid`).mode & 0o777).toBe(0o600);
     server.process.kill(signal);
     expect(await server.exit).toBe(0);
-    expect(existsSync(`${home}/casa.sock`)).toBe(false);
-    expect(existsSync(`${home}/casa.pid`)).toBe(false);
+    expect(existsSync(`${home}/house.sock`)).toBe(false);
+    expect(existsSync(`${home}/house.pid`)).toBe(false);
   } finally {
     server.process.kill("SIGKILL");
     await server.exit;
@@ -82,21 +82,21 @@ async function ready(server: ReturnType<typeof child>) {
   ]);
 }
 it("unix: writer ownership permits replacing a socket left by a killed server", async () => {
-  const home = mkdtempSync("/tmp/casa-stale-");
+  const home = mkdtempSync("/tmp/house-stale-");
   const first = child(runner, [home], home);
   let second: ReturnType<typeof child> | undefined;
   try {
     await ready(first);
     first.process.kill("SIGKILL");
     await first.exit;
-    expect(existsSync(`${home}/casa.sock`)).toBe(true);
+    expect(existsSync(`${home}/house.sock`)).toBe(true);
     second = child(runner, [home], home);
     await ready(second);
-    const client = child(peer, [`${home}/casa.sock`, "after-kill"], home);
+    const client = child(peer, [`${home}/house.sock`, "after-kill"], home);
     expect(await client.exit).toBe(0);
     second.process.kill("SIGTERM");
     expect(await second.exit).toBe(0);
-    expect(existsSync(`${home}/casa.sock`)).toBe(false);
+    expect(existsSync(`${home}/house.sock`)).toBe(false);
   } finally {
     first.process.kill("SIGKILL");
     await first.exit;

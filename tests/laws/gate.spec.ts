@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { programPartCount } from "../program/parts.ts";
 import { field as fieldOf } from "../contract/json.ts";
-import { filesUnder, fromRoot } from "../support/sources.ts";
+import { filesUnder, fromRoot, ownCode } from "../support/sources.ts";
 import {
   readLint,
   ignoredFiles,
@@ -15,7 +15,7 @@ import {
 } from "../../src/checks/laws/gate.ts";
 import { describe, expect, it } from "vitest";
 import { root } from "../support/sources.ts";
-const repo = { root, code: ["src"] };
+const repo = { root, code: ownCode };
 const readings = await readLint(repo);
 
 describe("law 12: a gate that cannot be cheated", () => {

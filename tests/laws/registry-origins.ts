@@ -150,7 +150,7 @@ class RegistryTrace {
     if (ts.isCallExpression(node)) {
       const declaration = this.checker.getResolvedSignature(node)?.declaration;
       if (declaration && sameFile(declaration.getSourceFile().fileName, constructor) && node.arguments[1])
-        return this.groups(node.arguments[1], "herramientas");
+        return this.groups(node.arguments[1], "tools");
       return this.fail(node, "unrecognized program constructor");
     }
     const values = this.values(node);

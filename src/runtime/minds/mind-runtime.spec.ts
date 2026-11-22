@@ -33,7 +33,7 @@ const fingerprint = { cases: "c", skill: "s", frameTexts: "f" };
 const input = Type.Object({ text: Type.String() }, { additionalProperties: false });
 const answer = (acts: readonly unknown[] = [{ act: "say", target: "probe", input: { text: "Respondí" } }]) => ({
   scene: "Listo",
-  consulta: null,
+  consultation: null,
   acts,
 });
 function fixture(switches?: MindSwitches) {
@@ -89,7 +89,7 @@ function fixture(switches?: MindSwitches) {
     words: shop,
     registry,
     slices: shopSlices,
-    ...(switches ? { mentes: switches } : {}),
+    ...(switches ? { minds: switches } : {}),
     modelMinds: {
       language: "es",
       catalog: [card],
@@ -156,7 +156,7 @@ it.each([
   [false, true],
   [true, true],
 ])("matriz: asistentes=%s programas=%s, SQLite y reinicio sin repetir llamadas", async (assistants, programs) => {
-  const f = fixture({ asistentes: assistants, programas: programs ? ["probe"] : [] });
+  const f = fixture({ assistants: assistants, programs: programs ? ["probe"] : [] });
   const first = f.start();
   f.prepare(first);
   f.wake(first);
@@ -180,7 +180,7 @@ it.each([
   expect(second.tools.state().house.modelCalls.size).toBe(turns.length);
 });
 it("recupera el corte del hilo y conserva las llegadas posteriores al reinicio", async () => {
-  const f = fixture({ asistentes: false, programas: ["probe"] });
+  const f = fixture({ assistants: false, programs: ["probe"] });
   const first = f.start();
   f.prepare(first);
   f.wake(first);
@@ -206,7 +206,7 @@ it("recupera el corte del hilo y conserva las llegadas posteriores al reinicio",
 it.each(["assistant:ana", "mind:probe"] as const)(
   "cierra una llamada abierta de %s y descarta su respuesta tardía",
   async actor => {
-    const f = fixture({ asistentes: actor === "assistant:ana", programas: actor === "mind:probe" ? ["probe"] : [] });
+    const f = fixture({ assistants: actor === "assistant:ana", programs: actor === "mind:probe" ? ["probe"] : [] });
     let finish: (value: ReturnType<typeof answer>) => void = () => {};
     f.respond(
       () =>
@@ -233,7 +233,7 @@ it.each(["assistant:ana", "mind:probe"] as const)(
   },
 );
 it("un rollback no despierta y una llegada durante la respuesta conserva otro turno", async () => {
-  const f = fixture({ asistentes: false, programas: ["probe"] });
+  const f = fixture({ assistants: false, programs: ["probe"] });
   const house = f.start();
   f.prepare(house);
   const minds = await house.minds;
@@ -261,7 +261,7 @@ it("un rollback no despierta y una llegada durante la respuesta conserva otro tu
   expect(f.transport).toHaveBeenCalledTimes(2);
 });
 it("abre un journey, trabaja por el motor y termina con su kit", async () => {
-  const f = fixture({ asistentes: false, programas: ["probe"] });
+  const f = fixture({ assistants: false, programs: ["probe"] });
   const house = f.start();
   f.prepare(house);
   let calls = 0;

@@ -9,7 +9,7 @@ import { sampleOptions, sampleProgram } from "../../../tests/support/installable
 import { programChecks } from "../../checks/program-checks.ts";
 import { goTo, seated, type, view, type Seat } from "../../checks/promises/promised-keys.ts";
 import { cast, perform, staged, type House } from "../../checks/promises/promised-stage.ts";
-import { componer } from "../../runtime/distributions/compose.ts";
+import { compose } from "../../runtime/distributions/compose.ts";
 import { stacksOf } from "../../surface/menus/lists.ts";
 import { distributionTexts as distribution } from "../../texts/distributions.texts.ts";
 import { surfaceTexts as surface } from "../../texts/surface.texts.ts";
@@ -148,9 +148,9 @@ describe("things named across the tools of one program", () => {
 });
 describe("what a reading names outside the tool that reads", () => {
   it("opens a thing of another program that a reading names by its full id", () => {
-    const note = objectOf("notas", "personal", "same");
+    const note = objectOf("notes", "personal", "same");
     const named = { other: { id: note, text: "Nota ajena" } };
-    const beside = componer({ ...sampleOptions, programas: [pickingProgram({ named }), sampleProgram] });
+    const beside = compose({ ...sampleOptions, programs: [pickingProgram({ named }), sampleProgram] });
     return staged(beside.program, async ({ house }) => {
       const added = await perform(house(), "picking", {
         act: "items/add",
@@ -162,7 +162,7 @@ describe("what a reading names outside the tool that reads", () => {
       try {
         goTo(seat, "picking", thingOf("items", "1"));
         const row = rowsAt(seat, thingOf("items", "1")).find(each => each.title === "Nota ajena");
-        expect(row).toMatchObject({ opens: note, open: { kind: "view", tool: "notas", target: note } });
+        expect(row).toMatchObject({ opens: note, open: { kind: "view", tool: "notes", target: note } });
         type(seat.router, row?.key ?? "");
         expect(seat.router.screen(view).title).toBe("same");
         expect(seat.defects).toEqual([]);

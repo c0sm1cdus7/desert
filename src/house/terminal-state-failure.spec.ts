@@ -67,25 +67,25 @@ it.each([false, true])(
     const bad = good.map((frame, index) => {
       if (index) return frame;
       const header = readServer(JSON.parse(frame.subarray(5).toString()));
-      if (header.tipo !== "estado") throw new Error("Missing fixture header");
-      return serverFrame({ ...header, huella: "0".repeat(64) });
+      if (header.type !== "state") throw new Error("Missing fixture header");
+      return serverFrame({ ...header, fingerprint: "0".repeat(64) });
     });
     let requests = 0;
     const reader = frameReader("client", value => {
       const message = readClient(value);
-      if (message.tipo === "hola") {
+      if (message.type === "hello") {
         pair[1].write(
           serverFrame({
-            tipo: "bienvenida",
-            protocolo: houseProtocolVersion,
-            identidad: "ana",
+            type: "welcome",
+            protocol: houseProtocolVersion,
+            identity: "ana",
             admin: true,
-            ahora: 0,
+            now: 0,
             seq: view.through,
           }),
         );
         for (const frame of inside ? good : bad) pair[1].write(frame);
-      } else if (message.tipo === "sincronizar" && ++requests < 10) for (const frame of bad) pair[1].write(frame);
+      } else if (message.type === "sync" && ++requests < 10) for (const frame of bad) pair[1].write(frame);
     });
     pair[1].on("data", (bytes: Buffer) => reader.push(bytes));
     vi.mocked(connectTerminal).mockImplementation(async () => {
@@ -130,11 +130,11 @@ it("intermediate welcomes still end the public opening at five seconds with a ca
     for (let n = 0; n < 5; n++) {
       pair[1].write(
         serverFrame({
-          tipo: "bienvenida",
-          protocolo: houseProtocolVersion,
-          identidad: "ana",
+          type: "welcome",
+          protocol: houseProtocolVersion,
+          identity: "ana",
           admin: true,
-          ahora: n,
+          now: n,
           seq: n,
         }),
       );

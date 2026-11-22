@@ -8,15 +8,15 @@ import { validateContractPrograms } from "./validate-contracts.ts";
 import { runContractCases } from "./contract-gate.ts";
 import { contractSelections, contractHouse } from "../../../tests/support/distribution-contracts.ts";
 import type { ContractOffer, ContractPackage } from "../../tools/contracts/package-contracts.ts";
-const path = "ventas/documentos-fiscales";
-const offered = (): ContractOffer => required(documents().ofrece["documentos-fiscales"]);
+const path = "sales/fiscal-documents";
+const offered = (): ContractOffer => required(documents().offers["fiscal-documents"]);
 const withOffer = (offer: ContractOffer): ContractPackage => ({
   ...documents(),
-  ofrece: { "documentos-fiscales": offer },
+  offers: { "fiscal-documents": offer },
 });
-const action = () => required(offered().acciones.emitir);
-const object = () => required(offered().objetos.comprobante);
-const notice = () => required(offered().avisos.emitido);
+const action = () => required(offered().actions.issue);
+const object = () => required(offered().objects.voucher);
+const notice = () => required(offered().notices.issued);
 const programs = (offer: ContractOffer) => [sales(), withOffer(offer)];
 const exact = (actual: readonly string[], expected: readonly string[]) =>
   expect([...new Set(actual)].sort()).toEqual([...expected].sort());
@@ -26,85 +26,85 @@ const isolated = [
     () =>
       programs({
         ...offered(),
-        acciones: {
-          emitir: { ...action(), entrada: Type.Object({ venta: Type.Number() }, { additionalProperties: false }) },
+        actions: {
+          issue: { ...action(), input: Type.Object({ sale: Type.Number() }, { additionalProperties: false }) },
         },
       }),
-    [`${path}/acciones/emitir/entrada.venta:valor-incompatible`],
+    [`${path}/actions/issue/input.sale:incompatible-value`],
   ],
-  ["02 action missing", () => programs({ ...offered(), acciones: {} }), [`${path}/acciones/emitir:ausente`]],
+  ["02 action missing", () => programs({ ...offered(), actions: {} }), [`${path}/actions/issue:missing`]],
   [
     "03 object field",
     () =>
       programs({
         ...offered(),
-        objetos: {
-          comprobante: {
+        objects: {
+          voucher: {
             ...object(),
-            datos: Type.Object({ numero: Type.Number(), estado: Type.Literal("emitido") }),
+            data: Type.Object({ number: Type.Number(), state: Type.Literal("issued") }),
           },
         },
       }),
-    [`${path}/objetos/comprobante/datos.numero:valor-incompatible`],
+    [`${path}/objects/voucher/data.number:incompatible-value`],
   ],
   [
     "04 notice field",
     () =>
       programs({
         ...offered(),
-        avisos: {
-          emitido: { ...notice(), datos: Type.Object({ venta: Type.Number(), comprobante: Type.String() }) },
+        notices: {
+          issued: { ...notice(), data: Type.Object({ sale: Type.Number(), voucher: Type.String() }) },
         },
       }),
-    [`${path}/avisos/emitido/datos.venta:valor-incompatible`],
+    [`${path}/notices/issued/data.sale:incompatible-value`],
   ],
-  ["05 notice missing", () => programs({ ...offered(), avisos: {} }), [`${path}/avisos/emitido:ausente`]],
+  ["05 notice missing", () => programs({ ...offered(), notices: {} }), [`${path}/notices/issued:missing`]],
   [
     "06 optional field",
     () =>
       programs({
         ...offered(),
-        objetos: {
-          comprobante: {
+        objects: {
+          voucher: {
             ...object(),
-            datos: Type.Object({ numero: Type.Optional(Type.String()), estado: Type.Literal("emitido") }),
+            data: Type.Object({ number: Type.Optional(Type.String()), state: Type.Literal("issued") }),
           },
         },
       }),
-    [`${path}/objetos/comprobante/datos.numero:puede-faltar`],
+    [`${path}/objects/voucher/data.number:may-be-missing`],
   ],
   [
     "07 union variant",
     () =>
       programs({
         ...offered(),
-        objetos: {
-          comprobante: {
+        objects: {
+          voucher: {
             ...object(),
-            datos: Type.Object({
-              numero: Type.String(),
-              estado: Type.Union([Type.Literal("emitido"), Type.Literal("pendiente")]),
+            data: Type.Object({
+              number: Type.String(),
+              state: Type.Union([Type.Literal("issued"), Type.Literal("pendiente")]),
             }),
           },
         },
       }),
-    [`${path}/objetos/comprobante/datos.estado:valor-incompatible`],
+    [`${path}/objects/voucher/data.state:incompatible-value`],
   ],
   [
     "08 new rejection",
     () =>
       programs({
         ...offered(),
-        acciones: {
-          emitir: {
+        actions: {
+          issue: {
             ...action(),
-            rechazos: Type.Object({ codigo: Type.Union([Type.Literal("invalida"), Type.Literal("duplicada")]) }),
+            rejections: Type.Object({ code: Type.Union([Type.Literal("invalida"), Type.Literal("duplicada")]) }),
           },
         },
       }),
-    [`${path}/acciones/emitir/rechazos.codigo:valor-incompatible`],
+    [`${path}/actions/issue/rejections.code:incompatible-value`],
   ],
-  ["09 no provider", () => [sales()], [`sin-proveedor:${path}`]],
+  ["09 no provider", () => [sales()], [`no-provider:${path}`]],
   [
     "10 two providers",
     () => [
@@ -112,46 +112,46 @@ const isolated = [
       documents(),
       {
         ...documents(),
-        id: "otro",
-        hechos: ["otro/emitido"],
-        ofrece: {
-          "documentos-fiscales": {
+        id: "other",
+        facts: ["other/issued"],
+        offers: {
+          "fiscal-documents": {
             ...offered(),
-            avisos: { emitido: { ...notice(), hecho: "otro/emitido" } },
+            notices: { issued: { ...notice(), fact: "other/issued" } },
           },
         },
       },
     ],
-    [`dos-o-mas-proveedores:${path}`],
+    [`multiple-providers:${path}`],
   ],
-  ["13 DESERT version", () => [sales(), { ...documents(), desert: 2 }], ["contrato-desert:documentos"]],
+  ["13 DESERT version", () => [sales(), { ...documents(), desert: 2 }], ["desert-contract:documents"]],
   [
     "14 repeated program",
     () => [
-      { ...sales(), id: "x", pide: {} },
-      { ...sales(), id: "x", pide: {} },
+      { ...sales(), id: "x", requests: {} },
+      { ...sales(), id: "x", requests: {} },
     ],
-    ["id-repetido:x"],
+    ["duplicate-id:x"],
   ],
   [
     "15 repeated fact",
-    () => [sales(), { ...documents(), hechos: ["documentos/emitido", "documentos/emitido"] }],
-    ["hecho-repetido:documentos/emitido"],
+    () => [sales(), { ...documents(), facts: ["documents/issued", "documents/issued"] }],
+    ["duplicate-fact:documents/issued"],
   ],
   [
     "16 foreign fact",
-    () => [sales(), { ...documents(), hechos: ["documentos/emitido", "ajeno/x"] }],
-    ["hecho-ajeno:ajeno/x"],
+    () => [sales(), { ...documents(), facts: ["documents/issued", "ajeno/x"] }],
+    ["foreign-fact:ajeno/x"],
   ],
   [
     "17 foreign action",
-    () => programs({ ...offered(), acciones: { emitir: { ...action(), ruta: "fiscal/borrar" } } }),
-    ["documentos/documentos-fiscales/acciones/emitir:ruta-ajena:fiscal/borrar"],
+    () => programs({ ...offered(), actions: { issue: { ...action(), route: "fiscal/borrar" } } }),
+    ["documents/fiscal-documents/actions/issue:foreign-route:fiscal/borrar"],
   ],
   [
     "18 missing projector",
-    () => programs({ ...offered(), objetos: { comprobante: { ...object(), proyector: "otro" } } }),
-    ["documentos/documentos-fiscales/objetos/comprobante:proyector-ausente:otro"],
+    () => programs({ ...offered(), objects: { voucher: { ...object(), projector: "other" } } }),
+    ["documents/fiscal-documents/objects/voucher:missing-projector:other"],
   ],
 ] satisfies readonly [string, () => readonly ContractPackage[], readonly string[]][];
 describe("isolated runtime negatives from dist-2", () => {
@@ -159,15 +159,15 @@ describe("isolated runtime negatives from dist-2", () => {
     exact(structuralContractErrors(setup()), expected);
   });
   it("24 cycle reports exactly both traversals", () => {
-    const empty = { acciones: {}, objetos: {}, avisos: {} };
+    const empty = { actions: {}, objects: {}, notices: {} };
     exact(
       structuralContractErrors([
-        { ...sales(), ofrece: { "ventas-publicas": { ...empty, version: "1.0.0" } } },
-        { ...documents(), pide: { "ventas-publicas": { ...empty, casos: [] } } },
+        { ...sales(), offers: { "public-sales": { ...empty, version: "1.0.0" } } },
+        { ...documents(), requests: { "public-sales": { ...empty, cases: [] } } },
       ]),
       [
-        "ciclo:ventas-[documentos-fiscales]->documentos-[ventas-publicas]->ventas",
-        "ciclo:documentos-[ventas-publicas]->ventas-[documentos-fiscales]->documentos",
+        "cycle:sales-[fiscal-documents]->documents-[public-sales]->sales",
+        "cycle:documents-[public-sales]->sales-[fiscal-documents]->documents",
       ],
     );
   });
@@ -176,26 +176,26 @@ describe("isolated runtime negatives from dist-2", () => {
       build = { core: "C", executor: "E" };
     const gate = await runContractCases({
       programs: original,
-      provider: "documentos",
-      consumer: "ventas",
-      contract: "documentos-fiscales",
+      provider: "documents",
+      consumer: "sales",
+      contract: "fiscal-documents",
       build,
       prepare: preparation => contractHouse(undefined, ":memory:", contractSelections(preparation)),
     });
     const consumer = sales(),
-      request = required(consumer.pide["documentos-fiscales"]);
+      request = required(consumer.requests["fiscal-documents"]);
     const more = {
       ...consumer,
-      pide: {
-        "documentos-fiscales": { ...request, casos: [...request.casos, { ...required(request.casos[0]), id: "otro" }] },
+      requests: {
+        "fiscal-documents": { ...request, cases: [...request.cases, { ...required(request.cases[0]), id: "other" }] },
       },
     };
     exact(validateContractPrograms([more, documents()], build, gate.evidence, gate.verify).errors, [
-      `${path}/casos/otro:caso-no-declarado`,
+      `${path}/cases/other:undeclared-case`,
     ]);
     exact(
       validateContractPrograms(programs({ ...offered(), version: "1.2.0" }), build, gate.evidence, gate.verify).errors,
-      [`${path}/casos/emitir-y-leer:caso-no-declarado`],
+      [`${path}/cases/issue-and-read:undeclared-case`],
     );
   });
   it("lists three independent incompatible fields without losing a reason", () => {
@@ -203,24 +203,24 @@ describe("isolated runtime negatives from dist-2", () => {
       structuralContractErrors(
         programs({
           ...offered(),
-          acciones: {
-            emitir: { ...action(), entrada: Type.Object({ venta: Type.Number() }, { additionalProperties: false }) },
+          actions: {
+            issue: { ...action(), input: Type.Object({ sale: Type.Number() }, { additionalProperties: false }) },
           },
-          objetos: {
-            comprobante: {
+          objects: {
+            voucher: {
               ...object(),
-              datos: Type.Object({ numero: Type.Number(), estado: Type.Literal("emitido") }),
+              data: Type.Object({ number: Type.Number(), state: Type.Literal("issued") }),
             },
           },
-          avisos: {
-            emitido: { ...notice(), datos: Type.Object({ venta: Type.Number(), comprobante: Type.String() }) },
+          notices: {
+            issued: { ...notice(), data: Type.Object({ sale: Type.Number(), voucher: Type.String() }) },
           },
         }),
       ),
       [
-        `${path}/acciones/emitir/entrada.venta:valor-incompatible`,
-        `${path}/objetos/comprobante/datos.numero:valor-incompatible`,
-        `${path}/avisos/emitido/datos.venta:valor-incompatible`,
+        `${path}/actions/issue/input.sale:incompatible-value`,
+        `${path}/objects/voucher/data.number:incompatible-value`,
+        `${path}/notices/issued/data.sale:incompatible-value`,
       ],
     );
   });
@@ -229,19 +229,19 @@ describe("isolated runtime negatives from dist-2", () => {
       structuralContractErrors(
         programs({
           ...offered(),
-          acciones: {
-            emitir: action(),
+          actions: {
+            issue: action(),
             extra: {
-              ruta: "fiscal/emitir",
-              entrada: input(),
-              salida: Type.String({ pattern: "x" }),
-              rechazos: rejection(),
+              route: "fiscal/issue",
+              input: input(),
+              output: Type.String({ pattern: "x" }),
+              rejections: rejection(),
             },
           },
-          objetos: { comprobante: { ...object(), datos: receipt() } },
+          objects: { voucher: { ...object(), data: receipt() } },
         }),
       ),
-      ["documentos/documentos-fiscales/acciones/extra/salida:esquema-no-soportado"],
+      ["documents/fiscal-documents/actions/extra/output:unsupported-schema"],
     );
   });
 });

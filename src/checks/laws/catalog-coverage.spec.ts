@@ -101,8 +101,8 @@ it("follows registered aliases and action helpers to the emitted fact", () => {
 
 it("turns red for an installable program fact declared but never emitted", () => {
   const failures = inspect({
-    "src/program.ts": `const changes = [{nombre:"forgotten-change",forma:{}}];
-        export const program={hechos:changes,herramientas:{notes:{acts:{}}}};`,
+    "src/program.ts": `const changes = [{kind:"forgotten-change",schema:{}}];
+        export const program={facts:changes,tools:{notes:{acts:{}}}};`,
   });
   expect(failures.some(text => text.includes("E-L6-FACT · hecho sin acción registrada · forgotten-change"))).toBe(true);
 });
@@ -111,8 +111,8 @@ it("accepts an installable fact emitted as a registered action's literal effect"
   expect(
     inspect({
       "src/factory.ts": factories,
-      "src/program.ts": `import {programAct} from './factory.ts'; const changes=[{nombre:"owned",forma:{}}];
-      export const program={hechos:changes,herramientas:{notes:{acts:{
+      "src/program.ts": `import {programAct} from './factory.ts'; const changes=[{kind:"owned",schema:{}}];
+      export const program={facts:changes,tools:{notes:{acts:{
       write:programAct({run:()=>({effects:[{layer:"program",kind:"owned",data:{}}]})})}}}};`,
     }),
   ).toEqual([]);

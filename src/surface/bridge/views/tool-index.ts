@@ -21,7 +21,10 @@ export function toolIndex<X extends Program>(
     );
     const find = (sought: string) =>
       listedIn([...targets], rows).filter(row =>
-        matches([row.title, row.detail, programCall(tool.words?.bind(tool), state, row.opens ?? "")].join(" "), sought),
+        matches(
+          [row.title, row.detail, programCall(tool.findWords?.bind(tool), state, row.opens ?? "")].join(" "),
+          sought,
+        ),
       );
     return { named, targets, find };
   };

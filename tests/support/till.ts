@@ -1,5 +1,5 @@
 // A program that is one tool with nothing but its settings: a till that says its float, changed where it is read.
-import { pesos, shopLocale } from "./shop.ts";
+import { ars, shopLocale } from "./shop.ts";
 import { object } from "../../src/fields/visible-text.ts";
 import { money } from "../../src/fields/fields.ts";
 import { vocabulary, type Event, type ProgramFacts } from "../../src/journal/vocabulary.ts";
@@ -41,7 +41,7 @@ const floating = (how: Offered) =>
     offered: whyNot,
     run: (input, { by }) => ({
       status: "accepted",
-      text: `Cambiado · Fondo · ${pesos(input.float)}`,
+      text: `Cambiado · Fondo · ${ars(input.float)}`,
       effects: [till.fact("till-floated", input, by)],
     }),
     cases: [
@@ -89,8 +89,8 @@ const tillTool = (how: Offered): ProgramTool<Till> => ({
   purpose: "Keeps the float of the till.",
   targets: () => [],
   view: state =>
-    JSON.stringify({ float: pesos(state.tools.till.float), ...(state.tools.till.closed ? { state: "cerrada" } : {}) }),
-  summary: state => pesos(state.tools.till.float),
+    JSON.stringify({ float: ars(state.tools.till.float), ...(state.tools.till.closed ? { state: "cerrada" } : {}) }),
+  summary: state => ars(state.tools.till.float),
   acts: { float: floating(how), close },
 });
 const programWith = (how: Offered): Composition<Till> => ({

@@ -10,7 +10,7 @@ it("p9: legado con filas sin proveedor falla antes de crear tablas o cambiar byt
   const rig = custodyRig(),
     db = new DatabaseSync(rig.file);
   db.exec("create table secrets(id text primary key, value text)");
-  db.prepare("insert into secrets values (?,?)").run("secret:00000000-0000-0000-0000-000000000001", "inventado");
+  db.prepare("insert into secrets values (?,?)").run("secret:00000000-0000-0000-0000-000000000001", "invented");
   db.close();
   const before = readdirSync(rig.home).map(name => [name, readFileSync(join(rig.home, name))]);
   expect(() => new SecretCustody(rig.file, rig.home)).toThrow("E-CUSTODY-PROVIDER");
@@ -47,7 +47,7 @@ it("p11: recuperar muchos provisionales tampoco repite recorridos por cada mater
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  for (let n = 0; n < 50; n++) session.capture(Buffer.from(`inventado-${n}`));
+  for (let n = 0; n < 50; n++) session.capture(Buffer.from(`invented-${n}`));
   store.close();
   const rows = vi.spyOn(CustodyDatabase.prototype, "rows"),
     facts = vi.spyOn(CustodyDatabase.prototype, "facts");
@@ -62,7 +62,7 @@ it("olvidar advierte sobre las copias; solo con aceptación borra todas las llav
     copy = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("inventado")) };
+  const refs = { key: session.capture(Buffer.from("invented")) };
   session.replace("signing", refs, 0);
   store.close();
   copyFileSync(rig.file, copy.file);
@@ -77,7 +77,7 @@ it("una llave que no se pudo borrar queda pendiente, no borra otra referencia y 
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("inventado")) };
+  const refs = { key: session.capture(Buffer.from("invented")) };
   session.replace("signing", refs, 0);
   const fail = vi.spyOn(rig.keys, "forget").mockImplementation(() => {
     throw new Error("llavero");
@@ -96,7 +96,7 @@ it("una llave que no se pudo borrar queda pendiente, no borra otra referencia y 
 it("abrir verifica la presencia de cada llave de secreto sin recrearla", () => {
   const rig = custodyRig(),
     store = rig.open();
-  const ref = store.keep(Buffer.from("inventado"));
+  const ref = store.keep(Buffer.from("invented"));
   store.close();
   const db = new CustodyDatabase(rig.file),
     house = db.identity();
@@ -121,7 +121,7 @@ it("la purga conserva el alcance del vínculo y no repite recibos al recolectar 
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("inventado")) };
+  const refs = { key: session.capture(Buffer.from("invented")) };
   session.replace("signing", refs, 0);
   const bound = store.facts().find(fact => fact.kind === "credential-bound");
   session.release("signing", 1);
@@ -144,7 +144,7 @@ it("recolectar una casa cerrada rechaza la operación sin volver a tocar su alma
 it("un fallo antes de escribir pendientes de mantenimiento tampoco tapa el resultado y queda visible", async () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("inventado")) };
+  const refs = { key: session.capture(Buffer.from("invented")) };
   let restore = () => {};
   await expect(
     store.adapter(session, []).use(refs, () => {

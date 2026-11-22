@@ -27,7 +27,7 @@ it("p7: un segundo proceso no abre durante el uso de otro", async () => {
     store = new SecretCustody(rig.file, rig.home, processKeys(rig.home));
   try {
     const session = store.begin(custodyScope),
-      refs = { key: session.capture(Buffer.from("inventado")) };
+      refs = { key: session.capture(Buffer.from("invented")) };
     await store.adapter(session, []).use(refs, () => {
       const child = spawnSync(process.execPath, [script, rig.file, rig.home, "probe"], {
         encoding: "utf8",

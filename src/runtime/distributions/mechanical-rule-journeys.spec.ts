@@ -35,8 +35,8 @@ it("frena abrir un journey por el control com√∫n", async () => {
   expect(saved.status).toBe("accepted");
   f.respond(() => ({
     scene: "Abro un trabajo",
-    consulta: null,
-    acts: [{ act: "open", target: "mind:notas", input: { goal: "Anotar", kit: [] } }],
+    consultation: null,
+    acts: [{ act: "open", target: "mind:notes", input: { goal: "Anotar", kit: [] } }],
   }));
   f.wake(house);
   await (await house.minds)?.flush();
@@ -58,7 +58,7 @@ it("un journey queda frenado; cambiar la regla lo despierta sin repetir la acci√
   house.bus.emit(
     effect(
       "kit-set",
-      { version: 2, holder: "mind:notas", kit: selectionKit([{ kind: "tool", program: "notas", tool: "personal" }]) },
+      { version: 2, holder: "mind:notes", kit: selectionKit([{ kind: "tool", program: "notes", tool: "personal" }]) },
       "ana",
     ),
   );
@@ -66,7 +66,7 @@ it("un journey queda frenado; cambiar la regla lo despierta sin repetir la acci√
   const definition = {
     id: "notes",
     text: "Pausa del trabajo",
-    action: { tool: "notas", act: "personal/add" },
+    action: { tool: "notes", act: "personal/add" },
     condition: { operator: "actor", kind: "program" },
     effect: "block",
   };
@@ -80,18 +80,18 @@ it("un journey queda frenado; cambiar la regla lo despierta sin repetir la acci√
     calls++;
     const open = {
       act: "open",
-      target: "mind:notas",
-      input: { goal: "Anotar", kit: [{ tool: "notas", acts: ["personal/add"] }] },
+      target: "mind:notes",
+      input: { goal: "Anotar", kit: [{ tool: "notes", acts: ["personal/add"] }] },
     };
     const opening = calls === 1 ? [open] : [];
-    const acts = journeyTurn() ? [{ act: "personal/add", target: "notas/personal", input: {} }] : opening;
-    return { scene: "Trabajo pendiente", consulta: null, acts };
+    const acts = journeyTurn() ? [{ act: "personal/add", target: "notes/personal", input: {} }] : opening;
+    return { scene: "Trabajo pendiente", consultation: null, acts };
   });
   f.wake(house);
   await (await house.minds)?.flush();
   // The rule stops the journey's act and its turn fails; its consciousness wakes once to hear it, and nothing retries.
   expect(calls).toBe(3);
-  expect(house.tools.state().tools.notas.count).toBe(1);
+  expect(house.tools.state().tools.notes.count).toBe(1);
   expect(
     house.journal.replay<boolean>(
       false,
@@ -107,13 +107,13 @@ it("un journey queda frenado; cambiar la regla lo despierta sin repetir la acci√
     const journey = journeyTurn() ?? "";
     const until = Date.now() + 3_600_000;
     const wait = { act: "wait", target: journey, input: { what: "Vi el cambio; decido despu√©s", until } };
-    return { scene: "Vi el cambio; decido despu√©s", consulta: null, acts: [wait] };
+    return { scene: "Vi el cambio; decido despu√©s", consultation: null, acts: [wait] };
   });
   const change = { ...definition, condition: { operator: "actor", kind: "identity" } };
   await settle(house.tools.act({ act: "save", target: "rules", input: change }, 0, "ana"));
   await (await house.minds)?.flush();
   expect(calls).toBe(4);
-  expect(house.tools.state().tools.notas.count).toBe(1);
+  expect(house.tools.state().tools.notes.count).toBe(1);
 });
 it("una mente tampoco saltea el control al escribir una escena", async () => {
   const f = fixture();
@@ -139,8 +139,8 @@ it("una mente tampoco saltea el control al escribir una escena", async () => {
   expect(saved.status).toBe("accepted");
   f.respond(() => ({
     scene: "Pienso",
-    consulta: null,
-    acts: [{ act: "scene", target: "mind:notas", input: { general: "Escena que no debe publicarse" } }],
+    consultation: null,
+    acts: [{ act: "scene", target: "mind:notes", input: { general: "Escena que no debe publicarse" } }],
   }));
   f.wake(house);
   await (await house.minds)?.flush();

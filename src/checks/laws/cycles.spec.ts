@@ -40,11 +40,11 @@ describe("law 21: no import cycles among the production files", () => {
     const root = mkdtempSync(join(tmpdir(), "law-cycles-"));
     try {
       mkdirSync(join(root, "src"));
-      mkdirSync(join(root, "arranque"));
+      mkdirSync(join(root, "startup"));
       writeFileSync(join(root, "src", "a.ts"), 'import "./b.ts";');
-      writeFileSync(join(root, "src", "b.ts"), 'import "../arranque/c.ts";');
-      writeFileSync(join(root, "arranque", "c.ts"), 'import "../src/a.ts";');
-      expect(importCycles({ root, code: ["src", "arranque"] })).toEqual(["arranque/c.ts ⇄ src/a.ts ⇄ src/b.ts"]);
+      writeFileSync(join(root, "src", "b.ts"), 'import "../startup/c.ts";');
+      writeFileSync(join(root, "startup", "c.ts"), 'import "../src/a.ts";');
+      expect(importCycles({ root, code: ["src", "startup"] })).toEqual(["src/a.ts ⇄ src/b.ts ⇄ startup/c.ts"]);
       expect(importCycles({ root, code: ["src"] })).toEqual([]);
       expect(() => importCycles({ root, code: ["lib"] })).toThrow("no TypeScript file to check");
       expect(() => importCycles({ root, code: [] })).toThrow("no code folder named");

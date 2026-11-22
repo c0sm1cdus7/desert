@@ -42,7 +42,7 @@ it("la consciencia recibe comunicación autorizada y apertura, sin trabajo ni co
   ]);
   const answer = {
     scene: "Preparando",
-    consulta: null,
+    consultation: null,
     acts: [{ act: "open", target: actor, input: { goal: "Anotar", kit } }],
   };
   expect(Value.Check(answerSchema(result), answer)).toBe(true);
@@ -56,7 +56,7 @@ it("el journey recibe trabajo del kit y controles propios compatibles con el esq
   expect(result.find(item => item.act === "say")?.scope).toBe("work");
   const answer = {
     scene: "Preparando",
-    consulta: null,
+    consultation: null,
     acts: [{ act: "end", target: "j1", input: { summary: "Listo", references: [] } }],
   };
   expect(Value.Check(answerSchema(result), answer)).toBe(true);

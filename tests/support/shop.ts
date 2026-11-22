@@ -37,21 +37,21 @@ export const shopSlices: Slices<Shop> = {
 };
 const lines = (values: readonly unknown[]): string => values.map(value => JSON.stringify(value)).join("\n");
 export const shopLocale = { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" };
-export const pesos = (amount: number): string => shownMoney(String(amount), shopLocale);
+export const ars = (amount: number): string => shownMoney(String(amount), shopLocale);
 /** The list names each sale; one sale reads as its own facts. */
 const salesView = (state: State<Shop>, target: string): string => {
   const one = state.tools.sales.get(target.replace("sales/", ""));
-  if (one) return lines([{ total: pesos(one.total), paid: pesos(one.paid), by: one.by }]);
+  if (one) return lines([{ total: ars(one.total), paid: ars(one.paid), by: one.by }]);
   const listed = [...state.tools.sales].map(([sale, { total }]) => ({
     id: `sales/${sale}`,
     text: sale,
-    detail: pesos(total),
+    detail: ars(total),
   }));
   return lines(listed);
 };
 const paymentsView = (state: State<Shop>): string => {
   const { received, unmatched } = state.tools.payments;
-  return lines([{ received: pesos(received), unmatched }]);
+  return lines([{ received: ars(received), unmatched }]);
 };
 const first = { sale: "s1", total: 1500 };
 /** What registering a sale promises; a broken shop keeps these promises and breaks the act under them. */

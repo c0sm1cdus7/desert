@@ -100,7 +100,7 @@ function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown
   declarations.forEach(auditActs);
   auditFields(tools, shown);
   tools.forEach(tool => {
-    if (tool.groups) tool.groups.forEach(group => auditData(group.tool, ownReads(group.palabras)));
+    if (tool.groups) tool.groups.forEach(group => auditData(group.tool, ownReads(group.words)));
     else auditData(tool, ownReads(shown.words[tool.id]));
   });
   for (const tool of declarations) {
@@ -174,7 +174,7 @@ function withThings<X extends Program>(
         group.tool.id === target || programCall(group.tool.targets.bind(group.tool), ports.state()).includes(target),
     );
     if (group?.tool.id === target) return [...screen.view(target), ...record(target)];
-    const read = group ? thingView(ports, group.tool, listsOf(group.palabras)?.presents ?? []) : declared;
+    const read = group ? thingView(ports, group.tool, listsOf(group.words)?.presents ?? []) : declared;
     return [...read(target), ...record(target)];
   };
   const isThing = (target?: string): target is string =>

@@ -14,7 +14,7 @@ export function authorHouse(home: string, author: string) {
     secretKeys: new MemoryHouseKeys(),
     creation: {
       admin: "ana",
-      assignments: ["lucia", "sin-nombre", "retirada"].map(identity => ({ identity, tools: ["sales"] })),
+      assignments: ["lucia", "unnamed", "retirada"].map(identity => ({ identity, tools: ["sales"] })),
     },
   });
   if (!house.tools.state().tools.sales.has("s1")) {

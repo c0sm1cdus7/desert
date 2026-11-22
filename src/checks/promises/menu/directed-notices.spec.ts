@@ -43,7 +43,7 @@ it("12: detects a need absent only from its recipient's view", async () => {
   await expect(checks[0]?.run()).rejects.toThrow(/beto/);
 });
 
-describe.each(["nadie", "mind:sales", "carla"])(
+describe.each(["nobody", "mind:sales", "carla"])(
   "adversarial attention: rejects an invisible promised recipient %s",
   to => {
     const program = directedShop(true, to);

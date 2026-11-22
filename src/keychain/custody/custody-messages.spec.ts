@@ -8,7 +8,7 @@ it("distingue un registro corto de otra cabeza y explica lo que se acepta", () =
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  session.replace("firma", { key: session.capture(Buffer.from("inventado")) }, 0);
+  session.replace("firma", { key: session.capture(Buffer.from("invented")) }, 0);
   store.close();
   const db = new DatabaseSync(rig.file);
   db.exec("drop trigger custody_no_delete; delete from custody_facts");

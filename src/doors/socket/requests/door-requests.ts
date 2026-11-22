@@ -18,34 +18,34 @@ export async function routeRequest<X extends Program>(
   const { house, book } = session;
   const by = peer.key()?.identity ?? "";
   const refusal = {
-    tipo: "rechazo",
-    motivo: said.unavailable,
+    type: "rejection",
+    reason: said.unavailable,
     ...("id" in message ? { id: message.id } : {}),
   } as const;
-  if (message.tipo === "acto") return credentialAct(session, peer, message);
-  if (!jsonData(message)) return { ...refusal, motivo: said.invalidData };
-  if (message.tipo === "leer") {
-    if (message.qué === "pedido") return book.lookup(by, message.id) ?? { ...refusal, motivo: said.unknown };
-    if (message.qué === "catalogo")
+  if (message.type === "act") return credentialAct(session, peer, message);
+  if (!jsonData(message)) return { ...refusal, reason: said.invalidData };
+  if (message.type === "read") {
+    if (message.what === "request") return book.lookup(by, message.id) ?? { ...refusal, reason: said.unknown };
+    if (message.what === "catalog")
       return {
-        tipo: "respuesta",
+        type: "response",
         id: message.id,
         seq: house.tools.state().through,
-        datos: house.registry.map(tool => ({ id: tool.id, purpose: tool.purpose, acts: Object.keys(tool.acts) })),
+        data: house.registry.map(tool => ({ id: tool.id, purpose: tool.purpose, acts: Object.keys(tool.acts) })),
       };
   }
-  if (message.tipo === "esperar") return waitForChange(session, peer, message.id, message.hasta);
-  if (message.tipo === "defecto") {
+  if (message.type === "wait") return waitForChange(session, peer, message.id, message.until);
+  if (message.type === "default") {
     const { tool, target, option } = message;
     const state = house.tools.state();
     const declared = targetTool(house.registry, state, target);
     const action = declared && Object.hasOwn(declared.acts, option) ? declared.acts[option] : undefined;
     const wrongPlace = action?.on !== undefined && (action.on === "tool") !== (target === tool);
-    if (declared?.id !== tool || !action || wrongPlace) return { ...refusal, motivo: toolTexts.unknown };
-    if (!allowedAct(state.house, by, tool, option)) return { ...refusal, motivo: toolTexts.kitRefusal(tool) };
+    if (declared?.id !== tool || !action || wrongPlace) return { ...refusal, reason: toolTexts.unknown };
+    if (!allowedAct(state.house, by, tool, option)) return { ...refusal, reason: toolTexts.kitRefusal(tool) };
     const entry = house.tools.prepare({ tool, target, author: by, text: toolTexts.baseFailure });
     house.bus.emit(effect("tool-entry", entry, by));
-    return { tipo: "respuesta", id: "defecto", seq: house.tools.state().through, datos: null };
+    return { type: "response", id: "default", seq: house.tools.state().through, data: null };
   }
   return refusal;
 }
@@ -65,9 +65,9 @@ function waitForChange<X extends Program>(
     Math.min(240_000, Math.max(0, until - house.now())),
     AbortSignal.any([signal, disconnected.signal]),
   );
-  return waiting.then(({ seq, cambio }) => {
+  return waiting.then(({ seq, change }) => {
     peer.stream.off("close", close);
-    return { tipo: "respuesta", id, seq, datos: { cambio } };
+    return { type: "response", id, seq, data: { change } };
   });
 }
 

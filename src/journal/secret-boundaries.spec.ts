@@ -27,16 +27,16 @@ it("la puerta directa del bus resuelve la acción de una cosa y la acción propi
 it("las posiciones de los hechos se protegen también en el resultado devuelto", () => {
   const rig = fixture(secret, () => ({
     status: "accepted",
-    effects: [words.fact("sale-registered", { value: "dato-hecho", copy: "dato-hecho" }, "ana")],
+    effects: [words.fact("sale-registered", { value: "datum-fact", copy: "datum-fact" }, "ana")],
   }));
-  const result = rig.set({ value: "dato-entrada" });
+  const result = rig.set({ value: "datum-input" });
   expect(result.status).toBe("accepted");
   const writes = [...result.effects, ...rig.facts(), ...rig.house.tools.state().tools.vault].filter(
     event => event.kind === "sale-registered",
   );
   expect(writes.length).toBeGreaterThanOrEqual(3);
   expect(writes.every(event => ref(event.data.value))).toBe(true);
-  expect(writes.every(event => event.data.copy === "dato-hecho")).toBe(true);
+  expect(writes.every(event => event.data.copy === "datum-fact")).toBe(true);
 });
 it("una letra se limpia en texto libre sin alterar el protocolo ni los nombres de propiedades", () => {
   const rig = fixture(secret, input => ({
@@ -115,7 +115,7 @@ it("una coincidencia con un discriminante conserva la rama y protege el valor", 
 it("la palabra del vocabulario no cambia el tipo de los hechos de la misma acción", () => {
   const rig = fixture(secret, () => ({
     status: "accepted",
-    effects: [words.fact("sale-registered", { value: "otro-dato", copy: "sale-registered" }, "ana")],
+    effects: [words.fact("sale-registered", { value: "other-datum", copy: "sale-registered" }, "ana")],
   }));
   const done = rig.set({ value: "sale-registered" });
   expect(done.status).toBe("accepted");

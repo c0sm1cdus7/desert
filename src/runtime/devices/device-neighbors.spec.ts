@@ -12,7 +12,7 @@ it("preserves the chosen destination through request deduplication, including re
   rig.device("vm");
   const book = requestBook(rig.house);
   const request = {
-    tipo: "acto" as const,
+    type: "act" as const,
     id: "same",
     act: "run",
     target: "agents",
@@ -24,7 +24,7 @@ it("preserves the chosen destination through request deduplication, including re
     expect(await book.act("beto", request)).toMatchObject({ status: "accepted" });
     expect(await book.act("beto", request)).toMatchObject({ status: "accepted" });
     expect(await book.act("beto", { ...request, destination: { kind: "device", device: "vm" } })).toMatchObject({
-      tipo: "rechazo",
+      type: "rejection",
     });
     expect(rig.requests.map(each => each.device)).toEqual(["mac"]);
   } finally {

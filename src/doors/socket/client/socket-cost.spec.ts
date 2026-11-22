@@ -83,7 +83,7 @@ async function measureRemote(
       bytes += chunk.length;
     });
     connection.receive(message => {
-      if (message.tipo === "estado") deliveries++;
+      if (message.type === "state") deliveries++;
     });
     clients.push({ connection, pair });
   }

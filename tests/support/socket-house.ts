@@ -9,9 +9,9 @@ import { probe } from "./socket-probe.ts";
 export const doorKeys: ReadonlyMap<string, DoorKey> = new Map([
   ["ana-terminal", { identity: "ana", door: "terminal" }],
   ["beto-terminal", { identity: "beto", door: "terminal" }],
-  ["beto-agente", { identity: "beto", door: "agent" }],
-  ["nadie-terminal", { identity: "nadie", door: "terminal" }],
-  ["mente-terminal", { identity: "mind:payments", door: "terminal" }],
+  ["beto-agent", { identity: "beto", door: "agent" }],
+  ["nobody-terminal", { identity: "nobody", door: "terminal" }],
+  ["mind-terminal", { identity: "mind:payments", door: "terminal" }],
 ]);
 function program(hold?: Promise<void>) {
   const receive = paymentsTool.acts.receive;
@@ -32,7 +32,7 @@ function program(hold?: Promise<void>) {
   return { ...shopProgram, registry: [shopProgram.registry[0], delayed].filter(tool => tool !== undefined) };
 }
 function opening(hold?: Promise<void>, identities = false) {
-  const home = mkdtempSync("/tmp/casa-s-");
+  const home = mkdtempSync("/tmp/house-s-");
   const options = {
     ...program(hold),
     identities,
@@ -87,7 +87,7 @@ async function clientOf(path: string, door: ReturnType<typeof houseDoor> | undef
   if (pair) door?.accept(pair[1]);
   if (token) {
     client.hello(token);
-    await client.until(() => client.messages.some(m => m.tipo === "bienvenida"));
+    await client.until(() => client.messages.some(m => m.type === "welcome"));
   }
   return client;
 }

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
 import { projectionVersion } from "../projection-version.ts";
-import { componer } from "./compose.ts";
+import { compose } from "./compose.ts";
 import { sampleOptions } from "../../../tests/support/installable-program.ts";
 it("loads linked TypeScript packages outside node_modules with one DESERT instance", () => {
   const home = mkdtempSync(join(tmpdir(), "desert-installable-"));
@@ -24,15 +24,15 @@ it("loads linked TypeScript packages outside node_modules with one DESERT instan
     writeFileSync(
       join(toy, "index.ts"),
       `
-import { programa, DESERT_CONTRACT, Type } from "desert/programa";
+import { defineProgram, DESERT_CONTRACT, Type } from "desert/program";
 import { defineMessage } from "desert/messages";
 import { OutsideDefect } from "desert/fields/program-call";
 export const problem = new OutsideDefect("fixture");
-export const toy = programa({ id: "toy", version: "1.0.0", desert: DESERT_CONTRACT,
-  codigo: [import.meta.filename], hechos: [], inicial: () => 0 }, {
-  purpose: "contar", palabras: { name: "Juguete", key: "j", itself: [] }, herramientas: {},
+export const toy = defineProgram({ id: "toy", version: "1.0.0", desert: DESERT_CONTRACT,
+  code: [import.meta.filename], facts: [], initial: () => 0 }, {
+  purpose: "contar", words: { name: "Juguete", key: "j", itself: [] }, tools: {},
   skill: defineMessage({ id: "toy.skill", kind: "skill", parameters: Type.Object({}),
-    texts: { es: "Contá con tus acciones." } }), plegar: value => value, summary: () => "Juguete"
+    texts: { es: "Contá con tus acciones." } }), fold: value => value, summary: () => "Juguete"
 });
 `,
     );
@@ -40,12 +40,12 @@ export const toy = programa({ id: "toy", version: "1.0.0", desert: DESERT_CONTRA
       join(home, "index.ts"),
       `
 import { toy, problem } from "toy";
-import { componer } from "desert/componer";
+import { compose } from "desert/compose";
 import { OutsideDefect } from "desert/fields/program-call";
 import { startHouse } from "desert/runtime";
 import { programChecks } from "desert/testing";
-const result = componer({ programas: [toy], identidades: true,
- mentes: { asistentes: false, programas: [] }, presentacion: { codigo: [import.meta.filename],
+const result = compose({ programs: [toy], identities: true,
+ minds: { assistants: false, programs: [] }, shown: { code: [import.meta.filename],
  locale: { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" } } });
 process.stdout.write(JSON.stringify({ same: problem instanceof OutsideDefect,
  ids: result.program.registry.map(p => p.id), start: typeof startHouse, checks: typeof programChecks }));
@@ -80,24 +80,24 @@ it.each(["program", "presentation"])("pins %s code until a new process composes 
     const paths = { code, presentation };
     const options = {
       ...sampleOptions,
-      programas: [{ ...sampleOptions.programas[0], codigo: [code] }],
-      presentacion: { ...sampleOptions.presentacion, codigo: [presentation] },
+      programs: [{ ...sampleOptions.programs[0], code: [code] }],
+      shown: { ...sampleOptions.shown, code: [presentation] },
     } as const;
-    const first = componer(options);
+    const first = compose(options);
     const previous = projectionVersion([changed === "program" ? code : presentation]);
     writeFileSync(changed === "program" ? code : presentation, "export const changed = 2;\n");
     expect(projectionVersion([changed === "program" ? code : presentation])).not.toBe(previous);
-    const second = componer(options);
+    const second = compose(options);
     expect(second.calculation.value).toBe(first.calculation.value);
     expect(second.manifest).toEqual(first.manifest);
     const fixture = new URL("../../../tests/support/installable-program.ts", import.meta.url).href;
     const script = `
-import { componer } from ${JSON.stringify(new URL("./compose.ts", import.meta.url).href)};
+import { compose } from ${JSON.stringify(new URL("./compose.ts", import.meta.url).href)};
 import { sampleOptions } from ${JSON.stringify(fixture)};
 const paths = ${JSON.stringify(paths)};
-const result = componer({ ...sampleOptions,
-  programas: [{ ...sampleOptions.programas[0], codigo: [paths.code] }],
-  presentacion: { ...sampleOptions.presentacion, codigo: [paths.presentation] } });
+const result = compose({ ...sampleOptions,
+  programs: [{ ...sampleOptions.programs[0], code: [paths.code] }],
+  shown: { ...sampleOptions.shown, code: [paths.presentation] } });
 process.stdout.write(JSON.stringify({ calculation: result.calculation.value, manifest: result.manifest }));`;
     const next: unknown = JSON.parse(
       execFileSync(process.execPath, ["--input-type=module", "-e", script], { encoding: "utf8" }),
@@ -106,7 +106,7 @@ process.stdout.write(JSON.stringify({ calculation: result.calculation.value, man
       calculation: projectionVersion(first.calculation.trees),
       manifest: {
         ...first.manifest,
-        programas: first.manifest.programas.map(p => ({ ...p, calculation: projectionVersion([code]) })),
+        programs: first.manifest.programs.map(p => ({ ...p, calculation: projectionVersion([code]) })),
       },
     });
     expect(next).not.toEqual({ calculation: first.calculation.value, manifest: first.manifest });

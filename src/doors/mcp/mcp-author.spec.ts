@@ -5,7 +5,7 @@ import { expect, it } from "vitest";
 import { authorHouse } from "../../../tests/support/author-house.ts";
 import { mcpReading } from "./mcp-reading.ts";
 import { effect } from "../../house/facts.ts";
-it.each(["lucia", "sin-nombre", "retirada", "mind:sales", "assistant:lucia"])(
+it.each(["lucia", "unnamed", "retirada", "mind:sales", "assistant:lucia"])(
   "MCP conserva el id de %s en avisos y lecturas después de cambiar el nombre y reabrir",
   author => {
     const home = mkdtempSync(join(tmpdir(), "mcp-author-"));

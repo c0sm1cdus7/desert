@@ -50,7 +50,7 @@ export function programMindOptions(
     },
     message: event => {
       for (const item of installed) {
-        const message = item.mensajes?.leer(event);
+        const message = item.messages?.read(event);
         if (message) return message;
       }
       return undefined;

@@ -7,13 +7,13 @@ import type { SecretRef } from "./custody-contract.ts";
 it("el manifiesto no resucita una referencia purgada ni deja filas con ids inválidos", () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
-  const ref = session.capture(Buffer.from("inventado"));
+  const ref = session.capture(Buffer.from("invented"));
   session.cancel();
-  expect(() => store.importLegacy(ref, Buffer.from("inventado"))).toThrow("E-CUSTODY-DENIED");
-  expect(() => store.importLegacy("secret:inventada", Buffer.from("inventado"))).toThrow("E-CUSTODY-LEGACY");
+  expect(() => store.importLegacy(ref, Buffer.from("invented"))).toThrow("E-CUSTODY-DENIED");
+  expect(() => store.importLegacy("secret:invented", Buffer.from("invented"))).toThrow("E-CUSTODY-LEGACY");
   expect(store.ids()).toEqual([]);
   const next = store.begin(custodyScope);
-  expect(next.capture(Buffer.from("otro"))).toMatch(/^secret:/u);
+  expect(next.capture(Buffer.from("other"))).toMatch(/^secret:/u);
 });
 it("reconectar tras liberar conserva revisión y rechaza una confirmación anterior al borrado", () => {
   const rig = custodyRig(),
@@ -53,8 +53,8 @@ it("dos reemplazos de una revisión ganan una sola vez y el rechazado se recoge 
   const store = custodyRig().open(),
     a = store.begin(custodyScope),
     b = store.begin(custodyScope);
-  const first = { key: a.capture(Buffer.from("uno")) },
-    second = { key: b.capture(Buffer.from("dos")) };
+  const first = { key: a.capture(Buffer.from("one")) },
+    second = { key: b.capture(Buffer.from("two")) };
   const results = await Promise.allSettled([
     Promise.resolve().then(() => a.replace("signing", first, 0)),
     Promise.resolve().then(() => b.replace("signing", second, 0)),
@@ -66,7 +66,7 @@ it("dos reemplazos de una revisión ganan una sola vez y el rechazado se recoge 
 it("otra herramienta, objeto, identidad, sesión o casa no usa ni vincula lo ajeno", async () => {
   const store = custodyRig().open(),
     a = store.begin(custodyScope);
-  const refs = { key: a.capture(Buffer.from("uno")) };
+  const refs = { key: a.capture(Buffer.from("one")) };
   const otherSession = store.begin(custodyScope);
   expect(() => otherSession.replace("signing", refs, 0)).toThrow();
   a.replace("signing", refs, 0);

@@ -33,7 +33,7 @@ it("N03: a terminal behind the cached delta receives a full state", async () => 
     peer.sent(previous - 1);
     delivery.sendState(peer);
     await new Promise<void>(resolve => setImmediate(resolve));
-    expect(headers.map(header => (header.tipo === "estado" ? header.base : "not state"))).toEqual([
+    expect(headers.map(header => (header.type === "state" ? header.base : "not state"))).toEqual([
       null,
       previous,
       null,
@@ -65,7 +65,7 @@ it("un asistente habilitado no recibe el estado aunque tenga una sesión plantad
   try {
     delivery.sendState(peer, true);
     await new Promise<void>(resolve => setImmediate(resolve));
-    expect(headers.map(header => header.tipo)).toEqual(["cortado"]);
+    expect(headers.map(header => header.type)).toEqual(["cut"]);
     expect(binary).toBe(0);
   } finally {
     delivery.stop();

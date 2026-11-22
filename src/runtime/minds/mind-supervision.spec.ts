@@ -131,7 +131,7 @@ it("un supervisor fallido no equivale a uno ausente", async () => {
   ).toMatchObject({ outcome: "failed" });
 });
 it("rechaza aprobaciones de otra propuesta, secuencia o versión", async () => {
-  for (const change of [{ proposal: "otra" }, { through: 2 }, { rulesVersion: "vieja" }]) {
+  for (const change of [{ proposal: "other" }, { through: 2 }, { rulesVersion: "vieja" }]) {
     const turn = context();
     const caller = createTurnCaller(
       async () => {

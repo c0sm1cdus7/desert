@@ -151,7 +151,7 @@ it("charges the assistant and the supervisor to the host's spending account, eac
   const house = await f.open();
   f.respond(frame => {
     if (supervising(frame))
-      return request(frame) ? { outcome: "passed", text: "Sigue" } : { scene: "Aprendí", consulta: null, acts: [] };
+      return request(frame) ? { outcome: "passed", text: "Sigue" } : { scene: "Aprendí", consultation: null, acts: [] };
     const turn = currentTurn(house);
     if (turn.by !== "assistant:ana") return answer();
     if (turn.process) return answer([end(turn.process)]);

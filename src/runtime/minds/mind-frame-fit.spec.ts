@@ -22,7 +22,7 @@ const snapshot = buildMindFrame(scope, turn, {
   skills: [],
   textRules: [],
   scene: "escena",
-  required: "consulta",
+  required: "consultation",
   activity: [
     { id: "a", text: "á".repeat(300), covered: true },
     { id: "a", text: "á".repeat(300), covered: true },

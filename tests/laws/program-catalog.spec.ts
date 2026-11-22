@@ -11,7 +11,7 @@ it("follows a helper and an aliased vocabulary receiver from an action run", asy
     "src/helper.ts": `import {facts as original} from './model.ts';
 const journal = original;
 export function emit() { return journal.fact('notes/added', {}, 'ana'); }`,
-    "src/action.ts": `import {programAct} from 'desert/programa';
+    "src/action.ts": `import {programAct} from 'desert/program';
 import {emit} from './helper.ts';
 export const add = programAct({run: () => ({effects: [emit()]})});`,
   });
@@ -71,7 +71,7 @@ it.each([
   ["declared but absent", "export const add = {};"],
   [
     "only in action cases",
-    `import {programAct} from 'desert/programa'; import {facts} from './model.ts';
+    `import {programAct} from 'desert/program'; import {facts} from './model.ts';
 export const add = programAct({run: () => ({}), cases: [{given: [facts.fact('notes/added', {}, 'ana')]}]});`,
   ],
   [
@@ -127,7 +127,7 @@ export const add = ownAct('notes', 'add', {}, ${callback});`,
 );
 it("recognizes a registered action's method-form run", async () => {
   const repo = catalogProgram({
-    "src/action.ts": `import {programAct} from 'desert/programa'; import {facts} from './model.ts';
+    "src/action.ts": `import {programAct} from 'desert/program'; import {facts} from './model.ts';
 export const add = programAct({run() {return {effects: [facts.fact('notes/added', {}, 'ana')]};}});`,
   });
   expect(await programLaws(repo.root)).toEqual([]);

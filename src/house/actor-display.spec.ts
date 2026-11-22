@@ -25,6 +25,6 @@ it("conserva identidades históricas y no inventa asistentes desconocidos", () =
   const house = fold(...setup, effect("named", { identity: "nora", name: "Nora vieja" }, "franco"));
   expect(actorDisplayName(house, "nora", "es")).toBe("Nora vieja");
   expect(actorDisplayName(house, "martin", "es")).toBe("martin");
-  expect(actorDisplayName(house, "mind:notas", "es")).toBe("mind:notas");
+  expect(actorDisplayName(house, "mind:notes", "es")).toBe("mind:notes");
   expect(actorDisplayName(house, "assistant:martin", "es")).toBe("assistant:martin");
 });

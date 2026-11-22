@@ -57,17 +57,17 @@ function open<X extends Program>(
 /** A check that brings no model resources proves what the acts promise with every mind off: a mind is proven by its
  * role's cases on the bench. A check that brings them keeps its minds. */
 function withoutMinds<X extends Program>(program: Composition<X>): Composition<X> {
-  return program.mentes && !("modelMinds" in program)
+  return program.minds && !("modelMinds" in program)
     ? {
         ...program,
         registry: coreRegistry(
           program.registry,
           runner,
           program.identities,
-          program.mentes.asistentes,
-          program.mentes.programas,
+          program.minds.assistants,
+          program.minds.programs,
         ),
-        mentes: { asistentes: false, programas: [] },
+        minds: { assistants: false, programs: [] },
       }
     : program;
 }

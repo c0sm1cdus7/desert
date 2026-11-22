@@ -193,12 +193,12 @@ class CatalogIndex {
   }
   readonly reachable = (seeds: Iterable<ts.Symbol>) => {
     const seen = new Set(seeds),
-      todo = [...seen];
-    for (const from of todo)
+      all = [...seen];
+    for (const from of all)
       for (const next of this.edges.get(from) ?? [])
         if (!seen.has(next)) {
           seen.add(next);
-          todo.push(next);
+          all.push(next);
         }
     return seen;
   };

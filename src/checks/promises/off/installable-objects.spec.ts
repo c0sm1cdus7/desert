@@ -23,23 +23,23 @@ it.each([false, true])("keeps object rows, author rules and foreign preferences 
       const seat = seated(house(), by, shown);
       try {
         for (const local of ["same", "a/b#c"]) {
-          const target = objectOf("notas", "notas", local);
+          const target = objectOf("notes", "notes", local);
           seat.router.send({ kind: "menu" });
-          goTo(seat, "notas", target);
-          const rows = stacksOf({ kind: "view", tool: "notas", target, at: 0 }, seat.tools).flatMap(s => s.rows);
+          goTo(seat, "notes", target);
+          const rows = stacksOf({ kind: "view", tool: "notes", target, at: 0 }, seat.tools).flatMap(s => s.rows);
           expect(rows.some(row => row.title === "Cantidad")).toBe(true);
           const actions = rows.filter(row => row.starts);
-          expect(actions.map(row => row.starts)).toEqual([{ tool: "notas", act: "notas/editar", target }]);
+          expect(actions.map(row => row.starts)).toEqual([{ tool: "notes", act: "notes/edit", target }]);
           const authorReason = by === authorOf(local) ? undefined : authorOnly;
-          const reason = by === cast.outsider ? toolTexts.kitRefusal("notas") : authorReason;
+          const reason = by === cast.outsider ? toolTexts.kitRefusal("notes") : authorReason;
           const row = actions[0];
           expect(row).toBeDefined();
           expect(row?.off === true).toBe(reason !== undefined);
           expect(reason === undefined || row?.detail?.endsWith(reason)).toBe(true);
           expect(row?.open).toEqual(
-            reason ? undefined : expect.objectContaining({ kind: "act", tool: "notas", act: "notas/editar", target }),
+            reason ? undefined : expect.objectContaining({ kind: "act", tool: "notes", act: "notes/edit", target }),
           );
-          const result = await perform(house(), "notas", { act: "notas/editar", on: target, input: {}, by });
+          const result = await perform(house(), "notes", { act: "notes/edit", on: target, input: {}, by });
           expect(result.status).toBe(reason ? "rejected" : "accepted");
           expect(reason === undefined || result.reason === reason).toBe(true);
         }
@@ -57,14 +57,14 @@ it.each([false, true])("keeps object rows, author rules and foreign preferences 
       await prefer(seat, "foreign", false);
       expect(menuRows(seat.tools).some(row => row.key === "n")).toBe(true);
       house().bus.emit(
-        effect("kit-set", { version: 2, holder: cast.outsider, kit: programKit(["notas"]) }, cast.admin),
+        effect("kit-set", { version: 2, holder: cast.outsider, kit: programKit(["notes"]) }, cast.admin),
       );
-      const target = objectOf("notas", "notas", "a/b#c");
-      goTo(seat, "notas", target);
-      const rows = stacksOf({ kind: "view", tool: "notas", target, at: 0 }, seat.tools).flatMap(s => s.rows);
-      expect(rows.find(row => row.starts?.act === "notas/editar")?.open).toBeDefined();
+      const target = objectOf("notes", "notes", "a/b#c");
+      goTo(seat, "notes", target);
+      const rows = stacksOf({ kind: "view", tool: "notes", target, at: 0 }, seat.tools).flatMap(s => s.rows);
+      expect(rows.find(row => row.starts?.act === "notes/edit")?.open).toBeDefined();
       expect(
-        (await perform(house(), "notas", { act: "notas/editar", on: target, input: {}, by: cast.outsider })).status,
+        (await perform(house(), "notes", { act: "notes/edit", on: target, input: {}, by: cast.outsider })).status,
       ).toBe("accepted");
     } finally {
       seat.router.stop();
@@ -77,19 +77,19 @@ it("keeps two tools' identically named and encoded objects separate even without
   await staged(program, ({ house }) => {
     const seat = seated(house(), cast.outsider, shown);
     try {
-      for (const group of ["notas", "shared"]) {
+      for (const group of ["notes", "shared"]) {
         for (const local of [undefined, "same", "a/b#c"]) {
-          const target = local === undefined ? `notas/${group}` : objectOf("notas", group, local);
+          const target = local === undefined ? `notes/${group}` : objectOf("notes", group, local);
           seat.router.send({ kind: "menu" });
-          goTo(seat, "notas", target);
-          const actions = stacksOf({ kind: "view", tool: "notas", target, at: 0 }, seat.tools)
+          goTo(seat, "notes", target);
+          const actions = stacksOf({ kind: "view", tool: "notes", target, at: 0 }, seat.tools)
             .flatMap(s => s.rows)
             .filter(row => row.starts);
           expect(actions.map(row => row.starts)).toEqual([
-            { tool: "notas", act: `${group}/${local === undefined ? "anotar" : "editar"}`, target },
+            { tool: "notes", act: `${group}/${local === undefined ? "note" : "edit"}`, target },
           ]);
           expect(actions[0]?.off).toBe(true);
-          expect(actions[0]?.detail?.endsWith(toolTexts.kitRefusal("notas"))).toBe(true);
+          expect(actions[0]?.detail?.endsWith(toolTexts.kitRefusal("notes"))).toBe(true);
           expect(actions[0]?.open).toBeUndefined();
         }
       }
@@ -102,20 +102,20 @@ it("keeps two tools' identically named and encoded objects separate even without
 
 it.each(["missing", "enabled", "wrong-reason"])("still rejects a broken foreign object row: %s", async defect => {
   const { program, shown } = objectDistribution(true);
-  const screen = shown.screens?.notas;
+  const screen = shown.screens?.notes;
   if (!screen) throw new Error("Missing notes screen");
   const broken = {
     ...shown,
     screens: {
       ...shown.screens,
-      notas: (...args: Parameters<typeof screen>) => {
+      notes: (...args: Parameters<typeof screen>) => {
         const plain = screen(...args);
         return {
           ...plain,
           actsOn: Object.fromEntries(
             Object.entries(plain.actsOn ?? {}).map(([name, act]) => [
               name,
-              name !== "shared/editar" || args[0].me !== cast.outsider
+              name !== "shared/edit" || args[0].me !== cast.outsider
                 ? act
                 : {
                     ...act,
@@ -129,7 +129,7 @@ it.each(["missing", "enabled", "wrong-reason"])("still rejects a broken foreign 
       },
     },
   };
-  const check = programChecks(program, broken).find(check => check.name === `notas · ${promiseTexts.foreign}`);
+  const check = programChecks(program, broken).find(check => check.name === `notes · ${promiseTexts.foreign}`);
   expect(check).toBeDefined();
   await expect(check?.run()).rejects.toThrow();
 });

@@ -115,15 +115,15 @@ it("admits built-in Node modules only in the device and pure named type/schema s
   writeFileSync(
     schema,
     readFileSync(schema, "utf8") +
-      '\nimport type { TSchema } from "desert/programa"; export const labels = { process: "Proceso" };',
+      '\nimport type { TSchema } from "desert/program"; export const labels = { process: "Proceso" };',
   );
   expect(programImports(repo)).toEqual([]);
   writeFileSync(join(repo.root, "device/node.ts"), 'import "node:invented";');
   expect(programImports(repo)).toContain("device/node.ts → node:invented");
 });
 it.each([
-  'export const input = import("desert/programa");',
-  'import constructors = require("desert/programa"); export const input = constructors;',
+  'export const input = import("desert/program");',
+  'import constructors = require("desert/program"); export const input = constructors;',
 ])("rejects acquisition of house constructors through shared code: %s", code => {
   const repo = devicePackage();
   writeFileSync(join(repo.root, "src/input.ts"), code);

@@ -13,19 +13,19 @@ const house = startHouse(home, {
   ...program,
   by: "house",
   secretKeys: new MemoryHouseKeys(),
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notas", "conversacion"] }] },
+  creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes", "conversation"] }] },
 });
 if (process.argv[3] === "news") {
-  house.bus.emit(effect("granted", { version: 2, identity: "lucia", kit: programKit(["notas"]) }, "ana"));
-  house.tools.act({ act: "attend", input: { target: "notas/personal" } }, 0, "lucia");
-  const result = house.tools.act({ act: "personal/add", target: "notas/personal", input: {} }, 0, "lucia");
+  house.bus.emit(effect("granted", { version: 2, identity: "lucia", kit: programKit(["notes"]) }, "ana"));
+  house.tools.act({ act: "attend", input: { target: "notes/personal" } }, 0, "lucia");
+  const result = house.tools.act({ act: "personal/add", target: "notes/personal", input: {} }, 0, "lucia");
   if (result.status !== "accepted") throw new Error(JSON.stringify(result));
   house.bus.emit(
     effect(
       "tool-entry",
       {
-        tool: "notas",
-        target: "notas/personal/same",
+        tool: "notes",
+        target: "notes/personal/same",
         author: "lucia",
         text: "Nota de Lucía",
         detail: "Nueva nota",

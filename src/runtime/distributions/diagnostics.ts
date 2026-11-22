@@ -17,49 +17,49 @@ export class CompositionError extends Error {
   }
 }
 type Add = (path: string, reason: CompositionIssue["reason"]) => void;
-type Program = CompositionOptions["programas"][number];
+type Program = CompositionOptions["programs"][number];
 const validId = (id: string) => /^[a-z][a-z0-9.-]*$/.test(id);
 function programIssues(program: Program, ids: Set<string>, facts: Set<string>, add: Add): void {
   for (const dependency of program.dependencies ?? [])
     if (dependency.kind === "distribution")
-      add(`${program.id}/dependencies/${dependency.name}`, "dependencia-distribucion");
-  if (program.desert !== DESERT_CONTRACT) add(`${program.id}/desert`, "contrato-desert");
-  if (ids.has(program.id)) add(`programas/${program.id}`, "id-repetido");
+      add(`${program.id}/dependencies/${dependency.name}`, "distribution-dependency");
+  if (program.desert !== DESERT_CONTRACT) add(`${program.id}/desert`, "desert-contract");
+  if (ids.has(program.id)) add(`programs/${program.id}`, "duplicate-id");
   // `supervisor` is reserved: its mind would be the house supervisor's actor, mind:supervisor.
   if (!validId(program.id) || ["identities", "preferences", "me", "supervisor"].includes(program.id))
-    add(`programas/${program.id}`, "id-invalido");
+    add(`programs/${program.id}`, "invalid-id");
   ids.add(program.id);
-  for (const fact of program.hechos) {
-    if (facts.has(fact.nombre)) add(`hechos/${fact.nombre}`, "hecho-repetido");
-    facts.add(fact.nombre);
-    if (!fact.nombre.startsWith(`${program.id}/`) || fact.nombre === `${program.id}/`)
-      add(`${program.id}/hechos/${fact.nombre}`, "hecho-ajeno");
+  for (const fact of program.facts) {
+    if (facts.has(fact.kind)) add(`facts/${fact.kind}`, "duplicate-fact");
+    facts.add(fact.kind);
+    if (!fact.kind.startsWith(`${program.id}/`) || fact.kind === `${program.id}/`)
+      add(`${program.id}/facts/${fact.kind}`, "foreign-fact");
   }
-  for (const [name, group] of Object.entries(program.herramientas)) {
-    if (!validId(name)) add(`${program.id}/herramientas/${name}`, "id-invalido");
+  for (const [name, group] of Object.entries(program.tools)) {
+    if (!validId(name)) add(`${program.id}/tools/${name}`, "invalid-id");
     Object.keys(group.acts)
       .filter(action => !validId(action))
-      .forEach(action => add(`${program.id}/herramientas/${name}/acciones/${action}`, "id-invalido"));
-    if (group.effects !== undefined) add(`${program.id}/herramientas/${name}/effects`, "reacciones-no-soportadas");
+      .forEach(action => add(`${program.id}/tools/${name}/actions/${action}`, "invalid-id"));
+    if (group.effects !== undefined) add(`${program.id}/tools/${name}/effects`, "unsupported-reactions");
   }
-  if (program.effects !== undefined) add(`${program.id}/effects`, "reacciones-no-soportadas");
+  if (program.effects !== undefined) add(`${program.id}/effects`, "unsupported-reactions");
 }
-export function diagnostico(options: CompositionOptions): readonly CompositionIssue[] {
+export function diagnose(options: CompositionOptions): readonly CompositionIssue[] {
   const issues: CompositionIssue[] = [];
   const add: Add = (path, reason) => {
     issues.push({ path, reason });
   };
   const ids = new Set<string>();
   const facts = new Set<string>();
-  for (const program of options.programas) programIssues(program, ids, facts, add);
+  for (const program of options.programs) programIssues(program, ids, facts, add);
   const minds = new Set<string>();
-  for (const id of options.mentes.programas) {
-    if (!ids.has(id)) add(`mentes/programas/${id}`, "mente-ausente");
-    if (minds.has(id)) add(`mentes/programas/${id}`, "mente-repetida");
+  for (const id of options.minds.programs) {
+    if (!ids.has(id)) add(`minds/programs/${id}`, "missing-mind");
+    if (minds.has(id)) add(`minds/programs/${id}`, "duplicate-mind");
     minds.add(id);
   }
-  if (options.mentes.asistentes && !options.identidades) add("mentes/asistentes", "asistentes-requiere-identidades");
-  issues.push(...distributionContractIssues(options.programas, options.contratos));
+  if (options.minds.assistants && !options.identities) add("minds/assistants", "assistants-require-identities");
+  issues.push(...distributionContractIssues(options.programs, options.contracts));
   return [...new Map(issues.map(issue => [`${issue.path}:${issue.reason}`, issue])).values()];
 }
 

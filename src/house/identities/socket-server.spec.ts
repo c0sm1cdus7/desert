@@ -15,9 +15,9 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
     fixture = await socketHouse(transport);
     return fixture;
   };
-  const attend = (id: string) => ({ tipo: "acto", id, act: "attend", input: { target: "payments" }, through: 0 });
+  const attend = (id: string) => ({ type: "act", id, act: "attend", input: { target: "payments" }, through: 0 });
   const pay = (id: string) => ({
-    tipo: "acto",
+    type: "act",
     id,
     act: "receive",
     target: "payments",
@@ -29,7 +29,7 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
     const files = readdirSync(f.home).sort();
     const a = await f.client("ana-terminal");
     const b = await f.client("beto-terminal");
-    expect(a.messages[0]?.tipo).toBe("bienvenida");
+    expect(a.messages[0]?.type).toBe("welcome");
     expect(b.states).toHaveLength(1);
     expect(() => f.openAgain()).toThrow("already open");
     a.send(attend("a"));
@@ -41,10 +41,10 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
     await a.result("one");
     await b.result("two");
     expect(f.house().tools.state().tools.payments.received).toBe(20);
-    expect(a.order[a.order.indexOf("resultado") - 1]).toBe("v8");
+    expect(a.order[a.order.indexOf("result") - 1]).toBe("v8");
     expect(readdirSync(f.home).sort()).toEqual(files);
     if (transport === "unix") expect(statSync(f.server().path).mode & 0o777).toBe(0o600);
-    if (transport === "unix") expect(existsSync(`${f.home}/casa.pid`)).toBe(true);
+    if (transport === "unix") expect(existsSync(`${f.home}/house.pid`)).toBe(true);
     await delay(30);
     const count = a.messages.length;
     await delay(50);
@@ -68,18 +68,18 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
   });
   it("nonmembers receive no data; removing membership cuts live peers, empty grants still read", async () => {
     const f = await setup();
-    const outsider = await f.client("nadie-terminal");
+    const outsider = await f.client("nobody-terminal");
     expect(outsider.states).toHaveLength(0);
-    expect(outsider.messages.some(m => m.tipo === "bienvenida")).toBe(false);
+    expect(outsider.messages.some(m => m.type === "welcome")).toBe(false);
     // Since the kit (5a) the house refuses to write a grant for a mind; its terminal is refused all the same.
     const before = f.house().tools.state().through;
     const grantMind = () =>
       f.house().bus.emit(effect("granted", { identity: "mind:payments", tools: ["payments"] }, "ana"));
     expect(grantMind).toThrow(identityNameProblem("mind:payments", "house"));
     expect(f.house().tools.state().through).toBe(before);
-    const mind = await f.client("mente-terminal");
+    const mind = await f.client("mind-terminal");
     expect(await mind.until(mind.closed)).toBe(true);
-    expect([mind.states.length, mind.messages]).toEqual([0, [{ tipo: "rechazo", motivo: socketTexts.denied }]]);
+    expect([mind.states.length, mind.messages]).toEqual([0, [{ type: "rejection", reason: socketTexts.denied }]]);
     const b = await f.client("beto-terminal");
     expect(b.states).toHaveLength(1);
     f.house().bus.emit(effect("granted", { identity: "beto", tools: [] }, "ana"));

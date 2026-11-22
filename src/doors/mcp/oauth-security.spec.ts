@@ -108,7 +108,7 @@ it("admits the derived host credential to the remote terminal and redacts its wr
   try {
     expect(client.identity()).toBe("ana");
     client.send({
-      tipo: "acto",
+      type: "act",
       id: "host-scene",
       act: "scene",
       input: { general: `prefix${credential}suffix` },

@@ -13,8 +13,8 @@ it("starts the installable example through the public program and distribution c
   try {
     await runSample("unused", ["--installable"], {});
     const composition = serve.mock.calls[0]?.[0];
-    expect(composition?.registry.map(tool => tool.id)).toEqual(["notas"]);
-    expect(composition?.slices.initial.notas).toEqual({ count: 0 });
+    expect(composition?.registry.map(tool => tool.id)).toEqual(["notes"]);
+    expect(composition?.slices.initial.notes).toEqual({ count: 0 });
     expect(serve.mock.calls[0]?.[1].creation).toEqual({ admin: "ana", assignments: [] });
   } finally {
     serve.mockRestore();

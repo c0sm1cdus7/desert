@@ -1,8 +1,8 @@
 // Spanish MCP tool descriptions, orientation, results and protocol errors.
 export const mcpTexts = {
-  instructions: "La casa reúne identidades y programas. Objetos: notas/notas/<id>. Centavos: 4500 son 45,00.",
+  instructions: "La casa reúne identidades y programas. Objetos: notes/notes/<id>. Centavos: 4500 son 45,00.",
   read: `Lee identity, since, scenes, programs y notices; con program, su raíz. target elige herramienta u objeto
-(notas/notas/<id>). Identidades usa program: identities. Todos leen; el kit habilita acciones.`,
+(notes/notes/<id>). Identidades usa program: identities. Todos leen; el kit habilita acciones.`,
   actions: `Lista tool, action, name, subject, purpose, input, choices y reason.
 program y target eligen qué acciones listar.
 reason marca las acciones que el kit no permite.`,
@@ -16,7 +16,6 @@ reason marca las acciones que el kit no permite.`,
   accepted: "Aceptado.",
   tool: "El programa no está disponible para esta identidad.",
   action: "La acción o el objetivo no corresponden a ese programa.",
-  programParameter: 'El parámetro "herramienta" ahora se llama "program". Usá "program".',
   noThings: "Todavía no hay cosas sobre las que hacer esta acción.",
   redacted: "[secreto]",
   busy: "Demasiadas esperas abiertas para esta identidad; cerrá alguna antes de abrir otra.",

@@ -2,12 +2,12 @@ import { expect, it, vi } from "vitest";
 import { environmentDoorKeys } from "./environment-door-keys.ts";
 const declaration = [
   { identity: "ana", door: "terminal", variable: "ANA_TERMINAL" },
-  { identity: "ana", door: "agent", variable: "ANA_AGENTE" },
+  { identity: "ana", door: "agent", variable: "ANA_AGENT" },
 ] as const;
 it("arma el mapa existente con identidad y puerta de la declaración y ambas codificaciones", () => {
   const terminal = Buffer.alloc(32, 71).toString("hex"),
     agent = Buffer.alloc(32, 72).toString("base64url");
-  const map = environmentDoorKeys({ ANA_TERMINAL: terminal, ANA_AGENTE: agent }, declaration);
+  const map = environmentDoorKeys({ ANA_TERMINAL: terminal, ANA_AGENT: agent }, declaration);
   expect(map.size).toBe(2);
   expect(map.get(terminal)).toEqual({ identity: "ana", door: "terminal" });
   expect(map.get(agent)).toEqual({ identity: "ana", door: "agent" });
@@ -24,13 +24,13 @@ it.each(["same", "case", "encoding"])("rechaza duplicados por bytes sin mostrar 
   const second = mode === "encoding" ? planted.toString("base64url") : first.toUpperCase();
   let error: unknown;
   try {
-    environmentDoorKeys({ ANA_TERMINAL: first, ANA_AGENTE: mode === "same" ? first : second }, declaration);
+    environmentDoorKeys({ ANA_TERMINAL: first, ANA_AGENT: mode === "same" ? first : second }, declaration);
   } catch (caught) {
     error = caught;
   }
   expect(error).toBeInstanceOf(Error);
   const message = error instanceof Error ? `${error.name} ${error.message} ${JSON.stringify(error)}` : "";
-  expect(message.includes("ANA_AGENTE")).toBe(true);
+  expect(message.includes("ANA_AGENT")).toBe(true);
   for (const value of [first, second, planted.toString("utf8"), planted.toString("base64url")])
     expect(message.includes(value)).toBe(false);
   expect(Buffer.from(message).includes(planted)).toBe(false);
@@ -41,7 +41,7 @@ it.each([32, 33, 64])("acepta %i bytes y borra cada copia decodificada", length 
     agent = Buffer.alloc(length, 0).toString("base64url");
   const copies = vi.spyOn(Buffer, "from");
   try {
-    expect(environmentDoorKeys({ ANA_TERMINAL: terminal, ANA_AGENTE: agent }, declaration).size).toBe(2);
+    expect(environmentDoorKeys({ ANA_TERMINAL: terminal, ANA_AGENT: agent }, declaration).size).toBe(2);
     const buffers = copies.mock.results.flatMap(result =>
       result.type === "return" && Buffer.isBuffer(result.value) ? [result.value] : [],
     );

@@ -52,8 +52,8 @@ describe("money declares its currency without changing cents", () => {
   it("has no shared currency between simultaneous questions", () => {
     const ask = asking(sale, words);
     const dollars = ask.next(["Dólares"]);
-    const pesos = ask.next(["Pesos"]);
-    expect(maskOf(pesos, "100")).toBe("$ 1,00");
+    const ars = ask.next(["Pesos"]);
+    expect(maskOf(ars, "100")).toBe("$ 1,00");
     expect(maskOf(dollars, "100")).toBe("US$ 1,00");
     expect(maskOf(ask.next(["Dólares"]), "100")).toBe("US$ 1,00");
   });

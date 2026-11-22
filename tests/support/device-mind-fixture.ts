@@ -46,7 +46,7 @@ const announcingSend = () =>
   );
 export function deviceMindFixture(conscious: ConsciousScript = () => answer()) {
   const fixture = announcingSend();
-  let started: Started = request => ({ status: "accepted", reference: `inicio:${request.execution}` });
+  let started: Started = request => ({ status: "accepted", reference: `start:${request.execution}` });
   let link: ReturnType<RequestHouse["devices"]["door"]["connect"]> | undefined;
   const frames: string[] = [];
   /** Connects «vm», registering and accepting it as ana's first, and lets the notes mind send through it. */

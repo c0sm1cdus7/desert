@@ -39,7 +39,7 @@ it.each([[], ["sees"], ["hears"], ["sees", "hears"]] satisfies Capability[][])(
     );
     expect(act.needs).toEqual(needs);
     expect(reading(act).needs).toEqual(needs);
-    expect(ownAct("notes", "add", { input, purpose: "anotar", needs }, () => ({ status: "accepted" })).needs).toEqual(
+    expect(ownAct("notes", "add", { input, purpose: "note", needs }, () => ({ status: "accepted" })).needs).toEqual(
       needs,
     );
   },

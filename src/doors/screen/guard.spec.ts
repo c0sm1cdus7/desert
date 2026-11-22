@@ -61,7 +61,7 @@ describe("a stale look", () => {
     [
       "Enter says another word",
       threadOf("", [{ intent: "confirm", does: "continuar" }], yes),
-      threadOf("", [{ intent: "confirm", does: "registrar" }], yes),
+      threadOf("", [{ intent: "confirm", does: "record" }], yes),
       confirm,
       "stale",
     ],
@@ -127,15 +127,15 @@ describe("a stale look: the ring, and what is chosen", () => {
     expect(differ).toEqual([]);
   });
 });
-const first = { title: "Venta 1", id: "uno", selected: true };
-const second = { title: "Venta 2", id: "dos", detail: "$ 10" };
+const first = { title: "Venta 1", id: "one", selected: true };
+const second = { title: "Venta 2", id: "two", detail: "$ 10" };
 const two = [first, second];
 const down = [
   { ...first, title: "Venta 4", id: "cuatro" },
   { title: "Venta 3", id: "tres" },
   { ...first, selected: false },
 ];
-const choose = [{ kind: "choose", row: "dos" }] as const;
+const choose = [{ kind: "choose", row: "two" }] as const;
 /** A batch that points at a row, the screen it was sent over, the screen when it arrives, and the refusal if any. */
 const pointedCases: readonly (readonly [string, Screen, Screen, readonly Intent[], string | undefined])[] = [
   ["the row moved down two places", listOf(two), listOf([...down, second]), choose, undefined],
@@ -155,7 +155,7 @@ const pointedCases: readonly (readonly [string, Screen, Screen, readonly Intent[
     [...choose, { kind: "confirm" }],
     "stale",
   ],
-  ["a second choose after a choose", listOf(two), listOf(two), [...choose, { kind: "choose", row: "uno" }], "stale"],
+  ["a second choose after a choose", listOf(two), listOf(two), [...choose, { kind: "choose", row: "one" }], "stale"],
   [
     "a move after a choose, which commits to nothing",
     listOf(two),

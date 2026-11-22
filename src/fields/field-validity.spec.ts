@@ -15,8 +15,8 @@ it("checks precision before semantic rules", () => {
 });
 it("preserves semantic reasons and the exact instant", () => {
   const wrong = vi.fn((_value: string, at: number) => (at === 17 ? "cerrado" : undefined));
-  expect(fieldValidity(holding(Type.String(), wrong), "dato", 17)).toEqual({ invalid: false, wrong: "cerrado" });
-  expect(wrong).toHaveBeenCalledWith("dato", 17);
+  expect(fieldValidity(holding(Type.String(), wrong), "datum", 17)).toEqual({ invalid: false, wrong: "cerrado" });
+  expect(wrong).toHaveBeenCalledWith("datum", 17);
   expect(fieldValidity(day("Día"), "2025-02-30", 17).wrong).toBe("día inexistente");
 });
 it.each([

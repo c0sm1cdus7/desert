@@ -64,14 +64,14 @@ async function runCase<X extends Program>(
 export async function runContractCases<X extends Program>(options: GateOptions<X>) {
   const provider = options.programs.find(program => program.id === options.provider);
   const consumer = options.programs.find(program => program.id === options.consumer);
-  const request = consumer?.pide[options.contract];
+  const request = consumer?.requests[options.contract];
   const errors = structuralContractErrors(options.programs);
-  if (!provider?.ofrece[options.contract] || !consumer || !request) throw new ContractCompositionError(errors);
+  if (!provider?.offers[options.contract] || !consumer || !request) throw new ContractCompositionError(errors);
   errors.push(...caseDeclarationErrors(request, `${consumer.id}/${options.contract}`));
   if (errors.length) throw new ContractCompositionError(errors);
   const ledger = evidenceLedger();
   const evidence: ContractEvidence[] = [];
-  for (const scenario of request.casos) {
+  for (const scenario of request.cases) {
     const identity = evidenceIdentity(provider, consumer, options.contract, scenario, options.build);
     try {
       const run = await runCase(options, scenario);

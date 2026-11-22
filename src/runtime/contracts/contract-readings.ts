@@ -31,29 +31,29 @@ function ownState<X extends Program>(provider: ContractPackage, state: State<X>)
  * the same reading at a cut and in the state a consumer's callback receives. */
 export function projection<X extends Program>(
   provider: ContractPackage,
-  have: ContractOffer["objetos"][string] | undefined,
-  need: ContractRequest["objetos"][string],
+  have: ContractOffer["objects"][string] | undefined,
+  need: ContractRequest["objects"][string],
   state: State<X> | undefined,
   key: unknown,
 ): StateReading {
   try {
-    if (!have || !Value.Check(need.clave, publicValue(key))) return coreFailure("invalid-reference");
+    if (!have || !Value.Check(need.key, publicValue(key))) return coreFailure("invalid-reference");
     if (!state) return { status: "unavailable" };
-    const project = provider.proyectores[have.proyector];
+    const project = provider.projectors[have.projector];
     if (!project) return coreFailure("defect");
     const value = project(ownState(provider, state), readonlyState(publicValue(key)));
     if (value === undefined) return { status: "unavailable" };
     const copy = publicValue(value);
-    if (!Value.Check(have.datos, copy)) return coreFailure("defect");
-    return { status: "found", value: projectValue(need.datos, copy) };
+    if (!Value.Check(have.data, copy)) return coreFailure("defect");
+    return { status: "found", value: projectValue(need.data, copy) };
   } catch {
     return coreFailure("defect");
   }
 }
 function readObject<X extends Program>(
   provider: ContractPackage,
-  have: ContractOffer["objetos"][string] | undefined,
-  need: ContractRequest["objetos"][string],
+  have: ContractOffer["objects"][string] | undefined,
+  need: ContractRequest["objects"][string],
   scope: ReadingScope<X>,
   key: unknown,
   cut: ContractCut,
@@ -73,8 +73,8 @@ export function objectPorts<X extends Program>(
   scope: ReadingScope<X>,
 ): ContractPort["objects"] {
   return contractRecord(
-    Object.entries(request.objetos).map(([name, need]) => {
-      const have = offer.objetos[name];
+    Object.entries(request.objects).map(([name, need]) => {
+      const have = offer.objects[name];
       const read = (key: unknown, cut: ContractCut) => readObject(provider, have, need, scope, key, cut);
       return [
         name,
@@ -95,26 +95,26 @@ export function noticePorts<X extends Program>(
   scope: ReadingScope<X>,
 ): ContractPort["notices"] {
   return contractRecord(
-    Object.entries(request.avisos).map(([name, need]) => [
+    Object.entries(request.notices).map(([name, need]) => [
       name,
       (cut: ContractCut) => {
         if (!scope.allowed()) return coreFailure("forbidden");
         if (!scope.valid(cut)) return coreFailure("invalid-reference");
         if (!scope.history.at(cut.sequence)) return coreFailure("invalid-reference");
-        const have = offer.avisos[name];
+        const have = offer.notices[name];
         if (!have) return coreFailure("defect");
         try {
           const notices: ContractPublicNotice[] = scope.history
             .events(cut.sequence)
-            .filter(event => event.layer === "program" && event.kind === have.hecho)
+            .filter(event => event.layer === "program" && event.kind === have.fact)
             .map(event => {
-              if (!Value.Check(have.datos, event.data)) throw new Error(contractTexts.invalidValue);
+              if (!Value.Check(have.data, event.data)) throw new Error(contractTexts.invalidValue);
               return {
                 id: event.id,
                 sequence: event.seq,
                 author: event.by,
                 causes: Object.freeze([...event.cause]),
-                value: projectValue(need.datos, event.data),
+                value: projectValue(need.data, event.data),
                 cut: scope.cut(event.seq),
               };
             });

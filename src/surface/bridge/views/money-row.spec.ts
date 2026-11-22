@@ -25,7 +25,7 @@ it("the current amount in a row uses its sale's currency, not the tool's", () =>
       },
     );
     expect(start?.("credit", "sales/dollars", { today: { amount: 1005 } }).detail).toBe("US$ 10,05");
-    expect(start?.("credit", "sales/pesos", { today: { amount: 1005 } }).detail).toBe("$ 10,05");
+    expect(start?.("credit", "sales/ars", { today: { amount: 1005 } }).detail).toBe("$ 10,05");
   } finally {
     rig.close();
   }

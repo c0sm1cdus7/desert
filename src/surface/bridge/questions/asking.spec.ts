@@ -151,9 +151,9 @@ describe("a datum with a shape of its own", () => {
     const point = padded(4);
     expect([point.empty, point.shown(point.put("", "1")), point.put("1234", "5")]).toEqual(["0000", "0001", "1234"]);
     expect([point.value("0"), point.value("12")]).toEqual([0, 12]);
-    const user = limited("a-z0-9._-", 8, "nombre");
+    const user = limited("a-z0-9._-", 8, "kind");
     const put = [user.put("ana", "A"), user.put("ana", "."), user.put("abcdefgh", "i")];
-    expect([user.empty, ...put]).toEqual(["nombre", "ana", "ana.", "abcdefgh"]);
+    expect([user.empty, ...put]).toEqual(["kind", "ana", "ana.", "abcdefgh"]);
   });
   it("is asked with its mask, and is refused when declared as free text with a pattern", () => {
     const asked = asking(object({ cuit: digits("CUIT", "##-########-#") }), words).next([]);

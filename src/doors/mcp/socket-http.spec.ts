@@ -88,7 +88,7 @@ it("reconnects after a lost response by querying its identifier, never replaying
   await delay(20);
   expect(connection.state().tools.sales.get("once")?.total).toBe(500);
   expect(transport.posted.filter(body => body.includes('"act":"register"'))).toHaveLength(1);
-  expect(transport.posted.some(body => body.includes('"qué":"pedido"'))).toBe(true);
+  expect(transport.posted.some(body => body.includes('"what":"request"'))).toBe(true);
 });
 it("revokes the open stream and MCP while another key remains usable, without outputting credentials", async () => {
   const output = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
@@ -121,7 +121,7 @@ it("rejects invalid keys before consuming bodies and binds a stream to its crede
   });
   expect(opened.status).toBe(200);
   const response = await door.handle({
-    ...rpcRequest(h.founder, { tipo: "sincronizar" }),
+    ...rpcRequest(h.founder, { type: "sync" }),
     path: "/door/socket",
     headers: {
       authorization: `Bearer ${h.founder}`,
@@ -177,7 +177,7 @@ it("revocation interrupts a pending POST body before it can start an action", as
     body: async function* () {
       await blocked;
       yield Buffer.from(
-        JSON.stringify({ tipo: "acto", id: "revoked", act: "prefer", input: { hide: "empty", on: true }, through: 0 }),
+        JSON.stringify({ type: "act", id: "revoked", act: "prefer", input: { hide: "empty", on: true }, through: 0 }),
       );
     },
   });
@@ -191,8 +191,8 @@ it("refuses remote shutdown and hides a credential supplied as the Node version"
   const { h, key, connection, door } = await setup();
   const answers: string[] = [];
   connection.receive(message => answers.push(JSON.stringify(message)));
-  expect(connection.send({ tipo: "apagar" })).toBe(true);
-  await vi.waitFor(() => expect(answers.some(answer => answer.includes('"id":"apagar"'))).toBe(true));
+  expect(connection.send({ type: "shutdown" })).toBe(true);
+  await vi.waitFor(() => expect(answers.some(answer => answer.includes('"id":"shutdown"'))).toBe(true));
   expect(connection.status()).toBe("connected");
   const transport = httpDoorFetch(request => door.handle(request));
   cleanups.push(transport.disconnect);
@@ -202,7 +202,7 @@ it("refuses remote shutdown and hides a credential supplied as the Node version"
   });
   const output: Buffer[] = [];
   stream.on("data", (bytes: Buffer) => output.push(bytes));
-  stream.write(clientFrame({ tipo: "hola", protocolo: houseProtocolVersion, node: key, token: "http" }));
+  stream.write(clientFrame({ type: "hello", protocol: houseProtocolVersion, node: key, token: "http" }));
   await vi.waitFor(() => expect(stream.destroyed).toBe(true));
   expect(Buffer.concat(output).toString()).not.toContain(key);
   expect(h.history()).not.toContain(key);

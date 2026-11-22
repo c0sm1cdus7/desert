@@ -17,7 +17,7 @@ it("H3: Enter explica vacío, corto, forma y pegado largo en la terminal real", 
     for (const [material, reason] of [
       ["", "falta completar"],
       ["xxx", "mínimo 8 caracteres"],
-      ["inventado", "formato inválido"],
+      ["invented", "formato inválido"],
       ["x".repeat(14), "máximo 13 caracteres"],
     ] as const) {
       term.press("g");

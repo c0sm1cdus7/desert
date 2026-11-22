@@ -7,12 +7,12 @@ import { effectRig } from "../../tests/support/effect-authority.ts";
 const rigs: { close(): void }[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
 const kitCases = [
-  { holder: "nadie", tool: "sales", acts: [] },
+  { holder: "nobody", tool: "sales", acts: [] },
   { holder: "beto", tool: "payments", acts: [] },
-  { holder: "beto", tool: "ausente", acts: null },
+  { holder: "beto", tool: "missing", acts: null },
   { holder: "beto", tool: "sales", acts: ["fantasma"] },
   { holder: "beto", tool: "sales", acts: ["register", "register"] },
-  { holder: "mind:ausente", tool: "ausente", acts: null },
+  { holder: "mind:missing", tool: "missing", acts: null },
   { holder: "mind:sales", tool: "payments", acts: null },
 ];
 it.each(kitCases)("R4/R5 rechaza el kit inválido %# entero", async data => {

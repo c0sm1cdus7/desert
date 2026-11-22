@@ -10,7 +10,7 @@ it("capturar una posición secreta de un hecho también conserva la marca de ins
   copyFileSync(join(rig.path, "journal.sqlite"), file);
   await expect(
     inspectKept(rig.options, file, house => {
-      house.bus.emit(words.fact("sale-registered", { value: "inventado", copy: "público" }, "ana"));
+      house.bus.emit(words.fact("sale-registered", { value: "invented", copy: "público" }, "ana"));
     }),
   ).rejects.toMatchObject({
     name: "InspectionUnavailable",

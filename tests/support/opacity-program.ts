@@ -15,7 +15,7 @@ const example = (value: string): Case<Shop> => ({
 const tool = (act: ProgramAct<Shop>) => ({
   id: "vault",
   purpose: "guardar material",
-  acts: { set: act, another: { ...act, key: "o", name: "otro" } },
+  acts: { set: act, another: { ...act, key: "o", name: "other" } },
   targets: () => [],
   summary: () => "Material",
   view: () => "",

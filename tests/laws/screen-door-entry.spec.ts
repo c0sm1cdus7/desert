@@ -5,7 +5,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { outsideAccess, outsideGlobals } from "../../src/checks/laws/adapters.ts";
 import { isProgramEntry } from "../../src/checks/laws/program-imports.ts";
-import { importsOf, root } from "../support/sources.ts";
+import { importsOf, root, ownCode } from "../support/sources.ts";
 
 const pkg: unknown = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 const field = (value: unknown, key: string): unknown =>
@@ -37,7 +37,7 @@ function unsafeIn(entry: string): readonly string[] {
   }
   return unsafe;
 }
-const repo = { root, code: ["src"] };
+const repo = { root, code: ownCode };
 const options = {
   mayTalkOutside: Object.fromEntries(
     Object.entries(typeof mayTalkOutside === "object" && mayTalkOutside !== null ? mayTalkOutside : {}).map(

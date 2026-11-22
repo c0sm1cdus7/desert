@@ -40,7 +40,7 @@ const salesWith = (reads: number[], needs: number) => {
   return {
     ...source,
     acts: { ...source.acts, select },
-    words: (_state: unknown, target: string) => (target === "sales/s1" ? "antigua" : ""),
+    findWords: (_state: unknown, target: string) => (target === "sales/s1" ? "antigua" : ""),
     needs: () => Array.from({ length: needs }, (_, i) => ({ target: `sales/s${i + 1}`, why: "Pendiente" })),
     view: (...args: Parameters<typeof source.view>) => {
       const [state, target, limits] = args;

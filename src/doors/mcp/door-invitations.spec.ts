@@ -97,7 +97,7 @@ it("delivers an invitation only on the original request including MCP, but never
   try {
     await h.act("scene", { general: "Ready" }, "identities/ana");
     const request = {
-      tipo: "acto",
+      type: "act",
       id: "new-once",
       act: "invite",
       target: "identities/beto",
@@ -106,7 +106,7 @@ it("delivers an invitation only on the original request including MCP, but never
     } as const;
     await h.act("attend", { target: "identities/beto" });
     const first = await book.act("ana", request);
-    if (first.tipo !== "resultado") throw new Error("Missing receipt");
+    if (first.type !== "result") throw new Error("Missing receipt");
     const code = invitationCode(first);
     const repeated = await book.act("ana", request);
     expect("private" in repeated).toBe(false);
@@ -147,10 +147,10 @@ it("new socket keys enter immediately and revoking one cuts only its sessions", 
   const peer = await probe(client);
   door.accept(server);
   peer.hello(key);
-  expect(await peer.until(() => peer.messages.some(message => message.tipo === "bienvenida"))).toBe(true);
+  expect(await peer.until(() => peer.messages.some(message => message.type === "welcome"))).toBe(true);
   const id = h.access().get(key)?.id;
   expect((await h.act("revoke-key", { key: id }, "identities/beto")).status).toBe("accepted");
-  expect(await peer.until(() => peer.messages.some(message => message.tipo === "cortado"))).toBe(true);
+  expect(await peer.until(() => peer.messages.some(message => message.type === "cut"))).toBe(true);
   client.destroy();
   server.destroy();
   door.cancel();
@@ -204,20 +204,20 @@ it("cuts only the revoked socket key while two keys of the same identity are wai
       peers.push(peer);
       door.accept(server);
       peer.hello(key);
-      expect(await peer.until(() => peer.messages.some(message => message.tipo === "bienvenida"))).toBe(true);
-      peer.send({ tipo: "esperar", id: "wait", hasta: h.house().now() + 60_000 });
+      expect(await peer.until(() => peer.messages.some(message => message.type === "welcome"))).toBe(true);
+      peer.send({ type: "wait", id: "wait", until: h.house().now() + 60_000 });
     }
     await new Promise(resolve => setImmediate(resolve));
     await h.act("revoke-key", { key: h.access().get(keys[0] ?? "")?.id }, "identities/beto");
     const first = peers[0],
       second = peers[1];
     if (!first || !second) throw new Error("Missing peers");
-    expect(await first.until(() => first.messages.some(message => message.tipo === "cortado"))).toBe(true);
-    second.send({ tipo: "leer", id: "after", qué: "catalogo" });
+    expect(await first.until(() => first.messages.some(message => message.type === "cut"))).toBe(true);
+    second.send({ type: "read", id: "after", what: "catalog" });
     expect(
-      await second.until(() => second.messages.some(message => message.tipo === "respuesta" && message.id === "after")),
+      await second.until(() => second.messages.some(message => message.type === "response" && message.id === "after")),
     ).toBe(true);
-    expect(second.messages.some(message => message.tipo === "cortado")).toBe(false);
+    expect(second.messages.some(message => message.type === "cut")).toBe(false);
   } finally {
     pairs.forEach(([client, server]) => {
       client.destroy();

@@ -9,7 +9,7 @@ it("un uso de una referencia con un vínculo cuesta tres consultas al llavero y 
   const store = new SecretCustody(rig.file, rig.home, new MacOSHouseKeys(fake.command));
   try {
     const session = store.begin(custodyScope),
-      refs = { key: session.capture(Buffer.from("inventado")) };
+      refs = { key: session.capture(Buffer.from("invented")) };
     session.replace("signing", refs, 0);
     fake.calls.length = 0;
     await store.adapter(session, ["signing"]).use(refs, () => "acuse");
@@ -30,7 +30,7 @@ it("cuenta abrir, usar, aceptar y olvidar con historia y con el índice independ
     let store = new SecretCustody(rig.file, rig.home, keys);
     let session = store.begin(custodyScope);
     for (let i = 0; i < rotations; i++)
-      session.replace("signing", { key: session.capture(Buffer.from("inventado")) }, i);
+      session.replace("signing", { key: session.capture(Buffer.from("invented")) }, i);
     const facts = store.facts(),
       head = { count: facts.length, authentication: facts.at(-1)?.authentication ?? "" };
     store.close();

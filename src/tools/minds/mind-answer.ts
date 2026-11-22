@@ -11,7 +11,7 @@ import type { MindScope } from "./mind-contract.ts";
 export type ProposedAct = Readonly<{ act: string; target: string; input: unknown; destination?: ExecutionDestination }>;
 export type MindAnswer = Readonly<{
   scene: string;
-  consulta: Readonly<{ question: string }> | null;
+  consultation: Readonly<{ question: string }> | null;
   acts: readonly ProposedAct[];
 }>;
 export type MindMenu = readonly Readonly<{
@@ -32,7 +32,7 @@ export type AnswerContext = Readonly<{
 }>;
 const shape = object({
   scene: mindText,
-  consulta: Type.Union([object({ question: mindText }), Type.Null()]),
+  consultation: Type.Union([object({ question: mindText }), Type.Null()]),
   acts: Type.Array(
     object({
       act: Type.String(),
@@ -56,7 +56,7 @@ export function answerSchema(menu: MindMenu): TSchema {
   );
   return object({
     scene: mindText,
-    consulta: Type.Union([object({ question: mindText }), Type.Null()]),
+    consultation: Type.Union([object({ question: mindText }), Type.Null()]),
     acts: Type.Array(acts.length ? Type.Union(acts) : Type.Never(), { maxItems: 32 }),
   });
 }
@@ -75,7 +75,7 @@ export const continuation = (item: MindMenu[number] | undefined): boolean =>
   item?.tool === "journey" && item.scope === "control" && ["wait", "end", "desist"].includes(item.act);
 /** A journey answer says how it goes on: no continuation before the last act, and never nothing at all. */
 function continuationFaults(value: Static<typeof shape>, context: AnswerContext): AnswerFault[] {
-  if (context.scope.kind !== "journey" || value.consulta) return [];
+  if (context.scope.kind !== "journey" || value.consultation) return [];
   if (!value.acts.length) return [{ code: "continuation", path: "/acts" }];
   return value.acts.flatMap((act, index) =>
     index < value.acts.length - 1 &&
@@ -93,7 +93,7 @@ export function validateAnswer(
     return { ok: false, faults: [...Value.Errors(shape, value)].map(error => ({ code: "shape", path: error.path })) };
   const faults: AnswerFault[] = continuationFaults(value, context);
   if (!context.active) faults.push({ code: "closed", path: "/acts" });
-  if (value.consulta && context.consulted) faults.push({ code: "consultation", path: "/consulta" });
+  if (value.consultation && context.consulted) faults.push({ code: "consultation", path: "/consultation" });
   value.acts.forEach((act, index) => {
     const item = context.menu.find(item => item.act === act.act && item.target === act.target);
     const path = `/acts/${index}`;

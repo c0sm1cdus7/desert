@@ -1,4 +1,4 @@
-// Reopen a journal written by the old action engine through startHouse and the production remote terminal client.
+// Reopen a migrated journal of the old action engine through startHouse and the production remote terminal client.
 import type { Shop } from "../../tests/support/shop.ts";
 import { expect, it } from "vitest";
 import { readFileSync } from "node:fs";
@@ -70,7 +70,7 @@ async function reopen(home: string, code: string, restart: number) {
     h.close();
   }
 }
-it("normalizes historical rules and invitation origins without rewriting old rows, across restarts", async () => {
+it("opens a migrated journal of the old engine, keeping its rules and invitation origins across restarts", async () => {
   const fixture = legacyDoorHouse(),
     before = rows(fixture.home);
   const code = readFileSync(join(fixture.home, "invitation-fixture"), "utf8");

@@ -58,7 +58,7 @@ it("22/11: a line said after the mind's last turn opened waits for it, also acro
   expect(wakes(events)).toEqual([["e6"]]);
 });
 it("22/11: a mind that never had a turn loses no message to a boot: every line addressed to it waits", () => {
-  expect(wakes(journal(boot, line("ana", "hola"), boot))).toEqual([["e2"]]);
+  expect(wakes(journal(boot, line("ana", "hello"), boot))).toEqual([["e2"]]);
   expect(wakes(journal(boot, line("mind:migration", "Listo, migré todo"), boot, line("ana", "Anotá")))).toEqual([
     ["e2", "e4"],
   ]);

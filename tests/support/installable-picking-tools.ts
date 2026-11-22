@@ -18,14 +18,14 @@ export const definition = {
   id: "picking",
   version: "1.0.0",
   desert: DESERT_CONTRACT,
-  hechos: [
-    { nombre: "picking/item-added", forma: Type.Object({ id: Type.String(), name: Type.String() }) },
-    { nombre: "picking/order-taken", forma: taken },
-    { nombre: "picking/extra-noted", forma: Type.Object({ id: Type.String(), note: Type.String() }) },
+  facts: [
+    { kind: "picking/item-added", schema: Type.Object({ id: Type.String(), name: Type.String() }) },
+    { kind: "picking/order-taken", schema: taken },
+    { kind: "picking/extra-noted", schema: Type.Object({ id: Type.String(), note: Type.String() }) },
   ],
-  inicial: (): Kept => ({ items: [], orders: [] }),
+  initial: (): Kept => ({ items: [], orders: [] }),
 } as const;
-export type Picking = LocalProgram<typeof definition & { codigo: readonly [string] }>;
+export type Picking = LocalProgram<typeof definition & { code: readonly [string] }>;
 export const pickingWords = {
   unknown: "cosa inexistente",
   empty: "sin cosas",
@@ -144,7 +144,7 @@ const others = (named: Named) => {
 };
 export const itemsTool = (named: Named): ProgramGroup<Picking> => ({
   purpose: "Guardar cosas",
-  palabras: {
+  words: {
     name: "Cosas",
     key: "c",
     listed: "Cosas",
@@ -186,7 +186,7 @@ function orderRead(state: State<Picking>, id: string) {
 }
 export const orders: ProgramGroup<Picking> = {
   purpose: "Tomar pedidos de cosas",
-  palabras: {
+  words: {
     name: "Pedidos",
     key: "p",
     listed: "Pedidos",

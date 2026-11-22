@@ -54,9 +54,7 @@ it("wakes on a notice that comes after its wait, and says which work it was and 
   await flush(house);
   expect(wakesOf(house, id)).toEqual([["journey-opened"], ["device-execution-notice"]]);
   const frame = rig.frames.find(frame => frame.includes(told)) ?? "";
-  expect(frame).toContain(
-    `(arranque: inicio:${execution?.execution ?? ""}) falló. Referencia del aviso: aviso:failed.`,
-  );
+  expect(frame).toContain(`(arranque: start:${execution?.execution ?? ""}) falló. Referencia del aviso: aviso:failed.`);
   expect(journeyOf(house)?.closed?.data.outcome).toBe("done");
 }, 60000);
 it("accepts a wait on a notice recorded earlier in the same turn, and wakes right after that turn", async () => {
@@ -78,7 +76,7 @@ it("accepts a wait answered with a start whose notice came before its result, he
     rig.onStart(request => {
       // The device answers the start late: its notice comes first and the house holds it until the result.
       expect(rig.announce(request.execution)).toBe("held");
-      return { status: "accepted", reference: `inicio:${request.execution}` };
+      return { status: "accepted", reference: `start:${request.execution}` };
     });
     return (_, id, turn) => (turn === 1 ? answer([sendOn("Informe"), waitNotice(id)]) : answer([endJourney(id)]));
   });

@@ -109,7 +109,7 @@ it("el rechazo nuevo no reescribe hechos históricos", () => {
   const rig = effectRig(() => ({ status: "accepted" }));
   rigs.push(rig);
   rig.bus.emit(effect("kit-set", { holder: "beto", tool: "sales", acts: ["fantasma"] }, "ana"));
-  rig.bus.emit(shop.fact("payment-received", { payment: "viejo", amount: 100 }, "mind:sales"));
+  rig.bus.emit(shop.fact("payment-received", { payment: "old", amount: 100 }, "mind:sales"));
   const before = rig.facts();
   rig.restart();
   expect(rig.facts()).toEqual(before);

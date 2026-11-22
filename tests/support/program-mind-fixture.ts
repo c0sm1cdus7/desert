@@ -6,8 +6,8 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { vi } from "vitest";
-import { componer, type DistributionOf } from "../../src/runtime/distributions/compose.ts";
-import { programa } from "../../src/tools/installable/program.ts";
+import { compose, type DistributionOf } from "../../src/runtime/distributions/compose.ts";
+import { defineProgram } from "../../src/tools/installable/program.ts";
 import type { ProgramMindScene } from "../../src/tools/minds/program-mind-cases.ts";
 import { sampleBody, sampleMetadata, sampleOptions } from "./installable-program.ts";
 import { startHouse, type RunningHouse } from "../../src/runtime/house-runtime.ts";
@@ -17,21 +17,21 @@ import type { ProgramMindResources } from "../../src/runtime/minds/program-mind-
 const bankScene: ProgramMindScene = {
   given: [],
   kit: [],
-  when: { act: "personal/add", target: "notas/personal", input: {} },
+  when: { act: "personal/add", target: "notes/personal", input: {} },
   check: events =>
     events.some(
       event => event.layer === "house" && event.kind === "mind-scene" && event.data.text === "Banco aprobado",
     ),
 };
 function notesFor(scene: ProgramMindScene) {
-  return programa(sampleMetadata, {
+  return defineProgram(sampleMetadata, {
     ...sampleBody,
     mindCases: [{ id: "reconoce-nota", scenes: [scene, scene, scene] }] as const,
   });
 }
-const other = programa(
-  { ...sampleMetadata, id: "agenda", hechos: [] },
-  { ...sampleBody, herramientas: {}, palabras: { ...sampleBody.palabras, name: "Agenda", key: "g" } },
+const other = defineProgram(
+  { ...sampleMetadata, id: "agenda", facts: [] },
+  { ...sampleBody, tools: {}, words: { ...sampleBody.words, name: "Agenda", key: "g" } },
 );
 const requestSchema = Type.Object({
   model: Type.String(),
@@ -41,7 +41,7 @@ const requestSchema = Type.Object({
 type FakeRequest = { model: string; effort: string; changing: string; body: string };
 function syntheticModel() {
   const frames: FakeRequest[] = [];
-  let respond: (request: FakeRequest) => MindAnswer = () => ({ scene: "Banco aprobado", acts: [], consulta: null });
+  let respond: (request: FakeRequest) => MindAnswer = () => ({ scene: "Banco aprobado", acts: [], consultation: null });
   const transport = vi.fn<typeof fetch>((_url, init) => {
     if (typeof init?.body !== "string") throw new Error("request.body");
     const body: unknown = JSON.parse(init.body);
@@ -76,10 +76,10 @@ class ProgramMindFixture {
   readonly home = mkdtempSync(join(tmpdir(), "composed-minds-"));
   readonly distribution;
   constructor(scene: ProgramMindScene) {
-    this.distribution = componer({
+    this.distribution = compose({
       ...sampleOptions,
-      programas: [notesFor(scene), other],
-      mentes: { asistentes: false, programas: ["notas"] },
+      programs: [notesFor(scene), other],
+      minds: { assistants: false, programs: ["notes"] },
     });
   }
   private readonly model = syntheticModel();
@@ -93,7 +93,7 @@ class ProgramMindFixture {
     transport: this.transport,
     account: "test",
     capNanoUsd: 1000000000,
-    cards: { "mind:notas": { model: "claude-haiku-5-5", effort: "low" } },
+    cards: { "mind:notes": { model: "claude-haiku-5-5", effort: "low" } },
   };
   async open(
     changes: Partial<ProgramMindResources> = {},
@@ -106,8 +106,8 @@ class ProgramMindFixture {
       projectionVersion,
       modelMinds,
       by: "distribution",
-      ...(!enabled ? { mentes: { asistentes: false, programas: [] } } : {}),
-      creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notas", "agenda"] }] },
+      ...(!enabled ? { minds: { assistants: false, programs: [] } } : {}),
+      creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes", "agenda"] }] },
     });
     this.houses.push(house);
     await (await house.minds)?.flush();
@@ -118,11 +118,11 @@ class ProgramMindFixture {
   }
   /** Composes the catalog offline against an open house, as a person would before choosing cards. */
   async bank(house: FixtureHouse, changes: Partial<ProgramMindResources> = {}) {
-    return house.bankMinds(await this.options(changes), { asistentes: false, programas: ["notas"] });
+    return house.bankMinds(await this.options(changes), { assistants: false, programs: ["notes"] });
   }
   wake(house: FixtureHouse) {
-    house.bus.emit(effect("attended", { target: "notas/personal" }, "ana"));
-    return house.tools.act({ act: "personal/add", target: "notas/personal", input: {} }, 0, "ana");
+    house.bus.emit(effect("attended", { target: "notes/personal" }, "ana"));
+    return house.tools.act({ act: "personal/add", target: "notes/personal", input: {} }, 0, "ana");
   }
   cleanup() {
     this.houses.forEach(house => house.close());

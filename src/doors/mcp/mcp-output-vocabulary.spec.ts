@@ -7,8 +7,8 @@ import { distributionRig } from "../../../tests/support/distribution-rig.ts";
 import { sampleBody, sampleMetadata, sampleOptions } from "../../../tests/support/installable-program.ts";
 import { checkMcpVocabulary } from "../../../tests/support/mcp-vocabulary.ts";
 import { mcpActions, mcpList, mcpResult, mcpRows } from "../../../tests/support/mcp-results.ts";
-import { componer, type DistributionOf } from "../../runtime/distributions/compose.ts";
-import { programa } from "../../tools/installable/program.ts";
+import { compose, type DistributionOf } from "../../runtime/distributions/compose.ts";
+import { defineProgram } from "../../tools/installable/program.ts";
 import { identitiesTool } from "../../tools/identities/identities.ts";
 import { assignMindCard } from "../../tools/minds/mind-settings-actions.ts";
 import { effect } from "../../house/facts.ts";
@@ -16,11 +16,11 @@ import { mcpDoor } from "./mcp-handler.ts";
 import { requestDigest } from "../socket/requests/public-message.ts";
 
 function fixture() {
-  const personal = sampleBody.herramientas.personal;
-  const notes = programa(sampleMetadata, {
+  const personal = sampleBody.tools.personal;
+  const notes = defineProgram(sampleMetadata, {
     ...sampleBody,
-    herramientas: {
-      ...sampleBody.herramientas,
+    tools: {
+      ...sampleBody.tools,
       personal: {
         ...personal,
         needs: () => [{ target: "same", why: "Revisá la nota" }],
@@ -32,10 +32,10 @@ function fixture() {
       },
     },
   });
-  const composition = componer({ ...sampleOptions, programas: [notes] });
+  const composition = compose({ ...sampleOptions, programs: [notes] });
   const registry = composition.program.registry.map(tool => ({
     ...tool,
-    acts: { ...tool.acts, "assign-mind-card": assignMindCard<DistributionOf<readonly [typeof notes]>>("notas") },
+    acts: { ...tool.acts, "assign-mind-card": assignMindCard<DistributionOf<readonly [typeof notes]>>("notes") },
   }));
   const rig = distributionRig({
     ...composition.program,
@@ -70,7 +70,7 @@ function populate(rig: ReturnType<typeof fixture>["rig"]) {
     effect(
       "mind-cards-published",
       {
-        mind: "mind:notas",
+        mind: "mind:notes",
         cards: [{ card: "approved", version: "1", capabilities: [] }],
       },
       "ana",
@@ -87,7 +87,7 @@ async function readProgram(
   for (const folder of mcpList(root)) {
     const reading = await call("read", { program, target: folder.id });
     expect(reading.isError).toBe(false);
-    if (program === "notas")
+    if (program === "notes")
       for (const object of mcpList(reading))
         expect((await call("read", { program, target: object.id })).isError).toBe(false);
   }
@@ -131,8 +131,8 @@ it("reviews every key returned by read, actions, act and wait on a populated pro
     );
     expect(mcpRows(offered)).toContainEqual(
       expect.objectContaining({
-        program: "notas",
-        tool: "notas/personal",
+        program: "notes",
+        tool: "notes/personal",
         action: "personal/add",
         name: "anotar",
         subject: "tool",
@@ -143,9 +143,9 @@ it("reviews every key returned by read, actions, act and wait on a populated pro
       }),
     );
     const accepted = await call("act", {
-      program: "notas",
+      program: "notes",
       action: "personal/add",
-      target: "notas/personal",
+      target: "notes/personal",
       data: {},
       destination: { kind: "house" },
     });
@@ -153,12 +153,12 @@ it("reviews every key returned by read, actions, act and wait on a populated pro
     const overview = mcpRows(await call("read"));
     expect(overview).toMatchObject({
       identity: "ana",
-      programs: [{ id: "notas", purpose: "Guardar notas" }, { id: "identities" }],
+      programs: [{ id: "notes", purpose: "Guardar notas" }, { id: "identities" }],
       scenes: [{ identity: "ana", general: "La casa abre", addressed: "Revisá las notas" }],
     });
-    for (const program of ["notas", "identities"]) await readProgram(call, program);
-    const target = "notas/personal/same";
-    expect((await call("actions", { program: "notas", target })).isError).toBe(false);
+    for (const program of ["notes", "identities"]) await readProgram(call, program);
+    const target = "notes/personal/same";
+    expect((await call("actions", { program: "notes", target })).isError).toBe(false);
     expect(mcpRows(await call("wait", { since: 0, seconds: 0 }))).toEqual({
       seq: rig.state().through,
       changed: true,
@@ -267,21 +267,15 @@ it.each(["unknown", "ping", "tools/call"])("reviews the correlated %s envelope",
 });
 
 it.each([
-  "identidad",
-  "desde",
   "escenas",
-  "programas",
-  "avisos",
   "parte",
   "herramienta",
-  "nombre",
   "sobre",
   "para",
-  "entrada",
   "opciones",
-  "motivo",
-  "cambio",
   "correlacion",
+  "programName",
+  "sceneText",
   "newUnreviewedField",
 ])("rejects the unreviewed key %s at every wire nesting", key => {
   const unexpected = { [key]: "Texto en castellano" };

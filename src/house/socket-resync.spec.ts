@@ -16,11 +16,11 @@ afterEach(() => {
   vi.useRealTimers();
 });
 const welcome = {
-  tipo: "bienvenida",
-  protocolo: houseProtocolVersion,
-  identidad: "ana",
+  type: "welcome",
+  protocol: houseProtocolVersion,
+  identity: "ana",
   admin: true,
-  ahora: 0,
+  now: 0,
   seq: 1,
 } as const;
 const state = { through: 1, by: "ana", house: {}, tools: {}, acts: new Map(), entries: [] };
@@ -28,8 +28,8 @@ function corrupt() {
   return stateTransfer(state, undefined, 0).map((frame, index) => {
     if (index) return frame;
     const message = readServer(JSON.parse(frame.subarray(5).toString()));
-    if (message.tipo !== "estado") throw new Error("Missing fixture header");
-    return serverFrame({ ...message, huella: "0".repeat(64) });
+    if (message.type !== "state") throw new Error("Missing fixture header");
+    return serverFrame({ ...message, fingerprint: "0".repeat(64) });
   });
 }
 it.each([false, true])("s12: repeated mismatch closes within the bound (already entered: %s)", async entered => {
@@ -40,10 +40,10 @@ it.each([false, true])("s12: repeated mismatch closes within the bound (already 
   const bad = corrupt();
   const reader = frameReader("client", value => {
     const message = readClient(value);
-    if (message.tipo === "hola") {
+    if (message.type === "hello") {
       pair[1].write(serverFrame(welcome));
       for (const frame of entered ? stateTransfer(state, undefined, 0) : bad) pair[1].write(frame);
-    } else if (message.tipo === "sincronizar") {
+    } else if (message.type === "sync") {
       requests++;
       if (requests <= 10) for (const frame of bad) pair[1].write(frame);
     }
@@ -62,7 +62,7 @@ it.each([false, true])("s12: repeated mismatch closes within the bound (already 
     expect(requests).toBe(2);
     if (!entered) expect(await opening).toBe(socketTexts.stateUnverified);
     expect(output.mock.calls.filter(([text]) => text === `${socketTexts.stateMismatch}\n`)).toHaveLength(1);
-    expect(connection.send({ tipo: "apagar" })).toBe(false);
+    expect(connection.send({ type: "shutdown" })).toBe(false);
   } finally {
     connection.close();
     pair[1].destroy();
@@ -100,14 +100,14 @@ it("N10 original: after entry a complete state header without chunks still has a
   const opening = clientStream(
     pair[0],
     "fixture",
-    value => !Buffer.isBuffer(value) && value.tipo === "bienvenida",
+    value => !Buffer.isBuffer(value) && value.type === "welcome",
     () => {},
   );
   try {
     pair[1].write(serverFrame(welcome));
     await vi.advanceTimersByTimeAsync(0);
     await opening;
-    pair[1].write(serverFrame({ tipo: "estado", seq: 1, ahora: 0, base: null, bytes: 1, huella: "0".repeat(64) }));
+    pair[1].write(serverFrame({ type: "state", seq: 1, now: 0, base: null, bytes: 1, fingerprint: "0".repeat(64) }));
     await vi.advanceTimersByTimeAsync(socketLimits.frameMs);
     expect(pair[0].destroyed).toBe(true);
   } finally {
@@ -127,16 +127,16 @@ it("the house writes only one mismatch notice per terminal across repeated syncs
     const c = await f.client("ana-terminal");
     for (let n = 0; n < 5; n++) {
       const count = c.states.length;
-      c.send({ tipo: "sincronizar" });
+      c.send({ type: "sync" });
       expect(await c.until(() => c.states.length > count)).toBe(true);
-      sizes.push(statSync(`${f.home}/casa.log`).size);
+      sizes.push(statSync(`${f.home}/house.log`).size);
       f.house().bus.emit(effect("preferred", { hide: "empty", on: n % 2 === 0 }, "ana"));
     }
     expect(output.mock.calls.filter(([text]) => text === `${socketTexts.stateMismatch}\n`)).toHaveLength(1);
     expect(new Set(sizes).size).toBe(1);
-    expect(readFileSync(`${f.home}/casa.log`, "utf8")).toBe(`${socketTexts.stateMismatch}\n`);
+    expect(readFileSync(`${f.home}/house.log`, "utf8")).toBe(`${socketTexts.stateMismatch}\n`);
     const second = await f.client("beto-terminal");
-    second.send({ tipo: "sincronizar" });
+    second.send({ type: "sync" });
     await vi.waitFor(() =>
       expect(output.mock.calls.filter(([text]) => text === `${socketTexts.stateMismatch}\n`)).toHaveLength(2),
     );
@@ -154,8 +154,8 @@ it("a verified recovery resets the consecutive failure count at the same sequenc
   const good = stateTransfer(state, undefined, 0);
   const reader = frameReader("client", value => {
     const message = readClient(value);
-    if (message.tipo === "hola") pair[1].write(serverFrame(welcome));
-    if (message.tipo === "sincronizar") requests++;
+    if (message.type === "hello") pair[1].write(serverFrame(welcome));
+    if (message.type === "sync") requests++;
     for (const frame of good) pair[1].write(frame);
   });
   pair[1].on("data", (bytes: Buffer) => reader.push(bytes));

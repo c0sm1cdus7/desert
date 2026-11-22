@@ -18,7 +18,7 @@ export default defineConfig({
           globalSetup: ["./tests/support/promise-cleanup.ts", "./tests/program/setup.ts"],
           sequence: { groupOrder: 0 },
           maxWorkers: 4,
-          include: ["src/**/*.spec.ts", "tests/program/**/*.checks.ts"],
+          include: ["src/**/*.spec.ts", "scripts/**/*.spec.ts", "tests/program/**/*.checks.ts"],
           environment: "node",
         },
       },

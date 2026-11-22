@@ -21,7 +21,7 @@ export function registeredActions(graph: CatalogGraph) {
         if (symbol) roots.add(symbol);
       }
       if (ts.isCallExpression(node)) {
-        const name = graph.factoryName(node.expression, "desert/programa") ?? node.expression.getText();
+        const name = graph.factoryName(node.expression, "desert/program") ?? node.expression.getText();
         if (["programAct", "toolAct", "ownAct"].includes(name)) definitions.push({ node, owner: graph.owner(node) });
       }
     });
@@ -46,7 +46,7 @@ function actionEmissions(graph: CatalogGraph, live: ReadonlySet<ts.Symbol>, defi
       !owner ||
       !live.has(owner) ||
       !ts.isCallExpression(node) ||
-      graph.factoryName(node.expression, "desert/programa") !== "ownAct"
+      graph.factoryName(node.expression, "desert/program") !== "ownAct"
     )
       continue;
     const run = node.arguments[3];

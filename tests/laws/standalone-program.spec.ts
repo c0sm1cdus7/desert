@@ -38,7 +38,7 @@ it("rejects a fixture that composes another artifact", async () => {
   const path = join(repo.root, "tests/distribution.ts");
   writeFileSync(
     path,
-    readFileSync(path, "utf8").replace("programas: [toy]", "programas: [{ ...toy, version: '2.0.0' }]"),
+    readFileSync(path, "utf8").replace("programs: [toy]", "programs: [{ ...toy, version: '2.0.0' }]"),
   );
   await expect(loadProgram(repo.root)).rejects.toThrow("does not compose the declared program artifact");
 });

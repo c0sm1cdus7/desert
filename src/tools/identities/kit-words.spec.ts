@@ -19,24 +19,24 @@ it("counts the selected level without turning loose actions into folders, includ
     const created = rig.act("new", "identities", {
       identity: "lucia",
       name: "Lucía",
-      tools: ["notas", "conversacion"],
+      tools: ["notes", "conversation"],
     });
     expect(created).toMatchObject({ status: "accepted" });
     const read = () => identityReading(rig.state().house, "identities/lucia", registry, "ana");
     expect(JSON.parse(read())).toMatchObject({ state: "2 programas" });
     rig.attend("identities/lucia");
-    rig.act("kit:notas", "identities/lucia", { value: "no" });
-    rig.act("kit:notas:shared/add", "identities/lucia", { value: "yes" });
-    rig.act("kit:notas:shared/edit", "identities/lucia", { value: "yes" });
+    rig.act("kit:notes", "identities/lucia", { value: "no" });
+    rig.act("kit:notes:shared/add", "identities/lucia", { value: "yes" });
+    rig.act("kit:notes:shared/edit", "identities/lucia", { value: "yes" });
     expect(JSON.parse(read())).toMatchObject({ state: "1 programa · 2 acciones" });
-    rig.act("kit:notas/personal", "identities/lucia", { value: "yes" });
+    rig.act("kit:notes/personal", "identities/lucia", { value: "yes" });
     expect(JSON.parse(read())).toMatchObject({ state: "1 programa · 1 herramienta · 2 acciones" });
     rig.restart();
     expect(JSON.parse(read())).toMatchObject({ state: "1 programa · 1 herramienta · 2 acciones" });
     const tools = houseTools(rig.ports(), wordsDistribution.shown);
     const core = tools.find(tool => tool.id === "identities");
     expect(core?.view("identities/lucia").some(stack => stack.title === "Kit")).toBe(true);
-    expect(core?.titleOf?.("identities/lucia#kit:notas/personal")).toBe("Personales");
+    expect(core?.titleOf?.("identities/lucia#kit:notes/personal")).toBe("Personales");
     expect(
       core
         ?.view("identities/lucia#tools")

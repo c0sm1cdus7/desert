@@ -15,11 +15,11 @@ export function stateTransfer(
   const bytes = serialize(before ? statePatch(before, view) : { kind: "put", value: view });
   const frames = [
     serverFrame({
-      tipo: "estado",
+      type: "state",
       seq: view.through,
-      ahora: now,
+      now: now,
       base: before?.through ?? null,
-      huella: stateHash(view),
+      fingerprint: stateHash(view),
       bytes: bytes.length,
     }),
   ];

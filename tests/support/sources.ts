@@ -1,10 +1,13 @@
 // Repository-local names wrap the shared law readers.
+import pkg from "../../package.json" with { type: "json" };
 import { join, resolve } from "node:path";
 import { filesUnder as under, fromRoot as relativeTo, codeFiles, isSpec } from "../../src/checks/laws/law-files.ts";
 import { importsOf as imported } from "../../src/checks/laws/adapters.ts";
 export { isSpec, parsed } from "../../src/checks/laws/law-files.ts";
 export { stringsOf, isProse, proseOf } from "../../src/checks/laws/law-words.ts";
 export const root = resolve(import.meta.dirname, "../..");
+/** The code folders this repository declares for its own laws (package.json desert.laws.code). */
+export const ownCode: readonly string[] = pkg.desert.laws.code;
 export const src = join(root, "src");
 export const filesUnder = (folder: string, accept = (path: string): boolean => path.endsWith(".ts")): string[] =>
   under(folder, accept);

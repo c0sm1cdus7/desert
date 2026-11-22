@@ -43,7 +43,7 @@ it("the answer guarantee rejects a neighboring reason when the intended row lost
     id: "shop",
     name: "Tienda",
     place: { key: "t", section: "tools" },
-    summary: () => "ventas",
+    summary: () => "sales",
     view: () => [],
     acts: {
       choose: {

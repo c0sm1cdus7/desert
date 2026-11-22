@@ -40,8 +40,8 @@ export function evidenceIdentity(
   scenario: ContractCase,
   build: ContractBuild,
 ) {
-  const request = consumer.pide[name];
-  const half = request && { acciones: request.acciones, objetos: request.objetos, avisos: request.avisos };
+  const request = consumer.requests[name];
+  const half = request && { actions: request.actions, objects: request.objects, notices: request.notices };
   return {
     provider: provider.id,
     consumer: consumer.id,
@@ -49,7 +49,7 @@ export function evidenceIdentity(
     case: scenario.id,
     providerArtifact: contractHash([provider.id, provider.version, provider.artifact]),
     consumerArtifact: contractHash([consumer.id, consumer.version, consumer.artifact]),
-    offer: contractHash(provider.ofrece[name]),
+    offer: contractHash(provider.offers[name]),
     request: contractHash(half),
     caseHash: contractHash(scenario),
     ...build,

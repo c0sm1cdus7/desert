@@ -611,7 +611,6 @@
     "doors/mcp/socket-http.ts": "Carry the socket protocol over authenticated POSTs and a bounded event stream on the MCP listener.",
     "doors/socket/server/remote-sessions.ts": "Remote peers share the socket request book and state delivery without owning the cloud house lifetime.",
     "doors/socket/client/http-stream.ts": "Adapt authenticated HTTP events to the existing framed duplex, with ordered POSTs and no action retries.",
-    "house/core-value-history.ts": "Read historical door and rule values without changing saved records or accepting them in new emissions.",
     "tools/rules/rule-display.ts": "Render rule effect labels in the house language while preserving English values in facts and action results.",
     "checks/laws/program-device.ts": "Separates declared device folders from house code and admits only pure shared dependency graphs.",
     "runtime/redemption-reservation.ts": "Keeps process exclusion and durable reserved, uncertain or confirmed recovery evidence.",
@@ -634,6 +633,8 @@
     "doors/mcp/oauth-code-journal.ts": "Persist only code digests and key IDs; replay detection uses fixed-size cryptographic comparisons.",
     "runtime/oauth-recovery.ts": "At house opening no pending OAuth bearer can still be delivered: revoke it before serving any door.",
     "runtime/redemption-files.ts": "Binds bounded private file I/O and directory trust to verified descriptors.",
-    "runtime/redemption-publication.ts": "Merges checked configuration and publishes only the reserved private inodes."
+    "runtime/redemption-publication.ts": "Merges checked configuration and publishes only the reserved private inodes.",
+    "texts/stored-names.texts.ts": "What the stored-name migration says to whoever runs it, before, after and when it refuses.",
+    "runtime/stored-names.ts": "Rewrites, once and after a backup, the values journals stored under DESERT's Spanish names, proving the fold equal."
   }
 }

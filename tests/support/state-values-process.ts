@@ -33,7 +33,7 @@ if (process.argv[2] === "house") {
       }
     } else {
       const message = readServer(value);
-      if (message.tipo === "estado") receiver.begin(message);
+      if (message.type === "state") receiver.begin(message);
     }
   });
   reader.push(readFileSync(0));

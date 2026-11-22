@@ -33,7 +33,7 @@ it.each([
   "export const leaked = import.meta.dirname;",
   "export const leaked = import.meta.resolve;",
   "export const leaked = (() => 0).constructor;",
-  "const other = { codigo: [import.meta.dirname] };",
+  "const other = { code: [import.meta.dirname] };",
 ])("inspects the principal like its tools: %s", code => {
   const repo = installablePackage();
   const path = join(repo.root, "src/program.ts");
@@ -50,9 +50,9 @@ it("rejects the principal before evaluating the test distribution even with allo
 });
 
 it.each([
-  "const constructor = (value: unknown) => value; constructor({ codigo: [import.meta.dirname] });",
-  "const other = programa({ ...metadata, codigo: [import.meta.filename] }, {});",
-  "const other = programa({ ...metadata, codigo: [import.meta.resolve('./notes.ts')] }, {});",
+  "const constructor = (value: unknown) => value; constructor({ code: [import.meta.dirname] });",
+  "const other = defineProgram({ ...metadata, code: [import.meta.filename] }, {});",
+  "const other = defineProgram({ ...metadata, code: [import.meta.resolve('./notes.ts')] }, {});",
 ])("does not extend the directory exception: %s", code => {
   const repo = installablePackage();
   const path = join(repo.root, "src/program.ts");
@@ -63,7 +63,7 @@ it.each([
 it("accepts the Notas declaration and export alias, with testing confined to specs", async () => {
   const repo = installablePackage();
   const path = join(repo.root, "src/program.ts");
-  writeFileSync(path, readFileSync(path, "utf8") + "\nexport { program as notas };\n");
+  writeFileSync(path, readFileSync(path, "utf8") + "\nexport { program as notes };\n");
   writeFileSync(join(repo.root, "src/program.spec.ts"), 'import { startHouse } from "desert/testing";');
   expect(programImports(repo)).toEqual([]);
   expect(programSecretBoundaries(repo.root)).toEqual([]);

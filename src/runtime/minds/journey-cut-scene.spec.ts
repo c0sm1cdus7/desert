@@ -31,10 +31,10 @@ function cutMore(house: House, count: number) {
       const process = `j${index}`;
       const goal = `Meta ${index} ${"g".repeat(280)}`;
       const kit = { version: 2, selections: [] } as const;
-      house.bus.emit(effect("journey-opened", { version: 2, goal, kit }, "mind:notas", [], process));
-      house.bus.emit(effect("mind-turn-opened", { turn: `t${index}`, wake: [] }, "mind:notas", [], process));
+      house.bus.emit(effect("journey-opened", { version: 2, goal, kit }, "mind:notes", [], process));
+      house.bus.emit(effect("mind-turn-opened", { turn: `t${index}`, wake: [] }, "mind:notes", [], process));
       const closed = { turn: `t${index}`, outcome: "failed", calls: 12, applied: [], reason: "call-limit" } as const;
-      house.bus.emit(effect("mind-turn-closed", closed, "mind:notas", [], process));
+      house.bus.emit(effect("mind-turn-closed", closed, "mind:notes", [], process));
     }
   });
 }
@@ -49,27 +49,27 @@ it("keeps every own line whole when the scene has no room for a cut, and counts 
   const house = await cut();
   const state = () => house.tools.state().house;
   const full = ownScene(3976);
-  expect(withCuts(state(), "mind:notas", "es", full)).toBe(full);
+  expect(withCuts(state(), "mind:notes", "es", full)).toBe(full);
   const roomy = ownScene(3900);
-  const counted = withCuts(state(), "mind:notas", "es", roomy);
+  const counted = withCuts(state(), "mind:notes", "es", roomy);
   expect(counted).toBe(`${one}\n${roomy}`);
   // Writing that scene again counts the same cut once, never as a line of the mind's own.
-  expect(withCuts(state(), "mind:notas", "es", counted)).toBe(counted);
+  expect(withCuts(state(), "mind:notes", "es", counted)).toBe(counted);
   // With room for it, the cut is said whole, and it leaves once the journey goes on.
-  const short = withCuts(state(), "mind:notas", "es", "Escena propia");
+  const short = withCuts(state(), "mind:notes", "es", "Escena propia");
   expect(short).toMatch(/^Se cortó un turno del journey «Anotar»: .+ No se reintentó nada\.\nEscena propia$/u);
   const journey = journeyOf(house);
   if (!journey) throw new Error("journey");
-  house.bus.emit(effect("journey-resumed", { note: "Probá otra vez" }, "mind:notas", [], journey.id));
+  house.bus.emit(effect("journey-resumed", { note: "Probá otra vez" }, "mind:notes", [], journey.id));
   await (await house.minds)?.flush();
-  expect(withCuts(state(), "mind:notas", "es", counted)).toBe(roomy);
+  expect(withCuts(state(), "mind:notes", "es", counted)).toBe(roomy);
 }, 60000);
 it("says as many cuts whole as fit and counts the rest in one line: the mind's own lines are never cut", async () => {
   const house = await cut();
   cutMore(house, 14);
   const state = () => house.tools.state().house;
   const own = ownScene(1500);
-  const scene = withCuts(state(), "mind:notas", "es", own);
+  const scene = withCuts(state(), "mind:notes", "es", own);
   expect(scene.length).toBeLessThanOrEqual(sceneLimits.general);
   expect(scene.endsWith(`\n${own}`)).toBe(true);
   const lines = scene.slice(0, -own.length - 1).split("\n");
@@ -78,5 +78,5 @@ it("says as many cuts whole as fit and counts the rest in one line: the mind's o
   expect(whole.length).toBeGreaterThan(1);
   expect(whole.every(line => /^Se cortó un turno del journey «.+»: .+ No se reintentó nada\.$/u.test(line))).toBe(true);
   expect(counted).toBe(`Journeys cortados que no entran en esta escena: ${15 - whole.length}.`);
-  expect(withCuts(state(), "mind:notas", "es", scene)).toBe(scene);
+  expect(withCuts(state(), "mind:notes", "es", scene)).toBe(scene);
 }, 60000);

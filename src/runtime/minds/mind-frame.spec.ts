@@ -27,7 +27,7 @@ const turn = {
 } as const;
 const source = {
   definition: { role: "asistente", actor: scope.actor, rules: mind, communication: [] },
-  skills: [{ id: "notas", skill }],
+  skills: [{ id: "notes", skill }],
   textRules: [],
   scene: "En casa",
   activity: [],
@@ -49,7 +49,7 @@ describe("mind frame", () => {
   });
   it("keeps the same prefix regardless of unrelated card data", () => {
     const first = { ...source, card: "una" };
-    const second = { ...source, card: "otra" };
+    const second = { ...source, card: "other" };
     const a = buildMindFrame(scope, turn, first);
     const b = buildMindFrame(scope, turn, second);
     expect(renderMindFrame(a, "es").layers).toEqual(renderMindFrame(b, "es").layers);
@@ -58,7 +58,7 @@ describe("mind frame", () => {
 });
 it("rejects a frame attributed to another mind", () => {
   expect(() =>
-    buildMindFrame(scope, turn, { ...source, definition: { ...source.definition, actor: "mind:notas" } }),
+    buildMindFrame(scope, turn, { ...source, definition: { ...source.definition, actor: "mind:notes" } }),
   ).toThrow("Mente");
 });
 

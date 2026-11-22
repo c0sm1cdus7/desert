@@ -30,8 +30,8 @@ export function openHouseRouter<X extends Program>(
     program.registry,
     "house",
     program.identities,
-    program.mentes?.asistentes,
-    program.mentes?.programas,
+    program.minds?.assistants,
+    program.minds?.programs,
   );
   const router = houseRouter(socketPorts(connection, { registry, limits }), shown);
   return {

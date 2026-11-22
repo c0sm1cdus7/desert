@@ -1,6 +1,6 @@
 // Rebuilds journeys without changing their author or reopening a closed process.
 import { migrateKit, type KitMigration } from "../kit-migration.ts";
-import { selects, herramientaDe, explicitKit, type KitLayout, type SelectionKit } from "../kit-selection.ts";
+import { selects, toolOf, explicitKit, type KitLayout, type SelectionKit } from "../kit-selection.ts";
 import { Value } from "@sinclair/typebox/value";
 import { parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
@@ -116,11 +116,6 @@ export function journeyAllows(
     !journey.closed &&
     !journeyFrozen(journey) &&
     journey.by === by &&
-    selects(
-      migrateKit(journey.selections ?? explicitKit(journey.kit), migration),
-      tool,
-      herramientaDe(tool, act, layout),
-      act,
-    )
+    selects(migrateKit(journey.selections ?? explicitKit(journey.kit), migration), tool, toolOf(tool, act, layout), act)
   );
 }

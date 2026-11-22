@@ -30,48 +30,48 @@ export type {
   ContractObject,
 } from "../../tools/contracts/contract-types.ts";
 /** The composition a distribution is about to make, before it has evidence: the same programs, installed. */
-function candidate(options: Omit<DistributionOptions, "contratos">): Composition<Program> {
-  const { packages, installed } = installPrograms(options.programas);
+function candidate(options: Omit<DistributionOptions, "contracts">): Composition<Program> {
+  const { packages, installed } = installPrograms(options.programs);
   const roots = [
     fileURLToPath(new URL("../../", import.meta.url)),
-    ...options.presentacion.codigo,
-    ...options.programas.flatMap(program => program.codigo),
+    ...options.shown.code,
+    ...options.programs.flatMap(program => program.code),
   ];
   const registry = installed.map(program => program.tool);
   return {
     contractSetup: bindProgramContracts(packages, registry),
-    identities: options.identidades,
+    identities: options.identities,
     projectionVersion: codeProjectionVersion(roots),
     registry,
     slices: {
       initial: Object.fromEntries(installed.map(program => [program.definition.id, program.initial])),
       step: Object.fromEntries(installed.map(program => [program.definition.id, program.step])),
     },
-    words: vocabulary(Object.fromEntries(options.programas.flatMap(p => p.hechos.map(f => [f.nombre, f.forma])))),
+    words: vocabulary(Object.fromEntries(options.programs.flatMap(p => p.facts.map(f => [f.kind, f.schema])))),
   };
 }
 /** Runs every case each program requests against its single provider, each in its own isolated house, and returns
  * the evidence `componer` takes as `contratos`. A request without exactly one provider is left to `componer`, which
  * says why. Only the rows this call issued are credited: a copied row is not. */
 export async function certifyContracts(
-  options: Omit<DistributionOptions, "contratos">,
+  options: Omit<DistributionOptions, "contracts">,
 ): Promise<ContractCertification> {
   const program = candidate(options);
   const version =
     typeof program.projectionVersion === "string" ? program.projectionVersion : program.projectionVersion.value;
   const build = { core: version, executor: version };
-  const packages = programContracts(options.programas);
+  const packages = programContracts(options.programs);
   const evidence: ContractEvidence[] = [];
   const verifiers: EvidenceVerifier[] = [];
   for (const consumer of packages)
-    for (const [contract, request] of Object.entries(consumer.pide)) {
-      const providers = packages.filter(provider => Object.hasOwn(provider.ofrece, contract));
+    for (const [contract, request] of Object.entries(consumer.requests)) {
+      const providers = packages.filter(provider => Object.hasOwn(provider.offers, contract));
       const provider = providers.length === 1 ? providers[0] : undefined;
       if (!provider) continue;
-      for (const scenario of request.casos) {
+      for (const scenario of request.cases) {
         const selected = packages.map(item =>
           item.id === consumer.id
-            ? { ...item, pide: { ...item.pide, [contract]: { ...request, casos: [scenario] } } }
+            ? { ...item, requests: { ...item.requests, [contract]: { ...request, cases: [scenario] } } }
             : item,
         );
         const run = await runContractCases({

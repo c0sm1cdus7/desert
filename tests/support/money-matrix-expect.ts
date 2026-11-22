@@ -13,7 +13,7 @@ const baseReasons: Partial<Record<MatrixState, string>> = {
   mínimo: "mínimo $ 0,01",
   "solo números": "solo números",
   "cambió la moneda": "cambió la moneda",
-  programa: "importe retenido",
+  defineProgram: "importe retenido",
   Error: "Error el proveedor no respondió",
 };
 const rawOf = (state: MatrixState): string => {
@@ -53,7 +53,7 @@ function editing(state: MatrixState, event: MatrixEvent, want: Expected): Expect
   if (event === "Enter") {
     if (!raw) want.reasons = [...new Set([...want.reasons, "falta completar"])];
     else if (raw === "0") want.reasons = [`mínimo ${want.currency} 0,01`];
-    else if (state !== "programa")
+    else if (state !== "defineProgram")
       return { ...want, phase: "running", pos: 1, entry: undefined, reasons: [], place: "Procesando" };
   }
   if (reason && !want.reasons.includes(reason)) want.reasons.push(reason);
@@ -114,7 +114,7 @@ function later(event: MatrixEvent, want: Expected): Expected {
 function currencyChanged(state: MatrixState, event: MatrixEvent, want: Expected): Expected {
   want.currency = event === "ida y vuelta" ? "$" : "US$";
   if (state === "mínimo") want.reasons = ["falta completar"];
-  if (state === "programa") want.reasons = [];
+  if (state === "defineProgram") want.reasons = [];
   if (!want.reasons.includes("cambió la moneda")) want.reasons.push("cambió la moneda");
   return { ...want, amount: "", entry: "" };
 }
