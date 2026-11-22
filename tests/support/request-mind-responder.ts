@@ -13,7 +13,7 @@ export function lineOf(event: Event): Line | undefined {
   return typeof to === "string" && typeof text === "string" ? { id: event.id, by: event.by, to, text } : undefined;
 }
 export const lines = (house: RequestHouse): Line[] => history(house).flatMap(event => lineOf(event) ?? []);
-/** A mind wakes another mind only by naming it; the name leads the line and the work reads without it. */
+/** In a group a mind wakes another only by naming it; the name leads the line and the work reads without it. */
 export const mention = (actor: string, text: string) => `${actor} ${text}`;
 const unmentioned = (text: string) => text.replace(/^(?:mind|assistant):\S+ /u, "");
 export function currentTurn(house: RequestHouse) {

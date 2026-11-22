@@ -27,6 +27,7 @@ export function programMindDefinitions(installed: Installed, enabled: readonly s
             text: (language: Parameters<typeof programMindRules.text>[0]) =>
               programMindRules.text(language, {
                 name: item.words.name,
+                talks: item.definition.mensajes !== undefined,
                 words: JSON.stringify({ program: item.words, tools: item.groups.map(group => group.palabras) }),
               }),
           },

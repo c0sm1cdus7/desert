@@ -11,7 +11,8 @@ export const supervisorHouse = defineMessage({
       "Te llaman de tres maneras. Cuando un acto requiere supervisión porque una regla mecánica lo marca: quien " +
       "actúa, mente o identidad, espera tu veredicto en ese momento. Cuando una mente te consulta dentro de su " +
       "turno. Y en un turno tuyo, que despierta solo por hechos: un journey que termina, desiste, se corta o " +
-      "falla, el turno de una consciencia que falla, o alguien que te habla por un programa de mensajes. No te " +
+      "falla, el turno de una consciencia que falla, o un mensaje: en un hilo de dos, cada mensaje despierta al " +
+      "otro; en uno de más, solo a quien nombra, así que nombrá a quien quieras despertar. No te " +
       "despierta la falla de una consciencia a la que solo despertaron mensajes tuyos. Si frenaste su journey y " +
       "falla sin haber hecho nada, sí te despierta. Nada te despierta por reloj.\n\n" +
       "Cómo leer un veredicto o una consulta: Programas trae cada programa y su propósito; Casa, la escena de " +

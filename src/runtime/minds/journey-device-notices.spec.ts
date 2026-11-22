@@ -122,7 +122,7 @@ it("an execution started by a person, outside any journey, wakes no mind", async
   await flush(house);
   const [execution] = [...house.tools.state().house.devices.executions.values()].filter(each => !each.journey);
   expect(execution?.actor).toBe("ana");
-  // Her act on the notes tool woke its program mind, as any act does; her work's notice wakes nobody.
+  // Her act on the notes tool woke its program mind, notes does not talk; her work's notice wakes nobody.
   const before = turns();
   expect(rig.announce(execution?.execution ?? "")).toBe("recorded");
   await flush(house);
