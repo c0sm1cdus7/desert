@@ -73,7 +73,8 @@ export function withConstants(schema: unknown, value: unknown): unknown {
     const branch = chosen(schema.anyOf, value);
     if (!branch) return value;
     const filled = withConstants(branch, value);
-    return isObject(filled) ? { ...Object.fromEntries(constants(branch)), ...filled } : filled;
+    // A field with one possible value has it, however an unconstrained answer spelled it.
+    return isObject(filled) ? { ...filled, ...Object.fromEntries(constants(branch)) } : filled;
   }
   if (!isObject(schema.properties)) return value;
   const properties = schema.properties;

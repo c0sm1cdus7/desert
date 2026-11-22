@@ -25,6 +25,7 @@ import {
   lines,
   mention,
 } from "../../../tests/support/request-mind-responder.ts";
+import { shortIds } from "./mind-references.ts";
 const fixtures: ReturnType<typeof requestMindFixture>[] = [];
 const fixture = () => {
   const f = requestMindFixture();
@@ -192,7 +193,7 @@ it.each([false, true])(
       f.respond(frame => {
         expect(frame).toContain("assistant:ana");
         if (frame.startsWith("Alcance:\nassistant:ana")) {
-          expect(frame).toContain(reply.id);
+          expect(frame).toContain(shortIds(reply.id));
           expect(frame).toContain(note);
           return answer([], "Received");
         }

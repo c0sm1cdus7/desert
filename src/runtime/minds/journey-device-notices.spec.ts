@@ -14,6 +14,7 @@ import {
   wakesOf,
   type JourneyScript,
 } from "../../../tests/support/device-mind-fixture.ts";
+import { shortIds } from "./mind-references.ts";
 const rigs: ReturnType<typeof deviceMindFixture>[] = [];
 beforeEach(() =>
   vi.stubGlobal(
@@ -55,7 +56,7 @@ it("wakes on a notice that comes after its wait, and says which work it was and 
   expect(wakesOf(house, id)).toEqual([["journey-opened"], ["device-execution-notice"]]);
   const frame = rig.frames.find(frame => frame.includes(told)) ?? "";
   expect(frame).toContain(
-    `(arranque: inicio:${execution?.execution ?? ""}) falló. Referencia del aviso: aviso:failed.`,
+    shortIds(`(arranque: inicio:${execution?.execution ?? ""}) falló. Referencia del aviso: aviso:failed.`),
   );
   expect(journeyOf(house)?.closed?.data.outcome).toBe("done");
 }, 60000);

@@ -19,6 +19,7 @@ import {
 } from "../../../tests/support/request-mind-fixture.ts";
 import { currentTurn, lineOf, lines, mention, respondToNotes } from "../../../tests/support/request-mind-responder.ts";
 import { assistantDefinition, definitionsNow } from "./mind-definitions.ts";
+import { shortIds } from "./mind-references.ts";
 const fixtures: ReturnType<typeof requestMindFixture>[] = [];
 const haiku = { model: "claude-haiku-5-5", effort: "low" };
 const fixture = () => {
@@ -113,7 +114,12 @@ it("an assistant enabled while the house runs gets its card, answers through the
     ["thread/say", undefined],
   ]);
   const scopes = bodies(f).map(body => body.frame.split("\n")[1]?.replace(/ \/ \d+$/u, ""));
-  expect(scopes).toEqual(["assistant:ana", `assistant:ana / ${journeys[0]?.id}`, "mind:notes", "assistant:ana"]);
+  expect(scopes).toEqual([
+    "assistant:ana",
+    `assistant:ana / ${shortIds(journeys[0]?.id ?? "")}`,
+    "mind:notes",
+    "assistant:ana",
+  ]);
   const calls = [...house.tools.state().house.modelCalls.values()];
   expect(calls.map(call => [call.reserved.by, call.status])).toEqual([
     ["assistant:ana", "settled"],

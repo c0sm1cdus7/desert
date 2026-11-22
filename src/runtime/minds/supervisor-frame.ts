@@ -18,6 +18,7 @@ import type { MindFrame } from "./mind-ports.ts";
 import { threadEntries } from "./mind-runtime-frame.ts";
 import type { MindRuntimeHouse, MindRuntimeOptions } from "./mind-runtime-options.ts";
 import { supervisorActor } from "./mind-definitions.ts";
+import { shortIds } from "./mind-references.ts";
 export type RuleResults = ReturnType<typeof ruleResults>;
 /** Who acts: a mind in its scope, or an identity judged alone, by its id. */
 type Acting = Readonly<{ actor: string; process?: string | undefined }>;
@@ -154,15 +155,17 @@ export function reviewFrame<X extends Program>(
   const asked = JSON.stringify({ reason: request.reason, acts: request.acts, question: request.question ?? null });
   return {
     layers: layers(house, options),
-    changing: [
-      section(language, 3, `${supervisorActor} / ${state.through}`),
-      section(language, 4, state.house.minds.scenes.get(supervisorActor)?.data.text ?? ""),
-      section(language, 5, ownThread(house, options)),
-      section(language, 6, collapsed(house)),
-      section(language, 7, asked),
-      section(language, 8, consulting(house, request)),
-      section(language, 9, rules),
-      section(language, 11, `${now} ${new Date(now).toISOString()}`),
-    ].join("\n\n"),
+    changing: shortIds(
+      [
+        section(language, 3, `${supervisorActor} / ${state.through}`),
+        section(language, 4, state.house.minds.scenes.get(supervisorActor)?.data.text ?? ""),
+        section(language, 5, ownThread(house, options)),
+        section(language, 6, collapsed(house)),
+        section(language, 7, asked),
+        section(language, 8, consulting(house, request)),
+        section(language, 9, rules),
+        section(language, 11, `${now} ${new Date(now).toISOString()}`),
+      ].join("\n\n"),
+    ),
   };
 }

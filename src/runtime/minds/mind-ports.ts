@@ -72,6 +72,8 @@ export type TurnSnapshot = Readonly<{
 }>;
 export type TurnPorts = Readonly<{
   frame: FramePort;
+  /** The answer with the whole ids behind the short references the mind read and gave back. */
+  resolve?: (scope: MindScope, value: unknown) => unknown;
   model: ModelPort;
   read: (scope: MindScope) => TurnSnapshot;
   isOpen: (id: string) => boolean;

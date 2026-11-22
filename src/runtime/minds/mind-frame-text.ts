@@ -2,6 +2,7 @@
 import type { Language } from "../../fields/languages.ts";
 import { frameHouse, frameLabels, frameSection } from "../../texts/mind-frame.texts.ts";
 import type { FrameItem, FrameSnapshot, MindFrame } from "./mind-frame.ts";
+import { shortIds } from "./mind-references.ts";
 /** How many items of each cut section did not fit: the mind reads counts, never the ids of what is missing. */
 export type OmittedCounts = Readonly<Partial<Record<"activity" | "objects" | "thread", number>>>;
 const omittedLabels = { activity: 4, objects: 5, thread: 6 } as const;
@@ -41,7 +42,7 @@ export function renderMindFrame(snapshot: FrameSnapshot, language: Language, omi
     ...(snapshot.now === undefined ? [] : [section(11, `${snapshot.now} · ${new Date(snapshot.now).toISOString()}`)]),
     ...omittedSection(omitted, labels, section),
   ].join("\n\n");
-  return { layers, changing };
+  return { layers: [layers[0], layers[1], layers[2], shortIds(layers[3])], changing: shortIds(changing) };
 }
 
 function omittedSection(

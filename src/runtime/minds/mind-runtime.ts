@@ -27,6 +27,7 @@ import {
   type MindSwitches,
 } from "./mind-runtime-options.ts";
 import type { TurnPorts, TurnWake } from "./mind-ports.ts";
+import { referenceResolver, resolveAnswer } from "./mind-references.ts";
 import type { Event } from "../../journal/vocabulary.ts";
 import { expandKit } from "../../house/kit-selection.ts";
 import { assignDeclaredCards, publishMindCards } from "./mind-card-catalog.ts";
@@ -108,6 +109,15 @@ class HouseMindRuntime<X extends Program> {
       supervision: { ...(this.supervisor ? { supervisor: this.supervisor.review } : {}), ...options.supervision },
       emit: this.emit,
       execute: runtimeActions(house, options, switches),
+      resolve: (scope, value) => {
+        const view = this.view(scope);
+        const known = () => [
+          ...house.history().map(event => event.id),
+          ...house.execution.state().house.journeys.keys(),
+          ...view.objects.map(object => object.id),
+        ];
+        return resolveAnswer(value, view.menu, referenceResolver(known()));
+      },
     };
   }
   private emit: TurnPorts["emit"] = emission => {

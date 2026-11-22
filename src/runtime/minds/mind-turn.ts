@@ -208,7 +208,8 @@ class MindTurnRun {
         : this.finish("invalid");
     }
     this.talk.answered(outcome.value);
-    const checked = this.inspect(outcome.value);
+    const value = this.ports.resolve ? this.ports.resolve(this.turn.scope, outcome.value) : outcome.value;
+    const checked = this.inspect(value);
     const reason =
       checked.ok || !checked.faults.some(fault => fault.code === "continuation") ? "schema" : "continuation";
     if (!checked.ok)

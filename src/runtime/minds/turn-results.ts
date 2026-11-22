@@ -3,6 +3,7 @@ import type { Language } from "../../fields/languages.ts";
 import { cutText } from "../../fields/text-cut.ts";
 import { turnResults } from "../../texts/mind-turn.texts.ts";
 import { menuItemLine } from "./mind-frame-menu.ts";
+import { shortIds } from "./mind-references.ts";
 import type { MindMenu, ProposedAct } from "../../tools/minds/mind-answer.ts";
 export type ActReport = Readonly<{
   act: ProposedAct;
@@ -48,7 +49,9 @@ export function resultsText(
       .map(item => `${say("added")} ${menuItemLine([item], language)}`),
     ...menus.before.filter(item => !kept.has(key(item))).map(item => `${say("removed")} ${item.act} → ${item.target}`),
     ...(goesOn ? [say("goOn")] : []),
-  ].join("\n");
+  ]
+    .map(shortIds)
+    .join("\n");
 }
 /** The supervisor's answer to a consultation, told to the mind in the same turn. */
 export const consultationText = (language: Language, answer: string) =>

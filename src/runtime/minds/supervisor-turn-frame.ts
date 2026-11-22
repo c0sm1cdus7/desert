@@ -17,6 +17,7 @@ import type { runtimeView } from "./mind-runtime-view.ts";
 import { supervisorActor } from "./mind-definitions.ts";
 import { layers, mindsOf, ownThread, section } from "./supervisor-frame.ts";
 import { menuText } from "./mind-frame-menu.ts";
+import { shortIds } from "./mind-references.ts";
 type View = ReturnType<typeof runtimeView>;
 /** How many turns of each journey closed with a reason: a fact the supervisor reads, never a limit. */
 function cutsByJourney(history: readonly Event[]): ReadonlyMap<string, number> {
@@ -91,17 +92,19 @@ function frameOf<X extends Program>(
   const now = house.time.now();
   return {
     layers: layers(house, options),
-    changing: [
-      section(language, 3, `${supervisorActor} / ${house.execution.state().through}`),
-      section(language, 4, fixed.scene),
-      section(language, 5, fixed.thread),
-      section(language, 6, render(parts.minds)),
-      section(language, 10, fixed.woke),
-      section(language, 13, render(parts.activity)),
-      section(language, 12, fixed.context),
-      section(language, 11, `${now} ${new Date(now).toISOString()}`),
-      ...omittedLine(language, parts.omitted),
-    ].join("\n\n"),
+    changing: shortIds(
+      [
+        section(language, 3, `${supervisorActor} / ${house.execution.state().through}`),
+        section(language, 4, fixed.scene),
+        section(language, 5, fixed.thread),
+        section(language, 6, render(parts.minds)),
+        section(language, 10, fixed.woke),
+        section(language, 13, render(parts.activity)),
+        section(language, 12, fixed.context),
+        section(language, 11, `${now} ${new Date(now).toISOString()}`),
+        ...omittedLine(language, parts.omitted),
+      ].join("\n\n"),
+    ),
   };
 }
 /** The frame fits the request: what it read in threads goes first, then minds from the first, each one named. */
