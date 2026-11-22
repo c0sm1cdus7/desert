@@ -134,7 +134,11 @@ export function edited<T extends { readonly typed: string; readonly caret: numbe
 ): T | undefined {
   const chars = Array.from(place.typed);
   const { caret } = place;
-  if (key.kind === "type") return { ...place, typed: chars.toSpliced(caret, 0, key.text).join(""), caret: caret + 1 };
+  if (key.kind === "type") {
+    /** The caret goes past all a key wrote, counted as the typed text is: one place per character. */
+    const typed = chars.toSpliced(caret, 0, key.text).join("");
+    return { ...place, typed, caret: caret + Array.from(key.text).length };
+  }
   if (key.kind === "erase" && caret > 0)
     return { ...place, typed: chars.toSpliced(caret - 1, 1).join(""), caret: caret - 1 };
   if (key.kind === "left") return { ...place, caret: Math.max(caret - 1, 0) };
