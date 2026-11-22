@@ -11,6 +11,7 @@ export { cast, given, perform, staged, wroteSince } from "./checks/promises/prom
 export type { Aim, Check, Decided, Doing, House } from "./checks/promises/promised-stage.ts";
 export { walkedChecks } from "./checks/promises/walk/promised-walk.ts";
 export { realTerminal, screenOf, type RealTerminal } from "./checks/real-terminal.ts";
+export { pieceRules, type PieceFailure } from "./checks/piece-rules.ts";
 export { conformance, type Drawn, type Failure } from "./checks/renderer-conformance.ts";
 export { surfaceWalk, type Stop } from "./checks/surface-walk.ts";
 export { startTerminal } from "./doors/terminal/boot.ts";

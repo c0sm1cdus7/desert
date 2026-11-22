@@ -158,6 +158,9 @@ const names = [
   "Failure",
   "surfaceWalk",
   "Stop",
+  // The piece bank: the form rules held once over the pieces of a screen.
+  "pieceRules",
+  "PieceFailure",
 ];
 it("preserves the public testing entry's value and type exports", () => {
   const file = join(root, "src/testing.ts");
