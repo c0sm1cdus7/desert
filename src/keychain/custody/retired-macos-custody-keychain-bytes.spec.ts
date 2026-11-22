@@ -4,7 +4,7 @@ import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
 import { decodeKey, encodeKey } from "../../../tests/support/retired-macos/keychain-bytes.ts";
 import { keychainTimeout } from "../../../tests/support/retired-macos/keychain-command.ts";
 import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
-it("el codec de bytes coincide con base64 canónico sin crear texto dentro del proveedor", () => {
+it("the byte codec matches canonical base64 without creating text inside the provider", () => {
   for (let n = 0; n < 20; n++) {
     const key = randomBytes(32),
       encoded = encodeKey(key);
@@ -26,7 +26,7 @@ for (const output of [
     expect(() => provider.key("house", false)).toThrow("E-CUSTODY-KEY");
     expect(stdout.every(byte => byte === 0)).toBe(true);
   });
-it("p4: stdin y stdout se borran, las cuentas inválidas no llegan al comando, cada pedido lleva límite", () => {
+it("p4: stdin and stdout are wiped, invalid accounts never reach the command, every request has a limit", () => {
   const { calls, command } = fakeKeychain(),
     outputs: Uint8Array[] = [];
   const provider = new MacOSHouseKeys((...args) => {
@@ -52,13 +52,13 @@ it("p4: stdin y stdout se borran, las cuentas inválidas no llegan al comando, c
   expect(provider.has("other")).toBe(true);
   expect(provider.head("house")).toBeUndefined();
 });
-it("un timeout dice cómo seguir y nunca devuelve la salida del comando", () => {
-  const stdout = Buffer.from("SINTETICO");
+it("a timeout says how to go on and never returns the command's output", () => {
+  const stdout = Buffer.from("SYNTHETIC");
   const provider = new MacOSHouseKeys(() => ({ status: null, stdout }));
   expect(() => provider.key("house", false)).toThrow(/desbloquealo y reintentá/u);
   expect(stdout.every(byte => byte === 0)).toBe(true);
 });
-it("un add que mintió éxito sin guardar no inventa una llave ni un ancla", () => {
+it("an add that lied about success without saving invents neither a key nor an anchor", () => {
   const { command } = fakeKeychain();
   const provider = new MacOSHouseKeys((file, args, input, options) =>
     args[0] === "-i" ? { status: 0, stdout: Buffer.alloc(0) } : command(file, args, input, options),

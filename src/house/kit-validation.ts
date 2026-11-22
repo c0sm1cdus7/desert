@@ -1,4 +1,4 @@
-// Rechaza selecciones nuevas inexistentes o reservadas sin borrar las retiradas de la historia.
+// Refuses new selections that do not exist or are reserved, without erasing retired ones from history.
 import { systemTool } from "./system-tools.ts";
 import { effectRefusalTexts } from "../texts/tools.texts.ts";
 import {

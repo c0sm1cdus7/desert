@@ -21,14 +21,14 @@ function enable(rig: ReturnType<typeof contractRig>) {
     effect("mind-card-assigned", { mind: actor, card: "test-card", version: "v1", capabilities: [] }, "ana"),
   );
 }
-it("separa actores y rechaza un titular ausente o que sea otra mente", () => {
+it("separates actors and refuses a holder that is missing or is another mind", () => {
   expect(assistantOf("beto")).toBe(actor);
   expect(parseMindActor(actor)).toEqual({ kind: "assistant", owner: "beto" });
   expect(parseMindActor("mind:desk")).toEqual({ kind: "tool", tool: "desk" });
   expect(parseMindActor("beto")).toBeUndefined();
   for (const owner of ["", "assistant:beto", "mind:desk"]) expect(() => assistantOf(owner)).toThrow();
 });
-it("el administrador habilita y asigna carta; solo el titular delega, incluso con otro administrador", () => {
+it("the admin enables and assigns a card; only the holder delegates, even with another admin", () => {
   const rig = open();
   expect(() => rig.bus.emit(effect("assistant-enabled", { owner: "beto", name: "Nora" }, "beto"))).toThrow();
   enable(rig);
@@ -40,7 +40,7 @@ it("el administrador habilita y asigna carta; solo el titular delega, incluso co
   expect(present([desk], rig.state().house, actor)).toBe(true);
   expect(allowedAct(rig.state().house, actor, "desk", "say", [desk])).toBe(true);
 });
-it("intersecta delegación, permiso actual y capacidades; no hereda actos nuevos", () => {
+it("intersects delegation, current permission and capabilities; inherits no new acts", () => {
   const rig = open();
   enable(rig);
   kit(rig, "beto", ["say"]);
@@ -54,7 +54,7 @@ it("intersecta delegación, permiso actual y capacidades; no hereda actos nuevos
     rig.bus.emit(effect("assistant-kit-set", { owner: "beto", kit: [{ tool: "desk", acts: ["open"] }] }, "beto")),
   ).toThrow();
 });
-it("conserva el estado al reabrir y nunca convierte al asistente en identidad", () => {
+it("keeps the state on reopening and never turns the assistant into an identity", () => {
   const rig = open();
   enable(rig);
   rig.bus.emit(effect("granted", { identity: actor, tools: ["desk"] }, "ana"));
@@ -68,7 +68,7 @@ it("conserva el estado al reabrir y nunca convierte al asistente en identidad", 
   expect(present([desk], rig.state().house, actor)).toBe(false);
   expect(assistantOfIdentity(rig.state().house, "beto")?.name).toBe("Nora");
 });
-it("adopta sin reescribir autoría vieja y rechaza una colisión histórica", () => {
+it("adopts without rewriting old authorship and refuses a historical collision", () => {
   const rig = open();
   rig.bus.emit(effect("granted", { identity: "nora", tools: ["desk"] }, "ana"));
   rig.bus.emit(effect("scene", { general: "Anterior" }, "nora"));
@@ -83,7 +83,7 @@ it("adopta sin reescribir autoría vieja y rechaza una colisión histórica", ()
   expect(rig.state().house).toEqual(before);
 });
 
-it("un titular ausente no presta adaptadores; el administrador puede deshabilitarlo después", () => {
+it("a missing holder lends no adapters; the admin may disable it afterwards", () => {
   const rig = open();
   enable(rig);
   expect(holds([desk], rig.state().house, actor, "desk")).toBe(true);
@@ -95,7 +95,7 @@ it("un titular ausente no presta adaptadores; el administrador puede deshabilita
   expect(present([desk], rig.state().house, actor)).toBe(false);
 });
 
-it("nombra los argumentos ausentes antes de interpretar al asistente como no configurado", () => {
+it("names the missing arguments before reading the assistant as not configured", () => {
   const rig = open();
   expect(() => {
     Reflect.apply(assistantOfIdentity, undefined, [rig.state().house]);

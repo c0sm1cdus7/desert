@@ -2,46 +2,46 @@ import { expect, it } from "vitest";
 import { secretBoundaryViolations } from "./secret-boundaries.ts";
 const policy = { composition: [], adapters: [], custody: [], publicTypes: [], tools: ["tool.ts"] };
 const forms = {
-  corchetes: "export function read(o: T, k: string) { return o[k]; }",
-  declaración: "export function read(o: T, k: string) { const { [k]: v } = o; return v; }",
-  asignación: "export function read(o: T, k: string) { let v: unknown; ({ [k]: v } = o); return v; }",
-  parámetro: "export function read(k: string, { [k]: v }: T) { return v; }",
+  brackets: "export function read(o: T, k: string) { return o[k]; }",
+  declaration: "export function read(o: T, k: string) { const { [k]: v } = o; return v; }",
+  assignment: "export function read(o: T, k: string) { let v: unknown; ({ [k]: v } = o); return v; }",
+  parameter: "export function read(k: string, { [k]: v }: T) { return v; }",
 };
 const values = {
-  texto: "string",
-  fecha: "Date",
-  mapa: "ReadonlyMap<string, number>",
-  conjunto: "ReadonlySet<string>",
-  expresión: "RegExp",
+  text: "string",
+  date: "Date",
+  map: "ReadonlyMap<string, number>",
+  set: "ReadonlySet<string>",
+  expression: "RegExp",
   error: "Error",
-  promesa: "Promise<number>",
+  promise: "Promise<number>",
   bytes: "Uint8Array",
-  clase: "Item",
-  fila: "{ id: string; etiqueta(): string }",
-  claseVacía: "Empty",
-  invocableConPropiedad: "(() => void) & { id: string }",
-  construibleConPropiedad: "(new () => Item) & { id: string }",
+  class: "Item",
+  row: "{ id: string; label(): string }",
+  emptyClass: "Empty",
+  callableWithProperty: "(() => void) & { id: string }",
+  constructibleWithProperty: "(new () => Item) & { id: string }",
   any: "any",
   unknown: "unknown",
   object: "object",
-  vacío: "{}",
-  función: "() => void",
+  empty: "{}",
+  function: "() => void",
   constructor: "new () => Item",
-  unión: "string | (() => void)",
+  union: "string | (() => void)",
 };
 const rejected = new Set([
   "any",
   "unknown",
   "object",
-  "vacío",
-  "función",
+  "empty",
+  "function",
   "constructor",
-  "unión",
-  "invocableConPropiedad",
-  "construibleConPropiedad",
+  "union",
+  "callableWithProperty",
+  "constructibleWithProperty",
 ]);
 for (const [form, body] of Object.entries(forms))
-  it(`212 formas: ${form} juzga el valor elegido, no el destino ni los métodos internos`, () => {
+  it(`212 forms: ${form} judges the chosen value, not the target nor the inner methods`, () => {
     const sources = Object.fromEntries(
       Object.entries(values).map(([name, value]) => [
         `${name}.ts`,
@@ -56,18 +56,18 @@ for (const [form, body] of Object.entries(forms))
       ).toBe(rejected.has(name));
   });
 for (const [name, code] of Object.entries({
-  module: "export const cargar = module.require;",
+  module: "export const load = module.require;",
   Reflect: "export const read = Reflect.get;",
-  asignaciónReservada: "const o = {}; let v: unknown; ({ ['con' + 'structor']: v } = o);",
-  asignaciónLiteral: "const o = {}; let v: unknown; ({ constructor: v } = o);",
-  asignaciónProto: "const o = {}; let v: unknown; ({ __proto__: v } = o);",
-  asignaciónPrototype: "const o = {}; let v: unknown; ({ prototype: v } = o);",
-  declaraciónConvertida: "const o = {} as Record<string, number>; const k = 'a'; const { [k]: v } = o;",
-  asignaciónConvertida: "const o = {} as Record<string, number>; const k = 'a'; let v; ({ [k]: v } = o);",
-  parámetroConvertido:
+  reservedAssignment: "const o = {}; let v: unknown; ({ ['con' + 'structor']: v } = o);",
+  literalAssignment: "const o = {}; let v: unknown; ({ constructor: v } = o);",
+  protoAssignment: "const o = {}; let v: unknown; ({ __proto__: v } = o);",
+  prototypeAssignment: "const o = {}; let v: unknown; ({ prototype: v } = o);",
+  castDeclaration: "const o = {} as Record<string, number>; const k = 'a'; const { [k]: v } = o;",
+  castAssignment: "const o = {} as Record<string, number>; const k = 'a'; let v; ({ [k]: v } = o);",
+  castParameter:
     "function read(k: string, { [k]: v }: Record<string, number>) { return v; }" +
     "read('a', {} as Record<string, number>);",
 }))
-  it(`212 formas: rechaza ${name}`, () => {
+  it(`212 forms: rejects ${name}`, () => {
     expect(secretBoundaryViolations({ "tool.ts": code }, policy).length).toBeGreaterThan(0);
   });

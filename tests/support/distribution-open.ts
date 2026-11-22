@@ -28,7 +28,7 @@ const modelMinds = {
   fingerprint: () => ({ cases: "c", skill: "s", frameTexts: "f" }),
   key: () => Promise.resolve(undefined),
   transport: () => Promise.reject(new Error("sin red")),
-  account: "prueba",
+  account: "test-account",
   capNanoUsd: 0,
   maxInputTokens: 10000,
   message: () => undefined,

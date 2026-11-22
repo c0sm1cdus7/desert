@@ -1,4 +1,4 @@
-// Explica los rechazos de contratos, autoridad y transiciones de las mentes.
+// Explains the rejections of minds' contracts, authority and transitions.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 import { object } from "../fields/visible-text.ts";

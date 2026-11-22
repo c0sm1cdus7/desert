@@ -47,7 +47,7 @@ export function kitScreen<X extends Program>(
   };
 }
 
-/** Dar y sacar dicen la carpeta y su titular; repetir el valor actual sigue apagado. */
+/** Giving and taking say the folder and its holder; repeating the current value stays off. */
 function folderConfirmation<X extends Program>(ports: SurfacePorts<X>, name: string, act: ThingAct): ThingAct {
   if (!name.startsWith("kit:") || name.slice(4).includes(":")) return act;
   const [program, group] = name.slice(4).split("/");

@@ -1,4 +1,4 @@
-// Compara inclusiones de esquemas admitidos, con recorte de campos de lectura.
+// Compares inclusions of admitted schemas, trimming reading fields.
 import { Kind, type TSchema } from "@sinclair/typebox";
 
 type Mode = "input" | "reading";

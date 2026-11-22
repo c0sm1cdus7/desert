@@ -6,13 +6,13 @@ import { toolAct } from "../../tools/act-definition.ts";
 import { MemoryHouseKeys } from "./house-keys.ts";
 import { CustodyDatabase } from "./custody-database.ts";
 import { effect } from "../../house/facts.ts";
-it("dos vínculos de una acción se anclan después del commit; un corte de ancla se recupera", async () => {
+it("two bindings of one action are anchored after the commit; an anchor cut is recovered", async () => {
   const input = Type.Object({});
   const rig = adapterHouse({
     set: toolAct(input, async (_, context) => {
       const refs = await imported(context);
       vi.spyOn(MemoryHouseKeys.prototype, "anchor").mockImplementation(() => {
-        throw new Error("corte");
+        throw new Error("cut");
       });
       return {
         status: "accepted",
@@ -32,7 +32,7 @@ it("dos vínculos de una acción se anclan después del commit; un corte de ancl
   expect((await rig.act("current")).status).toBe("accepted");
   expect(JSON.stringify(rig.facts()).match(/credential-bound/gu)).toHaveLength(2);
 });
-it("cerrar el préstamo no tapa una firma que ya devolvió su resultado público", async () => {
+it("closing the loan does not mask a signature that already returned its public result", async () => {
   const input = Type.Object({});
   const rig = adapterHouse({
     sign: toolAct(input, async (_, context) => {
@@ -42,7 +42,7 @@ it("cerrar el préstamo no tapa una firma que ya devolvió su resultado público
     }),
   });
   const fail = vi.spyOn(CustodyDatabase.prototype, "remove").mockImplementation(() => {
-    throw new Error("disco");
+    throw new Error("disk");
   });
   try {
     expect((await rig.act("sign")).status).toBe("accepted");
@@ -52,7 +52,7 @@ it("cerrar el préstamo no tapa una firma que ya devolvió su resultado público
   rig.restart();
   expect(JSON.stringify(rig.facts())).toContain("credential-purged");
 });
-it("el bus público tampoco permite fabricar un lote autenticado", () => {
+it("the public bus does not allow forging an authenticated batch either", () => {
   const rig = adapterHouse({});
   expect(() =>
     rig
@@ -66,7 +66,7 @@ it("el bus público tampoco permite fabricar un lote autenticado", () => {
       ),
   ).toThrow("E-CUSTODY-DENIED");
 });
-it("anidar el lote conserva su instante y al terminar vuelve a consultar el reloj", () => {
+it("nesting the batch keeps its instant and reads the clock again when it ends", () => {
   const rig = adapterHouse({});
   let ticks = Date.now();
   const time = vi.spyOn(Date, "now").mockImplementation(() => ++ticks);
@@ -78,7 +78,7 @@ it("anidar el lote conserva su instante y al terminar vuelve a consultar el relo
           tool: "vault",
           target: "vault",
           author: "ana",
-          text: "sintetico",
+          text: "synthetic",
         },
         "ana",
       ),

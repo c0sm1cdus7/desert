@@ -1,4 +1,4 @@
-// Diagnósticos de llaves de nube que nombran la variable sin incluir su valor.
+// Diagnostics for cloud keys that name the variable without including its value.
 export const cloudTexts = {
   root: (name: string) => `La variable ${name} debe contener una llave raíz de 64 caracteres hexadecimales.`,
   door: (name: string) =>

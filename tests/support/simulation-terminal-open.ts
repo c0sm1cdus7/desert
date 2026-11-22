@@ -34,7 +34,7 @@ const action = programAct({
   },
   cases: [
     {
-      promise: "Prueba",
+      promise: "Probe",
       input: { kind: "first", amount: 1, nested: { token: "synthetic" } },
       then: { says: "", facts: [] },
     },

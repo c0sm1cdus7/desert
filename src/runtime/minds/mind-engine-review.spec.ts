@@ -40,7 +40,7 @@ function fixture(review?: ReviewPort, marked = true) {
     rig.bus.emit(effect("kit-set", { holder: "mind:probe", tool: "probe", acts }, "ana"));
   grant(["send", "outer"]);
   const definition = {
-    id: "marcado",
+    id: "marked",
     text: "Lo que manda una mente afuera requiere supervisión",
     action: { tool: "probe", act: "send" },
     condition: { operator: "always" as const },
@@ -75,7 +75,7 @@ async function act(ports: Execution<Shop>, nested: boolean) {
   const started = execute(ports, { act: nested ? "outer" : "send", target: "probe", input: {} }, 0, "mind:probe");
   return started.status === "processing" ? started.completion : started;
 }
-it.each([false, true])("el supervisor rechaza un acto marcado, anidado=%s", async nested => {
+it.each([false, true])("the supervisor rejects a marked act, nested=%s", async nested => {
   const review = vi.fn<ReviewPort["review"]>(request => result(request, "rejected"));
   const f = fixture({ review });
   try {
@@ -90,7 +90,7 @@ it.each([false, true])("el supervisor rechaza un acto marcado, anidado=%s", asyn
     f.close();
   }
 });
-it.each([false, true])("un acto marcado que el supervisor deja pasar se aplica: anidado=%s", async nested => {
+it.each([false, true])("a marked act the supervisor lets through is applied: nested=%s", async nested => {
   const f = fixture({ review: (request: ReviewRequest) => result(request, "passed") });
   try {
     expect((await act(f.ports, nested)).status).toBe("accepted");
@@ -99,7 +99,7 @@ it.each([false, true])("un acto marcado que el supervisor deja pasar se aplica: 
     f.close();
   }
 });
-it.each([false, true])("un acto que sale de la casa sin regla no espera a nadie: anidado=%s", async nested => {
+it.each([false, true])("an act leaving the house without a rule waits for nobody: nested=%s", async nested => {
   const review = vi.fn<ReviewPort["review"]>(request => result(request, "rejected"));
   const f = fixture({ review }, false);
   try {
@@ -110,7 +110,7 @@ it.each([false, true])("un acto que sale de la casa sin regla no espera a nadie:
     f.close();
   }
 });
-it("sin supervisor, el acto marcado no se hace, lo dice y avisa a quien tiene la herramienta", async () => {
+it("without a supervisor, the marked act is not done, it says so and notifies whoever has the tool", async () => {
   const f = fixture();
   try {
     expect(await act(f.ports, false)).toMatchObject({ status: "rejected", reason: rulesTexts.waiting });
@@ -121,7 +121,7 @@ it("sin supervisor, el acto marcado no se hace, lo dice y avisa a quien tiene la
     f.close();
   }
 });
-it("un veredicto que no llega deja el acto sin hacer y dice por qué", async () => {
+it("a verdict that never arrives leaves the act undone and says why", async () => {
   const f = fixture({ review: request => ({ ...result(request, "failed"), text: "Falta la llave del proveedor." }) });
   try {
     const done = await act(f.ports, false);
@@ -132,7 +132,7 @@ it("un veredicto que no llega deja el acto sin hacer y dice por qué", async () 
     f.close();
   }
 });
-it.each([false, true])("revocar mientras espera impide la salida, aun si se vuelve a dar: %s", async regrant => {
+it.each([false, true])("revoking while it waits prevents the output, even if granted again: %s", async regrant => {
   let decide: (value: ReviewResult) => void = () => {};
   let request: ReviewRequest | undefined;
   const f = fixture({
@@ -156,7 +156,7 @@ it.each([false, true])("revocar mientras espera impide la salida, aun si se vuel
     f.close();
   }
 });
-it("relee permisos aunque no haya observador de cancelación", async () => {
+it("rereads permissions even without a cancellation observer", async () => {
   let decide: (value: ReviewResult) => void = () => {};
   let request: ReviewRequest | undefined;
   const f = fixture({
@@ -179,7 +179,7 @@ it("relee permisos aunque no haya observador de cancelación", async () => {
     f.close();
   }
 });
-it.each(["proposal", "through", "throw"])("no aprueba una revisión ajena o rota: %s", async fault => {
+it.each(["proposal", "through", "throw"])("approves no foreign or broken review: %s", async fault => {
   const f = fixture({
     review: request => {
       if (fault === "throw") throw new Error("supervisor");

@@ -1,4 +1,4 @@
-// Recorre titulares, programas, herramientas y acciones mediante listas navegables sin tope numérico.
+// Walks holders, programs, tools and actions through navigable lists with no numeric cap.
 import { sceneReading } from "./scene-reading.ts";
 import { mindMayHold, mindTool } from "../../house/kit.ts";
 import { migrateKit } from "../../house/kit-migration.ts";

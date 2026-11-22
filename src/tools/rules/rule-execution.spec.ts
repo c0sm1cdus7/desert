@@ -1,4 +1,4 @@
-// Todos los caminos comparten el freno, incluso anidados, esperas y normalización.
+// Every path shares the stop, including nested acts, waits and normalization.
 import { afterEach, expect, it, vi } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { shopRig } from "../../../tests/support/shop-rig.ts";
@@ -80,7 +80,7 @@ function fixture(normalize?: (value: unknown) => unknown) {
   const save = (definition = rule) => settle(rig.act("ana", "save", definition, "rules"));
   return { rig, ports, run, save, call, proceed: () => proceed() };
 }
-it.each(["ana", "beto", "mind:probe"])("frena a %s directamente y por una llamada anidada", async by => {
+it.each(["ana", "beto", "mind:probe"])("stops %s directly and through a nested call", async by => {
   const f = fixture();
   expect((await f.save()).status).toBe("accepted");
   for (const act of ["send", "outer"])
@@ -89,7 +89,7 @@ it.each(["ana", "beto", "mind:probe"])("frena a %s directamente y por una llamad
     );
   expect(f.run).not.toHaveBeenCalled();
 });
-it("relee la regla cambiada mientras el acto espera el veredicto, aunque el supervisor lo deje pasar", async () => {
+it("rereads the rule changed while the act awaits the verdict, even if the supervisor lets it pass", async () => {
   const f = fixture();
   expect((await f.save({ ...rule, effect: "require-supervisor" })).status).toBe("accepted");
   let finish: (result: ReviewResult) => void = () => {};
@@ -115,7 +115,7 @@ it("relee la regla cambiada mientras el acto espera el veredicto, aunque el supe
   expect((await pending).status).toBe("rejected");
   expect(f.run).not.toHaveBeenCalled();
 });
-it("una regla que frena no llega a pedir permiso al supervisor", async () => {
+it("a rule that stops never gets to ask the supervisor for permission", async () => {
   const f = fixture();
   await f.save();
   const review = vi.fn((request: ReviewRequest): ReviewResult => ({
@@ -140,7 +140,7 @@ it("una regla que frena no llega a pedir permiso al supervisor", async () => {
   expect(review).not.toHaveBeenCalled();
   expect(f.run).not.toHaveBeenCalled();
 });
-it("comprueba otra vez antes del adaptador después de una espera dentro de la acción", async () => {
+it("checks again before the adapter after a wait inside the action", async () => {
   const f = fixture();
   const pending = settle(execute(f.ports, { act: "delayed", target: "probe", input: { amount: 11 } }, 0, "ana"));
   await f.save({ ...rule, action: { tool: "probe", act: "delayed" } });
@@ -148,7 +148,7 @@ it("comprueba otra vez antes del adaptador después de una espera dentro de la a
   expect((await pending).status).toBe("rejected");
   expect(f.call).not.toHaveBeenCalled();
 });
-it("evalúa el valor normalizado que ejecutará el cuerpo y normaliza una sola vez", async () => {
+it("evaluates the normalized value the body will run and normalizes only once", async () => {
   const normalize = vi.fn(() => ({ amount: 11 }));
   const f = fixture(normalize);
   await f.save();
@@ -158,7 +158,7 @@ it("evalúa el valor normalizado que ejecutará el cuerpo y normaliza una sola v
   expect(normalize).toHaveBeenCalledOnce();
   expect(f.run).not.toHaveBeenCalled();
 });
-it("si cambia el esquema instalado, la regla vigente frena hasta corregirse", async () => {
+it("if the installed schema changes, the current rule stops until corrected", async () => {
   const f = fixture();
   await f.save();
   const send = f.ports.registry.find(tool => tool.id === "probe")?.acts.send;

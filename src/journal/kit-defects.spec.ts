@@ -41,7 +41,7 @@ function open(wrapped: boolean, failure: "defect" | "cut", reach: "house" | "wor
   return { rig, start, gate, cut };
 }
 
-it.each([false, true])("R3: conserva diagnóstico y atención del defecto, envuelto=%s", async wrapped => {
+it.each([false, true])("R3: keeps the defect's diagnostic and attention, wrapped=%s", async wrapped => {
   for (const reach of ["house", "world"] as const) {
     for (const cut of [false, true]) {
       const test = open(wrapped, "defect", reach);
@@ -64,7 +64,7 @@ it.each([false, true])("R3: conserva diagnóstico y atención del defecto, envue
   }
 });
 
-it.each([false, true])("el motivo de la señal no es un defecto, envuelto=%s", async wrapped => {
+it.each([false, true])("the signal's reason is not a defect, wrapped=%s", async wrapped => {
   const test = open(wrapped, "cut");
   const pending = test.start();
   test.cut();

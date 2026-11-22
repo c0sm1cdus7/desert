@@ -122,7 +122,7 @@ describe("a house on disk", () => {
   });
 });
 
-it("rechaza al componer posiciones secretas sin proveedor y admite programas sin ellas (a5)", () => {
+it("rejects secret positions without a provider when composing and admits programs without them (a5)", () => {
   const path = home();
   const { secretKeys: _keys, ...withoutKeys } = options;
   expect(() => startHouse(path, withoutKeys)).toThrow(expect.objectContaining({ code: "E-CUSTODY-PROVIDER" }));
@@ -132,7 +132,7 @@ it("rechaza al componer posiciones secretas sin proveedor y admite programas sin
   expect(plain.tools.state().house.admin).toBe("ana");
 });
 
-it("un hecho con posición secreta también exige proveedor al componer", () => {
+it("a fact with a secret position also requires a provider when composing", () => {
   const path = home();
   const { secretKeys: _keys, ...withoutKeys } = options;
   expect(() =>
@@ -145,7 +145,7 @@ it("un hecho con posición secreta también exige proveedor al componer", () => 
   expect(existsSync(join(path, "journal.sqlite"))).toBe(false);
 });
 
-it("las acciones propias declaradas al componer también exigen proveedor", () => {
+it("own actions declared when composing also require a provider", () => {
   const { secretKeys: _keys, ...withoutKeys } = options;
   for (const input of [Type.Object({ value: Type.String() }), key]) {
     const path = home();
@@ -168,7 +168,7 @@ it("las acciones propias declaradas al componer también exigen proveedor", () =
     } else expect(open().tools.state().house.admin).toBe("ana");
   }
 });
-it("control roto: la limpieza literal previa sigue protegiendo a una acción que repite el ingreso", () => {
+it("broken control: the earlier literal scrub still protects an action that repeats the input", () => {
   const echo = toolAct<Shop, typeof key>(key, input => ({ status: "accepted", text: `Kept ${input.value}` }));
   const house = start(home(), { registry: [...shopRegistry, { ...vault, acts: { set: echo } }] });
   const ana = localPorts(house, "ana", { recentLines: 20 });
@@ -177,7 +177,7 @@ it("control roto: la limpieza literal previa sigue protegiendo a una acción que
   expect(JSON.stringify(facts(house))).not.toContain(secretKey);
   expect(JSON.stringify(facts(house))).toContain("Kept secret:");
 });
-it("declarar vínculos exige proveedor aunque no haya campos secretos", () => {
+it("declaring links requires a provider even with no secret fields", () => {
   const { secretKeys: _keys, ...withoutKeys } = options;
   expect(() =>
     startHouse(home(), { ...withoutKeys, registry: shopRegistry, credentialSlots: { sales: ["signing"] } }),

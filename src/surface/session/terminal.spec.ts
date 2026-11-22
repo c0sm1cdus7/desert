@@ -25,7 +25,7 @@ async function press(session: Session, keys: string, tools: readonly Tool[]): Pr
   return now;
 }
 describe("the terminal, on rules", () => {
-  it("derives the Menu and the list, with Acciones last, from the tool alone", async () => {
+  it("derives the Menu and the list, with «Acciones» last, from the tool alone", async () => {
     const tools = [rulesTool(seed())];
     expect(shown(start, tools)[0]).toContain("Menú");
     expect(shown(start, tools)[5]?.trim()).toMatch(/^\[r\] reglas +1 tuyas · 1 de Nora$/u);

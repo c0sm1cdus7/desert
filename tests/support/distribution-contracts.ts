@@ -19,7 +19,7 @@ import { presentation } from "./installable-program.ts";
 export { input, rejection, receipt, sales, documents, required } from "./contract-packages.ts";
 export type Demo = DistributionOf<typeof contractPrograms>;
 const build = { core: "fixture-core", executor: "fixture-executor" };
-// La compuerta necesita ejecutar el adaptador antes de que exista evidencia para componer.
+// The gate needs to run the adapter before there is evidence to compose.
 const installed = contractPrograms.map(program => ({ id: program.id, ...program.install() }));
 const candidate: Composition<Program> = {
   identities: true,

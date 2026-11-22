@@ -19,7 +19,7 @@ const words = vocabulary({
   }),
 });
 for (const exposed of [true, false])
-  it(`la revisión de hechos recorre listas, uniones y opcionales: ${exposed}`, () => {
+  it(`the fact review walks lists, unions and optionals: ${exposed}`, () => {
     const rig = fixture();
     const path = home();
     const journal = new SqliteJournal(join(path, "journal.sqlite"), protectedVocabulary(words));
@@ -40,7 +40,7 @@ for (const exposed of [true, false])
         "nested",
         {
           "a/b~": [],
-          choice: { kind: "public", value: "público" },
+          choice: { kind: "public", value: "public" },
         },
         "ana",
       ),
@@ -75,13 +75,13 @@ for (const exposed of [true, false])
       });
     }
   });
-it("un valor histórico que excede el esquema actual también falla con tipo y posición", () => {
+it("a historical value that exceeds the current schema also fails with type and position", () => {
   const rig = fixture();
   const path = home();
   const oldWords = vocabulary({ token: Type.Object({ value: Type.String() }) });
   const current = vocabulary({ token: Type.Object({ value: Type.String({ secret: true, maxLength: 1 }) }) });
   const journal = new SqliteJournal(join(path, "journal.sqlite"), oldWords);
-  journal.append(oldWords.fact("token", { value: "INVENTADO-LARGO" }, "ana"), 1000);
+  journal.append(oldWords.fact("token", { value: "INVENTED-LONG" }, "ana"), 1000);
   journal.close();
   expect(() =>
     protectHistory(path, {

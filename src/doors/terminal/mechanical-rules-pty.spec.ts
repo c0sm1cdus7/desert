@@ -1,11 +1,11 @@
-// Un proceso real en una pseudoterminal confirma el acto y recibe el freno común del core.
+// A real process in a pseudoterminal confirms the act and receives the core's common block.
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
 import { realTerminal } from "../../checks/real-terminal.ts";
 import { rulesTexts } from "../../texts/rules.texts.ts";
-it("el admin confirma una venta por la terminal real y la regla la frena", async () => {
+it("the admin confirms a sale through the real terminal and the rule blocks it", async () => {
   const home = mkdtempSync(join(tmpdir(), "mechanical-terminal-"));
   const terminal = realTerminal(
     [process.execPath, join(import.meta.dirname, "../../../tests/support/rules-terminal-open.ts"), home],

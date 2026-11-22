@@ -1,4 +1,4 @@
-// Escribe lotes atómicos con causas del core; los hechos de una reacción apuntan al aviso original.
+// Writes atomic batches with core causes; a reaction's facts point to the original notice.
 import { failureOrigin } from "../boundaries/failure-origin.ts";
 import type { Emission } from "../../journal/vocabulary.ts";
 import type { HouseEvent } from "../../house/facts.ts";

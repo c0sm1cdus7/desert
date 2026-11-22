@@ -34,7 +34,7 @@ import { startHouse } from "../../runtime/house-runtime.ts";
 import * as vault from "./open-secret-vault.ts";
 for (const bound of [true, false])
   for (const withKeys of [false, true])
-    it(`B3: abre y recorre antes y después de renovar, vínculos=${bound}, proveedor=${withKeys}`, async () => {
+    it(`B3: opens and walks before and after renewing, bound=${bound}, provider=${withKeys}`, async () => {
       const rig = adapterHouse({ rotate: sign }, { view: () => "{}" });
       if (bound) expect((await rig.act("rotate")).status).toBe("accepted");
       rig.close();
@@ -57,8 +57,8 @@ for (const bound of [true, false])
         vi.spyOn(keys, "forgetHouse"),
       ];
       const variant = withKeys ? { ...program, secretKeys: keys } : program;
-      for (const version of ["desert/1", "desert/3", "renovado"]) {
-        if (version === "renovado") expect(renewKeptJournals(program, folder)).toEqual(["kept.sqlite"]);
+      for (const version of ["desert/1", "desert/3", "renewed"]) {
+        if (version === "renewed") expect(renewKeptJournals(program, folder)).toEqual(["kept.sqlite"]);
         else base.version = version;
         const checks = keptChecks(variant, inspectionShown, folder);
         // The manual evidence must be renewed after changing the calculation version.
@@ -70,7 +70,7 @@ for (const bound of [true, false])
       for (const call of calls) expect(call).not.toHaveBeenCalled();
     });
 
-it("B3: inspeccionar nunca abre custodia, ejecuta un adaptador ni habilita una casa viva", async () => {
+it("B3: inspecting never opens custody, runs an adapter or enables a live house", async () => {
   let used = false;
   const rig = adapterHouse({
     rotate: toolAct(Type.Object({}), async (_, ctx) => ({
@@ -126,13 +126,13 @@ it("B3: inspeccionar nunca abre custodia, ejecuta un adaptador ni habilita una c
   }
 });
 
-it("B3: no captura, vincula ni libera; el préstamo de referencias termina al cerrar", () => {
+it("B3: does not capture, bind or release; the loan of references ends on close", () => {
   const scope = { actor: "ana", tool: "vault", target: "vault" };
   const lease = inspectionCapabilities({ credentialSlots: { vault: ["signing"] } }, [])(scope);
   expect(lease.credentials.current("signing")).toBeUndefined();
   expect(lease.credentials.revision("signing")).toBe(0);
-  expect(() => lease.credentials.current("ajena")).toThrow("E-CUSTODY-DENIED");
-  expect(() => lease.capture("sintético")).toThrow("E-CUSTODY-DENIED");
+  expect(() => lease.credentials.current("foreign")).toThrow("E-CUSTODY-DENIED");
+  expect(() => lease.capture("synthetic")).toThrow("E-CUSTODY-DENIED");
   expect(() => lease.credentials.replace("signing", {}, 0)).toThrow("E-CUSTODY-DENIED");
   expect(() => lease.credentials.release("signing", 0)).toThrow("E-CUSTODY-DENIED");
   lease.close();

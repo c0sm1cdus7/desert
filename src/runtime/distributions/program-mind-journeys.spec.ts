@@ -18,7 +18,7 @@ const fixture = () => {
   return f;
 };
 afterEach(() => fixtures.splice(0).forEach(f => f.cleanup()));
-it("dos programas: solo Notas piensa, escribe su escena y un journey actúa con el kit dado", async () => {
+it("two programs: only Notes thinks, writes its scene, and a journey acts with the given kit", async () => {
   const f = fixture();
   const house = await f.open();
   expect(f.distribution.mindDefinitions.map(mind => mind.actor)).toEqual(["mind:notes"]);
@@ -83,7 +83,7 @@ it("dos programas: solo Notas piensa, escribe su escena y un journey actúa con 
   );
   expect(authors).toEqual(["ana", "mind:notes"]);
 });
-it("un journey sin kit no ejecuta una acción aunque el transporte la proponga", async () => {
+it("a journey without a kit does not run an action even if the transport proposes it", async () => {
   const f = fixture();
   const house = await f.open();
   let calls = 0;
@@ -108,7 +108,7 @@ it("un journey sin kit no ejecuta una acción aunque el transporte la proponga",
   expect(turns.at(-1)?.opened.process).toBeUndefined();
   expect(journey?.selections?.selections).toEqual([]);
 });
-it("abre con mente una casa creada sin pensamiento y conserva sus notas", async () => {
+it("opens with a mind a house created without thinking and keeps its notes", async () => {
   const f = fixture();
   const first = await f.open({}, false);
   f.wake(first);
@@ -121,7 +121,7 @@ it("abre con mente una casa creada sin pensamiento y conserva sus notas", async 
   expect(second.tools.state().house.scenes.get("mind:notes")?.data.general).toBe("Banco aprobado");
   expect(f.transport).toHaveBeenCalledOnce();
 });
-it("la consciencia ya no tiene mensaje nativo: habla por programas y un mensaje propuesto no deja hechos", async () => {
+it("the consciousness has no native message: it talks via programs; a proposed message leaves no facts", async () => {
   const f = fixture();
   expect(f.distribution.mindDefinitions[0]?.communication).toEqual([{ tool: "mind", act: "scene" }]);
   const house = await f.open();

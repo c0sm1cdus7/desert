@@ -1,5 +1,5 @@
-// Cuarta revisión: el mantenimiento conserva los plegados, igual que la apertura.
-// Datos inventados; llavero en memoria.
+// Fourth review: maintenance keeps the folds, just as opening does.
+// Invented data; in-memory keyring.
 import { expect, it, vi } from "vitest";
 import { cpSync, rmSync } from "node:fs";
 import { join } from "node:path";
@@ -31,7 +31,7 @@ const snapshots = (path: string) => {
     db.close();
   }
 };
-it("N1-a: aceptar una restauración por mantenimiento conserva los plegados guardados", async () => {
+it("N1-a: accepting a restore through maintenance keeps the stored folds", async () => {
   const warnings: string[] = [];
   const listen = (w: Error) => warnings.push(w.message);
   process.on("warning", listen);
@@ -63,7 +63,7 @@ it("N1-a: aceptar una restauración por mantenimiento conserva los plegados guar
     rmSync(backup, { recursive: true, force: true });
   }
 });
-it("N1-b: reintentar un borrado pendiente por mantenimiento conserva los plegados guardados", async () => {
+it("N1-b: retrying a pending deletion through maintenance keeps the stored folds", async () => {
   const warnings: string[] = [];
   const listen = (w: Error) => warnings.push(w.message);
   process.on("warning", listen);
@@ -74,7 +74,7 @@ it("N1-b: reintentar un borrado pendiente por mantenimiento conserva los plegado
     rig.restart();
     await rig.act("rotate");
     const fail = vi.spyOn(CustodyDatabase.prototype, "remove").mockImplementation(() => {
-      throw new Error("disco");
+      throw new Error("disk");
     });
     expect(await rig.act("release")).toMatchObject({ status: "accepted", cleanupPending: true });
     rig.close();
@@ -95,7 +95,7 @@ it("N1-b: reintentar un borrado pendiente por mantenimiento conserva los plegado
 });
 
 for (const operation of ["adopt", "discard"] as const)
-  it(`B1: ${operation} conserva los plegados de ambas identidades y pliega la cola al abrir`, () => {
+  it(`B1: ${operation} keeps both identities' folds and folds the tail on opening`, () => {
     const rig = adapterHouse(acts);
     rig.close();
     startHouse(rig.path, { ...rig.options, by: "beto" }).close();

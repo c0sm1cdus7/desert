@@ -155,7 +155,7 @@ export const paymentsTool: ProgramTool<Shop> = {
           : { status: "accepted", text: `Avisado · Pago sin venta · ${input.payment}`, attention: true },
       cases: [
         {
-          promise: "un pago sin venta pide atención",
+          promise: "a payment with no sale asks for attention",
           input: { payment: "p2", amount: 100 },
           then: { says: "Avisado · Pago sin venta · p2", facts: [] },
         },

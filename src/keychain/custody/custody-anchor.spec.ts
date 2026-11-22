@@ -6,7 +6,7 @@ import { SecretCustody } from "./secret-custody.ts";
 import { CustodyDatabase } from "./custody-database.ts";
 describe.each(keyProviders)("$name", provider => {
   for (const after of [false, true])
-    it(`un corte ${after ? "después" : "antes"} de anclar recupera un agregado`, () => {
+    it(`a cut ${after ? "after" : "before"} anchoring recovers an addition`, () => {
       const rig = custodyRig(provider.open),
         store = rig.open(),
         session = store.begin(custodyScope);
@@ -14,7 +14,7 @@ describe.each(keyProviders)("$name", provider => {
       const anchor = rig.keys.anchor.bind(rig.keys);
       const fail = vi.spyOn(rig.keys, "anchor").mockImplementation((house, head) => {
         if (after) anchor(house, head);
-        throw new Error("corte");
+        throw new Error("cut");
       });
       expect(() => session.replace("signing", refs, 0)).not.toThrow();
       expect(store.anchorPending()).toBe(true);
@@ -23,7 +23,7 @@ describe.each(keyProviders)("$name", provider => {
       const again = rig.open();
       expect(again.begin(custodyScope).current("signing")?.refs).toEqual(refs);
     });
-  it("dos agregados por delante del ancla no se aceptan como un corte simple", () => {
+  it("two additions ahead of the anchor are not accepted as a simple cut", () => {
     const rig = custodyRig(provider.open),
       store = rig.open(),
       session = store.begin(custodyScope);
@@ -39,7 +39,7 @@ describe.each(keyProviders)("$name", provider => {
     expect(() => rig.open()).toThrow("E-CUSTODY-ROLLBACK");
   });
   for (const shape of ["empty", "empty-plus-marker", "prefix", "missing", "different"])
-    it(`el ancla detecta ${shape}; no modifica el registro rechazado`, () => {
+    it(`the anchor detects ${shape}; it does not modify the rejected record`, () => {
       const rig = custodyRig(provider.open),
         store = rig.open(),
         session = store.begin(custodyScope);
@@ -60,7 +60,7 @@ describe.each(keyProviders)("$name", provider => {
         shape === "missing" ? "E-CUSTODY-KEY" : /E-CUSTODY-ROLLBACK.*ancla espera.*vínculos/u,
       );
     });
-  it("aceptar una restauración verifica todo antes de mover el ancla", () => {
+  it("accepting a restore verifies everything before moving the anchor", () => {
     const rig = custodyRig(provider.open),
       store = rig.open(),
       session = store.begin(custodyScope);
@@ -76,13 +76,13 @@ describe.each(keyProviders)("$name", provider => {
     expect(() => SecretCustody.acceptRestoredCopy(rig.file, rig.home, rig.keys, head)).toThrow("E-CUSTODY-MISSING");
     expect(rig.keys.head(house)).toEqual(before);
   });
-  it("un lote de varios vínculos es un solo agregado recuperable y no admite un prefijo cortado", () => {
+  it("a batch of several bindings is one recoverable addition and admits no cut prefix", () => {
     const rig = custodyRig(provider.open),
       store = rig.open(),
       session = store.begin(custodyScope);
     const refs = { key: session.capture(Buffer.from("invented")) };
     const anchor = vi.spyOn(rig.keys, "anchor").mockImplementation(() => {
-      throw new Error("corte");
+      throw new Error("cut");
     });
     expect(() =>
       store.deferCleanup(() => {
@@ -102,7 +102,7 @@ describe.each(keyProviders)("$name", provider => {
     db.close();
     expect(() => rig.open()).toThrow("E-CUSTODY-INTEGRITY");
   });
-  it("los recibos de la versión retirada no ocultan el material ausente del vínculo vigente", () => {
+  it("receipts of the retired version do not hide the missing material of the current binding", () => {
     const rig = custodyRig(provider.open),
       store = rig.open(),
       session = store.begin(custodyScope);

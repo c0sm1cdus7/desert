@@ -1,4 +1,4 @@
-// Conserva versiones, aprobaciones, retiros y resultados mecánicos en hechos del core.
+// Keeps versions, approvals, retirements and mechanical results in core facts.
 import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
 import { ruleDefinition } from "./rule-schema.ts";

@@ -42,7 +42,7 @@ function open() {
   return { rig, calls, kit, journey };
 }
 
-it("el hijo ofrecido por la casa también corre por cuenta del padre", async () => {
+it("the child the house offers also runs on the parent's account", async () => {
   const { rig, calls, kit } = open();
   const parent = rig.act("beto", "run", {}, "slow");
   const child = calls[0]?.context.execute?.({ act: "own", target: "slow", input: {} });
@@ -54,7 +54,7 @@ it("el hijo ofrecido por la casa también corre por cuenta del padre", async () 
   expect(rig.state().entries).toEqual([]);
 });
 
-it("un journey de la mente corta su cadena y mantiene la procedencia en cada cierre", async () => {
+it("a mind's journey cuts its chain and keeps provenance at each closure", async () => {
   const { rig, calls, kit, journey } = open();
   kit("mind:slow", null);
   const parent = rig.tools().act({ act: "run", target: "slow", input: {} }, 0, "mind:slow", [journey]);

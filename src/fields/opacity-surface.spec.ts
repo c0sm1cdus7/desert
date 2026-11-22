@@ -6,7 +6,7 @@ import { shopShown } from "../../tests/support/shop.ts";
 import { fixture, ref, field } from "../../tests/support/secret-rig.ts";
 import { holding, when, text } from "./fields.ts";
 const words = questionWords(() => 1000, shopShown);
-it("la pregunta es secreta y holding y when solo reciben referencias", () => {
+it("the question is secret, and holding and when receive only references", () => {
   const seen: unknown[] = [];
   const input = Type.Object({
     value: holding(
@@ -28,7 +28,7 @@ it("la pregunta es secreta y holding y when solo reciben referencias", () => {
   expect(seen.length).toBeGreaterThan(0);
   expect(seen.every(ref)).toBe(true);
 });
-it("la entrada de preguntas transfiere el material solo a la base", () => {
+it("the question entry hands the material only to the base", () => {
   const input = Type.Object({
     value: Type.String({ secret: true, title: "Material", placeholder: "Material", maxLength: 4, minLength: 2 }),
   });
@@ -44,7 +44,7 @@ it("la entrada de preguntas transfiere el material solo a la base", () => {
   expect(ref(received)).toBe(true);
 });
 
-it("confirms y stops de una acción reciben referencias antes de ejecutar", async () => {
+it("an action's confirms and stops receive references before running", async () => {
   const { walked } = await import("../surface/bridge/acts/asked-act.ts");
   const { opacityProgram } = await import("../../tests/support/opacity-program.ts");
   const { staged } = await import("../checks/promises/promised-stage.ts");
@@ -52,7 +52,7 @@ it("confirms y stops de una acción reciben referencias antes de ejecutar", asyn
   const seen: unknown[] = [];
   const program = opacityProgram(undefined, undefined, seen);
   const act = program.registry.find(tool => tool.id === "vault")?.acts.set;
-  if (!act) throw new Error("Falta acción");
+  if (!act) throw new Error("Missing action");
   await staged(program, ({ house }) => {
     const ports = localPorts(house(), "ana", { recentLines: 20 });
     const walkedAct = walked(
@@ -60,16 +60,16 @@ it("confirms y stops de una acción reciben referencias antes de ejecutar", asyn
       { tool: "vault", name: "set", act },
       { ...shopShown, day: undefined, things: () => undefined, titled: () => "Material" },
     );
-    walkedAct.walk.stops(["UNO\nDOS", "OTRO"], "vault");
-    walkedAct.walk.next(["UNO\nDOS", "OTRO"], "vault");
+    walkedAct.walk.stops(["ONE\nTWO", "OTHER"], "vault");
+    walkedAct.walk.next(["ONE\nTWO", "OTHER"], "vault");
     expect(seen.length).toBeGreaterThanOrEqual(2);
     expect(seen.every(input => ref(field(input, "first")) && ref(field(input, "second")))).toBe(true);
-    expect(JSON.stringify(seen)).not.toContain("UNO");
+    expect(JSON.stringify(seen)).not.toContain("ONE");
     return Promise.resolve();
   });
 });
 
-it("cancelar no deja material canjeable en las referencias vistas por callbacks", () => {
+it("cancelling leaves no redeemable material in the references callbacks saw", () => {
   const input = Type.Object({ value: Type.String({ secret: true, title: "Material", maxLength: 4 }) });
   const ask = asking(input, words);
   const visible = ask.input(["datum"]);
@@ -78,14 +78,14 @@ it("cancelar no deja material canjeable en las referencias vistas por callbacks"
   expect(rig.set(visible).status).toBe("rejected");
 });
 
-it("P3: el defecto de confirmación solo puede copiar la referencia recibida", async () => {
+it("P3: the confirmation defect can only copy the reference it received", async () => {
   const { walked } = await import("../surface/bridge/acts/asked-act.ts");
   const { opacityProgram } = await import("../../tests/support/opacity-program.ts");
   const { staged } = await import("../checks/promises/promised-stage.ts");
   const { localPorts } = await import("../runtime/house-runtime.ts");
   const program = opacityProgram();
   const base = program.registry.find(tool => tool.id === "vault")?.acts.set;
-  if (!base) throw new Error("Falta acción");
+  if (!base) throw new Error("Missing action");
   await staged(program, ({ house }) => {
     const ports = localPorts(house(), "ana", { recentLines: 20 });
     const act = {
@@ -106,24 +106,24 @@ it("P3: el defecto de confirmación solo puede copiar la referencia recibida", a
     );
     let failed = false;
     try {
-      question.walk.next(["MATERIAL_DEL_DEFECTO", "OTRO"], "vault");
+      question.walk.next(["DEFECT_MATERIAL", "OTHER"], "vault");
     } catch (error) {
       failed = true;
       ports.defect(error, "vault", "vault", "set");
     }
     expect(failed).toBe(true);
     const facts = house().journal.replay<unknown[]>([], (all, event) => [...all, event]);
-    expect(JSON.stringify(facts)).not.toContain("MATERIAL_DEL_DEFECTO");
+    expect(JSON.stringify(facts)).not.toContain("DEFECT_MATERIAL");
     expect(JSON.stringify(facts)).toContain("secret:");
     return Promise.resolve();
   });
 });
 
-it("dos posiciones iguales tienen referencias distintas también al confirmar", () => {
+it("two equal positions get distinct references when confirming too", () => {
   const value = Type.String({ secret: true, title: "Material", maxLength: 10 });
   const ask = asking(Type.Object({ first: value, second: value }), words);
-  const input = ask.input(["igual", "igual"]);
+  const input = ask.input(["same", "same"]);
   expect(ref(field(input, "first")) && ref(field(input, "second"))).toBe(true);
   expect(field(input, "first")).not.toBe(field(input, "second"));
-  expect(ask.input(["igual", "igual"])).toEqual(input);
+  expect(ask.input(["same", "same"])).toEqual(input);
 });

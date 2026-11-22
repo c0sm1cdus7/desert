@@ -1,4 +1,4 @@
-// Calcula permisos de identidades sin depender de los asistentes que reciben su delegación.
+// Computes identity permissions without depending on the assistants that receive their delegation.
 import { holderKit } from "../kit-history.ts";
 import { toolOf, selects, type KitLayout } from "../kit-selection.ts";
 import type { House } from "../members.ts";

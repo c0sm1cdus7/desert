@@ -9,8 +9,8 @@ function restored() {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const missing = session.capture(Buffer.from("anterior")),
-    stable = session.capture(Buffer.from("estable"));
+  const missing = session.capture(Buffer.from("previous")),
+    stable = session.capture(Buffer.from("stable"));
   session.replace("signing", { key: missing }, 0);
   session.replace("ticket", { key: stable }, 0);
   const head = custodyHead(store.facts());
@@ -25,11 +25,11 @@ function restored() {
 }
 for (const method of ["appendBatch", "remove", "anchor"] as const)
   for (const after of [false, true])
-    it(`retoma la aceptación interrumpida ${after ? "después" : "antes"} de ${method}`, async () => {
+    it(`resumes the acceptance interrupted ${after ? "after" : "before"} ${method}`, async () => {
       const rig = restored();
       let calls = 0;
       const point = () => {
-        if (++calls === 1) throw new Error("corte inventado");
+        if (++calls === 1) throw new Error("invented cut");
       };
       const wrap =
         <A extends unknown[], R>(body: (...args: A) => R) =>
@@ -71,9 +71,9 @@ for (const method of ["appendBatch", "remove", "anchor"] as const)
       expect(store.ids()).not.toContain(rig.missing);
       expect(store.facts().filter(fact => fact.kind === "credential-unusable")).toHaveLength(1);
       expect(store.facts().filter(fact => fact.kind === "credential-purged")).toHaveLength(1);
-      await expect(store.adapter(session, ["ticket"]).use({ key: rig.stable }, () => "acuse")).resolves.toBe("acuse");
+      await expect(store.adapter(session, ["ticket"]).use({ key: rig.stable }, () => "ack")).resolves.toBe("ack");
     });
-it("verifica antes de aceptar: adulterar una fila no mueve el ancla ni purga material", () => {
+it("verifies before accepting: tampering with a row neither moves the anchor nor purges material", () => {
   const rig = restored();
   const db = new CustodyDatabase(rig.file);
   db.db.exec(
@@ -86,7 +86,7 @@ it("verifica antes de aceptar: adulterar una fila no mueve el ancla ni purga mat
   expect(anchor).not.toHaveBeenCalled();
   expect(remove).not.toHaveBeenCalled();
 });
-it("la aceptación termina de purgar antes de mover el ancla", () => {
+it("acceptance finishes purging before moving the anchor", () => {
   const rig = restored(),
     anchored: string[][] = [];
   const anchor = rig.keys.anchor.bind(rig.keys);

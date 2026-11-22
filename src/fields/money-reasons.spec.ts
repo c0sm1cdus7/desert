@@ -7,16 +7,16 @@ import { formats } from "../surface/formats/masks.ts";
 import type { Asking } from "../surface/session/walk-state.ts";
 
 it.each([
-  ["mínimo", "pantalla"],
-  ["defineProgram", "pantalla"],
-  ["mínimo", "tecla"],
-  ["defineProgram", "tecla"],
+  ["minimum", "screen"],
+  ["program-held", "screen"],
+  ["minimum", "key"],
+  ["program-held", "key"],
 ] as const)("Q1: %s / %s checks the empty amount in the new currency", (state, entrance) => {
   const h = readyMatrix(state);
-  if (state === "defineProgram") h.send({ kind: "confirm" });
-  expect(JSON.stringify(h.screen())).toContain(state === "mínimo" ? "mínimo $ 0,01" : "importe retenido");
+  if (state === "program-held") h.send({ kind: "confirm" });
+  expect(JSON.stringify(h.screen())).toContain(state === "minimum" ? "mínimo $ 0,01" : "importe retenido");
   h.sale.currency = "US$";
-  if (entrance === "tecla") h.send({ kind: "erase" });
+  if (entrance === "key") h.send({ kind: "erase" });
   const screen = h.screen();
   expect(screen.body).toMatchObject({ entry: { typed: "", placeholder: "US$ 0,00" } });
   expect(JSON.stringify(screen)).not.toMatch(/mínimo|importe retenido/u);

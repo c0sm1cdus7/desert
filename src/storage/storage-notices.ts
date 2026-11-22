@@ -1,4 +1,4 @@
-// Conserva diagnósticos de apertura fuera del diario y de la salida de la terminal.
+// Keeps opening diagnostics outside the journal and the terminal's output.
 import { closeSync, constants, fstatSync, openSync, readSync, writeSync } from "node:fs";
 import { join } from "node:path";
 import type { FoldWarning } from "../journal/snapshot-format.ts";

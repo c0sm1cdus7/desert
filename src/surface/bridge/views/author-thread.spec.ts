@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import type { Conversation, Said, Tool } from "../../contract/shown-tool.ts";
 import { authorThread } from "./author-thread.ts";
 import { talkBody, startTalk } from "../../session/talk.ts";
-it("nombra hilos de objetos, conserva el foco y relee los nombres sin mutar los mensajes", () => {
+it("names object threads, keeps the focus and rereads the names without mutating the messages", () => {
   let name = "Lucía";
   const message: Said = {
     id: "m1",

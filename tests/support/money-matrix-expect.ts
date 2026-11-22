@@ -1,3 +1,4 @@
+// What the money matrix expects on screen after each state receives each event.
 import type { MatrixEvent, MatrixState } from "./money-matrix-seat.ts";
 type Expected = {
   entry: string | undefined;
@@ -9,17 +10,17 @@ type Expected = {
   currency: string;
 };
 const baseReasons: Partial<Record<MatrixState, string>> = {
-  "falta completar": "falta completar",
-  mínimo: "mínimo $ 0,01",
-  "solo números": "solo números",
-  "cambió la moneda": "cambió la moneda",
-  defineProgram: "importe retenido",
-  Error: "Error el proveedor no respondió",
+  missing: "falta completar",
+  minimum: "mínimo $ 0,01",
+  "digits-only": "solo números",
+  "currency-changed": "cambió la moneda",
+  "program-held": "importe retenido",
+  failed: "Error el proveedor no respondió",
 };
 const rawOf = (state: MatrixState): string => {
-  if (["vacío", "falta completar", "cambió la moneda"].includes(state)) return "";
-  if (["cero", "mínimo"].includes(state)) return "0";
-  return state === "tope" ? "9999999999999" : "500";
+  if (["empty", "missing", "currency-changed"].includes(state)) return "";
+  if (["zero", "minimum"].includes(state)) return "0";
+  return state === "cap" ? "9999999999999" : "500";
 };
 const formatted = (raw: string, currency: string): string => {
   if (!raw) return "";
@@ -27,22 +28,22 @@ const formatted = (raw: string, currency: string): string => {
   return `${currency} ${padded.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, ".")},${padded.slice(-2)}`;
 };
 const rejection: Partial<Record<MatrixEvent, string>> = {
-  espacio: "sin espacios",
-  menos: "sin signo",
-  más: "sin signo",
-  coma: "solo números",
-  punto: "solo números",
-  letra: "solo números",
-  pegado: "sin signo",
+  space: "sin espacios",
+  minus: "sin signo",
+  plus: "sin signo",
+  comma: "solo números",
+  dot: "solo números",
+  letter: "solo números",
+  paste: "sin signo",
 };
 function editing(state: MatrixState, event: MatrixEvent, want: Expected): Expected {
   let raw = rawOf(state);
   const before = raw;
   let reason = rejection[event];
-  if (event === "borrar") raw = raw.slice(0, -1);
-  if (["dígito", "cero", "pegado"].includes(event)) {
-    const typed = event === "cero" ? "0" : "7";
-    const digits = event === "pegado" ? "123456" : typed;
+  if (event === "erase") raw = raw.slice(0, -1);
+  if (["digit", "zero", "paste"].includes(event)) {
+    const typed = event === "zero" ? "0" : "7";
+    const digits = event === "paste" ? "123456" : typed;
     for (const digit of digits) {
       if (raw.length === 13) reason ??= `máximo ${want.currency} 99.999.999.999,99`;
       else if (raw === "0" && digit === "0") reason ??= "cero inicial descartado";
@@ -53,7 +54,7 @@ function editing(state: MatrixState, event: MatrixEvent, want: Expected): Expect
   if (event === "Enter") {
     if (!raw) want.reasons = [...new Set([...want.reasons, "falta completar"])];
     else if (raw === "0") want.reasons = [`mínimo ${want.currency} 0,01`];
-    else if (state !== "defineProgram")
+    else if (state !== "program-held")
       return { ...want, phase: "running", pos: 1, entry: undefined, reasons: [], place: "Procesando" };
   }
   if (reason && !want.reasons.includes(reason)) want.reasons.push(reason);
@@ -68,11 +69,11 @@ export function expectedMatrix(state: MatrixState, event: MatrixEvent): Expected
     phase: "asking",
     pos: 0,
     place: "Importe",
-    currency: state === "cambió la moneda" ? "US$" : "$",
+    currency: state === "currency-changed" ? "US$" : "$",
   };
-  if (state === "en vuelo" || state === "terminada") {
-    const done = state === "terminada" || event === "bien";
-    if (state === "en vuelo" && event === "Error")
+  if (state === "in-flight" || state === "finished") {
+    const done = state === "finished" || event === "ok";
+    if (state === "in-flight" && event === "Error")
       return { ...want, entry: "$ 5,00", reasons: ["Error el proveedor no respondió"] };
     return {
       ...want,
@@ -82,8 +83,8 @@ export function expectedMatrix(state: MatrixState, event: MatrixEvent): Expected
       place: done ? "Listo" : "Procesando",
     };
   }
-  if (["moneda", "ida y vuelta", "otra persona"].includes(event)) return currencyChanged(state, event, want);
-  if (state === "confirmación")
+  if (["currency", "round-trip", "other-person"].includes(event)) return currencyChanged(state, event, want);
+  if (state === "confirmation")
     return {
       ...want,
       entry: undefined,
@@ -91,30 +92,30 @@ export function expectedMatrix(state: MatrixState, event: MatrixEvent): Expected
       phase: event === "Enter" ? "running" : "asking",
       place: event === "Enter" ? "Procesando" : "Confirmar importe",
     };
-  if (state === "más adelante") return later(event, want);
+  if (state === "later-field") return later(event, want);
   return editing(state, event, want);
 }
 
 function later(event: MatrixEvent, want: Expected): Expected {
   const written: Partial<Record<MatrixEvent, string>> = {
-    dígito: "7",
-    cero: "0",
-    menos: "-",
-    más: "+",
-    coma: ",",
-    punto: ".",
-    letra: "x",
-    pegado: "-1.234,56",
+    digit: "7",
+    zero: "0",
+    minus: "-",
+    plus: "+",
+    comma: ",",
+    dot: ".",
+    letter: "x",
+    paste: "-1.234,56",
   };
-  const reasons = event === "espacio" ? ["sin espacios al principio ni dobles"] : [];
+  const reasons = event === "space" ? ["sin espacios al principio ni dobles"] : [];
   if (event === "Enter") reasons.push("falta completar");
   return { ...want, entry: written[event] ?? "", pos: 1, place: "Nota", reasons };
 }
 
 function currencyChanged(state: MatrixState, event: MatrixEvent, want: Expected): Expected {
-  want.currency = event === "ida y vuelta" ? "$" : "US$";
-  if (state === "mínimo") want.reasons = ["falta completar"];
-  if (state === "defineProgram") want.reasons = [];
+  want.currency = event === "round-trip" ? "$" : "US$";
+  if (state === "minimum") want.reasons = ["falta completar"];
+  if (state === "program-held") want.reasons = [];
   if (!want.reasons.includes("cambió la moneda")) want.reasons.push("cambió la moneda");
   return { ...want, amount: "", entry: "" };
 }

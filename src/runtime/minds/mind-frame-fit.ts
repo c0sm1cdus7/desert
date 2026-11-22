@@ -1,4 +1,4 @@
-// Recorta unidades recuperables del marco y rechaza un mínimo que supera la cota explícita.
+// Trims recoverable units from the frame and rejects a minimum above the explicit bound.
 import type { Language } from "../../fields/languages.ts";
 import { renderMindFrame } from "./mind-frame-text.ts";
 import type { FrameItem, FrameSnapshot, MindFrame } from "./mind-frame.ts";

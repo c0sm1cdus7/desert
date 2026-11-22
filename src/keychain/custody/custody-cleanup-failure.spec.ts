@@ -2,22 +2,22 @@ import { expect, it, vi } from "vitest";
 import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
 import { CustodyDatabase } from "./custody-database.ts";
 for (const action of ["cancel", "replace", "releaseRetention", "discardLegacy"])
-  it(`el error físico llega también por ${action}, sin recibo de purga`, () => {
+  it(`the physical error also arrives through ${action}, without a purge receipt`, () => {
     const rig = custodyRig(),
       store = rig.open(),
       session = store.begin(custodyScope);
     const refs = {
       key:
-        action === "discardLegacy" ? store.keep(Buffer.from("SINTETICO")) : session.capture(Buffer.from("SINTETICO")),
+        action === "discardLegacy" ? store.keep(Buffer.from("SYNTHETIC")) : session.capture(Buffer.from("SYNTHETIC")),
     };
     if (action === "replace" || action === "releaseRetention") session.replace("signing", refs, 0);
     if (action === "releaseRetention") {
       store.retain(refs.key, "history");
       session.release("signing", 1);
     }
-    const next = action === "replace" ? { key: session.capture(Buffer.from("NUEVO")) } : refs;
+    const next = action === "replace" ? { key: session.capture(Buffer.from("NEW")) } : refs;
     const fail = vi.spyOn(CustodyDatabase.prototype, "remove").mockImplementation(() => {
-      throw new Error("disco");
+      throw new Error("disk");
     });
     const work = () => {
       if (action === "cancel") session.cancel();
@@ -32,11 +32,11 @@ for (const action of ["cancel", "replace", "releaseRetention", "discardLegacy"])
     store.collect();
     expect(store.ids()).toEqual(action === "replace" ? [next.key] : []);
   });
-it("el uso reservado conserva su resultado y la reapertura reintenta la limpieza", async () => {
+it("the reserved use keeps its result and reopening retries the cleanup", async () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("SINTETICO")) };
+  const refs = { key: session.capture(Buffer.from("SYNTHETIC")) };
   session.replace("signing", refs, 0);
   let finish = () => {};
   const work = store.adapter(session, ["signing"]).use(
@@ -48,7 +48,7 @@ it("el uso reservado conserva su resultado y la reapertura reintenta la limpieza
   );
   session.release("signing", 1);
   const fail = vi.spyOn(CustodyDatabase.prototype, "remove").mockImplementation(() => {
-    throw new Error("disco");
+    throw new Error("disk");
   });
   finish();
   await expect(work).resolves.toBeUndefined();

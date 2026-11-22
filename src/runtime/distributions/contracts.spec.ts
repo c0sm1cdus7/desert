@@ -71,12 +71,12 @@ it("reports missing providers and invalid offered routes through composition", (
     offers: {
       "fiscal-documents": {
         ...offer,
-        actions: { issue: { ...required(offer.actions.issue), route: "fiscal/borrar" } },
+        actions: { issue: { ...required(offer.actions.issue), route: "fiscal/delete" } },
       },
     },
   };
   expect(diagnose({ ...contractOptions, programs: [contractPrograms[0], changed] })).toEqual([
-    { path: "documents/fiscal-documents/actions/issue", reason: "foreign-route:fiscal/borrar" },
+    { path: "documents/fiscal-documents/actions/issue", reason: "foreign-route:fiscal/delete" },
     missing,
   ]);
 });

@@ -24,7 +24,7 @@ function signer(): AdapterDeclaration {
           throw new Error("Invalid fixture");
         const key = input.key;
         if (!isReference(key)) throw new Error("Invalid reference");
-        return resolver.use({ key }, material => Buffer.from(material.key ?? []).toString("utf8") === "SINTETICO");
+        return resolver.use({ key }, material => Buffer.from(material.key ?? []).toString("utf8") === "SYNTHETIC");
       },
     }),
   };
@@ -32,7 +32,7 @@ function signer(): AdapterDeclaration {
 const isReference = (value: string): value is `secret:${string}` => value.startsWith("secret:");
 it("programs test adapters through the stable entry with synthetic material and real boundaries", async () => {
   const test = adapterTest({ adapters: { signer: signer() }, credentialSlots: { fiscal: ["signing"] } }, scope, {
-    key: "SINTETICO",
+    key: "SYNTHETIC",
   });
   try {
     const inspect = test.ports.signer?.inspect;

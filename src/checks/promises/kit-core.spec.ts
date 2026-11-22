@@ -18,7 +18,7 @@ it("gives the administrator every action only when the core is requested, includ
 it("stops reminders when the last action is removed", async () => {
   await staged(shopProgram, ({ house, reopen }) => {
     house().bus.emit(
-      effect("tool-entry", { tool: "sales", target: "sales", author: cast.admin, text: "hola" }, cast.admin),
+      effect("tool-entry", { tool: "sales", target: "sales", author: cast.admin, text: "buen día" }, cast.admin),
     );
     expect(house().tools.state().attentionBy.get(cast.member)?.has("sales")).toBe(true);
     house().bus.emit(effect("kit-set", { holder: cast.member, tool: "sales", acts: [] }, cast.admin));
@@ -52,7 +52,9 @@ it("calls the administrator for both tools when the core is requested", async ()
   await staged({ ...shopProgram, identities: true }, ({ house, reopen }) => {
     house().bus.emit(effect("granted", { identity: cast.admin, tools: [] }, cast.admin));
     for (const tool of ["sales", "payments"]) {
-      house().bus.emit(effect("tool-entry", { tool, target: tool, author: cast.member, text: "hola" }, cast.member));
+      house().bus.emit(
+        effect("tool-entry", { tool, target: tool, author: cast.member, text: "buen día" }, cast.member),
+      );
     }
     expect([...(house().tools.state().attentionBy.get(cast.admin)?.keys() ?? [])].sort()).toEqual([
       "payments",

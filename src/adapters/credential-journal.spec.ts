@@ -19,7 +19,7 @@ const fact = (id: string): CredentialFact => ({
   refs: {},
   cause: "test",
 });
-it("ancla al salir del commit sin esperar otra lectura y descarta callbacks de rollback", () => {
+it("anchors on leaving the commit without waiting for another read and discards rollback callbacks", () => {
   const rig = custodyRig(),
     journal = new SqliteJournal(join(rig.home, "events.sqlite"), vocabulary({}));
   try {
@@ -83,7 +83,7 @@ it("ancla al salir del commit sin esperar otra lectura y descarta callbacks de r
   }
 });
 for (const detail of [{ custodyFact: {} }, { custodyBatch: "invalid" }, { custodyBatch: [{}] }])
-  it("no ignora una entrada reservada malformada al leer el registro", () => {
+  it("does not ignore a malformed reserved entry when reading the record", () => {
     const rig = custodyRig(),
       journal = new SqliteJournal(join(rig.home, "events.sqlite"), vocabulary({}));
     try {
@@ -105,7 +105,7 @@ for (const detail of [{ custodyFact: {} }, { custodyBatch: "invalid" }, { custod
     }
   });
 
-it("una transacción anidada no publica callbacks antes del commit exterior ni conserva los ya publicados", () => {
+it("a nested transaction publishes no callbacks before the outer commit and keeps none already published", () => {
   const bridge = credentialJournal(
       () => [],
       () => undefined,
@@ -138,7 +138,7 @@ for (const [field, value] of [
   ["batchSize", 0],
   ["batchIndex", -1],
 ] as const)
-  it("el registro del motor valida también los campos opcionales de autenticación y lote", () => {
+  it("the engine record also validates the optional authentication and batch fields", () => {
     const rig = custodyRig(),
       journal = new SqliteJournal(join(rig.home, "events.sqlite"), vocabulary({}));
     try {

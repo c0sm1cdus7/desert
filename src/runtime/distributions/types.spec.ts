@@ -13,7 +13,7 @@ export type Good = CompositionErrors<typeof base>;
 const contract = { ...base, programs: [{ ...p, desert: 2 }] } as const;
 const ids = { ...base, programs: [{ ...p, facts: [] }, { ...p, facts: [] }] } as const;
 const facts = { ...base, programs: [{ ...p, facts: [...p.facts, ...p.facts] }] } as const;
-const foreign = { ...base, programs: [{ ...p, facts: [{ ...p.facts[0], kind: "ajeno/x" }] }] } as const;
+const foreign = { ...base, programs: [{ ...p, facts: [{ ...p.facts[0], kind: "foreign/x" }] }] } as const;
 const mind = { ...base, minds: { assistants: false, programs: ["absent"] } } as const;
 const assistants = { ...base, identities: false, minds: { assistants: true, programs: [] } } as const;
 const reactions = { ...base, programs: [{ ...p, effects: () => [] }] } as const;
@@ -79,7 +79,7 @@ state.tools.own.count = 42;
     Contract: ["notes/desert:desert-contract"],
     Ids: ["programs/notes:duplicate-id"],
     Facts: ["facts/notes/added:duplicate-fact"],
-    Foreign: ["notes/facts/ajeno/x:foreign-fact"],
+    Foreign: ["notes/facts/foreign/x:foreign-fact"],
     Mind: ["minds/programs/absent:missing-mind"],
     Assistants: ["minds/assistants:assistants-require-identities"],
     Distro: ["notes/dependencies/void:distribution-dependency"],

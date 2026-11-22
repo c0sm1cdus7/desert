@@ -30,7 +30,7 @@ function state(): JourneyMenuState {
     pending: [],
   };
 }
-it("la consciencia recibe comunicación autorizada y apertura, sin trabajo ni controles ajenos", () => {
+it("consciousness receives authorized communication and opening, with no work or foreign controls", () => {
   const result = journeyMenu(scope, state(), "es");
   expect(result.map(item => item.act)).toEqual(["say", "open", "resume", "desist"]);
   expect(result.find(item => item.act === "open")).toMatchObject({ tool: "journey", target: actor, scope: "open" });
@@ -50,7 +50,7 @@ it("la consciencia recibe comunicación autorizada y apertura, sin trabajo ni co
     true,
   );
 });
-it("el journey recibe trabajo del kit y controles propios compatibles con el esquema de respuesta", () => {
+it("the journey receives kit work and its own controls compatible with the answer schema", () => {
   const result = journeyMenu(journey, state(), "es");
   expect(result.map(item => item.act)).toEqual(["write", "say", "plan", "wait", "end", "desist"]);
   expect(result.find(item => item.act === "say")?.scope).toBe("work");
@@ -67,7 +67,7 @@ it("el journey recibe trabajo del kit y controles propios compatibles con el esq
     }),
   ).toBe(false);
 });
-it("cruza kit actual, kit persistido y alcance del turno sin ampliar ninguno", () => {
+it("crosses the current kit, the persisted kit and the turn's scope without widening any", () => {
   const current = { ...state(), kit: [{ tool: "notes", acts: ["write", "delete"] }] };
   expect(
     journeyMenu(journey, current, "es")
@@ -81,7 +81,7 @@ it("cruza kit actual, kit persistido y alcance del turno sin ampliar ninguno", (
     "desist",
   ]);
 });
-it("oculta plan repetido y ofrece done solo si hay pasos pendientes", () => {
+it("hides a repeated plan and offers done only if steps are pending", () => {
   const s = state();
   const plan = {
     ...effect("journey-plan-written", { steps: [{ id: "s", text: "Anotar" }] }, actor, [], "j1"),
@@ -110,11 +110,11 @@ it("oculta plan repetido y ofrece done solo si hay pasos pendientes", () => {
     ),
   ).toBe(false);
 });
-it("no ofrece cierres mientras quedan actos del proceso en curso", () => {
+it("offers no closures while the process still has acts in progress", () => {
   const s = { ...state(), pending: [{ by: actor, process: "j1" }] };
   expect(journeyMenu(journey, s, "es").map(item => item.act)).toEqual(["write", "say", "plan", "wait"]);
 });
-it("no ofrece nada para procesos cerrados, ausentes, ajenos o mentes deshabilitadas", () => {
+it("offers nothing for closed, missing or foreign processes or disabled minds", () => {
   const s = state();
   const closed = {
     ...effect("journey-closed", { outcome: "done", summary: "Listo", references: [] }, actor, [], "j1"),

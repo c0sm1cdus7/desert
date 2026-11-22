@@ -83,7 +83,7 @@ const isolated = [
             ...object(),
             data: Type.Object({
               number: Type.String(),
-              state: Type.Union([Type.Literal("issued"), Type.Literal("pendiente")]),
+              state: Type.Union([Type.Literal("issued"), Type.Literal("pending")]),
             }),
           },
         },
@@ -98,7 +98,7 @@ const isolated = [
         actions: {
           issue: {
             ...action(),
-            rejections: Type.Object({ code: Type.Union([Type.Literal("invalida"), Type.Literal("duplicada")]) }),
+            rejections: Type.Object({ code: Type.Union([Type.Literal("invalid"), Type.Literal("duplicate")]) }),
           },
         },
       }),
@@ -140,13 +140,13 @@ const isolated = [
   ],
   [
     "16 foreign fact",
-    () => [sales(), { ...documents(), facts: ["documents/issued", "ajeno/x"] }],
-    ["foreign-fact:ajeno/x"],
+    () => [sales(), { ...documents(), facts: ["documents/issued", "foreign/x"] }],
+    ["foreign-fact:foreign/x"],
   ],
   [
     "17 foreign action",
-    () => programs({ ...offered(), actions: { issue: { ...action(), route: "fiscal/borrar" } } }),
-    ["documents/fiscal-documents/actions/issue:foreign-route:fiscal/borrar"],
+    () => programs({ ...offered(), actions: { issue: { ...action(), route: "fiscal/delete" } } }),
+    ["documents/fiscal-documents/actions/issue:foreign-route:fiscal/delete"],
   ],
   [
     "18 missing projector",

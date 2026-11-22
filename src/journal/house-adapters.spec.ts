@@ -6,7 +6,7 @@ import { imported, call, signer, synthetic } from "../../tests/support/declared-
 import type { ActContext } from "../tools/tool-contract.ts";
 import type { Shop } from "../../tests/support/shop.ts";
 import { toolAct } from "../tools/act-definition.ts";
-it("la acción recibe referencias de importación y usa el adaptador declarado después de reabrir", async () => {
+it("the action receives import references and uses the declared adapter after reopening", async () => {
   const rig = setup({
     set: toolAct(Type.Object({}), async (_, context) => {
       const refs = await imported(context);
@@ -29,7 +29,7 @@ it("la acción recibe referencias de importación y usa el adaptador declarado d
   expect((await rig.act("send", "child")).status).toBe("rejected");
   expect(JSON.stringify(rig.facts())).not.toContain(synthetic);
 });
-it("un error transformado del adaptador nunca llega a acción, resultado ni diagnóstico", async () => {
+it("a transformed adapter error never reaches the action, the result or a diagnostic", async () => {
   const rig = setup(
     {
       send: toolAct(Type.Object({}), async (_, context) => {
@@ -54,7 +54,7 @@ it("un error transformado del adaptador nunca llega a acción, resultado ni diag
   expect(JSON.stringify([done, rig.facts()])).not.toContain("MATERIAL_INVENTADO");
   expect(JSON.stringify(rig.facts())).toContain("E-ADAPTER-FAILED");
 });
-it("el arranque recibe solo capacidades públicas; su cierre y el fin de la acción las revocan", async () => {
+it("startup receives only public capabilities; its close and the action's end revoke them", async () => {
   const seen: ActContext<Shop>[] = [];
   const startup: unknown[] = [];
   const rig = setup(
@@ -77,7 +77,7 @@ it("el arranque recibe solo capacidades públicas; su cierre y el fin de la acci
   for (const context of seen) await expect(call(context, "import")).rejects.toThrow("E-ADAPTER-DENIED");
   rig.close();
 });
-it("el arranque publica vínculos por su bus; cerrar revoca sus métodos guardados", async () => {
+it("startup publishes bindings through its bus; closing revokes its saved methods", async () => {
   let pending: Promise<unknown> | undefined;
   const borrowed: import("../tools/startup-contract.ts").ToolStartup<Shop>[] = [];
   const rig = setup(

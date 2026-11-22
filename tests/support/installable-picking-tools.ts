@@ -61,7 +61,7 @@ const add = programAct<Picking, typeof named>({
   },
   cases: [
     {
-      promise: "Agrega una cosa",
+      promise: "Adds a thing",
       input: { name: "Tornillo" },
       then: { says: said.added("1"), facts: [{ kind: "picking/item-added", data: { id: "1", name: "Tornillo" } }] },
     },
@@ -106,7 +106,7 @@ const take = programAct<Picking, typeof order>({
   },
   cases: [
     {
-      promise: "Toma un pedido con un extra a mano",
+      promise: "Takes an order with an extra typed by hand",
       given: stocked,
       input: { main: "1", extras: [{ note: "Arandela suelta" }] },
       then: {
@@ -115,7 +115,7 @@ const take = programAct<Picking, typeof order>({
       },
     },
     {
-      promise: "Toma un pedido con repuesto y un extra elegido",
+      promise: "Takes an order with a spare and a chosen extra",
       given: stocked,
       input: { main: "1", spare: "1", extras: [{ item: "1" }] },
       then: {
@@ -124,7 +124,7 @@ const take = programAct<Picking, typeof order>({
       },
     },
     {
-      promise: "No toma una cosa que no existe",
+      promise: "Does not take a thing that does not exist",
       given: stocked,
       input: { main: "9", extras: [{ note: "Arandela suelta" }] },
       then: { refused: said.unknown },

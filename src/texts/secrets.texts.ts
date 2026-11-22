@@ -1,4 +1,4 @@
-// Mensajes de apertura y declaraciones secretas que nombran posiciones sin mostrar valores
+// Messages for opening and secret declarations that name positions without showing values
 export const secretTexts = {
   transaction: "La transacción ya tiene un agregado de custodia; reuní los cambios en un solo lote antes de confirmar",
   key: "El llavero está bloqueado o no respondió; desbloquealo y reintentá",

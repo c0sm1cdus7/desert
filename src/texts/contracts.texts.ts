@@ -1,4 +1,4 @@
-// Reúne los mensajes de contratos, lecturas y evidencia de compatibilidad.
+// Gathers the messages about contracts, readings and compatibility evidence.
 export const contractTexts = {
   invalidValue: "El dato no cumple el contrato.",
   invalidComposition: "Los contratos de los programas no se pueden unir.",

@@ -1,4 +1,4 @@
-// Lista y objeto de identidades y mentes: nombre, administración, kit, última escena general y parte para quien lee.
+// List and object of identities and minds: name, administration, kit, last general scene and the reader's part.
 import { holderKit } from "../../house/kit-history.ts";
 import { allowedAct, mindTool } from "../../house/kit.ts";
 import { identityDisplayName, type House } from "../../house/members.ts";

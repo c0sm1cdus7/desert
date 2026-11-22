@@ -19,12 +19,12 @@ const forged: Readonly<Record<string, Forged>> = {
   forgeHanded: [effect("handed", { to: "beto" }, "ana"), why.otherAuthor],
   forgeWoke: [effect("woke", { id: "other:zero" }, "shop"), why.otherAuthor],
   forgeWake: [effect("wake-at", { id: "other:zero", at: null }, "mind:desk"), why.houseFact],
-  asAna: [shop.fact("sale-registered", { sale: "de-ana", total: 999 }, "ana"), why.otherAuthor],
+  asAna: [shop.fact("sale-registered", { sale: "anas", total: 999 }, "ana"), why.otherAuthor],
   // Neighbours: the same house facts under the mind's own name, and another tool's fact under its name.
   ownKit: [effect("kit-set", { holder: "mind:desk", tool: "desk", acts: null }, "mind:desk"), why.houseFact],
   ownHanded: [effect("handed", { to: "beto" }, "mind:desk"), why.houseFact],
   ownWoke: [effect("woke", { id: "desk:zero" }, "mind:desk"), why.houseFact],
-  otherTool: [shop.fact("sale-registered", { sale: "ajena", total: 1 }, "mind:desk"), why.otherTool],
+  otherTool: [shop.fact("sale-registered", { sale: "foreign", total: 1 }, "mind:desk"), why.otherTool],
 };
 function opened(name: string, effects: readonly Emission<ShopFact>[]) {
   const action = toolAct<Shop, typeof empty>(empty, () => ({ status: "accepted", effects: [...effects] }));
@@ -35,8 +35,8 @@ function opened(name: string, effects: readonly Emission<ShopFact>[]) {
   return { mind, rig };
 }
 for (const [name, [fact, reason]] of Object.entries(forged)) {
-  it(`act: efecto ${name}: la autoridad del kit lo rechaza a la vista y no escribe nada`, async () => {
-    const own = shop.fact("mind-noted", { sale: "junto", total: 1 }, "mind:desk");
+  it(`act: effect ${name}: the kit's authority rejects it in view and writes nothing`, async () => {
+    const own = shop.fact("mind-noted", { sale: "alongside", total: 1 }, "mind:desk");
     const { mind, rig } = opened(name, [own, fact]);
     const before = rig.facts().length;
     const house = rig.state().house;
@@ -48,12 +48,12 @@ for (const [name, [fact, reason]] of Object.entries(forged)) {
     expect(rig.state().tools.sales.size).toBe(0);
   });
 }
-it("act: el hecho propio declarado de la mente se escribe a su nombre", async () => {
-  const own = shop.fact("mind-noted", { sale: "propia", total: 1 }, "mind:desk");
+it("act: the mind's own declared fact is written under its name", async () => {
+  const own = shop.fact("mind-noted", { sale: "own", total: 1 }, "mind:desk");
   const { mind, rig } = opened("own", [own]);
   expect(await mind.act("own")).toEqual({ status: "accepted" });
   expect(rig.facts().filter(e => e.kind === "mind-noted")).toEqual([
-    expect.objectContaining({ by: "mind:desk", data: { sale: "propia", total: 1 } }),
+    expect.objectContaining({ by: "mind:desk", data: { sale: "own", total: 1 } }),
   ]);
-  expect(rig.state().tools.sales.get("propia")?.by).toBe("mind:desk");
+  expect(rig.state().tools.sales.get("own")?.by).toBe("mind:desk");
 });

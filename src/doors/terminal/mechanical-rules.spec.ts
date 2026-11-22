@@ -1,4 +1,4 @@
-// La terminal real dibuja el freno y permite proponer reglas desde sus preguntas declaradas.
+// The real terminal draws the block and lets rules be proposed from their declared questions.
 import { afterEach, expect, it } from "vitest";
 import { effect } from "../../house/facts.ts";
 import { houseRouter } from "../../surface/bridge/assembly/house-router.ts";
@@ -11,7 +11,7 @@ import { rulesTool } from "../../tools/rules/rules.ts";
 import { rulesTexts } from "../../texts/rules.texts.ts";
 const cleanup: (() => void)[] = [];
 afterEach(() => cleanup.splice(0).forEach(close => close()));
-it("frena al admin después de confirmar por teclado sin registrar la venta", async () => {
+it("blocks the admin after confirming by keyboard, without registering the sale", async () => {
   const rig = shopRig();
   const router = houseRouter(
     rig.ports("ana", () => 5000),
@@ -48,7 +48,7 @@ it("frena al admin después de confirmar por teclado sin registrar la venta", as
     reason: rulesTexts.blocked,
   });
 });
-it("Reglas se ofrece en el sistema y sus preguntas no dependen de palabras de la distro", async () => {
+it("Rules is offered in the system and its questions do not depend on the distro's words", async () => {
   const rig = shopRig({ registry: [...shopRegistry, rulesTool(shopRegistry)] });
   const router = houseRouter(
     rig.ports("beto", () => 5000),

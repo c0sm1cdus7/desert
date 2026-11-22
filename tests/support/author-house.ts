@@ -1,4 +1,4 @@
-// Casa sintética con autoría histórica, sin sockets ni proveedores.
+// A synthetic house with historical authorship, without sockets or providers.
 import { startHouse } from "../../src/runtime/house-runtime.ts";
 import { MemoryHouseKeys } from "../../src/keychain/custody/house-keys.ts";
 import { effect } from "../../src/house/facts.ts";
@@ -14,12 +14,12 @@ export function authorHouse(home: string, author: string) {
     secretKeys: new MemoryHouseKeys(),
     creation: {
       admin: "ana",
-      assignments: ["lucia", "unnamed", "retirada"].map(identity => ({ identity, tools: ["sales"] })),
+      assignments: ["lucia", "unnamed", "retired"].map(identity => ({ identity, tools: ["sales"] })),
     },
   });
   if (!house.tools.state().tools.sales.has("s1")) {
     house.bus.emit(effect("named", { identity: "lucia", name: "Lucía" }, "ana"));
-    house.bus.emit(effect("named", { identity: "retirada", name: "Inés" }, "ana"));
+    house.bus.emit(effect("named", { identity: "retired", name: "Inés" }, "ana"));
     house.bus.emit(effect("assistant-enabled", { owner: "lucia", name: "Nora" }, "ana"));
     const by = author.startsWith("mind:") || author.startsWith("assistant:") ? "lucia" : author;
     house.tools.act({ act: "attend", input: { target: "sales" } }, 0, by);
@@ -28,7 +28,7 @@ export function authorHouse(home: string, author: string) {
     house.bus.emit(
       effect("tool-entry", { tool: "sales", target: "sales/s1", text: "Escrita · prueba", author }, author),
     );
-    house.bus.emit(effect("removed", { identity: "retirada" }, "ana"));
+    house.bus.emit(effect("removed", { identity: "retired" }, "ana"));
     house.bus.emit(effect("assistant-disabled", { owner: "lucia" }, "ana"));
   }
   return house;

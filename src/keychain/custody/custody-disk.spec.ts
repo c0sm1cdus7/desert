@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
 import { containing } from "../../../tests/support/custody-files.ts";
 import { SecretCustody } from "./secret-custody.ts";
-const marker = "MARCADOR_SINTETICO_DE_DISCO_".repeat(20);
+const marker = "SYNTHETIC_DISK_MARKER_".repeat(20);
 function cut(file: string, home: string, point: string) {
   const child = spawnSync(
     process.execPath,
@@ -18,7 +18,7 @@ function cut(file: string, home: string, point: string) {
   expect(child.signal).toBe("SIGKILL");
 }
 for (const wal of [false, true])
-  it(`retirar limpia TODOS los archivos antes de compactar: SIGKILL (${wal ? "WAL" : "DELETE"}, a4)`, () => {
+  it(`retiring cleans ALL files before compacting: SIGKILL (${wal ? "WAL" : "DELETE"}, a4)`, () => {
     const rig = custodyRig(),
       db = new DatabaseSync(rig.file);
     if (wal) db.exec("pragma journal_mode=WAL");
@@ -38,7 +38,7 @@ for (const wal of [false, true])
     expect(containing(rig.home, marker)).toEqual([]);
   });
 for (const point of ["open", "closed", "purge", "released"])
-  it(`liberar y purgar borra material y cifrado de TODOS los archivos: ${point} (a8/a9)`, () => {
+  it(`releasing and purging erases material and ciphertext from ALL files: ${point} (a8/a9)`, () => {
     const rig = custodyRig(),
       store = new SecretCustody(rig.file, rig.home, processKeys(rig.home)),
       session = store.begin(custodyScope);
@@ -71,7 +71,7 @@ for (const point of ["open", "closed", "purge", "released"])
   });
 
 for (const point of ["copy", "before-retire", "compact", "adopted"])
-  it(`adopción cortada en ${point}: retoma originales sin dejar texto después del retiro`, () => {
+  it(`adoption cut at ${point}: resumes the originals without leaving text after retirement`, () => {
     const rig = custodyRig(),
       db = new DatabaseSync(rig.file);
     db.exec("create table secrets (id text primary key, value text not null unique)");

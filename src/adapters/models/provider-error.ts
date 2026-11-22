@@ -1,4 +1,4 @@
-// Lee solo un prefijo acotado del rechazo y limpia sus datos antes de conservarlos.
+// Reads only a bounded prefix of the rejection and cleans its data before keeping it.
 import type { ProviderRejection } from "../../fields/provider-rejection.ts";
 import { isRecord } from "../../fields/json-values.ts";
 import { modelTexts } from "../../texts/model.texts.ts";
@@ -22,7 +22,7 @@ async function errorBody(response: Response) {
   } catch {
     return { text: modelTexts.errorBodyUnreadable, limited: false };
   } finally {
-    // La cancelación puede depender del transporte; no demora el cierre del turno.
+    // Cancelling may depend on the transport; it does not delay closing the turn.
     void reader.cancel().catch(() => {});
   }
   return { text: new TextDecoder().decode(bytes.subarray(0, length)), limited: length === bodyLimit };
@@ -36,7 +36,7 @@ function clean(text: string, key: string, scrub: (text: string) => string, limit
   }
   if (key) {
     safe = safe.split(key).join(mcpTexts.redacted);
-    // El límite de lectura puede cortar justo dentro de la llave usada para llamar.
+    // The read limit may cut right inside the key used for the call.
     for (let length = partial ? Math.min(key.length - 1, safe.length) : 0; length > 0; length--)
       if (safe.endsWith(key.slice(0, length))) {
         safe = safe.slice(0, -length) + mcpTexts.redacted;
@@ -65,7 +65,7 @@ export async function readProviderError(
     if (typeof error?.type === "string" && error.type.trim()) type = error.type;
     message = typeof error?.message === "string" && error.message.trim() ? error.message : modelTexts.errorBodyEmpty;
   } catch {
-    // Un proxy puede responder texto o HTML en vez del sobre JSON del proveedor.
+    // A proxy may answer with text or HTML instead of the provider's JSON envelope.
   }
   return {
     status: response.status,

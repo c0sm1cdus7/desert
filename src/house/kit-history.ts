@@ -1,4 +1,4 @@
-// Conserva el alcance histórico de otorgamientos y restricciones al reconstruir selecciones.
+// Keeps the historical scope of grants and restrictions when rebuilding selections.
 import { systemTool } from "./system-tools.ts";
 import { migrateKit } from "./kit-migration.ts";
 import type { House } from "./members.ts";

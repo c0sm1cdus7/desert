@@ -1,4 +1,4 @@
-// Ejecuta avisos confirmados como actos de su mente y recupera pendientes por reacción y aviso.
+// Runs confirmed notices as acts of their mind and recovers pending ones by reaction and notice.
 import { OutsideDefect } from "../../fields/program-call.ts";
 import { houseCatalog } from "../../house/facts.ts";
 import { mindOf } from "../../house/kit.ts";

@@ -1,4 +1,4 @@
-// Casos declarados de alta con nombre y kit, alta vacía, duplicados y permiso de administración.
+// Declared cases for adding with a name and kit, adding empty, duplicates and administration permission.
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import type { Case } from "../promises.ts";
 import { programName } from "./kit-catalog.ts";

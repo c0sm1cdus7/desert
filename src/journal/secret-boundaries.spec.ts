@@ -4,7 +4,7 @@ import { fixture, secret, words, field, ref, has, type P } from "../../tests/sup
 import { effect } from "../house/facts.ts";
 import { ownAct } from "../tools/act-definition.ts";
 
-it("la puerta directa del bus resuelve la acción de una cosa y la acción propia", () => {
+it("the bus's direct door resolves a thing's action and the own action", () => {
   const rig = fixture(
     secret,
     undefined,
@@ -19,12 +19,12 @@ it("la puerta directa del bus resuelve la acción de una cosa y la acción propi
     ["child", "set"],
     ["own", "save"],
   ] as const) {
-    const event = rig.house.bus.emit(effect("act", { object, option, input: { value: "directo" } }, "ana"));
+    const event = rig.house.bus.emit(effect("act", { object, option, input: { value: "direct" } }, "ana"));
     expect(ref(field(event.data.input, "value"))).toBe(true);
   }
-  expect(has(rig.facts(), "directo")).toBe(false);
+  expect(has(rig.facts(), "direct")).toBe(false);
 });
-it("las posiciones de los hechos se protegen también en el resultado devuelto", () => {
+it("fact positions are protected in the returned result too", () => {
   const rig = fixture(secret, () => ({
     status: "accepted",
     effects: [words.fact("sale-registered", { value: "datum-fact", copy: "datum-fact" }, "ana")],
@@ -38,7 +38,7 @@ it("las posiciones de los hechos se protegen también en el resultado devuelto",
   expect(writes.every(event => ref(event.data.value))).toBe(true);
   expect(writes.every(event => event.data.copy === "datum-fact")).toBe(true);
 });
-it("una letra se limpia en texto libre sin alterar el protocolo ni los nombres de propiedades", () => {
+it("a letter is cleaned in free text without altering the protocol or property names", () => {
   const rig = fixture(secret, input => ({
     status: "accepted",
     text: String(field(input, "value")),
@@ -54,7 +54,7 @@ it("una letra se limpia en texto libre sin alterar el protocolo ni los nombres d
     ),
   ).toBe(true);
 });
-it("una coincidencia con el estado accepted no modifica el discriminante del resultado", () => {
+it("a match with the accepted status does not change the result's discriminant", () => {
   const rig = fixture(secret, () => ({ status: "accepted", text: "accepted" }));
   const result = rig.set({ value: "accepted" });
   expect(result.status).toBe("accepted");
@@ -64,7 +64,7 @@ it("una coincidencia con el estado accepted no modifica el discriminante del res
       .every(e => e.kind === "tool-entry" && e.data.text === "accepted"),
   ).toBe(true);
 });
-it("el borrador también omite una unión malformada", () => {
+it("the draft also omits a malformed union", () => {
   const input = Type.Union([
     Type.Object({ kind: Type.Literal("private"), value: Type.String({ secret: true }) }),
     Type.Object({ kind: Type.Literal("public"), value: Type.String() }),
@@ -72,20 +72,20 @@ it("el borrador también omite una unión malformada", () => {
   const rig = fixture(input);
   const tool = rig.options.registry[0];
   if (tool) Object.defineProperty(tool, "draft", { value: () => "draft" });
-  const result = rig.set({ kind: "wrong", value: "dato-malformado" });
-  expect(has([result, rig.facts()], "dato-malformado")).toBe(false);
+  const result = rig.set({ kind: "wrong", value: "malformed-datum" });
+  expect(has([result, rig.facts()], "malformed-datum")).toBe(false);
 });
 for (const schema of [
   Type.Object({}, { additionalProperties: Type.String({ secret: true }) }),
   Type.Record(Type.String(), Type.String({ secret: true })),
   Type.Intersect([secret, Type.Object({ other: Type.String() })]),
 ]) {
-  it("rechaza combinaciones secretas no recorribles", () => {
+  it("rejects secret combinations that cannot be walked", () => {
     expect(() => fixture(schema)).toThrow(expect.objectContaining({ code: "E-SECRET-SCHEMA" }));
   });
 }
-it("las causas, AggregateError y colecciones no pueden obtener el material", () => {
-  const raw = "uno\ndos";
+it("causes, AggregateError and collections cannot obtain the material", () => {
+  const raw = "one\ntwo";
   const rig = fixture(secret, input => {
     const reference = String(field(input, "value"));
     expect(ref(reference)).toBe(true);
@@ -96,7 +96,7 @@ it("las causas, AggregateError y colecciones no pueden obtener el material", () 
   expect(has([result, rig.facts()], raw)).toBe(false);
 });
 
-it("una entrada secreta malformada tampoco se copia como número en el borrador", () => {
+it("a malformed secret input is not copied as a number into the draft either", () => {
   const rig = fixture();
   const tool = rig.options.registry[0];
   if (tool) Object.defineProperty(tool, "draft", { value: () => "draft" });
@@ -104,7 +104,7 @@ it("una entrada secreta malformada tampoco se copia como número en el borrador"
   const entries = rig.facts().filter(event => event.kind === "tool-entry");
   expect(JSON.stringify([result, entries]).includes("987654321")).toBe(false);
 });
-it("una coincidencia con un discriminante conserva la rama y protege el valor", () => {
+it("a match with a discriminant keeps the branch and protects the value", () => {
   const input = Type.Object({ kind: Type.Literal("private"), value: Type.String({ secret: true }) });
   const rig = fixture(input);
   rig.set({ kind: "private", value: "private" });
@@ -112,7 +112,7 @@ it("una coincidencia con un discriminante conserva la rama y protege el valor", 
   expect(acts.every(e => e.kind === "act" && field(e.data.input, "kind") === "private")).toBe(true);
   expect(acts.every(e => e.kind === "act" && ref(field(e.data.input, "value")))).toBe(true);
 });
-it("la palabra del vocabulario no cambia el tipo de los hechos de la misma acción", () => {
+it("the vocabulary word does not change the kind of the same action's facts", () => {
   const rig = fixture(secret, () => ({
     status: "accepted",
     effects: [words.fact("sale-registered", { value: "other-datum", copy: "sale-registered" }, "ana")],

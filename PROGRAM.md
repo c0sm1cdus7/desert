@@ -9,7 +9,7 @@ programa (Kenon). Lo que una regla hace cumplir está en `GUARANTEES.md`; las le
 |---|---|---|
 | Sus hechos | `vocabulary(catálogo)`: cada hecho con su forma (TypeBox). La base suma los suyos. | `src/journal/vocabulary.ts` |
 | Lo que guarda cada herramienta | `Slices`: un valor inicial y un paso por herramienta (hecho → nuevo estado). | `src/tools/tool-contract.ts` |
-| Cada herramienta | `ProgramTool`: `id`, `purpose`, `facts`, `targets`, `view`, `summary`, `acts`, y si hace falta `menus`, `closed`, `needs`, `words`, `start`. | `src/tools/promises.ts` |
+| Cada herramienta | `ProgramTool`: `id`, `purpose`, `facts`, `targets`, `view`, `summary`, `acts`, y si hace falta `menus`, `closed`, `needs`, `findWords`, `start`. | `src/tools/promises.ts` |
 | Cada acción | `programAct({ name, enter, undoable, purpose, key, on, input, run, cases, … })`. | `src/tools/promises.ts` |
 | Lo que promete | `cases`: dado esto, al hacer esto, pasa esto (dice, escribe, se lee, pide atención) o se rechaza con un motivo. | `src/tools/promises.ts` |
 | Sus palabras | `Shown.words[herramienta]`: `name`, `key` y, si va en Sistema, `system`; si lista cosas, `empty`, `listed`, `reads` y `presents`; si lee datos propios, `itself`. | `src/surface/bridge/ports/house-ports.ts` |
@@ -288,7 +288,7 @@ casa como la inspección de copias y el banco de pruebas usan esa misma entrada.
   compartida por pantalla y ejecución; no agregar un segundo predicado al armar la casa.
 - `today` recibe el instante porque también decide si se puede enviar. `when` lo recibe para elegir las preguntas;
   `draft(estado, hasta, input, cosa, instante)` lo recibe para detectar conflictos. Las funciones que no lo usan
-  pueden conservar menos parámetros. `datum`, `words` y `also.opens` conservan sus firmas descriptivas.
+  pueden conservar menos parámetros. `datum`, `findWords` y `also.opens` conservan sus firmas descriptivas.
 - Quien arma preguntas con `asking` trae `now: () => number` y `today: () => string` en `AskWords`: son obligatorios.
   `questionWords(reloj, shown)` arma ese contexto con el reloj de la casa. `shown.day` sigue siendo obligatorio
   al componer cualquier programa con preguntas de fecha: no se adivina un calendario ausente.
@@ -529,7 +529,7 @@ import { environmentDoorKeys } from "./src/doors/socket/peers/environment-door-k
 
 const llaves = environmentDoorKeys(process.env, [
   { identity: "ana", door: "terminal", variable: "ANA_TERMINAL_KEY" },
-  { identity: "ana", door: "agente", variable: "ANA_AGENTE_KEY" },
+  { identity: "ana", door: "agent", variable: "ANA_AGENT_KEY" },
 ]);
 const casa = startCloudHouse(programa, carpeta, process.env, "HOUSE_ROOT_KEY");
 ```
@@ -1207,7 +1207,7 @@ no autoriza a modificar archivos mientras la organización está abierta ni sinc
 
 Un proceso que abre por su cuenta el archivo de la exclusión con funciones de archivos (leerlo o copiar la
 carpeta de una organización abierta) suelta su propia exclusión POSIX. La base nunca lo hace. Para copiar el
-registro de una organización abierta usá `copyJournal(origen, destino)` de `src/storage/copy-journal.ts`:
+registro de una organización abierta usá `copyJournal(origen, destino)` de `src/checks/kept/copy-journal.ts`:
 la copia de SQLite incluye lo confirmado en WAL. No uses `readFile`, `copyFile` ni `cp` sobre el auxiliar.
 Si igual ocurre y otro escribe, el dueño detecta el avance del registro dentro de su próxima transacción:
 lanza `WriterLeaseLost`, esa escritura no deja nada y la instancia no vuelve a escribir ni guarda plegados.
@@ -1268,15 +1268,15 @@ recorrerlos; el archivo auxiliar del escritor no se toma como un registro conser
 
 Un programa puede abrir una sola casa con `startHouse(home, opciones)` y pasar ese resultado a
 `serveHouse(casa, home, llaves)` (`src/doors/socket/server/serve.ts`). La tabla de prueba es un `ReadonlyMap` de llave a
-`{ identity, door: "terminal" | "agente" }`; no es el almacenamiento definitivo de llaves. La identidad debe seguir
+`{ identity, door: "terminal" | "agent" }`; no es el almacenamiento definitivo de llaves. La identidad debe seguir
 perteneciendo a la casa. La llave decide identidad y puerta: el cliente no puede declararlas en su saludo. Una llave que nombra
 una mente (`mind:…`) se rechaza siempre: las mentes no entran por la puerta.
 
 Solo el servidor abre almacenamiento. La composición debe dejar salir `WriterAlreadyOpen` con su texto y código
 no cero, sin reintentar; la prueba de proceso muestra ese arranque en `tests/support/socket-server-process.ts`.
-Después de tomar el escritor y verificar que pertenece a esa carpeta se reemplaza el socket viejo, se escucha en `<home>/casa.sock` (0600, carpeta 0700) y
-se escribe `casa.pid` (0600). La ruta completa debe entrar en los 103 bytes útiles de macOS: el error la nombra.
-`close()`, SIGINT, SIGTERM o `apagar` de quien administra dejan de aceptar, avisan y esperan hasta diez segundos;
+Después de tomar el escritor y verificar que pertenece a esa carpeta se reemplaza el socket viejo, se escucha en `<home>/house.sock` (0600, carpeta 0700) y
+se escribe `house.pid` (0600). La ruta completa debe entrar en los 103 bytes útiles de macOS: el error la nombra.
+`close()`, SIGINT, SIGTERM o `shutdown` de quien administra dejan de aceptar, avisan y esperan hasta diez segundos;
 el cierre informa la cantidad de actos pendientes y libera la casa antes de borrar socket y pid.
 
 Los programas existentes pueden seguir usando sus puertos locales:
@@ -1287,32 +1287,32 @@ terminal. Las llaves reales y su revocación individual llegan en el paso 3; sac
 El marco lleva largo uint32 big-endian (cuenta el byte de tipo y el cuerpo), un byte de tipo y el cuerpo.
 Tipo 0: JSON UTF-8 válido, hasta `actLimits.inputBytes` (1 MiB, el tope de los datos de un acto) más 64 KiB para el
 sobre, validado con TypeBox de ambos lados. Tipo 1: tramos de 64 KiB de un
-mensaje `node:v8`, solo de la casa al cliente terminal; cada marco sigue limitado a 16 MiB, el estado completo no. Un cliente nunca puede enviar tipo 1. `hola` autentica primero y recién después exige igualdad de protocolo y
-versión completa de Node; quien no entró no recibe esas versiones. El protocolo actual es 3; los límites y la versión están en `src/doors/socket/wire/protocol.ts`. Los esquemas exactos están en
-`src/doors/socket/wire/protocol.ts`. Todos los objetos JSON llevan `tipo` y rechazan propiedades adicionales:
+mensaje `node:v8`, solo de la casa al cliente terminal; cada marco sigue limitado a 16 MiB, el estado completo no. Un cliente nunca puede enviar tipo 1. `hello` autentica primero y recién después exige igualdad de protocolo y
+versión completa de Node; quien no entró no recibe esas versiones. El protocolo actual es 4, que nombra en inglés los tipos y campos de los mensajes y no lee los marcos anteriores; los límites y la versión están en `src/doors/socket/wire/protocol.ts`. Los esquemas exactos están en
+`src/doors/socket/wire/protocol.ts`. Todos los objetos JSON llevan `type` y rechazan propiedades adicionales:
 
-| Dirección | `tipo` | Campos además de `tipo` |
+| Dirección | `type` | Campos además de `type` |
 |---|---|---|
-| Cliente | `hola` | `protocolo: entero`, `node: texto`, `token: texto`; primero y dentro de 5 s |
-| Cliente | `acto` | `id`, `act`, `target?`, `input`, `through: secuencia` |
-| Cliente | `leer` | `id`, `qué`, `desde?`; `catalogo` devuelve nombres y acciones, `pedido` recupera el acto con ese `id` |
-| Cliente | `esperar` | `id`, `hasta: instante`; espera un hecho o el plazo, hasta 240 s, sin sondeo |
-| Cliente | `defecto` | `tool`, `target`, `option`; la casa exige la acción en el kit y arma la entrada con su catálogo |
-| Cliente | `sincronizar` | ninguno; pide estado completo; el primer pedido deja un único aviso por terminal |
-| Cliente | `apagar`, `chau` | ninguno |
-| Casa | `bienvenida` | `protocolo`, `identidad`, `admin: booleano`, `ahora`, `seq`; luego `estado` solo a terminal |
-| Casa | `estado` | `seq`, `ahora`, `base` (secuencia o `null` para completo), `huella` SHA-256, `bytes`; luego sus tramos tipo 1 |
-| Casa | `resultado` | `id`, `status`, `reason?`, `private?`, `efectos` |
-| Casa | `respuesta` | `id`, `seq`, `datos`; la espera dice `{ cambio: booleano }` |
-| Casa | `rechazo` | `id?`, `motivo` |
-| Casa | `cortado` | `motivo` |
-| Casa | `cerrando` | ninguno |
+| Cliente | `hello` | `protocol: entero`, `node: texto`, `token: texto`; primero y dentro de 5 s |
+| Cliente | `act` | `id`, `act`, `target?`, `input`, `destination?`, `through: secuencia` |
+| Cliente | `read` | `id`, `what`, `since?`; `catalog` devuelve nombres y acciones, `request` recupera el acto con ese `id` |
+| Cliente | `wait` | `id`, `until: instante`; espera un hecho o el plazo, hasta 240 s, sin sondeo |
+| Cliente | `default` | `tool`, `target`, `option`; la casa exige la acción en el kit y arma la entrada con su catálogo |
+| Cliente | `sync` | ninguno; pide estado completo; el primer pedido deja un único aviso por terminal |
+| Cliente | `shutdown`, `bye` | ninguno |
+| Casa | `welcome` | `protocol`, `identity`, `admin: booleano`, `now`, `seq`; luego `state` solo a terminal |
+| Casa | `state` | `seq`, `now`, `base` (secuencia o `null` para completo), `fingerprint` SHA-256, `bytes`; luego sus tramos tipo 1 |
+| Casa | `result` | `id`, `status`, `reason?`, `private?`, `effects` |
+| Casa | `response` | `id`, `seq`, `data`; la espera dice `{ seq, change: booleano }` |
+| Casa | `rejection` | `id?`, `reason` |
+| Casa | `cut` | `reason` |
+| Casa | `closing` | ninguno |
 
 Los nombres e identificadores admiten de 1 a 256 caracteres; los números son enteros seguros no negativos.
-`desde` queda reservado: este paso no pagina el catálogo ni entrega el diario. Un `leer` de pedido ausente se
+`since` queda reservado: este paso no pagina el catálogo ni entrega el diario. Un `read` de pedido ausente se
 rechaza. `status` es `accepted`, `rejected`, `draft`, `inconclusive`, `interrupted` o `processing`.
-`efectos` lleva solamente el texto de `tool-entry` con herramienta, destino y autor, y el objeto, acción y texto de
-`act-done`; no lleva todos los hechos ni diagnósticos. `defecto` responde con `id: "defecto"`.
+`effects` lleva solamente el texto de `tool-entry` con herramienta, destino y autor, y el objeto, acción y texto de
+`act-done`; no lleva todos los hechos ni diagnósticos. `default` responde con `id: "default"`.
 
 Cada terminal recibe `identityView` con secuencia, agrupando los cambios del turno. Al entrar se manda completa;
 luego viajan solo los campos y claves que cambiaron, y de las listas que crecen, el agregado. Los campos y mapas
@@ -1339,12 +1339,12 @@ El rechazo dice «El pedido tiene datos inválidos. No se escribió nada.» y oc
 escribir hechos. El mismo identificador puede corregirse: no se reservó. No cambia la puerta de un solo proceso.
 
 La terminal arma aparte y publica solo después de verificar huella, secuencia e identidad. Si difiere, conserva la
-última vista válida, muestra una vez el texto del catálogo, suspende los actos y pide `sincronizar`. Tres estados
+última vista válida, muestra una vez el texto del catálogo, suspende los actos y pide `sync`. Tres estados
 inválidos consecutivos en la misma secuencia agotan la recuperación: son dos pedidos como máximo; un estado válido
 reinicia la cuenta. La terminal termina con código 1 y «No se pudo comprobar el estado de la casa. Se cerró la
 terminal. Volvé a abrirla.», también si ya había entrado. La casa escribe un solo aviso de resincronización por
 conexión, aunque cambie la secuencia: el archivo no crece con cada vuelta.
-Desde el envío de `hola` hasta el primer estado comprobado hay cinco segundos totales. Ningún encabezado, tramo
+Desde el envío de `hello` hasta el primer estado comprobado hay cinco segundos totales. Ningún encabezado, tramo
 ni resincronización reinicia ese plazo; al vencer, la terminal sale con su texto del catálogo y código 1.
 El protocolo 3 identifica esta nueva codificación: casa y terminal deben actualizarse juntas; un cliente de
 protocolo 2 autenticado recibe el rechazo de versión, antes de intercambiar estado.
@@ -1377,7 +1377,7 @@ en memoria; nunca se pasa en argumentos del proceso servidor. Su provisión defi
 Los programas locales existentes y `shop-open.ts` siguen compilando y funcionando. `HousePorts` suma
 `observe?`, opcional, para los actos del dibujo; sin ese puerto se usa el mismo `act` local de siempre.
 
-La función prueba `<carpetaDeCasa>/casa.sock`. Si falta, ejecuta con Node el archivo declarado en
+La función prueba `<carpetaDeCasa>/house.sock`. Si falta, ejecuta con Node el archivo declarado en
 `package.json → desert.program`, pasándole únicamente la carpeta de la casa. Ese archivo sigue exportando
 `program` y `shown` y, cuando `import.meta.main`, llama `runProgramServer(program, opciones, carpeta)` de
 `src/doors/socket/server/server-process.ts`. Las opciones son `by`, `creation`, `keys` (tabla del paso 1) y, si corresponde,
@@ -1385,7 +1385,7 @@ La función prueba `<carpetaDeCasa>/casa.sock`. Si falta, ejecuta con Node el ar
 El programa usa sus proveedores de custodia reales en su composición; la terminal no abre el almacenamiento.
 
 El arranque tiene cinco segundos para confirmar por IPC que escucha. Después, el proceso queda independiente.
-Un relevo independiente recoge stdout y stderr del hijo, incluidos mensajes nativos, en `<home>/casa.log`,
+Un relevo independiente recoge stdout y stderr del hijo, incluidos mensajes nativos, en `<home>/house.log`,
 en modo 0600 dentro de la carpeta 0700. Se conservan al relanzar mientras entren en 1 MiB. Al exceder ese tope
 se trunca el mismo descriptor, se escribe «Se alcanzó el tope de la salida. Se conserva el tramo más reciente.»
 y se guarda el tramo reciente que entre; no se acumulan archivos rotados. Un archivo de la versión anterior
@@ -1401,7 +1401,7 @@ Al perder una casa ya conectada, la terminal intenta reconectarse cada 500 ms y 
 
 `socketConnection` conserva la última vista y `socketPorts` implementa el contrato existente. La Barra usa los
 cuatro iconos y colores de siempre, sin palabras nuevas. `now` suma a la hora fresca de la bienvenida de esta
-conexión el tiempo monotónico transcurrido. La hora del encabezado `estado` se conserva por compatibilidad
+conexión el tiempo monotónico transcurrido. La hora del encabezado `state` se conserva por compatibilidad
 del protocolo, pero nunca ajusta el reloj: puede pertenecer a un envío guardado. Reconectar toma otra bienvenida. Solo las observaciones automáticas del dibujo comparten promesa; cada acto de la persona, incluido
 `attend` antes de actuar, tiene un pedido nuevo. Un corte resuelve con `interrupted` y
 «Se cortó antes de la respuesta: fijate en Actividad si se hizo.». Los identificadores inciertos se consultan
@@ -1411,19 +1411,19 @@ siguen siendo la forma de comprobarlo. Los identificadores se conservan durante 
 su identificador incierto y se vuelve a consultar al segundo, con un único temporizador para el conjunto;
 perder la conexión cancela ese temporizador. Nunca se reenvía el acto.
 
-`defecto` lleva solo `tool`, `target` y `option`: la casa verifica el destino, que la acción sea una propiedad
+`default` lleva solo `tool`, `target` y `option`: la casa verifica el destino, que la acción sea una propiedad
 propia de la herramienta y su kit, y arma texto y autor. `constructor`, `toString`, `__proto__` y
 `hasOwnProperty` heredados no son acciones. No acepta entrada, atención, texto elegido, made, draft ni silent. La excepción del cliente no viaja.
 El diagnóstico ya presente en `identityView` sigue viajando como en local; este carril no cambia quién lee qué.
 Los marcos locales y remotos se comparan después de aquietar el router y recibir el estado de sus actos,
 incluidos los que dispara un dibujo. También se comparan los hechos `act` del registro.
 
-Los pedidos autenticados que no son actos (`defecto`, `esperar`, lecturas, `sincronizar`, `apagar`) comparten
+Los pedidos autenticados que no son actos (`default`, `wait`, lecturas, `sync`, `shutdown`) comparten
 32 admisiones por conexión en una ventana móvil de un segundo; hay como máximo ocho esperas simultáneas.
 Un rechazo lleva el identificador del pedido, o su tipo cuando no tiene identificador, y dice «Llegaste al tope
 de pedidos de esta conexión. Esperá un segundo y volvé a intentar.». No escribe ni reserva otra espera.
 La terminal muestra ese aviso como máximo una vez por segundo y sigue conectada.
-Terminar una espera o cortar su conexión libera el lugar. Los actos y `chau` quedan fuera de ese cupo.
+Terminar una espera o cortar su conexión libera el lugar. Los actos y `bye` quedan fuera de ese cupo.
 La prueba del costo compara bytes y cantidad de envíos, con un envío de estado por terminal y pago; alterna
 el camino local y remoto para informar sus tiempos y relación, sin un umbral de milisegundos dependiente de la máquina.
 
@@ -1596,7 +1596,7 @@ del proceso y conserva su cierre y autor. Administrar no convierte al asistente 
 Al pasar la administración, una selección V2 se conserva para cuando su titular deje de administrar;
 los hechos históricos mantienen la limpieza de restricciones antiguas que ya tenía `handed`.
 
-El puerto transitorio es `herramientaDe(program, action, layout)` en `house/kit-selection.ts`.
+El puerto transitorio es `toolOf(program, action, layout)` en `house/kit-selection.ts`.
 Cada `Tool` actual representa un programa; `actionTools` declara la herramienta de cada acción. Sin ese mapa,
 la herramienta histórica tiene el mismo id que el programa. El integrador debe conectar el adaptador de programas
 instalables con este mapa, y pasar registro y correspondencias a los cálculos. El mapa entra en la huella de proyección.
@@ -1635,7 +1635,7 @@ El alta pide **Programas** por su nombre declarado. En la ficha, **Kit** disting
 sueltas no las convierte en carpeta. Una ficha vacía dice «Sin acciones». El enlace `programas` explica
 «acciones que puede hacer».
 
-Los programas instalables llevan `palabras.name` al registro como `Tool.name` y los nombres de sus herramientas
+Los programas instalables llevan `words.name` al registro como `Tool.name` y los nombres de sus herramientas
 como `Tool.toolNames`. El kit, sus títulos, las confirmaciones, el resultado guardado y las mentes usan esos nombres;
 los ids conservan su función en destinos y permisos. Las composiciones anteriores pueden declarar esos dos campos
 sin cambiar sus ids. Una fila de acción respeta las minúsculas de las reglas de terminal.
@@ -1681,7 +1681,7 @@ y la ubicación de la puerta siguen pendientes del dueño o del carril correspon
 ## La mente de una herramienta desde su proceso
 
 El programa le da una mente en cero a la herramienta implementando `start(ports)`: escucha un hecho y pide
-`ports.act({ act: "anotar", target: "notas", input: {} })`. La casa fija `mind:notas`; el programa no pasa ni
+`ports.act({ act: "anotar", target: "notes", input: {} })`. La casa fija `mind:notes`; el programa no pasa ni
 elige autor. Puede pedir acciones declaradas de Notas, incluidas las de sus cosas, según su kit, y su propia
 `scene` sin kit. Otra herramienta, los actos propios del programa y las preferencias siguen fuera de su alcance.
 Los rechazos son los mismos de `execute`: por ejemplo, sin kit o fuera de él dice «fuera del kit», una herramienta
@@ -1691,13 +1691,13 @@ Los adaptadores del arranque y sus credenciales se prestan a la misma mente; su 
 ```ts
 start({ bus, act, now }) {
   const stop = bus.on("woke", event => {
-    if (event.layer === "house" && event.data.id === "notas:revisar") {
-      void act({ act: "anotar", target: "notas", input: {} }).then(resultado => {
+    if (event.layer === "house" && event.data.id === "notes:revisar") {
+      void act({ act: "anotar", target: "notes", input: {} }).then(resultado => {
         // El proceso recibe el estado final y, si lo hay, el motivo del rechazo.
       });
     }
   });
-  bus.emit({ layer: "house", kind: "wake-at", data: { id: "notas:revisar", at: now() + 60_000 } });
+  bus.emit({ layer: "house", kind: "wake-at", data: { id: "notes:revisar", at: now() + 60_000 } });
   return stop;
 }
 ```
@@ -1887,22 +1887,22 @@ obligatoria entre pedidos. Un método desconocido recibe `-32601`; argumentos in
 
 Las herramientas MCP publicadas son siempre `read`, `actions`, `act` y `wait`. La casa reúne
 identidades y programas; cada programa tiene herramientas con acciones. El parámetro que elige el programa se
-llama `program`. Mandar `herramienta` en cualquiera de las tres primeras recibe `-32602` con el nombre nuevo,
-incluso si también se manda `program`: no hay alias de compatibilidad.
+llama `program`. Un argumento que la herramienta no declara, como el viejo `herramienta`, recibe `-32602` de
+argumentos inválidos, incluso si también se manda `program`: no hay alias de compatibilidad.
 
 - `read { program?: string, target?: string }` muestra `identity`, la secuencia `since`, las `scenes`
   con `identity`, `general`, `addressed` y `recipients`, los `programs` (`id`, `purpose`) y sus `notices`
   (`program`, `needs`, `news`, `quiet`; cada aviso lleva `title`, `detail` y, si corresponde, `opens`).
   Con `program`, muestra su lectura textual, sin códigos de terminal. En un programa instalable, esa lectura
-  lista sus herramientas con ids. Por ejemplo: `read { program: "notas" }` lista las carpetas;
-  `read { program: "notas", target: "notas/notas" }` lista los objetos de esa herramienta;
-  `read { program: "notas", target: "notas/notas/<id>" }` lee el objeto. `target` requiere `program` y debe
+  lista sus herramientas con ids. Por ejemplo: `read { program: "notes" }` lista las carpetas;
+  `read { program: "notes", target: "notes/notes" }` lista los objetos de esa herramienta;
+  `read { program: "notes", target: "notes/notes/<id>" }` lee el objeto. `target` requiere `program` y debe
   pertenecer a él: destinos inexistentes o de otro programa reciben un rechazo claro. Cualquier identidad presente
   puede leer un programa instalable aunque no lo tenga en su kit. Las piezas del sistema se leen igual:
   `read { program: "identities" }` lista Identidades; `target: "identities/ana"` lee a Ana.
   Usa `localPorts`, las lecturas de identidad y los avisos de la terminal.
 - `actions { program?: string, target?: string }` muestra `program`, `tool` (id de la carpeta, como
-  `notas/notas`), `action` (identificador ejecutable, como `notas/add`), `name`, `purpose`, `subject`
+  `notes/notes`), `action` (identificador ejecutable, como `notes/add`), `name`, `purpose`, `subject`
   (herramienta o cosa), `target`, `input` (TypeBox serializado como JSON Schema) y `reason` de indisponibilidad.
   `choices` reúne las opciones dinámicas por fuente; `execution` y `destinations` describen dónde ejecutar.
   Las posiciones secretas conservan `secret: true`. Si todavía no hay cosas, la acción de cosa aparece con ese
@@ -2123,7 +2123,7 @@ La configuración y `house.modelCalls` están separados de `house.minds`, que co
 compartido y `TurnLimits`: doce intentos físicos, una corrección y una consulta. `ReviewPort` reserva el lugar de
 las reglas y del supervisor; este corte no implementa el turno ni llama modelos.
 
-`MindAnswer` tiene `scene`, `consulta: { question } | null` y `acts: [{ act, target, input }]`. `answerSchema(menu)`
+`MindAnswer` tiene `scene`, `consultation: { question } | null` y `acts: [{ act, target, input }]`. `answerSchema(menu)`
 cierra también los objetos de entrada del menú y conserva sus restricciones locales; el adaptador de modelos ya
 reduce las restricciones de transporte al armar el pedido. `validateAnswer` comprueba texto visible, hasta 4.000
 caracteres por escena o pregunta, hasta 32 actos, destinos exactos, permisos actuales, consulta única y alcance.
@@ -2160,18 +2160,18 @@ DESERT es el sistema operativo. Una distribución reúne versiones exactas de pr
 Un programa agrupa herramientas; cada herramienta agrupa acciones. La terminal entra por **Menú › Programas**,
 conserva **Sistema** y, al abrir un programa, muestra la pila **Herramientas**, con una fila por cada herramienta
 del programa: ninguna vive dentro de otra. Pruebas: `src/tools/installable/picking.spec.ts` y `program-tools.spec.ts`.
-conserva los tres niveles. `componer({ ..., atajoUnaHerramienta: true })` abre directamente esa herramienta desde el
+conserva los tres niveles. `compose({ ..., singleToolShortcut: true })` abre directamente esa herramienta desde el
 Menú; el interruptor es opcional y viene apagado. No cambia sus acciones, destinos ni permisos.
 
-`programa(metadata, body)` se importa de `desert/programa`. La metadata declara `id`, `version`, `desert`,
-`codigo`, `hechos` e `inicial`; el cuerpo declara `purpose`, `skill`, `palabras`, `herramientas`, `plegar` y
-`summary`. Cada herramienta lleva sus palabras, lecturas y acciones creadas con `programAct`, con sus casos.
-Un programa que habla por contratos declara su mitad en el mismo cuerpo: `ofrece`, `pide`, `proyectores` y,
+`defineProgram(metadata, body)` se importa de `desert/program`. La metadata declara `id`, `version`, `desert`,
+`code`, `facts` e `initial`; cada hecho se define con `kind` y `schema`. El cuerpo declara `purpose`, `skill`,
+`words`, `tools`, `fold` y `summary`. Cada herramienta lleva sus palabras, lecturas y acciones creadas con `programAct`, con sus casos.
+Un programa que habla por contratos declara su mitad en el mismo cuerpo: `offers`, `requests`, `projectors` y,
 si lo fija, `artifact` (si no, es la huella de su código). Sus tipos (`ContractPackage`, `ContractOffer`,
 `ContractRequest`, `ContractCase`, `ContractCaseStep`, `ContractProjector`, `ContractAction`, `ContractObject`,
-`ContractNotice` y `ContractInterface`) se importan con `import type` de `desert/programa`.
+`ContractNotice` y `ContractInterface`) se importan con `import type` de `desert/program`.
 La entrada de metadata mantiene sus herramientas en archivos propios; la frontera de secretos rastrea
-`programa` hasta esas declaraciones y conserva separadas composición, herramientas y adaptadores.
+`defineProgram` hasta esas declaraciones y conserva separadas composición, herramientas y adaptadores.
 El programa recibe su estado bajo `tools.own`; el adaptador conserva los destinos de sus herramientas y objetos.
 Los hechos pertenecen al espacio de nombres del programa. Los rechazos de destino que agrega el adaptador
 se comprueban por ejecución y ausencia de filas sobre cada destino ajeno; el autor no necesita inventar
@@ -2183,12 +2183,12 @@ cosa de esa herramienta, o su carpeta si es el nombre de la herramienta (`on: "i
 `src/tools/installable/picking.spec.ts`.
 
 Un consumidor prueba sus casos con la composición entera: un paso con `program` y `tool` corre una acción de otro
-programa compuesto (`{ program: "documentos", tool: "fiscal", act: "emitir", input: { … } }`), así un caso de Ventas
+programa compuesto (`{ program: "documents", tool: "fiscal", act: "issue", input: { … } }`), así un caso de Ventas
 carga Documentos antes. `then.facts` admite hechos de otro programa, nombrándolo:
-`{ program: "documentos", kind: "documentos/emitido", data: { … } }`; el hecho tiene que ser de ese programa. El paso
+`{ program: "documents", kind: "documents/issued", data: { … } }`; el hecho tiene que ser de ese programa. El paso
 `{ kit: { identity, selections } }` le da a una identidad ese kit antes del caso, escrito por quien administra, así un
 caso prueba lo que alguien no puede sin la acción del proveedor. Un motivo que el acto declara y cabe como `{ reason }`
-en los `rechazos` de una acción que su programa pide no necesita un caso del consumidor: lo cubren los casos del
+en los `rejections` de una acción que su programa pide no necesita un caso del consumidor: lo cubren los casos del
 proveedor en su compuerta. Prueba: `src/checks/promises/cases/promised-contracts.spec.ts`.
 
 Lo que la vista de una herramienta nombra como `{ id, text, detail? }` es una cosa, y la base la abre con su número.
@@ -2200,7 +2200,7 @@ De quién es la cosa:
    herramienta del programa, la lectura falla con un defecto que dice la herramienta que lee, la clave y ese `tool`.
 3. Lo que una lectura nombra sin `tool`, anidado: si es una cosa de la herramienta que lee (está en sus `targets` de
    ese estado), es suya. Si no, pasa como está escrito: es el id completo de quien la tenga, por ejemplo
-   `notas/personal/1` de otro programa, y la base lo abre sea de la herramienta que sea.
+   `notes/personal/1` de otro programa, y la base lo abre sea de la herramienta que sea.
 4. El recorrido no se corta en un objeto que tiene `id`: una lectura que trae su propio `id` en el primer nivel igual
    abre lo que nombra adentro.
 
@@ -2215,9 +2215,9 @@ vuelve. La compuerta recorre cada acción en los destinos de su herramienta: una
 exige en la carpeta ni en objetos de otra herramienta. El chequeo de kit parcial usa selecciones V2 y conserva
 las demás acciones y programas.
 
-`componer`, de `desert/componer`, recibe `programas`, `identidades`, `mentes` y `presentacion`. La presentación
-incluye el país en `locale` y las rutas de cálculo en `codigo`. Devuelve `program`, `shown`, `manifest`,
-`calculation` y `mentes`. Rechaza ids y hechos repetidos, hechos ajenos, contratos DESERT distintos, mentes
+`compose`, de `desert/compose`, recibe `programs`, `identities`, `minds` y `shown`. La presentación
+incluye el país en `locale` y las rutas de cálculo en `code`. Devuelve `program`, `shown`, `manifest`,
+`calculation` y `minds`. Rechaza ids y hechos repetidos, hechos ajenos, contratos DESERT distintos, mentes
 inexistentes o repetidas, asistentes sin identidades y dependencias de distribuciones. Los diagnósticos incluyen
 cada camino y motivo. Rechaza `effects` de programas instalables: no los ejecuta por fuera del motor.
 Las `reactions` de cada herramienta sí se instalan: su identificador y acción quedan bajo el nombre de la
@@ -2234,7 +2234,7 @@ mitades contractuales ni recorren ciclos. `src/runtime/distributions/types.spec.
 positive and reports exactly each isolated static negative», comprueba los rechazos aislados y demuestra
 que un ciclo contractual puede compilar: su alias `RuntimeCycle` no tiene errores estáticos.
 
-**Qué comprueba la ejecución de la composición.** `diagnostico` y `componer` repiten las comprobaciones
+**Qué comprueba la ejecución de la composición.** `diagnose` y `compose` repiten las comprobaciones
 centrales, exigen proveedor único, recorren el grafo para rechazar ciclos, comparan entradas, salidas,
 rechazos, objetos y avisos, y verifican la evidencia de los casos para los artefactos instalados.
 `src/runtime/distributions/contracts.spec.ts` lo comprueba en «preserves all contract paths alongside the
@@ -2259,17 +2259,17 @@ de motivos. Correspondencia:
 Límite: cada negativo se prueba aislado sobre el positivo; las combinaciones, solo donde una prueba lo dice («lists
 three independent incompatible fields»).
 
-`mentes: { asistentes: false, programas: [] }` conserva el arranque determinista `mind:<programa>` y el plegado
+`minds: { assistants: false, programs: [] }` conserva el arranque determinista `mind:<programa>` y el plegado
 de hechos históricos. No inicia pensamiento ni carga módulos de turno, catálogo de cartas o adaptadores de
-modelos. `asistentes: false` retira del registro efectivo habilitar, deshabilitar, delegar y adoptar asistentes:
-no aparecen en la terminal ni en MCP y no se agregan al kit. La elección se conserva en `program.mentes` y en
-el manifiesto. Habilitar nombres en `programas` declara la selección para el ensamblador de pensamiento; esta
-API no configura transportes ni inicia llamadas por sí sola. Las composiciones anteriores que omiten `mentes`
+modelos. `assistants: false` retira del registro efectivo habilitar, deshabilitar, delegar y adoptar asistentes:
+no aparecen en la terminal ni en MCP y no se agregan al kit. La elección se conserva en `program.minds` y en
+el manifiesto. Habilitar nombres en `programs` declara la selección para el ensamblador de pensamiento; esta
+API no configura transportes ni inicia llamadas por sí sola. Las composiciones anteriores que omiten `minds`
 conservan su comportamiento de Identidades, por compatibilidad.
 
 Los paquetes viven fuera de `node_modules`, fijados por commit, y se enlazan desde ahí. Un programa declara a
 `desert` como dependencia par y lo importa por sus `exports`; nunca instala una copia propia mediante alias.
-Las entradas públicas son `desert/programa`, `desert/componer`, `desert/messages`, `desert/fields`,
+Las entradas públicas son `desert/program`, `desert/compose`, `desert/messages`, `desert/fields`,
 `desert/fields/*`, `desert/journal`, `desert/runtime`, `desert/doors/terminal`, `desert/doors/socket`,
 `desert/doors/mcp`, `desert/testing`, `desert/program-gate`, `desert/laws`, `desert/program-types`, `desert/surface`,
 `desert/calculation`, `desert/surface/house-router`, `desert/runtime/cloud`, `desert/doors/keys`,
@@ -2315,10 +2315,10 @@ ocultos dentro de esas APIs ambientales. Las pruebas de la ley hacen explícitas
 mutación. Esto no habilita esas rutas en programas: siguen sujetas a las fronteras de imports y secretos.
 
 El principal de un programa pasa la misma inspección de secretos que sus herramientas; no recibe privilegios
-de composición. Puede declarar `programa({ ...metadata, codigo: [import.meta.dirname] }, {...})` y reexportar
-`program` con otro nombre, como `export { program as notas }`. La excepción de `import.meta.dirname` sólo vale
-dentro de `codigo`, en el primer argumento del constructor real de DESERT y en el principal declarado.
-Leer `import.meta` en otros lugares, usar `resolve` o `filename`, o pasar `codigo` a otra función no queda autorizado.
+de composición. Puede declarar `defineProgram({ ...metadata, code: [import.meta.dirname] }, {...})` y reexportar
+`program` con otro nombre, como `export { program as notes }`. La excepción de `import.meta.dirname` sólo vale
+dentro de `code`, en el primer argumento del constructor real de DESERT y en el principal declarado.
+Leer `import.meta` en otros lugares, usar `resolve` o `filename`, o pasar `code` a otra función no queda autorizado.
 La distribución declarada con `kind: "distribution"` conserva su composición privilegiada.
 Esta inspección estática cierra estas rutas conocidas; no constituye aislamiento de JavaScript hostil.
 
@@ -2328,7 +2328,7 @@ El paquete declara dónde exporta su programa y dónde compone la distribución 
 
 ```json
 {
-  "name": "notas",
+  "name": "notes",
   "peerDependencies": { "desert": "0.1.0" },
   "desert": {
     "program": "src/program.ts",
@@ -2343,11 +2343,11 @@ El paquete declara dónde exporta su programa y dónde compone la distribución 
 }
 ```
 
-`src/program.ts` exporta `program`, el resultado de `programa`. La distribución de prueba exporta `program`,
-`shown` y `manifest`, obtenidos de `componer`. El cargador comprueba que su manifiesto contiene el id, la versión
+`src/program.ts` exporta `program`, el resultado de `defineProgram`. La distribución de prueba exporta `program`,
+`shown` y `manifest`, obtenidos de `compose`. El cargador comprueba que su manifiesto contiene el id, la versión
 y la huella del código del programa declarado. Un programa sin `testDistribution` falla con un diagnóstico que
 pide declarar la composición local de prueba. Para migrar el manifiesto anterior, `desert.program` pasa a señalar
-el módulo que exporta `program = programa(...)` y `desert.testDistribution` señala la composición de prueba;
+el módulo que exporta `program = defineProgram(...)` y `desert.testDistribution` señala la composición de prueba;
 esta exporta también `manifest`. Eso no ata el programa a ninguna distribución: sus dependencias siguen siendo
 DESERT y los contratos que pide. Las partes `tests/program/*.checks.ts` de DESERT siguen siendo obligatorias
 en el runner:
@@ -2383,7 +2383,7 @@ secretos del registro y de sus herramientas siguen activos. Los programas instal
 
 Cada programa publica su propia oferta y su propio pedido (`ContractPackage`). Las acciones ofrecidas
 vinculan una ruta local `herramienta/acción` con esquemas de entrada, salida y rechazo. Las herramientas
-instaladas usan el id `programa/herramienta`. `componer` conserva las mitades y proyectores ya validados en
+instaladas usan el id `programa/herramienta`. `compose` conserva las mitades y proyectores ya validados en
 `program.contractSetup`, con una copia de sus declaraciones, y rechaza una ruta sin ejecutor instalado.
 `startHouse` arma `createContractRuntime` con el estado y diario reales de esa apertura y entrega su
 `context` como `contracts` a `startTools` y a la ejecución de las mentes. No exige cableado adicional del
@@ -2391,7 +2391,7 @@ programa. Cada apertura reconstruye sus cortes desde los hechos confirmados, con
 `src/runtime/distributions/house-contracts.spec.ts` prueba respuesta, efecto, actor y cadena de causas,
 lectura contractual y persistencia, permiso revocado antes y durante la espera, rechazo de negocio,
 inconcluso y cierre con actos pendientes. También rechaza una declaración certificada sin ejecutor.
-El contexto de la acción recibe `contracts["documentos-fiscales"].actions.emitir(entrada)` y `cut`.
+El contexto de la acción recibe `contracts["fiscal-documents"].actions.issue(entrada)` y `cut`.
 La llamada conserva actor, causa y proceso y pasa por el ejecutor común, incluidos permisos vigentes,
 interrupción y autoridad de efectos. El puerto prestado deja de servir al terminar la acción.
 El acto que el contrato le pide al proveedor no exige tener al proveedor a la vista: quien actúa mira su propia
@@ -2403,7 +2403,7 @@ valor y recorta la respuesta al esquema pedido. Los fallos del core usan `status
 del rechazo de negocio: `forbidden`, `interrupted`, `invalid-reference`, `defect` e `inconclusive`.
 El apagado y los resultados anidados inconclusos conservan su condición; no se convierten en rechazos.
 Un rechazo antes de correr (el `offered` o el `stops` del proveedor) sólo trae su motivo: llega como
-`{ status: "rejected", value: { reason } }` si `{ reason }` cabe en los `rechazos` ofrecidos, recortado a los pedidos,
+`{ status: "rejected", value: { reason } }` si `{ reason }` cabe en los `rejections` ofrecidos, recortado a los pedidos,
 y como `defect` si no cabe. Un rechazo de la casa (kit, presencia) sigue siendo `forbidden` aunque sus palabras
 quepan. Prueba: `src/runtime/contracts/failures.spec.ts`.
 
@@ -2416,16 +2416,16 @@ la casa, aunque el corte sea anterior. Las referencias incluyen proveedor y arte
 rechaza redirigir una referencia histórica a otra instalación. Migrarlas requiere trabajo explícito.
 
 Un programa instalable también lee a su proveedor fuera de `run`: en todo lo que lee (`offered`, `stops`,
-`confirms`, `datum`, `today`, `choices`, `view`, `needs`, `closed`, `words`, `summary` y `run`) su estado trae
+`confirms`, `datum`, `today`, `choices`, `view`, `needs`, `closed`, `findWords`, `summary` y `run`) su estado trae
 `state.readings["contrato"].objeto(clave)`, una por cada objeto pedido. Es la misma lectura que `read`, sobre el estado
 que la función ya recibe y sin corte: el proyector del proveedor, validado contra la oferta y recortado al esquema
 pedido. Da `{ status: "found", value }`, `{ status: "unavailable" }` o un fallo del core (`invalid-reference` para
 una clave fuera del esquema, `defect` si el proyector falla). `state.readings["contrato"].can("acción")` dice si
 quien mira (`state.by`) tiene en su kit la acción pedida del proveedor, con `allowedAct`: así una acción que la
-necesita se apaga con su motivo en vez de fallar al correr. `plegar` nunca recibe lecturas, y el estado crudo del
-proveedor sigue fuera de alcance. `componer` instala cada programa con sus lecturas (`installPrograms`), desde los
+necesita se apaga con su motivo en vez de fallar al correr. `fold` nunca recibe lecturas, y el estado crudo del
+proveedor sigue fuera de alcance. `compose` instala cada programa con sus lecturas (`installPrograms`), desde los
 mismos paquetes que enlazan sus contratos; un programa que no pide nada no las tiene. Ningún objeto se puede
-llamar `can` (`nombre-reservado`). Prueba: `src/tools/installable/contract-readings.spec.ts`.
+llamar `can` (`reserved-name`). Prueba: `src/tools/installable/contract-readings.spec.ts`.
 
 El pedido lleva casos declarativos: preparación, actor, acciones, lecturas y avisos esperados.
 `runContractCases` recibe los artefactos, las huellas de core y ejecutor y una fábrica de casas aisladas con
@@ -2435,23 +2435,23 @@ evidencia con huellas de artefactos, oferta, pedido, caso y observaciones, junto
 Una fila serializada sirve como evidencia para inspeccionar, pero no prueba por sí sola que se ejecutó:
 para acreditarla en otro proceso hay que volver a correr la compuerta. No hay firma remota implementada.
 
-`validateContractPrograms(programas, build, evidencias, verificar)` es la unión que llama `componer`:
+`validateContractPrograms(programas, build, evidencias, verificar)` es la unión que llama `compose`:
 devuelve `errors` completos con camino y `rows`. Sin ejecución, la fila dice «casos no comprobados».
 Las comprobaciones estructurales se pueden usar antes de ejecutar casos con `structuralContractErrors`;
 por sí solas no acreditan compatibilidad.
 
 Una distribución certifica sus contratos con `certifyContracts(opciones)`, de `desert/contracts`: recibe las mismas
-opciones que `componer`, sin `contratos`, instala los programas, arma la composición candidata y corre cada caso de
+opciones que `compose`, sin `contracts`, instala los programas, arma la composición candidata y corre cada caso de
 cada pedido contra su único proveedor con `runContractCases`, cada uno en su propia casa aislada
-(`prepareContractHouse`). Devuelve `{ build, evidence, verify }`, que `componer` recibe como `contratos`. Un pedido
-sin proveedor único no se corre: `componer` dice por qué. Sólo cuenta la evidencia emitida por esa llamada; una fila
+(`prepareContractHouse`). Devuelve `{ build, evidence, verify }`, que `compose` recibe como `contracts`. Un pedido
+sin proveedor único no se corre: `compose` dice por qué. Sólo cuenta la evidencia emitida por esa llamada; una fila
 copiada no. `desert/contracts` publica también los tipos de los contratos y es del ensamblador: no está entre las
 entradas de un programa, así que la ley de importaciones la rechaza en su código. Prueba:
 `src/checks/contracts/public-contracts.spec.ts`.
 
 ## Mentes de programas compuestas y banco por rol (18/11)
 
-`componer` deriva `mindDefinitions` para los ids de `mentes.programas`: actor `mind:<id>`,
+`compose` deriva `mindDefinitions` para los ids de `minds.programs`: actor `mind:<id>`,
 rol `program:<id>`, reglas comunes de DESERT y palabras del programa y sus herramientas. La skill
 existente entra al marco. El programa no declara actor, reglas, proveedor ni carta.
 
@@ -2462,7 +2462,7 @@ versión de reglas y tamaño máximo del pedido los arma DESERT. El idioma no in
 `house.minds` resuelve cuando terminó la preparación; la casa ya está abierta mientras tanto.
 La API anterior de `MindRuntimeOptions` sigue disponible para composiciones manuales.
 
-Un programa aporta `mindCases` en el cuerpo de `programa`: cada caso tiene `id` y exactamente tres
+Un programa aporta `mindCases` en el cuerpo de `defineProgram`: cada caso tiene `id` y exactamente tres
 `scenes`. Cada escena declara `given` (hechos sintéticos), `kit` (acciones disponibles), `when`
 (acción que despierta al programa) y `check(events)` (comprobación sobre un diario inmutable).
 Se usa la identidad sintética `bank` como administradora de cada escena. Los casos no reciben
@@ -2506,7 +2506,7 @@ Las acciones son `propose` y `save` con una definición; `approve` y `retire` co
 `{ id, version }`; `consult` con `{}`; y `simulate` con `{ id, version, samples }`.
 `samples` contiene un arreglo JSON de casos `{ actor, input, now, inJourney? }`, con tiempo
 en milisegundos UTC. Se valida cada entrada contra el esquema de la acción y se devuelve
-`passed`, `frena` o `requiere-supervisor` por caso, sin ejecutar el acto simulado.
+`passed`, `block` o `require-supervisor` por caso, sin ejecutar el acto simulado.
 
 Una definición, por ejemplo, es:
 
@@ -2520,7 +2520,7 @@ Una definición, por ejemplo, es:
     "field": { "source": "input", "path": "total" },
     "value": 10
   },
-  "effect": "frena"
+  "effect": "block"
 }
 ```
 
@@ -2554,15 +2554,21 @@ Retirar quita vigencia, no borra versiones. Una versión que ya fue aprobada no 
 aprobarse: para recuperar su contenido se guarda una versión nueva. Las acciones de programas
 no pueden falsificar esos hechos ni `rule-evaluated`.
 
+La base ya no lee los nombres guardados en castellano: un diario anterior que tenga los efectos `frena` o
+`requiere-supervisor`, o llaves e invitaciones de la puerta `agente`, se migra una vez, con la casa cerrada, con
+`pnpm migrate-names --backup <carpeta> --journal <journal.sqlite> [--account <account.sqlite>]`
+(`scripts/migrate-stored-names.ts`). Sin `--backup` se niega; guarda la copia antes de reescribir, se puede repetir
+sin cambiar nada y solo confirma si cada renglón se lee con los esquemas actuales y la casa pliega al mismo estado.
+
 El ejecutor controla toda acción, también manual, anidada y contractual. Evalúa la entrada
 normalizada una sola vez y registra resultados por id y versión en `rule-evaluated`, con causa
-al acto o turno. `frena` tiene prioridad y no consulta para obtener una excepción. Tras una
+al acto o turno. `block` tiene prioridad y no consulta para obtener una excepción. Tras una
 revisión vuelve al control común; antes de usar un adaptador, cambiar un vínculo o llamar otra
 acción revalida la autoridad y las reglas. Antes de publicar hechos de una acción local que
 esperó también vuelve a comprobarlas. Los controles de journeys se comprueban antes y después
 de sus esperas, y la comunicación de las mentes antes de publicar.
 
-En este paso `requiere-supervisor` deja un aviso de atención y un resultado durable; el intento
+En este paso `require-supervisor` deja un aviso de atención y un resultado durable; el intento
 termina sin efecto con `status: "rejected"` y motivo de espera. No queda una promesa de ejecución
 pendiente ni hay reintento automático. La aprobación de un borrador, el guardado del admin y el
 retiro despiertan al actor o journey que había quedado frenado por esa regla. La mente decide
@@ -2669,7 +2675,7 @@ las entradas que ya admite un programa. Las dependencias externas siguen necesit
 publicar un paquete no lo habilita como dependencia. Las leyes de adaptadores, textos, hechos y tamaño siguen vigentes.
 
 El ejecutor puede importar esquemas, tipos y textos de la casa. Ese grafo compartido sólo admite entradas de
-campos, mensajes y tipos; de `desert/programa` admite `Type`, `Static` e imports de tipos. No puede alcanzar la composición, acciones,
+campos, mensajes y tipos; de `desert/program` admite `Type`, `Static` e imports de tipos. No puede alcanzar la composición, acciones,
 Node, globals de E/S ni el propio ejecutor. La comprobación es estática y conservadora, no un aislamiento de JavaScript.
 La casa nunca importa el ejecutor: se controlan también reexportaciones, imports dinámicos, consultas de tipos,
 `require` y enlaces simbólicos. El anfitrión del dispositivo carga la exportación separada.

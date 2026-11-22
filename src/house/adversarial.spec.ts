@@ -81,12 +81,12 @@ it("A2: taking administration clears every historical kit, also after handing it
 
 it("A3: unknown acts grant nothing, premature kits are ignored, and the last kit wins", () => {
   const rig = open();
-  kit(rig, "beto", ["inexistente"]);
+  kit(rig, "beto", ["missing"]);
   expect(holderKit(rig.state().house, "beto").selections).toContainEqual({
     kind: "action",
     program: "desk",
     tool: "desk",
-    action: "inexistente",
+    action: "missing",
   });
   expect(allowedAct(rig.state().house, "beto", "desk", "open")).toBe(false);
   grant(rig, "carla", []);
@@ -104,22 +104,22 @@ it("A3: unknown acts grant nothing, premature kits are ignored, and the last kit
 
 it("A5: direct facts preserve the documented folding boundary", () => {
   const rig = open();
-  rig.bus.emit(effect("scene", { general: "fantasma" }, "mind:nada"));
-  rig.bus.emit(effect("kit-set", { holder: "mind:nada", tool: "nada", acts: null }, "ana"));
+  rig.bus.emit(effect("scene", { general: "ghost" }, "mind:nothing"));
+  rig.bus.emit(effect("kit-set", { holder: "mind:nothing", tool: "nothing", acts: null }, "ana"));
   kit(rig, "beto", [], "desk", "beto");
   rig.bus.emit(effect("attended", { target: "desk" }, "mind:desk"));
   rig.bus.emit(effect("preferred", { hide: "off", on: true }, "mind:desk"));
   expect(() => rig.bus.emit(effect("scene", { general: "" }, "ana"))).toThrow();
-  expect(rig.state().house.scenes.has("mind:nada")).toBe(true);
-  expect(holderKit(rig.state().house, "mind:nada").selections).toEqual([
-    { kind: "tool", program: "nada", tool: "nada" },
+  expect(rig.state().house.scenes.has("mind:nothing")).toBe(true);
+  expect(holderKit(rig.state().house, "mind:nothing").selections).toEqual([
+    { kind: "tool", program: "nothing", tool: "nothing" },
   ]);
   expect(rig.state().house.kits.has("beto")).toBe(false);
   expect(rig.state().attendance.get("mind:desk")).toEqual(["desk"]);
   expect(rig.state().house.hides.has("mind:desk")).toBe(false);
 });
 
-it.each(["", " ", "\u200b", "k".repeat(200_000), "nadie-que-exista", "mind:desk", "__proto__"])(
+it.each(["", " ", "\u200b", "k".repeat(200_000), "nobody-who-exists", "mind:desk", "__proto__"])(
   "A6: rejects an invalid scene recipient (case %#) before writing",
   name => {
     const rig = open();
@@ -180,18 +180,18 @@ it("A8: a mind's effects cannot grant itself identity privileges or escape its t
   expect(await settle(rig.act("mind:desk", "away", {}, "desk"))).toMatchObject({ reason: toolTexts.outsideKit });
 });
 
-it("A9: a legacy mind:jefe founder is ignored and the next house-created takes administration", () => {
-  const first = { ...effect("house-created", {}, "mind:jefe"), id: "1", seq: 1, at: 0 };
+it("A9: a legacy mind:boss founder is ignored and the next house-created takes administration", () => {
+  const first = { ...effect("house-created", {}, "mind:boss"), id: "1", seq: 1, at: 0 };
   const ignored = houseStep(emptyHouse, first);
   expect(ignored).toBe(emptyHouse);
   const next = houseStep(ignored, { ...effect("house-created", {}, "ana"), id: "2", seq: 2, at: 0 });
   expect(next.admin).toBe("ana");
   expect([...next.grants.keys()]).toEqual(["ana"]);
   const rig = open();
-  grant(rig, "mind:algo", ["desk"]);
-  expect(rig.state().house.grants.has("mind:algo")).toBe(false);
-  expect(rig.act("mind:algo", "say", {}, "desk").status).toBe("rejected");
-  expect(rig.facts().filter(e => e.kind === "granted" && e.data.identity === "mind:algo")).toHaveLength(1);
+  grant(rig, "mind:something", ["desk"]);
+  expect(rig.state().house.grants.has("mind:something")).toBe(false);
+  expect(rig.act("mind:something", "say", {}, "desk").status).toBe("rejected");
+  expect(rig.facts().filter(e => e.kind === "granted" && e.data.identity === "mind:something")).toHaveLength(1);
 });
 
 it("A10: direct kit facts retain their existing unbounded action list", () => {

@@ -48,7 +48,7 @@ it("hasSecretInput finds exact true marks through objects and array children, bu
     expect(hasSecretInput(schema)).toBe(false);
 });
 
-it("no conserva una preparación vieja si cambia una rama del esquema", () => {
+it("does not keep an old preparation if a schema branch changes", () => {
   const schema = Type.Object({ value: Type.Number() });
   Object.freeze(schema);
   expect(Value.Check(executionSchema(schema), { value: 1 })).toBe(true);
@@ -56,14 +56,14 @@ it("no conserva una preparación vieja si cambia una rama del esquema", () => {
   expect(Value.Check(executionSchema(schema), { value: 1 })).toBe(false);
 });
 
-it("detecta una posición que pasa a ser privada bajo una raíz congelada", () => {
+it("detects a position that becomes private under a frozen root", () => {
   const schema = Object.freeze(Type.Object({ value: Type.String() }));
   expect(hasSecretInput(schema)).toBe(false);
   Object.assign(schema.properties.value, { secret: true });
   expect(hasSecretInput(schema)).toBe(true);
 });
 
-it("una preparación compartida no permite cambiar lo que acepta la siguiente ejecución", () => {
+it("a shared preparation does not allow changing what the next execution accepts", () => {
   const schema = Type.Object({ value: Type.Number({ minimum: 2 }) });
   deepFreeze(schema);
   const prepared = executionSchema(schema);

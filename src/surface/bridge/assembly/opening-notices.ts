@@ -1,4 +1,4 @@
-// Muestra avisos de apertura en el hilo de la casa hasta continuar al menú.
+// Shows opening notices in the house thread until continuing to the menu.
 import { journalTexts } from "../../../texts/journal.texts.ts";
 import type { Router } from "../../router/router.ts";
 export function withOpeningNotices(router: Router, notices: readonly string[]): Router {

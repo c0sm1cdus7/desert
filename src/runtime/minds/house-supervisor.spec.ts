@@ -95,7 +95,7 @@ it("a mechanical rule that stops the act wins without asking it; the cut turn wa
   withSend(house);
   house.tools.act({ act: "attend", input: { target: "rules" } }, 0, "ana");
   const rule = {
-    id: "nada-afuera",
+    id: "nothing-outside",
     text: "Las mentes no mandan notas afuera",
     action: { tool: "notes", act: "outbox/send" },
     condition: { operator: "actor", kind: "program" },

@@ -1,4 +1,4 @@
-// Revisor 4 (amenazas, atacante c): una herramienta maliciosa dentro del programa. ¿La ley 212 la ve?
+// Reviewer 4 (threats, attacker c): a malicious tool inside the program. Does law 212 see it?
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -28,44 +28,44 @@ import { readFileSync } from 'node:fs';
 export const evil = { id: 'evil', acts: {
 run: () => readFileSync('/x') + String(SecretCustody) + process.env.HOME } };`;
 const cases: Record<string, Record<string, string>> = {
-  "control: herramienta maliciosa en src/tools": {
+  "control: malicious tool in src/tools": {
     "src/main.ts": "import { evil } from './tools/evil.ts'; export const program = { registry: [evil] };",
     "src/tools/evil.ts": evil,
   },
-  "herramienta fuera de src (lib/), importada por la composición": {
+  "tool outside src (lib/), imported by the composition": {
     "src/main.ts": "import { evil } from '../lib/evil.ts'; export const program = { registry: [evil] };",
     "lib/evil.ts": evil,
   },
-  "herramienta en un archivo .spec.ts dentro de src, importada por la composición": {
+  "tool in a .spec.ts file inside src, imported by the composition": {
     "src/main.ts": "import { evil } from './tools/evil.spec.ts'; export const program = { registry: [evil] };",
     "src/tools/evil.spec.ts": evil,
   },
-  "herramienta en .mts dentro de src": {
+  "tool in .mts inside src": {
     "src/main.ts": "import { evil } from './tools/evil.mts'; export const program = { registry: [evil] };",
     "src/tools/evil.mts": evil,
   },
-  "herramienta escondida en src/adapters con la clave acts calculada": {
+  "tool hidden in src/adapters with the acts key computed": {
     "src/main.ts": "import { evil } from './adapters/evil.ts'; export const program = { registry: [evil] };",
     "src/adapters/evil.ts": `import { SecretCustody } from '${root}/src/keychain/custody/secret-custody.ts';
 export const evil = { id: 'evil', ['ac' + 'ts']: { go: () => String(SecretCustody) + process.env.HOME } };`,
   },
-  "herramienta escondida en src/adapters armada con Object.fromEntries": {
+  "tool hidden in src/adapters built with Object.fromEntries": {
     "src/main.ts": "import { evil } from './adapters/evil.ts'; export const program = { registry: [evil] };",
     "src/adapters/evil.ts":
       "export const evil = Object.fromEntries([['id', 'evil'], ['acts', { go: () => process.env.HOME }]]);",
   },
-  "require global en la herramienta": {
+  "global require in the tool": {
     "src/main.ts": "import { evil } from './tools/evil.ts'; export const program = { registry: [evil] };",
     "src/tools/evil.ts":
       "export const evil = { id: 'e', acts: {" +
       "run: () => (globalThis as any).process.mainModule.require('node:fs') } };",
   },
-  "Function por constructor de una flecha": {
+  "Function through an arrow's constructor": {
     "src/main.ts": "import { evil } from './tools/evil.ts'; export const program = { registry: [evil] };",
     "src/tools/evil.ts":
       "export const evil = { id: 'e', acts: { run: () => (()=>0).constructor('return process')() } };",
   },
-  "import.meta y process por globalThis con índice calculado": {
+  "import.meta and process through globalThis with a computed index": {
     "src/main.ts": "import { evil } from './tools/evil.ts'; export const program = { registry: [evil] };",
     "src/tools/evil.ts":
       "const k = ['pro','cess'].join('');" +
@@ -79,11 +79,11 @@ for (const [name, files] of Object.entries(cases))
     if (Object.values(files).includes(evil)) expect(found.some(message => message.endsWith(" → node:fs"))).toBe(true);
   });
 for (const code of [
-  'const fabrica = Reflect.get(Reflect.get([], "filter"), "constr" + "uctor");' +
-    'export const evil = { acts: { run: () => fabrica("return(process.env.HOME)")() } };',
+  'const factory = Reflect.get(Reflect.get([], "filter"), "constr" + "uctor");' +
+    'export const evil = { acts: { run: () => factory("return(process.env.HOME)")() } };',
   'const k = "constr" + "uctor"; export const evil = { acts: { run: () => ([]["filter"])[k]("return 1")() } };',
 ])
-  it("B4: rechaza Reflect y corchetes no literales de Kenon", () => {
+  it("B4: rejects Kenon's Reflect and non-literal brackets", () => {
     expect(
       fixture({
         "src/main.ts": "import { evil } from './tools/evil.ts'; export const program = { registry: [evil] };",
@@ -97,7 +97,7 @@ for (const location of ["src/main.ts", "src/adapters/evil.ts"])
     'const base = { id: "base", acts: {} }; const evil = { ...base, id: "evil" };',
     'const evil = Object.fromEntries([["id", "evil"], ["acts", {}]]);',
   ])
-    it(`B4: registro definido en ${location}: ${definition}`, () => {
+    it(`B4: registry defined in ${location}: ${definition}`, () => {
       const main = location === "src/main.ts" ? definition : "import { evil } from './adapters/evil.ts';";
       expect(
         fixture({
@@ -106,7 +106,7 @@ for (const location of ["src/main.ts", "src/adapters/evil.ts"])
         }).length,
       ).toBeGreaterThan(0);
     });
-it("B4: una fuente alcanzada que no se puede revisar falla cerrada", () => {
+it("B4: a reached source that cannot be reviewed fails closed", () => {
   expect(
     fixture({
       "src/main.ts": "import { evil } from '../lib/evil.opaque'; export const program = { registry: [evil] };",
@@ -115,7 +115,7 @@ it("B4: una fuente alcanzada que no se puede revisar falla cerrada", () => {
   ).toBeGreaterThan(0);
 });
 for (const extension of ["cts", "tsx"])
-  it(`B4: recorre también .${extension}`, () => {
+  it(`B4: also walks .${extension}`, () => {
     expect(
       fixture({
         "src/main.ts": `import { evil } from '../lib/evil.${extension}'; export const program = { registry: [evil] };`,
@@ -123,7 +123,7 @@ for (const extension of ["cts", "tsx"])
       }).some(message => message.includes(`evil.${extension}`)),
     ).toBe(true);
   });
-it("B4: admite un registro tipado, renombrado y con spread de herramientas separadas", () => {
+it("B4: admits a typed, renamed registry that spreads separate tools", () => {
   expect(
     fixture({
       "src/main.ts": `import type { Composition } from '${root}/src/tools/promises.ts';
@@ -134,7 +134,7 @@ it("B4: admite un registro tipado, renombrado y con spread de herramientas separ
     }),
   ).toEqual([]);
 });
-it("B4: la composición puede pasar capacidad a una fábrica separada, como acto propio", () => {
+it("B4: the composition may pass a capability to a separate factory, as its own act", () => {
   expect(
     fixture({
       "src/main.ts": `import { SecretCustody } from '${root}/src/keychain/custody/secret-custody.ts';
@@ -143,7 +143,7 @@ it("B4: la composición puede pasar capacidad a una fábrica separada, como acto
     }),
   ).toEqual([]);
 });
-it("B4: las pruebas no alcanzadas no se cargan; una clave literal pública sí se admite", () => {
+it("B4: unreached tests are not loaded; a public literal key is admitted", () => {
   expect(
     fixture({
       "src/main.ts": "import { tool } from './tool.ts'; export const program = { registry: [tool] };",
@@ -152,7 +152,7 @@ it("B4: las pruebas no alcanzadas no se cargan; una clave literal pública sí s
     }),
   ).toEqual([]);
 });
-it("B4: resuelve el mapa de imports del paquete sin dar acceso interno a la base", () => {
+it("B4: resolves the package's imports map without granting internal access to the base", () => {
   expect(
     fixture({
       "package.json": JSON.stringify({
@@ -166,7 +166,7 @@ it("B4: resuelve el mapa de imports del paquete sin dar acceso interno a la base
     }),
   ).toEqual([]);
 });
-it("B4: no acepta un registro cuyo origen solo existe al ejecutar", () => {
+it("B4: refuses a registry whose origin only exists at run time", () => {
   expect(
     fixture({
       "src/main.ts": 'export const program = Object.fromEntries([["registry", []]]);',
@@ -174,7 +174,7 @@ it("B4: no acepta un registro cuyo origen solo existe al ejecutar", () => {
   ).toBe(true);
 });
 
-it("B4: una fábrica que devuelve un parámetro no prueba dónde se definió la herramienta", () => {
+it("B4: a factory that returns a parameter does not prove where the tool was defined", () => {
   expect(
     fixture({
       "src/main.ts": `import { identity } from '../lib/tool.ts';

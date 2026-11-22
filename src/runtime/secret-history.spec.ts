@@ -30,7 +30,7 @@ function previous(kind: "exposed" | "reference") {
   db.close();
   return path;
 }
-it("rechaza el registro anterior expuesto sin alterar sus bytes y nombra solo acción y posición", () => {
+it("rejects the exposed earlier log without altering its bytes and names only action and position", () => {
   const rig = fixture();
   const path = previous("exposed");
   const before = readFileSync(join(path, "journal.sqlite"));
@@ -49,7 +49,7 @@ it("rechaza el registro anterior expuesto sin alterar sus bytes y nombra solo ac
   expect(readdirSync(path).sort()).toEqual(["journal.sqlite", "journal.sqlite-shm", "journal.sqlite-wal"]);
   expect(readFileSync(join(path, "journal.sqlite-wal")).length).toBe(0);
 });
-it("abre el registro anterior con referencias y deja las cuentas revisadas y no revisables", () => {
+it("opens the earlier log with references and leaves the accounts reviewed and unreviewable", () => {
   const rig = fixture();
   const path = previous("reference");
   const opened = startHouse(path, rig.options, time);

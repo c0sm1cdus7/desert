@@ -1,3 +1,3 @@
-// Declara los idiomas disponibles para los mensajes de la casa.
+// Declares the languages available for the house's messages.
 export const languages = ["es"] as const;
 export type Language = (typeof languages)[number];

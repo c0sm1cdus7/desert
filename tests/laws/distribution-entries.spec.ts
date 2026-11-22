@@ -44,7 +44,7 @@ for (const [entry, name] of [
 }
 
 for (const testDistribution of [false, true]) {
-  it(`rejects the four Notas reexports through the package laws, testDistribution=${testDistribution}`, async () => {
+  it(`rejects the four Notes reexports through the package laws, testDistribution=${testDistribution}`, async () => {
     const repo = installablePackage();
     if (!testDistribution) legacy(repo.root);
     const path = join(repo.root, "src/program.ts");

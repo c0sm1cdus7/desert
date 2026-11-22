@@ -34,7 +34,7 @@ const notes: ProgramTool<Notes> = {
         text: "Anotada · Nota",
         effects: [words.fact("note-added", input, by)],
       }),
-      cases: [{ promise: "anota", input: { text: "Mate" }, then: { says: "Anotada · Nota", facts: [] } }],
+      cases: [{ promise: "notes", input: { text: "Mate" }, then: { says: "Anotada · Nota", facts: [] } }],
     }),
   },
 };
@@ -43,7 +43,7 @@ const conversation: ProgramTool<Notes> = {
   id: "conversation",
   facts: [],
   acts: {
-    decir: programAct<Notes, ReturnType<typeof object>>({
+    say: programAct<Notes, ReturnType<typeof object>>({
       input: object({}),
       name: "decir",
       enter: "decir",
@@ -52,7 +52,7 @@ const conversation: ProgramTool<Notes> = {
       on: "tool",
       undoable: true,
       run: () => ({ status: "accepted", text: "Dicho · Mensaje" }),
-      cases: [{ promise: "dice", input: {}, then: { says: "Dicho · Mensaje", facts: [] } }],
+      cases: [{ promise: "says", input: {}, then: { says: "Dicho · Mensaje", facts: [] } }],
     }),
   },
 };
@@ -70,7 +70,7 @@ const program: Composition<Notes> = {
   },
 };
 const kit = [
-  { tool: "conversation", acts: ["decir"] },
+  { tool: "conversation", acts: ["say"] },
   { tool: "notes", acts: ["note"] },
 ];
 const on = "identities/franco";
@@ -89,7 +89,7 @@ const setup = async (house: Parameters<typeof perform<Notes>>[0]) => {
 };
 const domain = (effects: readonly { kind: string }[]) =>
   effects.filter(e => e.kind === "removed" || e.kind.startsWith("assistant-"));
-it("Railway: Franco adopta nora con conversación y notas, conserva autoría y persiste", async () => {
+it("Railway: Franco adopts nora with conversation and notes, keeps authorship and persists", async () => {
   await staged(program, async ({ house, reopen }) => {
     await setup(house());
     await perform(house(), "notes", { act: "note", by: "nora", input: { text: "Mate de ayer" } });
@@ -136,7 +136,7 @@ it("Railway: Franco adopta nora con conversación y notas, conserva autoría y p
     expect(actorDisplayName(house().tools.state().house, "nora", "es")).toBe("nora");
   });
 });
-it("Martín no delega a Nora; el administrador distinto adopta sin firmar el kit de Franco", async () => {
+it("Martín does not delegate to Nora; the different admin adopts without signing Franco's kit", async () => {
   await staged(program, async ({ house }) => {
     await setup(house());
     await perform(house(), "identities", { act: "hand", by: "franco", on: "identities/martin", input: {} });
@@ -155,7 +155,7 @@ it("Martín no delega a Nora; el administrador distinto adopta sin firmar el kit
     ).toBe("accepted");
   });
 });
-it("repetir después de deshabilitar no revive ni cambia nombre, kit o vínculo", async () => {
+it("repeating after disabling does not revive or change name, kit or link", async () => {
   await staged(program, async ({ house, reopen }) => {
     await setup(house());
     await perform(house(), "identities", adoption);
@@ -176,7 +176,7 @@ it("repetir después de deshabilitar no revive ni cambia nombre, kit o vínculo"
     }
   });
 });
-it("adopta a la identidad ya retirada y rechaza un kit inválido sin retirarla a medias", async () => {
+it("adopts the already retired identity and refuses an invalid kit without half-retiring it", async () => {
   await staged(program, async ({ house }) => {
     await setup(house());
     const bad = await perform(house(), "identities", {
@@ -197,7 +197,7 @@ it("adopta a la identidad ya retirada y rechaza un kit inválido sin retirarla a
     ]);
   });
 });
-it("colisiones y dos adopciones no transfieren un vínculo ni pisan al asistente", async () => {
+it("collisions and two adoptions neither transfer a link nor overwrite the assistant", async () => {
   await staged(program, async ({ house }) => {
     await setup(house());
     const results = await Promise.all([
@@ -218,7 +218,7 @@ it("colisiones y dos adopciones no transfieren un vínculo ni pisan al asistente
   });
 });
 
-it("un corte al escribir la adopción revierte el lote completo y permite reintentar", async () => {
+it("a cut while writing the adoption reverts the whole batch and allows a retry", async () => {
   await staged(program, async ({ house, reopen }) => {
     await setup(house());
     const append = house().journal.append.bind(house().journal);

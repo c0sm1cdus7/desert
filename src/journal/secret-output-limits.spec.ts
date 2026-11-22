@@ -1,5 +1,5 @@
+// Adversarial probes P1–P11 with invented data, turned into executable assertions.
 import { vocabulary } from "./vocabulary.ts";
-// Sondas adversarias P1–P11 con datos inventados, convertidas en afirmaciones ejecutables.
 import { Type } from "@sinclair/typebox";
 import { expect, it } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
@@ -22,15 +22,15 @@ const report = (label: string, observed: Record<string, unknown>) => {
     P5made: { status: "accepted", facts: false, disk: false },
     P5target: { status: "accepted", facts: false, disk: false },
     P7: { status: "accepted" },
-    P10: { text: "MARCADOR-DIRECTO-0010" },
+    P10: { text: "DIRECT-MARKER-0010" },
   };
   expect(observed).toMatchObject(expected[label] ?? {});
   if (label === "P4a") expect(observed.copy).toBe("banana");
   if (label === "P4b") expect(observed.reason).toBeNull();
   if (label === "P4c") expect(has(observed.input, "ana")).toBe(true);
-  if (label === "P7") expect(String(observed.text)).toContain("MARCADORMIXTO13");
+  if (label === "P7") expect(String(observed.text)).toContain("MIXEDMARKER13");
 };
-it("P4 cerrado: una letra secreta conserva banana, ana y hechos válidos", () => {
+it("P4 closed: a secret letter keeps banana, ana and valid facts", () => {
   const rig = fixture(secret, () => ({
     status: "accepted",
     text: "listo",
@@ -72,8 +72,8 @@ it("P4 cerrado: una letra secreta conserva banana, ana y hechos válidos", () =>
   report("P4c", { input: inputOf(withUser) });
 });
 
-it("P5 cerrado: secreto en target / made / recipient de la entrada", () => {
-  const value = "MARCADOR-DESTINO-0005";
+it("P5 closed: a secret in the entry's target / made / recipient", () => {
+  const value = "TARGET-MARKER-0005";
   const rig = fixture(secret, input => ({
     status: "accepted",
     text: "ok",

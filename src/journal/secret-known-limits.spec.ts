@@ -1,5 +1,5 @@
+// Adversarial probes P1–P11 with invented data, turned into executable assertions.
 import { effect } from "../house/facts.ts";
-// Sondas adversarias P1–P11 con datos inventados, convertidas en afirmaciones ejecutables.
 import { expect, it } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -23,16 +23,16 @@ const report = (label: string, observed: Record<string, unknown>) => {
     P5made: { status: "accepted", facts: false, disk: false },
     P5target: { status: "accepted", facts: false, disk: false },
     P7: { status: "accepted" },
-    P10: { text: "MARCADOR-DIRECTO-0010" },
+    P10: { text: "DIRECT-MARKER-0010" },
   };
   expect(observed).toMatchObject(expected[label] ?? {});
   if (label === "P4a") expect(observed.copy).not.toBe("banana");
   if (label === "P4b") expect(String(observed.reason)).toContain("secret:");
   if (label === "P4c") expect(has(observed.input, "ana")).toBe(false);
-  if (label === "P7") expect(String(observed.text)).not.toContain("MARCADORMIXTO13");
+  if (label === "P7") expect(String(observed.text)).not.toContain("MIXEDMARKER13");
 };
-it("P1 cerrado: secreto pasado por una acción anidada a una acción pública", async () => {
-  for (const value of ["MARCADOR-LARGO-0001", "ab"]) {
+it("P1 closed: a secret passed through a nested action to a public action", async () => {
+  for (const value of ["LONG-MARKER-0001", "ab"]) {
     const rig = fixture(
       secret,
       undefined,
@@ -68,8 +68,8 @@ it("P1 cerrado: secreto pasado por una acción anidada a una acción pública", 
   }
 });
 
-it("P2 cerrado: secreto como nombre de propiedad en lo que la acción escribe", () => {
-  const value = "MARCADOR-CLAVE-0002";
+it("P2 closed: a secret as a property name in what the action writes", () => {
+  const value = "KEY-MARKER-0002";
   const rig = fixture(secret, input => ({
     status: "accepted",
     text: "ok",
@@ -85,8 +85,8 @@ it("P2 cerrado: secreto como nombre de propiedad en lo que la acción escribe", 
   });
 });
 
-it("P3 cerrado: defecto de la superficie con el secreto (camino localPorts.defect)", () => {
-  const value = "MARCADOR-SUPERFICIE-0003";
+it("P3 closed: a surface defect carrying the secret (the localPorts.defect path)", () => {
+  const value = "SURFACE-MARKER-0003";
   const rig = fixture();
   rig.set({ value });
   const safe = field(rig.facts().find(e => e.kind === "act" && e.data.option === "set")?.data, "input");
@@ -102,8 +102,8 @@ it("P3 cerrado: defecto de la superficie con el secreto (camino localPorts.defec
   report("P3", { reason: utf(reason, value), facts: utf(rig.facts(), value), disk: disk(rig.path, value) });
 });
 
-it("P7 cerrado: transformaciones y partidos de referencias", () => {
-  const value = "MarcadorMixto13";
+it("P7 closed: transformations and splits of references", () => {
+  const value = "MixedMarker13";
   const rig = fixture(secret, input => {
     const v = String(field(input, "value"));
     return {
@@ -122,11 +122,11 @@ it("P7 cerrado: transformaciones y partidos de referencias", () => {
   });
 });
 
-it("P10: un texto público enviado directamente al bus se conserva sin limpieza literal", () => {
+it("P10: a public text sent straight to the bus is kept without literal cleaning", () => {
   const rig = fixture();
-  rig.set({ value: "MARCADOR-DIRECTO-0010" });
+  rig.set({ value: "DIRECT-MARKER-0010" });
   const ev = rig.house.bus.emit(
-    effect("tool-entry", { tool: "vault", target: "vault", author: "ana", text: "MARCADOR-DIRECTO-0010" }, "ana"),
+    effect("tool-entry", { tool: "vault", target: "vault", author: "ana", text: "DIRECT-MARKER-0010" }, "ana"),
   );
   report("P10", { text: ev.data.text });
 });

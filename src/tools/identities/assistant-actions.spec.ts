@@ -8,7 +8,7 @@ const on = "identities/beto";
 const enable = { act: "enable-assistant", on, input: { name: "Nora" } };
 const kit = [{ tool: "sales", acts: ["register"] }];
 const domain = (effects: readonly { kind: string }[]) => effects.filter(e => e.kind.startsWith("assistant-"));
-it("el administrador distinto habilita y solo el titular delega", async () => {
+it("the different admin enables and only the holder delegates", async () => {
   await staged(program, async ({ house, reopen }) => {
     expect(await perform(house(), "identities", enable)).toMatchObject({ status: "accepted" });
     expect(house().tools.state().house.assistants.get("beto")).toMatchObject({ name: "Nora", kit: [] });
@@ -25,7 +25,7 @@ it("el administrador distinto habilita y solo el titular delega", async () => {
     expect(house().tools.state().house.assistants.get("beto")?.selections).toEqual(explicitKit(kit));
   });
 });
-it("rechaza delegación sin permiso, inexistente, repetida o de Identidades sin cambiar el kit", async () => {
+it("refuses a delegation without permission, missing, repeated or of Identities, keeping the kit", async () => {
   await staged(program, async ({ house }) => {
     await perform(house(), "identities", enable);
     for (const bad of [
@@ -49,7 +49,7 @@ it("rechaza delegación sin permiso, inexistente, repetida o de Identidades sin 
     expect(house().tools.state().house.assistants.get("beto")?.kit).toEqual([]);
   });
 });
-it("deshabilitar conserva el nombre, vacía el kit y habilitar otra vez no lo recupera", async () => {
+it("disabling keeps the name, empties the kit and enabling again does not bring it back", async () => {
   await staged(program, async ({ house, reopen }) => {
     await perform(house(), "identities", enable);
     await perform(house(), "identities", { act: "delegate-assistant", on, by: "beto", input: { kit } });
@@ -65,7 +65,7 @@ it("deshabilitar conserva el nombre, vacía el kit y habilitar otra vez no lo re
     expect(house().tools.state().house.assistants.get("beto")?.kit).toEqual([]);
   });
 });
-it("las repeticiones no emiten hechos de asistente y no renombran uno habilitado", async () => {
+it("repetitions emit no assistant facts and do not rename an enabled one", async () => {
   await staged(program, async ({ house }) => {
     await perform(house(), "identities", enable);
     const same = await perform(house(), "identities", enable);
@@ -86,7 +86,7 @@ it("las repeticiones no emiten hechos de asistente y no renombran uno habilitado
     }
   });
 });
-it("ninguna mente ni miembro administra asistentes y faltan los argumentos por su nombre", async () => {
+it("no mind or member administers assistants, and missing arguments are named", async () => {
   await staged(program, async ({ house }) => {
     for (const by of ["beto", "carla", "mind:sales", "assistant:beto"])
       expect((await perform(house(), "identities", { ...enable, by })).status).toBe("rejected");

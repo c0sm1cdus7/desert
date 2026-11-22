@@ -1,4 +1,4 @@
-// La llave se compara completa y el cuerpo se consume de a fragmentos solo después de autorizarlo.
+// The key is compared whole, and the body is consumed chunk by chunk only after it is authorized.
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { DoorKey } from "../socket/peers/socket-peer.ts";
 import { socketLimits } from "../socket/wire/protocol.ts";

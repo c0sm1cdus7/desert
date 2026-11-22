@@ -51,7 +51,7 @@ function action(on: "tool" | "thing") {
     },
     cases: [
       {
-        promise: "Anota una vez",
+        promise: "Notes once",
         input: {},
         ...(on === "thing" ? { on: "same" } : {}),
         then: { says: "Anotada", facts: [{ kind: "notes/added", data: { value: 1 } }] },

@@ -27,7 +27,7 @@ const answer = {
   consultation: null,
   acts: [{ act: "write", target: "notes", input: { text: "Mate mañana", detail: { number: 1 } } }],
 };
-it("construye ramas concretas cerradas y conserva restricciones locales al reducir el transporte", () => {
+it("builds closed concrete branches and keeps local constraints when reducing the transport", () => {
   const schema = answerSchema(menu);
   expect(Value.Check(schema, answer)).toBe(true);
   const transport = providerSchema(schema);

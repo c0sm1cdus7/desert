@@ -1,4 +1,4 @@
-// Comprobación 2 de casa-mente0b (f0d3185). Guiones propios: casa real (startHouse) y caminos reales de la base.
+// Review check 2 of house-mind0b (f0d3185), own scripts: a real house (startHouse) and the base's real paths.
 import { afterEach, expect, it } from "vitest";
 import { zeroMind } from "../../tests/support/zero-mind.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
@@ -7,7 +7,7 @@ import { effect } from "../house/facts.ts";
 const rigs: ReturnType<typeof shopRig>[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
 const tick = (ms = 20) => new Promise(resolve => setTimeout(resolve, ms));
-it("N2 por el reloj (escritura de primer nivel real): el oyente del woke abre un together que se deshace", async () => {
+it("N2 through the clock (a real top-level write): the woke listener opens a together that rolls back", async () => {
   const desk = zeroMind("desk");
   const rig = shopRig({ registry: [...shopRegistry, desk.tool] });
   rigs.push(rig);
@@ -26,10 +26,10 @@ it("N2 por el reloj (escritura de primer nivel real): el oyente del woke abre un
     try {
       bus.together(() => {
         bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:two", at: null } });
-        throw new Error("el programa se arrepiente");
+        throw new Error("the program changes its mind");
       });
     } catch {
-      /* atrapado */
+      /* caught */
     }
   });
   bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:one", at: Date.now() + 5 } });
@@ -41,7 +41,7 @@ it("N2 por el reloj (escritura de primer nivel real): el oyente del woke abre un
   expect(facts.filter(e => e.kind === "woke")).toHaveLength(1);
 });
 
-it("N2 control: el mismo together desde un temporizador (sin entrega en curso)", async () => {
+it("N2 control: the same together from a timer (no delivery in progress)", async () => {
   const desk = zeroMind("desk");
   const rig = shopRig({ registry: [...shopRegistry, desk.tool] });
   rigs.push(rig);
@@ -68,7 +68,7 @@ it("N2 control: el mismo together desde un temporizador (sin entrega en curso)",
   expect(rig.facts().filter(e => e.kind === "wake-at")).toEqual([]);
 });
 
-it("N5programa: together interno atrapado dentro del acto de una persona", () => {
+it("N5program: an inner together caught inside a person's act", () => {
   const desk = zeroMind("desk");
   const rig = shopRig({ registry: [...shopRegistry, desk.tool] });
   rigs.push(rig);
@@ -87,10 +87,10 @@ it("N5programa: together interno atrapado dentro del acto de una persona", () =>
     try {
       bus.together(() => {
         bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:middle", at: null } });
-        bus.emit({ layer: "house", kind: "wake-at", data: { id: "other:ajeno", at: null } });
+        bus.emit({ layer: "house", kind: "wake-at", data: { id: "other:foreign", at: null } });
       });
     } catch {
-      /* atrapado */
+      /* caught */
     }
   });
   rig.attend("ana", "sales");
@@ -102,7 +102,7 @@ it("N5programa: together interno atrapado dentro del acto de una persona", () =>
   expect(facts.filter(e => e.kind === "wake-at" && e.data.id === "desk:middle")).toEqual([]);
 });
 
-it("N5b solo por el programa: together anidado desde un temporizador, el interno falla y se atrapa", async () => {
+it("N5b by the program alone: a nested together from a timer, the inner one fails and is caught", async () => {
   const desk = zeroMind("desk");
   const rig = shopRig({ registry: [...shopRegistry, desk.tool] });
   rigs.push(rig);
@@ -125,7 +125,7 @@ it("N5b solo por el programa: together anidado desde un temporizador, el interno
             throw new Error("internal");
           });
         } catch {
-          /* el de afuera sigue */
+          /* the outer one goes on */
         }
         bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:outside", at: null } });
       });

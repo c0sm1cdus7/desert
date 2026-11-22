@@ -17,7 +17,7 @@ export const offer = {
   undoable: true,
   on: "tool",
   input,
-  cases: [{ promise: "resultado sintético", input: {}, then: { says: "Consultado", facts: [] } }],
+  cases: [{ promise: "synthetic result", input: {}, then: { says: "Consultado", facts: [] } }],
   outside: ["sin firma"],
 } as const;
 export const sign = programAct<Shop, typeof input, typeof offer.outside>({

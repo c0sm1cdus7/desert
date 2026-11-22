@@ -32,7 +32,7 @@ function history(house: string, first: string) {
     });
   return { rows, ledger, keys };
 }
-it("M6b: no se puede injertar el final firmado de otra rama con la misma posición", () => {
+it("M6b: the signed end of another branch at the same position cannot be grafted", () => {
   const a = history("house", "one"),
     b = history("house", "other"),
     alternate = b.rows[0];
@@ -40,7 +40,7 @@ it("M6b: no se puede injertar el final firmado de otra rama con la misma posici�
   a.rows[0] = alternate;
   expect(() => a.ledger.facts()).toThrow("E-CUSTODY-INTEGRITY");
 });
-it("M6d: la misma llave y la misma cabeza no autorizan hechos de otra identidad", () => {
+it("M6d: the same key and the same head do not authorize another identity's facts", () => {
   const a = history("house-a", "same"),
     b = history("house-b", "same");
   b.rows.splice(0, b.rows.length, ...a.rows);
@@ -48,7 +48,7 @@ it("M6d: la misma llave y la misma cabeza no autorizan hechos de otra identidad"
   expect(() => b.ledger.facts()).toThrow("E-CUSTODY-INTEGRITY");
 });
 
-it("el primer renglón coincide con el vector HMAC v2 de posición, predecesor, lote y alcance", () => {
+it("the first row matches the HMAC v2 vector of position, predecessor, batch and scope", () => {
   expect(history("house", "one").rows[0]?.authentication).toBe(
     "0fcfcdab650d0a30dd4d1d6a1e33852db33a7c9e8283ecb7569268d8bf88fdd9",
   );

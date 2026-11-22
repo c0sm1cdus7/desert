@@ -1,4 +1,4 @@
-// Revisa propuestas y consultas por puertos ausentes o configurados sin aprobar una falla.
+// Reviews proposals and consultations through missing or configured ports without approving a failure.
 import { Value } from "@sinclair/typebox/value";
 import { mindText } from "../../house/minds/journey-facts.ts";
 import type { ReviewRequest, ReviewResult } from "../../tools/minds/mind-review.ts";

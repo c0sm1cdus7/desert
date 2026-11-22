@@ -19,7 +19,7 @@ function fixture() {
   providers.push(keys);
   return { root, home, keys, file: join(home, "custody-keys.json") };
 }
-it("deriva HKDF-SHA256 estable por cuenta, copia raíz y entrega préstamos nuevos", () => {
+it("derives stable HKDF-SHA256 per account, copies the root and hands out new loans", () => {
   const { keys, root } = fixture();
   const expected = Buffer.from(hkdfSync("sha256", root, "desert.house-custody.hkdf.v1", "house", 32));
   root.fill(0);
@@ -33,11 +33,11 @@ it("deriva HKDF-SHA256 estable por cuenta, copia raíz y entrega préstamos nuev
   second.fill(0);
   expected.fill(0);
 });
-it.each([0, 31, 33, 64])("rechaza raíz de %i bytes sin mostrarla", length => {
+it.each([0, 31, 33, 64])("rejects a %i-byte root without showing it", length => {
   const { home } = fixture();
   expect(() => new RootHouseKeys(Buffer.alloc(length, 71), home)).toThrow("E-CUSTODY-KEY");
 });
-it("relee cuentas y anclas públicas atómicas con modo 0600 y olvida solo la casa pedida", () => {
+it("rereads atomic public accounts and anchors with mode 0600 and forgets only the requested house", () => {
   const { root, home, keys, file } = fixture();
   for (const account of ["house", "house-secret-one", "other", "other-secret-one"]) keys.key(account, true).fill(0);
   const head = { count: 1, authentication: "a".repeat(64) };
@@ -66,14 +66,14 @@ it("relee cuentas y anclas públicas atómicas con modo 0600 y olvida solo la ca
   expect(keys.has("other-secret-one")).toBe(true);
   next.forgetHouse("house");
 });
-it("no transforma un índice corrupto en cuentas nuevas ni revela su contenido", () => {
+it("does not turn a corrupt index into new accounts nor reveal its content", () => {
   const { root, keys, file } = fixture();
   writeFileSync(file, root);
   expect(() => keys.key("house", true)).toThrow("E-CUSTODY-KEY");
   expect(readFileSync(file).equals(root)).toBe(true);
   root.fill(0);
 });
-it("borra su copia privada al disponer y no vuelve a derivar ni modificar cuentas", () => {
+it("erases its private copy on dispose and never derives or modifies accounts again", () => {
   const copy = vi.spyOn(Buffer, "from");
   const { keys, root } = fixture();
   const owned = copy.mock.results.flatMap(result =>

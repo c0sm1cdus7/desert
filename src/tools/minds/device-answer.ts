@@ -1,4 +1,4 @@
-// Limita la elección de una propuesta a los destinos compatibles ofrecidos por la casa.
+// Limits a proposal's choice to the compatible destinations the house offers.
 import { Type, type TProperties } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
 import type { ExecutionDestination } from "../../fields/device-protocol.ts";

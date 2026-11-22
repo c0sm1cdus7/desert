@@ -1,4 +1,4 @@
-// Talking to a tool: one thread, one Entrada, and what opened beside it. Which part has the focus decides the keys.
+// Talking to a tool: one thread, one Entry, and what opened beside it. Which part has the focus decides the keys.
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import type { Attachment, Body, Hint, Intent, Panel, Span, ThreadEvent } from "../contract/contract.ts";
 import type { Conversation, Said, Tool } from "../contract/shown-tool.ts";
@@ -173,7 +173,7 @@ function answering(place: Talk, key: Intent, talk: Conversation, question: Quest
   const answer = chosen?.title ?? place.typed.trim();
   return answer ? { ...place, sending: talk.send(answer, undefined, question.id) } : place;
 }
-/** What the house said about the message: accepted, it leaves the Entrada; refused, it stays with its reason. */
+/** What the house said about the message: accepted, it leaves the Entry; refused, it stays with its reason. */
 export function sent(place: Talk, refused: string | undefined): Talk {
   const { sending: _settled, refused: _before, ...rest } = place;
   return refused ? { ...rest, refused } : { ...rest, typed: "", caret: 0, at: -1, option: 0 };

@@ -10,7 +10,7 @@ import { requestProgram } from "../../../tests/support/request-program.ts";
 import { talkProgram } from "../../../tests/support/talk-program.ts";
 import { assistantMindRules } from "../../texts/program-mind.texts.ts";
 import { supervisorHouse } from "../../texts/supervisor.texts.ts";
-it("deriva una mente y abre sin llave, con el motivo visible", async () => {
+it("derives a mind and opens without a key, with the reason visible", async () => {
   const distribution = compose({ ...sampleOptions, minds: { assistants: false, programs: ["notes"] } });
   expect(distribution.mindDefinitions.map(mind => [mind.actor, mind.role])).toEqual([["mind:notes", "program:notes"]]);
   const modelMinds = await distribution.modelMinds({

@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { isSchema } from "./schema-shape.ts";
 
-it("valida otra vez un esquema mutable, incluso con la raíz congelada", () => {
+it("validates a mutable schema again, even with its root frozen", () => {
   const nested = { ...Type.String() };
   const schema = Object.freeze(Type.Object({ value: nested }));
   expect(isSchema(schema)).toBe(true);
@@ -10,7 +10,7 @@ it("valida otra vez un esquema mutable, incluso con la raíz congelada", () => {
   expect(isSchema(schema)).toBe(false);
 });
 
-it("reutiliza esquemas inmutables sin admitir formas inválidas", () => {
+it("reuses immutable schemas without admitting invalid shapes", () => {
   const child = Object.freeze(Type.String());
   const schema = Object.freeze({
     ...Type.Object({ value: child }),

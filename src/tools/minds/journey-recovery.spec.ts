@@ -52,7 +52,7 @@ function setup() {
   };
   return { house, context, apply, open };
 }
-it("el diario reconstruye los controles y el reloj después de reiniciar", () => {
+it("the journal rebuilds the controls and the clock after restarting", () => {
   const r = setup();
   const context = r.open();
   const until = Date.now() + 60_000;
@@ -70,7 +70,7 @@ it("el diario reconstruye los controles y el reloj después de reiniciar", () =>
   expect(r.house.state().house.journeys.get(context.turn.scope.process)?.closed?.data.outcome).toBe("done");
   expect(r.house.facts().filter(event => event.kind === "journey-closed")).toHaveLength(1);
 });
-it("un corte del lote retira tanto la espera como el reloj", () => {
+it("a batch cut withdraws both the wait and the clock", () => {
   const r = setup();
   const context = r.open();
   const facts = waitJourney(context, { what: "Confirmación", until: Date.now() + 60_000 });
@@ -86,7 +86,7 @@ it("un corte del lote retira tanto la espera como el reloj", () => {
   expect(r.house.state().house.journeys.get(context.turn.scope.process)?.waiting).toBeUndefined();
   expect(r.house.facts().reduce(clockStep, new Map()).size).toBe(0);
 });
-it("un cierre deshecho permite volver a cerrar sin una devolución duplicada", () => {
+it("an undone closure allows closing again without a duplicate return", () => {
   const r = setup();
   const context = r.open();
   const facts = endJourney(context, { summary: "Listo", references: [] });

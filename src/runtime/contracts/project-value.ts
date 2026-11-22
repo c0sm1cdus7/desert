@@ -1,4 +1,4 @@
-// Valida y recorta datos JSON al esquema pedido, incluyendo objetos anidados y uniones.
+// Validates and trims JSON data to the requested schema, including nested objects and unions.
 import { Kind, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { publicValue } from "../../adapters/public-value.ts";

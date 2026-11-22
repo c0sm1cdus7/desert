@@ -3,7 +3,7 @@ import { fixture, secret, type P } from "../../../tests/support/secret-rig.ts";
 import { declaredInput } from "./declared-input.ts";
 import { effect } from "../../house/facts.ts";
 import { ownAct } from "../../tools/act-definition.ts";
-it("16.000 declaraciones no vuelven a filtrar toda la actividad por cada acción", () => {
+it("16,000 declarations do not refilter all activity for each action", () => {
   const rig = fixture(secret, undefined, {}, { own: () => [] });
   rig.set({ value: "datum" });
   const state = rig.house.tools.state();
@@ -32,7 +32,7 @@ it("16.000 declaraciones no vuelven a filtrar toda la actividad por cada acción
     filter.mockRestore();
   }
 });
-it("una declaración dinámica que sí lee actividad conserva la vista privada de la identidad", () => {
+it("a dynamic declaration that does read activity keeps the identity's private view", () => {
   const rig = fixture();
   rig.set({ value: "datum" });
   rig.house.bus.emit(
@@ -42,14 +42,14 @@ it("una declaración dinámica que sí lee actividad conserva la vista privada d
         tool: "vault",
         target: "vault",
         author: "ana",
-        detail: "dato de actividad",
-        text: "privado",
+        detail: "activity detail",
+        text: "private",
       },
       "ana",
     ),
   );
   const state = rig.house.tools.state();
-  expect(state.entries.some(entry => entry.data.detail === "dato de actividad")).toBe(true);
+  expect(state.entries.some(entry => entry.data.detail === "activity detail")).toBe(true);
   const own = vi.fn((view: typeof state) => {
     expect(view.by).toBe("bob");
     expect(view.entries).toBe(view.entries);

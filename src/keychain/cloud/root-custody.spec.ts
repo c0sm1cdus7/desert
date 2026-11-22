@@ -26,12 +26,12 @@ function open(path: string, fill = 71) {
   resources.push(store);
   return store;
 }
-it("reabrir con otra raíz falla; retroceder solo el diario se detecta y el disco entero es el límite aceptado", () => {
+it("fails to reopen with another root, detects a rollback of the journal alone; the whole disk is the limit", () => {
   const path = home(),
     backup = home();
   const first = open(path),
     session = first.begin({ actor: "ana", tool: "vault", target: "test" });
-  const ref = session.capture(Buffer.from("MATERIAL_SINTETICO_UNO"));
+  const ref = session.capture(Buffer.from("SYNTHETIC_MATERIAL_ONE"));
   session.replace("one", { key: ref }, 0);
   first.close();
   cpSync(path, backup, { recursive: true });
@@ -39,7 +39,7 @@ it("reabrir con otra raíz falla; retroceder solo el diario se detecta y el disc
   const second = open(path);
   expect(second.ids()).toEqual([ref]);
   const nextSession = second.begin({ actor: "ana", tool: "vault", target: "test" });
-  const next = nextSession.capture(Buffer.from("MATERIAL_SINTETICO_DOS"));
+  const next = nextSession.capture(Buffer.from("SYNTHETIC_MATERIAL_TWO"));
   nextSession.replace("two", { key: next }, 0);
   second.close();
   cpSync(join(backup, "fixture.sqlite"), join(path, "fixture.sqlite"));

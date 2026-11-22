@@ -1,4 +1,4 @@
-// Convierte el resultado público de una acción en hechos, conservando su destinatario.
+// Turns an action's public result into facts, keeping its addressee.
 import { mechanicalRules } from "./mechanical-rules.ts";
 import { programCall } from "../../fields/program-call.ts";
 import { effect } from "../../house/facts.ts";

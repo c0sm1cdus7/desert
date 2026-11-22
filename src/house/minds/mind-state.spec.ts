@@ -18,7 +18,7 @@ it.each(mindEffects(by))("$kind rechaza campos ausentes y extra", event => {
   expect(Value.Check(schema, {})).toBe(false);
   expect(Value.Check(schema, { ...event.data, by: "ana" })).toBe(false);
 });
-it("reconstruye turnos, consulta, revisión y escenas tras reabrir; los mensajes nativos viejos no dejan estado", () => {
+it("rebuilds turns, consultation, review and scenes after reopening; old native messages leave no state", () => {
   const rig = open();
   for (const event of mindEffects(by, "ana").filter(
     event => event.kind.startsWith("mind-") && event.kind !== "mind-card-assigned",
@@ -42,7 +42,7 @@ it("rejects card publication by the assistant without recording it", () => {
   expect(rig.facts()).toEqual(before);
   expect(rig.state().house.mindCards.size).toBe(0);
 });
-it("rechaza consulta duplicada, respuesta sin pregunta, autor cambiado y turnos simultáneos", () => {
+it("refuses a duplicate consultation, an answer with no question, a changed author and simultaneous turns", () => {
   const rig = open();
   rig.bus.emit(effect("mind-turn-opened", { turn: "t1", wake: [] }, by));
   expect(() => rig.bus.emit(effect("mind-turn-opened", { turn: "t2", wake: [] }, by))).toThrow();
@@ -58,7 +58,7 @@ it("rechaza consulta duplicada, respuesta sin pregunta, autor cambiado y turnos 
     rig.bus.emit(effect("mind-turn-closed", { turn: "t1", outcome: "done", calls: 0, applied: [] }, by)),
   ).toThrow();
 });
-it("la incertidumbre conserva reserva y una liquidación posterior no duplica gasto al reabrir", () => {
+it("uncertainty keeps the reservation and a later settlement does not duplicate spend on reopening", () => {
   const rig = open();
   const events = mindEffects(by).filter(event => event.kind.startsWith("model-call-"));
   for (const event of events.filter(event =>
@@ -78,7 +78,7 @@ it("la incertidumbre conserva reserva y una liquidación posterior no duplica ga
   rig.restart();
   expect(modelAccount(rig.state().house.modelCalls, "test").spentNanoUsd).toBe(70);
 });
-it("solo permite cancelar antes del envío y no consume un intento físico al cancelar", () => {
+it("allows cancelling only before sending and spends no physical attempt when cancelling", () => {
   const rig = open();
   for (const call of ["cancelled", "sent"]) {
     rig.bus.emit(effect("model-call-reserved", { call, turn: "t", account: "test", number: 1, maximumNanoUsd: 3 }, by));
@@ -92,7 +92,7 @@ it("solo permite cancelar antes del envío y no consume un intento físico al ca
     ),
   ).toThrow();
 });
-it("mente y supervisor comparten doce intentos: rechaza el 13, duplicados y saltos", () => {
+it("mind and supervisor share twelve attempts: refuses the 13th, duplicates and gaps", () => {
   const rig = open();
   const usage = { input: 0, cacheWrite: 0, cacheRead: 0, output: 0 };
   for (let number = 1; number <= 12; number++) {
@@ -116,7 +116,7 @@ it("mente y supervisor comparten doce intentos: rechaza el 13, duplicados y salt
   expect(() => rig.bus.emit(effect("model-call-settled", { call: "c1", actualNanoUsd: -1, usage }, by))).toThrow();
 });
 
-it("no informa saldo cero cuando falta la cuenta", () => {
+it("does not report a zero balance when the account is missing", () => {
   expect(() => {
     Reflect.apply(modelAccount, undefined, [new Map()]);
   }).toThrow("account");

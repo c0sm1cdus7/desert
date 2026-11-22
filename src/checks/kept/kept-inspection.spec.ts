@@ -21,7 +21,7 @@ afterAll(() => {
 });
 const copies = () => readdirSync(tmpdir()).filter(name => name.startsWith("desert-inspection-"));
 for (const fails of [false, true])
-  it(`X01: borra la copia privada al terminar, falla=${fails}`, async () => {
+  it(`X01: deletes the private copy when done, fails=${fails}`, async () => {
     const fixture = keptFixture();
     fixture.save();
     const before = copies();
@@ -37,16 +37,16 @@ for (const fails of [false, true])
           for (const file of readdirSync(home)) expect(statSync(join(home, file)).mode & 0o777).toBe(0o600);
         }
         await Promise.resolve();
-        if (fails) throw new Error("corte sintético");
+        if (fails) throw new Error("synthetic cut");
       });
-      if (fails) await expect(inspection).rejects.toThrow("corte sintético");
+      if (fails) await expect(inspection).rejects.toThrow("synthetic cut");
       else await expect(inspection).resolves.toBeUndefined();
       expect(owned.every(home => !existsSync(home))).toBe(true);
     } finally {
       owned.forEach(home => rmSync(home, { recursive: true, force: true }));
     }
   });
-it("X06: una reapertura que difiere del plegado completo impide entrar a inspección", async () => {
+it("X06: a reopening that differs from the full fold blocks entering inspection", async () => {
   const fixture = keptFixture();
   fixture.save();
   const use = vi.fn();
@@ -63,7 +63,7 @@ it("X06: una reapertura que difiere del plegado completo impide entrar a inspecc
   }
 });
 
-it("la inspección no crea auxiliares ni cambia los bytes junto a la evidencia", async () => {
+it("inspection creates no auxiliary files and changes no bytes beside the evidence", async () => {
   const fixture = keptFixture();
   fixture.save();
   const before = readFileSync(fixture.file);
@@ -81,7 +81,7 @@ it("la inspección no crea auxiliares ni cambia los bytes junto a la evidencia",
   expect(readdirSync(fixture.folder)).toEqual(["kept.sqlite"]);
 });
 
-it("X01: una falla antes de abrir también borra la copia temporal", async () => {
+it("X01: a failure before opening also deletes the temporary copy", async () => {
   const fixture = keptFixture();
   const before = copies();
   await expect(inspectKept(fixture.program, fixture.file, () => {})).rejects.toThrow();
@@ -92,7 +92,7 @@ it("X01: una falla antes de abrir también borra la copia temporal", async () =>
     added.forEach(name => rmSync(join(tmpdir(), name), { recursive: true, force: true }));
   }
 });
-it("dos inspecciones simultáneas del mismo conservado limpian solo su propia copia", async () => {
+it("two simultaneous inspections of the same kept journal clean only their own copy", async () => {
   const fixture = keptFixture();
   fixture.save();
   const before = copies();

@@ -1,11 +1,11 @@
-// Quinta revisión, C1: las acciones declaradas permanecen en el programa conservado.
+// Fifth review, C1: the declared actions stay in the kept program.
 import { expect, it, vi } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { keptFixture, inspectionShown } from "../../../tests/support/kept-inspection.ts";
 import { MemoryHouseKeys } from "./house-keys.ts";
 import { keptChecks } from "../../checks/kept/kept-journals.ts";
 for (const withKeys of [false, true])
-  it(`C1: abre y recorre firmar y usar, proveedor=${withKeys}, sin tocar el original ni el llavero`, async () => {
+  it(`C1: opens and walks sign and use, provider=${withKeys}, sparing the original and the keychain`, async () => {
     const fixture = keptFixture();
     expect((await fixture.rig.act("sign")).status).toBe("accepted");
     expect((await fixture.rig.act("use")).status).toBe("accepted");
@@ -21,8 +21,8 @@ for (const withKeys of [false, true])
       for (const check of checks) await check.run();
       const report = checks[1]?.report?.();
       expect(report).toContain("no recorribles en inspección");
-      expect(report).toContain("vault/firmar");
-      expect(report).toContain("vault/usar");
+      expect(report).toContain("vault/sign");
+      expect(report).toContain("vault/use");
       expect(report).toContain("adaptador signer.import");
       expect(report).toContain("adaptador signer.inspect");
       expect(readFileSync(fixture.file)).toEqual(before);

@@ -1,4 +1,4 @@
-// Une la custodia al commit del diario: un lote por transacción, lectura confirmada y comprobación del escritor.
+// Ties custody to the journal commit: one batch per transaction, committed reads and a writer check.
 import { Value } from "@sinclair/typebox/value";
 import { effect } from "../house/facts.ts";
 import type { Emission, Event, Foreign } from "../journal/vocabulary.ts";

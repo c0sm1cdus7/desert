@@ -4,7 +4,7 @@ import { copyFileSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { home } from "../../tests/support/storage-rig.ts";
 import { copyKeptJournal } from "./copy-kept-journal.ts";
-it("conserva evidencia con WAL pendiente sin abrir ni alterar sus auxiliares originales", () => {
+it("keeps evidence with a pending WAL without opening or altering its original sidecars", () => {
   const source = join(home(), "journal.sqlite");
   const writer = new DatabaseSync(source);
   const folder = home(),

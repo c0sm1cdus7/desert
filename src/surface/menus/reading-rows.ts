@@ -1,4 +1,4 @@
-// Lee filas sin seleccionar las apagadas, conservando la navegación breve de los grupos chicos.
+// Reads rows without selecting the disabled ones, keeping short navigation for small groups.
 import type { Picture } from "../session/screen.ts";
 import type { Tool } from "../contract/shown-tool.ts";
 import { choices, cursorOf, stacksOf } from "./lists.ts";

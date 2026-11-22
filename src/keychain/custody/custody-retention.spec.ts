@@ -6,7 +6,7 @@ import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts"
 import { SecretCustody } from "./secret-custody.ts";
 import { CustodyDatabase } from "./custody-database.ts";
 import { containing } from "../../../tests/support/custody-files.ts";
-it("p9: legado con filas sin proveedor falla antes de crear tablas o cambiar bytes", () => {
+it("p9: legacy with rows and no provider fails before creating tables or changing bytes", () => {
   const rig = custodyRig(),
     db = new DatabaseSync(rig.file);
   db.exec("create table secrets(id text primary key, value text)");
@@ -16,24 +16,24 @@ it("p9: legado con filas sin proveedor falla antes de crear tablas o cambiar byt
   expect(() => new SecretCustody(rig.file, rig.home)).toThrow("E-CUSTODY-PROVIDER");
   expect(readdirSync(rig.home).map(name => [name, readFileSync(join(rig.home, name))])).toEqual(before);
 });
-it("el formato por casa de los commits no unidos se rechaza y no se convierte", () => {
+it("the per-house format of unjoined commits is rejected and not converted", () => {
   const rig = custodyRig(),
     db = new CustodyDatabase(rig.file);
   db.identity();
-  db.saveKeyCheck("1.antiguo");
+  db.saveKeyCheck("1.ancient");
   db.close();
   const before = readFileSync(rig.file);
   expect(() => rig.open()).toThrow(/E-CUSTODY-FORMAT.*no se convierte/u);
   expect(readFileSync(rig.file)).toEqual(before);
 });
-it("M7c: compactar retira las páginas libres del legado, no solo la tabla", () => {
+it("M7c: compacting removes the legacy free pages, not only the table", () => {
   const rig = custodyRig(),
     db = new DatabaseSync(rig.file);
   db.exec("create table secrets(id text primary key, value text)");
   for (let n = 0; n < 8; n++)
     db.prepare("insert into secrets values (?,?)").run(
       `secret:00000000-0000-0000-0000-${String(n).padStart(12, "0")}`,
-      `SINTETICO${n}`.repeat(16000),
+      `SYNTHETIC${n}`.repeat(16000),
     );
   db.close();
   rig.open().close();
@@ -41,9 +41,9 @@ it("M7c: compactar retira las páginas libres del legado, no solo la tabla", () 
   expect(Number(after.prepare("pragma freelist_count").get()?.freelist_count)).toBeLessThanOrEqual(2);
   expect(after.prepare("select name from sqlite_master where name='secrets'").get()).toBeUndefined();
   after.close();
-  expect(containing(rig.home, "SINTETICO")).toEqual([]);
+  expect(containing(rig.home, "SYNTHETIC")).toEqual([]);
 });
-it("p11: recuperar muchos provisionales tampoco repite recorridos por cada material", () => {
+it("p11: recovering many provisionals does not repeat walks per material either", () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
@@ -57,7 +57,7 @@ it("p11: recuperar muchos provisionales tampoco repite recorridos por cada mater
     facts.mock.results.flatMap(result => (result.type === "return" ? result.value : [])).length;
   expect(reads).toBeLessThanOrEqual(50 * 20);
 });
-it("olvidar advierte sobre las copias; solo con aceptación borra todas las llaves", () => {
+it("forgetting warns about copies; only with acceptance does it erase every key", () => {
   const rig = custodyRig(),
     copy = custodyRig(),
     store = rig.open(),
@@ -68,19 +68,19 @@ it("olvidar advierte sobre las copias; solo con aceptación borra todas las llav
   copyFileSync(rig.file, copy.file);
   const again = rig.open();
   expect(again.forgetWarning()).toMatch(/ilegibles.*otras copias.*misma carpeta/u);
-  expect(() => again.forgetHouse("sí")).toThrow("E-CUSTODY-DENIED");
+  expect(() => again.forgetHouse("yes")).toThrow("E-CUSTODY-DENIED");
   again.forgetHouse(again.forgetWarning());
   expect(() => new SecretCustody(copy.file, copy.home, rig.keys)).toThrow("E-CUSTODY-KEY");
   expect(() => rig.open()).toThrow("E-CUSTODY-KEY");
 });
-it("una llave que no se pudo borrar queda pendiente, no borra otra referencia y se reintenta", () => {
+it("a key that could not be erased stays pending, erases no other reference and is retried", () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
   const refs = { key: session.capture(Buffer.from("invented")) };
   session.replace("signing", refs, 0);
   const fail = vi.spyOn(rig.keys, "forget").mockImplementation(() => {
-    throw new Error("llavero");
+    throw new Error("keychain");
   });
   expect(() => session.release("signing", 1)).toThrow("E-CUSTODY-CLEANUP");
   expect(store.cleanupPending()).toBe(true);
@@ -93,7 +93,7 @@ it("una llave que no se pudo borrar queda pendiente, no borra otra referencia y 
   expect(reopened.cleanupPending()).toBe(false);
   expect(reopened.facts().some(f => f.kind === "credential-purged")).toBe(true);
 });
-it("abrir verifica la presencia de cada llave de secreto sin recrearla", () => {
+it("opening verifies the presence of each secret key without recreating it", () => {
   const rig = custodyRig(),
     store = rig.open();
   const ref = store.keep(Buffer.from("invented"));
@@ -106,7 +106,7 @@ it("abrir verifica la presencia de cada llave de secreto sin recrearla", () => {
   expect(() => rig.open()).toThrow("E-CUSTODY-KEY");
   expect(key.mock.calls.every(args => !args[1])).toBe(true);
 });
-it("una casa vacía sin proveedor no tiene una falla de limpieza ni necesita llavero", () => {
+it("an empty house without a provider has no cleanup failure and needs no keychain", () => {
   const rig = custodyRig(),
     store = new SecretCustody(rig.file, rig.home);
   try {
@@ -117,7 +117,7 @@ it("una casa vacía sin proveedor no tiene una falla de limpieza ni necesita lla
     store.close();
   }
 });
-it("la purga conserva el alcance del vínculo y no repite recibos al recolectar o reabrir", () => {
+it("the purge keeps the binding's scope and does not repeat receipts on collect or reopen", () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
@@ -136,12 +136,12 @@ it("la purga conserva el alcance del vínculo y no repite recibos al recolectar 
   store.close();
   expect(rig.open().facts()).toEqual(facts);
 });
-it("recolectar una casa cerrada rechaza la operación sin volver a tocar su almacenamiento", () => {
+it("collecting a closed house rejects the operation without touching its storage again", () => {
   const store = custodyRig().open();
   store.close();
   expect(() => store.collect()).toThrow("E-CUSTODY-DENIED");
 });
-it("un fallo antes de escribir pendientes de mantenimiento tampoco tapa el resultado y queda visible", async () => {
+it("a failure before writing maintenance intents does not mask the result either and stays visible", async () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
   const refs = { key: session.capture(Buffer.from("invented")) };
@@ -149,20 +149,20 @@ it("un fallo antes de escribir pendientes de mantenimiento tampoco tapa el resul
   await expect(
     store.adapter(session, []).use(refs, () => {
       const failure = vi.spyOn(CustodyDatabase.prototype, "rows").mockImplementation(() => {
-        throw new Error("almacenamiento");
+        throw new Error("storage");
       });
       restore = () => {
         failure.mockRestore();
       };
-      return "acuse";
+      return "ack";
     }),
-  ).resolves.toBe("acuse");
+  ).resolves.toBe("ack");
   expect(store.cleanupPending()).toBe(true);
   restore();
   store.collect();
   expect(store.cleanupPending()).toBe(false);
 });
-it("terminar un préstamo después de cerrar no inventa una limpieza pendiente", () => {
+it("finishing a loan after close does not invent a pending cleanup", () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
   store.close();

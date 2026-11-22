@@ -1,4 +1,4 @@
-// Los mensajes JSON-RPC y las cuatro herramientas fijas de la puerta MCP, sin sesión de transporte.
+// The JSON-RPC messages and the four fixed tools of the MCP door, with no transport session.
 import { executionDestination } from "../../fields/device-protocol.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";

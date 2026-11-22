@@ -10,13 +10,13 @@ function chain(size: number): Record<string, string> {
   for (let i = 0; i < size; i++) {
     const next = i + 1 < size ? `import { v${i + 1} } from './t${i + 1}.ts';` : `const v${i + 1} = () => 0;`;
     sources[`t${i}.ts`] =
-      `${next} const tabla${i}: Record<string, number> = { a: ${i} };` +
-      `export function v${i}(k: string): number { return (tabla${i}[k] ?? 0) + v${i + 1}(k); }` +
+      `${next} const table${i}: Record<string, number> = { a: ${i} };` +
+      `export function v${i}(k: string): number { return (table${i}[k] ?? 0) + v${i + 1}(k); }` +
       (i === 0 ? "export const tool = { id: 't', acts: {} };" : "");
   }
   return sources;
 }
-it("212 costo: clasifica cada archivo una vez aun con raíces, diamantes y ciclos", () => {
+it("212 cost: classifies each file once even with roots, diamonds and cycles", () => {
   const sources = {
     ...chain(20),
     "a.ts": "import './t0.ts'; import './b.ts';",
@@ -32,7 +32,7 @@ it("212 costo: clasifica cada archivo una vez aun con raíces, diamantes y ciclo
     spy.mockRestore();
   }
 });
-it("212 costo: un mensaje por lugar y regla, con una cadena de ejemplo", () => {
+it("212 cost: one message per place and rule, with one example chain", () => {
   const sources = {
     "a.ts": "import './c.ts';",
     "b.ts": "import './c.ts';",
@@ -49,7 +49,7 @@ it("212 costo: un mensaje por lugar y regla, con una cadena de ejemplo", () => {
   expect(found.every(message => message.includes("a.ts → c.ts:"))).toBe(true);
   expect(new Set(found).size).toBe(4);
 });
-it("212 costo: 800 archivos limpios tardan como máximo cuatro veces 200", () => {
+it("212 cost: 800 clean files take at most four times 200", () => {
   const home = mkdtempSync(join(tmpdir(), "selection-cost-"));
   const times = new Map<number, number>();
   try {
@@ -69,13 +69,13 @@ it("212 costo: 800 archivos limpios tardan como máximo cuatro veces 200", () =>
       expect(programSecretBoundaries(home)).toEqual([]);
       times.set(size, performance.now() - start);
     }
-    console.info("212 costo ms", Object.fromEntries(times));
+    console.info("212 cost ms", Object.fromEntries(times));
     expect(times.get(800) ?? Infinity).toBeLessThanOrEqual(4 * (times.get(200) ?? 0));
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 }, 120_000);
-it("212 costo: los alias exactos no se enumeran otra vez por cada import", () => {
+it("212 cost: exact aliases are not enumerated again for each import", () => {
   const sources = chain(40);
   const aliases: Record<string, string> = Object.fromEntries(
     Array.from({ length: 39 }, (_, i) => [`t${i}.ts\0./t${i + 1}.ts`, `t${i + 1}.ts`]),

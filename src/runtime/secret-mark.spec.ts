@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { fixture, home, time } from "../../tests/support/secret-rig.ts";
 import { startHouse } from "./house-runtime.ts";
 for (const content of ["{", "null", '{"version":1}', '{"version":99,"reviewed":0,"unreviewable":0}']) {
-  it(`la marca ilegible falla tipada y nombra el archivo: ${content}`, () => {
+  it(`the unreadable mark fails typed and names the file: ${content}`, () => {
     const rig = fixture();
     const path = home();
     const file = join(path, "secret-protection.json");
@@ -16,7 +16,7 @@ for (const content of ["{", "null", '{"version":1}', '{"version":99,"reviewed":0
     expect(readFileSync(file, "utf8")).toBe(content);
   });
 }
-it("una marca que no es archivo tampoco devuelve la excepción cruda del sistema", () => {
+it("a mark that is not a file does not return the system's raw exception either", () => {
   const rig = fixture();
   const path = home();
   const file = join(path, "secret-protection.json");

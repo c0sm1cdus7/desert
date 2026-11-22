@@ -1,4 +1,4 @@
-// Identifica rechazos de contratos de mente sin guardar respuestas crudas ni datos privados.
+// Identifies mind-contract rejections without keeping raw answers or private data.
 import { mindContractProblem } from "../texts/mind-contracts.texts.ts";
 export class MindContractError extends Error {
   readonly field: string;

@@ -1,4 +1,4 @@
-// Ley 15: las instrucciones viven solo en traducciones marcadas de skills y capas de casa o mente.
+// Law 15: instructions live only in marked translations of skills and house or mind layers.
 import { join } from "node:path";
 import {
   codeFiles,

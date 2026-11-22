@@ -34,7 +34,7 @@ function setup(override?: () => ActResult<Demo> | Promise<ActResult<Demo>>) {
 describe("core failures stay distinct from business refusals", () => {
   it.each([
     [{ status: "inconclusive" }, "inconclusive"],
-    [{ status: "interrupted", reason: "corte" }, "interrupted"],
+    [{ status: "interrupted", reason: "cut" }, "interrupted"],
     [{ status: "accepted", value: { id: 2 } }, "defect"],
     [{ status: "rejected", reason: "no declarado", value: { code: "other" } }, "defect"],
   ] satisfies readonly [ActResult<Demo>, string][])("preserves %s as %s", async (response, reason) => {
@@ -52,7 +52,7 @@ describe("core failures stay distinct from business refusals", () => {
     try {
       const started = rig.act("invalid");
       const result = started.status === "processing" ? await started.completion : started;
-      expect(result.value).toEqual({ status: "rejected", value: { code: "invalida" } });
+      expect(result.value).toEqual({ status: "rejected", value: { code: "invalid" } });
     } finally {
       rig.stop();
     }

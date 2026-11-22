@@ -7,7 +7,7 @@ import type { Intent } from "../../src/surface/contract/contract.ts";
 
 /** The person's session, from its cookie: the door never sees a cookie, only the id the host resolves from it. */
 const sessionOf = (request: IncomingMessage): string | undefined =>
-  /(?:^|;\s*)sesion=([\w-]+)/u.exec(request.headers.cookie ?? "")?.[1];
+  /(?:^|;\s*)session=([\w-]+)/u.exec(request.headers.cookie ?? "")?.[1];
 async function bodyOf(request: IncomingMessage): Promise<{ readonly json: unknown } | undefined> {
   const chunks: Buffer[] = [];
   for await (const chunk of request) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));

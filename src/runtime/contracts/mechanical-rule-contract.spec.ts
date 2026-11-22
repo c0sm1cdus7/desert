@@ -1,11 +1,11 @@
-// Una llamada entre programas conserva el actor y atraviesa las reglas del proveedor.
+// A call between programs keeps the actor and goes through the provider's rules.
 import { expect, it } from "vitest";
 import { contractHouse, documents, sales } from "../../../tests/support/distribution-contracts.ts";
 import { createContractRuntime } from "./contract-runtime.ts";
 import { startTools } from "../../tools/start.ts";
 import { effect } from "../../house/facts.ts";
 import { settle } from "../../surface/bridge/ports/house-ports.ts";
-it("frena la acción publicada sin emitir hechos del proveedor", async () => {
+it("holds the published action without emitting the provider's facts", async () => {
   const house = contractHouse();
   const runtime = createContractRuntime([sales(), documents()], house.ports, house.history);
   const engine = startTools({

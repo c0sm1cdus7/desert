@@ -11,7 +11,7 @@ import previous from "../../../tests/support/a01-previous-house.json" with { typ
 const words = vocabulary({ "key-saved": Type.Object({ key: Type.String({ secret: true }), note: Type.String() }) });
 for (const kind of ["fact", "exposed"] as const) {
   for (const oldMark of [false, true]) {
-    it(`rechaza la casa WAL de 0ec3f7b sin cambiar registro ni bóveda: ${kind}, marca v1 ${oldMark}`, () => {
+    it(`refuses the WAL house of 0ec3f7b, changing neither registry nor vault: ${kind}, v1 mark ${oldMark}`, () => {
       const rig = fixture();
       const path = home();
       const files = previous[kind];
@@ -58,7 +58,7 @@ for (const kind of ["fact", "exposed"] as const) {
           ),
         ]),
       );
-      expect(has(failure, kind === "fact" ? "CLAVE" : "Ω")).toBe(false);
+      expect(has(failure, kind === "fact" ? "KEY" : "Ω")).toBe(false);
       for (const [name, bytes] of Object.entries(files))
         expect(readFileSync(join(path, name))).toEqual(Buffer.from(bytes, "base64"));
       expect(readdirSync(path).sort()).toEqual([
@@ -72,7 +72,7 @@ for (const kind of ["fact", "exposed"] as const) {
     });
   }
 }
-it("la casa real anterior con referencias abre y cuenta hechos y acciones", () => {
+it("the real previous house with references opens and counts facts and actions", () => {
   const rig = fixture();
   const path = home();
   for (const [name, bytes] of Object.entries(previous.reference))

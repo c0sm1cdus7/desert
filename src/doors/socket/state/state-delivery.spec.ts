@@ -44,7 +44,7 @@ it("N03: a terminal behind the cached delta receives a full state", async () => 
     await f.close();
   }
 });
-it("un asistente habilitado no recibe el estado aunque tenga una sesión plantada", async () => {
+it("an enabled assistant receives no state even with a planted session", async () => {
   const f = await socketHouse("stream");
   f.house().bus.emit(effect("assistant-enabled", { owner: "beto", name: "Nora" }, "ana"));
   const pair = duplexPair();

@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { DatabaseSync } from "node:sqlite";
 import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
 for (const field of ["id", "actor", "tool", "target", "slot", "cause", "revision", "refs", "batchSize", "batchIndex"])
-  it(`alterar ${field} no conserva una firma válida aunque se conserve la cabeza`, () => {
+  it(`altering ${field} does not keep a valid signature even when the head is kept`, () => {
     const rig = custodyRig(),
       store = rig.open(),
       session = store.begin(custodyScope);

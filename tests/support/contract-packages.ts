@@ -6,7 +6,7 @@ export function required<T>(value: T | undefined): T {
   return value;
 }
 export const input = () => Type.Object({ sale: Type.String() }, { additionalProperties: false });
-export const rejection = () => Type.Object({ code: Type.Literal("invalida") });
+export const rejection = () => Type.Object({ code: Type.Literal("invalid") });
 export const receipt = () => Type.Object({ number: Type.String(), state: Type.Literal("issued") });
 const documentOffer = (): ContractOffer => ({
   version: "1.3.0",
@@ -107,7 +107,7 @@ export const sales = (): ContractPackage => ({
         issue: {
           input: Type.Object({ sale: Type.String() }, { additionalProperties: false }),
           output: Type.Object({ id: Type.String() }),
-          rejections: Type.Object({ code: Type.Literal("invalida") }),
+          rejections: Type.Object({ code: Type.Literal("invalid") }),
         },
       },
       objects: {

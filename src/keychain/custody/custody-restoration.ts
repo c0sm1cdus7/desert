@@ -1,4 +1,4 @@
-// Revisa una copia sin descifrar y prepara los vínculos inutilizables y las purgas por llaves ausentes.
+// Reviews a copy without decrypting and prepares unusable bindings and purges for missing keys.
 import { randomUUID } from "node:crypto";
 import type { CredentialFact } from "./custody-contract.ts";
 import type { CustodyState } from "./custody-state.ts";

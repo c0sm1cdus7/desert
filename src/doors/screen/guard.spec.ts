@@ -131,8 +131,8 @@ const first = { title: "Venta 1", id: "one", selected: true };
 const second = { title: "Venta 2", id: "two", detail: "$ 10" };
 const two = [first, second];
 const down = [
-  { ...first, title: "Venta 4", id: "cuatro" },
-  { title: "Venta 3", id: "tres" },
+  { ...first, title: "Venta 4", id: "four" },
+  { title: "Venta 3", id: "three" },
   { ...first, selected: false },
 ];
 const choose = [{ kind: "choose", row: "two" }] as const;

@@ -1,4 +1,4 @@
-// Integra pliegues de mentes en la casa y conserva referencias cuando un hecho no los cambia.
+// Folds minds into the house and keeps references when a fact does not change them.
 import { requireMind } from "../../fields/mind-errors.ts";
 import { mindHouseCatalog, type HouseEvent } from "../facts.ts";
 import type { House } from "../members.ts";

@@ -7,7 +7,7 @@ import { lawPackage, lawRepository } from "../support/law-repository.ts";
 import { programSecretBoundaries } from "./program-secret-boundaries.ts";
 import { programImports } from "../../src/checks/laws/program-imports.ts";
 import { field, isRecord } from "../../src/fields/json-values.ts";
-it("keeps desert/contracts out of a program, which still imports the contract types from desert/programa", () => {
+it("keeps desert/contracts out of a program, which still imports the contract types from desert/program", () => {
   const manifest = JSON.stringify({
     ...lawPackage,
     desert: { ...lawPackage.desert, testDistribution: "tests/distribution.ts", dependencies: [] },

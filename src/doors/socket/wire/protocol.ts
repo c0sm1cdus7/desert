@@ -1,4 +1,4 @@
-// Define los límites del socket y valida los mensajes entre cliente y servidor.
+// Defines the socket's limits and validates the messages between client and server.
 import { executionDestination } from "../../../fields/device-protocol.ts";
 import { wholeNumber } from "../../../fields/json-values.ts";
 import { actLimits } from "../../../house/own-acts.ts";

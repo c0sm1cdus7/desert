@@ -16,7 +16,7 @@ import { serveMcp } from "./mcp-http.ts";
 import type { DoorKey } from "../socket/peers/socket-peer.ts";
 const archive = defineProgram(
   {
-    id: "archivo",
+    id: "archive",
     version: "1.0.0",
     desert: 1,
     code: [import.meta.filename],
@@ -153,7 +153,7 @@ function readingCases(access: () => Context) {
     expect(rows(await read("notes/personal/same"))).toEqual({ count: 1 });
     expect(await read("notes")).toEqual(await read());
   });
-  it.each(["notes/missing", "notes/personal/missing", "archivo", "archivo/notes/same"])(
+  it.each(["notes/missing", "notes/personal/missing", "archive", "archive/notes/same"])(
     "rejects foreign or missing target %s clearly",
     async target => {
       const { rig, call } = access();

@@ -7,12 +7,12 @@ import { programSecretBoundaries } from "./program-secret-boundaries.ts";
 import { dataCases, rejectedDataCases, admittedRevisedCases } from "./secret-data-cases.ts";
 const policy = { composition: [], adapters: [], custody: [], publicTypes: [], tools: ["tool.ts"] };
 for (const [name, code] of Object.entries(dataCases))
-  for (const mode of ["directo", "bucle", "importado"])
-    it(`212 datos: admite ${name} ${mode}`, () => {
-      const body = mode === "bucle" ? `for (let vuelta = 0; vuelta < 2; vuelta++) { ${code} }` : code;
+  for (const mode of ["direct", "loop", "imported"])
+    it(`212 data: admits ${name} ${mode}`, () => {
+      const body = mode === "loop" ? `for (let round = 0; round < 2; round++) { ${code} }` : code;
       const helper = `export function read() { ${body} }`;
       const sources =
-        mode === "importado"
+        mode === "imported"
           ? {
               "tool.ts": "import { read } from './helper.ts'; export const tool = { acts: { run: read } };",
               "helper.ts": helper,
@@ -21,14 +21,14 @@ for (const [name, code] of Object.entries(dataCases))
       expect(secretBoundaryViolations(sources, policy)).toEqual([]);
     });
 for (const [name, code] of Object.entries(admittedRevisedCases))
-  it(`212 datos: admite ahora ${name}`, () => {
+  it(`212 data: now admits ${name}`, () => {
     expect(secretBoundaryViolations({ "tool.ts": code }, policy)).toEqual([]);
   });
 for (const [name, code] of Object.entries(rejectedDataCases))
-  it(`212 datos: rechaza ${name}`, () => {
+  it(`212 data: rejects ${name}`, () => {
     expect(secretBoundaryViolations({ "tool.ts": code }, policy).length).toBeGreaterThan(0);
   });
-it("212 datos: composición real alcanza tablas en herramientas y auxiliares importadas", () => {
+it("212 data: a real composition reaches tables in tools and imported helpers", () => {
   const home = mkdtempSync(join(tmpdir(), "secret-data-"));
   try {
     mkdirSync(join(home, "src"));
@@ -48,11 +48,11 @@ it("212 datos: composición real alcanza tablas en herramientas y auxiliares imp
     writeFileSync(join(home, "lib/data.ts"), helpers);
     writeFileSync(
       join(home, "src/tool.ts"),
-      "import { lista, tupla, texto, tabla, porId } from '../lib/data.ts';" +
-        "export const tool = { acts: { run: () => [lista(), tupla(), texto(), tabla(), porId()] } };",
+      "import { list, tuple, text, table, byId } from '../lib/data.ts';" +
+        "export const tool = { acts: { run: () => [list(), tuple(), text(), table(), byId()] } };",
     );
     expect(programSecretBoundaries(home)).toEqual([]);
-    writeFileSync(join(home, "lib/data.ts"), helpers + "\nconst objeto = {}; objeto.__proto__;");
+    writeFileSync(join(home, "lib/data.ts"), helpers + "\nconst target = {}; target.__proto__;");
     expect(programSecretBoundaries(home).some(item => item.includes("__proto__"))).toBe(true);
   } finally {
     rmSync(home, { recursive: true, force: true });

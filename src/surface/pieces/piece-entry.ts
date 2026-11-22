@@ -1,4 +1,4 @@
-// The Entrada: what is written, the part of its shape still to fill, and where the caret stands.
+// The Entry: what is written, the part of its shape still to fill, and where the caret stands.
 import type { Body, Row, Span } from "../contract/contract.ts";
 import type { EntryPiece } from "./pieces.ts";
 
@@ -27,7 +27,7 @@ function written(entry: ThreadEntry, whole: boolean): readonly Span[] {
     ...(remaining ? [{ text: remaining, tone: "t3" } as const] : []),
   ];
 }
-/** The Entrada of a thread. What was there when the question opened is lit whole, and then there is no caret. */
+/** The Entry of a thread. What was there when the question opened is lit whole, and then there is no caret. */
 export function threadEntry(entry: ThreadEntry): EntryPiece {
   const { typed, caret, placeholder, remaining = "" } = entry;
   const whole = entry.suggested === true;

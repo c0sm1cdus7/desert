@@ -1,4 +1,4 @@
-// Expresa casos declarados de asistentes y rechazos sin cambios para las superficies comunes.
+// Declared assistant cases and unchanged refusals for the common surfaces.
 import { assistantText, type AssistantTextKey } from "../../texts/assistant.texts.ts";
 import { identityTexts } from "../../texts/identities.texts.ts";
 import type { Case, Step } from "../promises.ts";

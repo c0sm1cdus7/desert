@@ -12,12 +12,12 @@ function scenario(point = 0, after = false) {
     const selected = writing && ++state.writes === point;
     if (selected && !after) {
       state.interrupted = true;
-      throw new Error("corte");
+      throw new Error("cut");
     }
     const result = fake.command(file, args, input, options);
     if (selected && after) {
       state.interrupted = true;
-      throw new Error("corte");
+      throw new Error("cut");
     }
     return result;
   });
@@ -34,7 +34,7 @@ function scenario(point = 0, after = false) {
   }
   return { rig, fake, ...state };
 }
-it("cada escritura del comando falso se recupera antes y después de crear índice, llave, ancla o borrar", async () => {
+it("every write of the fake command recovers before and after creating index, key, anchor or deleting", async () => {
   const dry = scenario();
   expect(dry.writes).toBeGreaterThan(10);
   const cuts = Array.from({ length: dry.writes }, (_, index) =>
@@ -48,15 +48,17 @@ it("cada escritura del comando falso se recupera antes y después de crear índi
       const session = restored.begin(custodyScope),
         current = session.current("signing");
       if (current)
-        await expect(restored.adapter(session, ["signing"]).use(current.refs, () => "acuse")).resolves.toBe("acuse");
-      session.replace("next", { key: session.capture(Buffer.from("continua")) }, 0);
+        await expect(restored.adapter(session, ["signing"]).use(current.refs, () => "receipt")).resolves.toBe(
+          "receipt",
+        );
+      session.replace("next", { key: session.capture(Buffer.from("continued")) }, 0);
       expect(restored.cleanupPending()).toBe(false);
     } finally {
       restored.close();
     }
   }
 }, 30000);
-it("un olvido parcial se retoma por identidad sin necesitar descifrar o reabrir la casa", () => {
+it("a partial forget resumes by identity without decrypting or reopening the house", () => {
   for (const point of [1, 2, 3, 4, 5])
     for (const after of [false, true]) {
       const fake = fakeKeychain(),
@@ -67,9 +69,9 @@ it("un olvido parcial se retoma por identidad sin necesitar descifrar o reabrir 
       let deleted = 0;
       const failing = new MacOSHouseKeys((file, args, input, options) => {
         const selected = args[0] === "delete-generic-password" && ++deleted === point;
-        if (selected && !after) throw new Error("corte");
+        if (selected && !after) throw new Error("cut");
         const result = fake.command(file, args, input, options);
-        if (selected && after) throw new Error("corte");
+        if (selected && after) throw new Error("cut");
         return result;
       });
       expect(() => failing.forgetHouse("house")).toThrow("E-CUSTODY-KEY");

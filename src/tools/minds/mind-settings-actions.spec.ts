@@ -6,7 +6,7 @@ import { settle } from "../../surface/bridge/ports/house-ports.ts";
 import { assignMindCard } from "./mind-settings-actions.ts";
 const rigs: ReturnType<typeof shopRig>[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
-it("solo administración asigna una carta elegible al asistente en Identidades", async () => {
+it("only administration assigns an eligible card to the assistant in Identities", async () => {
   const rig = shopRig({
     identities: true,
     registry: [

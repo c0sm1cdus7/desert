@@ -11,7 +11,7 @@ import type { ActContext, ActResult, Tool } from "./tool-contract.ts";
 import { deferred, runningRig, saved, settled } from "../../tests/support/kit-running.ts";
 import { shop, shopProgram, shopRegistry, type Shop } from "../../tests/support/shop.ts";
 
-it.each(["house", "world"] as const)("R10: pasar la administración corta la señal del acto %s", async reach => {
+it.each(["house", "world"] as const)("R10: handing over administration cuts the signal of the %s act", async reach => {
   const home = mkdtempSync(join(tmpdir(), "kit-handed-"));
   const contexts: ActContext<Shop>[] = [];
   const done = deferred<ActResult<Shop>>();
@@ -46,19 +46,19 @@ it.each(["house", "world"] as const)("R10: pasar la administración corta la se�
     house.bus.emit(effect("handed", { to: "beto" }, "ana"));
     expect(allowedAct(house.tools.state().house, "ana", "slow", "run")).toBe(false);
     expect(contexts[0]?.signal?.aborted).toBe(true);
-    done.resolve({ ...saved, effects: [shop.fact("slow-written", { sale: "traspaso", total: 1 }, "ana")] });
+    done.resolve({ ...saved, effects: [shop.fact("slow-written", { sale: "handover", total: 1 }, "ana")] });
     expect(await settled(pending)).toMatchObject({
       status: reach === "world" ? "accepted" : "interrupted",
       reason: "sacada",
     });
-    expect(house.tools.state().tools.sales.has("traspaso")).toBe(reach === "world");
+    expect(house.tools.state().tools.sales.has("handover")).toBe(reach === "world");
   } finally {
     house.close();
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-it.each(["granted", "removed"] as const)("M4: %s corta la señal antes de otro efecto externo", async kind => {
+it.each(["granted", "removed"] as const)("M4: %s cuts the signal before another external effect", async kind => {
   const rig = runningRig("world");
   try {
     const pending = rig.start();

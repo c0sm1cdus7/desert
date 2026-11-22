@@ -30,7 +30,7 @@ function fixture() {
   return { home, root, keys, file: join(home, "custody-keys.json") };
 }
 it.each(["writeFileSync", "fsyncSync", "renameSync"] as const)(
-  "un corte en %s conserva el documento anterior, limpia el temporal y permite reintentar",
+  "a cut at %s keeps the previous document, cleans the temporary one and allows a retry",
   operation => {
     const { keys, home, root, file } = fixture();
     keys.key("house", true).fill(0);
@@ -58,7 +58,7 @@ it.each([
   { version: 1, accounts: [], heads: [["house", { count: 0, authentication: "a".repeat(64) }]] },
   { version: 1, accounts: [], heads: [["house", { count: 1, authentication: "" }]] },
   { version: 1, accounts: [], heads: [], extra: true },
-])("rechaza documentos dañados sin reemplazarlos (%#)", value => {
+])("rejects damaged documents without replacing them (%#)", value => {
   const { home, file, keys, root } = fixture();
   fs.writeFileSync(file, JSON.stringify(value));
   const before = fs.readFileSync(file);
@@ -67,7 +67,7 @@ it.each([
   expect(fs.readFileSync(file).equals(before)).toBe(true);
   root.fill(0);
 });
-it("ningún error del proveedor expone la raíz, la cuenta malformada, el documento ni causas externas", () => {
+it("no provider error exposes the root, the malformed account, the document or external causes", () => {
   const { keys, file, root } = fixture();
   const text = root.toString("utf8");
   for (const work of [

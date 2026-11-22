@@ -78,7 +78,7 @@ describe("a destination", () => {
 it("ends a focused block in half a row with its corners cut, only where there is air for it", () => {
   const said = (selected: boolean) => ({
     head: [{ text: "Vos", tone: "t1" as const }],
-    text: [{ text: "hola", tone: "t1" as const }],
+    text: [{ text: "buen día", tone: "t1" as const }],
     selected,
   });
   const screen = (events: readonly ThreadEvent[]): Screen => ({
@@ -157,7 +157,7 @@ describe("a message", () => {
     return session;
   };
   const startTalkFields = { typed: "", caret: 0, at: -1, inPanel: false, full: false, top: 0, option: 0 };
-  it("leaves the Entrada only once the house accepted it", async () => {
+  it("leaves the Entry only once the house accepted it", async () => {
     expect(shown(await typed([talking(undefined)]), [talking(undefined)])).not.toContain("Hola");
   });
   it("stays written with its reason when the house refused it", async () => {

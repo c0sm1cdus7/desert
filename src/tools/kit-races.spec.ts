@@ -13,7 +13,7 @@ const open = (reach: "house" | "world" = "house") => {
   return rig;
 };
 
-it("no pierde un corte y una devolución encolados desde el mismo oyente", async () => {
+it("does not lose a cut and a return queued from the same listener", async () => {
   const rig = open();
   const pending = rig.start();
   const stop = rig.bus.on("stimulus", () => {
@@ -27,7 +27,7 @@ it("no pierde un corte y una devolución encolados desde el mismo oyente", async
   expect(await settled(pending)).toMatchObject({ status: "interrupted", reason: "sacada" });
 });
 
-it("corta antes del cuerpo si se saca al oír que empezó", async () => {
+it("cuts before the body if taken out on hearing that it started", async () => {
   const rig = open("world");
   const stop = rig.bus.on("act-started", event => {
     if (event.data.object === "slow") rig.kit("beto");
@@ -38,7 +38,7 @@ it("corta antes del cuerpo si se saca al oír que empezó", async () => {
   expect(await settled(pending)).toMatchObject({ status: "interrupted", reason: "sacada" });
 });
 
-it("plegar la historia mientras hay un acto vivo no le toca la señal", async () => {
+it("folding history while an act is alive does not touch its signal", async () => {
   const rig = open();
   const old = rig.start();
   rig.kit("beto");
@@ -55,7 +55,7 @@ it("plegar la historia mientras hay un acto vivo no le toca la señal", async ()
   expect(await settled(next)).toMatchObject({ status: "accepted" });
 });
 
-it.each(["house", "world"] as const)("la pantalla explica el resultado pendiente de alcance %s", async reach => {
+it.each(["house", "world"] as const)("the screen explains the pending result of scope %s", async reach => {
   const rig = open(reach);
   const ports = rig.ports("beto", () => 5000);
   const shown = programResult({ ...ports, act: value => ports.act(value, rig.state().through) }, "slow", "run", {});

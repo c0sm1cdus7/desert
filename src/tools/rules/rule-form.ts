@@ -1,4 +1,4 @@
-// Agrega preguntas de superficie a los mismos datos tipados y despliega combinaciones acotadas.
+// Adds surface questions to the same typed data and expands bounded combinations.
 import { Type, type TSchema } from "@sinclair/typebox";
 import { isRecord } from "../../fields/json-values.ts";
 import { predicateSchema } from "../../house/rules/rule-schema.ts";

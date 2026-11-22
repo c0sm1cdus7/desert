@@ -1,4 +1,4 @@
-// Presenta el autor de las cabeceras de los hilos y conserva sus tonos, horas, mensajes y destinos.
+// Shows the author in thread headers and keeps their tones, times, messages and destinations.
 import type { Conversation, Said, Tool } from "../../contract/shown-tool.ts";
 /** The first header span names the author; later spans carry device, time and delivery state. */
 export function authorThread(tool: Tool, name: (actor: string) => string): Tool {

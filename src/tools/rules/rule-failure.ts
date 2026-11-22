@@ -1,4 +1,4 @@
-// Transporta un freno mecánico desde una capacidad hasta el resultado del acto sin convertirlo en defecto.
+// Carries a mechanical stop from a capability to the act's result without turning it into a defect.
 import type { HouseEmission } from "../../house/facts.ts";
 export class MechanicalRuleFailure extends Error {
   readonly reason: string;

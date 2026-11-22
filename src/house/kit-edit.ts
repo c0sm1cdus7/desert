@@ -1,4 +1,4 @@
-// Edita selecciones positivas sobre el estado vigente y abre solamente las carpetas afectadas.
+// Edits positive selections over the current state and opens only the affected folders.
 import {
   actionSelection,
   covers,

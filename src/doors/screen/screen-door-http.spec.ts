@@ -51,7 +51,7 @@ it("signs in, reaches the Menu, opens a tool and runs an act, over local HTTP wi
   const remote = await socketHouse("stream");
   const door = signingDoor(remote);
   const http = await screenHttp(door, "house");
-  const client = await screenClient(http.url, "sesion=una-sesion", 26);
+  const client = await screenClient(http.url, "session=one-session", 26);
   const act = async (intents: readonly Intent[]) => expect((await client.act(intents)).refused).toBeUndefined();
   try {
     const entryEpoch = client.first.epoch;
@@ -74,7 +74,7 @@ it("signs in, reaches the Menu, opens a tool and runs an act, over local HTTP wi
     expect(holding(invitation).filter(response => response.epoch !== entryEpoch)).toEqual([]);
   } finally {
     client.leave();
-    door.close("una-sesion");
+    door.close("one-session");
     await http.close();
     await remote.close();
   }

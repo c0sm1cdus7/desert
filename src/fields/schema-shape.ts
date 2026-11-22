@@ -1,4 +1,4 @@
-// Valida esquemas y recuerda sólo los que no pueden cambiar en ninguna de sus ramas.
+// Validates schemas and remembers only those that cannot change in any of their branches.
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
 const valid = new WeakSet<object>();
 const immutable = new WeakSet<object>();

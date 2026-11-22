@@ -1,4 +1,4 @@
-// Valida filas y referencias de custodia y los límites autenticados de cada agregado atómico.
+// Validates custody rows and references and the authenticated bounds of each atomic addition.
 import { Type, type Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { CustodyError } from "./house-keys.ts";

@@ -1,4 +1,4 @@
-// Reconoce declaraciones de mensajes y delimita sus traducciones sin habilitar el resto del archivo.
+// Recognizes message declarations and bounds their translations without enabling the rest of the file.
 import ts from "typescript";
 export const propertyValue = (node: ts.Node | undefined, name: string): ts.Expression | undefined => {
   if (!node || !ts.isObjectLiteralExpression(node)) return undefined;

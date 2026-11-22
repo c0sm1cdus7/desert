@@ -1,4 +1,4 @@
-// Abre la terminal real sobre la casa sintética de autores y permite reabrir su diario.
+// Opens the real terminal over the synthetic authors' house and lets its journal be reopened.
 import { startTerminal } from "../../src/doors/terminal/boot.ts";
 import { localPorts } from "../../src/runtime/house-runtime.ts";
 import { houseRouter } from "../../src/surface/bridge/assembly/house-router.ts";

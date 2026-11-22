@@ -5,7 +5,7 @@ import { fixture, words, time } from "../../../tests/support/secret-rig.ts";
 import * as protection from "./protected-house.ts";
 import { SqliteJournal } from "../../storage/journal-store.ts";
 import { startHouse } from "../../runtime/house-runtime.ts";
-it("H4: caracteriza la ventana pendiente entre revisar la historia y tomar el escritor", () => {
+it("H4: characterizes the pending window between reviewing history and taking the writer", () => {
   const rig = fixture();
   rig.close();
   rmSync(join(rig.path, "secret-protection.json"));
@@ -13,7 +13,7 @@ it("H4: caracteriza la ventana pendiente entre revisar la historia y tomar el es
   const original = protection.protectedHouse;
   const spy = vi.spyOn(protection, "protectedHouse").mockImplementation((home, options) => {
     const reviewed = original(home, options);
-    previous.append(words.fact("sale-registered", { value: "invented", copy: "público" }, "ana"), 1000);
+    previous.append(words.fact("sale-registered", { value: "invented", copy: "public" }, "ana"), 1000);
     previous.close();
     return reviewed;
   });

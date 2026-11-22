@@ -95,7 +95,7 @@ function deviceLifecycle(house: House, event: HouseEvent): House {
   return { ...house, devices: { ...state, devices: new Map(state.devices).set(old.id, device) } };
 }
 
-/** El motor cierra las conexiones anteriores antes de habilitar el acceso a la casa. */
+/** The engine closes earlier connections before it enables access to the house. */
 export function deviceChoices(house: House, execution: ActionExecution | undefined, action: string) {
   if (!execution || execution.at === "house") return [];
   return [...house.devices.devices.values()]

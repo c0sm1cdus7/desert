@@ -1,4 +1,4 @@
-// Conserva la frontera del programa al arrancar sus oyentes y cerrar sus recursos.
+// Keeps the program boundary when starting its listeners and closing its resources.
 import { startProgram } from "./tool-startup.ts";
 import type { Execution } from "../execute.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";

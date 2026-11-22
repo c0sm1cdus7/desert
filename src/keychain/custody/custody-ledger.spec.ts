@@ -4,11 +4,11 @@ import { copyFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { custodyHead, custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
 for (const mutation of ["append", "edit", "duplicate", "reorder", "malformed"])
-  it(`rechaza el registro adulterado: ${mutation} (a1/a2)`, () => {
+  it(`rejects the tampered record: ${mutation} (a1/a2)`, () => {
     const rig = custodyRig(),
       store = rig.open(),
       session = store.begin(custodyScope);
-    const refs = { key: session.capture(Buffer.from("SINTETICO")) };
+    const refs = { key: session.capture(Buffer.from("SYNTHETIC")) };
     session.replace("signing", refs, 0);
     session.replace("another", refs, 0);
     store.close();
@@ -40,12 +40,12 @@ for (const mutation of ["append", "edit", "duplicate", "reorder", "malformed"])
     db.close();
     expect(() => rig.open()).toThrow("E-CUSTODY-INTEGRITY");
   });
-it("una copia vieja exige aceptación explícita; solo vuelve material cuya llave sigue presente", async () => {
+it("an old copy requires explicit acceptance; only material whose key is still present comes back", async () => {
   const rig = custodyRig(),
     backup = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("ANTERIOR")) };
+  const refs = { key: session.capture(Buffer.from("PREVIOUS")) };
   session.replace("signing", refs, 0);
   const head = custodyHead(store.facts());
   store.close();
@@ -63,5 +63,5 @@ it("una copia vieja exige aceptación explícita; solo vuelve material cuya llav
     await restored
       .adapter(restored.begin(custodyScope), ["signing"])
       .use(refs, m => Buffer.from(m.key ?? []).toString("utf8")),
-  ).toBe("ANTERIOR");
+  ).toBe("PREVIOUS");
 });

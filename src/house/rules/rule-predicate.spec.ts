@@ -1,4 +1,4 @@
-// Prueba cada operador, sus bordes temporales y referencias públicas sin evaluar código.
+// Tests each operator, its time edges and public references without evaluating code.
 import { expect, it } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { evaluatePredicate, ruleProblem } from "./rule-predicate.ts";
@@ -21,7 +21,7 @@ const check = (condition: Predicate) => {
   ).toBeUndefined();
   return evaluatePredicate(condition, context);
 };
-it("igualdad, pertenencia, comparación y combinaciones conservan el tipo", () => {
+it("equality, membership, comparison and combinations keep the type", () => {
   expect(check({ operator: "equal", field: amount, value: { kind: "number", value: 10 } })).toBe(true);
   expect(
     check({
@@ -47,7 +47,7 @@ it("igualdad, pertenencia, comparación y combinaciones conservan el tipo", () =
   expect(check({ operator: "not", condition: no })).toBe(true);
   expect(check({ operator: "equal", field: { source: "input", path: "absent" }, value: { kind: "null" } })).toBe(true);
 });
-it("el actor y las proyecciones del core no vienen de la entrada", () => {
+it("the actor and the core's projections do not come from the input", () => {
   expect(
     check({ operator: "equal", field: { source: "core", path: "isAdmin" }, value: { kind: "boolean", value: true } }),
   ).toBe(true);
@@ -55,7 +55,7 @@ it("el actor y las proyecciones del core no vienen de la entrada", () => {
   expect(evaluatePredicate(predicate, { ...context, actor: "assistant:ana" })).toBe(true);
   expect(evaluatePredicate(predicate, { ...context, input: { actor: "assistant:ana", isAdmin: true } })).toBe(false);
 });
-it("horario incluye el inicio y excluye el fin, con UTC explícito y cruce de medianoche", () => {
+it("a schedule includes the start and excludes the end, with explicit UTC and crossing midnight", () => {
   const predicate: Predicate = { operator: "schedule", from: 23 * 60, until: 2 * 60, offsetMinutes: -180, days: [1] };
   for (const [date, expected] of [
     ["2026-11-17T01:59:00Z", false],
@@ -66,7 +66,7 @@ it("horario incluye el inicio y excluye el fin, con UTC explícito y cruce de me
   ] as const)
     expect(evaluatePredicate(predicate, { ...context, now: Date.parse(date) })).toBe(expected);
 });
-it("limita tamaño y profundidad, rechaza accesores y claves fuera de toda rama declarada", () => {
+it("limits size and depth, refuses accessors and keys outside every declared branch", () => {
   const definition = {
     id: "test",
     text: "Prueba",
@@ -89,7 +89,7 @@ it("limita tamaño y profundidad, rechaza accesores y claves fuera de toda rama 
   expect(ruleProblem(definition, Type.Union([schema, Type.Object({ currency: Type.String() })]))).toBeDefined();
   expect(ruleProblem(definition, Type.Union([schema, schema]))).toBeUndefined();
 });
-it("siempre vale para todo acto y actor, sin campos; las condiciones de antes se leen igual (21/11)", () => {
+it("always holds for every act and actor, with no fields; earlier conditions read the same (21/11)", () => {
   expect(check({ operator: "always" })).toBe(true);
   expect(evaluatePredicate({ operator: "always" }, { ...context, actor: "mind:sales", inJourney: true })).toBe(true);
   expect(check({ operator: "not", condition: { operator: "always" } })).toBe(false);

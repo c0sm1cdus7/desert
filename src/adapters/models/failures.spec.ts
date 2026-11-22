@@ -15,12 +15,12 @@ const request = { card, maxOutputTokens: 10, layers: ["a", "b", "c", "d"] as con
 const usage = { input_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, output_tokens: 1 };
 const data = (text: string, stop_reason = "end_turn") => ({ stop_reason, content: [{ type: "text", text }], usage });
 
-describe("bordes de las cartas y el transporte", () => {
-  it("usa el precio alto de Haiku sobre 100 mil y el bajo en el borde", () => {
+describe("card and transport edges", () => {
+  it("uses Haiku's high price above 100 thousand and the low one at the edge", () => {
     expect(costUsd(card, { input: 100000, cacheWrite: 0, cacheRead: 0, output: 100000 })).toBeCloseTo(0.06);
     expect(costUsd(card, { input: 100001, cacheWrite: 0, cacheRead: 0, output: 100000 })).toBeCloseTo(0.3000005);
   });
-  it("usa el precio más caro posible de entrada y exige un tope", () => {
+  it("uses the most expensive possible input price and requires a cap", () => {
     const known = {
       model: card.model,
       effort: card.effort,
@@ -47,9 +47,9 @@ describe("bordes de las cartas y el transporte", () => {
       Reflect.apply(withinCap, undefined, []);
     }).toThrow("args");
   });
-  it("valida resultados del banco por rol", () => {
+  it("validates bank results by role", () => {
     const result = {
-      role: "asistente",
+      role: "assistant",
       cases: 2,
       scenes: 6,
       passed: true,
@@ -69,10 +69,10 @@ describe("bordes de las cartas y el transporte", () => {
     [data('{"n":4}'), "schema"],
     [data('{"n":2,"extra":1}'), "schema"],
     [{ ...data('{"n":2}'), usage: {} }, "response"],
-  ])("informa la falla %s", (response, kind) => {
+  ])("reports the %s failure", (response, kind) => {
     expect(() => readResponse(response, schema)).toThrow(expect.objectContaining({ kind }));
   });
-  it("recibe usage exacto y usa el primer bloque de texto", () => {
+  it("receives exact usage and uses the first text block", () => {
     expect(
       readResponse(
         {
@@ -83,7 +83,7 @@ describe("bordes de las cartas y el transporte", () => {
       ),
     ).toEqual({ value: { n: 2 }, usage: { input: 1, cacheWrite: 0, cacheRead: 0, output: 1 } });
   });
-  it("manda encabezados y cuerpo al transporte falso sin filtrar la llave en errores", async () => {
+  it("sends headers and body to the fake transport without leaking the key in errors", async () => {
     const secret = "synthetic-key";
     const transport: typeof fetch = (_url, init) => {
       expect(init?.headers).toEqual({
@@ -106,8 +106,8 @@ describe("bordes de las cartas y el transporte", () => {
   });
 });
 
-describe("esquemas anidados", () => {
-  it("valida referencias recursivas y conserva propiedades con nombres de restricciones", () => {
+describe("nested schemas", () => {
+  it("validates recursive references and keeps properties named like constraints", () => {
     const recursive = {
       $defs: {
         node: {

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
 import { realTerminal } from "./real-terminal.ts";
-it("H3: Enter explica vacío, corto, forma y pegado largo en la terminal real", async () => {
+it("H3: Enter explains empty, short, format and long paste in the real terminal", async () => {
   const home = mkdtempSync(join(tmpdir(), "secret-reasons-pty-"));
   const term = realTerminal(
     [process.execPath, join(import.meta.dirname, "../../tests/support/opacity-open.ts"), home, "bounded"],

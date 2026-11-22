@@ -7,7 +7,7 @@ import { journeyOf, openAct, script, waitAct } from "../../../tests/support/jour
 import { withCuts } from "./journey-cut-scene.ts";
 const fixtures: ReturnType<typeof programMindFixture>[] = [];
 afterEach(() => fixtures.splice(0).forEach(f => f.cleanup()));
-/** A house whose notas mind opened one journey and had its first turn cut: the provider did not answer its call. */
+/** A house whose notes mind opened one journey and had its first turn cut: the provider did not answer its call. */
 async function cut() {
   const f = programMindFixture();
   fixtures.push(f);
@@ -24,7 +24,7 @@ async function cut() {
   return house;
 }
 type House = Awaited<ReturnType<typeof cut>>;
-/** `count` more open journeys of the notas mind, each with its only turn cut at the call limit. */
+/** `count` more open journeys of the notes mind, each with its only turn cut at the call limit. */
 function cutMore(house: House, count: number) {
   house.bus.together(() => {
     for (let index = 0; index < count; index++) {

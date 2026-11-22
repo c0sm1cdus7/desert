@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 const homes: string[] = [];
-// Dos bytes pueden coincidir con los checksums binarios de SQLite sin que se haya guardado material.
+// Two bytes may match SQLite's binary checksums without any material having been saved.
 const marker = "QZ-SYNTHETIC-CRASH-MATERIAL-7e76329a-d04b-49a5-bc60-85934c7e01f2";
 afterEach(() => homes.splice(0).forEach(home => rmSync(home, { recursive: true, force: true })));
 for (const mode of ["die", "slow"])

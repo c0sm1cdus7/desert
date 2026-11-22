@@ -7,7 +7,7 @@ import type { Shop } from "../../tests/support/shop.ts";
 import { toolAct } from "./act-definition.ts";
 const empty = Type.Object({});
 for (const together of [false, true])
-  it(`el arranque revierte el vínculo si un oyente falla al escribir el lote: together=${together}`, async () => {
+  it(`startup reverts the link if a listener fails writing the batch: together=${together}`, async () => {
     let ports: ToolStartup<Shop> | undefined;
     const rig = adapterHouse(
       {},
@@ -33,7 +33,7 @@ for (const together of [false, true])
     expect(JSON.stringify(rig.facts()).match(/credential-bound/gu)).toHaveLength(1);
     rig.restart();
   });
-it("un aviso de ancla pendiente llega también a quien ejecutó una acción anidada", async () => {
+it("a pending anchor notice also reaches whoever ran a nested action", async () => {
   let fail = false,
     nested: unknown;
   const rig = adapterHouse({
@@ -62,7 +62,7 @@ it("un aviso de ancla pendiente llega también a quien ejecutó una acción anid
     spy.mockRestore();
   }
 });
-it("la vista se fija al empezar aunque su primera consulta llegue después de otra acción", async () => {
+it("the view is fixed at the start even if its first query arrives after another action", async () => {
   let resume = () => {},
     ready = () => {};
   const waiting = new Promise<void>(resolve => {
@@ -90,7 +90,7 @@ it("la vista se fija al empezar aunque su primera consulta llegue después de ot
   expect((await pending).status).toBe("accepted");
 });
 
-it("la acción revierte sus hechos si falla el lote de custodia", async () => {
+it("the action reverts its facts if the custody batch fails", async () => {
   const rig = adapterHouse({
     bind: toolAct(empty, async (_, context) => ({
       status: "accepted",
@@ -107,7 +107,7 @@ it("la acción revierte sus hechos si falla el lote de custodia", async () => {
   expect((await rig.act("bind")).status).toBe("accepted");
   rig.restart();
 });
-it("el ancla de una acción se escribe después del commit del diario", async () => {
+it("an action's anchor is written after the journal's commit", async () => {
   const rig = adapterHouse({
     bind: toolAct(empty, async (_, context) => ({
       status: "accepted",

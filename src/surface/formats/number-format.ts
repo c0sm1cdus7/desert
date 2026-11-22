@@ -1,4 +1,4 @@
-// Permite escribir números finitos con signo y decimales sin imponer la máscara de cantidades positivas.
+// Lets one write finite numbers with sign and decimals without imposing the positive-quantity mask.
 import type { Format, Locale } from "./masks.ts";
 import { maskKeys } from "./mask-keys.ts";
 import { genericTexts } from "../../texts/generic-surface.texts.ts";

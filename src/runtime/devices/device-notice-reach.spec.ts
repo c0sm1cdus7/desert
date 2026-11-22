@@ -42,7 +42,7 @@ it("wakes the journey that started the work with its recorded notice, and not it
   const connection = rig.house.tools.state().house.devices.devices.get("mac")?.connection ?? "";
   const data = { execution: "e1", actor: "mind:agents", program: "agents", action: "run", device: "mac", connection };
   rig.house.bus.emit(effect("device-execution-started", { ...data, journey: "j1", announces: true }, "mind:agents"));
-  rig.house.bus.emit(effect("device-execution-unknown", { execution: "e1", reason: "corte" }, "mind:agents"));
+  rig.house.bus.emit(effect("device-execution-unknown", { execution: "e1", reason: "cut" }, "mind:agents"));
   expect(mac.connection.announce(finished("e1"), () => {})).toBe("recorded");
   const history = events(rig);
   const notice = history.find(event => event.kind === "device-execution-notice");

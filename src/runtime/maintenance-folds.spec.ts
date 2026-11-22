@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { houseJournal } from "./house-journal.ts";
 import { shop } from "../../tests/support/shop.ts";
-it("el registro de mantenimiento nunca permite vigilar o restaurar plegados", () => {
+it("the maintenance log never allows watching or restoring folds", () => {
   const home = mkdtempSync(join(tmpdir(), "maintenance-folds-"));
   const journal = houseJournal(join(home, "journal.sqlite"), shop, undefined, "preserve");
   try {

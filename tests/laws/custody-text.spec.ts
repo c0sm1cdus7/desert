@@ -34,13 +34,13 @@ function conversions(source: ts.SourceFile): string[] {
   visit(source);
   return found;
 }
-it("la custodia no convierte material ni llaves a texto", () => {
+it("custody never converts material or keys to text", () => {
   const files = filesUnder(join(src, "keychain")).filter(file => !isSpec(file));
   expect(files.flatMap(file => conversions(parsed(file)).map(value => `${file}: ${value}`))).toEqual([]);
 });
-it("la ley rechaza conversiones directas y calculadas del material", () => {
+it("the law rejects direct and computed conversions of the material", () => {
   const source = ts.createSourceFile(
-    "mutacion.ts",
+    "mutation.ts",
     'material.toString(); String(material); material["toString"]()',
     ts.ScriptTarget.Latest,
     true,

@@ -1,4 +1,4 @@
-// Confirma cada reacción junto a su resultado y conserva los diagnósticos de las fallas de escritura.
+// Confirms each reaction together with its result and keeps the diagnostics of write failures.
 import { toolTexts } from "../../texts/tools.texts.ts";
 import { OutsideDefect, BaseFailure } from "../../fields/program-call.ts";
 import { effect, type HouseEvent } from "../../house/facts.ts";

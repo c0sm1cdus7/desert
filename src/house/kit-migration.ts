@@ -1,4 +1,4 @@
-// Aplica correspondencias versionadas y rechaza ámbitos ambiguos o identificadores retirados reutilizados.
+// Applies versioned mappings and refuses ambiguous scopes or reused retired identifiers.
 import { selectionProblem } from "./kit-validation.ts";
 import {
   actionSelection,

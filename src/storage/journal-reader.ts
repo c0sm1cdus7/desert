@@ -1,4 +1,4 @@
-// Lectura de hechos desde otra conexión, sin tomar la exclusión de escritor.
+// Reads facts from another connection without taking the writer's exclusion.
 import { DatabaseSync } from "node:sqlite";
 import { storageIdentity } from "./storage-identity.ts";
 import { factOf } from "./journal-record.ts";

@@ -31,15 +31,15 @@ describe.each(keyProviders)("$name", providerCase => {
     stores.push(custody);
     return custody;
   }
-  it("el disco solo guarda cifrado privado y una copia de carpeta no trae la llave", () => {
+  it("the disk holds only private ciphertext and a copy of the folder does not bring the key", () => {
     const path = home(),
       custody = open(path),
       session = custody.begin(scope);
-    const refs = { key: session.capture(Buffer.from("MARCADOR_INVENTADO_MULTILINEA\nSIN_VALOR")) };
+    const refs = { key: session.capture(Buffer.from("INVENTED_MULTILINE_MARKER\nNO_VALUE")) };
     session.replace("signing", refs, 0);
     custody.close();
     for (const file of readdirSync(path)) {
-      expect(readFileSync(join(path, file)).includes(Buffer.from("MARCADOR_INVENTADO"))).toBe(false);
+      expect(readFileSync(join(path, file)).includes(Buffer.from("INVENTED_MULTILINE_MARKER"))).toBe(false);
       expect(statSync(join(path, file)).mode & 0o777).toBe(0o600);
     }
     const copied = home();
@@ -48,17 +48,17 @@ describe.each(keyProviders)("$name", providerCase => {
     expect(open(copied).ids()).toEqual([refs.key]);
     expect(() => open(path, new MemoryHouseKeys())).toThrow("E-CUSTODY-KEY");
   });
-  it("una llave perdida no se regenera aunque ya se hayan borrado todos los materiales", () => {
+  it("a lost key is not regenerated even after every material has been erased", () => {
     const path = home(),
       store = open(path),
       session = store.begin(scope);
-    session.capture(Buffer.from("sintetico"));
+    session.capture(Buffer.from("synthetic"));
     session.cancel();
     expect(store.ids()).toEqual([]);
     store.close();
     expect(() => open(path, new MemoryHouseKeys())).toThrow("E-CUSTODY-KEY");
   });
-  it("mover o alterar un registro rompe la autenticación aunque la llave sea la misma", () => {
+  it("moving or altering a record breaks authentication even with the same key", () => {
     const path = home(),
       custody = open(path);
     const first = custody.keep(Buffer.from("one")),
@@ -73,7 +73,7 @@ describe.each(keyProviders)("$name", providerCase => {
     expect(() => open(path)).toThrow("E-CUSTODY-INTEGRITY");
   });
 });
-it("el proveedor macOS usa solo el comando inyectado, no sobrescribe y cierra errores", () => {
+it("the macOS provider uses only the injected command, never overwrites and closes errors", () => {
   const { calls, command } = fakeKeychain();
   const provider = new MacOSHouseKeys(command);
   expect(() => provider.key("a", false)).toThrow("E-CUSTODY-KEY");
@@ -85,10 +85,10 @@ it("el proveedor macOS usa solo el comando inyectado, no sobrescribe y cierra er
   ).toBe(true);
   expect(() =>
     new MacOSHouseKeys(() => {
-      throw new Error("SINTETICO");
+      throw new Error("SYNTHETIC");
     }).key("a", true),
   ).toThrow("E-CUSTODY-KEY");
-  expect(() => new MacOSHouseKeys(() => ({ status: 36, stdout: Buffer.from("SINTETICO") })).key("a", true)).toThrow(
+  expect(() => new MacOSHouseKeys(() => ({ status: 36, stdout: Buffer.from("SYNTHETIC") })).key("a", true)).toThrow(
     "E-CUSTODY-KEY",
   );
 });

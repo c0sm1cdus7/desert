@@ -48,7 +48,7 @@ function fixture() {
     },
   };
 }
-it.each(["rule", "consultation"] as const)("revisa %s y deja el registro con autor fijo", async reason => {
+it.each(["rule", "consultation"] as const)("reviews %s and leaves the record with a fixed author", async reason => {
   const f = fixture();
   const request = f.request(reason);
   const asked = reason === "consultation" ? { ...request, question: "¿Sigo?" } : request;
@@ -61,7 +61,7 @@ it.each(["rule", "consultation"] as const)("revisa %s y deja el registro con aut
     data: { reason, result: "passed", rulesVersion: "v1" },
   });
 });
-it("el adaptador de ejecución puede pedir el veredicto al mismo puerto antes de un acto marcado anidado", async () => {
+it("the execution adapter can ask the same port for the verdict before a nested marked act", async () => {
   const f = fixture();
   const outside = vi.fn();
   f.ports.supervision.rules = {
@@ -82,7 +82,7 @@ it("el adaptador de ejecución puede pedir el veredicto al mismo puerto antes de
   expect((await nested()).outcome).toBe("rejected");
   expect(outside).not.toHaveBeenCalled();
 });
-it("no acepta otro actor ni otro proceso en la revisión", async () => {
+it("accepts no other actor or process in the review", async () => {
   const f = fixture();
   const review = createMindActReview(f.ports, turn, f.caller);
   await expect(
@@ -95,7 +95,7 @@ it("no acepta otro actor ni otro proceso en la revisión", async () => {
     }),
   ).rejects.toThrow("review.scope");
 });
-it("no escribe una revisión tardía luego del cierre", async () => {
+it("writes no late review after closing", async () => {
   const f = fixture();
   f.ports.supervision.supervisor = r => {
     f.close();

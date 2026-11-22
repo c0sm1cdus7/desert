@@ -1,4 +1,4 @@
-// Describe programas y carpetas otorgables sin limitar la cantidad de filas.
+// Describes grantable programs and folders without limiting the number of rows.
 import { systemTool } from "../../house/system-tools.ts";
 import { holderKit } from "../../house/kit-history.ts";
 import { covers, toolOf } from "../../house/kit-selection.ts";

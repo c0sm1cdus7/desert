@@ -1,4 +1,4 @@
-// Valida identificadores nuevos y rechaza asignaciones o recortes del id reservado identities antes de escribir.
+// Validates new identifiers and refuses grants or cuts of the reserved id identities before writing.
 import type { Emission, Foreign } from "../../journal/vocabulary.ts";
 import type { HouseEmission } from "../facts.ts";
 import { coreToolReasons } from "../system-tools.ts";

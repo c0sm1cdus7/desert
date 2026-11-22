@@ -1,4 +1,4 @@
-// Aprobar despierta a la mente frenada, incluida la espera de un journey, sin repetir acciones.
+// Approving wakes the held mind, including a journey's wait, without repeating actions.
 import { expect, it } from "vitest";
 import { shopRig } from "../../../tests/support/shop-rig.ts";
 import { shopRegistry, type Shop } from "../../../tests/support/shop.ts";
@@ -9,7 +9,7 @@ import { effect } from "../../house/facts.ts";
 import { settle } from "../../surface/bridge/ports/house-ports.ts";
 import { mindWakeDecision } from "./mind-wake-policy.ts";
 import { ruleWake } from "./rule-wake.ts";
-it("aprueba después de reiniciar y despierta solo al actor frenado sin repetir el efecto", async () => {
+it("approves after restarting and wakes only the held actor without repeating the effect", async () => {
   let sent = 0;
   const input = Type.Object({});
   const registry = [

@@ -47,7 +47,7 @@ export function distributionContractIssues(
   return distributionContracts(programs, certification).errors.flatMap(error => {
     const [first = "", ...rest] = error.split(":");
     const detail = rest.join(":");
-    // El núcleo ya informa estos motivos; no duplicamos sus caminos con el formato contractual.
+    // The core already reports these reasons; we do not duplicate their paths with the contract format.
     if (["desert-contract", "duplicate-id", "duplicate-fact", "foreign-fact"].includes(first)) return [];
     return [
       ["no-provider", "multiple-providers", "cycle"].includes(first)

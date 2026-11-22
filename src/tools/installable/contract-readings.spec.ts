@@ -44,7 +44,7 @@ const request = {
   notices: {},
   cases: [
     {
-      id: "sin-voucher",
+      id: "no-voucher",
       actor: "beto",
       prepare: {
         version: 2,
@@ -153,7 +153,7 @@ it("keeps the provider's raw state out of reach and refuses a key outside the re
 it("says whether whoever looks holds the provider's requested action in their kit", () => {
   look?.offered?.(as("ana"), "sales/reader", 0);
   expect(seen?.readings?.["fiscal-documents"]?.can("issue")).toBe(true);
-  expect(seen?.readings?.["fiscal-documents"]?.can("anular")).toBe(false);
+  expect(seen?.readings?.["fiscal-documents"]?.can("cancel")).toBe(false);
   look?.offered?.(as("beto"), "sales/reader", 0);
   expect(seen?.by).toBe("beto");
   expect(seen?.readings?.["fiscal-documents"]?.can("issue")).toBe(false);
@@ -163,7 +163,7 @@ it("keeps `can` from naming an object, since a consumer reads each object by its
   if (!half) throw new Error("missing half");
   const objects = { can: request.objects.voucher };
   const shadowed = { ...half, requests: { "fiscal-documents": { ...request, objects } } };
-  expect(structuralContractErrors([shadowed])).toContain("ventas/documentos-fiscales/objetos/can:nombre-reservado");
+  expect(structuralContractErrors([shadowed])).toContain("sales/fiscal-documents/objects/can:reserved-name");
 });
 it("asks a field whose when reads the state only as it calls for it, on the local state and target", async () => {
   const rig = distributionRig(program);

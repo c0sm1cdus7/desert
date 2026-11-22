@@ -23,11 +23,11 @@ const acts: import("../tools/tool-contract.ts").Tool<import("../../tests/support
     reason: "Sin firma",
   })),
 };
-it("la acción conserva la liberación y devuelve el borrado pendiente", async () => {
+it("the action keeps the release and returns the pending deletion", async () => {
   const rig = adapterHouse(acts);
   expect((await rig.act("rotate")).status).toBe("accepted");
   const fail = vi.spyOn(CustodyDatabase.prototype, "remove").mockImplementation(() => {
-    throw new Error("disco");
+    throw new Error("disk");
   });
   try {
     const result = await rig.act("release");
@@ -38,7 +38,7 @@ it("la acción conserva la liberación y devuelve el borrado pendiente", async (
     fail.mockRestore();
   }
 });
-it("la composición revisa y acepta la cabeza exacta con la casa cerrada y vuelve a abrir el registro", async () => {
+it("the composition reviews and accepts the exact head with the house closed and reopens the log", async () => {
   const rig = adapterHouse(acts);
   expect((await rig.act("rotate")).status).toBe("accepted");
   rig.close();
@@ -73,7 +73,7 @@ it("la composición revisa y acepta la cabeza exacta con la casa cerrada y vuelv
     rmSync(backup, { recursive: true, force: true });
   }
 });
-it("mantenimiento ve y reintenta pendientes, adopta y descarta legado, y olvida sin abrir herramientas", async () => {
+it("maintenance sees and retries pending ones, adopts and discards legacy, forgets without opening tools", async () => {
   const rig = adapterHouse(acts);
   await rig.act("rotate");
   rig.close();
@@ -88,12 +88,12 @@ it("mantenimiento ve y reintenta pendientes, adopta y descarta legado, y olvida 
   runtime.maintainHouseCustody(rig.path, rig.options, { operation: "forget", acknowledgement: review.forgetWarning });
   expect(() => rig.restart()).toThrow("E-CUSTODY-KEY");
 });
-it("ve el pendiente sin reintentarlo y lo reintenta cuando la composición lo pide", async () => {
+it("sees the pending one without retrying it and retries it when the composition asks", async () => {
   const start = vi.fn(() => () => {}),
     rig = adapterHouse(acts, { start });
   await rig.act("rotate");
   const fail = vi.spyOn(CustodyDatabase.prototype, "remove").mockImplementation(() => {
-    throw new Error("disco");
+    throw new Error("disk");
   });
   try {
     expect(await rig.act("release")).toMatchObject({ status: "accepted", cleanupPending: true });
@@ -113,13 +113,13 @@ it("ve el pendiente sin reintentarlo y lo reintenta cuando la composición lo pi
     fail.mockRestore();
   }
 });
-it("adopta y descarta material retenido con el registro del motor conectado", async () => {
+it("adopts and discards retained material with the engine's log connected", async () => {
   const rig = adapterHouse(acts);
   rig.close();
   const { SecretCustody } = await import("../keychain/custody/secret-custody.ts");
   const custody = new SecretCustody(join(rig.path, "fixture.sqlite"), rig.path, rig.options.secretKeys);
-  const kept = custody.keep(Buffer.from("legado")),
-    discarded = custody.keep(Buffer.from("descartable"));
+  const kept = custody.keep(Buffer.from("legacy")),
+    discarded = custody.keep(Buffer.from("discardable"));
   custody.close();
   const review = runtime.maintainHouseCustody(rig.path, rig.options, { operation: "status" });
   expect(review.retained).toEqual([kept, discarded]);
@@ -139,7 +139,7 @@ it("adopta y descarta material retenido con el registro del motor conectado", as
   expect((await rig.act("current")).status).toBe("accepted");
   expect(JSON.stringify(rig.facts())).toContain("credential-purged");
 });
-it("la acción que delega una liberación también recibe el pendiente en el resultado anidado", async () => {
+it("the action that delegates a release also gets the pending one in the nested result", async () => {
   let nested: unknown;
   const rig = adapterHouse({
     ...acts,
@@ -151,7 +151,7 @@ it("la acción que delega una liberación también recibe el pendiente en el res
   });
   await rig.act("rotate");
   const fail = vi.spyOn(CustodyDatabase.prototype, "remove").mockImplementation(() => {
-    throw new Error("disco");
+    throw new Error("disk");
   });
   try {
     expect(await rig.act("nested")).toMatchObject({ status: "accepted", cleanupPending: true });
@@ -160,13 +160,13 @@ it("la acción que delega una liberación también recibe el pendiente en el res
     fail.mockRestore();
   }
 });
-it("el mantenimiento muestra lo pendiente aunque falló antes de escribir su marca", async () => {
+it("maintenance shows what is pending even though it failed before writing its mark", async () => {
   const rig = adapterHouse(acts);
   await rig.act("rotate");
   const { AuthenticatedLedger } = await import("../keychain/custody/authenticated-ledger.ts");
   let spy = vi.spyOn(AuthenticatedLedger.prototype, "append");
   function append(this: InstanceType<typeof AuthenticatedLedger>, fact: Parameters<typeof this.append>[0]): void {
-    if (fact.kind === "credential-cleanup-pending") throw new Error("disco");
+    if (fact.kind === "credential-cleanup-pending") throw new Error("disk");
     spy.mockRestore();
     this.append(fact);
     spy = vi.spyOn(AuthenticatedLedger.prototype, "append").mockImplementation(append);

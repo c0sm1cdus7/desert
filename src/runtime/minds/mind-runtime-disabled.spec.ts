@@ -64,7 +64,7 @@ it.each([
   { minds: { assistants: false, programs: ["missing"] } },
   { minds: { assistants: false, programs: ["sales", "sales"] } },
   { identities: true, minds: { assistants: true, programs: [] } },
-])("rechaza interruptores inválidos antes de abrir la casa: %j", changed => {
+])("rejects invalid switches before opening the house: %j", changed => {
   const home = mkdtempSync(join(tmpdir(), "mind-invalid-"));
   try {
     expect(() =>

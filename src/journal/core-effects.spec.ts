@@ -10,12 +10,12 @@ const kitCases = [
   { holder: "nobody", tool: "sales", acts: [] },
   { holder: "beto", tool: "payments", acts: [] },
   { holder: "beto", tool: "missing", acts: null },
-  { holder: "beto", tool: "sales", acts: ["fantasma"] },
+  { holder: "beto", tool: "sales", acts: ["phantom"] },
   { holder: "beto", tool: "sales", acts: ["register", "register"] },
   { holder: "mind:missing", tool: "missing", acts: null },
   { holder: "mind:sales", tool: "payments", acts: null },
 ];
-it.each(kitCases)("R4/R5 rechaza el kit inválido %# entero", async data => {
+it.each(kitCases)("R4/R5 rejects invalid kit %# whole", async data => {
   const rig = effectRig(
     ({ by }) => ({
       status: "accepted",
@@ -37,7 +37,7 @@ it.each(kitCases)("R4/R5 rechaza el kit inválido %# entero", async data => {
       .some(e => e.kind === "kit-set" || e.kind === "named"),
   ).toBe(false);
 });
-it.each([[], ["register"], null])("el core da un kit válido %# y se conserva al reiniciar", async acts => {
+it.each([[], ["register"], null])("the core grants valid kit %# and it survives a restart", async acts => {
   const rig = effectRig(
     ({ by }) => ({
       status: "accepted",
@@ -61,7 +61,7 @@ it.each([[], ["register"], null])("el core da un kit válido %# y se conserva al
     expect(allowedAct(rig.state().house, by, "sales", "new-action")).toBe(acts === null);
   }
 });
-it("el core tampoco puede falsificar el autor", async () => {
+it("the core cannot forge the author either", async () => {
   const rig = effectRig(
     () => ({ status: "accepted", effects: [effect("scene", { general: "Forjada" }, "beto")] }),
     true,
@@ -70,7 +70,7 @@ it("el core tampoco puede falsificar el autor", async () => {
   expect(await settle(rig.act("ana", "forge", {}, "identities"))).toMatchObject({ status: "rejected", effects: [] });
   expect(rig.state().house.scenes.size).toBe(0);
 });
-it.each(["scene", "named"] as const)("el core deja decir el propio %s a quien actúa sobre sí", async kind => {
+it.each(["scene", "named"] as const)("the core lets whoever acts on themselves state their own %s", async kind => {
   const rig = effectRig(
     ({ by }) => ({
       status: "accepted",
@@ -89,22 +89,25 @@ it.each(["scene", "named"] as const)("el core deja decir el propio %s a quien ac
   if (kind === "scene") expect(rig.state().house.scenes.get("beto")?.data.general).toBe("Propia");
   else expect(rig.state().house.names.get("beto")).toBe("Nombre propio");
 });
-it.each(["named", "granted", "preferred"] as const)("actuar sobre sí no autoriza %s ajeno", async kind => {
-  const rig = effectRig(({ by }) => {
-    const effects = {
-      named: effect("named", { identity: "ana", name: "Ajeno" }, by),
-      granted: effect("granted", { identity: by, tools: ["payments"] }, by),
-      preferred: effect("preferred", { hide: "empty", on: true }, by),
-    };
-    return { status: "accepted", effects: [effects[kind]] };
-  }, true);
-  rigs.push(rig);
-  rig.attend("beto", "identities/beto");
-  const result = await settle(rig.act("beto", "scene", {}, "identities/beto"));
-  expect(result.status).toBe("rejected");
-  expect(result.reason).toContain(kind);
-});
-it("revalida la autoridad al terminar un acto del core", async () => {
+it.each(["named", "granted", "preferred"] as const)(
+  "acting on oneself does not authorize someone else's %s",
+  async kind => {
+    const rig = effectRig(({ by }) => {
+      const effects = {
+        named: effect("named", { identity: "ana", name: "Ajeno" }, by),
+        granted: effect("granted", { identity: by, tools: ["payments"] }, by),
+        preferred: effect("preferred", { hide: "empty", on: true }, by),
+      };
+      return { status: "accepted", effects: [effects[kind]] };
+    }, true);
+    rigs.push(rig);
+    rig.attend("beto", "identities/beto");
+    const result = await settle(rig.act("beto", "scene", {}, "identities/beto"));
+    expect(result.status).toBe("rejected");
+    expect(result.reason).toContain(kind);
+  },
+);
+it("revalidates authority when a core act finishes", async () => {
   let release = () => {};
   const wait = new Promise<void>(resolve => {
     release = resolve;

@@ -1,7 +1,7 @@
-// Revisor (cuarta, conducta). La regla 208 promete: cerrar durante un uso borra los búferes y el uso rechaza con
-// E-CUSTODY-DENIED. Con el paso 4, cada comprobación de la custodia mira antes la exclusión del registro. En una casa
-// de startHouse, ¿qué recibe un uso cuando la casa se cierra en medio? Datos inventados.
-// El uso conserva E-CUSTODY-DENIED; la acción que lo esperaba informa la interrupción de la casa.
+// Reviewer (fourth, behavior). Rule 208 promises: closing during a use clears the buffers and the use rejects with
+// E-CUSTODY-DENIED. With step 4, each custody check first looks at the registry's exclusion. In a startHouse house,
+// what does a use get when the house closes midway? Invented data.
+// The use keeps E-CUSTODY-DENIED; the action that awaited it reports the house's interruption.
 import { expect, it } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { adapterHouse } from "../../tests/support/adapter-house.ts";
@@ -10,7 +10,7 @@ import { toolAct } from "./act-definition.ts";
 import { Value } from "@sinclair/typebox/value";
 
 import type { AdapterDeclaration } from "./adapter-contract.ts";
-it("N8: cerrar la casa durante un uso: el uso rechaza con E-CUSTODY-DENIED y los búferes quedan en cero", async () => {
+it("N8: closing the house during a use: the use rejects with E-CUSTODY-DENIED and the buffers end zeroed", async () => {
   let release: () => void = () => {};
   let inside: () => void = () => {};
   const entered = new Promise<void>(r => (inside = r));
@@ -25,7 +25,7 @@ it("N8: cerrar la casa durante un uso: el uso rechaza con E-CUSTODY-DENIED y los
       inspect: { input: references, output: validity, permissions },
     },
     open: resolver => ({
-      import: () => ({ key: resolver.capture(Buffer.from("MATERIAL_INVENTADO")) }),
+      import: () => ({ key: resolver.capture(Buffer.from("INVENTED_MATERIAL")) }),
       inspect: async input => {
         if (!Value.Check(references, input)) throw new Error("fixture input");
         try {

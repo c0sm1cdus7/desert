@@ -15,7 +15,7 @@ for (const value of [
   "X".repeat(4000),
   "secret:00000000-0000-0000-0000-000000000000",
 ])
-  it(`el programa recibe referencia para material de ${value.length} caracteres`, () => {
+  it(`the program receives a reference for material of ${value.length} characters`, () => {
     let seen: unknown;
     const rig = fixture(secret, input => {
       seen = field(input, "value");
@@ -24,7 +24,7 @@ for (const value of [
     expect(rig.set({ value }).status).toBe("accepted");
     expect(ref(seen) && seen !== value).toBe(true);
   });
-it("centinela: normalizar y transformar nunca reconstruyen el material", () => {
+it("sentinel: normalizing and transforming never rebuild the material", () => {
   const observed: unknown[] = [];
   const raw = "CENTINELA_UNO\nCENTINELA_DOS";
   const act = toolAct<P, typeof secret>(
@@ -41,7 +41,7 @@ it("centinela: normalizar y transformar nunca reconstruyen el material", () => {
   expect(observed.every(ref)).toBe(true);
   expect(has(rig.facts(), raw.replaceAll("\n", "|"))).toBe(false);
 });
-it("las restricciones del material se comprueban antes del borrador", () => {
+it("the material's constraints are checked before the draft", () => {
   let calls = 0;
   const shape = Type.Object({ value: Type.String({ secret: true, minLength: 2, maxLength: 3, pattern: "^x+$" }) });
   const rig = fixture(shape, () => {
@@ -64,7 +64,7 @@ it("las restricciones del material se comprueban antes del borrador", () => {
   expect(drafted.every(ref)).toBe(true);
 });
 
-it("el ingreso secreto no cambia la normalización de una unión pública", () => {
+it("secret ingress does not change the normalization of a public union", () => {
   const input = Type.Union([Type.Object({ kind: Type.Literal("one") }), Type.Object({ kind: Type.Literal("two") })]);
   const act = toolAct<P, typeof input>(
     input,
@@ -76,7 +76,7 @@ it("el ingreso secreto no cambia la normalización de una unión pública", () =
   expect(rig.set("one").status).toBe("accepted");
 });
 
-it("solo una ejecución anidada puede reenviar la referencia ya capturada", async () => {
+it("only a nested execution can forward the already captured reference", async () => {
   const input = Type.Object({ value: Type.String({ secret: true, minLength: 2, maxLength: 3 }) });
   const seen: unknown[] = [];
   const outer = toolAct<P, typeof input>(input, async (value, context) => {
@@ -105,9 +105,9 @@ it("solo una ejecución anidada puede reenviar la referencia ya capturada", asyn
   expect(rig.set({ value: seen[0] }).status).toBe("rejected");
 });
 
-it("sin un ingreso protegido el motor frena antes de llamar al programa", () => {
+it("without a protected ingress the engine stops before calling the program", () => {
   const original = Object.getOwnPropertyDescriptor(ActionSecrets.prototype, "scope");
-  if (!original) throw new Error("Falta frontera");
+  if (!original) throw new Error("missing boundary");
   Object.defineProperty(ActionSecrets.prototype, "scope", { value: undefined, configurable: true });
   try {
     let called = false;
@@ -121,9 +121,9 @@ it("sin un ingreso protegido el motor frena antes de llamar al programa", () => 
       },
     );
     const rig = fixture(secret, undefined, act);
-    expect(rig.set({ value: "SIN_FRONTERA" }).status).toBe("rejected");
+    expect(rig.set({ value: "NO_BOUNDARY" }).status).toBe("rejected");
     expect(called).toBe(false);
-    expect(has(rig.facts(), "SIN_FRONTERA")).toBe(false);
+    expect(has(rig.facts(), "NO_BOUNDARY")).toBe(false);
   } finally {
     Object.defineProperty(ActionSecrets.prototype, "scope", original);
   }

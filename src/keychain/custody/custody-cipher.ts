@@ -1,4 +1,4 @@
-// Llave independiente por secreto y autenticación separada por casa; borra cada préstamo de llave.
+// An independent key per secret and separate authentication per house; erases every key loan.
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { createCipheriv, createDecipheriv, randomBytes, createHmac, timingSafeEqual } from "node:crypto";
 import { CustodyError, type HouseKeyProvider, type LedgerHead } from "./house-keys.ts";

@@ -1,4 +1,4 @@
-// Máscara de dinero en su moneda; conserva separadores, límites y centavos
+// Money mask in its own currency; keeps separators, limits and cents
 import { currencySymbol } from "../../fields/currency-symbol.ts";
 import { money as moneyField, shownMoney } from "../../fields/money-field.ts";
 import type { Format, Locale } from "./masks.ts";

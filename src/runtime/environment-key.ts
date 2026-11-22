@@ -1,4 +1,4 @@
-// Lee llaves del entorno explícito y entrega bytes borrables con errores que solo nombran la variable.
+// Reads keys from the explicit environment and hands out erasable bytes, with errors naming only the variable.
 import { cloudTexts } from "../texts/cloud.texts.ts";
 export type KeyEnvironment = Readonly<Record<string, string | undefined>>;
 export function environmentRootKey(environment: KeyEnvironment, name: string): Buffer {

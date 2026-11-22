@@ -7,7 +7,7 @@ import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house
 import { toolAct } from "../../tools/act-definition.ts";
 import { MemoryHouseKeys } from "./house-keys.ts";
 const empty = Type.Object({});
-it("el together del arranque confirma dos posiciones en un agregado y vuelve a abrir", async () => {
+it("the startup together commits two positions in one addition and opens again", async () => {
   let complete: (value: unknown) => void = () => {};
   const finished = new Promise(resolve => {
     complete = resolve;
@@ -42,7 +42,7 @@ it("el together del arranque confirma dos posiciones en un agregado y vuelve a a
   expect(() => rig.restart()).not.toThrow();
 });
 for (const status of [null, 44])
-  it(`la casa devuelve el resultado y avisa ancla pendiente con estado ${status}`, async () => {
+  it(`the house returns the result and reports a pending anchor with status ${status}`, async () => {
     const fake = fakeKeychain();
     let fail = false;
     const keys = new MacOSHouseKeys((file, args, input, options) => {
@@ -59,7 +59,7 @@ for (const status of [null, 44])
         bind: toolAct(empty, async (_, context) => {
           const refs = await imported(context);
           fail = true;
-          return { status: "accepted", text: "conectado", effects: [context.credentials.replace("signing", refs, 0)] };
+          return { status: "accepted", text: "connected", effects: [context.credentials.replace("signing", refs, 0)] };
         }),
         current: toolAct(empty, (_, context) => ({
           status: context.credentials.current("signing") ? "accepted" : "rejected",
@@ -68,7 +68,7 @@ for (const status of [null, 44])
       });
       const result = await rig.act("bind");
       expect(result).toMatchObject({ status: "accepted", anchorPending: true });
-      expect(JSON.stringify(result.effects)).toContain("conectado");
+      expect(JSON.stringify(result.effects)).toContain("connected");
       expect(JSON.stringify(rig.facts()).match(/credential-bound/gu)).toHaveLength(1);
       fail = false;
       rig.restart();

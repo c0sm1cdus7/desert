@@ -1,4 +1,4 @@
-// Define roles, alcances y límites del turno sin exponer cartas, precios ni cuentas al modelo.
+// Defines the turn's roles, scopes and limits without exposing cards, prices or accounts to the model.
 import type { MindActor } from "../../fields/mind-actor.ts";
 import type { Message } from "../../fields/messages.ts";
 import type { Language } from "../../fields/languages.ts";

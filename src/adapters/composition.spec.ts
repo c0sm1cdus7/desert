@@ -4,7 +4,7 @@ import { custodyRig, custodyScope as scope } from "../../tests/support/custody-r
 import { adapterProgram, call, imported, signer, synthetic } from "../../tests/support/declared-adapters.ts";
 import { declaredAdapters } from "./compose-adapters.ts";
 
-it("la composición presta métodos, mantiene revisión inicial y deja hechos sin valores", async () => {
+it("composition lends methods, keeps the initial revision and leaves facts without values", async () => {
   const r = custodyRig(),
     store = r.open();
   const compose = declaredAdapters(adapterProgram, ["vault"]);
@@ -32,7 +32,7 @@ it("la composición presta métodos, mantiene revisión inicial y deja hechos si
   expect(reopened.facts().map(f => f.kind)).toContain("credential-released");
   next.close();
 });
-it("cancelar o reiniciar recoge el ingreso de un adaptador", async () => {
+it("cancelling or restarting collects an adapter's ingress", async () => {
   const r = custodyRig(),
     store = r.open();
   const create = declaredAdapters(adapterProgram, ["vault"]);
@@ -49,7 +49,7 @@ it("cancelar o reiniciar recoge el ingreso de un adaptador", async () => {
   await expect(call(next, "inspect", refs)).rejects.toMatchObject({ code: "E-ADAPTER-FAILED" });
   next.close();
 });
-it("cada método limita herramientas y vínculos; otra identidad, objeto o casa no resuelve", async () => {
+it("each method limits tools and bindings; another identity, object or house does not resolve", async () => {
   const store = custodyRig().open(),
     create = declaredAdapters(adapterProgram, ["vault"]);
   const first = create(store, () => true)(scope),
@@ -74,7 +74,7 @@ it("cada método limita herramientas y vínculos; otra identidad, objeto o casa 
   stranger.close();
   first.close();
 });
-it("dos acciones conservan su revisión; revocar permisos y cerrar revoca métodos guardados", async () => {
+it("two actions keep their revision; revoking permissions and closing revokes stored methods", async () => {
   const store = custodyRig().open(),
     create = declaredAdapters(adapterProgram, ["vault"]);
   let allowed = true;
@@ -94,7 +94,7 @@ it("dos acciones conservan su revisión; revocar permisos y cerrar revoca métod
   allowed = true;
   await expect(call(first, "inspect", a)).rejects.toThrow("E-ADAPTER-DENIED");
 });
-it("declaraciones inválidas fallan al componer, antes de llamar a la fábrica", () => {
+it("invalid declarations fail at compose time, before calling the factory", () => {
   for (const method of [
     { input: Type.Unknown(), output: Type.Boolean(), permissions: { tools: ["vault"], slots: [], capture: false } },
     { input: Type.Object({}), output: Type.Unknown(), permissions: { tools: ["vault"], slots: [], capture: false } },
@@ -111,7 +111,7 @@ it("declaraciones inválidas fallan al componer, antes de llamar a la fábrica",
       ]),
     ).toThrow("E-ADAPTER-DECLARATION");
 });
-it("la composición fija esquemas y permisos aunque el programa cambie su declaración", async () => {
+it("composition pins schemas and permissions even if the program changes its declaration", async () => {
   const input = Type.Object({}),
     output = Type.Object({ valid: Type.Boolean() });
   const tools = ["vault"],

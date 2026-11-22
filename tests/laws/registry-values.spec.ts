@@ -25,13 +25,13 @@ function fixture(files: Readonly<Record<string, string>>) {
 
 for (const [name, main, tool] of [
   [
-    "retorno tipado",
+    "typed return",
     "import { a } from '../lib/t.ts'; type C = { registry: readonly object[] }; " +
-      "function armar(): C { return { registry: [a] }; } export const program = armar();",
+      "function build(): C { return { registry: [a] }; } export const program = build();",
     'export const a = { id: "a", acts: {} };',
   ],
   [
-    "propiedad de objeto",
+    "object property",
     "import { tools } from '../lib/t.ts'; export const program = { registry: [tools.sales] };",
     'export const tools = { sales: { id: "v", acts: {} } };',
   ],
@@ -42,8 +42,8 @@ for (const [name, main, tool] of [
   ],
   [
     "freeze",
-    "import { registro } from '../lib/t.ts'; export const program = { registry: registro };",
-    'const a = { id: "a", acts: {} }; export const registro = Object.freeze([a]);',
+    "import { frozen } from '../lib/t.ts'; export const program = { registry: frozen };",
+    'const a = { id: "a", acts: {} }; export const frozen = Object.freeze([a]);',
   ],
   [
     "as const",
@@ -51,10 +51,10 @@ for (const [name, main, tool] of [
     'export const a = { id: "a", acts: {} };',
   ],
 ] as const)
-  it(`admite registro rastreable: ${name}`, () => {
+  it(`admits a traceable registry: ${name}`, () => {
     expect(fixture({ "src/main.ts": main, "lib/t.ts": tool })).toEqual([]);
   });
-it("rechaza freeze de un Object local", () => {
+it("rejects freeze of a local Object", () => {
   const found = fixture({
     "src/main.ts":
       `import { a } from '../lib/t.ts'; const Object = { freeze: (x: unknown) => x }; ` +
@@ -63,7 +63,7 @@ it("rechaza freeze de un Object local", () => {
   });
   expect(found.some(message => message.includes("cannot trace registry"))).toBe(true);
 });
-it("admite JSON importado como dato", () => {
+it("admits imported JSON as data", () => {
   expect(
     fixture({
       "src/main.ts": `import { a } from '../lib/t.ts'; export const program = { registry: [a] };`,
@@ -72,7 +72,7 @@ it("admite JSON importado como dato", () => {
     }),
   ).toEqual([]);
 });
-it("rechaza registro calculado", () => {
+it("rejects a computed registry", () => {
   expect(
     fixture({
       "src/main.ts": `import { all } from '../lib/t.ts'; export const program = { registry: all.filter(Boolean) };`,
@@ -80,7 +80,7 @@ it("rechaza registro calculado", () => {
     }).some(message => message.includes("cannot trace registry")),
   ).toBe(true);
 });
-it("rechaza fábrica privilegiada", () => {
+it("rejects a privileged factory", () => {
   expect(
     fixture({
       "src/main.ts": `import { make } from './adapters/t.ts'; export const program = { registry: [make()] };`,
@@ -88,7 +88,7 @@ it("rechaza fábrica privilegiada", () => {
     }).some(message => message.includes("tool factory belongs")),
   ).toBe(true);
 });
-it("rechaza fábrica sin retorno", () => {
+it("rejects a factory without a return", () => {
   expect(
     fixture({
       "src/main.ts": `import { make } from '../lib/t.ts'; export const program = { registry: [make()] };`,
@@ -96,7 +96,7 @@ it("rechaza fábrica sin retorno", () => {
     }).some(message => message.includes("cannot trace tool factory return")),
   ).toBe(true);
 });
-it("rechaza import.meta en herramientas", () => {
+it("rejects import.meta in tools", () => {
   expect(
     fixture({
       "src/main.ts": `import { a } from '../lib/t.ts'; export const program = { registry: [a] };`,
@@ -104,7 +104,7 @@ it("rechaza import.meta en herramientas", () => {
     }).some(message => message.includes("import.meta")),
   ).toBe(true);
 });
-it("rechaza import de espacio de nombres público", () => {
+it("rejects a public namespace import", () => {
   expect(
     fixture({
       "src/main.ts": `import { a } from '../lib/t.ts'; export const program = { registry: [a] };`,
@@ -112,7 +112,7 @@ it("rechaza import de espacio de nombres público", () => {
     }).some(message => message.includes("promises.ts")),
   ).toBe(true);
 });
-it("rechaza una herramienta modificada directamente en la composición", () => {
+it("rejects a tool modified directly in the composition", () => {
   const hidden = 'Object.fromEntries([["id", "h"], ["acts", {}]])';
   const found = fixture({
     "src/main.ts":
@@ -122,22 +122,22 @@ it("rechaza una herramienta modificada directamente en la composición", () => {
   });
   expect(found.some(message => message.includes("separate tool declarations"))).toBe(true);
 });
-it("señala la composición del programa cuando su registro es calculado", () => {
+it("points at the program's composition when its registry is computed", () => {
   const found = fixture({
     "src/main.ts":
       `import { all } from '../lib/t.ts'; type C = { registry: object[] }; ` +
-      `function armar(): C { return { registry: Object.entries(all).map(([, tool]) => tool) }; } ` +
-      `export const program = armar();`,
+      `function build(): C { return { registry: Object.entries(all).map(([, tool]) => tool) }; } ` +
+      `export const program = build();`,
     "lib/t.ts": 'export const all = { a: { id: "a", acts: {} } };',
   });
   expect(found.some(message => message.includes("src/main.ts: cannot trace registry"))).toBe(true);
 });
-it("revisa todos los retornos de la composición", () => {
+it("reviews every return of the composition", () => {
   const found = fixture({
     "src/main.ts":
-      `import { a } from '../lib/t.ts'; function armar(x: boolean) { ` +
+      `import { a } from '../lib/t.ts'; function build(x: boolean) { ` +
       `if (x) return { registry: [a] }; return { registry: [ { id: 'local' } ] }; } ` +
-      `export const program = armar(true);`,
+      `export const program = build(true);`,
     "lib/t.ts": 'export const a = { id: "a", acts: {} };',
   });
   expect(found.some(message => message.includes("tool belongs to composition"))).toBe(true);

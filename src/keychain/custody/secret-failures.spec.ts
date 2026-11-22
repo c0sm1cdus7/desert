@@ -2,11 +2,11 @@ import { expect, it, vi } from "vitest";
 import { inspect } from "node:util";
 import { fixture, secret, field, has } from "../../../tests/support/secret-rig.ts";
 for (const [label, value] of [
-  ["corto", "demo-pass"],
-  ["vocabulario", "sale-registered"],
+  ["short", "demo-pass"],
+  ["vocabulary", "sale-registered"],
   ["one", "Ω"],
 ] as const) {
-  it(`el rechazo asíncrono y su causa reciben solo referencias: ${label}`, async () => {
+  it(`the async rejection and its cause receive only references: ${label}`, async () => {
     const rig = fixture(secret, input =>
       Promise.reject(
         new Error(String(field(input, "value")), {
@@ -23,7 +23,7 @@ for (const [label, value] of [
   });
 }
 for (const kind of ["act", "act-done", "act-result", "lost"] as const) {
-  it(`limpia la falla de escritura y el canal de emergencia: ${kind}`, () => {
+  it(`clears the write failure and the emergency channel: ${kind}`, () => {
     const value = "uno\ndos";
     const rig = fixture(secret, input => ({ status: "accepted", text: String(field(input, "value")) }));
     const error = vi.spyOn(console, "error").mockImplementation(() => {});

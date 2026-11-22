@@ -1,4 +1,4 @@
-// Explica cómo usar Identidades mediante un mensaje reservado a la mente que trabaja con ella.
+// Explains how to use Identities through a message reserved for the mind that works with it.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 export const identitySkill = defineMessage({

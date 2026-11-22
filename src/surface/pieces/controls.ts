@@ -5,7 +5,7 @@ import type { ActionPiece } from "./pieces.ts";
 
 /** A hint with no name in the catalog does not compile. */
 export const controlNames: Readonly<Record<HintKey, string>> = said.controls;
-/** Menu, only where the screen offers it, and then always Salir. */
+/** Menu, only where the screen offers it, and then always «Salir». */
 export const fixedControls = (menu: boolean): readonly ActionPiece[] => [
   ...(menu
     ? [

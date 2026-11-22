@@ -1,4 +1,4 @@
-// Resuelve la autoría visible desde la casa y los programas sin cambiar los identificadores guardados.
+// Resolves visible authorship from the house and the programs without changing the stored identifiers.
 import { actorDisplayName } from "../../../house/actor-display.ts";
 import { mindTool } from "../../../house/kit.ts";
 import { identityTexts } from "../../../texts/identities.texts.ts";

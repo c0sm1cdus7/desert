@@ -20,7 +20,7 @@ function composed(adapter: AdapterDeclaration) {
   return { store, lease: create(store, () => true)(scope) };
 }
 for (const mode of ["factory", "sync", "async", "thenable"] as const)
-  it(`una falla ${mode} sale como código cerrado sin mensaje, causa ni traza originales`, async () => {
+  it(`a ${mode} failure comes out as a closed code with no original message, cause or trace`, async () => {
     const fail = () => {
       throw new Error(synthetic.replaceAll("\n", "|"), { cause: new Error(synthetic) });
     };
@@ -62,12 +62,12 @@ for (const result of [
     },
   },
 ])
-  it("rechaza salida inválida, campos extra, capacidades y getters sin transportarlos", async () => {
+  it("refuses invalid output, extra fields, capabilities and getters without carrying them", async () => {
     const { lease } = composed({ ...signer, open: () => ({ inspect: () => result }) });
     await expect(call(lease, "inspect", { key: "secret:invented" })).rejects.toThrow("E-ADAPTER-OUTPUT");
     lease.close();
   });
-it("valida entrada antes de abrir y no ofrece métodos que la fábrica no declaró", async () => {
+it("validates input before opening and offers no methods the factory did not declare", async () => {
   let opens = 0;
   const { lease } = composed({
     ...signer,
@@ -85,7 +85,7 @@ it("valida entrada antes de abrir y no ofrece métodos que la fábrica no declar
   expect(lease.ports.signer).not.toHaveProperty("hidden");
   lease.close();
 });
-it("la fábrica no puede usar un resolvedor guardado después de terminar su operación", async () => {
+it("the factory cannot use a kept resolver after its operation ends", async () => {
   let resolver: SecretResolver | undefined;
   const { lease } = composed({
     ...signer,
@@ -99,7 +99,7 @@ it("la fábrica no puede usar un resolvedor guardado después de terminar su ope
   expect(() => resolver?.use(refs, () => true)).toThrow("E-ADAPTER-DENIED");
   lease.close();
 });
-it("cada operación tiene su permiso de ingreso, aunque otra del adaptador pueda ingresar", async () => {
+it("each operation has its own entry permission, even if another of the adapter may enter", async () => {
   const { lease, store } = composed({
     ...signer,
     methods: {
@@ -111,7 +111,7 @@ it("cada operación tiene su permiso de ingreso, aunque otra del adaptador pueda
   expect(store.ids()).toEqual([]);
   lease.close();
 });
-it("un uso en curso conserva la versión retirada y las llamadas siguientes ya no la reciben", async () => {
+it("a use in progress keeps the retired version and the following calls no longer receive it", async () => {
   let release = () => {};
   const waiting = new Promise<void>(resolve => {
     release = resolve;

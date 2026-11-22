@@ -1,4 +1,4 @@
-// Reconstruye cortes exactos desde hechos confirmados sin sustituirlos por el estado actual.
+// Rebuilds exact cuts from confirmed facts without replacing them with the current state.
 import { toolsStep } from "../../house/state.ts";
 import { readonlyState } from "../../journal/readonly-state.ts";
 import type { Event } from "../../journal/vocabulary.ts";

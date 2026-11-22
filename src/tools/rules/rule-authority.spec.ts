@@ -1,4 +1,4 @@
-// Las reglas sólo cambian por las acciones del core y se revisan antes de publicar hechos demorados.
+// Rules change only through core actions and are checked again before publishing delayed facts.
 import { expect, it } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { shopRig } from "../../../tests/support/shop-rig.ts";
@@ -20,7 +20,7 @@ const forged: readonly HouseEmission[] = [
   effect("rule-retired", { id: "limit", version: 1 }, "ana"),
   effect("rule-evaluated", { action: definition.action, results: [] }, "ana"),
 ];
-it.each(forged)("un programa no puede falsificar $kind, aunque actúe el admin", async fact => {
+it.each(forged)("a program cannot forge $kind, even if the admin acts", async fact => {
   const rig = shopRig({
     registry: [
       ...shopRegistry,
@@ -49,7 +49,7 @@ it.each(forged)("un programa no puede falsificar $kind, aunque actúe el admin",
     rig.close();
   }
 });
-it("una regla guardada durante una espera impide publicar los hechos del acto", async () => {
+it("a rule saved during a wait keeps the act's facts from being published", async () => {
   let release = () => {};
   const registry = [
     ...shopRegistry,

@@ -4,7 +4,7 @@ const declaration = [
   { identity: "ana", door: "terminal", variable: "ANA_TERMINAL" },
   { identity: "ana", door: "agent", variable: "ANA_AGENT" },
 ] as const;
-it("arma el mapa existente con identidad y puerta de la declaración y ambas codificaciones", () => {
+it("builds the existing map with the declaration's identity and door, in both encodings", () => {
   const terminal = Buffer.alloc(32, 71).toString("hex"),
     agent = Buffer.alloc(32, 72).toString("base64url");
   const map = environmentDoorKeys({ ANA_TERMINAL: terminal, ANA_AGENT: agent }, declaration);
@@ -13,12 +13,12 @@ it("arma el mapa existente con identidad y puerta de la declaración y ambas cod
   expect(map.get(agent)).toEqual({ identity: "ana", door: "agent" });
 });
 it.each([undefined, "", "a".repeat(42), "!".repeat(64), "a".repeat(41) + "B", "a".repeat(43) + "="])(
-  "rechaza ausentes, cortas y codificaciones mal formadas nombrando la variable (%#)",
+  "rejects missing, short and malformed encodings, naming the variable (%#)",
   value => {
     expect(() => environmentDoorKeys({ ANA_TERMINAL: value }, declaration)).toThrow("ANA_TERMINAL");
   },
 );
-it.each(["same", "case", "encoding"])("rechaza duplicados por bytes sin mostrar texto ni bytes (%s)", mode => {
+it.each(["same", "case", "encoding"])("rejects byte duplicates without showing text or bytes (%s)", mode => {
   const planted = Buffer.alloc(32, 171),
     first = planted.toString("hex");
   const second = mode === "encoding" ? planted.toString("base64url") : first.toUpperCase();
@@ -36,7 +36,7 @@ it.each(["same", "case", "encoding"])("rechaza duplicados por bytes sin mostrar 
   expect(Buffer.from(message).includes(planted)).toBe(false);
   planted.fill(0);
 });
-it.each([32, 33, 64])("acepta %i bytes y borra cada copia decodificada", length => {
+it.each([32, 33, 64])("accepts %i bytes and wipes every decoded copy", length => {
   const terminal = Buffer.alloc(length, 171).toString("hex").toUpperCase(),
     agent = Buffer.alloc(length, 0).toString("base64url");
   const copies = vi.spyOn(Buffer, "from");
@@ -51,7 +51,7 @@ it.each([32, 33, 64])("acepta %i bytes y borra cada copia decodificada", length 
     copies.mockRestore();
   }
 });
-it.each(["hex", "base64url"] as const)("rechaza 31 bytes en %s sin exponerlos", encoding => {
+it.each(["hex", "base64url"] as const)("rejects 31 bytes in %s without exposing them", encoding => {
   const value = Buffer.alloc(31, 71).toString(encoding);
   let error: unknown;
   try {

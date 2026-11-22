@@ -13,7 +13,7 @@ const fact = (id: string): CredentialFact => ({
   refs: {},
   cause: "fixture",
 });
-it("una pasada pide una sola llave, la borra aun con una fila falsa y no conserva llaves entre lecturas", () => {
+it("one pass asks for a single key, erases it even with a forged row and keeps no keys between reads", () => {
   const rig = custodyRig(),
     cipher = new CustodyCipher("house", rig.keys),
     rows: CredentialFact[] = [];
@@ -37,7 +37,7 @@ it("una pasada pide una sola llave, la borra aun con una fila falsa y no conserv
     expect(buffers.every(buffer => buffer.every(byte => byte === 0))).toBe(true);
   }
 });
-it("la cola se verifica desde el punto confirmado; una cola rota no adelanta ese punto", () => {
+it("the tail is verified from the confirmed point; a broken tail does not advance that point", () => {
   const rig = custodyRig(),
     cipher = new CustodyCipher("house", rig.keys),
     rows: CredentialFact[] = [];
@@ -66,7 +66,7 @@ it("la cola se verifica desde el punto confirmado; una cola rota no adelanta ese
   ledger.append(fact("two"));
   expect(ledger.facts()).toHaveLength(2);
 });
-it("cada apertura vuelve a verificar toda la historia y la lectura abierta sigue comparando el ancla", () => {
+it("every opening verifies the whole history again and the open read keeps comparing the anchor", () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);

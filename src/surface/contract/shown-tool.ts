@@ -49,7 +49,7 @@ export interface Said {
 export interface Conversation {
   said(): readonly Said[];
   live(): readonly Span[] | null;
-  /** Resolves with the refusal, if any: what is typed leaves the Entrada only once the house accepted it. */
+  /** Resolves with the refusal, if any: what is typed leaves the Entry only once the house accepted it. */
   send(text: string, quote?: string, answers?: string): Promise<string | undefined>;
   pending?(): { readonly id: string; readonly options: readonly Option[] } | null;
   /** Asks for what came before the oldest message shown; it arrives on its own. */
@@ -107,7 +107,7 @@ export interface Tool {
   /** Where it is opened from: its section of the Menu. */
   readonly place: { readonly key: string; readonly section: "tools" | "system" };
   summary(): string;
-  /** What the Barra says on one of its things. */
+  /** What the Bar says on one of its things. */
   titleOf?(target: string): string;
   /** Whether a destination is its own: one of its things, or a place its view answers. A row of any tool that
    * names it leads there. Nothing when it does not say: it is then taken as a place of whoever names it. */

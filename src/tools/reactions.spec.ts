@@ -1,4 +1,4 @@
-// Las reacciones conservan autoría propia, permiso vigente y una sola confirmación por aviso.
+// Reactions keep their own authorship, current permission and a single confirmation per notice.
 import { afterEach, expect, it, vi } from "vitest";
 import { effect } from "../house/facts.ts";
 import { toolAct } from "./act-definition.ts";
@@ -36,7 +36,7 @@ const kit = (rig: ReturnType<typeof open>, acts: string[]) =>
 const notice = (rig: ReturnType<typeof open>, by = "ana", payment = "p1") =>
   rig.bus.emit(shop.fact("payment-received", { payment, amount: 10, sale: "s1" }, by));
 const marks = (rig: ReturnType<typeof open>) => rig.facts().filter(e => e.kind === "sale-corrected");
-it("H3: revocar a Ana no presta ni quita el permiso de la mente; causa y autor los fija el core", async () => {
+it("H3: revoking Ana neither lends nor removes the mind's permission; the core fixes cause and author", async () => {
   const rig = open();
   kit(rig, ["mark"]);
   rig.attend("ana", "payments");
@@ -53,7 +53,7 @@ it("H3: revocar a Ana no presta ni quita el permiso de la mente; causa y autor l
   expect(act).toMatchObject({ by: "mind:sales", cause: [source.id] });
   expect(rig.tools().pendingReactions()).toEqual([]);
 });
-it("H3: revocar la mente deja motivo visible y pendiente recuperable al reabrir", async () => {
+it("H3: revoking the mind leaves a visible reason and a pending one recoverable on reopening", async () => {
   const rig = open();
   kit(rig, ["mark"]);
   const source = notice(rig);
@@ -70,7 +70,7 @@ it("H3: revocar la mente deja motivo visible y pendiente recuperable al reabrir"
   await rig.tools().recoverReactions();
   expect(marks(rig)).toHaveLength(1);
 });
-it("H3: reentrega, recuperación concurrente y reapertura dejan a lo sumo una marca", async () => {
+it("H3: redelivery, concurrent recovery and reopening leave at most one mark", async () => {
   const rig = open();
   kit(rig, ["mark"]);
   notice(rig);
@@ -81,7 +81,7 @@ it("H3: reentrega, recuperación concurrente y reapertura dejan a lo sumo una ma
   await rig.tools().recoverReactions();
   expect(marks(rig)).toHaveLength(1);
 });
-it("recupera el aviso confirmado aunque se cierre antes de ejecutar la reacción", async () => {
+it("recovers the confirmed notice even if it closes before running the reaction", async () => {
   const rig = open();
   kit(rig, ["mark"]);
   notice(rig);
@@ -89,7 +89,7 @@ it("recupera el aviso confirmado aunque se cierre antes de ejecutar la reacción
   await rig.tools().recoverReactions();
   expect(marks(rig)).toHaveLength(1);
 });
-it("un aviso de otra mente sin kit no concede permiso a quien reacciona", async () => {
+it("a notice from another mind without a kit grants no permission to whoever reacts", async () => {
   const rig = open();
   notice(rig, "mind:payments");
   await rig.tools().recoverReactions();
@@ -101,7 +101,7 @@ it("un aviso de otra mente sin kit no concede permiso a quien reacciona", async 
   expect(marks(rig)).toHaveLength(1);
   expect(marks(rig)[0]?.by).toBe("mind:sales");
 });
-it("marca y finalización se revierten juntas si falla la última escritura", async () => {
+it("mark and finish revert together if the last write fails", async () => {
   const rig = open();
   kit(rig, ["mark"]);
   notice(rig);
@@ -123,15 +123,15 @@ it("un aviso revertido no ejecuta escrituras diferidas", async () => {
   expect(() =>
     rig.bus.together(() => {
       notice(rig);
-      throw new Error("revertir");
+      throw new Error("revert");
     }),
-  ).toThrow("revertir");
+  ).toThrow("revert");
   await rig.tools().recoverReactions();
   rig.restart();
   await rig.tools().recoverReactions();
   expect(marks(rig)).toEqual([]);
 });
-it("una revocación durante la espera corta la reacción y conserva el pendiente", async () => {
+it("a revocation during the wait cuts the reaction and keeps the pending one", async () => {
   let release = () => {};
   const action: ToolAct<Shop> = {
     ...mark,

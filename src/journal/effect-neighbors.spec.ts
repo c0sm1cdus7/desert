@@ -8,7 +8,7 @@ import { shopRig } from "../../tests/support/shop-rig.ts";
 import { shop, salesTool, paymentsTool } from "../../tests/support/shop.ts";
 const rigs: { close(): void }[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
-it("una marca core del programa no habilita hechos de la casa", async () => {
+it("a program's core mark does not enable house facts", async () => {
   const tool = Object.assign({}, salesTool, {
     core: true,
     acts: {
@@ -23,7 +23,7 @@ it("una marca core del programa no habilita hechos de la casa", async () => {
   rig.attend("ana", "sales");
   expect(await settle(rig.act("ana", "forge", {}, "sales"))).toMatchObject({ status: "rejected", effects: [] });
 });
-it("un hecho sin dueño declarado no se escribe", async () => {
+it("a fact with no declared owner is not written", async () => {
   const rig = shopRig({ registry: [{ ...salesTool, facts: [] }, paymentsTool] });
   rigs.push(rig);
   rig.attend("ana", "sales");
@@ -32,7 +32,7 @@ it("un hecho sin dueño declarado no se escribe", async () => {
     effects: [],
   });
 });
-it("un lote del core se valida en orden y entero: alta y kit sí, baja y kit no", async () => {
+it("a core batch is validated in order and whole: grant and kit yes, removal and kit no", async () => {
   for (const remove of [false, true]) {
     const rig = effectRig(
       ({ by }) => ({
@@ -57,7 +57,7 @@ it("un lote del core se valida en orden y entero: alta y kit sí, baja y kit no"
       ]);
   }
 });
-it("pasar la administración dentro del lote no habilita seguir dando", async () => {
+it("handing over administration inside the batch does not allow granting further", async () => {
   const rig = effectRig(
     ({ by }) => ({
       status: "accepted",
@@ -69,7 +69,7 @@ it("pasar la administración dentro del lote no habilita seguir dando", async ()
   expect(await settle(rig.act("ana", "forge", {}, "identities"))).toMatchObject({ status: "rejected", effects: [] });
   expect(rig.state().house.admin).toBe("ana");
 });
-it("el core no falsifica el autor de una entrada", async () => {
+it("the core does not forge an entry's author", async () => {
   const rig = effectRig(
     ({ by }) => ({
       status: "accepted",
@@ -91,7 +91,7 @@ it("el core no falsifica el autor de una entrada", async () => {
   rigs.push(rig);
   expect(await settle(rig.act("ana", "forge", {}, "identities"))).toMatchObject({ status: "rejected", effects: [] });
 });
-it("la autoridad no mezcla dos actos pendientes de la misma herramienta", async () => {
+it("authority does not mix up two pending acts of the same tool", async () => {
   const releases: (() => void)[] = [];
   const rig = effectRig(async ({ by }) => {
     await new Promise<void>(resolve => releases.push(resolve));
@@ -105,10 +105,10 @@ it("la autoridad no mezcla dos actos pendientes de la misma herramienta", async 
   expect((await settle(first)).status).toBe("accepted");
   expect([...rig.state().tools.sales.values()].map(sale => sale.by).sort()).toEqual(["beto", "mind:sales"]);
 });
-it("el rechazo nuevo no reescribe hechos históricos", () => {
+it("the new rejection does not rewrite historical facts", () => {
   const rig = effectRig(() => ({ status: "accepted" }));
   rigs.push(rig);
-  rig.bus.emit(effect("kit-set", { holder: "beto", tool: "sales", acts: ["fantasma"] }, "ana"));
+  rig.bus.emit(effect("kit-set", { holder: "beto", tool: "sales", acts: ["phantom"] }, "ana"));
   rig.bus.emit(shop.fact("payment-received", { payment: "old", amount: 100 }, "mind:sales"));
   const before = rig.facts();
   rig.restart();
@@ -117,16 +117,16 @@ it("el rechazo nuevo no reescribe hechos históricos", () => {
     kind: "action",
     program: "sales",
     tool: "sales",
-    action: "fantasma",
+    action: "phantom",
   });
   expect(rig.state().tools.payments.received).toBe(100);
 });
-it("una mente de core inexistente no recibe la excepción de identidad", async () => {
+it("a nonexistent core mind does not get the identity exception", async () => {
   const rig = effectRig(() => ({ status: "accepted" }), true);
   rigs.push(rig);
   expect((await settle(rig.act("mind:identities", "forge", {}, "identities"))).status).toBe("rejected");
 });
-it("el identificador reservado necesita que la composición pida el core", async () => {
+it("the reserved id needs the composition to request the core", async () => {
   const rig = shopRig({
     registry: [
       salesTool,

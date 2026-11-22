@@ -54,7 +54,7 @@ describe("holding preserves the field's own reasons", () => {
     const date = holding(day("Día"), () => undefined);
     const fields = [Type.Optional(date), when(date, () => true)];
     for (const field of fields) expect(wrongIn(field, "2026-04-31", 17)).toBe("día inexistente");
-    const schema = object({ dates: Type.Array(Type.Union([date, Type.Literal("nada")])) });
+    const schema = object({ dates: Type.Array(Type.Union([date, Type.Literal("none")])) });
     expect(wrongIn(schema, { dates: ["2024-02-29", "2026-04-31"] }, 17)).toBe("día inexistente");
     expect(wrongIn(object({ date: Type.Optional(date) }), {}, 17)).toBeUndefined();
   });

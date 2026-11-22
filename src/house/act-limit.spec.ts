@@ -59,12 +59,12 @@ it("the same act at the exact bound enters by the terminal; a frame one byte pas
   ana.send({ type: "act", id: "look", act: "attend", input: { target: "desk" }, through: 0 });
   expect((await ana.result("look"))?.status).toBe("accepted");
   const border = sized(actLimits.inputBytes);
-  const message = { type: "act", id: "borde", ...border, through: 0 } as const;
+  const message = { type: "act", id: "edge", ...border, through: 0 } as const;
   const frame = clientFrame(message);
   expect(frame.length - 5).toBeLessThanOrEqual(socketLimits.json);
   expect(frame.length - 5 - actLimits.inputBytes).toBeLessThan(64 * 1024);
   ana.send(message);
-  expect(await ana.result("borde")).toMatchObject({ status: "accepted" });
+  expect(await ana.result("edge")).toMatchObject({ status: "accepted" });
   // One byte past the frame limit: the terminal cannot even build it, and the house cuts a peer that sends it.
   expect(() => clientFrame({ ...message, input: { text: "x".repeat(socketLimits.json) } })).toThrow(socketTexts.frame);
   const other = await client();
@@ -74,8 +74,8 @@ it("the same act at the exact bound enters by the terminal; a frame one byte pas
   other.socket.write(header);
   expect(await other.until(other.closed)).toBe(true);
   expect(rig.house().tools.state().through).toBe(before);
-  ana.send({ type: "act", id: "sigue", act: "attend", input: { target: "desk" }, through: 0 });
-  expect((await ana.result("sigue"))?.status).toBe("accepted");
+  ana.send({ type: "act", id: "still", act: "attend", input: { target: "desk" }, through: 0 });
+  expect((await ana.result("still"))?.status).toBe("accepted");
 });
 it("today the terminal still carries an act between the act bound and the frame limit (contracts step)", async () => {
   const { mind, client } = opened();
@@ -84,6 +84,6 @@ it("today the terminal still carries an act between the act bound and the frame 
   await ana.result("look");
   const over = sized(actLimits.inputBytes + 1);
   expect(await mind.startup().act(over)).toStrictEqual({ status: "rejected", reason: toolTexts.invalid });
-  ana.send({ type: "act", id: "pasado", ...over, through: 0 });
-  expect(await ana.result("pasado")).toMatchObject({ status: "accepted" });
+  ana.send({ type: "act", id: "over", ...over, through: 0 });
+  expect(await ana.result("over")).toMatchObject({ status: "accepted" });
 });

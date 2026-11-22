@@ -28,13 +28,13 @@ const answer = {
   consultation: null,
   acts: [{ act: "write", target: "notes", input: { text: "Mate mañana", detail: { number: 1 } } }],
 };
-it("reserva doce intentos físicos compartidos y una corrección y consulta", () => {
+it("reserves twelve shared physical attempts and one correction and consultation", () => {
   expect(turnLimits).toEqual({ calls: 12, corrections: 1, consultations: 1 });
 });
 
 it.each([
   { ...answer, by: "ana" },
-  { ...answer, process: "ajeno" },
+  { ...answer, process: "foreign" },
   { ...answer, scene: "\u200b" },
   { ...answer, scene: "x".repeat(4001) },
   { ...answer, consultation: { question: "" } },
@@ -42,10 +42,10 @@ it.each([
   { ...answer, acts: [{ ...answer.acts[0], by: "ana" }] },
   { ...answer, acts: [{ act: "write", target: "notes", input: { text: "", detail: { number: 0 } } }] },
   { ...answer, acts: Array.from({ length: 33 }, () => answer.acts[0]) },
-])("rechaza propuesta inválida sin recuperar otro autor ni proceso %#", value => {
+])("refuses an invalid proposal without recovering another author or process %#", value => {
   expect(validateAnswer(value, context).ok).toBe(false);
 });
-it("rechaza permiso retirado, consulta repetida, cierre, trabajo en consciencia y kit ampliado", () => {
+it("refuses retired permission, repeated consultation, closure, work in consciousness and a widened kit", () => {
   expect(validateAnswer(answer, { ...context, allowed: () => false }).ok).toBe(false);
   expect(validateAnswer({ ...answer, consultation: { question: "¿Sigo?" } }, { ...context, consulted: true }).ok).toBe(
     false,
@@ -59,7 +59,7 @@ it("rechaza permiso retirado, consulta repetida, cierre, trabajo en consciencia 
       .ok,
   ).toBe(false);
 });
-it("acepta comunicación y apertura solo en consciencia y controles solo en journey", () => {
+it("accepts communication and opening only in consciousness and controls only in a journey", () => {
   const input = object({});
   for (const scope of ["communication", "open", "control"] as const) {
     const menu: MindMenu = [{ tool: "notes", act: "write", target: "notes", input, scope }];
@@ -70,12 +70,12 @@ it("acepta comunicación y apertura solo en consciencia y controles solo en jour
     expect(validateAnswer(value, { ...context, menu }).ok).toBe(scope === "control");
   }
 });
-it("un menú vacío permite silencio pero nunca inventar una acción", () => {
+it("an empty menu allows silence but never inventing an action", () => {
   expect(Value.Check(answerSchema([]), { ...answer, acts: [] })).toBe(true);
   expect(validateAnswer(answer, { ...context, menu: [] }).ok).toBe(false);
 });
 
-it("cierra también los objetos dentro de entradas de tuplas", () => {
+it("also closes the objects inside tuple entries", () => {
   const input = Type.Object({ values: Type.Tuple([Type.Object({ text: Type.String() })]) });
   const schema = answerSchema([{ tool: "notes", act: "write", target: "notes", scope: "work", input }]);
   const proposal = (value: unknown) => ({ ...answer, acts: [{ act: "write", target: "notes", input: value }] });

@@ -1,4 +1,4 @@
-// Reúne mensajes de administración, delegación, adopción y autoría visible de asistentes.
+// Gathers messages about assistants' administration, delegation, adoption and visible authorship.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 import type { Language } from "../fields/languages.ts";

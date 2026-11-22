@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { cards } from "../../adapters/models/catalog.ts";
 import { callAssignedModel, providerMarginTokens } from "./mind-model-bridge.ts";
-it("liquida una respuesta inválida con uso y no expone la llave", async () => {
+it("settles an invalid answer with usage and does not expose the key", async () => {
   const card = cards[0];
   if (!card) throw new Error("card");
   const events: unknown[] = [];
@@ -42,7 +42,7 @@ it("liquida una respuesta inválida con uso y no expone la llave", async () => {
   expect(events).toHaveLength(2);
   expect(JSON.stringify(events)).not.toContain("synthetic-key");
 });
-it("cierra sin enviar sin carta, llave o saldo; una carta asignada a mano se envía sin evidencia", async () => {
+it("closes unsent with no card, key or balance; a hand-assigned card is sent without evidence", async () => {
   const card = cards[0];
   if (!card) throw new Error("card");
   expect(card.results).toEqual([]);
@@ -89,7 +89,7 @@ it("cierra sin enviar sin carta, llave o saldo; una carta asignada a mano se env
   expect(sent).toBe(1);
   expect(uncertain).toBe(1);
 });
-it("presupuesta escritura de caché, rechaza precios ausentes y liquida una respuesta válida", async () => {
+it("budgets cache writes, rejects missing prices and settles a valid answer", async () => {
   const card = cards.find(each => each.model === "claude-sonnet-5-5");
   if (!card) throw new Error("card");
   let maximum = 0;
@@ -142,7 +142,7 @@ it("presupuesta escritura de caché, rechaza precios ausentes y liquida una resp
   });
   expect(sends).toBe(0);
   expect((await callAssignedModel(ports)(request)).kind).toBe("answer");
-  // Sonnet 5.5: 5000 de entrada escritos en caché a USD 2,50/M más 16000 de salida a USD 10/M.
+  // Sonnet 5.5: 5000 input written to cache at USD 2.50/M plus 16000 output at USD 10/M.
   expect(maximum).toBe(172500000);
   expect(actual).toBe(146000);
 });
@@ -158,7 +158,7 @@ const smallRequest = {
   frame: { layers: ["a", "b", "c", "d"] as const, changing: "e" },
   schema: { type: "object", additionalProperties: false },
 };
-it("un error HTTP del proveedor se liquida en cero y no deja la reserva incierta", async () => {
+it("a provider HTTP error settles at zero and does not leave the reservation uncertain", async () => {
   const settled: unknown[] = [];
   let uncertain = 0;
   const outcome = await callAssignedModel({
@@ -186,7 +186,7 @@ it("un error HTTP del proveedor se liquida en cero y no deja la reserva incierta
   expect(settled).toEqual([{ usage: { input: 0, cacheWrite: 0, cacheRead: 0, output: 0 }, amount: 0 }]);
   expect(uncertain).toBe(0);
 });
-it("no envía un pedido cuyos bytes más el margen del proveedor pasan la cota de entrada", async () => {
+it("does not send a request whose bytes plus the provider's margin pass the input bound", async () => {
   let sends = 0;
   const ports = {
     card: assistantCard,

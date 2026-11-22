@@ -70,13 +70,13 @@ mock.method(prototype, "unretain", function (this: CustodyDatabase, ...args: Par
 const store = new SecretCustody(file, home, provider);
 const scope = { actor: "ana", tool: "vault", target: "organization:test" },
   session = store.begin(scope);
-const first = { key: session.capture(Buffer.from("PRIMER_SINTETICO")) };
+const first = { key: session.capture(Buffer.from("FIRST_SYNTHETIC")) };
 session.replace("signing", first, 0);
 store.retain(first.key, "history");
-const next = { key: session.capture(Buffer.from("SEGUNDO_SINTETICO")) };
+const next = { key: session.capture(Buffer.from("SECOND_SYNTHETIC")) };
 session.replace("signing", next, 1);
 store.releaseRetention(first.key, "history");
-session.capture(Buffer.from("PROVISIONAL_SINTETICO"));
+session.capture(Buffer.from("PROVISIONAL_SYNTHETIC"));
 session.cancel();
 store.begin(scope).release("signing", 2);
 store.close();

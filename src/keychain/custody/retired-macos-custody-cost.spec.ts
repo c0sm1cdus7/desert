@@ -3,7 +3,7 @@ import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts"
 import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
 import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
 import { SecretCustody } from "./secret-custody.ts";
-it("un uso de una referencia con un vínculo cuesta tres consultas al llavero y ninguna escritura", async () => {
+it("one use of a reference with a binding costs three keychain queries and no write", async () => {
   const rig = custodyRig(),
     fake = fakeKeychain();
   const store = new SecretCustody(rig.file, rig.home, new MacOSHouseKeys(fake.command));
@@ -12,7 +12,7 @@ it("un uso de una referencia con un vínculo cuesta tres consultas al llavero y 
       refs = { key: session.capture(Buffer.from("invented")) };
     session.replace("signing", refs, 0);
     fake.calls.length = 0;
-    await store.adapter(session, ["signing"]).use(refs, () => "acuse");
+    await store.adapter(session, ["signing"]).use(refs, () => "receipt");
     expect(fake.calls).toHaveLength(3);
     expect(fake.calls.every(call => call.args[0] === "find-generic-password")).toBe(true);
     const accounts = fake.calls.map(call => call.args[call.args.indexOf("-a") + 1]);
@@ -22,7 +22,7 @@ it("un uso de una referencia con un vínculo cuesta tres consultas al llavero y 
     store.close();
   }
 });
-it("cuenta abrir, usar, aceptar y olvidar con historia y con el índice independiente", async () => {
+it("counts open, use, accept and forget with history and with the independent index", async () => {
   for (const rotations of [1, 10]) {
     const rig = custodyRig(),
       fake = fakeKeychain(),
@@ -40,7 +40,7 @@ it("cuenta abrir, usar, aceptar y olvidar con historia y con el índice independ
     session = store.begin(custodyScope);
     const refs = session.current("signing")?.refs ?? {};
     fake.calls.length = 0;
-    await store.adapter(session, ["signing"]).use(refs, () => "acuse");
+    await store.adapter(session, ["signing"]).use(refs, () => "receipt");
     const using = fake.calls.length;
     store.close();
     fake.calls.length = 0;

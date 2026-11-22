@@ -3,14 +3,14 @@ import { copyFileSync } from "node:fs";
 import { join } from "node:path";
 import { fixture, home, words } from "../../../tests/support/secret-rig.ts";
 import { inspectKept } from "./kept-inspection.ts";
-it("capturar una posición secreta de un hecho también conserva la marca de inspección", async () => {
+it("capturing a secret position of a fact also keeps the inspection mark", async () => {
   const rig = fixture();
   rig.close();
   const file = join(home(), "kept.sqlite");
   copyFileSync(join(rig.path, "journal.sqlite"), file);
   await expect(
     inspectKept(rig.options, file, house => {
-      house.bus.emit(words.fact("sale-registered", { value: "invented", copy: "público" }, "ana"));
+      house.bus.emit(words.fact("sale-registered", { value: "invented", copy: "public" }, "ana"));
     }),
   ).rejects.toMatchObject({
     name: "InspectionUnavailable",

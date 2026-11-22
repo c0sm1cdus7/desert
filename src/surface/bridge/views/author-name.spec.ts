@@ -21,7 +21,7 @@ function setup() {
   if (!tool) throw new Error("Missing sales surface");
   return { rig, ports, tool };
 }
-it("actualiza el nombre en vivo y conserva autoría, destino e historia al sacar y reabrir", () => {
+it("updates the name live and keeps authorship, destination and history when closing and reopening", () => {
   const { rig, tool } = setup();
   const expected = (name: string) => {
     expect(tool.notices?.().news).toContainEqual({ title: "Registrada · s1", detail: name, opens: "sales/s1" });
@@ -46,7 +46,7 @@ it("actualiza el nombre en vivo y conserva autoría, destino e historia al sacar
       .map(entry => entry.data.author),
   ).toContain("beto");
 });
-it("dos identidades con el mismo nombre siguen teniendo novedades y destinos independientes", () => {
+it("two identities with the same name still have independent news and destinations", () => {
   const { rig, tool } = setup();
   rig.bus.emit(effect("granted", { identity: "carla", tools: ["sales"] }, "ana"));
   rig.bus.emit(effect("named", { identity: "carla", name: "Alberto" }, "ana"));
@@ -59,7 +59,7 @@ it("dos identidades con el mismo nombre siguen teniendo novedades y destinos ind
   tool.rendered?.("sales/s1");
   expect(tool.notices?.().news).toEqual([{ title: "Registrada · s2", detail: "Alberto", opens: "sales/s2" }]);
 });
-it("conserva diagnósticos y deja los ids para el lector de avisos sin presentación humana", () => {
+it("keeps diagnostics and leaves the ids for the notice reader without human presentation", () => {
   const { rig, ports, tool } = setup();
   const raw = noticesOf({ ...ports, act: value => ports.act(value, 0) }, salesTool, { name: "Ventas" });
   expect(raw.notices().news[0]?.detail).toBe("beto");
@@ -73,7 +73,7 @@ it("conserva diagnósticos y deja los ids para el lector de avisos sin presentac
   expect(tool.notices?.().news[0]?.detail).toBe("Falta el dato");
   expect(raw.notices().news[0]?.detail).toBe("Falta el dato");
 });
-it("resuelve by y author en listas y datos propios sin cambiar texto libre ni ids", () => {
+it("resolves by and author in lists and own data without changing free text or ids", () => {
   const { ports } = setup();
   const name = authorName(ports);
   const labels = (key: string) => key;

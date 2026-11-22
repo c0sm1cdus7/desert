@@ -52,7 +52,7 @@ it("the call limit ends the turn failed, says so, and wakes the consciousness on
   expect(woke[1]?.changing).toContain("Turnos cortados de este journey hasta ahora, contando este: 1.");
   expect(journey?.closed).toBeUndefined();
 });
-it("an answer with no act, no continuation and no consultation goes back as «decí cómo seguís»", async () => {
+it("an answer with no act, no continuation and no consultation goes back asking how it continues", async () => {
   const { house, seen, journey } = await run({
     consciousness: opensOnce,
     journey: ({ call, journey }) => (call === 1 ? [] : [waitAct(journey ?? "")]),

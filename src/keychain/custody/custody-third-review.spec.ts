@@ -4,7 +4,7 @@ import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts"
 import { CustodyCipher } from "./custody-cipher.ts";
 import { CustodyDatabase } from "./custody-database.ts";
 
-it("p3: abrir no descifra ningún material", () => {
+it("p3: opening decrypts no material", () => {
   const rig = custodyRig(),
     store = rig.open();
   for (let i = 0; i < 3; i++) store.keep(Buffer.from(`invented-${i}`));
@@ -13,7 +13,7 @@ it("p3: abrir no descifra ningún material", () => {
   rig.open();
   expect(decrypt).not.toHaveBeenCalled();
 });
-it("p3/M18: solo bytes prestados durante uso; se borran incluso después de rechazo", async () => {
+it("p3/M18: only bytes lent during a use; they are erased even after a rejection", async () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
   const input = Buffer.from("invented"),
@@ -24,33 +24,33 @@ it("p3/M18: solo bytes prestados durante uso; se borran incluso después de rech
     store.adapter(session, ["signing"]).use(refs, material => {
       expect(material.key).toBeInstanceOf(Uint8Array);
       borrowed = material.key;
-      throw new Error("falló");
+      throw new Error("failed");
     }),
   ).rejects.toThrow("E-CUSTODY-ADAPTER");
   expect(borrowed?.every(byte => byte === 0)).toBe(true);
   expect(input.every(byte => byte === 0)).toBe(true);
 });
-it("p2: borrar otra cosa no tapa el acuse ni impide reabrir", async () => {
+it("p2: erasing something else neither masks the acknowledgement nor prevents reopening", async () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("firma")) };
+  const refs = { key: session.capture(Buffer.from("signature")) };
   session.replace("signing", refs, 0);
   const other = store.begin({ ...custodyScope, tool: "other" });
   other.replace("old", { key: other.capture(Buffer.from("other")) }, 0);
   vi.spyOn(CustodyDatabase.prototype, "remove").mockImplementation(() => {
-    throw new Error("disco");
+    throw new Error("disk");
   });
   expect(() => other.release("old", 1)).toThrow("E-CUSTODY-CLEANUP");
-  await expect(store.adapter(session, ["signing"]).use(refs, () => "ACUSE")).resolves.toBe("ACUSE");
+  await expect(store.adapter(session, ["signing"]).use(refs, () => "ACKNOWLEDGEMENT")).resolves.toBe("ACKNOWLEDGEMENT");
   store.close();
   expect(() => rig.open()).not.toThrow();
 });
-it("p1: recortar la última revocación se detecta antes de recuperar material", () => {
+it("p1: trimming the last revocation is detected before recovering material", () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("firma")) };
+  const refs = { key: session.capture(Buffer.from("signature")) };
   session.replace("signing", refs, 0);
   store.retain(refs.key, "history");
   session.release("signing", 1);
@@ -60,7 +60,7 @@ it("p1: recortar la última revocación se detecta antes de recuperar material",
   db.close();
   expect(() => rig.open()).toThrow(/renglones|copia vieja/u);
 });
-it("p11: abrir hace una cantidad lineal de lecturas de materiales", () => {
+it("p11: opening makes a linear number of material reads", () => {
   const rig = custodyRig(),
     store = rig.open();
   for (let i = 0; i < 30; i++) store.keep(Buffer.from(`invented-${i}`));

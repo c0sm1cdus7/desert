@@ -49,7 +49,7 @@ it.each(cases)("el banco conserva %s en escena, diario y stdout, con JSON y sin 
 });
 
 it.each(cases)(
-  "un turno vivo conserva %s al reabrir y tapa también las llaves conocidas por la base",
+  "a live turn keeps %s on reopening and also masks the keys known to the database",
   async (status, type) => {
     const f = programMindFixture();
     fixtures.push(f);
@@ -86,7 +86,7 @@ it.each(cases)(
     expect(output).toHaveBeenCalledOnce();
   },
 );
-it("conserva la causa del supervisor hasta el cierre del turno que lo consultó", async () => {
+it("keeps the supervisor's cause until the close of the turn that consulted it", async () => {
   const events: HouseEmission[] = [];
   const frame = { layers: ["a", "b", "c", "d"] as const, changing: "e" };
   const rejection = { status: 400, type: "invalid_request_error", message: "El esquema no se admite" };
@@ -125,7 +125,7 @@ it("conserva la causa del supervisor hasta el cierre del turno que lo consultó"
     text: "El proveedor rechazó el pedido (400 invalid_request_error: El esquema no se admite). El turno se detuvo.",
   });
 });
-it("el puente no clona ni lee entero un rechazo para buscar consumo", async () => {
+it("the bridge neither clones nor reads a whole rejection to look for usage", async () => {
   const f = programMindFixture();
   fixtures.push(f);
   vi.spyOn(console, "log").mockImplementation(() => {});

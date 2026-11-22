@@ -5,8 +5,8 @@ import { expect, it } from "vitest";
 import { authorHouse } from "../../../tests/support/author-house.ts";
 import { mcpReading } from "./mcp-reading.ts";
 import { effect } from "../../house/facts.ts";
-it.each(["lucia", "unnamed", "retirada", "mind:sales", "assistant:lucia"])(
-  "MCP conserva el id de %s en avisos y lecturas después de cambiar el nombre y reabrir",
+it.each(["lucia", "unnamed", "retired", "mind:sales", "assistant:lucia"])(
+  "MCP keeps the id of %s in notices and readings after a rename and a reopen",
   author => {
     const home = mkdtempSync(join(tmpdir(), "mcp-author-"));
     let house = authorHouse(home, author);

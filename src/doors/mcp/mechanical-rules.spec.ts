@@ -1,11 +1,11 @@
-// La puerta MCP crea borradores, administra reglas y recibe el mismo freno del ejecutor.
+// The MCP door creates drafts, administers rules and receives the same block from the executor.
 import { expect, it } from "vitest";
 import { mcpHouse } from "../../../tests/support/mcp-house.ts";
 import { mcpResult, mcpText } from "../../../tests/support/mcp-results.ts";
 import { shopRegistry } from "../../../tests/support/shop.ts";
 import { rulesTool } from "../../tools/rules/rules.ts";
 import { rulesTexts } from "../../texts/rules.texts.ts";
-it("una identidad propone por MCP y ni el admin pasa la regla aprobada", async () => {
+it("an identity proposes over MCP and not even the admin gets past the approved rule", async () => {
   const f = mcpHouse([...shopRegistry, rulesTool(shopRegistry)]);
   try {
     const definition = {

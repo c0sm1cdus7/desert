@@ -18,7 +18,7 @@ const turn = {
 /** The trimming under test is of the changing part: the house layer's own length stays out of the measure. */
 const size = (frame: MindFrame) => JSON.stringify(frame).length - JSON.stringify(frame.layers[0]).length;
 const snapshot = buildMindFrame(scope, turn, {
-  definition: { role: "asistente", actor: scope.actor, rules: mind, communication: [] },
+  definition: { role: "assistant", actor: scope.actor, rules: mind, communication: [] },
   skills: [],
   textRules: [],
   scene: "escena",
@@ -35,7 +35,7 @@ it("reports omissions while retaining wake and required context", () => {
   expect(result.tooLarge).toBe(false);
   if (!result.tooLarge) {
     expect(result.frame.changing).toContain("despertar");
-    expect(result.frame.changing).toContain("consulta");
+    expect(result.frame.changing).toContain("consultation");
     expect(result.omitted).toContain("a");
     expect(result.frame.changing).toContain("a");
   }

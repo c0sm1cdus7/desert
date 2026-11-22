@@ -1,5 +1,5 @@
 // Proves, through a running house, that a program's acts wake its mind only when the program does not talk: the talk
-// program talks by its own `mensajes`, so its mind wakes by its messages; the notes program's acts still wake its mind.
+// program talks by its own `talks`, so its mind wakes by its messages; the notes program's acts still wake its mind.
 import "../../../tests/support/fixture-vault.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -85,7 +85,7 @@ async function talking() {
   };
   return { composed, house, wokeBy };
 }
-it("22/11: the talk program talks by its own `mensajes`, and its mind is told none of its acts wake it", async () => {
+it("22/11: the talk program talks by its own `talks`, and its mind is told none of its acts wake it", async () => {
   const { composed, house } = await talking();
   expect(house.registry.find(tool => tool.id === "talk")?.talks).toBe(true);
   expect(house.registry.find(tool => tool.id === "notes")?.talks).toBeUndefined();

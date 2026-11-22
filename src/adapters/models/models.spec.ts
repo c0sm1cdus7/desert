@@ -5,22 +5,22 @@ import { cards, costUsd } from "./catalog.ts";
 
 const first = cards[0];
 if (!first) throw new Error("missing card");
-describe("cartas y Anthropic", () => {
-  it("filtra por todas las capacidades y enumera actos perdidos", () => {
+describe("cards and Anthropic", () => {
+  it("filters by every capability and lists lost acts", () => {
     expect(cards).toHaveLength(15);
     const acts = [{ needs: ["sees"] as const }, { needs: ["hears"] as const }];
     expect(cardsFor(acts)).toEqual([]);
     expect(lostActs(first, acts)).toEqual([acts[1]]);
   });
-  it("calcula precios y el peor caso del tope con escritura de caché", () => {
+  it("computes prices and the worst case of the cap with cache writes", () => {
     const card = cards.find(c => c.model === "claude-sonnet-5-5");
     if (!card) throw new Error("missing card");
     expect(costUsd(card, { input: 1_000_000, cacheRead: 1_000_000, cacheWrite: 0, output: 1_000_000 })).toBe(12.1);
-    // Peor caso: 100 tokens escritos en caché (2,5) y 100 de salida (10) = 0,00125.
+    // Worst case: 100 tokens written to cache (2.5) and 100 of output (10) = 0.00125.
     expect(withinCap({ spentUsd: 0, capUsd: 0.00125, card, maxInputTokens: 100, maxOutputTokens: 100 })).toBe(true);
     expect(withinCap({ spentUsd: 0, capUsd: 0.00124, card, maxInputTokens: 100, maxOutputTokens: 100 })).toBe(false);
   });
-  it("arma el cuerpo exacto y valida la respuesta completa", async () => {
+  it("builds the exact body and validates the whole response", async () => {
     const args = {
       card: first,
       maxOutputTokens: 16000,

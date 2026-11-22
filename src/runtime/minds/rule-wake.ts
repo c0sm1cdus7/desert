@@ -1,4 +1,4 @@
-// Una vigencia nueva despierta procesos frenados por esa regla; nunca vuelve a ejecutar sus actos.
+// A new rule version wakes processes held by that rule; it never runs their acts again.
 import type { Event } from "../../journal/vocabulary.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
 function administrator(history: readonly Event[], through: number): string {

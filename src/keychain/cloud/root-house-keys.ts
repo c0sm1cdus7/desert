@@ -1,4 +1,4 @@
-// Deriva llaves desde la raíz; las anclas comparten disco con el diario y no detectan restaurar el disco entero.
+// Derives keys from the root; anchors share the journal's disk and cannot detect a whole-disk restore.
 import { hkdfSync } from "node:crypto";
 import { CustodyError, type HouseKeyProvider, type LedgerHead } from "../custody/house-keys.ts";
 import { checkAccount, checkHead, readKeyMetadata, writeKeyMetadata } from "./key-metadata.ts";

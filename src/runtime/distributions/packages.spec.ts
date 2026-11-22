@@ -10,7 +10,7 @@ import { sampleOptions } from "../../../tests/support/installable-program.ts";
 it("loads linked TypeScript packages outside node_modules with one DESERT instance", () => {
   const home = mkdtempSync(join(tmpdir(), "desert-installable-"));
   try {
-    const toy = join(home, "paquetes", "toy");
+    const toy = join(home, "packages", "toy");
     mkdirSync(join(toy, "node_modules"), { recursive: true });
     mkdirSync(join(home, "node_modules"));
     symlinkSync(resolve("."), join(home, "node_modules", "desert"), "dir");

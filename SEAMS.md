@@ -37,7 +37,7 @@ resultados de acciones. El bus público de arranque se cierra en el carril de la
 
 - El estado de la casa (`HouseState`) queda con lo que es de toda casa: permisos, kits, última escena de cada autor, quién tiene qué a la
   vista, actos en curso, entradas, avisos de atención. Ninguna parte de ninguna herramienta.
-- Un programa se describe con un solo tipo: `{ fact: SusHechos; tools: { ventas: ...; pagos: ... } }`.
+- Un programa se describe con un solo tipo: `{ fact: SusHechos; tools: { sales: ...; payments: ... } }`.
   El estado completo es `State<Programa>`: el de la casa más `tools`, con la parte de cada herramienta bajo su nombre.
 - El programa junta las partes en `Slices<Programa>`: de dónde arranca cada una y cómo avanza con cada hecho.
   Si a una herramienta le falta su paso, no compila. Una herramienta puede leer la parte de otra (tal como
@@ -119,7 +119,7 @@ interacción con la casa sea la misma en todas las superficies.
 - `src/surface/router/router.ts`: `startRouter`. Tiene la sesión del dispositivo (dónde está parado), recibe
   intenciones, entrega la pantalla, corre los actos y avisa cada vez que la pantalla pudo cambiar: cambió la casa,
   terminó un acto o pasó el tiempo.
-- `src/surface/bridge/assembly/house-router.ts`: `houseRouter(ports, palabras)`. Es lo único que un renderer recibe de un
+- `src/surface/bridge/assembly/house-router.ts`: `houseRouter(ports, shown)`. Es lo único que un renderer recibe de un
   programa: las herramientas con sus palabras, la barra (conexión y hora) y los cambios de la casa.
 - La superficie abre y busca también herramientas fuera del kit; sus acciones quedan apagadas con su motivo.
   Actividad muestra lo escrito por otras personas en toda la casa; Atención solo llega a quien tiene al menos una acción de la herramienta.
@@ -273,7 +273,7 @@ comprueban al cerrar que no hay causas ausentes en todo el registro.
 El reloj registra su restauración en cada escritura abierta con `onRollback`: si una falla, recupera sus fechas
 y rearma la anterior. El bus de arranque sigue exponiendo solo `on`, `emit` y `together`.
 
-- Identidades del core vive en `src/tools/core/identities/`: usa el contrato declarado para la Lista y los Hilos,
+- Identidades del core vive en `src/tools/identities/`: usa el contrato declarado para la Lista y los Hilos,
   sin slice ni proceso. `startHouse` la compone solo con `identities: true`; `houseTools` incorpora sus palabras.
   El estado sigue en `House`, y sus acciones producen hechos de casa mediante el lote habitual.
   El límite de escritura reserva `identities` fuera de `granted` y `kit-set`; las derivadas comprueban ese rechazo
@@ -330,7 +330,7 @@ los dos clientes en pseudo-terminal y sus colores al reconectar se comprueban ad
 
 ## Arreglo adversario del servidor (14/11)
 
-El protocolo 3 manda un encabezado `estado` con base, secuencia, longitud y huella, seguido de tramos de 64 KiB.
+El protocolo 3 manda un encabezado `state` con base, secuencia, longitud y huella, seguido de tramos de 64 KiB.
 `state-patch.ts` divide recursivamente por campos y claves de mapas; las listas que crecen envían su sufijo.
 `state-hash.ts` calcula una huella semántica del estado completo y reutiliza nodos inmutables. `state-delivery.ts`
 prepara una vez por identidad y secuencia; `state-receiver.ts` arma aparte y verifica antes de publicar.
@@ -341,7 +341,7 @@ con SQLite, contra local, con 100, 2.000 y 20.000 entradas y una o cinco termina
 
 `HousePorts.observe?` distingue las dos observaciones automáticas en `notices.ts` y `house-tools.ts` de los actos
 pedidos por la persona. El router y el dibujante siguen intactos; sin `observe` se llama al `act` local como antes.
-`defecto` deja de aceptar la entrada del cliente: solo herramienta, destino y acción, comprobados contra el kit.
+`default` deja de aceptar la entrada del cliente: solo herramienta, destino y acción, comprobados contra el kit.
 El rechazo de mentes se combina con `present`, la misma pertenencia que consulta la casa. La comprobación redundante
 al inicio de cada pedido se retiró: el aviso del bus cierra inmediatamente la conexión y `receivePeer` exige que
 siga viva. La condición redundante M06 de las respuestas también se retiró: `peer.send` no escribe en una

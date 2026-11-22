@@ -26,7 +26,7 @@ const bankScene: ProgramMindScene = {
 function notesFor(scene: ProgramMindScene) {
   return defineProgram(sampleMetadata, {
     ...sampleBody,
-    mindCases: [{ id: "reconoce-nota", scenes: [scene, scene, scene] }] as const,
+    mindCases: [{ id: "recognizes-note", scenes: [scene, scene, scene] }] as const,
   });
 }
 const other = defineProgram(

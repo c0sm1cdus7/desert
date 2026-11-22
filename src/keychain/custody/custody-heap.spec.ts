@@ -8,7 +8,7 @@ import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts"
 import { processKeys } from "../../../tests/support/custody-provider.ts";
 import { SecretCustody } from "./secret-custody.ts";
 const script = fileURLToPath(new URL("../../../tests/support/custody-heap.ts", import.meta.url));
-it("p3: un proceso nuevo abre tres secretos, usa uno y su snapshot no contiene ninguno como texto", () => {
+it("p3: a new process opens three secrets, uses one and its snapshot contains none as text", () => {
   const rig = custodyRig(),
     store = new SecretCustody(rig.file, rig.home, processKeys(rig.home));
   const markers = Array.from({ length: 3 }, () => randomBytes(48).toString("hex"));
@@ -22,7 +22,7 @@ it("p3: un proceso nuevo abre tres secretos, usa uno y su snapshot no contiene n
   const heap = readFileSync(join(rig.home, "synthetic.heapsnapshot"));
   for (const marker of markers) expect(heap.includes(Buffer.from(marker))).toBe(false);
 });
-it("p7: un segundo proceso no abre durante el uso de otro", async () => {
+it("p7: a second process does not open during another's use", async () => {
   const rig = custodyRig(),
     store = new SecretCustody(rig.file, rig.home, processKeys(rig.home));
   try {

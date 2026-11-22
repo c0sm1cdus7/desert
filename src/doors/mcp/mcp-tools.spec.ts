@@ -18,18 +18,18 @@ it("reads every scene, addressed part, program and terminal notice independently
   h.rig.bus.emit(
     effect("scene", { general: "El almacén abre", to: { beto: "Ordenar ventas", ana: "Parte ajena" } }, "ana"),
   );
-  await h.call("act", { program: "sales", action: "register", data: { sale: "pendiente", total: 100 } });
+  await h.call("act", { program: "sales", action: "register", data: { sale: "pending", total: 100 } });
   const response = await h.call("read", {}, h.beto);
   expect(response.body).toContain("El almacén abre");
   expect(response.body).toContain("Ordenar ventas");
   expect(response.body).toContain("Parte ajena");
   expect(response.body).toContain("sales");
   expect(response.body).toContain("payments");
-  expect(response.body).toContain("Registrada · pendiente");
+  expect(response.body).toContain("Registrada · pending");
 });
 it("reads a tool through the same view and never emits terminal escapes", async () => {
   const h = setup();
-  await h.call("act", { program: "sales", action: "register", data: { sale: "venta", total: 100 } });
+  await h.call("act", { program: "sales", action: "register", data: { sale: "sold", total: 100 } });
   const response = await h.call("read", { program: "sales" });
   const result: unknown = JSON.parse(response.body);
   expect(result).toMatchObject({
@@ -75,7 +75,7 @@ it("lists only granted actions and respects a narrower kit at execution time", a
 });
 it("keeps ordinary Tool readings and action targets while accepting an explicit object", async () => {
   const h = setup();
-  await h.call("act", { program: "sales", action: "register", data: { sale: "venta", total: 100 } });
+  await h.call("act", { program: "sales", action: "register", data: { sale: "sold", total: 100 } });
   const tool = h.house.registry.find(tool => tool.id === "sales");
   const target = tool?.targets(h.rig.state())[0];
   if (!tool || !target) throw new Error("Missing sale target");
@@ -109,17 +109,17 @@ it("keeps ordinary Tool readings and action targets while accepting an explicit 
 });
 it("acts with the socket book, accepts once and explains a refusal", async () => {
   const h = setup();
-  const args = { program: "sales", action: "register", data: { sale: "uno", total: 100 } };
+  const args = { program: "sales", action: "register", data: { sale: "one", total: 100 } };
   const accepted = await h.call("act", args, h.beto);
   expect(JSON.parse(accepted.body)).toMatchObject({ result: { isError: false } });
-  expect(accepted.body).toContain("Registrada · uno");
-  expect(JSON.parse(accepted.body)).toMatchObject({ result: { content: [{ text: "Registrada · uno" }] } });
+  expect(accepted.body).toContain("Registrada · one");
+  expect(JSON.parse(accepted.body)).toMatchObject({ result: { content: [{ text: "Registrada · one" }] } });
   const rejected = await h.call("act", args, h.beto);
   expect(JSON.parse(rejected.body)).toMatchObject({ result: { isError: true } });
   expect(rejected.body).toContain("repeated");
   const acts = h.rig.facts().filter(event => event.layer === "house" && event.kind === "act");
   expect(acts.every(event => event.cause.some(cause => cause.startsWith("socket-request:")))).toBe(true);
-  expect(h.rig.state().tools.sales.get("uno")?.by).toBe("beto");
+  expect(h.rig.state().tools.sales.get("one")?.by).toBe("beto");
 });
 it("cannot cross a target into another tool or bypass the act size limit", async () => {
   const h = setup();

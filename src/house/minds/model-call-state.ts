@@ -1,4 +1,4 @@
-// Reconstruye reservas y gasto exacto; una llamada incierta mantiene su reserva hasta liquidarse.
+// Rebuilds reservations and exact spend; an uncertain call keeps its reservation until settled.
 import { Value } from "@sinclair/typebox/value";
 import { parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";

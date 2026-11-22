@@ -85,7 +85,7 @@ describe("consumer cases at the provider gate", () => {
           ...request,
           cases: request.cases.map(c => ({
             ...c,
-            steps: [{ kind: "action" as const, name: "borrar", input: {}, expect: {} }],
+            steps: [{ kind: "action" as const, name: "delete", input: {}, expect: {} }],
           })),
         },
       },

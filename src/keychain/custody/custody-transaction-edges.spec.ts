@@ -15,7 +15,7 @@ const fact = (id: string): CredentialFact => ({
   refs: {},
   cause: "test",
 });
-it("el registro simple rechaza un lote múltiple antes de escribir una parte", () => {
+it("the simple record rejects a multi-fact batch before writing any part", () => {
   const rig = custodyRig(),
     cipher = new CustodyCipher("house", rig.keys),
     rows: CredentialFact[] = [];
@@ -39,7 +39,7 @@ it("el registro simple rechaza un lote múltiple antes de escribir una parte", (
   ledger.append(fact("three"));
   expect(ledger.facts().map(row => row.id)).toEqual(["three"]);
 });
-it("anidar un lote conserva todas las filas y descartar uno permite volver a escribir", () => {
+it("nesting a batch keeps every row and discarding one allows writing again", () => {
   const rig = custodyRig(),
     cipher = new CustodyCipher("house", rig.keys),
     rows: CredentialFact[] = [];
@@ -74,11 +74,11 @@ it("anidar un lote conserva todas las filas y descartar uno permite volver a esc
   ]);
   expect(rig.keys.head("house")?.count).toBe(3);
 });
-it("vincular comprueba de nuevo el sobre y la presencia de su llave después de abrir", () => {
+it("binding checks the envelope and its key's presence again after opening", () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("sintetico")) };
+  const refs = { key: session.capture(Buffer.from("synthetic")) };
   const row = vi.spyOn(CustodyDatabase.prototype, "row"),
     presence = vi.spyOn(rig.keys, "has");
   session.replace("one", refs, 0);
@@ -96,10 +96,10 @@ it("vincular comprueba de nuevo el sobre y la presencia de su llave después de 
   expect(() => session.replace("two", refs, 0)).toThrow("E-CUSTODY-KEY");
   expect(() => store.deferCleanup(() => store.confirm(session, "two", 0, refs))).toThrow("E-CUSTODY-KEY");
 });
-it("terminar un uso retira el búfer de la custodia, no lo conserva hasta cerrar", async () => {
+it("finishing a use removes the buffer from custody instead of keeping it until close", async () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
-  const refs = { key: session.capture(Buffer.from("sintetico")) };
+  const refs = { key: session.capture(Buffer.from("synthetic")) };
   let fillCount = () => 0;
   await store.adapter(session, []).use(refs, values => {
     if (!values.key) throw new Error("fixture");
@@ -110,17 +110,17 @@ it("terminar un uso retira el búfer de la custodia, no lo conserva hasta cerrar
   store.close();
   expect(fillCount()).toBe(1);
 });
-it("si falla la segunda fila del agregado SQLite descarta también la primera y admite el próximo", () => {
+it("if the addition's second row fails SQLite also discards the first and admits the next one", () => {
   const rig = custodyRig(),
     db = new CustodyDatabase(rig.file),
     append = db.append.bind(db);
   try {
     let writes = 0;
     const failure = vi.spyOn(db, "append").mockImplementation(row => {
-      if (++writes === 2) throw new Error("segunda fila");
+      if (++writes === 2) throw new Error("second row");
       append(row);
     });
-    expect(() => db.appendBatch([fact("one"), fact("two")])).toThrow("segunda fila");
+    expect(() => db.appendBatch([fact("one"), fact("two")])).toThrow("second row");
     expect(db.facts()).toEqual([]);
     failure.mockRestore();
     db.appendBatch([fact("three")]);
@@ -129,7 +129,7 @@ it("si falla la segunda fila del agregado SQLite descarta también la primera y 
     db.close();
   }
 });
-it("un reemplazo directo dentro de un lote rechazado no purga la versión que vuelve a quedar vigente", async () => {
+it("a direct replacement inside a rejected batch does not purge the version that becomes current again", async () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
   const first = { key: session.capture(Buffer.from("one")) },

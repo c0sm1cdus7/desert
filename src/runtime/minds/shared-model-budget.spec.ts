@@ -54,7 +54,7 @@ function synthetic() {
     ),
   );
 }
-it("shares the total across two fresh houses, reopening and reconstruction like tope-dos-casas", async () => {
+it("shares the total across two fresh houses, reopening and reconstruction like cap-two-houses", async () => {
   vi.stubGlobal("fetch", () => {
     throw new Error("network.forbidden");
   });

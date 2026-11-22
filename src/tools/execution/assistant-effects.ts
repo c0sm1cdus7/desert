@@ -1,4 +1,4 @@
-// Restringe los hechos administrativos del asistente a su acto concreto y a su titular o administrador.
+// Restricts an assistant's administrative facts to its concrete act and to its holder or admin.
 import { kitLayout } from "../../house/kit-selection.ts";
 import { selectionProblem } from "../../house/kit-validation.ts";
 import { identityAllowedAct } from "../../house/identities/identity-permissions.ts";

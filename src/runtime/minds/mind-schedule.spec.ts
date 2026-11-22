@@ -94,7 +94,7 @@ function fixture(initial: Event[] = []) {
     },
   };
 }
-it("no despierta en reposo y agrupa dos mensajes confirmados", async () => {
+it("does not wake at rest and groups two confirmed messages", async () => {
   const f = fixture();
   const schedule = startMindSchedule(f.ports);
   await schedule.flush();
@@ -105,7 +105,7 @@ it("no despierta en reposo y agrupa dos mensajes confirmados", async () => {
   expect(f.calls.map(c => c.wake)).toEqual([[first.id, second.id]]);
   schedule.close();
 });
-it("una llegada durante un turno espera al siguiente sin superponer ejecuciones", async () => {
+it("an arrival during a turn waits for the next one without overlapping runs", async () => {
   const f = fixture();
   let active = 0;
   let maximum = 0;
@@ -123,20 +123,20 @@ it("una llegada durante un turno espera al siguiente sin superponer ejecuciones"
   expect(maximum).toBe(1);
   schedule.close();
 });
-it("una transacción deshecha no despierta", async () => {
+it("a rolled-back transaction does not wake", async () => {
   const f = fixture();
   const schedule = startMindSchedule(f.ports);
   expect(() =>
     f.ports.bus.together(() => {
       f.say("Nora");
-      throw new Error("Deshacer");
+      throw new Error("Undo");
     }),
   ).toThrow();
   await schedule.flush();
   expect(f.calls).toHaveLength(0);
   schedule.close();
 });
-it("cerrar justo al despertar conserva el pendiente para la reapertura y no lo duplica después", async () => {
+it("closing right on waking keeps the pending one for the reopening and does not duplicate it afterwards", async () => {
   const f = fixture();
   const first = startMindSchedule(f.ports);
   const event = f.say("Nora");
@@ -152,7 +152,7 @@ it("cerrar justo al despertar conserva el pendiente para la reapertura y no lo d
   expect(f.calls).toHaveLength(1);
   third.close();
 });
-it("recupera un turno abierto como interrumpido y nunca repite su llamada incierta", async () => {
+it("recovers an open turn as interrupted and never repeats its uncertain call", async () => {
   const f = fixture();
   const event = f.say("Nora");
   f.ports.bus.emit(effect("mind-turn-opened", { turn: "old", wake: [event.id] }, policy.scope.actor));
@@ -171,28 +171,31 @@ it("recupera un turno abierto como interrumpido y nunca repite su llamada incier
   expect(f.events().find(e => e.kind === "mind-turn-closed")?.data).toMatchObject({ outcome: "interrupted", calls: 1 });
   schedule.close();
 });
-it.each(["assistant:franco", "mind:notes"] as const)("vence la espera de %s sin repetir al reiniciar", async actor => {
-  const f = fixture();
-  const journey = { ...policy, scope: { kind: "journey" as const, actor, process: "j1", kit: [] } };
-  f.setPolicies([journey]);
-  const event = f.ports.bus.emit(effect("journey-waiting", { what: "La hora", until: 10 }, actor, [], "j1"));
-  const schedule = startMindSchedule(f.ports);
-  await schedule.flush();
-  expect(f.calls).toHaveLength(0);
-  f.advance(10);
-  await schedule.flush();
-  expect(f.calls.map(c => c.wake)).toEqual([[event.id]]);
-  schedule.close();
-  const second = startMindSchedule(f.ports);
-  await second.flush();
-  expect(f.calls).toHaveLength(1);
-  second.close();
-});
-it("las casas anteriores sin hechos de mentes no inventan despertares", () => {
+it.each(["assistant:franco", "mind:notes"] as const)(
+  "expires the wait of %s without repeating on restart",
+  async actor => {
+    const f = fixture();
+    const journey = { ...policy, scope: { kind: "journey" as const, actor, process: "j1", kit: [] } };
+    f.setPolicies([journey]);
+    const event = f.ports.bus.emit(effect("journey-waiting", { what: "La hora", until: 10 }, actor, [], "j1"));
+    const schedule = startMindSchedule(f.ports);
+    await schedule.flush();
+    expect(f.calls).toHaveLength(0);
+    f.advance(10);
+    await schedule.flush();
+    expect(f.calls.map(c => c.wake)).toEqual([[event.id]]);
+    schedule.close();
+    const second = startMindSchedule(f.ports);
+    await second.flush();
+    expect(f.calls).toHaveLength(1);
+    second.close();
+  },
+);
+it("earlier houses without mind facts do not invent wakes", () => {
   const event = { ...effect("boot", {}, "franco"), seq: 1, id: "e1", at: 0 };
   expect(pendingMindWakes([policy], [event], 0)).toEqual([]);
 });
-it("dos journeys mantienen separados los despertares y la autoría del proceso", async () => {
+it("two journeys keep their wakes and the process's authorship apart", async () => {
   const f = fixture();
   f.setPolicies(
     ["j1", "j2"].map(process => ({
@@ -210,7 +213,7 @@ it("dos journeys mantienen separados los despertares y la autoría del proceso",
   ]);
   schedule.close();
 });
-it("la recuperación conserva los actos aceptados y deja pendientes las llegadas posteriores", async () => {
+it("recovery keeps the accepted acts and leaves later arrivals pending", async () => {
   const f = fixture();
   const first = f.say("Nora, uno");
   f.ports.bus.emit(effect("mind-turn-opened", { turn: "old", wake: [first.id] }, policy.scope.actor));
@@ -223,7 +226,7 @@ it("la recuperación conserva los actos aceptados y deja pendientes las llegadas
   expect(f.calls.map(w => w.wake)).toEqual([[later.id]]);
   schedule.close();
 });
-it("la agenda conecta una mente de programa y no repite el despertar", async () => {
+it("the schedule connects a program mind and does not repeat the wake", async () => {
   const f = fixture();
   f.setPolicies([{ ...policy, scope: { kind: "consciousness", actor: "mind:notes" } }]);
   f.ports.bus.emit(effect("act", { object: "notes", option: "write", input: {} }, "franco"));
@@ -236,7 +239,7 @@ it("la agenda conecta una mente de programa y no repite el despertar", async () 
   expect(f.calls).toHaveLength(1);
   schedule.close();
 });
-it("una falla del puerto queda visible y no provoca un ciclo automático de reintentos", async () => {
+it("a port failure stays visible and does not start an automatic retry loop", async () => {
   const f = fixture();
   f.say("Nora");
   const run = vi.fn(() => Promise.reject(new Error("Falla sintética")));
@@ -248,20 +251,20 @@ it("una falla del puerto queda visible y no provoca un ciclo automático de rein
   expect(f.ports.failed).toHaveBeenCalledOnce();
   schedule.close();
 });
-it("rechaza una segunda agenda activa sobre el mismo diario", async () => {
+it("rejects a second active schedule on the same journal", async () => {
   const f = fixture();
   const schedule = startMindSchedule(f.ports);
   expect(() => startMindSchedule(f.ports)).toThrow("schedule.concurrent");
   await schedule.flush();
   schedule.close();
 });
-it("una espera fallida con otra llegada en curso no reintenta el turno", async () => {
+it("a failed wait with another arrival in progress does not retry the turn", async () => {
   const f = fixture();
   f.say("Nora");
   const run = vi.fn(async () => {
     f.say("Nora, otra llegada");
     await Promise.resolve();
-    throw new Error("Corte");
+    throw new Error("Cut");
   });
   const schedule = startMindSchedule({ ...f.ports, run });
   await expect(schedule.flush()).rejects.toThrow();

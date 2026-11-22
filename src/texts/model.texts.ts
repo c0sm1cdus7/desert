@@ -1,4 +1,4 @@
-// Mensajes de fallas del catálogo y del adaptador de modelos.
+// Messages for failures of the model catalog and the model adapter.
 export const modelTexts = {
   unknownPrice: "No se conoce el precio",
   request: "Faltan datos del pedido o son inválidos",

@@ -1,19 +1,19 @@
 import { expect, it } from "vitest";
 import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
 for (const failure of [false, true])
-  it(`cerrar dentro del callback rechaza su resultado, incluso si falla: ${failure}`, async () => {
+  it(`closing inside the callback rejects its result, even if it fails: ${failure}`, async () => {
     const store = custodyRig().open(),
       session = store.begin(custodyScope);
     const refs = { key: session.capture(Buffer.from("invented")) };
     await expect(
       store.adapter(session, []).use(refs, () => {
         store.close();
-        if (failure) throw new Error("falló después de cerrar");
-        return "firma con ceros";
+        if (failure) throw new Error("failed after closing");
+        return "signature with zeros";
       }),
     ).rejects.toMatchObject({ code: "E-CUSTODY-DENIED" });
   });
-it("cerrar borra y rechaza dos usos concurrentes sin ejecutar mantenimiento sobre la base cerrada", async () => {
+it("closing erases and rejects two concurrent uses without running maintenance on the closed database", async () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
   const refs = { key: session.capture(Buffer.from("invented")) };
@@ -26,7 +26,7 @@ it("cerrar borra y rechaza dos usos concurrentes sin ejecutar mantenimiento sobr
     store.adapter(session, []).use(refs, async values => {
       if (values.key) borrowed.push(values.key);
       await wait;
-      return "acuse";
+      return "ack";
     });
   const first = use(),
     second = use();

@@ -19,12 +19,12 @@ export const catalog = [
 ];
 /** The bytes a key name stands for on a terminal: the move control is both arrows. */
 const pressKey: Readonly<Record<string, readonly string[]>> = {
-  enter: ["\r"],
-  esc: ["\x1b"],
-  tab: ["\t"],
-  espacio: [" "],
-  f: ["f"],
-  "↑↓": ["\x1b[A", "\x1b[B"],
+  [said.controls.confirm]: ["\r"],
+  [said.controls.cancel]: ["\x1b"],
+  [said.controls.switch]: ["\t"],
+  [said.controls.mark]: [" "],
+  [said.controls.full]: ["f"],
+  [said.controls.move]: ["\x1b[A", "\x1b[B"],
 };
 const chords: readonly string[] = Object.values(said.chords);
 export const sent = (name: string): readonly Intent[] => (pressKey[name] ?? []).flatMap(bytes => keysOf(bytes));

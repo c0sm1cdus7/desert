@@ -9,7 +9,7 @@ import { paint } from "./paint.ts";
 
 const closers: (() => void)[] = [];
 afterEach(() => closers.splice(0).forEach(close => close()));
-it("apaga la fila abierta; rechaza al confirmar la pregunta pendiente y deja leer", async () => {
+it("turns off the open row; rejects on confirming the pending question and still lets it read", async () => {
   const rig = shopRig();
   const router = houseRouter(
     rig.ports("beto", () => 5000),

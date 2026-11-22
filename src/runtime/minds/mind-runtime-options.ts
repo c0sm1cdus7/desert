@@ -35,7 +35,7 @@ export type MindRuntimeOptions = Readonly<{
   assistantCard?: Readonly<{ model: string; effort: string }>;
   /** The house supervisor's card; without one the mechanical rules decide alone (signed 17/11). */
   supervisorCard?: Readonly<{ model: string; effort: string }>;
-  /** The acts minds say things with: those of the programs that declare `mensajes` (signed 20/11). */
+  /** The acts minds say things with: those of the programs that declare `talks` (signed 20/11). */
   talk?: readonly Readonly<{ tool: string; act: string }>[];
   billing?: MindBilling;
   spendingAccount?: SpendingAccount;

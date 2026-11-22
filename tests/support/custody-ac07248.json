@@ -135,7 +135,7 @@
   "material": [
     {
       "id": "secret:f9349a1a-e2af-440a-b5b2-14aaa60c5476",
-      "value": "ANTERIOR_SINTETICO\nSIN_VALOR"
+      "value": "SYNTHETIC_PREVIOUS\nNO_VALUE"
     }
   ]
 }

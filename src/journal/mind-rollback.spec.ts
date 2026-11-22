@@ -1,4 +1,4 @@
-// Revisión 2 de casa-mente0b: ¿el control de la causa escrita se equivoca? Se copia a src/tools/boundaries/.
+// Review 2 of house-mind0b: does the written-cause check get it wrong? Copied to src/tools/boundaries/.
 import { afterEach, expect, it, vi } from "vitest";
 import { effect } from "../house/facts.ts";
 import { zeroMind } from "../../tests/support/zero-mind.ts";
@@ -20,20 +20,20 @@ function opened() {
 }
 const has = (rig: ReturnType<typeof shopRig>, id: string) => rig.facts().some(e => e.id === id);
 
-it("cola: un together deshecho durante una entrega no llega a la mente", async () => {
+it("queue: a together rolled back during a delivery never reaches the mind", async () => {
   const { rig, desk } = opened();
   let heardId = "";
   let once = 0;
   const results: unknown[] = [];
-  // la mente de desk actúa cada vez que oye su propio wake-at (cualquier programa podría oír así)
+  // desk's mind acts every time it hears its own wake-at (any program could listen this way)
   desk.startup().bus.on("wake-at", e => {
     if (e.data.id === "desk:two") {
       heardId = e.id;
       results.push(desk.act());
     }
   });
-  // al oír un estímulo de la casa (entregado fuera de toda transacción), el programa pide dos despertares juntos;
-  // el segundo es ajeno y se rechaza, así que el together se deshace entero
+  // on hearing a house stimulus (delivered outside any transaction), the program asks for two wake-ups together;
+  // the second belongs to another tool and is rejected, so the whole together rolls back
   desk.startup().bus.on("stimulus", () => {
     if (once++) return;
     try {
@@ -42,7 +42,7 @@ it("cola: un together deshecho durante una entrega no llega a la mente", async (
         desk.startup().bus.emit({ layer: "house", kind: "wake-at", data: { id: "other:zero", at: null } });
       });
     } catch {
-      /* el programa atrapa el rechazo */
+      /* the program catches the rejection */
     }
   });
   rig.bus.emit(effect("stimulus", { tool: "desk" }, "shop"));
@@ -53,18 +53,18 @@ it("cola: un together deshecho durante una entrega no llega a la mente", async (
   expect(rig.facts().filter(e => e.kind === "woke")).toEqual([]);
   expect(desk.pending).toEqual([]);
 });
-it("reloj: un despertar deshecho no arma el reloj ni hace actuar a la mente", async () => {
+it("clock: a rolled-back wake-up neither arms the clock nor makes the mind act", async () => {
   const { rig, desk } = opened();
   let once = 0;
   desk.startup().bus.on("stimulus", () => {
     if (once++) return;
     try {
       desk.startup().bus.together(() => {
-        desk.schedule(Date.now() + 5); // desk:zero, el despertar que zeroMind atiende
-        throw new Error("el programa se arrepiente");
+        desk.schedule(Date.now() + 5); // desk:zero, the wake-up zeroMind attends to
+        throw new Error("the program changes its mind");
       });
     } catch {
-      /* atrapado */
+      /* caught */
     }
   });
   rig.bus.emit(effect("stimulus", { tool: "desk" }, "shop"));
@@ -74,7 +74,7 @@ it("reloj: un despertar deshecho no arma el reloj ni hace actuar a la mente", as
   expect(rig.facts().filter(e => e.kind === "woke" || e.kind === "mind-noted")).toEqual([]);
   expect(rig.state().wakeOwners.has("desk:zero")).toBe(false);
 });
-it("anidado plano: un together interno que falla y se atrapa no se deshace, pero el acto se rechaza", async () => {
+it("flat nesting: an inner together that fails and is caught does not roll back, but the act is rejected", async () => {
   const { rig, desk } = opened();
   let pending: Promise<unknown> | undefined;
   let stim = "";
@@ -89,14 +89,14 @@ it("anidado plano: un together interno que falla y se atrapa no se deshace, pero
         throw new Error("internal");
       });
     } catch {
-      /* el de afuera sigue */
+      /* the outer one goes on */
     }
   });
   const r = await pending;
   expect(has(rig, stim)).toBe(false);
   expect(r).toMatchObject({ status: "rejected" });
 });
-it("continuación: transacción A confirmada, B posterior se deshace; el pedido nacido en A", async () => {
+it("continuation: transaction A committed, a later B rolls back; the request born in A", async () => {
   const { rig, desk } = opened();
   let release = () => {};
   let pending: Promise<unknown> | undefined;
@@ -111,21 +111,21 @@ it("continuación: transacción A confirmada, B posterior se deshace; el pedido 
     rig.bus.together(() => {
       rig.bus.emit(effect("stimulus", { tool: "B" }, "shop"));
       release();
-      throw new Error("B se deshace");
+      throw new Error("B rolls back");
     });
   } catch {
     /* */
   }
   expect(await pending).toStrictEqual({ status: "accepted" });
 });
-it("fuera de todo oyente mientras otra escritura se deshace", async () => {
+it("outside any listener while another write rolls back", async () => {
   const { rig, desk } = opened();
   let pending: Promise<unknown> | undefined;
   try {
     rig.bus.together(() => {
       rig.bus.emit(effect("stimulus", { tool: "x" }, "shop"));
-      pending = desk.act(); // llamado desde código ajeno, sin oír nada
-      throw new Error("se deshace");
+      pending = desk.act(); // called from unrelated code, hearing nothing
+      throw new Error("rolls back");
     });
   } catch {
     /* */
@@ -134,7 +134,7 @@ it("fuera de todo oyente mientras otra escritura se deshace", async () => {
   expect(await pending).toMatchObject({ status: "rejected" });
   expect(timerResult).toStrictEqual({ status: "accepted" });
 });
-it("dos casas en el mismo proceso: el oyente de una pide en la otra", async () => {
+it("two houses in the same process: a listener of one requests in the other", async () => {
   const a = opened();
   const b = opened();
   let pending: Promise<unknown> | undefined;
@@ -144,7 +144,7 @@ it("dos casas en el mismo proceso: el oyente de una pide en la otra", async () =
   try {
     a.rig.bus.together(() => {
       a.rig.bus.emit(effect("stimulus", { tool: "x" }, "shop"));
-      throw new Error("A se deshace");
+      throw new Error("A rolls back");
     });
   } catch {
     /* */
@@ -154,7 +154,7 @@ it("dos casas en el mismo proceso: el oyente de una pide en la otra", async () =
   expect(r).toStrictEqual({ status: "accepted" });
   expect(cause).toEqual([]);
 });
-it("planoPrograma: el together fallido dentro de un acto no queda escrito", () => {
+it("flatProgram: the failed together inside an act is not written", () => {
   const { rig, desk } = opened();
   let caught = "";
   desk.startup().bus.on("sale-registered", e => {
@@ -162,7 +162,7 @@ it("planoPrograma: el together fallido dentro de un acto no queda escrito", () =
     try {
       desk.startup().bus.together(() => {
         desk.startup().bus.emit({ layer: "house", kind: "wake-at", data: { id: "desk:middle", at: null } });
-        desk.startup().bus.emit({ layer: "house", kind: "wake-at", data: { id: "other:ajeno", at: null } });
+        desk.startup().bus.emit({ layer: "house", kind: "wake-at", data: { id: "other:foreign", at: null } });
       });
     } catch (error) {
       caught = (error instanceof Error ? error.message : String(error)).slice(0, 40);

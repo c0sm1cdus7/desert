@@ -5,7 +5,7 @@ import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house
 import { SecretCustody } from "./secret-custody.ts";
 const indexId = (fake: ReturnType<typeof fakeKeychain>) =>
   [...fake.saved.keys()].find(id => id.includes("custody-index")) ?? "";
-it("300 altas simultáneas y 300 purgas no cortan el índice ni hacen crecer el ancla", () => {
+it("300 simultaneous additions and 300 purges neither cut the index nor grow the anchor", () => {
   const fake = fakeKeychain(),
     keys = new MacOSHouseKeys(fake.command);
   for (let i = 0; i < 300; i++) keys.key(`house-secret-${i}`, true).fill(0);
@@ -21,7 +21,7 @@ it("300 altas simultáneas y 300 purgas no cortan el índice ni hacen crecer el 
   expect(keys.head("house")?.count).toBe(900);
 });
 for (const damage of ["lost", "broken", "omitted", "foreign", "malformed-account"])
-  it(`olvidar enumera la carpeta y protege otra casa con índice ${damage}`, () => {
+  it(`forget lists the folder and protects another house with index ${damage}`, () => {
     const rig = custodyRig(),
       fake = fakeKeychain(),
       keys = new MacOSHouseKeys(fake.command);
@@ -56,7 +56,7 @@ for (const damage of ["lost", "broken", "omitted", "foreign", "malformed-account
     expect([...fake.saved.keys()].some(id => id.includes(ref.slice(7)))).toBe(false);
     expect(keys.has("other-secret-one")).toBe(true);
   });
-it("aceptar recrea un ancla perdida después de verificar", () => {
+it("accept recreates a lost anchor after verifying", () => {
   const rig = custodyRig(),
     fake = fakeKeychain(),
     keys = new MacOSHouseKeys(fake.command);
@@ -71,7 +71,7 @@ it("aceptar recrea un ancla perdida después de verificar", () => {
   SecretCustody.acceptRestoredCopy(rig.file, rig.home, keys, head);
   new SecretCustody(rig.file, rig.home, keys).close();
 });
-it("el falso corta en 4095 bytes y ejecuta el resto como otra orden", () => {
+it("the fake cuts at 4095 bytes and runs the rest as another command", () => {
   const fake = fakeKeychain();
   const prefix = "add-generic-password -s synthetic -a first -w ";
   const first = prefix + "x".repeat(4095 - prefix.length);
@@ -85,7 +85,7 @@ it("el falso corta en 4095 bytes y ejecuta el resto como otra orden", () => {
   expect(fake.saved.get("synthetic/first")?.length).toBe(4095 - prefix.length);
   expect(Buffer.from(fake.saved.get("synthetic/second") ?? []).toString()).toBe("next");
 });
-it("el índice fuera de tamaño falla antes de sobrescribirlo o crear una llave", () => {
+it("an oversized index fails before overwriting it or creating a key", () => {
   const fake = fakeKeychain(),
     keys = new MacOSHouseKeys(fake.command);
   keys.key("house-secret-first", true).fill(0);
@@ -101,7 +101,7 @@ it("el índice fuera de tamaño falla antes de sobrescribirlo o crear una llave"
   expect(fake.saved.get(id)).toEqual(full);
   expect(fake.calls.slice(before).every(call => call.args[0] === "find-generic-password")).toBe(true);
 });
-it("poda solamente después de borrar la llave; una falla de poda se puede reintentar", () => {
+it("prunes only after deleting the key; a pruning failure can be retried", () => {
   const fake = fakeKeychain(),
     working = new MacOSHouseKeys(fake.command);
   working.key("house-secret-first", true).fill(0);
@@ -121,7 +121,7 @@ it("poda solamente después de borrar la llave; una falla de poda se puede reint
   working.forget("house-secret-first");
   expect(Buffer.from(fake.saved.get(indexId(fake)) ?? []).toString()).not.toBe(before.toString());
 });
-it("300 rotaciones dejan una sola cuenta viva; abrir y olvidar siguen funcionando", () => {
+it("300 rotations leave a single live account; open and forget keep working", () => {
   const rig = custodyRig(),
     fake = fakeKeychain(),
     keys = new MacOSHouseKeys(fake.command);
@@ -138,7 +138,7 @@ it("300 rotaciones dejan una sola cuenta viva; abrir y olvidar siguen funcionand
   again.forgetHouse(again.forgetWarning());
   expect(fake.saved.size).toBe(0);
 }, 30000);
-it("olvidar encuentra también la llave pendiente cuya fila ya se borró y cuyo índice se perdió", () => {
+it("forget also finds the pending key whose row was already deleted and whose index was lost", () => {
   const rig = custodyRig(),
     fake = fakeKeychain(),
     keys = new MacOSHouseKeys(fake.command);
@@ -160,10 +160,10 @@ it("olvidar encuentra también la llave pendiente cuya fila ya se borró y cuyo 
   expect([...fake.saved.keys()].some(id => id.includes(ref.slice(7)))).toBe(false);
   expect(keys.head("other")).toBeUndefined();
 });
-it("el formato v2 no se convierte ni se toca al pedir una llave v3 ausente", () => {
+it("the v2 format is neither converted nor touched when a missing v3 key is asked for", () => {
   const fake = fakeKeychain(),
     keys = new MacOSHouseKeys(fake.command);
-  const old = Buffer.from("SINTETICO_V2");
+  const old = Buffer.from("SYNTHETIC_V2");
   fake.saved.set("desert.house-custody.v2/house", old);
   expect(() => keys.key("house", false)).toThrow("E-CUSTODY-KEY");
   expect(fake.saved.size).toBe(1);

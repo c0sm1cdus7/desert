@@ -40,7 +40,7 @@ export const documentProgram = defineProgram(metadata, {
     fiscal: {
       ...group,
       acts: {
-        issue: programAct<Documents, ReturnType<typeof input>, readonly ["invalida"]>({
+        issue: programAct<Documents, ReturnType<typeof input>, readonly ["invalid"]>({
           name: "emitir",
           enter: "emitir",
           purpose: "emitir un comprobante",
@@ -48,10 +48,10 @@ export const documentProgram = defineProgram(metadata, {
           on: "tool",
           undoable: true,
           input: input(),
-          outside: ["invalida"],
+          outside: ["invalid"],
           run: (value, context) =>
             value.sale === "invalid"
-              ? { status: "rejected", reason: "invalida", value: { code: "invalida" } }
+              ? { status: "rejected", reason: "invalid", value: { code: "invalid" } }
               : {
                   status: "accepted",
                   value: { id: value.sale, number: "1" },
@@ -69,7 +69,7 @@ export const documentProgram = defineProgram(metadata, {
                 },
           cases: [
             {
-              promise: "Emite un comprobante",
+              promise: "Issues a voucher",
               input: { sale: "v1" },
               then: { says: "", facts: [{ kind: "documents/issued", data: { sale: "v1", voucher: "v1" } }] },
             },
@@ -81,7 +81,7 @@ export const documentProgram = defineProgram(metadata, {
   fold: (own, event) =>
     event.kind === "documents/issued"
       ? {
-          fiscal: new Map([...own.fiscal, [event.data.voucher, { number: "1", state: "issued", privado: "hidden" }]]),
+          fiscal: new Map([...own.fiscal, [event.data.voucher, { number: "1", state: "issued", concealed: "hidden" }]]),
         }
       : own,
 });
@@ -108,8 +108,8 @@ export const salesProgram = defineProgram(salesMetadata, {
       words: words("Facturación", "f"),
       acts: {
         read: programAct<Sales, ReturnType<typeof input>>({
-          name: "leer",
-          enter: "leer",
+          name: "consultar",
+          enter: "consultar",
           purpose: "leer el comprobante y sus avisos",
           key: "l",
           on: "tool",
@@ -126,7 +126,7 @@ export const salesProgram = defineProgram(salesMetadata, {
               },
             };
           },
-          cases: [{ promise: "Lee sin comprobante previo", input: { sale: "v1" }, then: { says: "", facts: [] } }],
+          cases: [{ promise: "Reads with no previous voucher", input: { sale: "v1" }, then: { says: "", facts: [] } }],
         }),
         invoice: programAct<Sales, ReturnType<typeof input>>({
           name: "facturar",
@@ -140,7 +140,7 @@ export const salesProgram = defineProgram(salesMetadata, {
             status: "accepted",
             value: await context.contracts?.["fiscal-documents"]?.actions.issue?.(value),
           }),
-          cases: [{ promise: "Pide el comprobante", input: { sale: "v1" }, then: { says: "", facts: [] } }],
+          cases: [{ promise: "Asks for the voucher", input: { sale: "v1" }, then: { says: "", facts: [] } }],
         }),
       },
     },

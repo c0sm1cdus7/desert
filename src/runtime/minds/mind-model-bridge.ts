@@ -5,7 +5,7 @@ import { mindRequest } from "./mind-request.ts";
 import { modelFailureLog, turnNotice } from "../../texts/mind-turn.texts.ts";
 import type { MindActor } from "../../fields/mind-actor.ts";
 import type { ModelOutcome, ModelRequest } from "./mind-ports.ts";
-/** Tokens que el proveedor agrega solo (el formato del esquema): los bytes acotan nada más el texto que mandamos. */
+/** Tokens the provider adds on its own (the schema format): the bytes bound only the text we send. */
 export const providerMarginTokens = 4096;
 const zeroUsage: Usage = { input: 0, cacheWrite: 0, cacheRead: 0, output: 0 };
 type Ports = Readonly<{
@@ -96,7 +96,7 @@ async function failedCall(
       return { kind: "uncertain" };
     }
   } else if (error.kind === "http") {
-    // El proveedor contestó con un error: es una respuesta definitiva que no se cobra; la reserva se liquida en cero.
+    // The provider answered with an error: a final answer that is not charged; the reservation settles at zero.
     try {
       await ports.settle(request, zeroUsage, 0);
     } catch {
@@ -121,7 +121,7 @@ async function send(payload: Payload, key: string, request: ModelRequest, ports:
     try {
       usage = usageOf(await response.clone().json());
     } catch {
-      /* La reserva se conserva. */
+      /* The reservation is kept. */
     }
     return response;
   };
@@ -171,7 +171,7 @@ export function callAssignedModel(ports: Ports): (request: ModelRequest) => Prom
   required(ports.transport, "transport");
   return request => invoke(request, ports);
 }
-/** La misma carga de referencia ordena todas las cartas; el nombre y versión guardan modelo y esfuerzo. */
+/** The same reference load orders every card; the name and version keep model and effort. */
 export function modelCandidates(cards: readonly Card[]) {
   required(cards, "cards");
   return cards.flatMap(card => {

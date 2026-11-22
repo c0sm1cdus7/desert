@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
 import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
 import { MemoryHouseKeys } from "./house-keys.ts";
-it("crear usa entrada estándar separada: ningún argumento contiene la llave (a6)", () => {
+it("creating uses separate standard input: no argument contains the key (a6)", () => {
   const { saved, calls, command } = fakeKeychain();
   const provider = new MacOSHouseKeys(command);
   const first = provider.key("house-a", true),
@@ -20,8 +20,8 @@ it("crear usa entrada estándar separada: ningún argumento contiene la llave (a
   expect(() => provider.key("house-a", false)).toThrow("E-CUSTODY-KEY");
   expect(provider.key("house-b", false)).toEqual(second);
 });
-it("fallas del comando nunca llevan su línea, entrada, salida ni causa (a6)", () => {
-  const marker = "ERROR_SINTETICO_DEL_COMANDO";
+it("command failures never carry its line, input, output or cause (a6)", () => {
+  const marker = "SYNTHETIC_COMMAND_ERROR";
   for (const throwing of [true, false]) {
     const provider = new MacOSHouseKeys((_file, args, input) => {
       if (args[0] === "find-generic-password") return { status: 44, stdout: Buffer.alloc(0) };
@@ -30,7 +30,7 @@ it("fallas del comando nunca llevan su línea, entrada, salida ni causa (a6)", (
     });
     try {
       provider.key("house-a", true);
-      expect.fail("debía fallar");
+      expect.fail("should have failed");
     } catch (error) {
       expect(error).toMatchObject({ code: "E-CUSTODY-KEY", cause: undefined });
       expect(inspect(error) + JSON.stringify(error)).not.toContain(marker);
@@ -38,7 +38,7 @@ it("fallas del comando nunca llevan su línea, entrada, salida ni causa (a6)", (
     }
   }
 });
-it("el proveedor puede olvidar una casa sin afectar a otra (a2)", () => {
+it("the provider can forget one house without affecting another (a2)", () => {
   const keys = new MemoryHouseKeys(),
     first = keys.key("a", true),
     second = keys.key("b", true);

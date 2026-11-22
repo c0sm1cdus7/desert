@@ -56,7 +56,7 @@ function previous(exposed = false) {
     kind text not null, by text not null, cause text not null, data text not null, process text);
     create table snapshots (name text primary key, state blob not null);`);
   for (const row of fixture.events) {
-    const data = exposed ? row.data.replace(/secret:[0-9a-f-]{36}/gu, "SINTETICO_EXPUESTO") : row.data;
+    const data = exposed ? row.data.replace(/secret:[0-9a-f-]{36}/gu, "EXPOSED_SYNTHETIC") : row.data;
     db.prepare("insert into events values (?,?,?,?,?,?,?,?)").run(
       row.seq,
       row.id,
@@ -78,7 +78,7 @@ function previous(exposed = false) {
   return home;
 }
 describe.each(keyProviders)("$name", provider => {
-  it("abre y cifra una casa escrita por ac07248, conserva hechos e ids y vuelve a abrir", () => {
+  it("opens and encrypts a house written by ac07248, keeps facts and ids and opens again", () => {
     const home = previous();
     let keys: HouseKeyProvider = provider.open(home);
     expect(() => startHouse(home, options)).toThrow("E-CUSTODY-PROVIDER");
@@ -87,10 +87,10 @@ describe.each(keyProviders)("$name", provider => {
     expect(house.tools.state().house.admin).toBe("ana");
     const facts = house.journal.replay<string[]>([], (all, event) => [...all, event.id]);
     expect(facts.slice(0, fixture.events.length)).toEqual(fixture.events.map(event => event.id));
-    expect(containing(home, "ANTERIOR_SINTETICO")).toEqual([]);
+    expect(containing(home, "SYNTHETIC_PREVIOUS")).toEqual([]);
     house.close();
     const file = join(home, "fixture.sqlite");
-    expect(containing(home, "ANTERIOR_SINTETICO")).toEqual([]);
+    expect(containing(home, "SYNTHETIC_PREVIOUS")).toEqual([]);
     keys = reopenKeys(home, keys);
     const custody = new SecretCustody(file, realpathSync(home), keys);
     opened.push(custody);
@@ -101,7 +101,7 @@ describe.each(keyProviders)("$name", provider => {
     opened.push(reopened);
     expect(reopened.tools.state().house.admin).toBe("ana");
   });
-  it("la revisión B rechaza historia expuesta antes de abrir o adoptar la bóveda anterior", () => {
+  it("review B rejects exposed history before opening or adopting the previous vault", () => {
     const home = previous(true),
       file = join(home, "fixture.sqlite"),
       before = readFileSync(file);

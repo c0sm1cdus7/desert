@@ -30,8 +30,8 @@ it("rejects a reference outside the compacted interval", () => {
 it("separates the consciousness and journeys of different minds", () => {
   const empty = { entries: [], compacted: [] };
   const a = { actor: "assistant:franco" };
-  const b = { actor: "assistant:franco", process: "viaje" };
-  const c = { actor: "mind:notes", process: "viaje" };
+  const b = { actor: "assistant:franco", process: "trip" };
+  const c = { actor: "mind:notes", process: "trip" };
   const bank = putThread(
     putThread(putThread(new Map(), a, appendThread(empty, { seq: 1, id: "a", text: "uno" })), b, empty),
     c,

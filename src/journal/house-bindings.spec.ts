@@ -6,7 +6,7 @@ import { toolAct } from "../tools/act-definition.ts";
 import { effect } from "../house/facts.ts";
 import type { SecretRefs } from "../tools/capabilities-contract.ts";
 const input = Type.Object({});
-it("rechazar descarta el efecto y conserva la credencial anterior", async () => {
+it("rejecting discards the effect and keeps the previous credential", async () => {
   let refused = false;
   const refs: SecretRefs[] = [];
   const rig = adapterHouse({
@@ -28,7 +28,7 @@ it("rechazar descarta el efecto y conserva la credencial anterior", async () => 
   expect((await rig.act("current")).status).toBe("accepted");
   expect(JSON.stringify(rig.facts()).match(/credential-bound/gu)).toHaveLength(1);
 });
-it("si falla el lote después del vínculo no reemplaza ni borra la versión anterior", async () => {
+it("if the batch fails after the binding, it neither replaces nor deletes the previous version", async () => {
   const refs: SecretRefs[] = [];
   const rig = adapterHouse({
     set: toolAct(input, async (_, context) => {
@@ -65,7 +65,7 @@ it("si falla el lote después del vínculo no reemplaza ni borra la versión ant
   expect((await rig.act("current")).status).toBe("accepted");
   expect(JSON.stringify(rig.facts()).match(/credential-bound/gu)).toHaveLength(1);
 });
-it("dos acciones con la misma revisión no pisan una a la otra", async () => {
+it("two actions with the same revision do not overwrite each other", async () => {
   const releases: (() => void)[] = [];
   const rig = adapterHouse({
     set: toolAct(input, async (_, context) => {
@@ -83,7 +83,7 @@ it("dos acciones con la misma revisión no pisan una a la otra", async () => {
   rig.restart();
   expect(JSON.stringify(rig.facts()).match(/credential-bound/gu)).toHaveLength(1);
 });
-it("copiar un efecto o escribir un hecho de custodia por el bus no concede autoridad", async () => {
+it("copying an effect or writing a custody fact through the bus grants no authority", async () => {
   const rig = adapterHouse({
     set: toolAct(input, async (_, context) => {
       const refs = await imported(context);
@@ -113,7 +113,7 @@ it("copiar un efecto o escribir un hecho de custodia por el bus no concede autor
   rig.restart();
   expect((await rig.act("current")).status).toBe("accepted");
 });
-it("cerrar durante una operación revoca su continuación sin dejar un vínculo", async () => {
+it("closing during an operation revokes its continuation without leaving a binding", async () => {
   let finish = () => {};
   const rig = adapterHouse({
     set: toolAct(input, async (_, context) => {

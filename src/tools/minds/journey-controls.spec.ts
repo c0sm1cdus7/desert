@@ -72,7 +72,7 @@ const refused = (run: () => unknown): unknown => {
     return error instanceof Error && "problem" in error ? error.problem : error;
   }
 };
-it("abre con un ID generado y autor fijo, sin esperar al supervisor; no emite hasta que el turno aplica", () => {
+it("opens with a generated id and fixed author, without the supervisor; emits nothing until the turn applies", () => {
   const r = rig();
   const facts = openJourney(r.context, { goal: "Anotar el mate", kit });
   const result = { facts };
@@ -100,12 +100,12 @@ it.each([
   [{ goal: "Mate", kit: [...kit, ...kit] }, "kit"],
   [{ goal: "Mate", kit: [{ tool: "notes", acts: ["write", "write"] }] }, "kit"],
   [{ goal: "Mate", kit: [{ tool: "notes", acts: ["delete"] }] }, "kit"],
-])("rechaza apertura inválida %#", (input, field) => {
+])("refuses invalid opening %#", (input, field) => {
   const r = rig();
   expect(() => openJourney(r.context, input)).toThrow(field);
   expect(r.events).toEqual([]);
 });
-it("rechaza identidades, otra apertura desde un journey y mente inactiva", () => {
+it("refuses identities, another opening from a journey and an inactive mind", () => {
   const r = rig();
   const context = r.opened();
   expect(() => openJourney(context, { goal: "Otro", kit })).toThrow("scope");
@@ -115,7 +115,7 @@ it("rechaza identidades, otra apertura desde un journey y mente inactiva", () =>
   Object.assign(r.state, { active: false });
   expect(() => openJourney(r.context, { goal: "Otro", kit })).toThrow("active");
 });
-it("escribe un plan una vez y completa pasos por ID en cualquier orden", () => {
+it("writes a plan once and completes steps by id in any order", () => {
   const r = rig();
   const c = r.opened();
   const plan = {
@@ -136,7 +136,7 @@ it("escribe un plan una vez y completa pasos por ID en cualquier orden", () => {
   expect([...r.state.journeys.values()][0]?.steps.map(step => step.note)).toEqual(["Preparado", "Anotado"]);
   expect(r.events.slice(1).every(event => event.cause.includes("e1") && event.by === actor)).toBe(true);
 });
-it("rechaza planes vacíos, IDs repetidos y argumentos faltantes sin efectos", () => {
+it("refuses empty plans, repeated ids and missing arguments with no effects", () => {
   const r = rig();
   const c = r.opened();
   expect(() => writeJourneyPlan(c, { steps: [] })).toThrow("steps");
@@ -154,7 +154,7 @@ it("rechaza planes vacíos, IDs repetidos y argumentos faltantes sin efectos", (
   expect(() => waitJourney(c, { what: "Respuesta" })).toThrow("until");
   expect(r.events).toHaveLength(1);
 });
-it("persiste espera y reloj, los reconstruye, reemplaza la espera y cancela al cerrar", () => {
+it("persists wait and clock, rebuilds them, replaces the wait and cancels on closing", () => {
   const r = rig();
   const c = r.opened();
   r.apply(waitJourney(c, { what: "Respuesta", until: 2000 }));
@@ -184,7 +184,7 @@ it.each([0, 999, 1000, -1, 1.5, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1])(
     expect(() => waitJourney(c, { what: "Respuesta", until })).toThrow("until");
   },
 );
-it("desiste con motivo y referencias; el cierre es la única devolución a consciencia", () => {
+it("gives up with a reason and references; the closure is the only return to consciousness", () => {
   const r = rig();
   const c = r.opened();
   const facts = desistJourney(c, { reason: "Falta el dato", references: [] });
@@ -200,7 +200,7 @@ it("desiste con motivo y referencias; el cierre es la única devolución a consc
   r.apply(facts);
   expect(() => desistJourney(c, { reason: "Otra vez", references: [] })).toThrow("active");
 });
-it("aísla dos journeys de la misma mente y rechaza operar uno ajeno", () => {
+it("isolates two journeys of the same mind and refuses operating a foreign one", () => {
   const r = rig();
   const first = r.opened();
   const second = r.opened();
@@ -223,32 +223,32 @@ it.each([
   Object.assign(r.state, { pending: [{ by: actor, process: c.turn.scope.process }] });
   expect(() => close(c, input)).toThrow("pending");
 });
-it("no confunde actos de otro journey con los propios al cerrar", () => {
+it("does not mistake another journey's acts for its own when closing", () => {
   const r = rig();
   const c = r.opened();
   Object.assign(r.state, { pending: [{ by: actor, process: "another" }] });
   expect(endJourney(c, { summary: "Listo", references: [] })).toHaveLength(1);
 });
-it("funciona también para la mente de una herramienta", () => {
+it("works for a tool's mind too", () => {
   const r = rig();
   const turn: TurnContext = { ...r.context.turn, scope: { kind: "consciousness", actor: "mind:notes" } };
   const facts = openJourney({ ...r.context, turn }, { goal: "Anotar", kit });
   expect(facts[0]?.by).toBe("mind:notes");
 });
-it.each(["turn", "cause", "state"])("nombra el argumento de contexto ausente: %s", field => {
+it.each(["turn", "cause", "state"])("names the missing context argument: %s", field => {
   const r = rig();
   const context = Object.assign({ ...r.context }, { [field]: undefined });
   expect(() => openJourney(context, { goal: "Anotar", kit })).toThrow(field);
 });
 it.each(["journeys", "kit", "active", "pending", "through", "now", "rulesVersion"])(
-  "nombra el campo de estado ausente: %s",
+  "names the missing state field: %s",
   field => {
     const r = rig();
     Object.assign(r.state, { [field]: undefined });
     expect(() => openJourney(r.context, { goal: "Anotar", kit })).toThrow(field);
   },
 );
-it("también rechaza el cierre desde consciencia y el proceso sin journey", () => {
+it("also refuses closing from consciousness and a process with no journey", () => {
   const r = rig();
   expect(() => endJourney(r.context, { summary: "Listo", references: [] })).toThrow("scope");
   const c = r.opened();

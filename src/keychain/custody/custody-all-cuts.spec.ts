@@ -13,11 +13,11 @@ function legacy() {
   const rig = custodyRig(),
     db = new DatabaseSync(rig.file);
   db.exec("pragma journal_mode=WAL; create table secrets(id text primary key, value text)");
-  db.prepare("insert into secrets values (?,?)").run("secret:00000000-0000-0000-0000-000000000001", "LEGADO_SINTETICO");
+  db.prepare("insert into secrets values (?,?)").run("secret:00000000-0000-0000-0000-000000000001", "SYNTHETIC_LEGACY");
   db.close();
   return rig;
 }
-it("p6: SIGKILL antes y después de cada escritura de disco y proveedor, sin perder vínculos", async () => {
+it("p6: SIGKILL before and after every disk and provider write, without losing bindings", async () => {
   const dry = legacy(),
     output = join(dry.home, "calls.json");
   const child = spawnSync(process.execPath, [script, dry.file, dry.home, "0", "none", output], { encoding: "utf8" });
@@ -34,7 +34,7 @@ it("p6: SIGKILL antes y después de cada escritura de disco y proveedor, sin per
     const killed = spawnSync(process.execPath, [script, rig.file, rig.home, String(n), phase], { encoding: "utf8" });
     expect(killed.signal, `${label}: ${killed.stderr}`).toBe("SIGKILL");
     if (calls.slice(0, phase === "after" ? n : n - 1).includes("retire"))
-      expect(containing(rig.home, "LEGADO_SINTETICO"), label).toEqual([]);
+      expect(containing(rig.home, "SYNTHETIC_LEGACY"), label).toEqual([]);
     const recovered = new SecretCustody(rig.file, rig.home, processKeys(rig.home));
     try {
       const session = recovered.begin(custodyScope),
@@ -44,10 +44,10 @@ it("p6: SIGKILL antes y después de cada escritura de disco y proveedor, sin per
           recovered.adapter(session, ["signing"]).use(current.refs, () => true),
           label,
         ).resolves.toBe(true);
-      expect(containing(rig.home, "LEGADO_SINTETICO"), label).toEqual([]);
-      for (const marker of ["PRIMER_SINTETICO", "SEGUNDO_SINTETICO", "PROVISIONAL_SINTETICO"])
+      expect(containing(rig.home, "SYNTHETIC_LEGACY"), label).toEqual([]);
+      for (const marker of ["FIRST_SYNTHETIC", "SECOND_SYNTHETIC", "PROVISIONAL_SYNTHETIC"])
         expect(containing(rig.home, marker), label).toEqual([]);
-      session.replace("after-cut", { key: session.capture(Buffer.from("CONTINUA")) }, 0);
+      session.replace("after-cut", { key: session.capture(Buffer.from("CONTINUES")) }, 0);
     } finally {
       recovered.close();
     }

@@ -4,13 +4,13 @@ import { join } from "node:path";
 import { custodyHead, custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
 import { SecretCustody } from "./secret-custody.ts";
 for (const operation of ["rotate", "release", "legacy", "copy"])
-  it(`acepta un respaldo anterior a ${operation}, nombra lo inutilizable y conserva el otro vínculo`, async () => {
+  it(`accepts a backup from before ${operation}, names what is unusable and keeps the other binding`, async () => {
     const rig = custodyRig();
     let store = rig.open();
     let session = store.begin(custodyScope);
-    const old = operation === "legacy" ? store.keep(Buffer.from("anterior")) : session.capture(Buffer.from("anterior"));
+    const old = operation === "legacy" ? store.keep(Buffer.from("previous")) : session.capture(Buffer.from("previous"));
     if (operation !== "legacy") session.replace("signing", { key: old }, 0);
-    const stable = session.capture(Buffer.from("vigente"));
+    const stable = session.capture(Buffer.from("current"));
     session.replace("ticket", { key: stable }, 0);
     const head = custodyHead(store.facts());
     store.close();
@@ -20,7 +20,7 @@ for (const operation of ["rotate", "release", "legacy", "copy"])
     session = store.begin(custodyScope);
     if (operation === "legacy") store.discardLegacy(old);
     else if (operation === "release") session.release("signing", 1);
-    else session.replace("signing", { key: session.capture(Buffer.from("nuevo")) }, 1);
+    else session.replace("signing", { key: session.capture(Buffer.from("new")) }, 1);
     store.close();
     if (operation !== "copy") copyFileSync(backup, rig.file);
     expect(() => rig.open()).toThrow("E-CUSTODY-ROLLBACK");

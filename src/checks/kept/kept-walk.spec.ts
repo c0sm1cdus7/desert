@@ -17,7 +17,7 @@ import { startHouse } from "../../runtime/house-runtime.ts";
 
 const root = mkdtempSync(join(tmpdir(), "desert-kept-walk-spec-"));
 afterAll(() => rmSync(root, { recursive: true, force: true }));
-const input = object({ mode: oneOf("Salida", option("Bien", "Bien", "b"), option("Falla", "Falla", "f")) });
+const input = object({ mode: oneOf("Salida", option("ok", "Bien", "b"), option("fail", "Falla", "f")) });
 const outside = ["printer offline"] as const;
 const print = programAct<Shop, typeof input, typeof outside>({
   name: "imprimir",
@@ -29,10 +29,10 @@ const print = programAct<Shop, typeof input, typeof outside>({
   input,
   outside,
   run: ({ mode }) =>
-    mode === "Bien"
+    mode === "ok"
       ? { status: "accepted", text: "Impreso · Recibo" }
       : { status: "rejected", reason: "printer offline" },
-  cases: [{ promise: "prints", input: { mode: "Bien" }, then: { says: "Impreso · Recibo", facts: [] } }],
+  cases: [{ promise: "prints", input: { mode: "ok" }, then: { says: "Impreso · Recibo", facts: [] } }],
 });
 const programWith = (act: ProgramAct<Shop>): Composition<Shop> => ({
   ...shopProgram,

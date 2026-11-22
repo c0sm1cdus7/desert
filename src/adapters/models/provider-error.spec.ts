@@ -12,11 +12,11 @@ const failure = async (body: ConstructorParameters<typeof Response>[0], status =
     return error;
   }
 };
-it.each([400, 401, 404, 429, 529])("conserva %s aunque no venga un sobre JSON", async status => {
+it.each([400, 401, 404, 429, 529])("keeps %s even without a JSON envelope", async status => {
   for (const body of [null, "", "{", "<html>proxy</html>", JSON.stringify({ error: null }), "42"])
     expect(await failure(body, status)).toMatchObject({ kind: "http", rejection: { status, type: "untyped" } });
 });
-it("acota la lectura a 8 KiB y cancela sin consumir el resto del cuerpo", async () => {
+it("bounds the read to 8 KiB and cancels without consuming the rest of the body", async () => {
   let bytes = 0;
   const cancel = vi.fn();
   const stream = new ReadableStream<Uint8Array>(
@@ -34,14 +34,14 @@ it("acota la lectura a 8 KiB y cancela sin consumir el resto del cuerpo", async 
   expect(bytes).toBe(8192);
   expect(cancel).toHaveBeenCalledOnce();
 });
-it("un cuerpo roto conserva HTTP y no reemplaza el rechazo por una falla JSON o de transporte", async () => {
+it("a broken body keeps HTTP and does not replace the rejection with a JSON or transport failure", async () => {
   const stream = new ReadableStream<Uint8Array>({ start: controller => controller.error(new Error("broken")) });
   expect(await failure(stream)).toMatchObject({
     kind: "http",
     rejection: { status: 400, type: "untyped", message: "No se pudo leer el cuerpo de error del proveedor." },
   });
 });
-it("redacta tipo, mensaje, causa y stack antes de recortar y quita controles de terminal", async () => {
+it("redacts type, message, cause and stack before truncating and strips terminal controls", async () => {
   const planted = ["sk", "ant", "another-synthetic-key"].join("-");
   const error = await failure(
     JSON.stringify({
@@ -63,7 +63,7 @@ it("redacta tipo, mensaje, causa y stack antes de recortar y quita controles de 
   expect(typeof message === "string" && message.length === 512).toBe(true);
   expect(message).toContain("…");
 });
-it("limpia una llave cortada por el límite de lectura", async () => {
+it("cleans a key cut by the read limit", async () => {
   const prefix = "x".repeat(8192 - 10);
   const planted = ["sk", "ant", "a-long-synthetic-key"].join("-");
   const error = await failure(prefix + planted);

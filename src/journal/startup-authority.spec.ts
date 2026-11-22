@@ -1,6 +1,6 @@
+// Reviewer: from a tool's startup bus, emit house and program facts by hand.
+// Runs the same on f81e988 (before) and 7ccaab1 (after): the tool captures its ToolStartup without using act.
 import { emitUnchecked } from "../../tests/support/startup-forge.ts";
-// Revisor: desde el bus del arranque de una herramienta, emitir a mano hechos de la casa y del programa.
-// Corre igual en f81e988 (antes) y en 7ccaab1 (después): la herramienta captura su ToolStartup sin usar act.
 import { afterEach, expect, it } from "vitest";
 
 import { effect, houseCatalog, type HouseEmission } from "../house/facts.ts";
@@ -115,8 +115,8 @@ const cases: Case[] = [
   },
   {
     name: "hecho del programa a nombre de ana",
-    fact: shop.fact("sale-registered", { sale: "falsa", total: 999 }, "ana"),
-    check: rig => ({ sale: rig.state().tools.sales.get("falsa") }),
+    fact: shop.fact("sale-registered", { sale: "forged", total: 999 }, "ana"),
+    check: rig => ({ sale: rig.state().tools.sales.get("forged") }),
   },
 ];
 for (const c of cases)

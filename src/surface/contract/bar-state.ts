@@ -1,4 +1,4 @@
-// The one state a Barra shows for two links: the device's to its server, and the house's to the device.
+// The one state a Bar shows for two links: the device's to its server, and the house's to the device.
 import type { Screen } from "./contract.ts";
 /** The link of this device to its server, which the screen cannot know. */
 export type Link = "connected" | "connecting" | "signal-lost";

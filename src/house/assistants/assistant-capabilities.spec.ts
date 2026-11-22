@@ -6,7 +6,7 @@ import { effect } from "../facts.ts";
 import { contractRig } from "../../../tests/support/contract-rig.ts";
 import { deferred, settled, saved } from "../../../tests/support/kit-running.ts";
 import type { Shop } from "../../../tests/support/shop.ts";
-it("retirar la capacidad de ver corta el acto visual pendiente y el permiso no lo revive", async () => {
+it("retiring the capability to see cuts the pending visual act and permission does not revive it", async () => {
   const nothing = object({});
   const done = deferred<typeof saved>();
   let context: ActContext<Shop> | undefined;

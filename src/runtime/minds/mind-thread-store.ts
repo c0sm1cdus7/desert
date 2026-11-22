@@ -1,4 +1,4 @@
-// Conserva cortes de hilos como referencias públicas y los restaura sin copiar el texto del diario.
+// Keeps thread cuts as public references and restores them without copying the journal's text.
 import { existsSync, readFileSync, writeFileSync, renameSync } from "node:fs";
 import { join } from "node:path";
 import { Type } from "@sinclair/typebox";

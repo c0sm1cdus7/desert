@@ -6,7 +6,7 @@ import { settle } from "../../surface/bridge/ports/house-ports.ts";
 const rigs: { close(): void }[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
 const by = "assistant:beto";
-it("reconstruye plan, pasos y espera; aísla dos journeys y conserva cierre", () => {
+it("rebuilds plan, steps and wait; isolates two journeys and keeps the closure", () => {
   const rig = shopRig();
   rigs.push(rig);
   for (const process of ["j1", "j2"])
@@ -25,7 +25,7 @@ it("reconstruye plan, pasos y espera; aísla dos journeys y conserva cierre", ()
   rig.restart();
   expect(rig.state().house.journeys).toEqual(closed);
 });
-it("rechaza autor de identidad, proceso ausente, plan duplicado y paso ausente o repetido", () => {
+it("refuses an identity author, a missing process, a duplicate plan and a missing or repeated step", () => {
   const rig = shopRig();
   rigs.push(rig);
   expect(() => rig.bus.emit(effect("journey-opened", { goal: "Anotar", kit: [] }, "beto", [], "j"))).toThrow();
@@ -40,7 +40,7 @@ it("rechaza autor de identidad, proceso ausente, plan duplicado y paso ausente o
   expect(() => rig.bus.emit(done)).toThrow();
   expect(() => rig.bus.emit(effect("journey-waiting", { what: "Ajena", until: 1 }, "mind:sales", [], "j"))).toThrow();
 });
-it("la ejecución fija actor y proceso, conserva anidados y rechaza un journey cerrado o ajeno", async () => {
+it("execution fixes actor and process, keeps nested acts and refuses a closed or foreign journey", async () => {
   const rig = contractRig();
   rigs.push(rig);
   rig.bus.emit(effect("assistant-enabled", { owner: "beto", name: "Nora" }, "ana"));

@@ -9,7 +9,7 @@ const action = (
 ): ContractAction => ({
   input: entry,
   output: Type.Object({ id: Type.String() }),
-  rejections: Type.Object({ code: Type.Literal("invalida") }),
+  rejections: Type.Object({ code: Type.Literal("invalid") }),
 });
 const iface = () => ({ actions: { issue: action() }, objects: {}, notices: {} });
 describe("contract halves", () => {
@@ -58,7 +58,7 @@ it("checks optional fields, unions and list elements in the correct direction", 
         reading: "house" as const,
         data: Type.Object({
           number: Type.String(),
-          state: Type.Union([Type.Literal("issued"), Type.Literal("anulado")]),
+          state: Type.Union([Type.Literal("issued"), Type.Literal("voided")]),
           lines: Type.Array(Type.String()),
         }),
       },
@@ -71,7 +71,7 @@ it("checks optional fields, unions and list elements in the correct direction", 
         ...request.objects.voucher,
         data: Type.Object({
           number: Type.Optional(Type.String()),
-          state: Type.Union([Type.Literal("issued"), Type.Literal("pendiente")]),
+          state: Type.Union([Type.Literal("issued"), Type.Literal("pending")]),
           lines: Type.Array(Type.Number()),
         }),
       },

@@ -1,4 +1,4 @@
-// Detecta importes inválidos al dibujar y conserva el nombre del campo para la persona.
+// Detects invalid amounts while drawing and keeps the field's name for the person.
 import type { TSchema } from "@sinclair/typebox";
 import type { Field } from "../contract/contract.ts";
 import { surfaceTexts } from "../../texts/surface.texts.ts";

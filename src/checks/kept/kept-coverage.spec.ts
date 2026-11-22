@@ -2,13 +2,13 @@ import { expect, it } from "vitest";
 import { breadthFirst } from "./kept-walk.ts";
 import { promiseTexts } from "../../texts/promises.texts.ts";
 import type { Path } from "./kept-path.ts";
-it("cuenta todas las ramas impedidas antes de deduplicar el estado, aunque ninguna acción se complete", async () => {
+it("counts every blocked branch before deduplicating the state, even if no action completes", async () => {
   const branches: readonly Path[] = [[{ kind: "confirm" }], [{ kind: "cancel" }]];
   const replay = (path: Path) =>
     Promise.resolve(
       path.length
         ? {
-            fingerprint: "mismo estado",
+            fingerprint: "same state",
             branches: [],
             unavailable: { tool: "vault", action: path[0]?.kind ?? "", reason: "liberar credencial" },
           }

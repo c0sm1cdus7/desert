@@ -1,4 +1,4 @@
-// Presenta la autoría del asistente con su titular y conserva los nombres de actores históricos.
+// Shows an assistant's authorship with its holder and keeps the names of historical actors.
 import type { Language } from "../fields/languages.ts";
 import { parseMindActor } from "../fields/mind-actor.ts";
 import { requireMind } from "../fields/mind-errors.ts";

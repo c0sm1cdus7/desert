@@ -1,4 +1,4 @@
-// Contrato público de arranque, sin custodia, almacén ni resolvedor.
+// Public startup contract, with no custody, store or resolver.
 import type { HouseEvent } from "../house/facts.ts";
 import type { Bus } from "../journal/bus.ts";
 import type { ActResult, Program, State } from "./tool-contract.ts";

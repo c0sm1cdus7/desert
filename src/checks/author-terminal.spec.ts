@@ -7,7 +7,7 @@ const entry = join(import.meta.dirname, "../../tests/support/author-terminal-ope
 const authors = [
   ["lucia", "Lucía"],
   ["unnamed", "unnamed"],
-  ["retirada", "Inés"],
+  ["retired", "Inés"],
   ["mind:sales", "mente de Ventas"],
   ["assistant:lucia", "Nora, por Lucía"],
 ];
@@ -36,7 +36,7 @@ async function readRecord(home: string, id: string, name: string, pass: number) 
   }
 }
 it.each(authors)(
-  "lee %s por su nombre en Atención, Actividad y Registro, también al reabrir",
+  "reads %s by name in attention, activity and the record, also after reopening",
   async (id, name) => {
     const home = mkdtempSync(join(tmpdir(), "author-terminal-"));
     try {
@@ -50,7 +50,7 @@ it.each(authors)(
   20000,
 );
 it.each(authors)(
-  "lee %s por su nombre en la cabecera y la referencia del hilo",
+  "reads %s by name in the thread header and reference",
   async (id, name) => {
     const home = mkdtempSync(join(tmpdir(), "author-thread-"));
     const term = realTerminal([process.execPath, entry, home, id, "thread"], { cols: 106, rows: 40 });

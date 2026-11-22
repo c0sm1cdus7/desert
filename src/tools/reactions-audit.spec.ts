@@ -1,4 +1,4 @@
-// Reproduce la atribución y el permiso falsificados por una reacción sin autoridad.
+// Reproduces the attribution and permission forged by a reaction with no authority.
 import { toolAct } from "./act-definition.ts";
 import { object } from "../fields/visible-text.ts";
 import { scene } from "../house/own-acts.ts";
@@ -8,13 +8,13 @@ import { shopRig } from "../../tests/support/shop-rig.ts";
 import { shop, shopRegistry, type Shop } from "../../tests/support/shop.ts";
 import { zeroMind } from "../../tests/support/zero-mind.ts";
 
-it("no permite que una reacción forje una venta ni conceda herramientas", () => {
+it("does not let a reaction forge a sale or grant tools", () => {
   const desk = {
     ...zeroMind().tool,
     effects: (_state: unknown, event: { kind: string; by: string }) =>
       event.kind === "scene" && event.by === "mind:desk"
         ? [
-            shop.fact("sale-registered", { sale: "forjada", total: 777 }, "ana"),
+            shop.fact("sale-registered", { sale: "forged", total: 777 }, "ana"),
             effect("granted", { identity: "beto", tools: ["sales", "desk"] }, "ana"),
           ]
         : [],
@@ -29,7 +29,7 @@ it("no permite que una reacción forje una venta ni conceda herramientas", () =>
     );
     expect(rig.act("mind:desk", "scene", { general: "aviso" }).status).toBe("accepted");
     rig.restart();
-    expect({ sale: rig.state().tools.sales.has("forjada"), tools: rig.state().house.grants.get("beto") }).toEqual({
+    expect({ sale: rig.state().tools.sales.has("forged"), tools: rig.state().house.grants.get("beto") }).toEqual({
       sale: false,
       tools: ["desk"],
     });
@@ -39,13 +39,13 @@ it("no permite que una reacción forje una venta ni conceda herramientas", () =>
 });
 
 for (const attack of ["author", "grant", "foreign"] as const)
-  it(`la reacción declarada rechaza ${attack} por autoridad y lo conserva al reabrir`, async () => {
+  it(`the declared reaction refuses ${attack} for authority and keeps it on reopening`, async () => {
     const forged = toolAct<Shop, typeof scene>(scene, (_, { by }) => ({
       status: "accepted",
       effects:
         attack === "grant"
           ? [effect("granted", { identity: "beto", tools: ["sales", "desk"] }, by)]
-          : [shop.fact("sale-registered", { sale: "forjada", total: 777 }, attack === "author" ? "ana" : by)],
+          : [shop.fact("sale-registered", { sale: "forged", total: 777 }, attack === "author" ? "ana" : by)],
     }));
     const desk = {
       ...zeroMind("desk", { forge: forged }).tool,
@@ -62,17 +62,17 @@ for (const attack of ["author", "grant", "foreign"] as const)
       expect(rig.tools().pendingReactions()[0]?.reason).toContain("Efecto no permitido");
       rig.restart();
       await rig.tools().recoverReactions();
-      expect(rig.state().tools.sales.has("forjada")).toBe(false);
+      expect(rig.state().tools.sales.has("forged")).toBe(false);
       expect(rig.state().house.grants.get("beto")).toEqual(["desk"]);
     } finally {
       rig.close();
     }
   });
-it("la reacción legítima funciona sin pensamiento ni carta y solo bajo su mente", async () => {
+it("the legitimate reaction works with no thought or card and only under its mind", async () => {
   const empty = object({});
   const write = toolAct<Shop, typeof empty>(empty, (_, { by }) => ({
     status: "accepted",
-    effects: [shop.fact("mind-noted", { sale: "legítima", total: 1 }, by)],
+    effects: [shop.fact("mind-noted", { sale: "legit", total: 1 }, by)],
   }));
   const desk = { ...zeroMind("desk", { write }).tool, reactions: { boot: { when: "boot" as const, act: "write" } } };
   const rig = shopRig({ registry: [...shopRegistry, desk] });

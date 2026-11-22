@@ -4,18 +4,18 @@ import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts"
 import { CustodyDatabase } from "./custody-database.ts";
 import { CustodyError } from "./house-keys.ts";
 
-it("distingue un registro corto de otra cabeza y explica lo que se acepta", () => {
+it("tells a short record from another head and explains what is accepted", () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
-  session.replace("firma", { key: session.capture(Buffer.from("invented")) }, 0);
+  session.replace("signing", { key: session.capture(Buffer.from("invented")) }, 0);
   store.close();
   const db = new DatabaseSync(rig.file);
   db.exec("drop trigger custody_no_delete; delete from custody_facts");
   db.close();
   expect(() => rig.open()).toThrow(/ancla espera 1 renglones; hay 0.*vínculos/su);
 });
-it("informa almacenamiento al llenarse SQLite", () => {
+it("reports storage when SQLite fills up", () => {
   const rig = custodyRig(),
     db = new CustodyDatabase(rig.file);
   const pages = db.db.prepare("pragma page_count").get()?.page_count;
@@ -25,12 +25,12 @@ it("informa almacenamiento al llenarse SQLite", () => {
   );
   db.close();
 });
-it("explica los cuatro códigos de custodia", () => {
+it("explains the four custody codes", () => {
   for (const code of ["E-CUSTODY-INTEGRITY", "E-CUSTODY-MISSING", "E-CUSTODY-LOCKED", "E-CUSTODY-STORAGE"] as const)
     expect(new CustodyError(code).message.length).toBeGreaterThan(code.length);
 });
 
-it("ingresar y usar no convierten el material a texto", async () => {
+it("taking in and using never convert the material to text", async () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
@@ -55,8 +55,8 @@ it("ingresar y usar no convierten el material a texto", async () => {
   });
   try {
     const ref = session.capture(Buffer.from(marker));
-    session.replace("firma", { key: ref }, 0);
-    await store.adapter(session, ["firma"]).use({ key: ref }, material => material.key?.length);
+    session.replace("signing", { key: ref }, 0);
+    await store.adapter(session, ["signing"]).use({ key: ref }, material => material.key?.length);
     expect(conversions).toBe(0);
   } finally {
     stringSpy.mockRestore();

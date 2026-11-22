@@ -27,7 +27,7 @@ function diagnostics(body: string) {
     path === file ? ts.createSourceFile(path, code, language, true) : read(path, language, ...args);
   return ts.getPreEmitDiagnostics(ts.createProgram([file], options, host));
 }
-it("el programa de control compila sin errores ajenos al contrato", () => {
+it("the control program compiles with no errors unrelated to the contract", () => {
   expect(diagnostics("const by: string = context.by;").map(d => d.code)).toEqual([]);
 });
 for (const body of [
@@ -41,7 +41,7 @@ for (const body of [
     const found = diagnostics(body);
     expect(found.some(d => d.file?.fileName === file && d.code === 2339)).toBe(true);
   });
-it("ni la acción ni el arranque reciben almacén, custodia o resolvedor", () => {
+it("neither the action nor startup receives a store, custody or resolver", () => {
   const seen: unknown[] = [];
   const probe: Tool<Shop> = {
     id: "probe",

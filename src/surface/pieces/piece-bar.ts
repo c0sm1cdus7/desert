@@ -1,4 +1,4 @@
-// The Barra with its Latido, and the Toolbar with its actions: what a screen says above and below what it shows.
+// The Bar with its Beat, and the Toolbar with its actions: what a screen says above and below what it shows.
 import type { Hint, Screen } from "../contract/contract.ts";
 import { hintSends } from "../contract/hint-sends.ts";
 import type { Tone } from "../contract/tones.ts";

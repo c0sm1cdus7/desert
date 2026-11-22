@@ -1,4 +1,4 @@
-// Sondas adversarias P1–P11 con datos inventados, convertidas en afirmaciones ejecutables.
+// Adversarial probes P1–P11 with invented data, turned into executable assertions.
 import { expect, it } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -30,7 +30,7 @@ const report = (label: string, observed: Record<string, unknown>) => {
   }
   if (label === "P9") expect(observed).toMatchObject({ b: "accepted", facts: true });
 };
-it("P6 quien no tiene la herramienta o no la atiende manda un secreto", () => {
+it("P6 whoever lacks the tool or does not attend it sends a secret", () => {
   const value = "QZ";
   const rig = fixture();
   const bob = localPorts(rig.house, "bob", { recentLines: 20 }).act(
@@ -48,7 +48,7 @@ it("P6 quien no tiene la herramienta o no la atiende manda un secreto", () => {
   report("P6", { bob: bob.status, a: acts(rig), anaOther: anaOther.status, unattended: u.status, u: acts(unattended) });
 });
 
-it("P8 rarezas: ref-like, enorme, vacío, nombre de campo, json", () => {
+it("P8 oddities: ref-like, huge, empty, field name, json", () => {
   for (const value of [
     "secret:00000000-0000-0000-0000-000000000000",
     "Z".repeat(200_000),
@@ -80,8 +80,8 @@ it("P8 rarezas: ref-like, enorme, vacío, nombre de campo, json", () => {
   }
 });
 
-it("P9 dos acciones a la vez con el mismo bus: reacciones de otra herramienta", async () => {
-  const value = "MARCADOR-PARALELO-0009";
+it("P9 two actions at once on the same bus: reactions of another tool", async () => {
+  const value = "PARALLEL-MARKER-0009";
   const rig = fixture(secret, async input => {
     await new Promise(r => setTimeout(r, 5));
     return { status: "accepted", text: String(field(input, "value")) };

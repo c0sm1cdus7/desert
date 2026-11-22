@@ -7,7 +7,7 @@ import { vocabulary } from "../../journal/vocabulary.ts";
 import { emptyHouse, houseStep } from "../members.ts";
 import { effect } from "../facts.ts";
 import { mindEffects } from "../../../tests/support/mind-facts.ts";
-it("cerrar SQLite y reabrir reconstruye todos los contratos sin cambiar autorías ni liberar incertidumbre", () => {
+it("closing SQLite and reopening rebuilds every contract without changing authorship or releasing uncertainty", () => {
   const dir = mkdtempSync(join(tmpdir(), "mind-contracts-"));
   const file = join(dir, "house.sqlite");
   const words = vocabulary({});

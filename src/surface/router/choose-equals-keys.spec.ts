@@ -126,7 +126,7 @@ describe("a choose has no path of its own", () => {
     const tools = pointedTools();
     const view = await replayed(tools, [{ kind: "type", text: "c" }]);
     expect(idOf(view, tools, "cerrar")).toBe("");
-    for (const row of ["nada", JSON.stringify(["act", "boxes", "closed", null, 0, null])])
+    for (const row of ["nothing", JSON.stringify(["act", "boxes", "closed", null, 0, null])])
       expect(step(view, choose(row), tools, bar.now)).toEqual({ session: view });
   });
   it("marks and unmarks an option of a multiple question, as space does", async () => {

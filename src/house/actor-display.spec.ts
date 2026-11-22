@@ -10,7 +10,7 @@ const setup = [
   effect("named", { identity: "franco", name: "Franco" }, "franco"),
   effect("assistant-enabled", { owner: "franco", name: "Nora" }, "franco"),
 ];
-it("muestra Nora, por Franco antes y después de deshabilitar o sacar al titular", () => {
+it("shows Nora, for Franco before and after disabling or taking out the holder", () => {
   for (const later of [[], [effect("assistant-disabled", { owner: "franco" }, "franco")]])
     expect(actorDisplayName(fold(...setup, ...later), "assistant:franco", "es")).toBe("Nora, por Franco");
   const removed = fold(
@@ -21,7 +21,7 @@ it("muestra Nora, por Franco antes y después de deshabilitar o sacar al titular
   );
   expect(actorDisplayName(removed, "assistant:franco", "es")).toBe("Nora, por Franco");
 });
-it("conserva identidades históricas y no inventa asistentes desconocidos", () => {
+it("keeps historical identities and invents no unknown assistants", () => {
   const house = fold(...setup, effect("named", { identity: "nora", name: "Nora vieja" }, "franco"));
   expect(actorDisplayName(house, "nora", "es")).toBe("Nora vieja");
   expect(actorDisplayName(house, "martin", "es")).toBe("martin");

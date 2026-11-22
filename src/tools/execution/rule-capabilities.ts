@@ -1,4 +1,4 @@
-// Revalida reglas al usar cada capacidad después de una espera, antes del efecto externo.
+// Rechecks rules when each capability is used after a wait, before the external effect.
 import type { ToolCapabilities } from "../capabilities-contract.ts";
 export function ruleCapabilities(capabilities: ToolCapabilities, check: () => void): ToolCapabilities {
   return {

@@ -1,4 +1,4 @@
-// barState: the one state a Barra shows for two links, written out whole, with no signal winning from either side.
+// barState: the one state a Bar shows for two links, written out whole, with no signal winning from either side.
 import { expect, it } from "vitest";
 import { barState, type Link } from "./bar-state.ts";
 import type { Screen } from "./contract.ts";
@@ -19,7 +19,7 @@ const table: readonly (readonly [Link, State, State])[] = [
   ["signal-lost", "signal-lost", "signal-lost"],
   ["signal-lost", "disconnected", "signal-lost"],
 ];
-it("gives the Barra one state for the device's link and the house's, the whole table written out", () => {
+it("gives the Bar one state for the device's link and the house's, the whole table written out", () => {
   expect(table.map(([link, house]) => [link, house, barState(link, house)])).toEqual(table);
 });
 it("lets no signal win from either side", () => {

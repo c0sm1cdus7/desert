@@ -7,7 +7,7 @@ import {
   settleModelCall,
   markUncertainCall,
 } from "./mind-call-budget.ts";
-it("cuenta gasto y reservas contra el tope y conserva la incertidumbre", () => {
+it("counts spending and reservations against the cap and keeps the uncertainty", () => {
   expect(fitsModelCap({ spentNanoUsd: 4, reservedNanoUsd: 3 }, 10, 3)).toBe(true);
   expect(fitsModelCap({ spentNanoUsd: 4, reservedNanoUsd: 3 }, 9, 3)).toBe(false);
   expect(() => fitsModelCap({ spentNanoUsd: 0, reservedNanoUsd: 0 }, undefined, 1)).toThrow();
@@ -17,7 +17,7 @@ it("cuenta gasto y reservas contra el tope y conserva la incertidumbre", () => {
   expect(markUncertainCall("c", "assistant:franco").kind).toBe("model-call-uncertain");
 });
 
-it("reserva dentro de la transacción compartida", async () => {
+it("reserves inside the shared transaction", async () => {
   let reservedNanoUsd = 0;
   const transact: Parameters<typeof reserveModelCall>[0] = (_account, decide) => {
     const event = decide({ spentNanoUsd: 4, reservedNanoUsd });
@@ -30,7 +30,7 @@ it("reserva dentro de la transacción compartida", async () => {
   expect(await reserveModelCall(transact, 9, { ...data, call: "d", turn: "u" })).toBe(false);
 });
 
-it("el diario confirma una reserva antes de que otra use el saldo", async () => {
+it("the journal confirms a reservation before another uses the balance", async () => {
   const rig = shopRig();
   try {
     const transact = budgetTransaction(rig.bus, () => rig.state().house.modelCalls);
@@ -52,7 +52,7 @@ it("el diario confirma una reserva antes de que otra use el saldo", async () => 
     rig.close();
   }
 });
-it("una reserva pedida por un lote deshecho no llega al diario", async () => {
+it("a reservation asked for by a rolled-back batch does not reach the journal", async () => {
   const rig = shopRig();
   try {
     const transact = budgetTransaction(rig.bus, () => rig.state().house.modelCalls);

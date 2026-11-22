@@ -11,7 +11,7 @@ import { Type } from "desert/program";
 export const words = { name: "Juguete", key: "j", itself: [] };
 export const actionWords = { name: "note", enter: "note", key: "a", purpose: "guardar una nota" };
 export const saved = "Anotada · Nota";
-export const promise = "Anota una vez";
+export const promise = "Notes once";
 export const skill = defineMessage({ id: "toy.skill", kind: "skill", parameters: Type.Object({}),
   texts: { es: "Anotá con las acciones del programa." } });
 `,

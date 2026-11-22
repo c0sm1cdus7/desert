@@ -1,4 +1,4 @@
-// Abre la casa de nube siempre encendida; solo el anfitrión cierra recursos y las puertas reciben puertos sin apagado.
+// Opens the always-on cloud house; only the host closes resources and doors get ports without shutdown.
 import { bindDoorRoot, rootVerifier } from "../house/doors/root-verifier.ts";
 import type { ModelHouseOptions } from "./minds/mind-runtime-options.ts";
 import type { Program, ViewLimits } from "../tools/tool-contract.ts";

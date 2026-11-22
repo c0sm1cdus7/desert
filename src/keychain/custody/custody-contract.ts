@@ -1,4 +1,4 @@
-// Declara referencias, vínculos y el registro durable de custodia con comprobación de escritor exclusivo.
+// Declares references, bindings and the durable custody record with an exclusive-writer check.
 import type { CredentialScope, SecretRefs, SecretRef } from "../../tools/capabilities-contract.ts";
 export type { CredentialScope, SecretRefs, SecretRef, Credential } from "../../tools/capabilities-contract.ts";
 export type CredentialFact = Readonly<{

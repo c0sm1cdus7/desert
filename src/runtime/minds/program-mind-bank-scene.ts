@@ -1,4 +1,4 @@
-// Corre una escena del banco con el motor y el runtime reales, estado aislado y la cuenta durable de la casa.
+// Runs a bank scene with the real engine and runtime, isolated state and the house's durable account.
 import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
 import type { ProgramMindScene } from "../../tools/minds/program-mind-cases.ts";
 import type { Card } from "../../adapters/models/catalog.ts";

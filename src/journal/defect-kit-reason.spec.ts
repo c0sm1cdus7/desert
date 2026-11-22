@@ -22,7 +22,7 @@ for (const [tool, option, reason] of [
       await f.close();
     }
   });
-it("the two reasons differ, so the Identidades case tells the right one from the generic one", () => {
+it("the two reasons differ, so the identities case tells the right one from the generic one", () => {
   expect(toolTexts.kitRefusal("identities")).not.toBe(toolTexts.outsideKit);
   expect(toolTexts.kitRefusal("payments")).toBe(toolTexts.outsideKit);
 });

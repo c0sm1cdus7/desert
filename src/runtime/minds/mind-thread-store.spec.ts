@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { expect, it } from "vitest";
 import { openMindThreads } from "./mind-thread-store.ts";
 const scope = { actor: "mind:notes" };
-it("restaura cortes por actor y proceso sin tragarse llegadas tardías", () => {
+it("restores cuts per actor and process without swallowing late arrivals", () => {
   const home = mkdtempSync(join(tmpdir(), "mind-thread-"));
   const entries = [
     { seq: 1, id: "a", text: "Antes" },
@@ -28,7 +28,7 @@ it("restaura cortes por actor y proceso sin tragarse llegadas tardías", () => {
     rmSync(home, { recursive: true, force: true });
   }
 });
-it("no ignora un corte corrupto ni reescribe el archivo al rechazar referencias", () => {
+it("neither ignores a corrupt cut nor rewrites the file when rejecting references", () => {
   const home = mkdtempSync(join(tmpdir(), "mind-thread-"));
   try {
     const store = openMindThreads(home);

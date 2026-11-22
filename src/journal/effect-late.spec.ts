@@ -8,8 +8,8 @@ import { nothing } from "../../tests/support/effect-authority.ts";
 import { shop, salesTool, paymentsTool, type Shop } from "../../tests/support/shop.ts";
 const rigs: { close(): void }[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
-it("la validación incluye lo que cambia el rechazo tardío del programa", async () => {
-  const effects: Emission<Shop["fact"]>[] = [shop.fact("sale-registered", { sale: "propia", total: 1 }, "ana")];
+it("validation includes what the program's late rejection changes", async () => {
+  const effects: Emission<Shop["fact"]>[] = [shop.fact("sale-registered", { sale: "own", total: 1 }, "ana")];
   const forge = {
     ...toolAct<Shop, typeof nothing>(nothing, () => ({ status: "accepted", effects })),
     reject: () => {

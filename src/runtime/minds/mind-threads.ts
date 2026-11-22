@@ -1,4 +1,4 @@
-// Compacta proyecciones de hilos sin borrar sus referencias ni las llegadas posteriores al corte.
+// Compacts thread projections without deleting their references or the arrivals after the cut.
 export type ThreadEntry = Readonly<{ seq: number; id: string; text: string }>;
 export type ThreadCompaction = Readonly<{ through: number; keep: readonly string[]; omitted: readonly string[] }>;
 export type MindThread = Readonly<{ entries: readonly ThreadEntry[]; compacted: readonly ThreadCompaction[] }>;

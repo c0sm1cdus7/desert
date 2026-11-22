@@ -24,7 +24,7 @@ for (const trigger of ["woke", "stimulus"] as const)
       try {
         bus.together(() => {
           mind.schedule(Date.now() + 50);
-          throw new Error("deshacer");
+          throw new Error("undo");
         });
       } catch {
         caught++;

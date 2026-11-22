@@ -4,14 +4,14 @@ import type { Tone } from "../contract/tones.ts";
 /** A run of spans whose tones the bank already chose: a painter only gives each token its value. */
 export type Text = readonly Span[];
 
-/** Latido: the one point that says the connection (REGLAS §4, §8). */
+/** Beat: the one point that says the connection (REGLAS §4, §8). */
 export interface BeatPiece {
   readonly kind: "beat";
   readonly state: Screen["state"];
   readonly icon: "●" | "×";
   readonly tone: Tone;
 }
-/** Barra: what you are seeing, and live states. No words of its own (REGLAS §4). */
+/** Bar: what you are seeing, and live states. No words of its own (REGLAS §4). */
 export interface BarPiece {
   readonly kind: "bar";
   readonly title: Span;
@@ -19,7 +19,7 @@ export interface BarPiece {
   readonly clock: Span;
   readonly battery?: Span;
 }
-/** Acción: one control. `does` is the only word drawn for it; `key` is the name of its key, for who has keys. */
+/** Action: one control. `does` is the only word drawn for it; `key` is the name of its key, for who has keys. */
 export interface ActionPiece {
   readonly kind: "action";
   readonly control: HintKey | "menu" | "quit";
@@ -33,13 +33,13 @@ export interface ToolbarPiece {
   readonly fixed: readonly ActionPiece[];
   readonly aids: readonly ActionPiece[];
 }
-/** Aviso: one quiet line the surface itself says. */
+/** Notice: one quiet line the surface itself says. */
 export interface NoticePiece {
   readonly kind: "notice";
   readonly about: "above" | "below" | "empty" | "reference" | "small";
   readonly text: Span;
 }
-/** Entrada: where one writes (REGLAS §8, §9b2bis «Input»). */
+/** Entry: where one writes (REGLAS §8, §9b2bis «Input»). */
 export interface EntryPiece {
   readonly kind: "entry";
   /** The name of what is written, in a row that has one. */
@@ -57,7 +57,7 @@ export interface EntryPiece {
   /** What is written is a secret: it is shown covered, and no painter keeps, completes or suggests it. */
   readonly secret: boolean;
 }
-/** Fila: a datum or a choice (REGLAS §8). */
+/** Row: a datum or a choice (REGLAS §8). */
 export type RowPiece =
   | { readonly kind: "row"; readonly as: "line"; readonly line: Text }
   | { readonly kind: "row"; readonly as: "entry"; readonly entry: EntryPiece }
@@ -77,7 +77,7 @@ export type RowPiece =
       /** In a question that takes several: whether this one is taken. `key` still says it to who has keys. */
       readonly marked?: boolean;
     };
-/** Pila: a titled stack of rows (REGLAS §9 «Lista»). */
+/** Stack: a titled stack of rows (REGLAS §9 «Lista»). */
 export interface StackPiece {
   readonly kind: "stack";
   readonly title: Span;
@@ -87,12 +87,12 @@ export interface StackPiece {
   readonly rows: readonly RowPiece[];
   readonly below?: NoticePiece;
 }
-/** Lista: the stacks of a menu or of a thing, in order. */
+/** List: the stacks of a menu or of a thing, in order. */
 export interface ListPiece {
   readonly kind: "list";
   readonly stacks: readonly StackPiece[];
 }
-/** Pregunta: the options of a question, where the Entrada would be (REGLAS §7 :118, §9 :162-165). */
+/** Question: the options of a question, where the Entry would be (REGLAS §7 :118, §9 :162-165). */
 export interface OptionsPiece {
   readonly kind: "options";
   readonly keyed: boolean;
@@ -100,7 +100,7 @@ export interface OptionsPiece {
   readonly rows: readonly RowPiece[];
   readonly below?: NoticePiece;
 }
-/** Evento: who, text, and what it carries (REGLAS §7, §8). */
+/** Event: who, text, and what it carries (REGLAS §7, §8). */
 export interface EventPiece {
   readonly kind: "event";
   readonly head?: Text;
@@ -111,7 +111,7 @@ export interface EventPiece {
   readonly indent: boolean;
   readonly nested: boolean;
 }
-/** Hilo: events, the last one below (REGLAS §9). */
+/** Thread: events, the last one below (REGLAS §9). */
 export interface ThreadPiece {
   readonly kind: "thread";
   readonly events: readonly EventPiece[];
@@ -120,13 +120,13 @@ export interface ThreadPiece {
   readonly reference?: NoticePiece;
   readonly entry?: EntryPiece;
 }
-/** Foco: one thing in the middle (REGLAS §9). */
+/** Focus: one thing in the middle (REGLAS §9). */
 export interface FocusPiece {
   readonly kind: "focus";
   readonly title: Span;
   readonly lines: readonly Text[];
 }
-/** Celdas: what opened beside what opened it (REGLAS §9, §9b). */
+/** Cells: what opened beside what opened it (REGLAS §9, §9b). */
 export interface PanelPiece {
   readonly kind: "panel";
   readonly title: Span;

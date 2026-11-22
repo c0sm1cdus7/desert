@@ -1,4 +1,4 @@
-// Declara reservas, envíos, liquidaciones e incertidumbre de llamadas sin contener llaves.
+// Declares reservations, sends, settlements and uncertainty of model calls, without holding keys.
 import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
 import { wholeNumber } from "../../fields/json-values.ts";

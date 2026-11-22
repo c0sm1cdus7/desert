@@ -1,4 +1,4 @@
-// Una espera observa la secuencia de la casa y libera su escucha al cambiar, vencer o cerrarse la puerta.
+// A wait watches the house's sequence and drops its listener when it changes, times out or the door closes.
 export function houseChange(
   sequence: () => number,
   watch: (changed: () => void) => () => void,

@@ -1,4 +1,4 @@
-// Presenta Reglas en el menú del sistema con sus palabras propias y sin configuración de la distribución.
+// Shows Rules in the system menu with its own words and without the distribution's configuration.
 import { rulesTexts as words } from "../../../texts/rules.texts.ts";
 import type { ToolWords } from "../ports/house-ports.ts";
 const ruleWords: ToolWords = {

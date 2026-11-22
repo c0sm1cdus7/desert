@@ -4,7 +4,7 @@ import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts"
 import { CustodyDatabase } from "./custody-database.ts";
 import { CustodyCipher } from "./custody-cipher.ts";
 import { SecretCustody } from "./secret-custody.ts";
-it("una llave robada abre solo su secreto; la del registro no abre ninguno", () => {
+it("a stolen key opens only its own secret; the record's key opens none", () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
@@ -35,7 +35,7 @@ it("una llave robada abre solo su secreto; la del registro no abre ninguno", () 
   keys.forEach(key => key.fill(0));
   registry.fill(0);
 });
-it("abrir y vincular no piden llaves de secretos; un uso pide solo la suya y borra cada copia", async () => {
+it("opening and binding ask for no secret keys; a use asks only for its own and erases every copy", async () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
@@ -67,7 +67,7 @@ it("abrir y vincular no piden llaves de secretos; un uso pide solo la suya y bor
   ]);
   expect(copies.every(copy => copy.every(byte => byte === 0))).toBe(true);
 });
-it("un fallo parcial al preparar un par borra el primer material sin llamar al adaptador", async () => {
+it("a partial failure preparing a pair erases the first material without calling the adapter", async () => {
   const rig = custodyRig(),
     store = rig.open(),
     session = store.begin(custodyScope);
@@ -76,7 +76,7 @@ it("un fallo parcial al preparar un par borra el primer material sin llamar al a
   const decrypt = vi.spyOn(CustodyCipher.prototype, "open"),
     key = rig.keys.key.bind(rig.keys);
   vi.spyOn(rig.keys, "key").mockImplementation((account, create) => {
-    if (account.endsWith(refs.b.slice(7))) throw new Error("falló");
+    if (account.endsWith(refs.b.slice(7))) throw new Error("failed");
     return key(account, create);
   });
   const body = vi.fn();
@@ -86,7 +86,7 @@ it("un fallo parcial al preparar un par borra el primer material sin llamar al a
   expect(buffers).toHaveLength(1);
   expect(buffers[0]?.every(byte => byte === 0)).toBe(true);
 });
-it("M18: cerrar durante uso borra lo prestado inmediatamente y al finalizar", async () => {
+it("M18: closing during use erases what was lent immediately and at the end", async () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
   const refs = { key: session.capture(Buffer.from("invented")) };
@@ -111,7 +111,7 @@ it("M18: cerrar durante uso borra lo prestado inmediatamente y al finalizar", as
   expect(erase).toHaveBeenCalledTimes(2);
   expect(store.cleanupPending()).toBe(false);
 });
-it("un ingreso denegado borra su búfer y la falta tardía de proveedor dice qué falta", () => {
+it("a denied ingress erases its buffer and a late missing provider says what is missing", () => {
   const rig = custodyRig(),
     store = new SecretCustody(rig.file, rig.home),
     session = store.begin(custodyScope);
@@ -120,10 +120,10 @@ it("un ingreso denegado borra su búfer y la falta tardía de proveedor dice qu�
   expect(value.every(byte => byte === 0)).toBe(true);
   store.close();
 });
-it("una sesión cancelada no vuelve a ingresar material y borra la entrada rechazada", () => {
+it("a cancelled session takes in no more material and erases the rejected input", () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope),
-    input = Buffer.from("sintetico");
+    input = Buffer.from("synthetic");
   session.cancel();
   expect(() => session.capture(input)).toThrow("E-CUSTODY-DENIED");
   expect(input.every(byte => byte === 0)).toBe(true);

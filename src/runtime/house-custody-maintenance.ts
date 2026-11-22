@@ -1,4 +1,4 @@
-// Mantenimiento con la casa cerrada y un solo escritor; agrega sin restaurar ni descartar plegados.
+// Maintenance with the house closed and a single writer; appends without restoring or discarding folds.
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { HouseOptions } from "../house/state.ts";

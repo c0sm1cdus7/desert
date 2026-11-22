@@ -1,4 +1,4 @@
-// Adopta la bóveda anterior: cifra, relee, compara y retira lo viejo con recuperación.
+// Adopts the previous vault: encrypts, rereads, compares and retires the old one with recovery.
 import { timingSafeEqual } from "node:crypto";
 import type { CustodyState } from "./custody-state.ts";
 import { secretRef } from "./custody-database.ts";

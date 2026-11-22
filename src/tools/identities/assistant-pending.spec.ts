@@ -10,7 +10,7 @@ import { coreRegistry } from "./identities.ts";
 const rigs: ReturnType<typeof shopRig>[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
 it.each(["delegate-assistant", "disable-assistant", "remove"])(
-  "%s corta un acto pendiente y su anidado por el acto real",
+  "%s cuts a pending act and its nested one through the real act",
   async act => {
     const calls: { context: ActContext<Shop>; done: ReturnType<typeof deferred<ActResult<Shop>>> }[] = [];
     const run = toolAct<Shop, ReturnType<typeof object>>(object({}), (_, context) => {

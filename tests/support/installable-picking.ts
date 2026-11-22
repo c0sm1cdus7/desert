@@ -46,7 +46,7 @@ const note = programAct<Picking, typeof written>({
   },
   cases: [
     {
-      promise: "Anota un extra de un pedido",
+      promise: "Notes an extra of an order",
       /** The extra is of an order, and the order picks a thing: both are prepared with the other two tools. */
       given: [
         { act: "add", tool: "items", input: { name: "Tornillo" } },

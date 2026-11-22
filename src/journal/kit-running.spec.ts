@@ -13,7 +13,7 @@ const open = (reach: "house" | "world" = "house") => {
 };
 const cut = { status: "interrupted", reason: "sacada" };
 
-it.each(["beto", "mind:slow"])("corta lo pendiente de %s, rechaza lo nuevo y conserva la lectura", async by => {
+it.each(["beto", "mind:slow"])("cuts what %s has pending, rejects what is new and keeps the reading", async by => {
   const rig = open();
   const pending = rig.start(by);
   rig.kit(by);
@@ -23,18 +23,18 @@ it.each(["beto", "mind:slow"])("corta lo pendiente de %s, rechaza lo nuevo y con
   rig.calls[0]?.done.resolve({
     ...saved,
     private: "Recibo de prueba",
-    effects: [shop.fact("slow-written", { sale: "tardia", total: 100 }, by)],
+    effects: [shop.fact("slow-written", { sale: "late", total: 100 }, by)],
   });
   const done = await settled(pending);
   expect(done).toMatchObject(cut);
   expect(done.private).toBeUndefined();
-  expect(rig.state().tools.sales.has("tardia")).toBe(false);
+  expect(rig.state().tools.sales.has("late")).toBe(false);
   expect(rig.facts().some(event => event.kind === "act-done")).toBe(false);
   expect(rig.state().entries).toEqual([]);
   expect(rig.state().processing.size).toBe(0);
 });
 
-it("guarda lo que salió al mundo y deja el motivo junto al resultado", async () => {
+it("keeps what went out to the world and leaves the reason beside the result", async () => {
   const rig = open("world");
   const pending = rig.start();
   rig.kit("beto");
@@ -45,7 +45,7 @@ it("guarda lo que salió al mundo y deja el motivo junto al resultado", async ()
   expect(rig.facts().findLast(event => event.kind === "act-result")?.data).toMatchObject({ reason: "sacada" });
 });
 
-it("saca una sola acción entre dos actos simultáneos del mismo actor", async () => {
+it("removes a single action between two simultaneous acts of the same actor", async () => {
   const rig = open();
   const first = rig.start(),
     second = rig.start("beto", "other");
@@ -57,7 +57,7 @@ it("saca una sola acción entre dos actos simultáneos del mismo actor", async (
   expect(rig.state().entries).toHaveLength(1);
 });
 
-it("volver a dar no resucita el acto cortado, pero permite el siguiente", async () => {
+it("granting again does not revive the cut act, but allows the next one", async () => {
   const rig = open();
   const pending = rig.start();
   rig.kit("beto");
@@ -69,7 +69,7 @@ it("volver a dar no resucita el acto cortado, pero permite el siguiente", async 
   expect(await settled(next)).toMatchObject({ status: "accepted" });
 });
 
-it.each(["granted", "removed"] as const)("%s corta todos los actos de la identidad", async kind => {
+it.each(["granted", "removed"] as const)("%s cuts every act of the identity", async kind => {
   const rig = open();
   const pending = rig.start();
   if (kind === "granted") rig.bus.emit(effect("granted", { identity: "beto", tools: [] }, "ana"));
@@ -79,7 +79,7 @@ it.each(["granted", "removed"] as const)("%s corta todos los actos de la identid
   expect(rig.state().entries).toEqual([]);
 });
 
-it("un kit escrito por quien no administra no corta", async () => {
+it("a kit written by someone who does not administer does not cut", async () => {
   const rig = open();
   const pending = rig.start();
   rig.bus.emit(effect("kit-set", { holder: "beto", tool: "slow", acts: [] }, "beto"));
@@ -88,7 +88,7 @@ it("un kit escrito por quien no administra no corta", async () => {
   expect(await settled(pending)).toMatchObject({ status: "accepted" });
 });
 
-it("reconstruir no dispara cortes; boot cierra una sola vez el acto cortado a medias", async () => {
+it("rebuilding triggers no cuts; boot closes the half-cut act only once", async () => {
   const rig = open();
   const pending = rig.start();
   rig.kit("beto");
@@ -110,7 +110,7 @@ it("reconstruir no dispara cortes; boot cierra una sola vez el acto cortado a me
   expect(await settled(next)).toMatchObject({ status: "accepted" });
 });
 
-it("si el corte llega al escribir, conserva el lote que ya empezó y explica el cierre", async () => {
+it("if the cut arrives while writing, it keeps the batch already started and explains the closing", async () => {
   const rig = open();
   const pending = rig.start();
   const stop = rig.bus.on("act-done", () => rig.kit("beto"));
@@ -120,7 +120,7 @@ it("si el corte llega al escribir, conserva el lote que ya empezó y explica el 
   stop();
 });
 
-it("conserva los hechos de un anidado que ya escribió", async () => {
+it("keeps the facts of a nested act that already wrote", async () => {
   const rig = open();
   rig.attend("beto", "sales");
   const pending = rig.start();

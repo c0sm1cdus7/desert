@@ -1,4 +1,4 @@
-// Guion fijo del revisor de la unión: holds no cambia; la revocación del acto sí corta sus adaptadores.
+// The union reviewer's fixed script: holds does not change; revoking the act does cut its adapters.
 import { Type } from "@sinclair/typebox";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -19,7 +19,7 @@ import { emptyHouse } from "./members.ts";
 
 const close: (() => void)[] = [];
 afterEach(() => close.splice(0).forEach(stop => stop()));
-it("holds: mente propia y existente; identidad con herramienta aunque su kit esté vacío", () => {
+it("holds: an existing mind of its own; an identity with the tool even if its kit is empty", () => {
   const registry = [{ id: "vault" }, { id: "sales" }];
   const house = {
     ...emptyHouse,
@@ -97,7 +97,7 @@ function opened(pauseAt: "act" | "adapter" | "output" = "act") {
               const result = await methods.inspect?.(input);
               if (pauseAt === "output") {
                 await gate.promise;
-                return { valid: "inválida" };
+                return { valid: "invalid" };
               }
               return result;
             },
@@ -122,7 +122,7 @@ it.each([
   ["mind:vault", "kit"],
   ["beto", "tool"],
   ["beto", "removed"],
-])("%s pierde %s: no usa el adaptador guardado y termina sacada, sin falla de la base", async (by, loss) => {
+])("%s loses %s: does not use the kept adapter and ends taken out, with no base failure", async (by, loss) => {
   const { house, act, gate, used } = opened();
   expect(await settled(act(by, "sign"))).toMatchObject({ status: "accepted" });
   const pending = act(by, "slowUse");
@@ -140,7 +140,7 @@ it.each([
   expect(house.tools.state().entries.some(entry => entry.data.text.includes("E-BASE"))).toBe(false);
 });
 
-it.each(["beto", "mind:vault"])("%s conserva su acción: usa los métodos de su herramienta", async by => {
+it.each(["beto", "mind:vault"])("%s keeps its action: uses its tool's methods", async by => {
   const { house, act, gate, used } = opened();
   await settled(act(by, "sign"));
   const pending = act(by, "slowUse");
@@ -150,7 +150,7 @@ it.each(["beto", "mind:vault"])("%s conserva su acción: usa los métodos de su 
   expect(used).toHaveBeenCalledTimes(1);
 });
 
-it.each(["beto", "mind:vault"])("%s pierde la acción con el adaptador pendiente antes de usar material", async by => {
+it.each(["beto", "mind:vault"])("%s loses the action with the adapter pending, before using material", async by => {
   const { house, act, gate, used } = opened("adapter");
   await settled(act(by, "sign"));
   const pending = act(by, "slowUse");
@@ -164,7 +164,7 @@ it.each(["beto", "mind:vault"])("%s pierde la acción con el adaptador pendiente
   expect(used).not.toHaveBeenCalled();
 });
 
-it.each([false, true])("el rechazo de salida del adaptador conserva defecto solo sin corte: corte=%s", async cut => {
+it.each([false, true])("the adapter's output refusal keeps a defect only without a cut: cut=%s", async cut => {
   const { house, act, gate, used } = opened("output");
   await settled(act("beto", "sign"));
   const pending = act("beto", "slowUse");

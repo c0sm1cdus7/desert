@@ -83,8 +83,8 @@ describe("the record of openings never stops an opening and never writes outside
       const before = open(path);
       const count = facts(before);
       before.close();
-      const outside = join(mkdtempSync(join(tmpdir(), "outside-")), "ajeno.txt");
-      writeFileSync(outside, "SOLO-DATO-SINTETICO\n");
+      const outside = join(mkdtempSync(join(tmpdir(), "outside-")), "foreign.txt");
+      writeFileSync(outside, "SYNTHETIC-DATA-ONLY\n");
       make(path, outside);
       const current = program("shop/2", 2);
       const house = open(path, current);
@@ -100,7 +100,7 @@ describe("the record of openings never stops an opening and never writes outside
       } finally {
         house.close();
       }
-      expect(readFileSync(outside, "utf8")).toBe("SOLO-DATO-SINTETICO\n");
+      expect(readFileSync(outside, "utf8")).toBe("SYNTHETIC-DATA-ONLY\n");
       const again = open(path, current);
       try {
         expect(again.storageNotices()).toEqual([]);

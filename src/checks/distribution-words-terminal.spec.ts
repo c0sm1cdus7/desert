@@ -38,7 +38,7 @@ it("names both installed programs and their minds without exposing their ids", a
     term.press("i");
     const list = (await term.until("Mentes")).join("\n");
     expect(list).toContain("mente de Conversación");
-    expect(list).not.toContain("conversacion");
+    expect(list).not.toContain("conversation");
     term.press("n");
     await term.until("Identificador");
     term.press("lucia\r");
@@ -47,7 +47,7 @@ it("names both installed programs and their minds without exposing their ids", a
     const programs = (await term.until("[ ]")).join("\n");
     expect(programs).toContain("Programas");
     expect(programs).toContain("Conversación");
-    expect(programs).not.toContain("conversacion");
+    expect(programs).not.toContain("conversation");
   });
 }, 15000);
 it("keeps the menu count and leads from Attention to another identity's news", async () => {
@@ -85,7 +85,7 @@ it("creates a person and gives a program, a tool and one loose action with named
     await press("h", "Programas");
     const programs = term.screen().join("\n");
     expect(programs).toContain("Conversación");
-    expect(programs).not.toContain("conversacion");
+    expect(programs).not.toContain("conversation");
     await press("2", "Conversación");
     const confirm = await press("t", "[d] dar");
     expect(confirm).toContain("Kit · Conversación · Lucía");

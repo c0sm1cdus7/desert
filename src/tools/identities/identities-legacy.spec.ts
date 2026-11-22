@@ -13,7 +13,7 @@ import { shopProgram, shopShown, type Shop } from "../../../tests/support/shop.t
 function rejectLegacy(house: RunningHouse<Shop>, core: Tool | undefined): void {
   for (const [act, target] of [
     ["hand", "identities/Ana vieja"],
-    ["readmit", "identities/Mala"],
+    ["readmit", "identities/Bad"],
   ]) {
     if (!act || !target) throw new Error("missing test action");
     house.tools.act({ act: "attend", input: { target } }, 0, "ana");
@@ -28,8 +28,8 @@ it("reads historical invalid identifiers and refuses new handovers or readmissio
     const old = new SqliteJournal(join(home, "journal.sqlite"), shopProgram.words);
     old.append(effect("house-created", {}, "ana"), 0);
     old.append(effect("granted", { identity: "Ana vieja", tools: ["sales"] }, "ana"), 1);
-    old.append(effect("granted", { identity: "Mala", tools: [] }, "ana"), 2);
-    old.append(effect("removed", { identity: "Mala" }, "ana"), 3);
+    old.append(effect("granted", { identity: "Bad", tools: [] }, "ana"), 2);
+    old.append(effect("removed", { identity: "Bad" }, "ana"), 3);
     old.close();
     for (let reopened = 0; reopened < 2; reopened++) {
       const house = startHouse(home, {
@@ -49,7 +49,7 @@ it("reads historical invalid identifiers and refuses new handovers or readmissio
             .filter(stack => stack.title === "Identidades")
             .flatMap(stack => stack.rows)
             .map(row => row.title),
-        ).toEqual(["ana", "Ana vieja", "Mala"]);
+        ).toEqual(["ana", "Ana vieja", "Bad"]);
         expect(
           core
             ?.view("identities/Ana vieja")
@@ -67,7 +67,7 @@ it("reads historical invalid identifiers and refuses new handovers or readmissio
         ).toEqual(["mente de sales", "mente de payments"]);
         rejectLegacy(house, core);
         expect(house.tools.state().house.admin).toBe("ana");
-        expect(house.tools.state().house.removed.has("Mala")).toBe(true);
+        expect(house.tools.state().house.removed.has("Bad")).toBe(true);
       } finally {
         house.close();
       }

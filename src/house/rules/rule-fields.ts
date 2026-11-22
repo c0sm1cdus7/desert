@@ -1,4 +1,4 @@
-// Resuelve solamente campos escalares explícitos del esquema y proyecciones públicas del core.
+// Resolves only explicit scalar fields of the schema and public projections of the core.
 import { Type, type TSchema } from "@sinclair/typebox";
 import { isRecord } from "../../fields/json-values.ts";
 import { parseMindActor } from "../../fields/mind-actor.ts";

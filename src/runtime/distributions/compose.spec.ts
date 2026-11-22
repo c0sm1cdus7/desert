@@ -44,9 +44,9 @@ describe("installable composition", () => {
       "foreign fact alone",
       {
         ...sampleOptions,
-        programs: [{ ...sampleProgram, facts: [{ ...sampleProgram.facts[0], kind: "ajeno/x" }] }],
+        programs: [{ ...sampleProgram, facts: [{ ...sampleProgram.facts[0], kind: "foreign/x" }] }],
       },
-      [issue("notes/facts/ajeno/x", "foreign-fact")],
+      [issue("notes/facts/foreign/x", "foreign-fact")],
     ],
     [
       "missing mind",

@@ -73,7 +73,7 @@ it("every open reader sees identity and mind data change, including the direct o
         identifier: "mind:sales",
         name: "mente de sales",
         state: value === "yes" ? "Algunas acciones" : "Sin acciones",
-        kit: [`registrar · ${value === "yes" ? "sí" : "no"}`, "esperar · no"],
+        kit: [`registrar · ${value === "yes" ? "sí" : "no"}`, "aguardar · no"],
       });
     }
   });

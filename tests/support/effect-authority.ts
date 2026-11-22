@@ -64,8 +64,8 @@ export const houseEffects = (by: string) =>
     effect("unattended", { target: "sales" }, by),
     effect("attention", { tool: "payments", delay: null }, by),
     effect("stimulus", { tool: "payments" }, by),
-    effect("wake-at", { id: "payments:ajeno", at: null }, by),
-    effect("woke", { id: "payments:ajeno" }, by),
+    effect("wake-at", { id: "payments:foreign", at: null }, by),
+    effect("woke", { id: "payments:foreign" }, by),
   ] satisfies readonly Emission[];
 export const houseKinds: readonly HouseKind[] = houseEffects("ana").map(each => each.kind);
 export function effectRig(

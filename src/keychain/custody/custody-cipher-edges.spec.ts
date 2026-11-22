@@ -2,25 +2,25 @@ import { expect, it, vi } from "vitest";
 import { custodyRig } from "../../../tests/support/custody-rig.ts";
 import { CustodyCipher } from "./custody-cipher.ts";
 vi.mock("node:crypto", async original => ({ ...(await original<typeof import("node:crypto")>()) }));
-it("la custodia encierra errores del proveedor y borra incluso una llave de tamaño inválido", () => {
+it("custody contains provider errors and erases even a key of invalid size", () => {
   const rig = custodyRig(),
     cipher = new CustodyCipher("house", rig.keys),
     invalid = Buffer.alloc(31, 17);
   const providerKey = vi.spyOn(rig.keys, "key").mockImplementation(() => {
-    throw new Error("detalle privado del proveedor");
+    throw new Error("private provider detail");
   });
   expect(() => cipher.prepare(false)).toThrow(/^E-CUSTODY-KEY/u);
   try {
     cipher.prepare(false);
   } catch (error) {
-    expect(String(error)).not.toContain("detalle privado");
+    expect(String(error)).not.toContain("private provider detail");
     expect(error instanceof Error && error.cause).toBeUndefined();
   }
   providerKey.mockReturnValue(invalid);
   expect(() => cipher.prepare(false)).toThrow("E-CUSTODY-KEY");
   expect(invalid.every(byte => byte === 0)).toBe(true);
 });
-it("cerrar durante una primitiva sincrónica borra la llave activa y no retiene llaves ya devueltas", async () => {
+it("closing during a synchronous primitive erases the active key and retains no keys already returned", async () => {
   const crypto = await import("node:crypto"),
     native = crypto.createHmac;
   const rig = custodyRig(),
@@ -60,7 +60,7 @@ for (const [version, nonceLength, tagLength] of [
   [2, 11, 16],
   [2, 12, 15],
 ] as const)
-  it("rechaza la estructura incompatible de un sobre aun con autenticación válida", () => {
+  it("rejects an incompatible envelope structure even with valid authentication", () => {
     const rig = custodyRig(),
       cipher = new CustodyCipher("house", rig.keys);
     cipher.prepare(true);
@@ -73,20 +73,20 @@ for (const [version, nonceLength, tagLength] of [
     const signed = `${envelope}.${cipher.sign(JSON.stringify(["ref", envelope]))}`;
     expect(() => cipher.check("ref", signed)).toThrow("E-CUSTODY-INTEGRITY");
   });
-it("usar no saltea la autenticación del sobre aunque el cifrado AES siga intacto", () => {
+it("using does not skip envelope authentication even when the AES ciphertext is intact", () => {
   const rig = custodyRig(),
     cipher = new CustodyCipher("house", rig.keys);
   cipher.prepare(true);
-  const envelope = cipher.seal("ref", Buffer.from("sintetico"), true);
+  const envelope = cipher.seal("ref", Buffer.from("synthetic"), true);
   const pieces = envelope.split(".");
   pieces[4] = "0".repeat(64);
   expect(() => cipher.open("ref", pieces.join("."))).toThrow("E-CUSTODY-INTEGRITY");
 });
-it("un sobre autenticado cuyo GCM no verifica devuelve el error cerrado de integridad", () => {
+it("an authenticated envelope whose GCM does not verify returns the closed integrity error", () => {
   const rig = custodyRig(),
     cipher = new CustodyCipher("house", rig.keys);
   cipher.prepare(true);
-  const pieces = cipher.seal("ref", Buffer.from("sintetico"), true).split(".");
+  const pieces = cipher.seal("ref", Buffer.from("synthetic"), true).split(".");
   pieces[2] = Buffer.alloc(16).toString("base64");
   const envelope = pieces.slice(0, 4).join(".");
   const signed = `${envelope}.${cipher.sign(JSON.stringify(["ref", envelope]))}`;

@@ -24,7 +24,7 @@ function snapshots(file: string) {
     db.close();
   }
 }
-it("H2: limpiar material huérfano conserva los plegados de dos identidades y no inventa avisos", async () => {
+it("H2: cleaning orphaned material keeps the folds of two identities and invents no notices", async () => {
   let startup: ToolStartup<Shop> | undefined;
   const rig = adapterHouse(
     {},
@@ -70,7 +70,7 @@ it("H2: limpiar material huérfano conserva los plegados de dos identidades y no
   }
 });
 for (const mode of ["removed", "replaced"])
-  it(`H5: el escritor ${mode} no retiene material antes de rechazar el hecho`, () => {
+  it(`H5: the ${mode} writer retains no material before rejecting the fact`, () => {
     const rig = adapterHouse({
       set: toolAct(Type.Object({ value: Type.String({ secret: true }) }), () => ({ status: "accepted" })),
     });
@@ -100,7 +100,7 @@ for (const mode of ["removed", "replaced"])
     }
   });
 
-it("H5: un adaptador de arranque tampoco captura después de perder el escritor", async () => {
+it("H5: a startup adapter does not capture after losing the writer either", async () => {
   let startup: ToolStartup<Shop> | undefined;
   const rig = adapterHouse(
     {},
@@ -126,7 +126,7 @@ it("H5: un adaptador de arranque tampoco captura después de perder el escritor"
   }
 });
 
-it("el control del registro propio conserva su receptor y rechaza antes de crear material", () => {
+it("the own record's check keeps its receiver and rejects before creating material", () => {
   const rig = adapterHouse({});
   let owned = true;
   const ledger = {
@@ -134,7 +134,7 @@ it("el control del registro propio conserva su receptor y rechaza antes de crear
     append: () => {},
     check() {
       expect(this).toBe(ledger);
-      if (!owned) throw new Error("escritor perdido");
+      if (!owned) throw new Error("writer lost");
     },
   };
   const custody = new SecretCustody(join(rig.path, "independent.sqlite"), rig.path, rig.options.secretKeys, ledger);
@@ -143,7 +143,7 @@ it("el control del registro propio conserva su receptor y rechaza antes de crear
   try {
     owned = false;
     const buffer = Buffer.from("invented");
-    expect(() => custody.keep(buffer)).toThrow("escritor perdido");
+    expect(() => custody.keep(buffer)).toThrow("writer lost");
     expect(buffer.every(byte => byte === 0)).toBe(true);
     expect(intent.mock.calls.length).toBe(0);
     expect(keys.mock.calls.length).toBe(0);

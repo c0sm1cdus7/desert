@@ -19,13 +19,13 @@ function action(on: "tool" | "thing"): ProgramAct<Sample> {
     run: async (input, ctx) => ({ ...(await original.run(input, ctx)), text }),
     cases: [
       {
-        promise: on === "tool" ? "Anota una nota" : "La autora edita su nota",
+        promise: on === "tool" ? "Notes a note" : "The author edits her note",
         input: {},
         ...(on === "thing" ? { on: "same", by: "beto" } : {}),
         then: { says: text, facts: [{ kind: "notes/added", data: { value: 1 } }] },
       },
       ...(on === "thing"
-        ? [{ promise: "Otra persona no edita", input: {}, on: "same", by: "ana", then: { refused: authorOnly } }]
+        ? [{ promise: "Someone else does not edit", input: {}, on: "same", by: "ana", then: { refused: authorOnly } }]
         : []),
     ],
   });

@@ -34,7 +34,7 @@ afterEach(() => {
 async function marked(house: RequestHouse) {
   house.tools.act({ act: "attend", input: { target: "rules" } }, 0, "ana");
   const rule = {
-    id: "personas-supervisadas",
+    id: "supervised-people",
     text: "Lo que anota una persona requiere supervisión",
     action: { tool: "notes", act: "personal/add" },
     condition: { operator: "actor", kind: "identity" },

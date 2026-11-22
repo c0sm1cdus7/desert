@@ -39,7 +39,7 @@ function open(run: (context: ActContext<Shop>, acts: string[]) => readonly House
   for (const by of ["ana", "franco", "martin"]) rig.attend(by, "identities");
   return rig;
 }
-it("Martín y el administrador no delegan a Nora por Franco; Franco sí", async () => {
+it("Martín and the admin do not delegate to Nora for Franco; Franco does", async () => {
   const rig = open(({ by }, acts) => [
     effect("assistant-kit-set", { owner: "franco", kit: [{ tool: "sales", acts }] }, by),
   ]);
@@ -55,7 +55,7 @@ it("Martín y el administrador no delegan a Nora por Franco; Franco sí", async 
     explicitKit([{ tool: "sales", acts: ["register"] }]),
   );
 });
-it("rechaza actos desconocidos, permisos ausentes y hechos escondidos en otro acto", async () => {
+it("refuses unknown acts, missing permissions and facts hidden in another act", async () => {
   const rig = open(({ by }, acts) => [
     effect("assistant-kit-set", { owner: "franco", kit: [{ tool: "sales", acts }] }, by),
   ]);
@@ -69,7 +69,7 @@ it("rechaza actos desconocidos, permisos ausentes y hechos escondidos en otro ac
   expect((await settle(rig.act("ana", "forge", { acts: [] }, "identities/franco"))).status).toBe("rejected");
   expect(rig.state().house.assistants.get("franco")?.kit).toEqual([]);
 });
-it("la carta la asigna únicamente el administrador mediante el acto correspondiente", async () => {
+it("only the admin assigns the card, through the matching act", async () => {
   const rig = open(
     ({ by }) => [
       effect("mind-card-assigned", { mind: "assistant:franco", card: "test", version: "v1", capabilities: [] }, by),

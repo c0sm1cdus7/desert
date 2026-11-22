@@ -1,4 +1,4 @@
-// Declara cómo dar y sacar programas, herramientas y acciones del kit con nombres visibles.
+// Declares how to give and take programs, tools and actions of a kit, with visible names.
 import { holderKit } from "../../house/kit-history.ts";
 import { actionSelection, covers, toolOf, kitLayout } from "../../house/kit-selection.ts";
 import { object } from "../../fields/visible-text.ts";

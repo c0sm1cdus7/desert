@@ -1,4 +1,4 @@
-// Publica esquemas de actos propios y controles de journeys para condiciones del catálogo del core.
+// Publishes own-act schemas and journey controls for the core catalog's conditions.
 import type { TSchema } from "@sinclair/typebox";
 import { communicationInputs } from "../minds/communication-inputs.ts";
 import { actCatalog } from "../../house/own-acts.ts";

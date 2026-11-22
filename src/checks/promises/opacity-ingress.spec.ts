@@ -21,7 +21,7 @@ for (const value of [
   "X".repeat(4000),
   "secret:00000000-0000-0000-0000-000000000000",
 ])
-  it(`material exacto de ${value.length} caracteres, también al reabrir`, async () => {
+  it(`exact material of ${value.length} characters, also after reopening`, async () => {
     const observed: Record<string, Uint8Array>[] = [];
     const borrowed: Uint8Array[] = [];
     const input = { first: value, second: `${value}\notro` };
@@ -41,7 +41,7 @@ for (const value of [
       purpose: "guardar material",
       on: "tool",
       undoable: true,
-      cases: [{ promise: "guarda", input, then: { facts: [], says: "Material · Guardado" } }],
+      cases: [{ promise: "saves", input, then: { facts: [], says: "Material · Guardado" } }],
       run: async (refs, context) => {
         expect(secretRef(refs.first) && secretRef(refs.second)).toBe(true);
         expect(refs.first).not.toBe(value);
@@ -62,13 +62,13 @@ for (const value of [
     });
     const read = programAct<Shop, ReturnType<typeof Type.Object>>({
       input: Type.Object({}),
-      name: "leer",
-      enter: "leer",
+      name: "mirar",
+      enter: "mirar",
       key: "l",
-      purpose: "leer material",
+      purpose: "mirar material",
       on: "tool",
       undoable: true,
-      cases: [{ promise: "lee", input: {}, then: { facts: [], says: "Material · Leído" } }],
+      cases: [{ promise: "reads", input: {}, then: { facts: [], says: "Material · Leído" } }],
       run: async (_, context) => {
         await context.ports.inspect?.check?.(context.credentials.current("signing")?.refs);
         return { status: "accepted", text: "Material · Leído" };

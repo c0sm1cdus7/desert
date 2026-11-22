@@ -1,4 +1,4 @@
-// Lee la marca con error tipado; las marcas v1 requieren revisar también hechos.
+// Reads the mark with a typed error; v1 marks also require reviewing facts.
 import { isRecord } from "../../fields/json-values.ts";
 import { existsSync, readFileSync } from "node:fs";
 import { secretTexts } from "../../texts/secrets.texts.ts";

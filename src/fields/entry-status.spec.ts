@@ -62,7 +62,7 @@ function seat(schema: Parameters<typeof asking>[0], stops?: (answers: readonly s
   };
   return { router, run, type, screen, enter, check };
 }
-describe("the Entrada", () => {
+describe("the entry", () => {
   it("keeps the remaining day shape quiet until Enter explains the incomplete day", () => {
     const hands = seat(object({ date: day("Día") }));
     try {

@@ -1,4 +1,4 @@
-// Comprueba identificadores nuevos antes de crear o escribir, sin tocar la historia.
+// Checks new identifiers before creating or writing, without touching history.
 import type { Emission, Event, Foreign } from "../../journal/vocabulary.ts";
 import type { Creation } from "../members.ts";
 import { coreToolReasons } from "../system-tools.ts";

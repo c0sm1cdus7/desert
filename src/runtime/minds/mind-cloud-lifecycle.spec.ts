@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { expect, it, vi } from "vitest";
 import { shopProgram } from "../../../tests/support/shop.ts";
 import { startCloudHouse } from "../cloud-house.ts";
-it("un arranque de mente inválido rechaza la preparación y libera el anfitrión de nube", async () => {
+it("an invalid mind start rejects the preparation and frees the cloud host", async () => {
   const home = mkdtempSync(join(tmpdir(), "mind-cloud-"));
   const listeners = process.listeners("SIGTERM");
   const transport = vi.fn<typeof fetch>(() => Promise.reject(new Error("No debe enviar")));

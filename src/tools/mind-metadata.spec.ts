@@ -14,7 +14,7 @@ it("keeps purpose and an optional skill message, rendered only on request", () =
   const ordinary: Tool<Shop> = salesTool;
   expect(ordinary.purpose).toBeTruthy();
   expect(ordinary.skill).toBeUndefined();
-  const tool = identitiesTool<Shop>([], "prueba");
+  const tool = identitiesTool<Shop>([], "test");
   expect(tool.skill).toBe(identitySkill);
   expect(tool.purpose).toBeTruthy();
   expect(tool.skill?.text("es", {})).toContain("Nunca");

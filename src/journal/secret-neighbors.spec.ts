@@ -5,7 +5,7 @@ import { ownAct } from "../tools/act-definition.ts";
 import { effect } from "../house/facts.ts";
 import type { ActResult } from "../tools/tool-contract.ts";
 
-it("recorre listas, opcionales y solo la rama válida de la unión", () => {
+it("walks lists, optionals and only the valid branch of the union", () => {
   const shape = Type.Object({
     box: Type.Object({
       values: Type.Array(Type.String({ secret: true })),
@@ -27,7 +27,7 @@ it("recorre listas, opcionales y solo la rama válida de la unión", () => {
   rig.set({ box: { values: [] }, choice: { kind: "public", value: "public-description" } });
   expect(field(field(inputOf(rig), "choice"), "value")).toBe("public-description");
 });
-it("una unión malformada no deja su contenido en el diagnóstico", () => {
+it("a malformed union leaves none of its content in the diagnostic", () => {
   const shape = Type.Union([
     Type.Object({ kind: Type.Literal("private"), value: Type.String({ secret: true }) }),
     Type.Object({ kind: Type.Literal("public"), value: Type.String() }),
@@ -36,7 +36,7 @@ it("una unión malformada no deja su contenido en el diagnóstico", () => {
   expect(rig.set({ kind: "unknown", value: "datum-invented" }).status).toBe("rejected");
   expect(has(rig.facts(), "datum-invented")).toBe(false);
 });
-it("dos acciones intercaladas reciben referencias distintas y conservan sus datos públicos", async () => {
+it("two interleaved actions get distinct references and keep their public data", async () => {
   const release: (() => void)[] = [];
   let index = 0;
   const rig = fixture(
@@ -60,7 +60,7 @@ it("dos acciones intercaladas reciben referencias distintas y conservan sus dato
   expect(a.status === "processing" && b.status === "processing").toBe(true);
   release[1]?.();
   release[0]?.();
-  if (a.status !== "processing" || b.status !== "processing") throw new Error("No inició");
+  if (a.status !== "processing" || b.status !== "processing") throw new Error("Did not start");
   const [first, second] = await Promise.all([a.completion, b.completion]);
   expect(has(first, "first-datum")).toBe(false);
   expect(has(first, "second-datum")).toBe(true);
@@ -74,7 +74,7 @@ it("dos acciones intercaladas reciben referencias distintas y conservan sus dato
   );
   expect(entry.data.text).toBe("first-datum");
 });
-it("conserva lo escrito al reiniciar y da referencias nuevas en cada casa", () => {
+it("keeps what was written across a restart and gives new references in each house", () => {
   const a = fixture();
   const b = fixture();
   a.set({ value: "datum-invented" });
@@ -86,7 +86,7 @@ it("conserva lo escrito al reiniciar y da referencias nuevas en cada casa", () =
   a.set({ value: "datum-invented" });
   expect(field(inputOf(a), "value")).not.toBe(first);
 });
-it("resuelve acciones propias, destinos de cosas y llamadas anidadas", async () => {
+it("resolves own actions, thing targets and nested calls", async () => {
   const rig = fixture(
     secret,
     undefined,
@@ -100,15 +100,15 @@ it("resuelve acciones propias, destinos de cosas y llamadas anidadas", async () 
       ],
     },
   );
-  const own = rig.ports().act({ act: "save", target: "own", input: { value: "dato-propio" } }, 0);
+  const own = rig.ports().act({ act: "save", target: "own", input: { value: "own-datum" } }, 0);
   expect(own.status).toBe("accepted");
-  expect(has(rig.facts(), "dato-propio")).toBe(false);
-  rig.set({ value: "dato-hijo" }, "child");
+  expect(has(rig.facts(), "own-datum")).toBe(false);
+  rig.set({ value: "child-datum" }, "child");
   expect(ref(field(inputOf(rig), "value"))).toBe(true);
   const nested = fixture(
     secret,
     async (input, context) => {
-      await context.execute?.({ act: "set", target: "vault", input: { value: "dato-anidado" } });
+      await context.execute?.({ act: "set", target: "vault", input: { value: "nested-datum" } });
       return { status: "accepted", text: String(field(input, "value")) };
     },
     {},
@@ -121,22 +121,22 @@ it("resuelve acciones propias, destinos de cosas y llamadas anidadas", async () 
       ],
     },
   );
-  const started = nested.ports().act({ act: "forward", target: "own", input: { value: "dato-puente" } }, 0);
+  const started = nested.ports().act({ act: "forward", target: "own", input: { value: "bridge-datum" } }, 0);
   if (started.status === "processing") await started.completion;
-  expect(has(nested.facts(), "dato-puente") || has(nested.facts(), "dato-anidado")).toBe(false);
+  expect(has(nested.facts(), "bridge-datum") || has(nested.facts(), "nested-datum")).toBe(false);
 });
-it("un corte mientras espera conserva el plegado y el reinicio interrumpe la acción", async () => {
+it("a cut while waiting keeps the fold, and the restart interrupts the action", async () => {
   let release = () => {};
   const rig = fixture(
     secret,
     () =>
       new Promise<ActResult<P>>(resolve => {
-        release = () => resolve({ status: "accepted", text: "dato-pendiente" });
+        release = () => resolve({ status: "accepted", text: "pending-datum" });
       }),
   );
-  const started = rig.set({ value: "dato-pendiente" });
+  const started = rig.set({ value: "pending-datum" });
   expect(started.status).toBe("processing");
-  expect(has(rig.house.tools.state(), "dato-pendiente")).toBe(false);
+  expect(has(rig.house.tools.state(), "pending-datum")).toBe(false);
   rig.restart();
   release();
   if (started.status === "processing")
@@ -145,5 +145,5 @@ it("un corte mientras espera conserva el plegado y el reinicio interrumpe la acc
       reason: "acción interrumpida",
       effects: [],
     });
-  expect(has(rig.facts(), "dato-pendiente") || has(rig.house.tools.state(), "dato-pendiente")).toBe(false);
+  expect(has(rig.facts(), "pending-datum") || has(rig.house.tools.state(), "pending-datum")).toBe(false);
 });

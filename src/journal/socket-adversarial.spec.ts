@@ -109,9 +109,9 @@ it("g04: a legacy client-built entry cannot write text or request attention", as
         tool: "payments",
         target: "payments",
         author: "ana",
-        text: "inventado",
+        text: "invented",
         attention: true,
-        made: ["payments/falso"],
+        made: ["payments/fake"],
       },
     }),
   );

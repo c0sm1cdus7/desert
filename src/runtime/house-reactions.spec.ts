@@ -1,4 +1,4 @@
-// Reabre el diario real de una reacción, recupera lo pendiente y conserva las confirmaciones.
+// Reopens a reaction's real journal, recovers what is pending and keeps the confirmations.
 import "../../tests/support/fixture-vault.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -7,7 +7,7 @@ import { expect, it, vi } from "vitest";
 import { effect } from "../house/facts.ts";
 import { startHouse } from "./house-runtime.ts";
 import { shop, shopRegistry, shopSlices, type ShopEvent } from "../../tests/support/shop.ts";
-it("recupera sin pensamiento desde disco y no vuelve a avisar al reconstruir", async () => {
+it("recovers from disk without thinking and does not notify again on rebuilding", async () => {
   const home = mkdtempSync(join(tmpdir(), "desert-reactions-"));
   const options = {
     by: "shop",

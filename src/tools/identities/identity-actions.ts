@@ -1,4 +1,4 @@
-// Acciones declaradas de sacar, readmitir sin herramientas y pasar la administración, con disponibilidad actual.
+// Declared actions to take out, readmit without tools and hand over administration, with current availability.
 import { programKit } from "../../house/kit-selection.ts";
 import { object } from "../../fields/visible-text.ts";
 import { identityDisplayName, type House } from "../../house/members.ts";

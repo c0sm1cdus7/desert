@@ -1,4 +1,4 @@
-// Conserva la evidencia del banco por rol, carta y huellas exactas en el diario de la casa.
+// Keeps the bank's evidence by role, card and exact fingerprints in the house's journal.
 import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
 import { mindActor } from "../../fields/mind-actor.ts";

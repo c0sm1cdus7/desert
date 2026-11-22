@@ -7,7 +7,7 @@ import { vocabulary } from "../journal/vocabulary.ts";
 import { SecretCustody } from "../keychain/custody/secret-custody.ts";
 import { SqliteJournal } from "../storage/journal-store.ts";
 import { credentialJournal } from "./credential-journal.ts";
-it("liberar por la API dentro de una transacción rechaza el segundo agregado antes del commit", () => {
+it("releasing through the API inside a transaction rejects the second addition before the commit", () => {
   const rig = custodyRig(),
     journal = new SqliteJournal(join(rig.home, "events.sqlite"), vocabulary({}));
   try {
@@ -32,7 +32,7 @@ it("liberar por la API dentro de una transacción rechaza el segundo agregado an
   }
 });
 for (const status of [null, 44])
-  it(`la custodia conserva el vínculo con ancla pendiente ${status} y reintenta al leer`, () => {
+  it(`custody keeps the binding with a pending ${status} anchor and retries on read`, () => {
     const rig = custodyRig(),
       fake = fakeKeychain();
     let fail = false;
@@ -58,7 +58,7 @@ for (const status of [null, 44])
       store.close();
     }
   });
-it("una apertura con el ancla todavía pendiente muestra el aviso y la siguiente lectura lo resuelve", () => {
+it("an opening with the anchor still pending shows the notice and the next read resolves it", () => {
   const rig = custodyRig(),
     fake = fakeKeychain();
   let fail = false;
@@ -84,7 +84,7 @@ it("una apertura con el ancla todavía pendiente muestra el aviso y la siguiente
     again.close();
   }
 });
-it("dos lotes explícitos se rechazan antes del commit y el siguiente intento no hereda el lote rechazado", () => {
+it("rejects two explicit batches before the commit, and the next attempt does not inherit the rejected one", () => {
   const rig = custodyRig(),
     journal = new SqliteJournal(join(rig.home, "events.sqlite"), vocabulary({}));
   try {

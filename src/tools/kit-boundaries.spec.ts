@@ -10,7 +10,7 @@ import { shop, type Shop } from "../../tests/support/shop.ts";
 const rigs: { close(): void }[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
 
-it("finish comprueba el kit incluso si el cambio no pasó por el oyente", async () => {
+it("finish checks the kit even if the change did not go through the listener", async () => {
   const rig = runningRig();
   rigs.push(rig);
   const pending = rig.start();
@@ -21,7 +21,7 @@ it("finish comprueba el kit incluso si el cambio no pasó por el oyente", async 
   expect(rig.state().entries).toEqual([]);
 });
 
-it("el kit no corta lo que la casa ofrece directamente, aunque nombre una herramienta", async () => {
+it("the kit does not cut what the house offers directly, even if it names a tool", async () => {
   const done = deferred<ActResult<Shop>>();
   const contexts: ActContext<Shop>[] = [];
   const own = ownAct<Shop, ReturnType<typeof Type.Object>>(
@@ -38,12 +38,12 @@ it("el kit no corta lo que la casa ofrece directamente, aunque nombre una herram
   const pending = rig.act("beto", "own", {}, "sales");
   rig.bus.emit(effect("granted", { identity: "beto", tools: [] }, "ana"));
   expect(contexts[0]?.signal?.aborted).toBe(false);
-  done.resolve({ status: "accepted", effects: [shop.fact("sale-registered", { sale: "propia", total: 1 }, "beto")] });
+  done.resolve({ status: "accepted", effects: [shop.fact("sale-registered", { sale: "own", total: 1 }, "beto")] });
   expect(await settled(pending)).toMatchObject({ status: "accepted" });
-  expect(rig.state().tools.sales.get("propia")?.by).toBe("beto");
+  expect(rig.state().tools.sales.get("own")?.by).toBe("beto");
 });
 
-it("un padre cortado no inicia otro acto aunque la otra acción siga dada", async () => {
+it("a cut parent starts no other act even if the other action is still given", async () => {
   const rig = runningRig();
   rigs.push(rig);
   rig.attend("beto", "sales");

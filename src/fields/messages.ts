@@ -1,4 +1,4 @@
-// Define mensajes con parámetros tipados y exige el idioma en cada lectura.
+// Defines messages with typed parameters and requires the language on every reading.
 import type { Static, TObject } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { languages, type Language } from "./languages.ts";

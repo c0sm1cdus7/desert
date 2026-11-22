@@ -1,4 +1,4 @@
-// Convierte pedidos de escritura antiguos a V2 antes de anexarlos, sin modificar hechos guardados.
+// Converts old write requests to V2 before appending them, without modifying stored facts.
 import { Value } from "@sinclair/typebox/value";
 import { houseCatalog } from "./facts.ts";
 import { journalTexts } from "../texts/journal.texts.ts";

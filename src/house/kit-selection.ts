@@ -1,4 +1,4 @@
-// Describe selecciones positivas y expande carpetas contra las acciones instaladas.
+// Describes positive selections and expands folders against the installed actions.
 import { systemTool } from "./system-tools.ts";
 import { Type, type Static } from "@sinclair/typebox";
 import { object } from "../fields/visible-text.ts";

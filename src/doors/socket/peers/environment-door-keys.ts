@@ -1,4 +1,4 @@
-// Compone llaves de puertas desde variables declaradas y rechaza material repetido aun con otra codificación.
+// Builds door keys from declared variables and refuses repeated material, even under another encoding.
 import { timingSafeEqual } from "node:crypto";
 import { environmentDoorKey, type KeyEnvironment } from "../../../runtime/environment-key.ts";
 import { cloudTexts } from "../../../texts/cloud.texts.ts";

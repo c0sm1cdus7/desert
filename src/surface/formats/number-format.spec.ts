@@ -1,11 +1,11 @@
-// Las reglas aceptan husos negativos y umbrales numéricos completos desde el formulario real.
+// Rules accept negative time zones and complete numeric thresholds from the real form.
 import { expect, it } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
 import { asking } from "../bridge/questions/asking.ts";
 import { formats } from "./masks.ts";
 const locale = { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" };
-it("escribe números con signo, decimales y exponentes sin aceptar prefijos incompletos", () => {
+it("writes numbers with sign, decimals and exponents without accepting incomplete prefixes", () => {
   const mask = formats(locale).number;
   for (const value of [-180, 0, -1.25, 1e-10, 9007199254740991]) {
     const typed = Array.from(mask.typed(value)).reduce((text, char) => mask.put(text, char), "");
@@ -15,7 +15,7 @@ it("escribe números con signo, decimales y exponentes sin aceptar prefijos inco
     expect(mask.value(incomplete)).toBeUndefined();
   expect(mask.rejected?.("12", "x")).toBeDefined();
 });
-it("el lector devuelve el número tipado y respeta los límites del horario", () => {
+it("the reader returns the typed number and respects the schedule's limits", () => {
   const reader = asking(
     object({
       offset: Type.Integer({

@@ -1,4 +1,4 @@
-// Hechos de dispositivos inventados por una acción para comprobar que el motor rechaza el lote completo.
+// Device facts invented by an action, to check that the engine refuses the whole batch.
 import { effect } from "../../src/house/facts.ts";
 export const deviceEffects = (by: string) => [
   effect("device-registered", { id: "mac", name: "Máquina inventada", publicKey: "invented" }, by),

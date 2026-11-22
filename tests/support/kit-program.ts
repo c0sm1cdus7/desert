@@ -4,8 +4,8 @@ import { shopShown, type Shop } from "./shop.ts";
 import { shopWith, withIdentities } from "./shop-variants.ts";
 const input = object({});
 const wait = programAct<Shop, typeof input>({
-  name: "esperar",
-  enter: "esperar",
+  name: "aguardar",
+  enter: "aguardar",
   purpose: "espera de prueba",
   key: "e",
   on: "tool",

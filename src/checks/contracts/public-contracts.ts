@@ -51,7 +51,7 @@ function candidate(options: Omit<DistributionOptions, "contracts">): Composition
   };
 }
 /** Runs every case each program requests against its single provider, each in its own isolated house, and returns
- * the evidence `componer` takes as `contratos`. A request without exactly one provider is left to `componer`, which
+ * the evidence `compose` takes as `contracts`. A request without exactly one provider is left to `compose`, which
  * says why. Only the rows this call issued are credited: a copied row is not. */
 export async function certifyContracts(
   options: Omit<DistributionOptions, "contracts">,

@@ -23,14 +23,14 @@ function rig() {
   };
   return { file, home, keys, open };
 }
-it("ingresa por pregunta o adaptador, vincula un par y conserva solo referencias públicas", async () => {
+it("takes material in by question or adapter, binds a pair and keeps only public references", async () => {
   const r = rig(),
     store = r.open(),
     session = store.begin(scope);
   const adapter = store.adapter(session, ["signing", "backup"]);
   const refs = {
-    certificate: session.capture(Buffer.from("CERTIFICADO_SINTETICO\nSIN_VALIDEZ")),
-    privateKey: adapter.capture(Buffer.from("MATERIAL_SINTETICO\nNO_ES_LLAVE")),
+    certificate: session.capture(Buffer.from("SYNTHETIC_CERTIFICATE\nNOT_VALID")),
+    privateKey: adapter.capture(Buffer.from("SYNTHETIC_MATERIAL\nNOT_A_KEY")),
   };
   expect(await adapter.use(refs, material => (material.privateKey?.length ?? 0) > 0)).toBe(true);
   session.replace("signing", refs, 0);
@@ -42,13 +42,13 @@ it("ingresa por pregunta o adaptador, vincula un par y conserva solo referencias
   expect(await reopened.adapter(next, ["signing"]).use(refs, values => (values.certificate?.length ?? 0) > 0)).toBe(
     true,
   );
-  expect(JSON.stringify(reopened.facts())).not.toContain("MATERIAL_SINTETICO");
-  expect(readFileSync(r.file).includes(Buffer.from("MATERIAL_SINTETICO"))).toBe(false);
+  expect(JSON.stringify(reopened.facts())).not.toContain("SYNTHETIC_MATERIAL");
+  expect(readFileSync(r.file).includes(Buffer.from("SYNTHETIC_MATERIAL"))).toBe(false);
   next.release("signing", 1);
   expect(reopened.ids()).toEqual([]);
   expect(reopened.facts().map(fact => fact.kind)).toContain("credential-purged");
 });
-it("cancelar y reiniciar liberan provisionales y nunca habilitan referencias inventadas o ajenas", async () => {
+it("cancelling and restarting release provisionals and never enable invented or foreign references", async () => {
   const r = rig(),
     store = r.open(),
     session = store.begin(scope);
@@ -64,12 +64,12 @@ it("cancelar y reiniciar liberan provisionales y nunca habilitan referencias inv
   expect(reopened.ids()).toEqual([]);
   await expect(reopened.adapter(next, ["signing"]).use({ key: abandoned }, () => true)).rejects.toThrow();
 });
-it("reemplazo compara revisión, conserva vínculos compartidos y drena un uso iniciado", async () => {
+it("replacement compares the revision, keeps shared bindings and drains a started use", async () => {
   const r = rig(),
     store = r.open(),
     session = store.begin(scope);
-  const old = { key: session.capture(Buffer.from("anterior")) },
-    fresh = { key: session.capture(Buffer.from("siguiente")) };
+  const old = { key: session.capture(Buffer.from("previous")) },
+    fresh = { key: session.capture(Buffer.from("next")) };
   session.replace("signing", old, 0);
   session.replace("backup", old, 0);
   const adapter = store.adapter(session, ["signing"]);
@@ -93,7 +93,7 @@ it("reemplazo compara revisión, conserva vínculos compartidos y drena un uso i
   expect(store.ids()).toEqual([]);
   expect(() => session.replace("signing", fresh, 0)).toThrow("E-CUSTODY-CONFLICT");
 });
-it("texto que parece referencia se captura de nuevo y errores del adaptador cruzan cerrados", async () => {
+it("text that looks like a reference is captured anew and adapter errors cross closed", async () => {
   const r = rig(),
     store = r.open(),
     session = store.begin(scope);

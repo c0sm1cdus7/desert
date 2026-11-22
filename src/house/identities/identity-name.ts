@@ -1,4 +1,4 @@
-// Regla pública de identificadores nuevos, sin alterar el plegado histórico
+// Public rule for new identifiers, without altering the historical fold.
 import { identityNameTexts } from "../../texts/tools.texts.ts";
 /** The identifier of a new identity; historical facts are folded without this check. */
 export function identityNameProblem(name: string, runner: string): string | undefined {

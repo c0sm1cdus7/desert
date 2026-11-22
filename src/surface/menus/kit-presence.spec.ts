@@ -60,9 +60,9 @@ it("withdraws every reading immediately and writes no acts for an absent person"
 it("ignores obsolete action names for attention and reminders, including after restart", () => {
   const rig = shopRig({ registry: settlingShop.registry, grants: { ana: ["sales"], beto: ["sales"] } });
   try {
-    rig.bus.emit(effect("tool-entry", { tool: "sales", target: "sales", author: "ana", text: "hola" }, "ana"));
+    rig.bus.emit(effect("tool-entry", { tool: "sales", target: "sales", author: "ana", text: "buen día" }, "ana"));
     expect(rig.state().attentionBy.get("beto")?.has("sales")).toBe(true);
-    rig.bus.emit(effect("kit-set", { holder: "beto", tool: "sales", acts: ["fantasma"] }, "ana"));
+    rig.bus.emit(effect("kit-set", { holder: "beto", tool: "sales", acts: ["ghost"] }, "ana"));
     expect(rig.state().attentionBy.get("beto")?.has("sales")).toBe(false);
     rig.bus.emit(effect("tool-entry", { tool: "sales", target: "sales", author: "ana", text: "otra" }, "ana"));
     expect(rig.state().attentionBy.get("beto")?.has("sales")).toBe(false);
@@ -119,7 +119,7 @@ it("lets the administrator use adapters for unassigned tools when identities are
 it("removes a live reminder when a person leaves and keeps it off after reopening", () => {
   const rig = shopRig({ grants: { ana: ["sales"], dora: ["sales"] } });
   try {
-    rig.bus.emit(effect("tool-entry", { tool: "sales", target: "sales", author: "ana", text: "hola" }, "ana"));
+    rig.bus.emit(effect("tool-entry", { tool: "sales", target: "sales", author: "ana", text: "buen día" }, "ana"));
     expect(rig.state().attentionBy.get("dora")?.has("sales")).toBe(true);
     rig.bus.emit(effect("removed", { identity: "dora" }, "ana"));
     expect(rig.state().attentionBy.get("dora")?.has("sales")).toBe(false);

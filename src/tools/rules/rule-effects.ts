@@ -1,4 +1,4 @@
-// Impide que programas o actos propios falsifiquen reglas y valida el acto concreto del core.
+// Keeps programs or own acts from forging rules and validates the concrete core act.
 import type { House } from "../../house/members.ts";
 import type { HouseEmission } from "../../house/facts.ts";
 import type { ActContext, Program, Tool } from "../tool-contract.ts";

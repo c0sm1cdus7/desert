@@ -3,11 +3,11 @@ import { matrixSeat, readyMatrix } from "../../tests/support/money-matrix-seat.t
 import { fieldSeat } from "../../tests/support/field-seat.ts";
 import { text } from "./fields.ts";
 
-it.each(["en vuelo", "confirmación"] as const)(
+it.each(["in-flight", "confirmation"] as const)(
   "P4/P5: %s preserves the failed action beside changed currency",
   state => {
     const h = readyMatrix(state);
-    if (state === "confirmación") h.send({ kind: "confirm" });
+    if (state === "confirmation") h.send({ kind: "confirm" });
     h.sale.currency = "US$";
     h.end(false);
     expect(h.screen().body).toMatchObject({ entry: { typed: "", placeholder: "US$ 0,00" } });
@@ -23,22 +23,22 @@ it.each(["en vuelo", "confirmación"] as const)(
   },
 );
 it("P3: a displayed empty amount stays empty when currency returns, including the next key", () => {
-  const h = readyMatrix("importe");
-  h.event("ida y vuelta");
+  const h = readyMatrix("amount");
+  h.event("round-trip");
   expect(h.screen().body).toMatchObject({ entry: { typed: "" } });
   expect(h.session().at(-1)).toMatchObject({ typed: "", answers: [], currency: "$" });
   h.send({ kind: "type", text: "7" });
   expect(h.screen().body).toMatchObject({ entry: { typed: "$ 0,07" } });
 });
 it("P6: the same symbol is the same currency and independent sessions keep independent amounts", () => {
-  const a = readyMatrix("importe");
-  const b = readyMatrix("importe");
+  const a = readyMatrix("amount");
+  const b = readyMatrix("amount");
   a.sale.currency = "$";
   expect(a.screen().body).toMatchObject({ entry: { typed: "$ 5,00" } });
   b.sale.currency = "US$";
   b.screen();
   expect(a.screen().body).toMatchObject({ entry: { typed: "$ 5,00" } });
-  expect(matrixSeat("vacío").screen().body).toMatchObject({ entry: { typed: "" } });
+  expect(matrixSeat("empty").screen().body).toMatchObject({ entry: { typed: "" } });
 });
 it("P9 / WA4: a space before an existing space is rejected at the caret", () => {
   const h = fieldSeat(text("Nota", "Nota"));
@@ -50,7 +50,7 @@ it("P9 / WA4: a space before an existing space is rejected at the caret", () => 
   expect(h.reasons()).toEqual(["sin espacios al principio ni dobles"]);
 });
 it("P10: pasted signs, separators and overflow keep the first discarded reason", () => {
-  const h = matrixSeat("vacío");
+  const h = matrixSeat("empty");
   h.sale.currency = "US$";
   h.send({ kind: "paste", text: "-1.234,56" });
   expect(h.screen().body).toMatchObject({ entry: { typed: "US$ 1.234,56" } });
@@ -62,8 +62,8 @@ it("P10: pasted signs, separators and overflow keep the first discarded reason",
 
 it("another person edits the shared sale while two independent devices are asking its amount", () => {
   const sale = { currency: "$" };
-  const ana = matrixSeat("vacío", sale);
-  const beto = matrixSeat("vacío", sale);
+  const ana = matrixSeat("empty", sale);
+  const beto = matrixSeat("empty", sale);
   ana.send({ kind: "type", text: "500" });
   beto.send({ kind: "type", text: "750" });
   beto.sale.currency = "US$";

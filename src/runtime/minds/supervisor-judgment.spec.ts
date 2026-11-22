@@ -41,7 +41,7 @@ type Condition = Readonly<Record<string, unknown>>;
 async function markedRule(house: RequestHouse, condition: Condition = { operator: "always" }, act = "personal/add") {
   house.tools.act({ act: "attend", input: { target: "rules" } }, 0, "ana");
   const rule = {
-    id: "notas-supervisadas",
+    id: "supervised-notes",
     text: "Lo que se anota requiere supervisión",
     action: { tool: act === "end" ? "journey" : "notes", act },
     condition,
@@ -156,7 +156,7 @@ it("a rule that changes while a marked control waits decides again: a passed ver
   withSend(house);
   await markedRule(house, { operator: "actor", kind: "program" }, "end");
   const block = {
-    id: "notas-supervisadas",
+    id: "supervised-notes",
     text: "Ya no se termina",
     action: { tool: "journey", act: "end" },
     condition: { operator: "always" },

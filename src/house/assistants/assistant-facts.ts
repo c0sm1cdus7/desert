@@ -1,4 +1,4 @@
-// Declara la habilitación, delegación y adopción histórica de un asistente.
+// Declares an assistant's enabling, delegation and historical adoption.
 import { selectionKitSchema } from "../kit-selection.ts";
 import { Type, type Static } from "@sinclair/typebox";
 import { object, visibleText } from "../../fields/visible-text.ts";

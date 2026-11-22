@@ -29,7 +29,7 @@ it.each([
   ["started", "mind:notes"],
   ["uncertain", "mind:notes"],
 ] as const)(
-  "reabre SQLite después de %s de %s, interrumpe sin repetir y atiende una llegada posterior una sola vez",
+  "reopens SQLite after %s of %s, interrupts without repeating and attends a later arrival only once",
   async (phase, actor) => {
     const dir = mkdtempSync(join(tmpdir(), "mind-turn-recovery-"));
     const file = join(dir, "journal.sqlite");

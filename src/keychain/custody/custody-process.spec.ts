@@ -9,7 +9,7 @@ import { SecretCustody } from "./secret-custody.ts";
 const homes: string[] = [];
 afterEach(() => homes.splice(0).forEach(home => rmSync(home, { recursive: true, force: true })));
 for (const revoked of [false, true])
-  it(`recupera tras SIGKILL con ${revoked ? "uso revocado en curso" : "ingreso provisional"}`, () => {
+  it(`recovers after SIGKILL with ${revoked ? "a revoked use in progress" : "a provisional ingress"}`, () => {
     const home = mkdtempSync(join(tmpdir(), "custody-killed-fixture-"));
     homes.push(home);
     const file = join(home, "fixture.sqlite");
@@ -22,7 +22,7 @@ for (const revoked of [false, true])
       const store = new SecretCustody(${JSON.stringify(file)}, ${JSON.stringify(home)},
         processKeys(home));
       const session = store.begin({ actor: "ana", tool: "vault", target: "test" });
-      const refs = { key: session.capture(Buffer.from("MATERIAL_INVENTADO")) };
+      const refs = { key: session.capture(Buffer.from("INVENTED_MATERIAL")) };
       if (${String(revoked)}) {
         session.replace("signing", refs, 0);
         store.adapter(session, ["signing"]).use(refs, () => new Promise(() => {}));

@@ -22,10 +22,10 @@ const cases: [string, boolean][] = [
   ["1a", false],
   ["a:b", false],
   ...[
-    "Mind:casa",
-    "MIND:casa",
-    "mind :casa",
-    "mind：casa",
+    "Mind:house",
+    "MIND:house",
+    "mind :house",
+    "mind：house",
     "mіnd:house",
     "mind:",
     "Kenon",
@@ -132,15 +132,15 @@ it("folds historical invalid identities unchanged across reopening", () => {
     const old = new SqliteJournal(join(path, "journal.sqlite"), shop);
     old.append(effect("house-created", {}, "ana"), 0);
     old.append(effect("granted", { identity: "Ana​", tools: ["sales"] }, "ana"), 1);
-    old.append(effect("granted", { identity: "Mala", tools: ["sales"] }, "ana"), 2);
-    old.append(effect("removed", { identity: "Mala" }, "ana"), 3);
+    old.append(effect("granted", { identity: "Bad", tools: ["sales"] }, "ana"), 2);
+    old.append(effect("removed", { identity: "Bad" }, "ana"), 3);
     old.append(effect("handed", { to: "Ana​" }, "ana"), 4);
     old.close();
     const reopened = startHouse(path, options);
     try {
       expect(reopened.tools.state().house.admin).toBe("Ana​");
-      expect(reopened.tools.state().house.removed.has("Mala")).toBe(true);
-      expect(() => reopened.bus.emit(effect("granted", { identity: "Mala", tools: [] }, "Ana​"))).toThrow(/letra.*64/);
+      expect(reopened.tools.state().house.removed.has("Bad")).toBe(true);
+      expect(() => reopened.bus.emit(effect("granted", { identity: "Bad", tools: [] }, "Ana​"))).toThrow(/letra.*64/);
       expect(reopened.tools.state().house.grants.get("Ana​")).toEqual(["sales"]);
       expect(() => reopened.bus.emit(effect("handed", { to: "Ana​" }, "Ana​"))).toThrow(/letra.*64/);
     } finally {
@@ -155,7 +155,7 @@ it("bounds visible display names before writing and validates all initial assign
   const path = mkdtempSync(join(tmpdir(), "identity-display-"));
   try {
     expect(() =>
-      startHouse(path, { ...options, creation: { admin: "ana", assignments: [{ identity: "Mala", tools: [] }] } }),
+      startHouse(path, { ...options, creation: { admin: "ana", assignments: [{ identity: "Bad", tools: [] }] } }),
     ).toThrow(/letra.*64/);
     const journal = new SqliteJournal(join(path, "journal.sqlite"), shop);
     expect(journal.replay(0, n => n + 1)).toBe(0);
@@ -184,7 +184,7 @@ it("rejects an invalid identity through the running journal before writing", () 
     const house = startHouse(path, options);
     try {
       const before = facts(house);
-      expect(() => house.journal.append(effect("granted", { identity: "Mala", tools: [] }, "ana"), 1)).toThrow(
+      expect(() => house.journal.append(effect("granted", { identity: "Bad", tools: [] }, "ana"), 1)).toThrow(
         /letra.*64/,
       );
       expect(facts(house)).toBe(before);

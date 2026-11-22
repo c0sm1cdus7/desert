@@ -1,3 +1,4 @@
+// A money field seated alone: every matrix state is reached, then one event is sent to it.
 import { object } from "../../src/fields/visible-text.ts";
 import { money, text } from "../../src/fields/fields.ts";
 import { asking } from "../../src/surface/bridge/questions/asking.ts";
@@ -9,42 +10,42 @@ import type { Tool } from "../../src/surface/contract/shown-tool.ts";
 import { finished, step } from "../../src/surface/router/step.ts";
 
 export const matrixStates = [
-  "vacío",
-  "importe",
-  "cero",
-  "tope",
-  "falta completar",
-  "mínimo",
-  "solo números",
-  "cambió la moneda",
-  "defineProgram",
-  "Error",
-  "en vuelo",
-  "confirmación",
-  "más adelante",
-  "terminada",
+  "empty",
+  "amount",
+  "zero",
+  "cap",
+  "missing",
+  "minimum",
+  "digits-only",
+  "currency-changed",
+  "program-held",
+  "failed",
+  "in-flight",
+  "confirmation",
+  "later-field",
+  "finished",
 ] as const;
 export const matrixEvents = [
-  "dígito",
-  "cero",
-  "borrar",
-  "espacio",
-  "menos",
-  "más",
-  "coma",
-  "punto",
-  "letra",
+  "digit",
+  "zero",
+  "erase",
+  "space",
+  "minus",
+  "plus",
+  "comma",
+  "dot",
+  "letter",
   "Enter",
-  "izquierda",
-  "derecha",
-  "arriba",
-  "abajo",
-  "pegado",
-  "moneda",
-  "ida y vuelta",
-  "bien",
+  "left",
+  "right",
+  "up",
+  "down",
+  "paste",
+  "currency",
+  "round-trip",
+  "ok",
   "Error",
-  "otra persona",
+  "other-person",
 ] as const;
 export type MatrixState = (typeof matrixStates)[number];
 export type MatrixEvent = (typeof matrixEvents)[number];
@@ -62,7 +63,7 @@ const keys: readonly Intent[] = [
 ];
 function matrixTools(sale: { currency: string }, state: MatrixState): readonly Tool[] {
   const amount = money("Importe", 1, (_, state: typeof sale) => state.currency);
-  const ask = asking(object({ amount, ...(state === "más adelante" ? { note: text("Nota", "Nota") } : {}) }), {
+  const ask = asking(object({ amount, ...(state === "later-field" ? { note: text("Nota", "Nota") } : {}) }), {
     state: () => sale,
     now: () => 17,
     today: () => "2026-11-13",
@@ -71,7 +72,7 @@ function matrixTools(sale: { currency: string }, state: MatrixState): readonly T
   });
   const next = (answers: readonly string[]): Field | null =>
     ask.next(answers) ??
-    (state === "confirmación" && answers.length === 1
+    (state === "confirmation" && answers.length === 1
       ? { kind: "confirm", ask: "Confirmar importe", reversible: true, options: [{ title: "anotar", key: "a" }] }
       : null);
   return [
@@ -87,7 +88,7 @@ function matrixTools(sale: { currency: string }, state: MatrixState): readonly T
           verb: "anotar",
           scope: "all",
           next,
-          stops: answers => (state === "defineProgram" && answers[0] === "500" ? "importe retenido" : undefined),
+          stops: answers => (state === "program-held" && answers[0] === "500" ? "importe retenido" : undefined),
           run: () => Promise.resolve({ ok: true, text: "Listo" }),
         },
       },
@@ -119,29 +120,29 @@ export function matrixSeat(state: MatrixState, sale = { currency: "$" }) {
     event: (event: MatrixEvent) => {
       const key = keys[matrixEvents.indexOf(event)];
       if (key) send(key);
-      else if (event === "bien" || event === "Error") end(event === "bien");
+      else if (event === "ok" || event === "Error") end(event === "ok");
       else {
         sale.currency = "US$";
         screen();
-        if (event === "ida y vuelta") sale.currency = "$";
+        if (event === "round-trip") sale.currency = "$";
       }
     },
   };
 }
 export function readyMatrix(state: MatrixState) {
   const h = matrixSeat(state);
-  if (!["vacío", "falta completar"].includes(state)) {
-    const value = state === "tope" ? "9999999999999" : "500";
-    h.send({ kind: "type", text: ["cero", "mínimo"].includes(state) ? "0" : value });
+  if (!["empty", "missing"].includes(state)) {
+    const value = state === "cap" ? "9999999999999" : "500";
+    h.send({ kind: "type", text: ["zero", "minimum"].includes(state) ? "0" : value });
   }
-  if (["falta completar", "mínimo", "Error", "en vuelo", "confirmación", "más adelante", "terminada"].includes(state))
+  if (["missing", "minimum", "failed", "in-flight", "confirmation", "later-field", "finished"].includes(state))
     h.send({ kind: "confirm" });
-  if (state === "solo números") h.send({ kind: "type", text: "x" });
-  if (state === "cambió la moneda") {
+  if (state === "digits-only") h.send({ kind: "type", text: "x" });
+  if (state === "currency-changed") {
     h.sale.currency = "US$";
     h.screen();
   }
-  if (state === "Error") h.end(false);
-  if (state === "terminada") h.end(true);
+  if (state === "failed") h.end(false);
+  if (state === "finished") h.end(true);
   return h;
 }

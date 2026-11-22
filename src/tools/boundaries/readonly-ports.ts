@@ -1,4 +1,4 @@
-// Protege el lector de estado que reciben el arranque, las reacciones y la casa pública.
+// Protects the state reader that startup, reactions and the public house receive.
 import { readonlyState } from "../../journal/readonly-state.ts";
 /** One protected reader for startup, reactions and the public house handle. */
 export function readonlyPorts<T extends { state(): unknown }>(ports: T): T;

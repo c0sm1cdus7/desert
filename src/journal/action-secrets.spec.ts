@@ -7,17 +7,17 @@ import { secretSnapshots } from "../../tests/support/secret-snapshots.ts";
 import { effect } from "../house/facts.ts";
 
 for (const [name, value] of [
-  ["vacío", ""],
+  ["empty", ""],
   ["one", "Ω"],
-  ["once auditor", "abcdefghijk"],
-  ["doce", "abcdefghijkl"],
-  ["trece", "abcdefghijklm"],
-  ["vocabulario auditor", "sale-registered"],
-  ["multilínea", "uno\ndos"],
+  ["eleven auditor", "abcdefghijk"],
+  ["twelve", "abcdefghijkl"],
+  ["thirteen", "abcdefghijklm"],
+  ["auditor vocabulary", "sale-registered"],
+  ["multiline", "one\ntwo"],
   ["unicode", "ñ🔒"],
-  ["parece referencia", "secret:00000000-0000-0000-0000-000000000000"],
+  ["looks like a reference", "secret:00000000-0000-0000-0000-000000000000"],
 ])
-  it(`reemplaza la posición y conserva plegados sin el dato: ${name}`, () => {
+  it(`replaces the position and keeps folds without the datum: ${name}`, () => {
     const rig = fixture(secret, input => ({ status: "accepted", text: String(field(input, "value")) }));
     expect(rig.set({ value }).status).toBe("accepted");
     const kept = field(inputOf(rig), "value");
@@ -35,25 +35,25 @@ for (const [name, value] of [
     expect(field(inputOf(rig), "value")).toBe(kept);
     if (value) expect(has(rig.house.tools.state(), value)).toBe(false);
   });
-it("los errores y sus causas solo pueden copiar referencias recibidas", () => {
-  const value = "uno\ndos";
+it("errors and their causes can only copy the references they received", () => {
+  const value = "one\ntwo";
   const rig = fixture(secret, input => {
     throw new Error(String(field(input, "value")), { cause: { nested: new Error(String(field(input, "value"))) } });
   });
   const done = rig.set({ value });
   expect(done.status).toBe("rejected");
-  expect(has([done, rig.facts()], value) || has([done, rig.facts()], "uno\\ndos")).toBe(false);
+  expect(has([done, rig.facts()], value) || has([done, rig.facts()], "one\\ntwo")).toBe(false);
 });
-it("aplica estructura a hechos directos y admite referencias aunque excedan el máximo original", () => {
+it("applies structure to direct facts and admits references even beyond the original maximum", () => {
   const rig = fixture();
   const event = rig.house.bus.emit(words.fact("sale-registered", { value: "x", copy: "x" }, "ana"));
   expect(event.kind).toBe("sale-registered");
   expect(ref(event.data.value) && event.data.copy === "x").toBe(true);
   expect(() =>
-    rig.house.bus.emit(words.fact("sale-registered", { value: "demasiado-largo-para-campo", copy: "" }, "ana")),
+    rig.house.bus.emit(words.fact("sale-registered", { value: "too-long-for-the-field", copy: "" }, "ana")),
   ).toThrow();
 });
-it("limpia los hechos de una acción aunque no declaren el campo", () => {
+it("cleans an action's facts even when they do not declare the field", () => {
   const rig = fixture(secret, input => ({
     status: "accepted",
     private: String(field(input, "value")),
@@ -74,15 +74,15 @@ it("limpia los hechos de una acción aunque no declaren el campo", () => {
   const done = rig.set({ value: "sale-registered" });
   expect(has([done, rig.facts()], "sale-registered")).toBe(false);
 });
-it("secretInput false no desactiva una marca y el rechazo tampoco expone la entrada", () => {
+it("secretInput false does not disable a mark, and the rejection does not expose the input either", () => {
   const rig = fixture(Type.Object({ value: Type.String({ secret: true, minLength: 20 }) }), undefined, {
     secretInput: () => false,
   });
   expect(rig.set({ value: "demo-pass" }).status).toBe("rejected");
   expect(ref(field(inputOf(rig), "value")) && !has(rig.facts(), "demo-pass")).toBe(true);
 });
-it("centinela del auditor: transformar los saltos de la referencia no reconstruye el secreto", () => {
-  const value = "MARCADOR_INVENTADO_LINEA_UNO\nMARCADOR_INVENTADO_LINEA_DOS";
+it("auditor's sentinel: transforming the reference's line breaks does not rebuild the secret", () => {
+  const value = "INVENTED_MARKER_LINE_ONE\nINVENTED_MARKER_LINE_TWO";
   const rig = fixture(secret, input => ({
     status: "accepted",
     text: String(field(input, "value")).split("\n").join("|"),
@@ -91,7 +91,7 @@ it("centinela del auditor: transformar los saltos de la referencia no reconstruy
   expect(ref(field(inputOf(rig), "value"))).toBe(true);
   expect(has(done, value.split("\n").join("|"))).toBe(false);
 });
-it("rechaza declaraciones secretas no soportadas antes de escribir", () => {
+it("rejects unsupported secret declarations before writing", () => {
   expect(() => fixture(Type.Object({ value: Type.Number({ secret: true }) }))).toThrow(
     expect.objectContaining({ code: "E-SECRET-SCHEMA" }),
   );

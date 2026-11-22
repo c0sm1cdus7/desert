@@ -26,7 +26,7 @@ const turn = {
   usage: { calls: 0, corrections: 0, consultations: 0 },
 } as const;
 const source = {
-  definition: { role: "asistente", actor: scope.actor, rules: mind, communication: [] },
+  definition: { role: "assistant", actor: scope.actor, rules: mind, communication: [] },
   skills: [{ id: "notes", skill }],
   textRules: [],
   scene: "En casa",
@@ -48,12 +48,12 @@ describe("mind frame", () => {
     expect(JSON.stringify(frame)).not.toMatch(/precio|gasto|carta/i);
   });
   it("keeps the same prefix regardless of unrelated card data", () => {
-    const first = { ...source, card: "una" };
+    const first = { ...source, card: "first-card" };
     const second = { ...source, card: "other" };
     const a = buildMindFrame(scope, turn, first);
     const b = buildMindFrame(scope, turn, second);
     expect(renderMindFrame(a, "es").layers).toEqual(renderMindFrame(b, "es").layers);
-    expect(JSON.stringify(a)).not.toContain("una");
+    expect(JSON.stringify(a)).not.toContain("first-card");
   });
 });
 it("rejects a frame attributed to another mind", () => {

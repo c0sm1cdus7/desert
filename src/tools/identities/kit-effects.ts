@@ -1,4 +1,4 @@
-// Guarda selecciones V2 calculadas sobre el estado vigente y conserva las ramas ajenas a la edición.
+// Stores V2 selections computed over the current state and keeps the branches the edit does not touch.
 import { migrateKit } from "../../house/kit-migration.ts";
 import { holderKit, storedHolderKit } from "../../house/kit-history.ts";
 import { editKit } from "../../house/kit-edit.ts";

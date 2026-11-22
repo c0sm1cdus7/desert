@@ -1,4 +1,4 @@
-// Reconstruye versiones inmutables, vigencia y retiros desde hechos sin borrar ninguna propuesta.
+// Rebuilds immutable versions, validity and retirements from facts without erasing any proposal.
 import type { HouseEvent } from "../facts.ts";
 import { deepFreeze } from "../../journal/vocabulary.ts";
 import type { RuleVersion } from "./rule-schema.ts";

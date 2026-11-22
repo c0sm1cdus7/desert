@@ -9,7 +9,7 @@ import { distributionEntryFixture } from "../../../tests/support/distribution-en
 it("starts local and cloud houses through public exports from linked packages outside node_modules", () => {
   const toy = installablePackage();
   const distribution = join(toy.root, "distribution");
-  const host = join(distribution, "paquetes/host");
+  const host = join(distribution, "packages/host");
   mkdirSync(join(host, "node_modules"), { recursive: true });
   mkdirSync(join(distribution, "node_modules"));
   symlinkSync(host, join(distribution, "node_modules/distribution-host"), "dir");

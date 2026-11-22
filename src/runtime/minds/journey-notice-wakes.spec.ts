@@ -90,7 +90,7 @@ it("a device a person retired wakes each journey with announcing work on it stil
   expect(wakes(policy({ kind: "journey", actor, process: "j3", kit: [] }), history)).toEqual([]);
   expect(wakes(consciousness, history)).toEqual([]);
   // A disconnection is transport, not a fact any mind waits for.
-  const cut = effect("device-disconnected", { device: "vm", connection: "c1", reason: "corte" }, "host");
+  const cut = effect("device-disconnected", { device: "vm", connection: "c1", reason: "cut" }, "host");
   const work = [opened("j1"), turn("t1"), started("x1", "j1"), result("x1", "j1"), done("t1")];
   expect(wakes(journey, at([...work, cut]))).toEqual([]);
 });
@@ -103,8 +103,8 @@ it("a journal from before the notices wakes nobody: no announcing execution, no 
     effect("journey-waiting", { what: "Sigo", until: 9e12 }, actor, ["e2"], "j1"),
     effect("mind-turn-closed", { turn: "t1", outcome: "done", calls: 1, applied: [] }, actor, [], "j1"),
     started("x2", undefined, false),
-    effect("device-execution-unknown", { execution: "x2", reason: "corte" }, actor),
-    effect("device-disconnected", { device: "vm", connection: "c1", reason: "corte" }, "host"),
+    effect("device-execution-unknown", { execution: "x2", reason: "cut" }, actor),
+    effect("device-disconnected", { device: "vm", connection: "c1", reason: "cut" }, "host"),
     retired,
   ]);
   expect(pendingMindWakes([journey, consciousness, other], history, Date.now())).toEqual([]);
@@ -124,7 +124,7 @@ it("a journey is owed a notice while its work has none, or one no turn of it rea
   expect(owed([...work, result("x1", "j1"), notice("x1", "j1")])).toBe("owed");
   expect(owed([...work, result("x1", "j1"), notice("x1", "j1"), done("t1"), turn("t2")])).toBe("none");
   expect(owed([...work, result("x1", "j1"), retired])).toBe("retired");
-  const unknown = effect("device-execution-unknown", { execution: "x1", reason: "corte" }, actor, [], "j1");
+  const unknown = effect("device-execution-unknown", { execution: "x1", reason: "cut" }, actor, [], "j1");
   expect(owed([...work, unknown])).toBe("owed");
   expect(owed([...work, result("x1", "j1"), started("x2", "j1"), result("x2", "j1"), notice("x1", "j1")])).toBe("owed");
 });

@@ -1,4 +1,4 @@
-// Exige traducciones explícitas para cada idioma declarado en todos los mensajes del código.
+// Requires explicit translations for every declared language in all of the code's messages.
 import ts from "typescript";
 import { languages } from "../../fields/languages.ts";
 import { codeFiles, fromRoot, isSpec, parsed, type Repository } from "./law-files.ts";

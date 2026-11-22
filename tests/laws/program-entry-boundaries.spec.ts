@@ -60,7 +60,7 @@ it.each([
   expect(programSecretBoundaries(repo.root).some(reason => reason.endsWith(" → import.meta"))).toBe(true);
 });
 
-it("accepts the Notas declaration and export alias, with testing confined to specs", async () => {
+it("accepts the Notes declaration and export alias, with testing confined to specs", async () => {
   const repo = installablePackage();
   const path = join(repo.root, "src/program.ts");
   writeFileSync(path, readFileSync(path, "utf8") + "\nexport { program as notes };\n");

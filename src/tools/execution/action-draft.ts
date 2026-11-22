@@ -1,4 +1,4 @@
-// Reconoce el borrador de un acto antes de pedir revisión o permitir efectos.
+// Recognizes an act's draft before asking for review or allowing effects.
 import { programCall } from "../../fields/program-call.ts";
 import { effect } from "../../house/facts.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";

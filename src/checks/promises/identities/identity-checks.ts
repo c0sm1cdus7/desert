@@ -41,7 +41,7 @@ export function closeCoreSetup<X extends Program>(house: House<X>, tool: string,
     house.tools.act({ act: "unattend", input: { target } }, 0, by);
 }
 
-/** Personal actions retain their own availability rules even though Identidades has no assignable kit. */
+/** Personal actions retain their own availability rules even though «Identidades» has no assignable kit. */
 export function checkOwnRow<X extends Program>(
   tool: string,
   act: string,

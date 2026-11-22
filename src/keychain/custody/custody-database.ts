@@ -1,4 +1,4 @@
-// Persiste identidad aleatoria, cifrados y hechos; borra con diario truncado y eliminación segura.
+// Persists a random identity, ciphertexts and facts; deletes with a truncated journal and secure delete.
 import { secretRef, factFrom } from "./custody-rows.ts";
 import { existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";

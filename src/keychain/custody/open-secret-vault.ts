@@ -1,4 +1,4 @@
-// Abre la bóveda y libera el registro si falla la llave o la recuperación.
+// Opens the vault and releases the record if the key or the recovery fails.
 import type { CredentialLedger } from "./custody-contract.ts";
 import type { TSchema } from "@sinclair/typebox";
 import type { Program } from "../../tools/tool-contract.ts";

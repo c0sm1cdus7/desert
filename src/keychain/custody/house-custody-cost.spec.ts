@@ -8,7 +8,7 @@ import { SqliteJournal } from "../../storage/journal-store.ts";
 import { toolAct } from "../../tools/act-definition.ts";
 import { MemoryHouseKeys } from "./house-keys.ts";
 const empty = Type.Object({});
-it("costo por abrir, acto sin secretos, rechazo y firma con 0, 60 y 600 rotaciones", async () => {
+it("cost of opening, an act without secrets, a rejection and a signature with 0, 60 and 600 rotations", async () => {
   const fake = fakeKeychain(),
     keys = new MacOSHouseKeys(fake.command);
   vi.spyOn(MemoryHouseKeys.prototype, "key").mockImplementation((account, create) => keys.key(account, create));

@@ -62,7 +62,7 @@ function open(path: string) {
   stops.push(stop);
   return { cloud, stop, ports: cloud.ports("ana", { recentLines: 20 }) };
 }
-it("abre con startHouse, guarda hechos y secretos sintéticos, cierra desde el anfitrión y reabre", async () => {
+it("opens with startHouse, keeps synthetic facts and secrets, closes from the host and reopens", async () => {
   const path = home(),
     start = vi.spyOn(opening, "startHouse"),
     disposed = vi.spyOn(RootHouseKeys.prototype, "dispose");
@@ -87,7 +87,7 @@ it("abre con startHouse, guarda hechos y secretos sintéticos, cierra desde el a
   await settle(second.ports.act({ act: "attend", input: { target: "vault" } }, 0));
   expect((await settle(second.ports.act({ act: "use", target: "vault", input: {} }, 0))).status).toBe("accepted");
 });
-it("una raíz inválida no abre la casa y una apertura fallida borra la raíz sin instalar señales", () => {
+it("an invalid root does not open the house, and a failed opening deletes the root without installing signals", () => {
   const start = vi.spyOn(opening, "startHouse"),
     disposed = vi.spyOn(RootHouseKeys.prototype, "dispose");
   const signals = process.listeners("SIGTERM").length;
@@ -106,7 +106,7 @@ it("una raíz inválida no abre la casa y una apertura fallida borra la raíz si
   expect(disposed).toHaveBeenCalledTimes(1);
   expect(process.listeners("SIGTERM")).toHaveLength(signals);
 });
-it("conserva un temporizador referenciado sin puertas y borra la raíz de entrada antes de correr", () => {
+it("keeps a referenced timer without doors and deletes the input root before running", () => {
   const encoded = Buffer.alloc(32, 71).toString("hex");
   const timers = vi.spyOn(globalThis, "setInterval"),
     copies = vi.spyOn(Buffer, "from");

@@ -1,4 +1,4 @@
-// Cierra las entradas del menú sin perder las restricciones que se comprueban localmente.
+// Closes the menu's entries without losing the restrictions checked locally.
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import { requireMind } from "../../fields/mind-errors.ts";
 const record = (value: unknown): value is Record<string | symbol, unknown> =>

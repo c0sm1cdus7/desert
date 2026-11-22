@@ -4,7 +4,7 @@ import { keyProviders } from "../../../tests/support/key-providers.ts";
 import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
 import { CustodyDatabase } from "./custody-database.ts";
 import { MemoryHouseKeys } from "./house-keys.ts";
-it("el proveedor en memoria borra su original al olvidar y copia ambos lados del ancla", () => {
+it("the in-memory provider erases its original on forget and copies both sides of the anchor", () => {
   const provider = new MemoryHouseKeys(),
     copies = vi.spyOn(Uint8Array, "from");
   provider.key("house", true);
@@ -27,7 +27,7 @@ it("el proveedor en memoria borra su original al olvidar y copia ambos lados del
   expect(provider.has("house-secret-one")).toBe(false);
   expect(provider.has("other")).toBe(true);
 });
-it("una base64 no canónica que ya produjo bytes también borra su llave parcial antes de fallar", () => {
+it("a non-canonical base64 that already produced bytes also erases its partial key before failing", () => {
   const canonical = Buffer.alloc(32, 17).toString("base64");
   const stdout = Buffer.from(canonical.slice(0, -2) + "F=");
   const allocated = vi.spyOn(Buffer, "alloc");
@@ -40,7 +40,7 @@ it("una base64 no canónica que ya produjo bytes también borra su llave parcial
 });
 
 describe.each(keyProviders)("$name", provider => {
-  it("una marca con registro vacío no permite abrir sin la llave autenticadora", () => {
+  it("a mark with an empty record does not allow opening without the authenticating key", () => {
     const rig = custodyRig(provider.open),
       db = new CustodyDatabase(rig.file),
       house = db.identity();
@@ -49,7 +49,7 @@ describe.each(keyProviders)("$name", provider => {
     rig.keys.anchor(house, { count: 0, authentication: "" });
     expect(() => rig.open()).toThrow("E-CUSTODY-KEY");
   });
-  it("consulta, copia anclas y olvida cuentas propias sin tocar otra casa", () => {
+  it("queries, copies anchors and forgets its own accounts without touching another house", () => {
     const { keys } = custodyRig(provider.open);
     expect(keys.has("house")).toBe(false);
     expect(() => keys.key("house", false)).toThrow("E-CUSTODY-KEY");

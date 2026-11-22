@@ -1,4 +1,4 @@
-// Define escrituras y consultas de reglas con autoridad actual y validación contra acciones instaladas.
+// Defines rule writes and queries with current authority and validation against installed actions.
 import { ruleDisplay } from "./rule-display.ts";
 import { type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";

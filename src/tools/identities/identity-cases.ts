@@ -1,4 +1,4 @@
-// Casos declarados de sacar, readmitir y pasar la administración, incluidos los motivos de rechazo.
+// Declared cases to take out, readmit and hand over administration, including the refusal reasons.
 import { programName } from "./kit-catalog.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import type { Case } from "../promises.ts";

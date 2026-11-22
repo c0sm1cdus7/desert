@@ -19,16 +19,16 @@ const composition = (options: HouseOptions<P>): Composition<P> => ({
   registry: options.registry.map(tool => ({ ...tool, acts: {} })),
 });
 for (const [name, schema, material] of [
-  ["máximo", Type.String({ secret: true, maxLength: 13 }), "invented"],
-  ["mínimo", Type.String({ secret: true, minLength: 50 }), "x".repeat(50)],
+  ["maximum", Type.String({ secret: true, maxLength: 13 }), "invented"],
+  ["minimum", Type.String({ secret: true, minLength: 50 }), "x".repeat(50)],
   ["schema", Type.String({ secret: true, pattern: "^invented$" }), "invented"],
 ] as const) {
   const prepare = () => {
     const words = vocabulary({ "sale-registered": Type.Object({ value: schema, copy: Type.String() }) });
     const rig = fixture(undefined, undefined, {}, { words });
-    return { rig, words, event: words.fact("sale-registered", { value: material, copy: "público" }, "ana") };
+    return { rig, words, event: words.fact("sale-registered", { value: material, copy: "public" }, "ana") };
   };
-  it(`H1: termina el caso prometido con secreto acotado por ${name}`, async () => {
+  it(`H1: finishes the promised case with a secret bounded by ${name}`, async () => {
     const { rig, event } = prepare();
     await staged<P>(composition(rig.options), stage => {
       stage.house().bus.emit(event);
@@ -42,16 +42,16 @@ for (const [name, schema, material] of [
       return Promise.resolve();
     });
   });
-  for (const path of ["conservado", "renovación", "subida"] as const)
-    it(`H1: ${path} lee la referencia con ${name} del material`, () => {
+  for (const path of ["kept", "renewal", "upgrade"] as const)
+    it(`H1: ${path} reads the reference with the material's ${name}`, () => {
       const { rig, event } = prepare();
       rig.house.bus.emit(event);
       rig.close();
       const folder = home(),
         file = join(folder, "kept.sqlite");
       copyFileSync(join(rig.path, "journal.sqlite"), file);
-      if (path === "conservado") checkReopenedState<P>(file, rig.options);
-      else if (path === "renovación")
+      if (path === "kept") checkReopenedState<P>(file, rig.options);
+      else if (path === "renewal")
         expect(renewKeptJournals<P>(composition(rig.options), folder)).toEqual(["kept.sqlite"]);
       else {
         const comparison = upgradeComparison<P>(composition(rig.options), file, rig.options.by);
@@ -64,7 +64,7 @@ for (const [name, schema, material] of [
       }
     });
 }
-it("H1: el chequeo de código sin hechos secretos también pasa", async () => {
+it("H1: the code check without secret facts passes too", async () => {
   const rig = fixture(),
     source = join(home(), "calculation.ts");
   writeFileSync(source, "export const version = 1;\n");
@@ -72,7 +72,7 @@ it("H1: el chequeo de código sin hechos secretos también pasa", async () => {
     codeUpgradeCheck<P>({ ...composition(rig.options), projectionVersion: codeProjectionVersion([source]) }).run(),
   ).resolves.toBeUndefined();
 });
-it("B3: el conservado con posiciones secretas abre en inspección sin proveedor", async () => {
+it("B3: the kept journal with secret positions opens for inspection without a provider", async () => {
   const rig = fixture();
   rig.close();
   const folder = home();
@@ -102,7 +102,7 @@ it("B3: el conservado con posiciones secretas abre en inspección sin proveedor"
   await expect(check?.run()).resolves.toBeUndefined();
 });
 
-it("H1: ambas aperturas del chequeo de código admiten un hecho protegido", async () => {
+it("H1: both openings of the code check admit a protected fact", async () => {
   const rig = fixture(),
     source = join(home(), "calculation.ts");
   writeFileSync(source, "export const version = 1;\n");
@@ -120,7 +120,7 @@ it("H1: ambas aperturas del chequeo de código admiten un hecho protegido", asyn
           "sale-registered",
           {
             value: "secret:00000000-0000-0000-0000-000000000000",
-            copy: "público",
+            copy: "public",
           },
           entry.by,
         ),

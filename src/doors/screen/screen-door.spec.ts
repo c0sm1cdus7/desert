@@ -203,11 +203,11 @@ describe("an ended house, and what a client sent", () => {
   });
   it("S13: puts nothing a client sent in an error or in a frame", async () => {
     const { door } = spyDoor();
-    const pasted = [{ kind: "paste", text: "clave-secreta" }];
+    const pasted = [{ kind: "paste", text: "secret-key" }];
     const lost = await door.send("nobody", "h", { epoch: "e", client: "c", seq: 1, rev: 1, intents: pasted });
-    const failed = await door.look("nobody", "h", { visible: "clave-secreta" }).catch((error: unknown) => error);
+    const failed = await door.look("nobody", "h", { visible: "secret-key" }).catch((error: unknown) => error);
     const a = await door.look("s", "h", view);
-    const refused = await door.send("s", "h", { ...batch(a, 1, pasted), extra: "clave-secreta" });
+    const refused = await door.send("s", "h", { ...batch(a, 1, pasted), extra: "secret-key" });
     expect(failed).toBeInstanceOf(Error);
     expect([lost, failed, refused].filter(said => (JSON.stringify(said) + String(said)).includes("key"))).toEqual([]);
   });

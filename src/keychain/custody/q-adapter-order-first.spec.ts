@@ -1,5 +1,5 @@
+// Fifth review, order: a call to an adapter without credentials is cut too.
 import { anyToolScreen } from "../../surface/bridge/views/any-tool.ts";
-// Quinta revisión, orden: también se corta una llamada a un adaptador sin credenciales.
 import { expect, it } from "vitest";
 import { programAct } from "../../tools/promises.ts";
 import { CustodyError } from "./house-keys.ts";
@@ -18,13 +18,13 @@ const query = programAct<Shop, typeof input, typeof offer.outside>({
     return { status: "accepted", text: "Consultado" };
   },
 });
-it("C1: recorre el adaptador sin credenciales vinculadas y cuenta la acción impedida", async () => {
+it("C1: walks the adapter without bound credentials and counts the prevented action", async () => {
   const fixture = keptFixture({ query });
   fixture.save();
   const check = keptChecks(fixture.program, inspectionShown, fixture.folder)[1];
   expect(check).toBeDefined();
   await check?.run();
-  expect(check?.report?.()).toContain("vault/consultar");
+  expect(check?.report?.()).toContain("vault/query");
   expect(check?.report?.()).toContain("adaptador signer.import");
 });
 for (const failure of [
@@ -32,7 +32,7 @@ for (const failure of [
   new CustodyError("E-CUSTODY-DENIED"),
   Object.assign(new Error("E-CUSTODY-DENIED"), { name: "InspectionUnavailable", code: "E-CUSTODY-DENIED" }),
 ])
-  it(`C1: una falla ${failure.name} con el mismo texto sigue siendo falla del programa`, async () => {
+  it(`C1: a ${failure.name} failure with the same text is still a program failure`, async () => {
     const fixture = keptFixture({
       query: inspectionAct("query", "c", () => {
         throw failure;
@@ -43,14 +43,14 @@ for (const failure of [
     await expect(check?.run()).rejects.toThrow("failed internally");
     expect(check?.report?.()).toBeUndefined();
   });
-it("C1: corta reemplazo y liberación, sigue otra rama y conserva su escritura", async () => {
+it("C1: cuts replacement and release, follows another branch and keeps its write", async () => {
   let completed = 0;
   const fixture = keptFixture({
-    reemplazar: inspectionAct("reemplazar", "r", (_, ctx) => ({
+    replace: inspectionAct("reemplazar", "r", (_, ctx) => ({
       status: "accepted",
       effects: [ctx.credentials.replace("signing", {}, 0)],
     })),
-    liberar: inspectionAct("liberar", "l", (_, ctx) => ({
+    release: inspectionAct("liberar", "l", (_, ctx) => ({
       status: "accepted",
       effects: [ctx.credentials.release("signing", 0)],
     })),
@@ -63,14 +63,14 @@ it("C1: corta reemplazo y liberación, sigue otra rama y conserva su escritura",
   const check = keptChecks(fixture.program, inspectionShown, fixture.folder)[1];
   await check?.run();
   expect(completed).toBeGreaterThan(0);
-  expect(check?.report?.()).toContain("vault/reemplazar: reemplazar credencial");
-  expect(check?.report?.()).toContain("vault/liberar: liberar credencial");
+  expect(check?.report?.()).toContain("vault/replace: reemplazar credencial");
+  expect(check?.report?.()).toContain("vault/release: liberar credencial");
 });
-it("C1: la negativa sobrevive una acción anidada", async () => {
+it("C1: the refusal survives a nested action", async () => {
   const fixture = keptFixture({
     query,
-    anidada: inspectionAct("anidada", "a", async (_, ctx) => {
-      if (!ctx.execute) throw new Error("ejecución anidada ausente");
+    nested: inspectionAct("anidada", "a", async (_, ctx) => {
+      if (!ctx.execute) throw new Error("missing nested execution");
       await ctx.execute({ act: "query", target: "vault", input: {} });
       return { status: "accepted" };
     }),
@@ -79,5 +79,5 @@ it("C1: la negativa sobrevive una acción anidada", async () => {
   const shown = { ...inspectionShown, screens: { vault: anyToolScreen } };
   const check = keptChecks(fixture.program, shown, fixture.folder)[1];
   await check?.run();
-  expect(check?.report?.()).toContain("vault/anidada: adaptador signer.import");
+  expect(check?.report?.()).toContain("vault/nested: adaptador signer.import");
 });

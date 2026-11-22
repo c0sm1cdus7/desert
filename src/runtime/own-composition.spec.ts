@@ -7,7 +7,7 @@ import { ownAct } from "../tools/act-definition.ts";
 import { nothing } from "../../tests/support/effect-authority.ts";
 import { shopProgram, type Shop } from "../../tests/support/shop.ts";
 import { startHouse } from "./house-runtime.ts";
-it("la composición comprueba own para las identidades de una casa que todavía no se creó", () => {
+it("the composition checks own for the identities of a house not yet created", () => {
   const home = mkdtempSync(join(tmpdir(), "kit6c-composition-"));
   try {
     expect(() => {

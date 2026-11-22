@@ -93,7 +93,7 @@ it("cuts settle without rejection; offline sends nothing; reconnection only quer
   await attach();
   await delay(20);
   expect(sent.filter(type => type === "act")).toHaveLength(1);
-  expect(sent).toContain("leer");
+  expect(sent).toContain("read");
   expect(f.house().tools.state().tools.payments.received).toBe(9);
   expect(ports.state().tools.payments.received).toBe(9);
 });

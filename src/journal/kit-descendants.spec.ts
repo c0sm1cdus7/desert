@@ -6,7 +6,7 @@ const rigs: ReturnType<typeof runningRig>[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
 const cut = { status: "interrupted", reason: "sacada" };
 
-it.each(["beto", "mind:slow"])("R2/R2m: %s corta hijos pendientes sin cortar actos independientes", async by => {
+it.each(["beto", "mind:slow"])("R2/R2m: %s cuts pending children without cutting independent acts", async by => {
   const rig = runningRig();
   rigs.push(rig);
   const parent = rig.start(by);
@@ -17,10 +17,10 @@ it.each(["beto", "mind:slow"])("R2/R2m: %s corta hijos pendientes sin cortar act
   expect(rig.calls.map(call => call.context.signal?.aborted)).toEqual([true, true, false]);
   rig.calls[1]?.done.resolve({
     ...saved,
-    effects: [shop.fact("slow-written", { sale: "tardia", total: 1 }, by)],
+    effects: [shop.fact("slow-written", { sale: "late", total: 1 }, by)],
   });
   expect(await nested).toMatchObject(cut);
-  expect(rig.state().tools.sales.has("tardia")).toBe(false);
+  expect(rig.state().tools.sales.has("late")).toBe(false);
   rig.calls[0]?.done.resolve(saved);
   rig.calls[2]?.done.resolve(saved);
   expect(await settled(parent)).toMatchObject(cut);
@@ -28,7 +28,7 @@ it.each(["beto", "mind:slow"])("R2/R2m: %s corta hijos pendientes sin cortar act
   expect(rig.state().entries).toHaveLength(1);
 });
 
-it("O1: el anidado ya iniciado conserva el estado interrupted del contrato", async () => {
+it("O1: the nested act already started keeps the contract's interrupted status", async () => {
   const rig = runningRig();
   rigs.push(rig);
   const parent = rig.start();
@@ -40,14 +40,14 @@ it("O1: el anidado ya iniciado conserva el estado interrupted del contrato", asy
   expect(await settled(parent)).toMatchObject(cut);
 });
 
-it("R9: un padre cortado devuelve un resultado aun para un destino desconocido", async () => {
+it("R9: a cut parent returns a result even for an unknown target", async () => {
   const rig = runningRig();
   rigs.push(rig);
   const parent = rig.start();
   rig.kit("beto");
   rig.kit("beto", null);
   const before = rig.facts().length;
-  for (const target of ["slow", "desconocida"]) {
+  for (const target of ["slow", "unknown"]) {
     await expect(rig.calls[0]?.context.execute?.({ act: "other", target, input: {} })).resolves.toMatchObject(cut);
   }
   expect(rig.facts()).toHaveLength(before);
@@ -56,7 +56,7 @@ it("R9: un padre cortado devuelve un resultado aun para un destino desconocido",
   expect(await settled(parent)).toMatchObject(cut);
 });
 
-it("el corte alcanza a nietos y volver a dar no los resucita", async () => {
+it("the cut reaches grandchildren and granting again does not revive them", async () => {
   const rig = runningRig();
   rigs.push(rig);
   const parent = rig.start();
@@ -73,24 +73,24 @@ it("el corte alcanza a nietos y volver a dar no los resucita", async () => {
   expect(rig.state().entries).toEqual([]);
 });
 
-it("un hijo que ya cerró conserva su escritura y su señal al cortar al padre", async () => {
+it("a child that already finished keeps its write and its signal when the parent is cut", async () => {
   const rig = runningRig();
   rigs.push(rig);
   const parent = rig.start();
   const child = rig.calls[0]?.context.execute?.({ act: "other", target: "slow", input: {} });
   rig.calls[1]?.done.resolve({
     ...saved,
-    effects: [shop.fact("slow-written", { sale: "antes", total: 1 }, "beto")],
+    effects: [shop.fact("slow-written", { sale: "earlier", total: 1 }, "beto")],
   });
   expect(await child).toMatchObject({ status: "accepted" });
   rig.kit("beto", ["other"]);
   expect(rig.calls[1]?.context.signal?.aborted).toBe(false);
   rig.calls[0]?.done.resolve(saved);
   expect(await settled(parent)).toMatchObject(cut);
-  expect(rig.state().tools.sales.has("antes")).toBe(true);
+  expect(rig.state().tools.sales.has("earlier")).toBe(true);
 });
 
-it("un hijo world recibe el corte y conserva lo que ya hizo afuera", async () => {
+it("a world child receives the cut and keeps what it already did outside", async () => {
   const rig = runningRig("world");
   rigs.push(rig);
   const parent = rig.start();

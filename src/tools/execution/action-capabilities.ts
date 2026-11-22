@@ -1,4 +1,4 @@
-// Presta capacidades con la señal del acto enlazada a la del padre; al cerrar libera el préstamo y el enlace.
+// Lends capabilities with the act's signal linked to its parent's; closing frees the loan and the link.
 import type { HouseEvent } from "../../house/facts.ts";
 import type { Decision, Execution, ExecutionResult } from "../execute.ts";
 import type { Program } from "../tool-contract.ts";

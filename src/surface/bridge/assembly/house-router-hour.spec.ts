@@ -1,4 +1,4 @@
-// The Barra's hour: the program's zone when it gives one, the process's own when it does not, as the terminal has.
+// The Bar's hour: the program's zone when it gives one, the process's own when it does not, as the terminal has.
 import { afterEach, beforeEach, expect, it } from "vitest";
 import { socketHouse } from "../../../../tests/support/socket-house.ts";
 import { shopShown } from "../../../../tests/support/shop.ts";
@@ -40,7 +40,7 @@ async function sold(hour?: (at: number) => string) {
   }
 }
 
-it("shows the program's hour in the Barra and in a finished act when the program gives it", async () => {
+it("shows the program's hour in the Bar and in a finished act when the program gives it", async () => {
   const { now, before, after } = await sold(programHour);
   expect(programHour(now)).not.toBe(new Date(now).toTimeString().slice(0, 5));
   expect(before).toBe(programHour(now));

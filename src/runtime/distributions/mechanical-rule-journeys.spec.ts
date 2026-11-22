@@ -1,4 +1,4 @@
-// El turno real aplica reglas a la apertura y al trabajo de journeys usando solo transporte sintético.
+// The real turn applies rules to opening and working journeys, using only synthetic transport.
 import { afterEach, expect, it } from "vitest";
 import { programMindFixture } from "../../../tests/support/program-mind-fixture.ts";
 import { selectionKit } from "../../house/kit-selection.ts";
@@ -11,7 +11,7 @@ const fixture = () => {
   return f;
 };
 afterEach(() => fixtures.splice(0).forEach(f => f.cleanup()));
-it("frena abrir un journey por el control común", async () => {
+it("holds opening a journey through the common control", async () => {
   const f = fixture();
   const house = await f.open();
   house.tools.act({ act: "attend", input: { target: "rules" } }, 0, "ana");
@@ -52,7 +52,7 @@ it("frena abrir un journey por el control común", async () => {
     ),
   ).toBe(true);
 });
-it("un journey queda frenado; cambiar la regla lo despierta sin repetir la acción", async () => {
+it("a journey is held; changing the rule wakes it without repeating the action", async () => {
   const f = fixture();
   const house = await f.open();
   house.bus.emit(
@@ -115,7 +115,7 @@ it("un journey queda frenado; cambiar la regla lo despierta sin repetir la acci�
   expect(calls).toBe(4);
   expect(house.tools.state().tools.notes.count).toBe(1);
 });
-it("una mente tampoco saltea el control al escribir una escena", async () => {
+it("a mind does not skip the control when writing a scene either", async () => {
   const f = fixture();
   const house = await f.open();
   house.tools.act({ act: "attend", input: { target: "rules" } }, 0, "ana");

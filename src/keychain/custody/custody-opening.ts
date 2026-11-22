@@ -1,4 +1,4 @@
-// Verifica sobres, presencia, vínculos y ancla al abrir sin descifrar; acepta restauraciones explícitas.
+// Verifies envelopes, presence, bindings and anchor on opening without decrypting; accepts explicit restores.
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import type { CustodyState } from "./custody-state.ts";
 import { CustodyError, type LedgerHead } from "./house-keys.ts";

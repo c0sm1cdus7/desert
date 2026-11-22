@@ -1,4 +1,4 @@
-// Declara los actos de habilitación, retiro, delegación y adopción atómica de asistentes.
+// Declares the acts that enable, retire, delegate to and atomically adopt assistants.
 import { explicitKit, kitLayout } from "../../house/kit-selection.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";

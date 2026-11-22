@@ -65,35 +65,35 @@ describe("the tree of src/", () => {
   // Moving the existing headers in generic-surface and promises adds no lines; the per-file limit stays 300.
   // MCP: +21 lines for its four fixed tools, orientation and protocol errors in the catalog.
   // MCP with a real client: +1 line telling the agent that amounts travel in cents.
-  // Nube 1: +7 exact lines for cloud.texts.ts, three environment-key diagnostics and their purpose.
+  // Cloud 1: +7 exact lines for cloud.texts.ts, three environment-key diagnostics and their purpose.
   // MCP budget: +1 line for the refusal of a wait past the per-identity bound.
-  // Mente 1: +14 exact lines for the typed Identidades skill message and its Spanish translation.
-  // Modelos: +14 líneas exactas para explicar errores del catálogo y el proveedor.
-  // Mente 3: +10 líneas exactas para el mensaje parametrizado de rechazo de contratos de mente.
-  // Mente 4A: +86 líneas exactas para mensajes de asistentes, adopción, delegación y autoría.
-  // Marco: +26 líneas exactas para instrucciones y rótulos del marco.
-  // Mente 2C: +78 líneas exactas para cierres, correcciones, consulta y revisión del turno.
-  // Mente 2D: +29 líneas exactas para el mensaje de propósitos de los seis controles de journey.
-  // Mente 2E: +57 líneas exactas para diagnósticos y asignación de cartas y gasto.
-  // Unión de la etapa 2: +12 líneas exactas para la capa de la casa del marco (cómo leer, contestar y consultar).
-  // Distribuciones paso 1: +17 líneas exactas para diagnósticos de composición y rótulos de carpetas.
-  // Reacciones: +3 líneas exactas para declaración inválida, pendiente visible y migración de effects.
-  // Dist-kit: +9 líneas exactas para carpetas, herencia, retiradas y explicación de administración.
-  // Distribuciones paso 2: +2 líneas exactas para rechazar dependencias de distribuciones y señalar su ruta.
-  // Contratos: +10 líneas exactas para diagnósticos de valores, composición y casos ejecutados.
-  // MCP por programa: +12 líneas exactas para explicar objetivos de carpetas y objetos y acciones ajenas apagadas.
-  // Dist-palabras: +14 líneas exactas para contar niveles y nombrar la confirmación de carpetas y su titular.
-  // Reentrega: +3 líneas exactas para decir por qué no se guardó (o se cortó) el registro de aperturas.
-  // Dist-v10: +2 líneas exactas para exigir la composición local de prueba sin atar el programa a una distro.
-  // Dist-mentes-programa: +22 líneas exactas para reglas comunes, palabras del programa y aviso de indisponibilidad.
-  // Mente de programa: +1 línea para decir que la atención la marca el código (decisión 28).
-  // Core Reglas: +128 líneas exactas para acciones, condiciones, simulación y esperas sin supervisor.
+  // Mind 1: +14 exact lines for the typed Identities skill message and its Spanish translation.
+  // Models: +14 exact lines to explain catalog and provider errors.
+  // Mind 3: +10 exact lines for the parameterized refusal message of mind contracts.
+  // Mind 4A: +86 exact lines for assistant, adoption, delegation and authorship messages.
+  // Frame: +26 exact lines for the frame's instructions and labels.
+  // Mind 2C: +78 exact lines for closings, corrections, consultation and turn review.
+  // Mind 2D: +29 exact lines for the purposes message of the six journey controls.
+  // Mind 2E: +57 exact lines for diagnostics and the assignment of cards and spending.
+  // Stage 2 union: +12 exact lines for the frame's house layer (how to read, answer and consult).
+  // Distributions step 1: +17 exact lines for composition diagnostics and folder labels.
+  // Reactions: +3 exact lines for an invalid declaration, a visible pending item and the effects migration.
+  // Dist-kit: +9 exact lines for folders, inheritance, retired items and the explanation of administration.
+  // Distributions step 2: +2 exact lines to reject dependencies on distributions and point at their path.
+  // Contracts: +10 exact lines for value diagnostics, composition and executed cases.
+  // MCP per program: +12 exact lines to explain folder and object targets and foreign actions turned off.
+  // Dist-words: +14 exact lines to count levels and name the confirmation of folders and their holder.
+  // Redelivery: +3 exact lines to say why the register of openings was not saved (or was cut).
+  // Dist-v10: +2 exact lines to require the local test composition without tying the program to a distro.
+  // Dist-program-minds: +22 exact lines for common rules, the program's words and an unavailability notice.
+  // Program mind: +1 line to say that attention is marked by the code (decision 28).
+  // Core Rules: +128 exact lines for actions, conditions, simulation and waits without a supervisor.
   // Devices add 16 lines to Rules' 128: the shared baseline is 993, so the combined budget is 1137.
-  // Mente-error: +12 líneas para la causa HTTP en escena y stdout; +1 neta para fallas de lectura del cuerpo.
-  // RT-VO3: +3 líneas para explicar la raíz de confianza y +5 para comprobar SQLite entre fases de reserva.
-  // MCP MI-2: +2 líneas para distinguir selección por program/target y restricciones del kit en reason.
+  // Mind-error: +12 lines for the HTTP cause in the scene and stdout; +1 net for failures reading the body.
+  // RT-VO3: +3 lines to explain the root of trust and +5 to check SQLite between reservation phases.
+  // MCP MI-2: +2 lines to tell selection by program/target apart and the kit's restrictions in reason.
   // 20/11: +1 for the correction a mind gets when its wait ends before now.
-  // 20/11 Asistentes y supervisor: +74 exact lines. +14 for the assistant's own rules (who it is, whose, talking
+  // 20/11 Assistants and supervisor: +74 exact lines. +14 for the assistant's own rules (who it is, whose, talking
   // only through the talk programs, journeys with its delegated kit, naming a mind to wake it, no invented
   // permissions); +60 for supervisor.texts.ts: its house layer (with the rules that ask for its judgment), its
   // rules, frame labels and review notices.
@@ -101,7 +101,7 @@ describe("the tree of src/", () => {
   // woke, in words); +32 in mind-turn.texts.ts (the stop list the closing fact reads, the conversation that outgrew the
   // request, the continuation correction and the results a journey hears between calls); +2 for the frame saying a
   // journey goes on.
-  // 21/11 Supervisor nuevo: +50 exact (journey 17, supervisor 26, rules 6, mind-turn 1): stops, verdicts, its turns.
+  // 21/11 New supervisor: +50 exact (journey 17, supervisor 26, rules 6, mind-turn 1): stops, verdicts, its turns.
   // 21/11 review: +2 in rules.texts.ts, why a marked act got no verdict: its supervisor is starting, or a reaction.
   // 21/11 Device notices: +3 exact lines in devices.texts.ts (a house older than the device, a refused notice, one
   // that travels without its value). +1 exact line in devices.texts.ts: a tool's invalid notice, by tool and execution.
@@ -112,7 +112,8 @@ describe("the tree of src/", () => {
   // 21/11 failed turns, the exception: +0 exact in supervisor.texts.ts: its sentence fits two lines that were there.
   // 21/11 stops that loop: +1 exact in supervisor.texts.ts: a stopped consciousness that fails having done nothing.
   // 22/11 whom a message wakes: +4 exact (program mind 2, assistant 1, supervisor 1): two wake, more must be named.
-  // 22/11 «Con arroba»: +1 exact in supervisor.texts.ts: «hilo individual», «en grupo» and how a mind is named with @.
+  // 22/11 «Con arroba» (with @): +1 exact in supervisor.texts.ts: «hilo individual», «en grupo» and how a
+  // mind is named with @.
   // 22/11 surfaces, stage 1: +1 exact in surface.texts.ts: the seven key names move out of paint.ts, unchanged.
   // 22/11 surfaces, stage 2: +15 exact in screen-door.texts.ts: the entry's words and mask, a cut session's notice.
   // 22/11 English names: +16 in stored-names.texts.ts, what the migration says; +1 the kit's verb and +1 «ninguno»

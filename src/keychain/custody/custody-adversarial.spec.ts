@@ -15,9 +15,9 @@ class InspectableRedactor extends Redactor<Shop> {
     return this.active.getStore()?.refs;
   }
 }
-const material = "MARCADOR_ADVERSARIO_SINTETICO";
+const material = "SYNTHETIC_ADVERSARY_MARKER";
 for (const length of [0, 1, 3, 4, 8, 12, 15, 17])
-  it(`rechaza etiqueta de ${length} bytes antes de abrir (a9)`, () => {
+  it(`rejects a ${length}-byte tag before opening (a9)`, () => {
     const cipher = new CustodyCipher("house", stubKeys({ forget() {}, key: () => new Uint8Array(32).fill(17) }));
     const envelope = cipher.seal("ref", Buffer.from(material), true).split(".");
     envelope[2] = Buffer.from(envelope[2] ?? "", "base64")
@@ -28,7 +28,7 @@ for (const length of [0, 1, 3, 4, 8, 12, 15, 17])
     cipher.close();
   });
 for (const length of [8, 16])
-  it(`rechaza nonce de ${length} bytes aun con etiqueta válida (a9)`, () => {
+  it(`rejects a ${length}-byte nonce even with a valid tag (a9)`, () => {
     const key = Buffer.alloc(32, 17),
       nonce = Buffer.alloc(length, 2);
     const native = createCipheriv("aes-256-gcm", key, nonce);
@@ -44,7 +44,7 @@ for (const length of [8, 16])
     expect(() => cipher.open("ref", envelope)).toThrow("E-CUSTODY-INTEGRITY");
     cipher.close();
   });
-it("dos escrituras y una reapertura no repiten nonce, aun con el mismo material (a9)", () => {
+it("two writes and a reopening never repeat a nonce, even with the same material (a9)", () => {
   const rig = custodyRig(),
     store = rig.open();
   store.keep(Buffer.from(material));
@@ -59,7 +59,7 @@ it("dos escrituras y una reapertura no repiten nonce, aun con el mismo material 
   expect(nonces).toHaveLength(3);
   expect(new Set(nonces).size).toBe(3);
 });
-it("la copia del proveedor se pone en cero después de cargarla, incluso si es inválida (a3)", () => {
+it("the provider's copy is zeroed after loading it, even when it is invalid (a3)", () => {
   for (const length of [32, 16]) {
     const copies: Uint8Array[] = [];
     const cipher = new CustodyCipher(
@@ -83,7 +83,7 @@ it("la copia del proveedor se pone en cero después de cargarla, incluso si es i
     cipher.close();
   }
 });
-it("custodia, bóveda y diccionario activo no entregan material ni llave a JSON o inspect (a1/a3)", () => {
+it("custody, vault and the active dictionary hand neither material nor key to JSON or inspect (a1/a3)", () => {
   const rig = custodyRig();
   const key = new Uint8Array(32).fill(117);
   const store = new SecretCustody(rig.file, rig.home, stubKeys({ forget() {}, key: () => Uint8Array.from(key) }));
@@ -118,7 +118,7 @@ it("custodia, bóveda y diccionario activo no entregan material ni llave a JSON 
     vault.close();
   }
 });
-it("el borrado fallido informa error tipado y deja pendiente sin volver a autorizar (a8)", async () => {
+it("a failed deletion reports a typed error and leaves it pending without authorizing again (a8)", async () => {
   const store = custodyRig().open(),
     session = store.begin(custodyScope);
   const refs = { key: session.capture(Buffer.from(material)) };

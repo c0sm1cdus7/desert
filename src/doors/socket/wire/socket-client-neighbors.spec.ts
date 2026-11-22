@@ -151,7 +151,7 @@ it("reconnecting during an unfinished act queries again when its final state arr
     await expect.poll(() => replies).toContainEqual(expect.objectContaining({ type: "result", status: "processing" }));
     finish();
     await expect.poll(() => replies).toContainEqual(expect.objectContaining({ type: "result", status: "accepted" }));
-    expect(sends).not.toContain("acto");
+    expect(sends).not.toContain("act");
     expect(c.ports.state().tools.payments.received).toBe(19);
   } finally {
     finish();

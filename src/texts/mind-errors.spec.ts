@@ -5,7 +5,7 @@ import { toolTexts } from "./tools.texts.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
 import { shopRegistry } from "../../tests/support/shop.ts";
 afterEach(() => vi.restoreAllMocks());
-it("rev-caida: ignored promises leave the actual Node process alive", () => {
+it("rev-crash: ignored promises leave the actual Node process alive", () => {
   const result = spawnSync(process.execPath, ["--unhandled-rejections=strict", "tests/support/mind-alive.ts"], {
     encoding: "utf8",
   });

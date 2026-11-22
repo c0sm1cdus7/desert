@@ -1,4 +1,4 @@
-// Ejemplos de cada hecho nuevo para probar esquemas y fronteras de efectos completos.
+// Examples of each new fact, to test schemas and whole-effect boundaries.
 import { effect } from "../../src/house/facts.ts";
 const bankEffect = (by: string) =>
   effect(

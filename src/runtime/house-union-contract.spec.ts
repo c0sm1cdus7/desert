@@ -88,7 +88,7 @@ const outcome = async (rig: ReturnType<typeof opened>, by: string, act: string) 
 };
 const denied = `rejected · ${toolTexts.outsideKit}`;
 
-it("casa con custodia: kits, mente, actos con y sin credencial, escenas; cierra y reabre igual", async () => {
+it("custody house: kits, mind, acts with and without credential, scenes; closes and reopens the same", async () => {
   const home = temporary(),
     fake = fakeKeychain(),
     options = optionsWith(fake);
@@ -152,7 +152,7 @@ it("casa con custodia: kits, mente, actos con y sin credencial, escenas; cierra 
   );
 });
 
-it("un registro escrito por la custodia sola (3e69d44) se pliega igual en el árbol unido", async () => {
+it("a log written by custody alone (3e69d44) folds the same in the joined tree", async () => {
   const home = temporary();
   const db = new DatabaseSync(join(home, "journal.sqlite"));
   for (const sql of previous.journal.schema) db.exec(sql);

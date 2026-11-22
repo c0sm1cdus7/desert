@@ -41,7 +41,7 @@ it("a self-caused chain yields to a person and stops at 32 acts with a visible r
   expect(personAt).toBeLessThan(32);
   expect(await mind.act("scene", { general: "otro pedido" }, "me")).toStrictEqual({ status: "accepted" });
 });
-it("rev2-bucle: a program fact cannot start a bus feedback loop", () => {
+it("rev2-loop: a program fact cannot start a bus feedback loop", () => {
   const mind = zeroMind();
   const rig = shopRig({ registry: [...shopRegistry, mind.tool] });
   rigs.push(rig);

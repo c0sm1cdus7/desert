@@ -1,4 +1,4 @@
-// Guarda pendientes y recibos por lote; purga cifrado y llave sin tapar el resultado de otro uso.
+// Stores intents and receipts per batch; purges ciphertext and key without masking another use's result.
 import { CustodyError } from "./house-keys.ts";
 import type { CredentialFact, SecretRef } from "./custody-contract.ts";
 import type { CustodyState } from "./custody-state.ts";

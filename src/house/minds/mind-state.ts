@@ -1,4 +1,4 @@
-// Pliega el hilo público y las consultas de cada turno, sin asignaciones ni economía.
+// Folds the public thread and each turn's consultations, without assignments or economy.
 import { Value } from "@sinclair/typebox/value";
 import { parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";

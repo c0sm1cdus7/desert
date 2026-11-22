@@ -41,14 +41,14 @@ it("accepts null, primitives, empty containers and unmatched union arms", () => 
     [Type.Array(day("Día")), []],
     [Type.Object({}), {}],
     [Type.Union([day("Día"), Type.Null()]), null],
-    [Type.Union([quantity("Cantidad"), Type.Literal("nada")]), "nada"],
+    [Type.Union([quantity("Cantidad"), Type.Literal("none")]), "none"],
   ] as const)
     expect(fieldValidity(schema, value, 17)).toEqual({ invalid: false, wrong: undefined });
 });
 it("keeps the first semantic reason after skipping valid siblings", () => {
   const field = holding(Type.String(), value => (value === "ok" ? undefined : value));
   const schema = Type.Object({ values: Type.Array(field), later: field });
-  expect(fieldValidity(schema, { values: ["ok", "primero", "segundo"], later: "tercero" }, 17).wrong).toBe("primero");
+  expect(fieldValidity(schema, { values: ["ok", "first", "second"], later: "third" }, 17).wrong).toBe("first");
 });
 it("ignores non-callable semantic metadata and does not apply string rules to numbers", () => {
   const wrong = vi.fn(() => "solo texto");

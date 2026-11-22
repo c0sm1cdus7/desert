@@ -12,7 +12,7 @@ const fixture = () => {
   return f;
 };
 afterEach(() => fixtures.splice(0).forEach(f => f.cleanup()));
-it("una llave que rechaza deja la casa abierta y explica su ausencia", async () => {
+it("a rejecting key leaves the house open and explains its absence", async () => {
   const f = fixture();
   const house = await f.open({
     key: () => Promise.reject(new Error("synthetic")),
@@ -22,7 +22,7 @@ it("una llave que rechaza deja la casa abierta y explica su ausencia", async () 
   expect(f.wake(house).status).toBe("accepted");
   await (await house.minds)?.flush();
 });
-it("agotar el tope entre escenas no certifica un rechazo del rol y el banco siguiente conserva ese gasto", async () => {
+it("exhausting the cap between scenes certifies no role rejection, and the next bank keeps that spending", async () => {
   const f = fixture();
   const card = cards[0];
   if (!card) throw new Error("card");
@@ -38,7 +38,7 @@ it("agotar el tope entre escenas no certifica un rechazo del rol y el banco sigu
   expect(modelAccount(house.tools.state().house.modelCalls, "test").spentNanoUsd).toBe(spent * 4);
   expect(house.tools.state().house.mindAssignments.has("mind:notes")).toBe(true);
 });
-it("el banco vuelve a probar una carta cuya evidencia tiene otra huella", async () => {
+it("the bank tries again a card whose evidence has another fingerprint", async () => {
   const f = fixture();
   const house = await f.open({}, false);
   const card = cards[0];
@@ -68,7 +68,7 @@ it("el banco vuelve a probar una carta cuya evidencia tiene otra huella", async 
   expect(f.transport).toHaveBeenCalledTimes(3);
   expect(house.journal.replay(0, (count, event) => count + Number(event.kind === "mind-bank-tested"))).toBe(2);
 });
-it("el banco no reutiliza evidencia inconsistente aunque tenga la huella vigente", async () => {
+it("the bank does not reuse inconsistent evidence even with the current fingerprint", async () => {
   const f = fixture();
   const house = await f.open({}, false);
   const options = await f.options();
@@ -92,7 +92,7 @@ it("el banco no reutiliza evidencia inconsistente aunque tenga la huella vigente
   expect(f.transport).toHaveBeenCalledTimes(3);
   expect(house.journal.replay(0, (count, event) => count + Number(event.kind === "mind-bank-tested"))).toBe(2);
 });
-it("cerrar durante el banco conserva la reserva incierta y descarta la respuesta tardía", async () => {
+it("closing during the bank keeps the uncertain reservation and discards the late answer", async () => {
   const f = fixture();
   let release: () => void = () => {};
   const hold = new Promise<void>(resolve => {

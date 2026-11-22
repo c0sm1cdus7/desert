@@ -1,4 +1,4 @@
-// Autoriza referencias por alcance y reserva una versión durante el uso del adaptador.
+// Authorizes references by scope and reserves a version while the adapter uses it.
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { randomUUID } from "node:crypto";
 import { CustodyError } from "./house-keys.ts";

@@ -1,4 +1,4 @@
-// Declara dinero en centavos con una moneda fija o resuelta por el programa y comparte su formato validado.
+// Declares money in cents with a fixed currency or one the program resolves, and shares its validated format.
 import { Type } from "@sinclair/typebox";
 import type { Currency } from "./money-currency.ts";
 const mostCents = 9_999_999_999_999;

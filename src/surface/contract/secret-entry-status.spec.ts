@@ -49,13 +49,13 @@ function seat(optional = false) {
   return { router, shown, secret, run };
 }
 for (const [name, typed, reason] of [
-  ["vacío", "", "falta completar"],
-  ["corto", "xxx", "mínimo 8 caracteres"],
-  ["pegado largo", "x".repeat(14), "máximo 13 caracteres"],
+  ["empty", "", "falta completar"],
+  ["short", "xxx", "mínimo 8 caracteres"],
+  ["long paste", "x".repeat(14), "máximo 13 caracteres"],
   ["schema", "invented", "formato inválido"],
   ["unicode", "🔒".repeat(7), "mínimo 8 caracteres"],
 ] as const)
-  it(`H3: Enter explica el secreto ${name} en la terminal sin material ni referencia`, () => {
+  it(`H3: Enter explains the ${name} secret in the terminal without material or reference`, () => {
     const hands = seat();
     try {
       hands.router.send({ kind: "paste", text: typed });
@@ -71,7 +71,7 @@ for (const [name, typed, reason] of [
   });
 
 for (const length of [8, 13])
-  it(`un secreto de ${length} caracteres puede avanzar`, async () => {
+  it(`a secret of ${length} characters can advance`, async () => {
     const hands = seat();
     try {
       hands.router.send({ kind: "paste", text: "x".repeat(length) });
@@ -82,7 +82,7 @@ for (const length of [8, 13])
       hands.router.stop();
     }
   });
-it("el pegado largo queda entero, permite corregir y deja de mostrar el motivo", async () => {
+it("a long paste stays whole, allows correcting and stops showing the reason", async () => {
   const hands = seat();
   try {
     hands.router.send({ kind: "paste", text: "x".repeat(14) });
@@ -101,7 +101,7 @@ it("el pegado largo queda entero, permite corregir y deja de mostrar el motivo",
     hands.router.stop();
   }
 });
-it("un secreto opcional vacío avanza sin motivo ni referencia", async () => {
+it("an empty optional secret advances without reason or reference", async () => {
   const hands = seat(true);
   try {
     hands.router.send({ kind: "confirm" });

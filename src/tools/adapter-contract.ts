@@ -1,4 +1,4 @@
-// Declara esquemas, permisos y fábricas de adaptadores con códigos públicos cerrados.
+// Declares adapter schemas, permissions and factories with closed public codes.
 import type { TSchema } from "@sinclair/typebox";
 import type { SecretRef, SecretRefs } from "./capabilities-contract.ts";
 export interface SecretResolver {

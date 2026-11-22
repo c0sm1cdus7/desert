@@ -1,4 +1,4 @@
-// Los bordes de entrega y de ejecución conservan pendientes sin duplicar efectos.
+// The delivery and execution edges keep pending work without duplicating effects.
 import { afterEach, expect, it, vi } from "vitest";
 import { effect } from "../house/facts.ts";
 import { programAct } from "./promises.ts";
@@ -33,7 +33,7 @@ const open = (action: ToolAct<Shop> = mark, process: (id: string) => boolean = (
 const notice = (rig: ReturnType<typeof open>, payment = "p1") =>
   rig.bus.emit(shop.fact("payment-received", { payment, amount: 10 }, "ana"));
 const marks = (rig: ReturnType<typeof open>) => rig.facts().filter(e => e.kind === "sale-registered");
-it("reentregar el mismo aviso antes y después de confirmar no duplica el acto", async () => {
+it("redelivering the same notice before and after confirming does not duplicate the act", async () => {
   const rig = open();
   const source = notice(rig);
   const append = rig.journal.append.bind(rig.journal);
@@ -50,7 +50,7 @@ it("reentregar el mismo aviso antes y después de confirmar no duplica el acto",
   expect(marks(rig)).toHaveLength(1);
   expect(rig.facts().filter(e => e.kind === "act" && e.data.reaction)).toHaveLength(1);
 });
-it("un aviso que llega durante otra reacción se procesa sin esperar un reinicio", async () => {
+it("a notice arriving during another reaction is processed without waiting for a restart", async () => {
   let release = () => {};
   let first = true;
   const rig = open({
@@ -74,13 +74,13 @@ it("un aviso que llega durante otra reacción se procesa sin esperar un reinicio
   await vi.waitFor(() => expect(marks(rig)).toHaveLength(2));
   expect(rig.tools().pendingReactions()).toEqual([]);
 });
-it("un rechazo no confirma efectos parciales; su motivo está en la actividad", async () => {
+it("a refusal confirms no partial effects; its reason is in the activity", async () => {
   const rig = open({
     ...mark,
     run: (_, { by }) => ({
       status: "rejected",
       reason: "venta incompatible",
-      effects: [shop.fact("sale-registered", { sale: "parcial", total: 1 }, by)],
+      effects: [shop.fact("sale-registered", { sale: "partial", total: 1 }, by)],
     }),
   });
   notice(rig);
@@ -94,7 +94,7 @@ it("un rechazo no confirma efectos parciales; su motivo está en la actividad", 
   rig.restart();
   expect(rig.tools().pendingReactions()[0]?.reason).toBe("venta incompatible");
 });
-it("un defecto de reacción no rechaza el aviso y conserva diagnóstico y pendiente", async () => {
+it("a reaction defect does not refuse the notice and keeps the diagnostic and the pending one", async () => {
   const rig = open(
     programAct<Shop, (typeof shopCatalog)["payment-received"]>({
       input: shopCatalog["payment-received"],
@@ -124,7 +124,7 @@ it("un defecto de reacción no rechaza el aviso y conserva diagnóstico y pendie
   rig.restart();
   expect(rig.tools().pendingReactions()[0]?.reason).toContain("E-PROG-1");
 });
-it("la reacción no puede adelantar escrituras con una ejecución anidada", async () => {
+it("the reaction cannot get writes ahead with a nested execution", async () => {
   let nested = false;
   const rig = open({
     ...mark,
@@ -138,7 +138,7 @@ it("la reacción no puede adelantar escrituras con una ejecución anidada", asyn
   expect(nested).toBe(false);
   expect(marks(rig)).toHaveLength(1);
 });
-it("una falla del oyente al confirmar revierte marca y recibo, y permite recuperar", async () => {
+it("a listener failure while confirming reverts mark and receipt, and allows recovery", async () => {
   const rig = open();
   notice(rig);
   const stop = rig.bus.on(event => {
@@ -151,7 +151,7 @@ it("una falla del oyente al confirmar revierte marca y recibo, y permite recuper
   await rig.tools().recoverReactions();
   expect(marks(rig)).toHaveLength(1);
 });
-it("una declaración no puede elegir una acción ajena ni una salida al mundo", () => {
+it("a declaration can choose neither a foreign action nor a way out to the world", () => {
   for (const action of ["receive", "world"]) {
     expect(() =>
       shopRig({
@@ -168,7 +168,7 @@ it("una declaración no puede elegir una acción ajena ni una salida al mundo", 
   }
 });
 
-it("el acto nuevo de reacción no hereda el proceso de quien produjo el aviso", async () => {
+it("the new reaction act does not inherit the process of whoever produced the notice", async () => {
   const rig = open(mark, () => true);
   notice(rig);
   await rig.tools().recoverReactions();

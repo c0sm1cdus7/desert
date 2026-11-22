@@ -11,15 +11,15 @@ import { effect } from "../house/facts.ts";
 import type { Program } from "../tools/tool-contract.ts";
 const schema = Type.Object({ value: Type.String({ secret: true }) });
 for (const [name, value] of [
-  ["vacío", ""],
+  ["empty", ""],
   ["one", "Ω"],
-  ["once", "abcdefghijk"],
-  ["doce", "abcdefghijkl"],
-  ["trece", "abcdefghijklm"],
-  ["vocabulario", "act-result"],
-  ["multilínea", "uno\ndos"],
+  ["eleven", "abcdefghijk"],
+  ["twelve", "abcdefghijkl"],
+  ["thirteen", "abcdefghijklm"],
+  ["vocabulary", "act-result"],
+  ["multiline", "one\ntwo"],
 ]) {
-  it(`recarga y asigna otra referencia sin usar la bóveda como diccionario de texto: ${name}`, () => {
+  it(`reloads and assigns another reference without using the vault as a text dictionary: ${name}`, () => {
     const home = mkdtempSync(join(tmpdir(), "a01-vault-fixture-"));
     const file = join(home, "vault-fixture.sqlite");
     const words = vocabulary({});

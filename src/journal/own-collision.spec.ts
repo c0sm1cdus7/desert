@@ -12,7 +12,7 @@ const own = (target: string, option: string) =>
     status: "accepted",
     effects: [shop.fact("sale-registered", { sale: "own", total: 1 }, by)],
   }));
-it.each(["sales", "sales/s1"])("R6: falla al componer la colisión register sobre %s", target => {
+it.each(["sales", "sales/s1"])("R6: composing fails on the register collision over %s", target => {
   expect(() => {
     const rig = shopRig({
       registry: [{ ...salesTool, targets: () => ["sales/s1"] }, paymentsTool],
@@ -21,12 +21,12 @@ it.each(["sales", "sales/s1"])("R6: falla al componer la colisión register sobr
     rigs.push(rig);
   }).toThrow(/register.*sales|sales.*register/);
 });
-it("no confunde el mismo nombre sobre otra herramienta ni otra acción", () => {
-  const rig = shopRig({ own: () => [own("payments", "register"), own("sales", "propia")] });
+it("does not confuse the same name on another tool or another action", () => {
+  const rig = shopRig({ own: () => [own("payments", "register"), own("sales", "mine")] });
   rigs.push(rig);
-  expect(rig.act("ana", "propia", {}, "sales").status).toBe("accepted");
+  expect(rig.act("ana", "mine", {}, "sales").status).toBe("accepted");
 });
-it("un programa no puede reservar un hecho de otra herramienta", () => {
+it("a program cannot reserve another tool's fact", () => {
   expect(() => {
     const rig = shopRig({
       registry: [
@@ -37,14 +37,14 @@ it("un programa no puede reservar un hecho de otra herramienta", () => {
     rigs.push(rig);
   }).toThrow(/sale-registered/);
 });
-it("un own de programa sobre identities no se vuelve un acto del core", async () => {
+it("a program's own act on identities does not become a core act", async () => {
   const rig = shopRig({
     identities: true,
     registry: [salesTool, paymentsTool, { ...salesTool, id: "identities", facts: [] }],
     own: () => [
       ownAct<Shop, typeof nothing>(
         "identities",
-        "administrar",
+        "administer",
         {
           input: nothing,
           purpose: "Propio del programa",
@@ -57,11 +57,11 @@ it("un own de programa sobre identities no se vuelve un acto del core", async ()
     ],
   });
   rigs.push(rig);
-  const result = await settle(rig.act("ana", "administrar", {}, "identities"));
+  const result = await settle(rig.act("ana", "administer", {}, "identities"));
   expect(result).toMatchObject({ status: "rejected", effects: [] });
   expect(rig.state().house.grants.has("carla")).toBe(false);
 });
-it("una declaración no puede apropiarse de un hecho reservado de la casa", () => {
+it("a declaration cannot take over a fact reserved for the house", () => {
   expect(() => {
     const rig = shopRig({ registry: [Object.assign({}, salesTool, { facts: ["granted"] }), paymentsTool] });
     rigs.push(rig);

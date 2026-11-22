@@ -22,7 +22,7 @@ const request = (turn: TurnContext): ReviewRequest => ({
   acts: [],
   turn,
 });
-it("admite la tentativa 12 y nunca envía la 13, también entre mente y supervisor", async () => {
+it("admits attempt 12 and never sends the 13th, also between mind and supervisor", async () => {
   const turn = context();
   const model = vi.fn<ModelPort>(() => Promise.resolve(answer));
   const caller = createTurnCaller(model, turn, () => true);
@@ -32,7 +32,7 @@ it("admite la tentativa 12 y nunca envía la 13, también entre mente y supervis
   expect(model.mock.calls.map(args => args[0].number)).toEqual(Array.from({ length: 12 }, (_, i) => i + 1));
   expect(turn.usage.calls).toBe(12);
 });
-it("serializa pedidos concurrentes y una falla frena los que esperan", async () => {
+it("serializes concurrent requests and a failure holds the waiting ones", async () => {
   const turn = context();
   const model = vi.fn(async (): Promise<ModelOutcome> => {
     await Promise.resolve();
@@ -44,7 +44,7 @@ it("serializa pedidos concurrentes y una falla frena los que esperan", async () 
   expect(model).toHaveBeenCalledOnce();
   expect(turn.usage.calls).toBe(1);
 });
-it("una excepción desconocida no se reintenta ni expone su contenido", async () => {
+it("an unknown exception is neither retried nor exposes its content", async () => {
   const turn = context();
   const caller = createTurnCaller(
     async () => {
@@ -58,7 +58,7 @@ it("una excepción desconocida no se reintenta ni expone su contenido", async ()
   expect(await caller.call(turn.scope.actor, frame, {})).toEqual({ kind: "uncertain" });
   await expect(caller.call(turn.scope.actor, frame, {})).rejects.toThrow();
 });
-it("sin supervisor ni reglas pasa y consulta vuelve sin supervisor", async () => {
+it("with no supervisor and no rules it passes, and consultation comes back without a supervisor", async () => {
   const turn = context();
   const caller = createTurnCaller(
     async () => {
@@ -74,7 +74,7 @@ it("sin supervisor ni reglas pasa y consulta vuelve sin supervisor", async () =>
   ).toMatchObject({ outcome: "passed", text: "Sin supervisor" });
   expect(turn.usage.calls).toBe(0);
 });
-it("las reglas rechazan antes de invocar al supervisor", async () => {
+it("the rules reject before invoking the supervisor", async () => {
   const turn = context();
   const supervisor = vi.fn();
   const caller = createTurnCaller(
@@ -105,7 +105,7 @@ it("las reglas rechazan antes de invocar al supervisor", async () => {
   expect(result.outcome).toBe("rejected");
   expect(supervisor).not.toHaveBeenCalled();
 });
-it("un supervisor fallido no equivale a uno ausente", async () => {
+it("a failed supervisor is not the same as a missing one", async () => {
   const turn = context();
   const caller = createTurnCaller(
     async () => {
@@ -130,8 +130,8 @@ it("un supervisor fallido no equivale a uno ausente", async () => {
     ),
   ).toMatchObject({ outcome: "failed" });
 });
-it("rechaza aprobaciones de otra propuesta, secuencia o versión", async () => {
-  for (const change of [{ proposal: "other" }, { through: 2 }, { rulesVersion: "vieja" }]) {
+it("rejects approvals of another proposal, sequence or version", async () => {
+  for (const change of [{ proposal: "other" }, { through: 2 }, { rulesVersion: "old" }]) {
     const turn = context();
     const caller = createTurnCaller(
       async () => {
@@ -163,7 +163,7 @@ it("rechaza aprobaciones de otra propuesta, secuencia o versión", async () => {
     ).toMatchObject({ outcome: "failed" });
   }
 });
-it("comparte la corrección con respuestas inválidas del supervisor y no acepta una inválida pendiente", async () => {
+it("shares the correction with the supervisor's invalid answers and accepts no pending invalid one", async () => {
   const turn = context();
   const responses: ModelOutcome[] = [{ kind: "invalid", reason: "json" }, answer];
   const caller = createTurnCaller(
@@ -182,7 +182,7 @@ it("comparte la corrección con respuestas inválidas del supervisor y no acepta
   await caller.call("mind:supervisor", frame, {});
   expect(await reviewMindProposal(ports, request(turn), caller, "v1")).toMatchObject({ outcome: "passed" });
 });
-it("impide una segunda corrección del supervisor aunque altere el contador público", async () => {
+it("prevents a second supervisor correction even if it alters the public counter", async () => {
   const turn = context();
   const model = vi.fn(() => Promise.resolve<ModelOutcome>({ kind: "invalid", reason: "schema" }));
   const caller = createTurnCaller(model, turn, () => true);

@@ -27,11 +27,11 @@ const speak = programAct<LocalProgram<typeof conversationMetadata>, typeof input
   undoable: true,
   input,
   run: () => ({ status: "accepted", text: "Dicho · Mensaje", effects: [] }),
-  cases: [{ promise: "Comparte un mensaje", input: {}, then: { says: "Dicho · Mensaje", facts: [] } }],
+  cases: [{ promise: "Shares a message", input: {}, then: { says: "Dicho · Mensaje", facts: [] } }],
 });
 const conversation = defineProgram(conversationMetadata, {
   ...sampleBody,
   words: { ...sampleBody.words, name: "Conversación", key: "c" },
-  tools: { dialogo: { ...personal, words: { ...personal.words, name: "Diálogo" }, acts: { speak } } },
+  tools: { dialogue: { ...personal, words: { ...personal.words, name: "Diálogo" }, acts: { speak } } },
 });
 export const wordsDistribution = compose({ ...sampleOptions, programs: [notes, conversation] });

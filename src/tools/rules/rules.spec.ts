@@ -1,4 +1,4 @@
-// Las acciones de Reglas guardan, aprueban, simulan y retiran sin borrar ni repetir un acto.
+// The Rules actions save, approve, simulate and retire without erasing or repeating an act.
 import { afterEach, expect, it } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { shopRig } from "../../../tests/support/shop-rig.ts";
@@ -47,7 +47,7 @@ function fixture() {
   const send = (by = "ana", amount = 11) => settle(rig.act(by, "send", { amount }, "probe"));
   return { rig, act, send, sent: () => sent };
 }
-it("lo del admin vale al guardar; lo de otro sigue borrador hasta aprobar y nunca se borra", async () => {
+it("the admin's holds on saving; another's stays a draft until approved and is never erased", async () => {
   const f = fixture();
   expect((await f.act("save", limit)).status).toBe("accepted");
   for (const by of ["ana", "beto"])
@@ -65,7 +65,7 @@ it("lo del admin vale al guardar; lo de otro sigue borrador hasta aprobar y nunc
   const history = await f.act("consult", {});
   expect(history.value).toMatchObject([{ id: "limit", active: null, versions: [{ version: 1 }, { version: 2 }] }]);
 });
-it("una propuesta del admin también entra en vigencia al guardarla; otro no guarda, aprueba ni retira", async () => {
+it("an admin's proposal also takes effect when saved; another neither saves, approves nor retires", async () => {
   const f = fixture();
   expect((await f.act("propose", limit)).status).toBe("accepted");
   expect((await f.send()).status).toBe("rejected");
@@ -75,7 +75,7 @@ it("una propuesta del admin también entra en vigencia al guardarla; otro no gua
     );
   expect(f.rig.state().house.rules.active.get("limit")).toBe(1);
 });
-it("simular muestra los casos que pasan y frenan, sin efectos ni nuevas versiones", async () => {
+it("simulating shows the cases that pass and stop, with no effects or new versions", async () => {
   const f = fixture();
   await f.act("propose", limit, "beto");
   const result = await f.act("simulate", {
@@ -87,7 +87,7 @@ it("simular muestra los casos que pasan y frenan, sin efectos ni nuevas versione
   expect(f.sent()).toBe(0);
   expect(f.rig.state().house.rules.active.size).toBe(0);
 });
-it("sin supervisor espera con aviso y no deja que otra regla que pasa lo autorice", async () => {
+it("without a supervisor it waits with a notice and does not let another passing rule authorize it", async () => {
   const f = fixture();
   await f.act("save", { ...limit, effect: "require-supervisor" });
   expect(await f.send()).toMatchObject({ status: "rejected", reason: words.waiting });
@@ -96,7 +96,7 @@ it("sin supervisor espera con aviso y no deja que otra regla que pasa lo autoric
   expect(await f.send()).toMatchObject({ status: "rejected", reason: words.blocked });
   expect(f.sent()).toBe(0);
 });
-it("rechaza código, rutas ajenas y condiciones mal tipadas al guardar por el ejecutor", async () => {
+it("refuses code, foreign routes and badly typed conditions when saving through the executor", async () => {
   const f = fixture();
   for (const condition of [
     { operator: "eval", source: "process.exit()" },
@@ -107,7 +107,7 @@ it("rechaza código, rutas ajenas y condiciones mal tipadas al guardar por el ej
     expect((await f.act("save", { ...limit, condition })).status).toBe("rejected");
   expect(f.rig.state().house.rules.versions.size).toBe(0);
 });
-it("no permite alterar una versión leída ni aprobar otra vez una versión retirada", async () => {
+it("does not allow altering a read version or approving a retired version again", async () => {
   const f = fixture();
   await f.act("save", limit);
   const version = f.rig.state().house.rules.versions.get("limit")?.[0];
@@ -117,7 +117,7 @@ it("no permite alterar una versión leída ni aprobar otra vez una versión reti
   f.rig.restart();
   expect(f.rig.state().house.rules.versions.get("limit")?.[0]?.definition.text).toBe(limit.text);
 });
-it("dos borradores conservan autores y secuencia; aprobar uno no publica el otro", async () => {
+it("two drafts keep authors and sequence; approving one does not publish the other", async () => {
   const f = fixture();
   await f.act("save", limit);
   const proposals = [20, 30].map(value =>

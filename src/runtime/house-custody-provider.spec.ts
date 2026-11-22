@@ -5,7 +5,7 @@ import { custodyRig } from "../../tests/support/custody-rig.ts";
 import { shop, shopRegistry, shopSlices, type Shop } from "../../tests/support/shop.ts";
 import { startHouse } from "./house-runtime.ts";
 import { toolAct } from "../tools/act-definition.ts";
-it("p9: una acción propia secreta ofrecida más tarde dice que falta secretKeys", () => {
+it("p9: an own secret action offered later says secretKeys is missing", () => {
   let offered = false;
   const input = Type.Object({ value: Type.String({ secret: true }) });
   const house = startHouse(custodyRig().home, {

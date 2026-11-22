@@ -81,7 +81,7 @@ it("executes certified contracts through startHouse and preserves their receipts
       reading: { status: "found", value: { number: "1", state: "issued" } },
       notices: [{ author: "beto", value: { sale: "v1", voucher: "v1" } }],
     });
-    expect(JSON.stringify(read.value)).not.toContain("privado");
+    expect(JSON.stringify(read.value)).not.toContain("concealed");
   } finally {
     reopened.close();
   }
@@ -89,7 +89,7 @@ it("executes certified contracts through startHouse and preserves their receipts
 it("preserves business refusal through the public opening", async () => {
   const rig = setup();
   try {
-    expect((await settle(rig.act("invalid"))).value).toEqual({ status: "rejected", value: { code: "invalida" } });
+    expect((await settle(rig.act("invalid"))).value).toEqual({ status: "rejected", value: { code: "invalid" } });
   } finally {
     rig.house.close();
   }

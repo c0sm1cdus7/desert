@@ -12,7 +12,7 @@ const fixture = () => {
   return f;
 };
 afterEach(() => fixtures.splice(0).forEach(f => f.cleanup()));
-it("elige la más barata que pasa sus tres escenas y no prueba la siguiente", async () => {
+it("picks the cheapest that passes its three scenes and does not try the next", async () => {
   const f = fixture();
   f.respond(request => ({
     scene: request.effort === "high" ? "No alcanza" : "Banco aprobado",
@@ -44,7 +44,7 @@ it("elige la más barata que pasa sus tres escenas y no prueba la siguiente", as
   expect(f.transport).toHaveBeenCalledTimes(6);
   expect(reopened.tools.state().house.mindAssignments.get("mind:notes")?.version).toBe("low");
 });
-it("sin carta que pase el banco conserva su evidencia fallida, no asigna y lo dice", async () => {
+it("with no card passing the bank it keeps its failed evidence, assigns nothing and says so", async () => {
   const f = fixture();
   f.respond(() => ({ scene: "No alcanza", acts: [], consultation: null }));
   const house = await f.open({ capNanoUsd: 10000000000 }, false);
@@ -56,7 +56,7 @@ it("sin carta que pase el banco conserva su evidencia fallida, no asigna y lo di
   await f.bank(house, { capNanoUsd: 10000000000 });
   expect(f.transport).toHaveBeenCalledTimes(cards.length * 3);
 });
-it("abrir la casa no llama a ningún modelo: asigna una vez la carta declarada y respeta la del admin", async () => {
+it("opening the house calls no model: it assigns the declared card once and respects the admin's", async () => {
   const f = fixture();
   const house = await f.open();
   expect(f.transport).not.toHaveBeenCalled();
@@ -86,7 +86,7 @@ it("abrir la casa no llama a ningún modelo: asigna una vez la carta declarada y
   await (await reopened.minds)?.flush();
   expect(f.frames.map(frame => frame.model)).toEqual(["claude-sonnet-5-5", "claude-sonnet-5-5"]);
 });
-it("sin carta declarada ni elegida la casa abre, no llama al modelo y dice que falta la carta", async () => {
+it("with no declared or chosen card the house opens, calls no model and says the card is missing", async () => {
   const f = fixture();
   const house = await f.open({ cards: {} });
   expect(house.tools.state().house.mindAssignments.has("mind:notes")).toBe(false);
@@ -95,7 +95,7 @@ it("sin carta declarada ni elegida la casa abre, no llama al modelo y dice que f
   await (await house.minds)?.flush();
   expect(f.transport).not.toHaveBeenCalled();
 });
-it("el gasto del pensamiento sobrevive cerrar, reabrir y recalcular", async () => {
+it("thinking's spending survives closing, reopening and recomputing", async () => {
   const f = fixture();
   const house = await f.open();
   f.wake(house);
@@ -124,7 +124,7 @@ it.each(["no-key", "cap"])("abre con %s sin llamar al transporte", async reason 
   expect(f.transport).not.toHaveBeenCalled();
 });
 
-it("el banco abre journeys y comprueba trabajo real sin escribir notas en la casa viva", async () => {
+it("the bank opens journeys and checks real work without writing notes in the live house", async () => {
   const f = programMindFixture({
     given: [],
     kit: [{ tool: "notes", acts: ["personal/add"] }],

@@ -1,4 +1,4 @@
-// Reconstruye asistentes y cruza su delegación con el permiso actual y la capacidad asignada.
+// Rebuilds assistants and crosses their delegation with the current permission and the assigned capability.
 import { Value } from "@sinclair/typebox/value";
 import type { Capability } from "../../fields/capabilities.ts";
 import { assistantOf, isMindActor } from "../../fields/mind-actor.ts";

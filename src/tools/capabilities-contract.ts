@@ -1,4 +1,4 @@
-// Referencias, revisión, efectos de vínculos y métodos públicos recibidos por las herramientas.
+// References, review, link effects and public methods the tools receive.
 import type { HouseEmission } from "../house/facts.ts";
 /** Public capabilities contain references and declared operations, never a way to read material. */
 export type SecretRef = `secret:${string}`;

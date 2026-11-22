@@ -19,7 +19,7 @@ it("real terminal grants one action, cuts a running act, removes the whole tool 
     await t.press("s", "Guardado");
     await t.probe("beto", "wait", {}, "processing");
     expect(await t.untilFile("observed.json", "Procesando")).toContain("Procesando");
-    await t.press("\x1b", "esperar");
+    await t.press("\x1b", "aguardar");
     await t.press("t", "Kit");
     await t.press("s", "Guardado");
     expect(await t.untilFile("result.json", "interrupted")).toContain("sacada");
@@ -36,7 +36,7 @@ it("real terminal gives and takes a mind action; the process changes from reject
   const t = kitTerminal();
   try {
     await t.term.until("Menú");
-    expect(await t.probe("mind:sales", "register", { sale: "antes", total: 100 }, "rejected")).toContain(
+    expect(await t.probe("mind:sales", "register", { sale: "before", total: 100 }, "rejected")).toContain(
       "fuera del kit",
     );
     await t.press("i", "Mentes");
@@ -45,12 +45,12 @@ it("real terminal gives and takes a mind action; the process changes from reject
     expect(t.term.screen().join("\n")).toContain("[t]");
     await t.press("1", "actual");
     await t.press("s", "Guardado");
-    expect(await t.probe("mind:sales", "register", { sale: "durante", total: 100 })).toContain("accepted");
+    expect(await t.probe("mind:sales", "register", { sale: "during", total: 100 })).toContain("accepted");
     expect(await t.untilFile("observed.json", "Algunas acciones")).toContain("mente de sales");
     await t.press("\x1b", "registrar");
     await t.press("1", "actual");
     await t.press("n", "Guardado");
-    expect(await t.probe("mind:sales", "register", { sale: "despues", total: 100 }, "rejected")).toContain(
+    expect(await t.probe("mind:sales", "register", { sale: "after", total: 100 }, "rejected")).toContain(
       "fuera del kit",
     );
   } finally {
@@ -100,7 +100,7 @@ it("real terminal removes partial tools, persists whole grants and protects admi
     await t.press("t", "Kit");
     expect(t.term.screen().join("\n")).not.toContain("actual");
     await t.press("s", "Guardado");
-    expect(await t.probe("beto", "register", { sale: "cortada", total: 100 }, "rejected")).toContain("fuera del kit");
+    expect(await t.probe("beto", "register", { sale: "cut", total: 100 }, "rejected")).toContain("fuera del kit");
     await t.press("\x1b", "registrar");
     await t.press("t", "actual");
     await t.press("d", "Guardado");

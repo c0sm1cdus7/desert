@@ -4,25 +4,25 @@ import { custodyRig } from "../../../tests/support/custody-rig.ts";
 import { fakeKeychain } from "../../../tests/support/fake-keychain.ts";
 import { MacOSHouseKeys } from "../../../tests/support/retired-macos/macos-house-keys.ts";
 import { CustodyCipher } from "./custody-cipher.ts";
-it("descifrar borra también los fragmentos nativos que concatena, no solamente el resultado prestado", () => {
+it("decrypting also erases the native fragments it concatenates, not only the lent result", () => {
   const rig = custodyRig(),
     cipher = new CustodyCipher("house", rig.keys);
   cipher.prepare(true);
-  const input = Buffer.from("sintetico"),
+  const input = Buffer.from("synthetic"),
     envelope = cipher.seal("ref", input, true);
   expect(input.every(byte => byte === 0)).toBe(true);
   const concat = vi.spyOn(Buffer, "concat");
   const result = cipher.open("ref", envelope);
-  expect(Buffer.from(result).toString()).toBe("sintetico");
+  expect(Buffer.from(result).toString()).toBe("synthetic");
   expect(concat.mock.calls).toHaveLength(1);
   expect(concat.mock.calls[0]?.[0][1]?.byteLength).toBe(0);
   for (const part of concat.mock.calls[0]?.[0] ?? []) expect(part.every(byte => byte === 0)).toBe(true);
   result.fill(0);
 });
-it("adoptar una fila borra tanto el BLOB de SQLite como el búfer de comparación", () => {
+it("adopting a row erases both the SQLite BLOB and the comparison buffer", () => {
   const rig = custodyRig(),
     db = new DatabaseSync(rig.file),
-    marker = "sintetico-de-adopcion-".repeat(7);
+    marker = "synthetic-adoption-".repeat(7);
   db.exec("create table secrets(id text primary key, value text)");
   db.prepare("insert into secrets values (?,?)").run("secret:00000000-0000-0000-0000-000000000001", marker);
   db.close();
@@ -38,7 +38,7 @@ it("adoptar una fila borra tanto el BLOB de SQLite como el búfer de comparació
   for (const result of opened.mock.results)
     if (result.type === "return") expect(result.value.every(byte => byte === 0)).toBe(true);
 });
-it("el proveedor borra el aleatorio y la codificación temporal de una llave recién creada", async () => {
+it("the provider erases the random bytes and the temporary encoding of a freshly created key", async () => {
   const codec = await import("../../../tests/support/retired-macos/keychain-bytes.ts");
   const encoded = vi.spyOn(codec, "encodeKey"),
     fake = fakeKeychain();
@@ -49,7 +49,7 @@ it("el proveedor borra el aleatorio y la codificación temporal de una llave rec
   expect(buffer?.type).toBe("return");
   if (buffer?.type === "return") expect(buffer.value.every(byte => byte === 0)).toBe(true);
 });
-it("leer una llave borra la copia de stdout que valida como base64", () => {
+it("reading a key erases the stdout copy it validates as base64", () => {
   const stdout = Buffer.from(Buffer.alloc(32, 17).toString("base64"));
   const copies = vi.spyOn(Buffer, "from");
   const key = new MacOSHouseKeys(() => ({ status: 0, stdout })).key("house", false);

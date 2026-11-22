@@ -1,4 +1,4 @@
-// Terminal de aceptación con diario temporal, una regla mecánica y ninguna credencial real.
+// An acceptance terminal with a temporary journal, one mechanical rule and no real credential.
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { startTerminal } from "../../src/doors/terminal/boot.ts";

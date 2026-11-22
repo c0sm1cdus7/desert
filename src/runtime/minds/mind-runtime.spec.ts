@@ -155,7 +155,7 @@ it.each([
   [true, false],
   [false, true],
   [true, true],
-])("matriz: asistentes=%s programas=%s, SQLite y reinicio sin repetir llamadas", async (assistants, programs) => {
+])("matrix: assistants=%s programs=%s, SQLite and restart without repeating calls", async (assistants, programs) => {
   const f = fixture({ assistants: assistants, programs: programs ? ["probe"] : [] });
   const first = f.start();
   f.prepare(first);
@@ -179,7 +179,7 @@ it.each([
   expect(f.transport).toHaveBeenCalledTimes(turns.length);
   expect(second.tools.state().house.modelCalls.size).toBe(turns.length);
 });
-it("recupera el corte del hilo y conserva las llegadas posteriores al reinicio", async () => {
+it("recovers the thread's cut and keeps the arrivals after the restart", async () => {
   const f = fixture({ assistants: false, programs: ["probe"] });
   const first = f.start();
   f.prepare(first);
@@ -204,7 +204,7 @@ it("recupera el corte del hilo y conserva las llegadas posteriores al reinicio",
   expect(resumed.thread(scope).entries.every(entry => !old.some(previous => previous.id === entry.id))).toBe(true);
 });
 it.each(["assistant:ana", "mind:probe"] as const)(
-  "cierra una llamada abierta de %s y descarta su respuesta tardía",
+  "closes an open call of %s and discards its late answer",
   async actor => {
     const f = fixture({ assistants: actor === "assistant:ana", programs: actor === "mind:probe" ? ["probe"] : [] });
     let finish: (value: ReturnType<typeof answer>) => void = () => {};
@@ -232,7 +232,7 @@ it.each(["assistant:ana", "mind:probe"] as const)(
     expect([...second.tools.state().house.modelCalls.values()][0]?.status).toBe("started");
   },
 );
-it("un rollback no despierta y una llegada durante la respuesta conserva otro turno", async () => {
+it("a rollback does not wake, and an arrival during the answer keeps another turn", async () => {
   const f = fixture({ assistants: false, programs: ["probe"] });
   const house = f.start();
   f.prepare(house);

@@ -1,4 +1,4 @@
-// Persiste cuentas y anclas públicas con reemplazo atómico privado; el disco entero restaurado no se detecta.
+// Persists accounts and public anchors with private atomic replacement; a whole restored disk goes undetected.
 import { closeSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";

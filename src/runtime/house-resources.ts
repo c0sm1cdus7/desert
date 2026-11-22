@@ -1,4 +1,4 @@
-// Abre diario, plegados y custodia, valida identidades, presta adaptadores autorizados y cierra los recursos.
+// Opens journal, folds and custody, validates identities, lends authorized adapters and closes the resources.
 import { scrubDoorValue } from "../house/doors/door-material.ts";
 import { CustodyError } from "../keychain/custody/house-keys.ts";
 import { closeResources } from "../tools/boundaries/close-resources.ts";
