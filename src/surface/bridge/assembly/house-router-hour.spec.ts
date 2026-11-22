@@ -1,3 +1,4 @@
+// The Barra's hour: the program's zone when it gives one, the process's own when it does not, as the terminal has.
 import { afterEach, beforeEach, expect, it } from "vitest";
 import { socketHouse } from "../../../../tests/support/socket-house.ts";
 import { shopShown } from "../../../../tests/support/shop.ts";

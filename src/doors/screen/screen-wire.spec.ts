@@ -1,3 +1,4 @@
+// The screen door's wire: closed bodies, each parsed into a value or a refusal with its reason, never a throw.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { wireScreensPath } from "../../../tests/support/wire-screens.ts";
@@ -12,7 +13,7 @@ const without = (value: Readonly<Record<string, unknown>>, key: string) =>
   Object.fromEntries(Object.entries(value).filter(([name]) => name !== key));
 const reasonOf = (parsed: { ok: true } | { ok: false; reason: string }) => (parsed.ok ? "accepted" : parsed.reason);
 
-describe("the screen door's wire", () => {
+describe("the screen door's wire: its bounds and its batches", () => {
   it("keeps the bounds it shares with the house where the house keeps them", () => {
     expect(screenLimits.clients).toBe(socketLimits.waits);
     expect(screenLimits).toEqual({
@@ -45,6 +46,8 @@ describe("the screen door's wire", () => {
     ];
     expect(cases.map(([body]) => reasonOf(parseSend(body)))).toEqual(cases.map(([, reason]) => reason));
   });
+});
+describe("the screen door's wire: its looks", () => {
   it("accepts a look and refuses, with its reason, each body that is not one", () => {
     const cases: readonly [unknown, string][] = [
       [look, "accepted"],
@@ -60,6 +63,8 @@ describe("the screen door's wire", () => {
     ];
     expect(cases.map(([body]) => reasonOf(parseLook(body)))).toEqual(cases.map(([, reason]) => reason));
   });
+});
+describe("the screen door's wire: its frames", () => {
   it("carries every golden screen in a frame, and refuses a key or a reason the wire does not name", () => {
     const golden: unknown = JSON.parse(readFileSync(wireScreensPath, "utf8"));
     const entries: unknown[] =

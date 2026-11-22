@@ -1,3 +1,4 @@
+// The entry router: signing in is a screen, walked, painted, worded and handed over to the house like any other.
 import { describe, expect, it } from "vitest";
 import { collect, flush, spyDoor, spyHouse } from "../../../tests/support/screen-spy.ts";
 import { catalog, drawn, size } from "../../../tests/support/terminal-drawn.ts";
@@ -87,6 +88,8 @@ describe("the entry router: signing in is a screen", () => {
       house.close();
     }
   });
+});
+describe("the entry router: its walk, its words, its hand-over", () => {
   it("passes the conformance kit on every screen of its walk, painted by the terminal", async () => {
     const seen = new Map<string, readonly Intent[]>();
     const queue: (readonly Intent[])[] = [[]];

@@ -1,3 +1,4 @@
+// The screen door's sessions over spy routers and a fake clock: S1 to S5 and S8 to S13, the cut and the silences.
 import { join } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
@@ -27,6 +28,11 @@ const eventsOf = (frame: Frame) =>
     : [];
 const textOf = (frame: Frame | undefined) =>
   frame?.screen.body.kind === "list" ? frame.screen.body.stacks.flatMap(stack => stack.rows.map(row => row.title)) : [];
+/** How much a frame holds: no frame of the silences is empty. */
+const filled = ({ screen: { body } }: Frame) => {
+  if (body.kind === "thread") return body.events.length;
+  return body.kind === "list" ? body.stacks.length : body.lines.length;
+};
 
 describe("the screen door's sessions", () => {
   it("S1: opens one router per session and house on its first look, and refuses a batch of another epoch", async () => {
@@ -62,6 +68,8 @@ describe("the screen door's sessions", () => {
     for (let n = 0; n < 10; n++) spy?.fire();
     expect(spy?.counts.screen).toBe(12);
   });
+});
+describe("the screen door's rooms", () => {
   it("S3: draws nothing without a viewport, and has no room of its own to draw for", async () => {
     const { door, houses, opens } = spyDoor();
     const a = await door.look("s", "h", view);
@@ -121,6 +129,8 @@ describe("the screen door's order", () => {
     expect((await door.send("s", "h", batch(a, 3))).seq).toBe(3);
     expect(spy?.sent.map(intent => intent.kind)).toEqual(["down", "up", "down", "down", "down"]);
   });
+});
+describe("what the screen door pushes", () => {
   it("S9: pushes a frame only when what travels changed, and a keepalive to a silent stream", async () => {
     const { door, houses, clock } = spyDoor();
     const a = await door.look("s", "h", view);
@@ -144,6 +154,8 @@ describe("the screen door's order", () => {
     await flush();
     expect(stream.done()).toBe(true);
   });
+});
+describe("a router left behind", () => {
   it("S11: a quit closes the router, and its frame is the first screen of a new epoch", async () => {
     const { door, houses, opens } = spyDoor();
     const a = await door.look("s", "h", view);
@@ -175,6 +187,8 @@ describe("the screen door's order", () => {
     const frame = await looking;
     expect([late.counts.close, late.counts.screen, door.alive(), frame.epoch]).toEqual([1, 0, 0, ""]);
   });
+});
+describe("an ended house, and what a client sent", () => {
   it("S12: a house that ended closes its session, and the next look opens another", async () => {
     const { door, houses, opens } = spyDoor();
     const a = await door.look("s", "h", view);
@@ -224,6 +238,8 @@ describe("the cut of a session nobody looks at", () => {
     clock.advance(1);
     expect([houses[0]?.counts.stop, door.alive(), stream.done()]).toEqual([1, 0, true]);
   });
+});
+describe("the door's own time", () => {
   it("S10: keeps no timer of its own: the door's sources name no setTimeout, setInterval or Date.now", () => {
     const named = filesUnder(join(src, "doors/screen"))
       .filter(file => !isSpec(file))
@@ -240,11 +256,7 @@ describe("the cut of a session nobody looks at", () => {
     expect(named).toEqual([]);
   });
 });
-describe("three silences that are a screen with its words", () => {
-  const filled = ({ screen: { body } }: Frame) => {
-    if (body.kind === "thread") return body.events.length;
-    return body.kind === "list" ? body.stacks.length : body.lines.length;
-  };
+describe("three silences that are a screen with its words: a cut session", () => {
   it("puts a client back from a cut session on the new router, behind one notice that Enter leaves", async () => {
     const { door, opens } = spyDoor();
     const a = await door.look("s", "h", view);
@@ -263,6 +275,8 @@ describe("three silences that are a screen with its words", () => {
     expect([left.screen.title, left.refused]).toEqual(["Prueba", undefined]);
     expect([a, lost, back, left].map(filled).every(count => count > 0)).toBe(true);
   });
+});
+describe("three silences that are a screen with its words: a house that will not open", () => {
   it("shows why the house cannot be opened, with nothing to do but wait, and asks the host again", async () => {
     const node = socketTexts.node("24.9.0", "24.1.0");
     const failures = [new SocketOpeningError(node), new Error("detalle interno")];

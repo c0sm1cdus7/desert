@@ -1,6 +1,9 @@
-// The screen door on a loopback listener, mounted the way a host would: for specs only, since the door has no listener.
+// The screen door on a loopback listener, mounted the way a host would, and a client of it: for specs only.
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { setTimeout as delay } from "node:timers/promises";
 import type { ScreenDoor } from "../../src/doors/screen/screen-door.ts";
+import { parseFrame, type Frame } from "../../src/doors/screen/screen-wire.ts";
+import type { Intent } from "../../src/surface/contract/contract.ts";
 
 /** The person's session, from its cookie: the door never sees a cookie, only the id the host resolves from it. */
 const sessionOf = (request: IncomingMessage): string | undefined =>
@@ -67,4 +70,65 @@ export async function screenHttp(door: ScreenDoor, house: string) {
       return new Promise<void>(resolve => server.close(() => resolve()));
     },
   };
+}
+/** Every response as it arrived: its headers and its body, to read what it should never hold. */
+type Seen = { readonly headers: Headers; readonly body: string; readonly epoch?: string };
+const frameOf = (text: string): Frame => {
+  const parsed = parseFrame(JSON.parse(text));
+  if (!parsed.ok) throw new Error(`not a frame: ${parsed.reason}`);
+  return parsed.value;
+};
+/** Reads a stream of events in the background, handing each screen to `got` with its body as it came. */
+function readEvents(stream: Response, got: (frame: Frame, body: string) => void): void {
+  const head = "event: screen\ndata: ";
+  void (async () => {
+    const decoder = new TextDecoder();
+    let text = "";
+    const reader = stream.body?.getReader();
+    for (let read = await reader?.read(); read && !read.done; read = await reader?.read()) {
+      const chunk: unknown = read.value;
+      if (chunk instanceof Uint8Array) text += decoder.decode(chunk, { stream: true });
+      const events = text.split("\n\n");
+      text = events.pop() ?? "";
+      for (const event of events.filter(line => line.startsWith(head))) got(frameOf(event.slice(head.length)), event);
+    }
+  })().catch(() => undefined);
+}
+/** A browser tab as a host would serve it: its first look, one stream, a look until a screen comes, and its batches
+ * numbered after the newest frame it has. Every response it got is kept in `seen`. */
+export async function screenClient(url: string, cookie: string, rows: number) {
+  const seen: Seen[] = [];
+  const pushed: Frame[] = [];
+  const headers = { cookie, "Content-Type": "application/json" };
+  const view = { visible: true, viewport: { rows } };
+  let current: Frame | undefined;
+  const post = async (path: string, body: unknown): Promise<Frame> => {
+    const response = await fetch(`${url}${path}`, { method: "POST", headers, body: JSON.stringify(body) });
+    const text = await response.text();
+    const frame = frameOf(text);
+    seen.push({ headers: response.headers, body: text, epoch: frame.epoch });
+    return (current = frame);
+  };
+  const first = await post("/surface/look", view);
+  const leave = new AbortController();
+  const stream = await fetch(`${url}/surface/stream?client=${first.client}`, { headers, signal: leave.signal });
+  seen.push({ headers: stream.headers, body: "" });
+  readEvents(stream, (frame, body) => {
+    seen.push({ headers: stream.headers, body, epoch: frame.epoch });
+    pushed.push((current = frame));
+  });
+  const newest = (): Frame => current ?? first;
+  const until = async (holds: (frame: Frame) => boolean): Promise<Frame> => {
+    for (let n = 0; n < 200; n++) {
+      const looked = await post("/surface/look", { ...view, client: newest().client });
+      if (holds(looked)) return looked;
+      await delay(25);
+    }
+    throw new Error("the screen never came");
+  };
+  const act = (intents: readonly Intent[]): Promise<Frame> => {
+    const at = newest();
+    return post("/surface/intents", { epoch: at.epoch, client: at.client, seq: at.seq + 1, rev: at.rev, intents });
+  };
+  return { first, seen, pushed, until, act, leave: () => leave.abort() };
 }

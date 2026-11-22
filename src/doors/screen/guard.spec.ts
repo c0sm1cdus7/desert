@@ -1,3 +1,4 @@
+// The guard of a stale look: an Enter is applied only where it means what it meant on the screen the person saw.
 import { readFileSync } from "node:fs";
 import { Value } from "@sinclair/typebox/value";
 import { describe, expect, it } from "vitest";
@@ -87,6 +88,8 @@ describe("a stale look", () => {
     const { frame, sent } = await sentOver(listOf(plain), listOf(moved), free);
     expect([frame.refused, sent]).toEqual([undefined, free.length]);
   });
+});
+describe("a stale look: the ring, and what is chosen", () => {
   it("S6: refuses an Enter over a rev older than the ring, though the screen means the same", async () => {
     const { door, houses } = spyDoor(undefined, text => listOf(plain, text));
     const first = await door.look("s", "h", view);

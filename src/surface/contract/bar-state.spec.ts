@@ -1,3 +1,4 @@
+// barState: the one state a Barra shows for two links, written out whole, with no signal winning from either side.
 import { expect, it } from "vitest";
 import { barState, type Link } from "./bar-state.ts";
 import type { Screen } from "./contract.ts";
