@@ -10,6 +10,7 @@ const policy = (scope: WakePolicy["scope"]): WakePolicy => ({
   name: "Notas",
   message: () => undefined,
   toolOf: () => undefined,
+  talks: false,
 });
 const consciousness = policy({ kind: "consciousness", actor });
 const journey = policy({ kind: "journey", actor, process: "j1", kit: [] });

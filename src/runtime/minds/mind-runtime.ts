@@ -145,6 +145,7 @@ class HouseMindRuntime<X extends Program> {
             message: options.message,
             toolOf: (target: string) =>
               targetTool(house.execution.registry, identityView(house.execution.state(), each.actor), target)?.id,
+            talks: house.execution.registry.some(tool => tool.talks === true && each.actor === `mind:${tool.id}`),
           }));
       });
     return this.supervisor && house.active() ? [...minds, this.supervisor.policy(options.message)] : minds;

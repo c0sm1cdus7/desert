@@ -12,6 +12,7 @@ const policy: WakePolicy = {
   message: event =>
     event.layer === "program" && Value.Check(said, event.data) ? { ...event.data, by: event.by } : undefined,
   toolOf: target => target.split("/")[0],
+  talks: false,
 };
 const message = (text: string, seq = 1, by = "mind:agenda", to = ["assistant:franco"]): Event => ({
   layer: "program",
@@ -72,7 +73,7 @@ it("un journey no despierta por mensajes; los oye su consciencia", () => {
   expect(mindWakeDecision(journey, message("Nora, listo", 1, "martin"), [], 0)).toBe(false);
   expect(mindWakeDecision(journey, { ...message("Nora, listo", 1, "martin"), process: "j1" }, [], 0)).toBe(false);
 });
-it("la herramienta despierta por cada acto en ella y en sus objetos, salvo los propios", () => {
+it("la herramienta que no habla despierta por cada acto en ella y en sus objetos, salvo los propios", () => {
   const tool = { ...policy, scope: { kind: "consciousness" as const, actor: "mind:notes" as const } };
   const event = {
     ...effect("act", { object: "notes/n1", option: "edit", input: {} }, "franco"),
@@ -84,6 +85,25 @@ it("la herramienta despierta por cada acto en ella y en sus objetos, salvo los p
   expect(mindWakeDecision(tool, { ...event, by: "mind:notes" }, [], 0)).toBe(false);
   expect(mindWakeDecision(tool, message("Nora", 1, "franco"), [], 0)).toBe(false);
   expect(mindWakeDecision(tool, message("Anotá", 1, "franco", ["mind:notes"]), [], 0)).toBe(true);
+});
+it("22/11: el programa que habla no despierta a su mente por cada acto: la despiertan sus mensajes", () => {
+  const mind = { kind: "consciousness" as const, actor: "mind:communicator" as const };
+  const communicator = { ...policy, name: "Comunicador", scope: mind, talks: true };
+  const act = (option: string) => ({
+    ...effect("act", { object: "communicator/threads/1", option, input: {} }, "franco"),
+    id: "e1",
+    seq: 1,
+    at: 0,
+  });
+  for (const option of ["threads/say", "threads/open", "threads/add"])
+    expect(mindWakeDecision(communicator, act(option), [], 0)).toBe(false);
+  expect(mindWakeDecision(communicator, message("Hola", 1, "franco", ["ana"]), [], 0)).toBe(false);
+  expect(mindWakeDecision(communicator, message("Hola", 1, "franco", ["mind:communicator"]), [], 0)).toBe(true);
+  expect(mindWakeDecision(communicator, message("Hola", 1, "franco", ["mind:communicator", "ana"]), [], 0)).toBe(false);
+  const named = message("Comunicador, mirá", 1, "franco", ["mind:communicator", "ana"]);
+  expect(mindWakeDecision(communicator, named, [], 0)).toBe(true);
+  // The same mind of a program that does not talk still wakes for an act on its own object.
+  expect(mindWakeDecision({ ...communicator, talks: false }, act("threads/say"), [], 0)).toBe(true);
 });
 it("el final de su journey vuelve a la consciencia sin despertar al journey cerrado", () => {
   const event = {

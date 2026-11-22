@@ -12,6 +12,8 @@ export type WakePolicy = Readonly<{
   name: string;
   message: (event: Event) => ProgramMessage | undefined;
   toolOf: (target: string) => string | undefined;
+  /** Its own tool talks (signed 22/11): its acts are messages, which wake by their thread, not as acts on the tool. */
+  talks: boolean;
   /** A mind with its own waking, such as the supervisor: journeys closing or cut, failed turns and messages. */
   wakes?: (event: Event, history: readonly Event[]) => boolean;
 }>;
@@ -37,6 +39,7 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   requireMind(typeof policy.name === "string" && policy.name.trim(), "policy.name");
   requireMind(typeof policy.message === "function", "policy.message");
   requireMind(typeof policy.toolOf === "function", "policy.toolOf");
+  requireMind(typeof policy.talks === "boolean", "policy.talks");
   requireMind(Number.isSafeInteger(now) && now >= 0, "now");
   const mind = parseMindActor(policy.scope.actor);
   requireMind(mind, "policy.actor");
@@ -47,6 +50,7 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
   if (policy.scope.kind !== "consciousness") return false;
   if (
     mind.kind === "tool" &&
+    !policy.talks &&
     event.layer === "house" &&
     event.kind === "act" &&
     policy.toolOf(event.data.object) === mind.tool

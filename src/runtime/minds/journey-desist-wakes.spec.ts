@@ -33,6 +33,7 @@ const policy = (scope: WakePolicy["scope"]): WakePolicy => ({
   name: "Notas",
   message: () => undefined,
   toolOf: () => undefined,
+  talks: false,
 });
 const consciousness = policy({ kind: "consciousness", actor });
 const kit = { version: 2 as const, selections: [] };

@@ -74,6 +74,7 @@ it("wakes only for a journey that closes or is cut, or a line addressed to it, a
     name: "supervisor",
     message,
     toolOf: () => undefined,
+    talks: false,
   };
   const wakes = (event: Event) => supervisorWakes(policy, 2, event, []);
   const closing = effect("journey-closed", { outcome: "done", summary: "Listo", references: [] }, "mind:notes");

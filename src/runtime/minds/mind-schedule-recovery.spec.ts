@@ -19,6 +19,7 @@ const policy: WakePolicy = {
   message: e =>
     e.layer === "program" && typeof e.data === "string" ? { text: e.data, to: [actor], by: e.by } : undefined,
   toolOf: target => target,
+  talks: false,
 };
 it.each([
   ["reserved", "assistant:franco"],

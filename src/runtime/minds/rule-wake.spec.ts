@@ -56,6 +56,7 @@ it("aprueba después de reiniciar y despierta solo al actor frenado sin repetir 
       name: "Prueba",
       message: () => undefined,
       toolOf: () => "probe",
+      talks: false,
     };
     expect(mindWakeDecision(policy, approved, events, 0)).toBe(true);
     expect(ruleWake({ kind: "consciousness", actor: "mind:sales" }, approved, events)).toBe(false);

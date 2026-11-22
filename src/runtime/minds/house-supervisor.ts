@@ -94,6 +94,7 @@ class Supervisor<X extends Program> {
       name: "supervisor",
       message,
       toolOf: () => undefined,
+      talks: false,
       wakes: (event, history) => supervisorWakes(policy, this.since, event, history),
     };
     return policy;
