@@ -62,10 +62,9 @@ function consumedBy(
     }),
   );
 }
-/** What a mind already had in front of it when it last thought (22/11): everything said before its last turn opened,
- * or, before it ever had a turn, before the boot that runs it. */
-const heardThrough = (opened: readonly HouseEvent<"mind-turn-opened">[], history: readonly Event[]): number =>
-  opened.at(-1)?.seq ?? history.findLast(e => e.layer === "house" && e.kind === "boot")?.seq ?? 0;
+/** What a mind already had in front of it when it last thought (22/11): everything said before its last turn opened.
+ * A mind that never had a turn heard nothing, so no boot takes a message from it: a message is never lost silently. */
+const heardThrough = (opened: readonly HouseEvent<"mind-turn-opened">[]): number => opened.at(-1)?.seq ?? 0;
 export type PendingMindWake = Readonly<{ scope: MindScope; wake: readonly string[]; through: number }>;
 export function pendingMindWakes(
   policies: readonly WakePolicy[],
@@ -88,7 +87,7 @@ export function pendingMindWakes(
     );
     if (opened.some(e => !closed.has(e.data.turn))) continue;
     const consumed = consumedBy(policy, opened, restarted, moved);
-    const heard = heardThrough(opened, history);
+    const heard = heardThrough(opened);
     const waking = history.filter(e => !consumed.has(e.id) && mindWakeDecision(policy, e, history, now, heard));
     const oldest = waking[0]?.seq;
     if (oldest !== undefined)

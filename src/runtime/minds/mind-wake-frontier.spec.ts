@@ -1,5 +1,5 @@
 // Proves that a message waits for a mind only when said after its last turn opened, so a new rule wakes nobody for
-// the past, and that a restart loses no message said after that turn.
+// the past, and that no restart loses a message: to a mind that never had a turn, every message waits.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -57,10 +57,10 @@ it("22/11: a line said after the mind's last turn opened waits for it, also acro
   const events = journal(boot, line("ana", "Anotá uno"), ...turn("t1", ["e2"]), boot, line("mind:migration", "Listo"));
   expect(wakes(events)).toEqual([["e6"]]);
 });
-it("22/11: a mind that never had a turn has nothing pending from before the boot that runs it", () => {
-  expect(wakes(journal(boot, line("mind:migration", "Listo, migré todo"), boot))).toEqual([]);
+it("22/11: a mind that never had a turn loses no message to a boot: every line addressed to it waits", () => {
+  expect(wakes(journal(boot, line("ana", "hola"), boot))).toEqual([["e2"]]);
   expect(wakes(journal(boot, line("mind:migration", "Listo, migré todo"), boot, line("ana", "Anotá")))).toEqual([
-    ["e4"],
+    ["e2", "e4"],
   ]);
 });
 it("22/11: the frontier is for messages only: an act on its own tool before the boot still wakes it", () => {
@@ -88,17 +88,34 @@ const flush = async (house: RequestHouse) => (await house.minds)?.flush();
 const migrated = (house: RequestHouse) => house.bus.emit(said("mind:migration", "Listo, migré todo"));
 const opened = (house: RequestHouse) =>
   [...house.tools.state().house.minds.turns.values()].map(each => each.opened.data.wake);
-it("22/11: an old journal's unnamed mind line in an individual thread makes no call on the first boot", async () => {
+it("22/11: an old journal's unnamed mind line, said before the mind's last turn opened, makes no call", async () => {
   const f = fixture();
-  // Written without minds, as the code of 316677a4 wrote it: that line woke nobody then.
+  // Written without minds, as the code of 316677a4 wrote it: that line woke nobody then, and a later turn of the mind,
+  // opened for another line, had it in front of it without taking it.
+  const old = await f.open(false);
+  migrated(old);
+  const asked = send(old, "mind:notes", "Anotá uno");
+  expect(asked.status).toBe("accepted");
+  const wake = [history(old).findLast(e => e.layer === "program" && e.by === "ana")?.id ?? "missing"];
+  old.bus.emit(effect("mind-turn-opened", { turn: "t-old", wake }, "mind:notes", wake));
+  old.bus.emit(effect("mind-turn-closed", { turn: "t-old", outcome: "done", calls: 1, applied: [] }, "mind:notes"));
+  old.close();
+  f.respond(() => answer());
+  const house = await f.open();
+  await flush(house);
+  expect(f.transport).toHaveBeenCalledTimes(0);
+  expect(opened(house)).toEqual([wake]);
+}, 60000);
+it("22/11: a line to a mind that never had a turn, said before a restart, wakes it at the next boot", async () => {
+  const f = fixture();
   const old = await f.open(false);
   migrated(old);
   old.close();
   f.respond(() => answer());
   const house = await f.open();
   await flush(house);
-  expect(f.transport).toHaveBeenCalledTimes(0);
-  expect(opened(house)).toEqual([]);
+  expect(f.transport).toHaveBeenCalledTimes(1);
+  expect(opened(house)).toHaveLength(1);
 }, 60000);
 it("22/11: a line said while the mind's turn runs wakes it once that turn closes", async () => {
   const f = fixture();
