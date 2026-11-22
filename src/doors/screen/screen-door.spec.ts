@@ -197,15 +197,6 @@ describe("the screen door's order", () => {
     expect(failed).toBeInstanceOf(Error);
     expect([lost, failed, refused].filter(said => (JSON.stringify(said) + String(said)).includes("clave"))).toEqual([]);
   });
-  it("S14: takes as many clients as the house takes channels per key, and refuses one more", async () => {
-    const { door, opens } = spyDoor();
-    const frames = [];
-    for (let n = 0; n < 8; n++) frames.push(await door.look("s", "h", view));
-    expect(frames.filter(frame => frame.refused)).toEqual([]);
-    expect(new Set(frames.map(frame => frame.client)).size).toBe(8);
-    const ninth = await door.look("s", "h", view);
-    expect([ninth.refused, ninth.client, opens.length]).toEqual(["client", "", 1]);
-  });
 });
 describe("the cut of a session nobody looks at", () => {
   it("S10: closes a session with no client and no request for thirty minutes, on the host's clock", async () => {

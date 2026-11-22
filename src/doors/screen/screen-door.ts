@@ -175,9 +175,18 @@ class Door<X extends Program> implements ScreenDoor {
     slot.live = live;
     return live;
   }
+  /** S14: a client that looks again moves to the back of the line; a new one takes the place of the client that
+   * looked longest ago and has no stream open (a tab reloaded or closed); with all of them attached it is refused. */
   private attach(live: Live, look: Look): Client | undefined {
     const known = look.client === undefined ? undefined : live.clients.get(look.client);
-    if (known || live.clients.size >= screenLimits.clients) return known;
+    if (known) {
+      live.clients.delete(known.id);
+      live.clients.set(known.id, known);
+      return known;
+    }
+    const left = [...live.clients.values()].find(client => !client.push);
+    if (live.clients.size >= screenLimits.clients && left) live.clients.delete(left.id);
+    if (live.clients.size >= screenLimits.clients) return undefined;
     const { visible, viewport } = look;
     const client: Client = { id: this.host.epoch(), visible, rows: viewport.rows, seq: 0, rev: 0, seen: new Map() };
     live.clients.set(client.id, client);
