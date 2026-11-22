@@ -1,6 +1,5 @@
-// A resolved screen into cells: each piece of the UI rules is drawn once, here, and decides nothing.
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
-import type { Body, Screen, Span } from "../../surface/contract/contract.ts";
+// The pieces of a screen into cells: each piece of the UI rules is drawn once, here, and decides nothing.
+import type { Screen, Span } from "../../surface/contract/contract.ts";
 import { piecesOf } from "../../surface/pieces/pieces-of.ts";
 import type { ActionPiece, BarPiece, ContentPiece, ListPiece } from "../../surface/pieces/pieces.ts";
 import type { NoticePiece, SurfacePiece, ToolbarPiece } from "../../surface/pieces/pieces.ts";
@@ -82,38 +81,32 @@ function drawBars(grid: Grid, pieces: SurfacePiece, cols: number, edge: number):
   drawToolbar(grid, toolbar, cols, edge);
 }
 
-export function paint(screen: Screen, { cols, rows }: Size): Grid {
+/** The pieces of one screen at one size: alone the small notice, when the size is under the minimum. */
+function paintPieces(pieces: SurfacePiece, { cols, rows }: Size): Grid {
   const grid: Grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => blankCell));
   if (cols < minimum.cols || rows < minimum.rows) {
-    put(grid, 0, 0, { text: said.tooSmall, tone: "t1" });
+    put(grid, 0, 0, pieces.small.text);
     return grid;
   }
   const edge = edgeOf(cols);
   const block = blockOf(cols);
   const left = Math.floor((cols - block) / 2);
-  const pieces = piecesOf(screen);
   drawBars(grid, pieces, cols, edge);
-  const { main } = pieces.zones[1];
-  const { panel, body } = screen;
-  const side = cols >= sideBySide && !panel?.full;
-  if (panel && !side && (panel.full || panel.focused)) drawPanel(grid, panel, edge, cols - 2 * edge, -1);
-  else if (panel && side) {
-    drawBody(grid, { body, main }, { left: edge, block: split - edge - 1 }, cols);
-    drawPanel(grid, panel, split + 2, cols - split - 4, split);
-  } else drawBody(grid, { body, main }, { left, block }, cols);
+  const { main, beside } = pieces.zones[1];
+  const side = cols >= sideBySide && !beside?.full;
+  if (beside && !side && (beside.full || beside.focused)) drawPanel(grid, beside, edge, cols - 2 * edge, -1);
+  else if (beside && side) {
+    drawMain(grid, main, edge, split - edge - 1, cols);
+    drawPanel(grid, beside, split + 2, cols - split - 4, split);
+  } else drawMain(grid, main, left, block, cols);
   return grid;
 }
+export const paint = (screen: Screen, size: Size): Grid => paintPieces(piecesOf(screen), size);
 const minimum = { cols: 40, rows: 16 };
 const sideBySide = 100;
 const split = 53;
-/** What is open, from its pieces where they are drawn already and from the screen where they are not yet. */
-function drawBody(
-  grid: Grid,
-  { body, main }: Readonly<{ body: Body; main: ContentPiece }>,
-  at: Readonly<{ left: number; block: number }>,
-  cols: number,
-): void {
-  if (main.kind === "list") drawList(grid, main, at.left, at.block);
-  else if (body.kind === "focus") drawFocus(grid, body, cols);
-  else if (main.kind === "thread") drawThread(grid, main, at.left, at.block);
+function drawMain(grid: Grid, main: ContentPiece, left: number, block: number, cols: number): void {
+  if (main.kind === "list") drawList(grid, main, left, block);
+  else if (main.kind === "focus") drawFocus(grid, main, cols);
+  else drawThread(grid, main, left, block);
 }

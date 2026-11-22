@@ -1,9 +1,8 @@
 // A thread, its rows, and what opened beside it, in cells: which part is turned down comes from the pieces.
 import { drawEntry, drawRowEntry } from "./entry.ts";
-import type { Body, Panel, Span } from "../../surface/contract/contract.ts";
-import type { Tone } from "../../surface/contract/tones.ts";
+import type { Span } from "../../surface/contract/contract.ts";
 import { leftOut } from "../../surface/pieces/piece-notice.ts";
-import type { EventPiece, OptionsPiece, RowPiece } from "../../surface/pieces/pieces.ts";
+import type { EventPiece, FocusPiece, OptionsPiece, PanelPiece, RowPiece } from "../../surface/pieces/pieces.ts";
 import type { ThreadPiece } from "../../surface/pieces/pieces.ts";
 import { edge, fit, light, put, putRight, width, type Grid } from "./cells.ts";
 /** A drawn line is cut where the block ends, never with an ellipsis: it is a picture, not a sentence. */
@@ -139,25 +138,24 @@ export function drawThread(grid: Grid, thread: ThreadPiece, left: number, block:
   drawEntry(grid, thread, left);
 }
 /** What opened: its header, its line, and as much as fits from where it is scrolled. */
-export function drawPanel(grid: Grid, panel: Panel, col: number, room: number, split: number): void {
+export function drawPanel(grid: Grid, panel: PanelPiece, col: number, room: number, split: number): void {
   const rows = grid.length;
-  const quiet = (tone: Tone): Tone => (panel.focused ? tone : "t3");
-  const detail = panel.detail ?? "";
-  put(grid, col, 2, { text: fit(panel.title, room - width(detail) - 2), tone: quiet("t1") });
-  putRight(grid, col + room, 2, [{ text: detail, tone: "t3" }]);
+  const detail = panel.detail.text;
+  put(grid, col, 2, { ...panel.title, text: fit(panel.title.text, room - width(detail) - 2) });
+  putRight(grid, col + room, 2, [panel.detail]);
   if (split >= 0) for (let r = 2; r < rows - 2; r++) put(grid, split, r, { text: "│", tone: "line" });
   for (let c = Math.max(split + 1, 0); c < (grid[3]?.length ?? 0); c++) put(grid, c, 3, { text: "─", tone: "line" });
   const lines = panel.lines.flatMap(line => (line.length ? wrapped(line, room) : [[]]));
   lines.slice(panel.top, panel.top + rows - 7).forEach((line, i) => {
     let c = col;
-    for (const span of line) c = put(grid, c, 4 + i, { ...span, tone: quiet(span.tone) });
+    for (const span of line) c = put(grid, c, 4 + i, span);
   });
 }
 /** One thing in the middle: a greeting, and what to do. */
-export function drawFocus(grid: Grid, body: Extract<Body, { kind: "focus" }>, cols: number): void {
+export function drawFocus(grid: Grid, focus: FocusPiece, cols: number): void {
   const middle = Math.floor(grid.length / 2) - 1;
-  put(grid, Math.floor((cols - width(body.title)) / 2), middle, { text: body.title, tone: "t1", bold: true });
-  body.lines.forEach((line, i) => {
+  put(grid, Math.floor((cols - width(focus.title.text)) / 2), middle, focus.title);
+  focus.lines.forEach((line, i) => {
     let col = Math.floor((cols - line.reduce((sum, span) => sum + width(span.text), 0)) / 2);
     for (const span of line) col = put(grid, col, middle + 2 + i, span);
   });

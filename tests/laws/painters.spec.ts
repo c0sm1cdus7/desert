@@ -11,15 +11,6 @@ const painters = ["paint.ts", "thread.ts", "entry.ts"].map(name => join(folder, 
 /** What each painter may take from the contract: paint.ts also takes the screen, for its one signature. */
 const fromContract = (file: string): readonly string[] =>
   file.endsWith("/paint.ts") ? ["Span", "Theme", "Tone", "Screen"] : ["Span", "Theme", "Tone"];
-/** The findings still waiting for the commit that moves their drawing onto pieces; empty when every painter only
- * paints. */
-const waiting: readonly string[] = [
-  "src/doors/terminal/paint.ts: imports ../../texts/surface.texts.ts",
-  "src/doors/terminal/paint.ts: takes Body from the contract",
-  "src/doors/terminal/thread.ts: takes Body from the contract",
-  "src/doors/terminal/thread.ts: takes Panel from the contract",
-  'src/doors/terminal/thread.ts: "focus"',
-];
 
 /** A program over the painters, with planted files served from memory beside them. */
 function programOf(planted: Readonly<Record<string, string>>): ts.Program {
@@ -90,7 +81,7 @@ function findings(planted: Readonly<Record<string, string>> = {}): readonly stri
 }
 describe("the terminal's painters", () => {
   it("only paint pieces: no catalog, nothing of the contract but spans, themes and tones, no word", () => {
-    expect(findings()).toEqual(waiting);
+    expect(findings()).toEqual([]);
   });
   it("refuses a painter that reads the catalog, one that takes a row, and one that writes a word", () => {
     const plant = (name: string, text: string): Readonly<Record<string, string>> => ({ [join(folder, name)]: text });
