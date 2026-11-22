@@ -155,6 +155,26 @@ describe("the screen door's order", () => {
     expect((await door.send("s", "h", { ...batch(left, 1) })).refused).toBeUndefined();
     expect(door.alive()).toBe(1);
   });
+  it("S11: answers a quit whose next router cannot be opened with the reason, not a failed request", async () => {
+    const opens = [
+      () => Promise.resolve(spyHouse().house),
+      () => Promise.reject(new SocketOpeningError(socketTexts.startFailed)),
+    ];
+    const { door } = spyDoor(() => (opens.shift() ?? (() => Promise.reject(new Error("no more"))))());
+    const a = await door.look("s", "h", view);
+    const left = await door.send("s", "h", batch(a, 1, [{ kind: "quit" }]));
+    expect([eventsOf(left), left.epoch, door.alive()]).toEqual([[socketTexts.startFailed], "", 0]);
+  });
+  it("closes a router whose session was cut while the host was still opening it", async () => {
+    const late = spyHouse();
+    let opened: (house: typeof late.house) => void = () => {};
+    const { door } = spyDoor(() => new Promise(resolve => (opened = resolve)));
+    const looking = door.look("s", "h", view);
+    door.close("s");
+    opened(late.house);
+    const frame = await looking;
+    expect([late.counts.close, late.counts.screen, door.alive(), frame.epoch]).toEqual([1, 0, 0, ""]);
+  });
   it("S12: a house that ended closes its session, and the next look opens another", async () => {
     const { door, houses, opens } = spyDoor();
     const a = await door.look("s", "h", view);

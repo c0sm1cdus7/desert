@@ -67,7 +67,10 @@ class Door<X extends Program> implements ScreenDoor {
       live => ({ live }),
       (error: unknown) => ({ error }),
     );
-    if ("error" in opened) return this.silent(terminalError(opened.error), parsed.value.client);
+    if ("error" in opened) {
+      const cut = this.slots.get(keyOf(session, house)) !== slot;
+      return this.silent(cut ? screenDoorTexts.expired : terminalError(opened.error), parsed.value.client);
+    }
     const { live } = opened;
     const client = this.attach(live, parsed.value);
     if (!client) return refusal(live, undefined, "client");
@@ -159,6 +162,11 @@ class Door<X extends Program> implements ScreenDoor {
   }
   private async start(slot: Slot, clients: Map<string, Client>, back: boolean): Promise<Live> {
     const opened = await this.host.open({ id: slot.session, house: slot.house }, this.host.shown);
+    // Cut while the host was opening it: nobody would ever stop this router.
+    if (this.slots.get(keyOf(slot.session, slot.house)) !== slot) {
+      opened.close();
+      throw new Error("The session was cut while its house was being opened.");
+    }
     const notice = withOpeningNotices(opened.router, [screenDoorTexts.expired]);
     const house = back ? { ...opened, router: notice } : opened;
     clients.forEach(client => (client.seq = 0));
@@ -179,8 +187,14 @@ class Door<X extends Program> implements ScreenDoor {
   private async apply(slot: Slot, live: Live, client: Client, send: Send): Promise<Frame> {
     const quit = send.intents.some(intent => !live.house.router.send(intent));
     if (!quit) client.seq = send.seq;
-    const now = quit ? await this.replace(slot, live) : live;
-    const frame = drawAll(now, client) ?? current(now, client);
+    const next = quit
+      ? await this.replace(slot, live).then(
+          now => ({ now }),
+          (error: unknown) => ({ error }),
+        )
+      : { now: live };
+    if ("error" in next) return this.silent(terminalError(next.error), client.id);
+    const frame = drawAll(next.now, client) ?? current(next.now, client);
     this.settle(slot);
     return frame;
   }
