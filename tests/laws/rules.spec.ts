@@ -1,4 +1,4 @@
-// Law 13: every law has its guarantee or its debt, and GARANTIAS.md is written from that list.
+// Law 13: every law has its guarantee or its debt, and GUARANTEES.md is written from that list.
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -26,10 +26,10 @@ describe("law 13: a rule nothing makes hold is a wish", () => {
     expect(owed.filter(rule => (rule.debt ?? "").trim() === "").map(rule => rule.id)).toEqual([]);
     expect(owed.length).toBe(debts);
   });
-  it("holds each law of the programs that LEYES.md lists, however many they are", () => {
-    const listed = Array.from(readFileSync(join(root, "LEYES.md"), "utf8").matchAll(/^\| (\d+) \|/gmu), ([, n]) => n);
+  it("holds each law of the programs that LAWS.md lists, however many they are", () => {
+    const listed = Array.from(readFileSync(join(root, "LAWS.md"), "utf8").matchAll(/^\| (\d+) \|/gmu), ([, n]) => n);
     const kept = (law: string | undefined): boolean =>
-      rules.some(rule => rule.from === `LEYES ${law}` || rule.from.startsWith(`LEYES ${law} ·`));
+      rules.some(rule => rule.from === `LAWS ${law}` || rule.from.startsWith(`LAWS ${law} ·`));
     expect(listed.length).toBeGreaterThan(0);
     expect(listed).toEqual(listed.map((_, i) => String(i + 1)));
     expect(listed.filter(law => !kept(law))).toEqual([]);
@@ -41,17 +41,17 @@ describe("law 13: a rule nothing makes hold is a wish", () => {
     );
     expect(bare.map(rule => rule.id)).toEqual([]);
   });
-  it("keeps GARANTIAS.md as the list says: nobody edits it by hand", () => {
-    expect(readFileSync(join(root, "GARANTIAS.md"), "utf8")).toBe(rulesText());
+  it("keeps GUARANTEES.md as the list says: nobody edits it by hand", () => {
+    expect(readFileSync(join(root, "GUARANTEES.md"), "utf8")).toBe(rulesText());
   });
 });
 describe("law 13: a guarantee taken back", () => {
-  it("says, in GARANTIAS.md, why a retired guarantee's number is not used, and never reuses it", () => {
+  it("says, in GUARANTEES.md, why a retired guarantee's number is not used, and never reuses it", () => {
     expect(retired.map(gone => gone.id)).toContain(133);
     expect(retired.filter(gone => gone.why.trim() === "").map(gone => gone.id)).toEqual([]);
     expect(rules.filter(rule => retired.some(gone => gone.id === rule.id)).map(rule => rule.id)).toEqual([]);
     expect(rulesText()).toContain("133 (Franco, 22/11/2026");
-    expect(readFileSync(join(root, "LEYES.md"), "utf8")).not.toContain("El número 133");
+    expect(readFileSync(join(root, "LAWS.md"), "utf8")).not.toContain("El número 133");
   });
 });
 

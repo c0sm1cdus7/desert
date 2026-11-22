@@ -50,7 +50,7 @@ No existen `*.spec.ts` para `src/surface/*` en Kenon (la superficie se prueba de
 - Todas las demás reglas de lint y leyes están igual de estrictas.
 
 ## Segundo paso: el journal (derivado de Kenon `ff8aee63c`, con la costura de hechos por programa)
-Diseño en `COSTURAS.md`. Las tablas señalan las rutas actuales; ya no son copias byte a byte.
+Diseño en `SEAMS.md`. Las tablas señalan las rutas actuales; ya no son copias byte a byte.
 
 | Ruta | Qué cambia respecto de Kenon |
 |---|---|

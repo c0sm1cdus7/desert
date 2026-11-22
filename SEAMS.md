@@ -108,7 +108,7 @@ Qué cambió respecto de Kenon en este paso:
 - `src/adapters/`: compone métodos con entrada, salida y permisos explícitos. Solo la fábrica recibe
   resolución; la acción recibe proxies revocables y efectos de vínculos. Los errores cruzan como códigos cerrados.
   `src/tools/startup-contract.ts` separa el arranque público de `Execution`. Ver «Adaptadores declarados»
-  en `PROGRAMA.md`; las leyes transitivas quedan para el paso 4.
+  en `PROGRAM.md`; las leyes transitivas quedan para el paso 4.
 - Probado en una terminal real con el programa de prueba: `node tests/support/shop-open.ts`.
 
 ## 4. El router: una sola lógica para todas las superficies (HECHO)
@@ -131,7 +131,7 @@ interacción con la casa sea la misma en todas las superficies.
 Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su garantía o figura como deuda con nombre.
 
 - `tests/laws/rules.json` es la lista única de reglas, cada una con cómo se garantiza (tipo, rechazo al componer,
-  prueba derivada, prueba de la superficie) y dónde. `pnpm rules` escribe `GARANTIAS.md`. Una ley del gate no deja
+  prueba derivada, prueba de la superficie) y dónde. `pnpm rules` escribe `GUARANTEES.md`. Una ley del gate no deja
   sumar una regla sin garantía ni cambiar la cantidad de deudas sin querer.
 - Las pruebas derivadas de un programa corren solas en su gate, exactamente una vez entre ocho archivos
   (`tests/program/part-*.checks.ts`): el programa dice dónde se compone (`package.json`, `desert.program`) y no
@@ -228,7 +228,7 @@ anteriores y exige aceptación explícita; no recrea llaves purgadas.
 `src/checks/adapter-test.ts`, exportado por `testing.ts`, prueba métodos con referencias provisionales,
 custodia temporal cifrada, proveedor en memoria y controles reales. No llama al llavero ni elige un transporte:
 el test inyecta uno falso. Para lotes y reinicios se usa la casa real con `MemoryHouseKeys`.
-El recorrido de firma y todos los cambios de migración están en `PROGRAMA.md`, «Una llave de firma» y «Probar el
+El recorrido de firma y todos los cambios de migración están en `PROGRAM.md`, «Una llave de firma» y «Probar el
 adaptador y subir desde la base anterior»; declarar una marca no implementa la conexión fiscal.
 
 ## Un escritor por almacenamiento (A03)
@@ -353,7 +353,7 @@ contenido acompaña al identificador del pedido en la causa; el libro recupera t
 huella a partir del contenido registrado. Si falló toda escritura, el resultado final vive solo en ese proceso.
 
 La huella del protocolo 3 compone partes inmutables con escalares canónicos por valor, sin bytes internos de V8.
-El detalle de tipos está en `PROGRAMA.md`. El pedido remoto rechaza datos que JSON perdería o cambiaría,
+El detalle de tipos está en `PROGRAM.md`. El pedido remoto rechaza datos que JSON perdería o cambiaría,
 incluidos -0 y no finitos, antes de escribir. La entrada tiene cinco segundos totales; tres estados inválidos
 consecutivos en la misma secuencia cierran la terminal con texto del catálogo y salida 1. Cada conexión deja
 un solo aviso de resincronización en la salida de la casa.

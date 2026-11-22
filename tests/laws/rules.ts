@@ -22,7 +22,7 @@ const row = ({ id, rule, from, guarantee, evidence = [], debt = "" }: Rule): str
   const where = guarantee === "debt" ? debt : evidence.map(file => `\`${file}\``).join(" ");
   return `| ${id} | ${cell(rule)} | ${from} | ${named[guarantee] ?? guarantee} | ${cell(where)} |`;
 };
-/** The list as a person reads it: GARANTIAS.md is this text and nothing else. */
+/** The list as a person reads it: GUARANTEES.md is this text and nothing else. */
 export function rulesText(): string {
   return [
     "# Qué hace cumplir cada ley",

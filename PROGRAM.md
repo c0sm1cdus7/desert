@@ -1,7 +1,7 @@
 # Cómo se arma un programa sobre DESERT
 
 Escrito el 11/11/2026 con lo que hoy hace Capibara sobre esta base. Es lo que tiene que saber quien suba otro
-programa (Kenon). Lo que una regla hace cumplir está en `GARANTIAS.md`; las leyes, en `LEYES.md`.
+programa (Kenon). Lo que una regla hace cumplir está en `GUARANTEES.md`; las leyes, en `LAWS.md`.
 
 ## Lo que el programa declara
 

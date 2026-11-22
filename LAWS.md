@@ -2,7 +2,7 @@
 
 Decididas por Franco el 10/11/2026. Valen para todo programa (Kenon, Capibara). Cada una dice si ya está o si se debe.
 
-Qué hace cumplir cada ley, y cada regla de la terminal, está en `GARANTIAS.md`: sale de `tests/laws/rules.json`, y el gate falla si una ley no tiene garantía ni figura como deuda (Franco, 11/11: «si no, no es una regla, es un deseo»).
+Qué hace cumplir cada ley, y cada regla de la terminal, está en `GUARANTEES.md`: sale de `tests/laws/rules.json`, y el gate falla si una ley no tiene garantía ni figura como deuda (Franco, 11/11: «si no, no es una regla, es un deseo»).
 
 | # | Ley | Estado |
 |---|---|---|
@@ -34,7 +34,7 @@ país lo declara el programa una vez.
 - Que ocultar lo apagado valga también para una acción ofrecida desde la cosa de otra herramienta (ley 4).
 - El storyboard y los recorridos específicos de cada puerta siguen fuera de la prueba del router compartido; las acciones del core ya declaran sus casos.
 - La puerta para otros dispositivos (ley 9).
-- Lo que pidió la obra de Capibara del 11/11 y la base todavía no hace está listado al final de `PROGRAMA.md`.
+- Lo que pidió la obra de Capibara del 11/11 y la base todavía no hace está listado al final de `PROGRAM.md`.
 
 ## Una acción recibe referencias, nunca material secreto (A01)
 
@@ -46,7 +46,7 @@ ingreso y ley de dependencias; sus pruebas incluyen programas rotos a propósito
 La ley 212, incluida en la compuerta de cada programa, sigue imports transitivos, alias, reexportaciones, imports
 dinámicos y tipos. Prohíbe custodias y fábricas en herramientas, además de I/O, entorno y evaluación que esquiven
 el puerto. Imports desconocidos se rechazan; los nombres públicos permitidos están en `secret-public-api.ts`.
-Composición y adaptadores no pueden mezclar declaraciones de herramientas. `PROGRAMA.md` explica la separación,
+Composición y adaptadores no pueden mezclar declaraciones de herramientas. `PROGRAM.md` explica la separación,
 la migración completa y el recorrido de una llave de firma, desde su ingreso hasta revocación y limpieza pendiente.
 
 La garantía no prueba que un adaptador sea correcto ni que sus datos públicos no codifiquen material privado.

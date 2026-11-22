@@ -970,8 +970,8 @@
     },
     {
       "id": 101,
-      "rule": "LEYES 1: toda acción lleva propósito",
-      "from": "LEYES 1",
+      "rule": "LAWS 1: toda acción lleva propósito",
+      "from": "LAWS 1",
       "guarantee": "type",
       "evidence": [
         "src/surface/menus/lists.ts",
@@ -981,8 +981,8 @@
     },
     {
       "id": 102,
-      "rule": "LEYES 2: tecla en toda acción, opción de menú y opción de pregunta; sin repetidas",
-      "from": "LEYES 2",
+      "rule": "LAWS 2: tecla en toda acción, opción de menú y opción de pregunta; sin repetidas",
+      "from": "LAWS 2",
       "guarantee": "compose",
       "evidence": [
         "src/checks/promises/promised-keys.ts",
@@ -997,15 +997,15 @@
     },
     {
       "id": 103,
-      "rule": "LEYES 3: las acciones viven en un catálogo único",
-      "from": "LEYES 3",
+      "rule": "LAWS 3: las acciones viven en un catálogo único",
+      "from": "LAWS 3",
       "guarantee": "compose",
       "evidence": ["src/surface/bridge/assembly/house-tools.ts", "src/doors/socket/client/same-screens.spec.ts"]
     },
     {
       "id": 104,
-      "rule": "LEYES 4: todas las acciones conservan su tecla; cada acción fuera del kit queda apagada con su motivo",
-      "from": "LEYES 4",
+      "rule": "LAWS 4: todas las acciones conservan su tecla; cada acción fuera del kit queda apagada con su motivo",
+      "from": "LAWS 4",
       "guarantee": "derived",
       "evidence": [
         "src/checks/promises/off/promised-off.ts",
@@ -1018,8 +1018,8 @@
     },
     {
       "id": 105,
-      "rule": "LEYES 5: cada identidad puede ocultar acciones apagadas, herramientas fuera del kit en el Menú o listas vacías",
-      "from": "LEYES 5",
+      "rule": "LAWS 5: cada identidad puede ocultar acciones apagadas, herramientas fuera del kit en el Menú o listas vacías",
+      "from": "LAWS 5",
       "guarantee": "derived",
       "evidence": [
         "src/checks/promises/off/promised-off.ts",
@@ -1030,8 +1030,8 @@
     },
     {
       "id": 106,
-      "rule": "LEYES 6: navegando se llega a todas las acciones",
-      "from": "LEYES 6",
+      "rule": "LAWS 6: navegando se llega a todas las acciones",
+      "from": "LAWS 6",
       "guarantee": "derived",
       "evidence": [
         "src/checks/promises/promised-keys.ts",
@@ -1041,8 +1041,8 @@
     },
     {
       "id": 107,
-      "rule": "LEYES 7: ninguna spec a mano, se derivan de los casos",
-      "from": "LEYES 7",
+      "rule": "LAWS 7: ninguna spec a mano, se derivan de los casos",
+      "from": "LAWS 7",
       "guarantee": "derived",
       "evidence": [
         "src/checks/promises/walk/promised-walk.ts",
@@ -1052,8 +1052,8 @@
     },
     {
       "id": 108,
-      "rule": "LEYES 8: Atención para quienes tienen al menos una acción de la herramienta y Actividad de toda la casa salvo la propia, en los dos menús",
-      "from": "LEYES 8",
+      "rule": "LAWS 8: Atención para quienes tienen al menos una acción de la herramienta y Actividad de toda la casa salvo la propia, en los dos menús",
+      "from": "LAWS 8",
       "guarantee": "derived",
       "evidence": [
         "src/checks/promises/menu/promised-notices.ts",
@@ -1063,22 +1063,22 @@
     },
     {
       "id": 109,
-      "rule": "LEYES 9: viaja el estado; un router único para todos los renderers",
-      "from": "LEYES 9",
+      "rule": "LAWS 9: viaja el estado; un router único para todos los renderers",
+      "from": "LAWS 9",
       "guarantee": "spec",
       "evidence": ["src/surface/router/router.spec.ts", "src/surface/router/router.ts"]
     },
     {
       "id": 110,
-      "rule": "LEYES 10: un registro escrito solo para constancia no pide atención",
-      "from": "LEYES 10",
+      "rule": "LAWS 10: un registro escrito solo para constancia no pide atención",
+      "from": "LAWS 10",
       "guarantee": "derived",
       "evidence": ["src/checks/promises/cases/promised.ts", "src/tools/start.ts"]
     },
     {
       "id": 111,
-      "rule": "LEYES 11: un campo es de texto con máscara o placeholder, nunca «texto»",
-      "from": "LEYES 11",
+      "rule": "LAWS 11: un campo es de texto con máscara o placeholder, nunca «texto»",
+      "from": "LAWS 11",
       "guarantee": "compose",
       "evidence": [
         "src/surface/bridge/questions/asking-back.ts",
@@ -1089,15 +1089,15 @@
     },
     {
       "id": 112,
-      "rule": "LEYES 12: editar es un menú; nunca recorrer «crear» con valores cargados",
-      "from": "LEYES 12",
+      "rule": "LAWS 12: editar es un menú; nunca recorrer «crear» con valores cargados",
+      "from": "LAWS 12",
       "guarantee": "debt",
       "debt": "Componer: un acto con today debe estar under un menú."
     },
     {
       "id": 113,
-      "rule": "LEYES 13: buscar es un modo de los menús",
-      "from": "LEYES 13",
+      "rule": "LAWS 13: buscar es un modo de los menús",
+      "from": "LAWS 13",
       "guarantee": "derived",
       "evidence": [
         "src/checks/promises/menu/promised-find.ts",
@@ -1108,7 +1108,7 @@
     {
       "id": 114,
       "rule": "Las pruebas derivadas corren exactamente una vez en el gate de cada programa sin que el programa las pida, repartidas por posición en ocho partes con los mismos nombres",
-      "from": "LEYES 7",
+      "from": "LAWS 7",
       "guarantee": "derived",
       "evidence": [
         "src/checks/program-checks.ts",
@@ -1139,7 +1139,7 @@
     {
       "id": 117,
       "rule": "Un dato con forma solo acepta lo que entra en ella: declararlo como texto libre hace que el programa no arranque",
-      "from": "LEYES 11 · Franco 11/11",
+      "from": "LAWS 11 · Franco 11/11",
       "guarantee": "compose",
       "evidence": [
         "src/surface/bridge/questions/asking-parts.ts",
@@ -1157,7 +1157,7 @@
     {
       "id": 119,
       "rule": "Lo que una fila lee queda visible con su dato y, si su acción está apagada, el motivo después; por preferencia queda el dato sin tecla",
-      "from": "11/11 · consecuencia de «una fila que se puede cambiar abre su acción» y de LEYES 5",
+      "from": "11/11 · consecuencia de «una fila que se puede cambiar abre su acción» y de LAWS 5",
       "guarantee": "derived",
       "evidence": [
         "src/checks/promises/off/promised-off.ts",
@@ -1202,7 +1202,7 @@
     {
       "id": 123,
       "rule": "Una fila que ya lleva todo lo que su acción toma, y que la acción va a rechazar, está apagada diciendo por qué: a nadie se le ofrece lo que ya se sabe que no se puede",
-      "from": "LEYES 4 · 11/11, sabotaje que sobrevivía en Equipo",
+      "from": "LAWS 4 · 11/11, sabotaje que sobrevivía en Equipo",
       "guarantee": "derived",
       "evidence": ["src/checks/promises/walk/promised-walk.ts", "src/checks/promises/cases/promised-known.spec.ts"]
     },
@@ -1277,7 +1277,7 @@
     {
       "id": 129,
       "rule": "Un objeto abierto se lee siempre en los grupos que declaró su herramienta, en el mismo orden; un grupo sin nada lo dice. Un dato que ningún grupo tiene hace fallar la lectura",
-      "from": "LEYES 14 · 11/11 · objetos: presentación y navegación",
+      "from": "LAWS 14 · 11/11 · objetos: presentación y navegación",
       "guarantee": "spec",
       "evidence": ["src/surface/bridge/views/presented.ts", "src/surface/bridge/views/presented.spec.ts"]
     },
@@ -1302,7 +1302,7 @@
     {
       "id": 132,
       "rule": "Una pregunta que abre con algo escrito lo muestra entero y encendido: escribir lo reemplaza; una flecha o borrar lo editan",
-      "from": "LEYES 15 · 11/11 · plan de Capibara: el valor sugerido",
+      "from": "LAWS 15 · 11/11 · plan de Capibara: el valor sugerido",
       "guarantee": "spec",
       "evidence": [
         "src/surface/acts/walking.ts",
@@ -2071,7 +2071,7 @@
       "evidence": [
         "src/journal/secret-neighbors.spec.ts",
         "src/journal/action-secrets.spec.ts",
-        "PROGRAMA.md",
+        "PROGRAM.md",
         "src/journal/secret-known-limits.spec.ts",
         "src/journal/secret-output-limits.spec.ts"
       ]
@@ -2117,7 +2117,7 @@
         "src/keychain/custody/custody-migration.spec.ts",
         "src/keychain/custody/custody-previous-house.spec.ts",
         "src/keychain/custody/custody-cipher.ts",
-        "PROGRAMA.md",
+        "PROGRAM.md",
         "src/keychain/custody/custody-adversarial.spec.ts",
         "src/keychain/custody/custody-keychain.spec.ts",
         "src/keychain/custody/custody-identity.spec.ts",
@@ -2152,7 +2152,7 @@
         "src/keychain/custody/custody-recovery.spec.ts",
         "src/keychain/custody/custody-neighbors.spec.ts",
         "src/keychain/custody/custody-process.spec.ts",
-        "PROGRAMA.md",
+        "PROGRAM.md",
         "src/keychain/custody/custody-ledger.spec.ts",
         "src/keychain/custody/custody-adversarial.spec.ts",
         "src/keychain/custody/custody-disk.spec.ts",
@@ -2187,7 +2187,7 @@
         "src/tools/capabilities-contract.ts",
         "src/tools/startup-contract.ts",
         "src/adapters/credential-journal.ts",
-        "PROGRAMA.md",
+        "PROGRAM.md",
         "src/adapters/credential-journal.spec.ts",
         "src/runtime/house-union-contract.spec.ts"
       ]
@@ -2218,9 +2218,9 @@
         "tests/program/registration.ts",
         "src/checks/adapter-test.spec.ts",
         "tests/laws/testing-api.spec.ts",
-        "PROGRAMA.md",
-        "LEYES.md",
-        "COSTURAS.md",
+        "PROGRAM.md",
+        "LAWS.md",
+        "SEAMS.md",
         "tests/laws/startup-port.spec.ts",
         "tests/laws/program-secret-graph.spec.ts",
         "tests/laws/secret-data.spec.ts",
@@ -2847,7 +2847,7 @@
     {
       "id": 230,
       "rule": "El kit se recorre en listas de programas, herramientas y acciones sin límite de nueve; los atajos son opcionales y toda acción se alcanza con navegación. Cada carpeta distingue Todo, también lo nuevo, Algunas acciones y Sin acciones.",
-      "from": "LEYES 2 · casa-kit paso 5c",
+      "from": "LAWS 2 · casa-kit paso 5c",
       "guarantee": "spec",
       "evidence": [
         "src/tools/identities/kit-navigation.spec.ts",
@@ -3195,7 +3195,7 @@
     },
     {
       "id": 286,
-      "rule": "La ley 286 recorre referencias de valor en declaraciones TypeScript alcanzables desde los exports reales de entradas de programa (fields/* incluido): alias, reexports, namespaces, paréntesis, satisfies, as, !, aserciones, objetos/arreglos anidados y propagados, desestructuración, funciones, clases, getters y helpers. Rechaza capacidades del anfitrión por nombre u origen y muestra export, camino y origen; símbolos o referencias sin resolver, imports dinámicos y eval/Function/require ambientales fallan con motivo. Corre en la base y en loadProgram antes de evaluar las entradas del consumidor. Recorre todas las ramas y miembros; no prueba alcanzabilidad. No garantiza posiciones de tipo, implementaciones ambientales .d.ts, argumentos futuros del llamador, mutaciones fuera de declaraciones alcanzadas, efectos laterales de módulos, propiedades globales resueltas en ejecución ni generación/reflexión oculta en APIs ambientales: límites explícitos y probados en PROGRAMA.md. No es aislamiento de JavaScript hostil.",
+      "rule": "La ley 286 recorre referencias de valor en declaraciones TypeScript alcanzables desde los exports reales de entradas de programa (fields/* incluido): alias, reexports, namespaces, paréntesis, satisfies, as, !, aserciones, objetos/arreglos anidados y propagados, desestructuración, funciones, clases, getters y helpers. Rechaza capacidades del anfitrión por nombre u origen y muestra export, camino y origen; símbolos o referencias sin resolver, imports dinámicos y eval/Function/require ambientales fallan con motivo. Corre en la base y en loadProgram antes de evaluar las entradas del consumidor. Recorre todas las ramas y miembros; no prueba alcanzabilidad. No garantiza posiciones de tipo, implementaciones ambientales .d.ts, argumentos futuros del llamador, mutaciones fuera de declaraciones alcanzadas, efectos laterales de módulos, propiedades globales resueltas en ejecución ni generación/reflexión oculta en APIs ambientales: límites explícitos y probados en PROGRAM.md. No es aislamiento de JavaScript hostil.",
       "from": "18/11 · dist-v10b y dist-v11 · origen de valores envueltos",
       "guarantee": "spec",
       "evidence": [

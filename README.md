@@ -18,7 +18,7 @@ Reglas:
 ## Segundo paso
 - `src/journal/`: el registro de hechos. La casa escribe los suyos y cada programa suma los propios (`vocabulary`).
 - `src/storage/`: el registro guardado en SQLite, solo para agregar.
-- Diseño de las dos costuras del núcleo: `COSTURAS.md`.
+- Diseño de las dos costuras del núcleo: `SEAMS.md`.
 
 ## Tercer paso
 - `src/house/`: la casa (quién administra, qué herramientas enteras tiene cada integrante y la actividad compartida por las identidades presentes).
@@ -40,7 +40,7 @@ Reglas:
   de la herramienta que sea (`src/surface/bridge/views/presented.ts`).
 - Una herramienta podía vivir dentro de otra (`inside`); se retiró el 22/11/2026: un programa alberga herramientas.
 - Un valor sugerido se reemplaza con la primera tecla; lo que no entra en pantalla se alcanza con las flechas.
-- Cómo se arma un programa sobre esta base: `PROGRAMA.md`.
+- Cómo se arma un programa sobre esta base: `PROGRAM.md`.
 
 ## Séptimo paso (13/11/2026)
 - Las teclas se leen como llegan: una flecha o un carácter que vienen partidos en dos trozos siguen siendo esa flecha
@@ -52,10 +52,10 @@ Reglas:
   (`realTerminal`, en `#desert/testing.ts`). Necesita `python3`, que abre la pseudo-terminal.
 
 ## Qué falta
-- La puerta para dispositivos que no corren junto a la casa: viaja el estado, paginado (ver `COSTURAS.md`).
+- La puerta para dispositivos que no corren junto a la casa: viaja el estado, paginado (ver `SEAMS.md`).
 - Emparejar dispositivos, la herramienta de equipo y el core de muchas casas.
 - Las puertas que dependen del núcleo (`src/surface/bridge/`, el resto de `src/doors`).
-- Limpiar las fugas de Kenon: ver `FUGAS.md`. Procedencia y diferencias: ver `ORIGEN.md`.
+- Limpiar las fugas de Kenon: ver `LEAKS.md`. Procedencia y diferencias: ver `ORIGIN.md`.
 
 ## Reorden del 16/11
 Cada archivo y su prueba acompañante siguen el mapa firmado. Campos y textos forman la base; después vienen
