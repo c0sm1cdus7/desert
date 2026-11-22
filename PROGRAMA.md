@@ -2175,8 +2175,17 @@ un rechazo de negocio para ese límite.
 
 Un paso `given` de un caso es una acción de la herramienta del caso. Si la acción es de otra herramienta del mismo
 programa, el paso la nombra con `tool`: `{ act: "add", tool: "items", input: { … } }`; su `on`, si lo lleva, es una
-cosa de esa herramienta, o su carpeta si es el nombre de la herramienta (`on: "items"`). Un paso no cruza a otro
-programa. Prueba: `src/tools/installable/picking.spec.ts`.
+cosa de esa herramienta, o su carpeta si es el nombre de la herramienta (`on: "items"`). Prueba:
+`src/tools/installable/picking.spec.ts`.
+
+Un consumidor prueba sus casos con la composición entera: un paso con `program` y `tool` corre una acción de otro
+programa compuesto (`{ program: "documentos", tool: "fiscal", act: "emitir", input: { … } }`), así un caso de Ventas
+carga Documentos antes. `then.facts` admite hechos de otro programa, nombrándolo:
+`{ program: "documentos", kind: "documentos/emitido", data: { … } }`; el hecho tiene que ser de ese programa. El paso
+`{ kit: { identity, selections } }` le da a una identidad ese kit antes del caso, escrito por quien administra, así un
+caso prueba lo que alguien no puede sin la acción del proveedor. Un motivo que el acto declara y cabe como `{ reason }`
+en los `rechazos` de una acción que su programa pide no necesita un caso del consumidor: lo cubren los casos del
+proveedor en su compuerta. Prueba: `src/checks/promises/cases/promised-contracts.spec.ts`.
 
 Lo que la vista de una herramienta nombra como `{ id, text, detail? }` es una cosa, y la base la abre con su número.
 De quién es la cosa:

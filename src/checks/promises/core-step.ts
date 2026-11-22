@@ -2,6 +2,7 @@
 import { issueDoorKey, issueInvitation } from "../../house/doors/door-material.ts";
 import { createDeviceProcess } from "../../doors/devices/device-process.ts";
 import { effect } from "../../house/facts.ts";
+import { selectionKit } from "../../house/kit-selection.ts";
 import type { startHouse } from "../../runtime/house-runtime.ts";
 import type { Step } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -34,6 +35,7 @@ export function coreStep<X extends Program>(house: ReturnType<typeof startHouse<
     );
     return true;
   }
+  if ("kit" in step) return givenKit(house, step.kit);
   if ("doorKey" in step) {
     const { id, identity, door } = step.doorKey;
     const { fact } = issueDoorKey(identity, door, house.tools.state().house.admin);
@@ -44,6 +46,14 @@ export function coreStep<X extends Program>(house: ReturnType<typeof startHouse<
   return false;
 }
 
+/** The kit the administrator gives an identity before a case. */
+function givenKit<X extends Program>(
+  house: ReturnType<typeof startHouse<X>>,
+  { identity, selections }: Extract<Step, { kit: unknown }>["kit"],
+): true {
+  house.bus.emit(effect("kit-set", { version: 2, holder: identity, kit: selectionKit([...selections]) }, admin));
+  return true;
+}
 function provisionDevice<X extends Program>(
   house: ReturnType<typeof startHouse<X>>,
   device: Extract<Step, { device: unknown }>["device"],

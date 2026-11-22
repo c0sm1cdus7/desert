@@ -1,5 +1,6 @@
 // The laws every act of every program keeps: nobody promises them case by case, and every act is checked on them.
 import { Type } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 import { deepStrictEqual, ok } from "node:assert/strict";
 import { inspect } from "node:util";
 import { fieldValidity } from "../../../fields/fields.ts";
@@ -13,6 +14,7 @@ import type { Program } from "../../../tools/tool-contract.ts";
 import { groupTargetCauses } from "../identities/group-checks.ts";
 import { closeCoreSetup, isCorePersonal, withoutActionCheck } from "../identities/identity-checks.ts";
 import { mindTargetCauses } from "../identities/kit-checks.ts";
+import { packagesForContracts } from "../../../runtime/distributions/program-contracts.ts";
 import {
   cast,
   given,
@@ -117,6 +119,14 @@ export function defaultsIn(schema: unknown, path = "$"): void {
   if (node.additionalProperties && typeof node.additionalProperties === "object")
     defaultsIn(node.additionalProperties, `${path}.*`);
 }
+/** The causes an act reads from a contract its program requests, which fit that contract's refusals as `{ reason }`:
+ * the provider's cases cover them, in its own gate, so the consumer needs no case of its own. */
+function contractCauses<X extends Program>(program: Composition<X>, aim: Aim<X>): readonly string[] {
+  const packages = program.contractSetup ? (packagesForContracts(program.contractSetup) ?? []) : [];
+  const requests = Object.values(packages.find(each => each.id === aim.tool.id)?.pide ?? {});
+  const refusals = requests.flatMap(request => Object.values(request.acciones).map(action => action.rechazos));
+  return aim.act.refuses.filter(reason => refusals.some(schema => Value.Check(schema, { reason })));
+}
 /** What an act declares has to add up: a case the house accepts, and a case for each cause it may refuse with. */
 export function coverage<X extends Program>(program: Composition<X>, aim: Aim<X>, shown: Shown<X>): Check {
   const refused = aim.act.cases.flatMap(kase => ("refused" in kase.then ? [kase.then.refused] : []));
@@ -138,6 +148,7 @@ export function coverage<X extends Program>(program: Composition<X>, aim: Aim<X>
             ...(await alsoCauses(program, aim)),
             ...(await mindTargetCauses(program, aim)),
             ...(await groupTargetCauses(program, shown, aim)),
+            ...contractCauses(program, aim),
           ].map(cause => aim.act.outside.find(out => cause.startsWith(`${out} · `)) ?? cause),
         ),
         own([...aim.act.refuses, ...aim.act.outside]),

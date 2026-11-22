@@ -2,6 +2,7 @@
 import type { Static, TSchema } from "@sinclair/typebox";
 import type { ProgramWords } from "../fields/installable-words.ts";
 import type { KitMigration } from "../house/kit-migration.ts";
+import type { Selection } from "../house/kit-selection.ts";
 import type { Vocabulary } from "../journal/vocabulary.ts";
 import type { AdapterComposition } from "./adapter-contract.ts";
 import type { CalculationVersion } from "./calculation-contract.ts";
@@ -10,10 +11,12 @@ import type { ProgramOutside, ProgramRun } from "./promises.ts";
 import type { SoFar } from "./so-far.ts";
 import type { ActContext, ContractSetup, Program, Reach, Slices, State, Tool, ToolAct } from "./tool-contract.ts";
 /** Something that already happened before a case: an act of the program, by one of the house's identities. In an
- * installable program `tool` names another tool of the same program when the act is not of the case's own. */
+ * installable program `tool` names another tool of the same program when the act is not of the case's own, and
+ * `program` with `tool` names an act of another program of the composition: a consumer loads its provider. */
 export type Did = Readonly<{
   act: string;
   tool?: string;
+  program?: string;
   input: unknown;
   destination?: import("../fields/device-protocol.ts").ExecutionDestination;
   on?: string;
@@ -40,6 +43,8 @@ export type Step =
       mindCards: Readonly<{ mind: string; cards: readonly import("../house/minds/mind-settings.ts").MindAssignment[] }>;
     }>
   | Readonly<{ days: number }>
+  /** The kit the administrator gives an identity before the case: what it may do of each program. */
+  | Readonly<{ kit: Readonly<{ identity: string; selections: readonly Selection[] }> }>
   /** Synthetic host provisioning for cases of core door administration; no material is declared. */
   | Readonly<{ doorKey: Readonly<{ id: string; identity: string; door: "agent" | "terminal" }> }>;
 /** A fact of the program as a case promises it: its kind and everything it says. */
@@ -50,8 +55,11 @@ export type Told<X extends Program> = X["fact"] extends infer F
   : never;
 /** What a case promises happens: the act says something and writes facts, or it is refused with one cause. */
 export type Outcome<X extends Program> = Done<X> | Readonly<{ refused: string }>;
+/** A fact another program of the composition writes when a consumer's act asks it through a contract, by the
+ * program that writes it. */
+export type ToldBy = Readonly<{ program: string; kind: string; data: unknown }>;
 /** What the act says and writes; and, when the case promises it, what its tool reads afterwards on a target. */
-type Done<X extends Program> = Readonly<{ says: string; facts: readonly Told<X>[] }> &
+type Done<X extends Program> = Readonly<{ says: string; facts: readonly (Told<X> | ToldBy)[] }> &
   /** What the act puts before the person to be sure, word for word, when it asks that. */
   Readonly<{ sure?: string }> &
   /** What it says is for who did it alone, when the case promises that: otherwise whoever holds the tool reads it. */

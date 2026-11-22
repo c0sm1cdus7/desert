@@ -1,7 +1,8 @@
 // Adapts action callbacks and cases while guarding the owning group and folder versus object distinction.
 import { OutsideDefect } from "../../fields/program-call.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
-import type { Case, Did, ProgramAct, Step } from "../promises-contract.ts";
+import type { Case, Did, Outcome, ProgramAct, Step } from "../promises-contract.ts";
+type Done = Exclude<Outcome<Program>, Readonly<{ refused: string }>>;
 import type { ActContext, Program, State } from "../tool-contract.ts";
 import { adaptReject, mapResult } from "./action-results.ts";
 import { folderOf, localTarget, objectOf } from "./destinations.ts";
@@ -10,10 +11,21 @@ import { ownState, type ProgramReadings } from "./runtime.ts";
 /** What a program calls by its tool's own name is the tool's folder; anything else it names is one of its things. */
 export const targetOf = (id: string, group: string, target?: string) =>
   target === undefined || target === group ? folderOf(id, group) : objectOf(id, group, target);
-/** A step is an act of the case's own tool unless it names another tool of the same program: never of another. */
-function didOf(id: string, group: string, { tool = group, ...did }: Did): Did {
-  return { ...did, act: `${tool}/${did.act}`, on: targetOf(id, tool, did.on) };
+/** A step is an act of the case's own tool unless it names another tool of the same program, or a tool of another
+ * program of the composition with `program`. */
+function didOf(id: string, group: string, { tool = group, program = id, ...did }: Did): Did {
+  if (program !== id && tool === group) throw new Error(`A step of ${id} on ${program} names no tool of it`);
+  return { ...did, act: `${tool}/${did.act}`, on: targetOf(program, tool, did.on) };
 }
+/** What a case promises another program writes is told by its program; the house compares kinds and data. */
+const toldOf = (id: string, facts: Done["facts"]) =>
+  facts.map(fact => {
+    if (!("program" in fact)) return fact;
+    const { program, ...told } = fact;
+    if (!told.kind.startsWith(`${program}/`))
+      throw new Error(`A case of ${id} tells ${told.kind} by ${program}, which does not write it`);
+    return told;
+  });
 function casesOf<X extends Program>(id: string, group: string, cases: readonly Case<X>[]): readonly Case<Program>[] {
   const step = (each: Step): Step =>
     "days" in each ||
@@ -21,6 +33,7 @@ function casesOf<X extends Program>(id: string, group: string, cases: readonly C
     "mindCards" in each ||
     "invitation" in each ||
     "device" in each ||
+    "kit" in each ||
     "scene" in each
       ? each
       : didOf(id, group, each);
@@ -29,9 +42,15 @@ function casesOf<X extends Program>(id: string, group: string, cases: readonly C
     on: targetOf(id, group, each.on),
     ...(each.given ? { given: each.given.map(step) } : {}),
     then:
-      "reads" in each.then
-        ? { ...each.then, reads: { ...each.then.reads, on: targetOf(id, group, each.then.reads.on ?? each.on) } }
-        : each.then,
+      "refused" in each.then
+        ? each.then
+        : {
+            ...each.then,
+            facts: toldOf(id, each.then.facts),
+            ...(each.then.reads
+              ? { reads: { ...each.then.reads, on: targetOf(id, group, each.then.reads.on ?? each.on) } }
+              : {}),
+          },
   }));
 }
 export function adaptAction<X extends Program>(
