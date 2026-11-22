@@ -2,7 +2,8 @@
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import type { Body, Screen, Span } from "../../surface/contract/contract.ts";
 import { piecesOf } from "../../surface/pieces/pieces-of.ts";
-import type { ActionPiece, BarPiece, SurfacePiece, ToolbarPiece } from "../../surface/pieces/pieces.ts";
+import type { ActionPiece, BarPiece, ContentPiece, ListPiece } from "../../surface/pieces/pieces.ts";
+import type { NoticePiece, SurfacePiece, ToolbarPiece } from "../../surface/pieces/pieces.ts";
 import { blankCell, fit, put, putRight, width, type Grid } from "./cells.ts";
 import { drawFocus, drawPanel, drawRow, drawThread, keysOf } from "./thread.ts";
 export { controlNames as keyNames } from "../../surface/pieces/controls.ts";
@@ -16,22 +17,21 @@ export const contentRows = (rows: number): number => rows - 8;
 const edgeOf = (cols: number): number => (cols >= 60 ? 2 : 1);
 const blockOf = (cols: number): number => Math.min(76, cols - 2 * edgeOf(cols));
 
-function drawList(grid: Grid, body: Extract<Body, { kind: "list" }>, left: number, block: number): void {
+function drawList(grid: Grid, list: ListPiece, left: number, block: number): void {
   let r = 4;
-  const note = (arrow: string, n?: number): void => {
-    if (n) put(grid, left + 1, r++, { text: `${arrow} ${n} ${said.more}`, tone: "t3" });
+  const note = (notice?: NoticePiece): void => {
+    if (notice) put(grid, left + 1, r++, notice.text);
   };
-  body.stacks.forEach((stack, i) => {
+  list.stacks.forEach((stack, i) => {
     if (i) r += 1;
-    put(grid, left, r++, { text: stack.title, tone: "t3" });
-    note("↑", stack.above);
-    if (!stack.rows.length) put(grid, left + 1, r++, { text: stack.empty ?? "", tone: "t1" });
-    const how = { keys: keysOf(stack.rows), reads: stack.reads === true };
-    for (const row of stack.rows) drawRow(grid, r++, { left, block }, row, how);
-    note("↓", stack.below);
+    put(grid, left, r++, stack.title);
+    note(stack.above);
+    note(stack.empty);
+    const keys = keysOf(stack.rows);
+    for (const row of stack.rows) drawRow(grid, r++, { left, block }, row, keys);
+    note(stack.below);
   });
 }
-
 /** The Barra: the title, cut to what the beat, the clock and the battery leave. */
 function drawBar(grid: Grid, bar: BarPiece, cols: number, edge: number): void {
   const live: Span[] = [
@@ -91,21 +91,29 @@ export function paint(screen: Screen, { cols, rows }: Size): Grid {
   const edge = edgeOf(cols);
   const block = blockOf(cols);
   const left = Math.floor((cols - block) / 2);
-  drawBars(grid, piecesOf(screen), cols, edge);
+  const pieces = piecesOf(screen);
+  drawBars(grid, pieces, cols, edge);
+  const { main } = pieces.zones[1];
   const { panel, body } = screen;
   const side = cols >= sideBySide && !panel?.full;
   if (panel && !side && (panel.full || panel.focused)) drawPanel(grid, panel, edge, cols - 2 * edge, -1);
   else if (panel && side) {
-    drawBody(grid, body, edge, split - edge - 1, cols);
+    drawBody(grid, { body, main }, { left: edge, block: split - edge - 1 }, cols);
     drawPanel(grid, panel, split + 2, cols - split - 4, split);
-  } else drawBody(grid, body, left, block, cols);
+  } else drawBody(grid, { body, main }, { left, block }, cols);
   return grid;
 }
 const minimum = { cols: 40, rows: 16 };
 const sideBySide = 100;
 const split = 53;
-function drawBody(grid: Grid, body: Body, left: number, block: number, cols: number): void {
-  if (body.kind === "list") drawList(grid, body, left, block);
+/** What is open, from its pieces where they are drawn already and from the screen where they are not yet. */
+function drawBody(
+  grid: Grid,
+  { body, main }: Readonly<{ body: Body; main: ContentPiece }>,
+  at: Readonly<{ left: number; block: number }>,
+  cols: number,
+): void {
+  if (main.kind === "list") drawList(grid, main, at.left, at.block);
   else if (body.kind === "focus") drawFocus(grid, body, cols);
-  else drawThread(grid, body, left, block);
+  else if (body.kind === "thread" && main.kind === "thread") drawThread(grid, body, main.options, at);
 }
