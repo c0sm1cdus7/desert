@@ -22,7 +22,7 @@ function stableLayers(snapshot: FrameSnapshot, language: Language, section: Sect
     frameHouse.text(language, {}),
     section(0, snapshot.definition.rules.text(language, {})),
     section(1, skills.join("\n")),
-    shortIds([section(2, rules.join("\n")), section(12, snapshot.menu)].join("\n\n")),
+    shortIds([section(2, rules.join("\n")), section(12, snapshot.menu)].join("\n\n"), snapshot.ids),
   ] as const;
 }
 export function renderMindFrame(snapshot: FrameSnapshot, language: Language, omitted: OmittedCounts = {}): MindFrame {
@@ -33,7 +33,7 @@ export function renderMindFrame(snapshot: FrameSnapshot, language: Language, omi
   const whole = snapshot.thread.length - (snapshot.thread.length % sealed);
   const kept = Array.from({ length: whole / sealed }, (_, index) => {
     const lines = render(snapshot.thread.slice(index * sealed, (index + 1) * sealed));
-    return shortIds(index ? lines : section(6, lines));
+    return shortIds(index ? lines : section(6, lines), snapshot.ids);
   });
   const scope =
     snapshot.scope.kind === "journey" ? `${snapshot.scope.actor} / ${snapshot.scope.process}` : snapshot.scope.actor;
@@ -44,17 +44,27 @@ export function renderMindFrame(snapshot: FrameSnapshot, language: Language, omi
     section(5, quietLine(render(snapshot.objects), snapshot.quiet, language)),
     ...(kept.length && whole === snapshot.thread.length ? [] : [section(6, render(snapshot.thread.slice(whole)))]),
     section(4, olderLine(render(snapshot.activity), snapshot.older, language)),
-    section(7, snapshot.woke ? snapshot.woke.join("\n") : snapshot.wake.join(", ")),
+    section(7, wokeLines(snapshot)),
     ...(snapshot.now === undefined ? [] : [section(11, `${snapshot.now} · ${new Date(snapshot.now).toISOString()}`)]),
     ...omittedSection(omitted, labels, section),
   ].join("\n\n");
   return {
     layers: stableLayers(snapshot, language, section),
     ...(kept.length ? { kept } : {}),
-    changing: shortIds(changing),
+    changing: shortIds(changing, snapshot.ids),
   };
 }
 
+/** Each waking fact said as itself, after its id, which an act may give back as a reference. */
+const wokeLines = (snapshot: FrameSnapshot) =>
+  snapshot.woke
+    ? snapshot.woke
+        .map((line, index) => {
+          const id = snapshot.wake[index];
+          return id === undefined || line === id ? line : `${id}: ${line}`;
+        })
+        .join("\n")
+    : snapshot.wake.join(", ");
 /** Actividad says how many of its lines are older than the mind's last answer, and how to read them. */
 const olderLine = (lines: string, older: number | undefined, language: Language) =>
   older

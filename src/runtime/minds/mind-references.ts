@@ -2,9 +2,13 @@
 import type { MindMenu } from "../../tools/minds/mind-answer.ts";
 const uuid = /\bjourney:([0-9a-f]{8})-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gu;
 const hash = /\b([0-9a-f]{8})[0-9a-f]{56}\b/gu;
-/** A journey's id keeps its first eight hex digits; an event's or a thing's 64-hex id, its first eight. Any other id
- * (a job's uuid an act takes as input, a commit) stays whole. */
-export const shortIds = (text: string): string => text.replace(uuid, "journey:$1").replace(hash, "$1");
+/** A journey's id keeps its first eight hex digits; an event's or a thing's 64-hex id, its first eight, when it is one
+ * the journal knows (`known`), so a digest a text carries stays whole. Any other id (a job's uuid an act takes as
+ * input, a commit) stays whole. */
+export const shortIds = (text: string, known?: ReadonlySet<string>): string =>
+  text
+    .replace(uuid, "journey:$1")
+    .replace(hash, (whole: string, start: string) => (!known || known.has(whole) ? start : whole));
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 /** The whole id behind each short reference, when exactly one known id has it. */

@@ -166,6 +166,7 @@ export function reviewFrame<X extends Program>(
         section(language, 9, rules),
         section(language, 11, `${now} ${new Date(now).toISOString()}`),
       ].join("\n\n"),
+      new Set(house.history().map(event => event.id)),
     ),
   };
 }

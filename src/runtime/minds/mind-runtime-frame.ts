@@ -94,6 +94,21 @@ function contextOf<X extends Program>(view: ReturnType<typeof runtimeView<X>>, s
     ...(review.length ? { review } : {}),
   });
 }
+/** What happened since the scope last answered, and the things in play, capped. */
+function focused<X extends Program>(
+  view: ReturnType<typeof runtimeView<X>>,
+  scope: MindScope,
+  turn: TurnContext,
+  history: readonly Event[],
+) {
+  const { journeys, devices, minds } = view.state.house;
+  const mark = answeredMark(minds, history, scope, turn.id);
+  const { recent, older } = recentActivity(view.activity, mark, turn.wake);
+  const own = (journey: string) =>
+    scope.kind === "journey" ? journey === scope.process : journeys.get(journey)?.by === scope.actor;
+  const play = inPlay({ history, mark, wake: turn.wake, devices }, own);
+  return { activity: recent, older, ...framedObjects(view.objects, play, turn.language) };
+}
 function snapshotFor<X extends Program>(
   view: ReturnType<typeof runtimeView<X>>,
   scope: MindScope,
@@ -112,12 +127,6 @@ function snapshotFor<X extends Program>(
   const woke = withInterrupts(words, turn.wake, history, view.state, turn.language);
   const scene = view.state.house.minds.scenes.get(scope.process ?? scope.actor)?.data.text ?? "";
   const required = contextOf(view, scope, turn);
-  const mark = answeredMark(view.state.house.minds, history, scope, turn.id);
-  const { recent, older } = recentActivity(view.activity, mark, turn.wake);
-  const own = (journey: string) =>
-    scope.kind === "journey" ? journey === scope.process : all.get(journey)?.by === scope.actor;
-  const play = inPlay({ history, mark, wake: turn.wake, devices }, own);
-  const { objects, quiet } = framedObjects(view.objects, play, turn.language);
   return buildMindFrame(scope, turn, {
     definition,
     skills: view.skills,
@@ -125,10 +134,8 @@ function snapshotFor<X extends Program>(
     scene,
     required,
     menu: menuText(view.menu, turn.language, scope.process),
-    activity: recent,
-    older,
-    objects,
-    quiet,
+    ...focused(view, scope, turn, history),
+    ids: new Set(history.map(event => event.id)),
     thread,
     now: house.time.now(),
     ...(woke ? { woke } : {}),

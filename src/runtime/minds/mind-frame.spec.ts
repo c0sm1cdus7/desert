@@ -111,3 +111,23 @@ describe("the order of a frame", () => {
     expect(next.changing).not.toEqual(first.changing);
   });
 });
+describe("short references", () => {
+  const event = "a".repeat(64);
+  const digest = "b".repeat(64);
+  it("shortens only the ids the journal knows, keeps any other hash whole, and names each waking fact", () => {
+    const snapshot = buildMindFrame(
+      { ...scope },
+      { ...turn, wake: [event] },
+      {
+        ...source,
+        objects: [{ id: `tool/${event}`, text: `sha256 ${digest}` }],
+        woke: ["ana te habló"],
+        ids: new Set([event]),
+      },
+    );
+    const frame = renderMindFrame(snapshot, "es");
+    expect(frame.changing).toContain(`tool/aaaaaaaa: sha256 ${digest}`);
+    expect(frame.changing).toContain("Despertar:\naaaaaaaa: ana te habló");
+    expect(frame.changing).not.toContain(event);
+  });
+});

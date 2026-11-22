@@ -26,7 +26,7 @@ function returned(report: ActReport, say: (part: Part) => string): string[] {
   return [`   ${say("returned")} ${kept}`, `   ${say("cut")} ${Array.from(text.slice(kept.length)).length}`];
 }
 function line(report: ActReport, index: number, say: (part: Part) => string): string[] {
-  const head = `${index + 1}. ${report.act.act} → ${report.act.target}:`;
+  const head = shortIds(`${index + 1}. ${report.act.act} → ${report.act.target}:`);
   if (report.status === "skipped") return [`${head} ${say("skipped")}`];
   const status = report.status === "rejected" ? `${say("rejected")} ${report.reason ?? ""}` : say("accepted");
   return [`${head} ${status}${report.text ? ` ${report.text}` : ""}`, ...returned(report, say)];
@@ -52,12 +52,12 @@ export function resultsText(
     `${say("now")} ${now} · ${new Date(now).toISOString()}`,
     ...after
       .filter(item => !known.has(key(item)))
-      .map(item => `${say("added")} ${menuItemLine([item], language, own)}`),
-    ...before.filter(item => !kept.has(key(item))).map(item => `${say("removed")} ${item.act} → ${item.target}`),
+      .map(item => shortIds(`${say("added")} ${menuItemLine([item], language, own)}`)),
+    ...before
+      .filter(item => !kept.has(key(item)))
+      .map(item => shortIds(`${say("removed")} ${item.act} → ${item.target}`)),
     ...(goesOn ? [say("goOn")] : []),
-  ]
-    .map(shortIds)
-    .join("\n");
+  ].join("\n");
 }
 /** The supervisor's answer to a consultation, told to the mind in the same turn. */
 export const consultationText = (language: Language, answer: string) =>

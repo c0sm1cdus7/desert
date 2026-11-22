@@ -111,6 +111,7 @@ function frameOf<X extends Program>(
         section(language, 11, `${now} ${new Date(now).toISOString()}`),
         ...omittedLine(language, parts.omitted),
       ].join("\n\n"),
+      new Set(house.history().map(event => event.id)),
     ),
   };
 }
@@ -139,7 +140,10 @@ export function supervisorTurnFrame<X extends Program>(
       new TextEncoder().encode(JSON.stringify(card ? diagnoseMindRequest(card, frame, schema) : { frame, schema }))
         .length + providerMarginTokens;
     const fixed = {
-      woke: woke(house, options, turn.wake).join("\n"),
+      // Each waking fact after its id, which an act may give back as a reference.
+      woke: woke(house, options, turn.wake)
+        .map((line, index) => (line === turn.wake[index] ? line : `${turn.wake[index] ?? ""}: ${line}`))
+        .join("\n"),
       context: menuText(current.menu, options.language),
       scene: house.execution.state().house.minds.scenes.get(supervisorActor)?.data.text ?? "",
       thread: ownThread(house, options),
