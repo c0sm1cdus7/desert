@@ -13,6 +13,8 @@ type Request = {
   card: Card;
   maxOutputTokens: number;
   layers: readonly [string, string, string, string];
+  /** The own thread's sealed blocks, before the tail: the last one carries a cache mark. */
+  kept?: readonly string[];
   changing: string;
   schema: Record<string, unknown>;
   exchanges?: readonly Exchange[];
@@ -38,7 +40,17 @@ const schemaKey = (schema: Record<string, unknown>) =>
   createHash("sha256")
     .update(JSON.stringify(providerSchema(schema)))
     .digest("hex");
-type Message = Readonly<{ role: "user" | "assistant"; content: string }>;
+type Block = Readonly<{ type: "text"; text: string; cache_control?: Readonly<{ type: "ephemeral" }> }>;
+type Message = Readonly<{ role: "user" | "assistant"; content: string | readonly Block[] }>;
+/** The first message: the sealed blocks of the thread, the last one marked for the cache, then the tail. */
+function opening(request: Request): Message {
+  const kept = request.kept ?? [];
+  if (!kept.length) return { role: "user", content: request.changing };
+  const blocks = kept.map((text, index): Block =>
+    index === kept.length - 1 ? { type: "text", text, cache_control: { type: "ephemeral" } } : { type: "text", text },
+  );
+  return { role: "user", content: [...blocks, { type: "text", text: request.changing }] };
+}
 const unconstrainedAsk = (schema: Record<string, unknown>): Message => ({
   role: "user",
   content: `${modelTexts.jsonOnly}\n${JSON.stringify(providerSchema(schema))}`,
@@ -52,7 +64,7 @@ function conversation(request: Request, constrained: boolean): Message[] {
   if (exchanges.some(each => typeof each.told !== "string" || !each.asked))
     throw new ModelFailure("response", modelTexts.request);
   return [
-    { role: "user", content: request.changing },
+    opening(request),
     ...exchanges.flatMap((each): Message[] => [
       ...asks(each.asked),
       ...(each.answer === undefined ? [] : [{ role: "assistant" as const, content: each.answer }]),
@@ -72,7 +84,8 @@ export function requestBody(request: Request, constrained = !unconstrained.has(s
     !Number.isSafeInteger(request.maxOutputTokens) ||
     request.maxOutputTokens <= 0 ||
     request.layers.some(x => typeof x !== "string") ||
-    typeof request.changing !== "string"
+    typeof request.changing !== "string" ||
+    (request.kept ?? []).some(x => typeof x !== "string")
   )
     throw new ModelFailure("response", modelTexts.request);
   return {

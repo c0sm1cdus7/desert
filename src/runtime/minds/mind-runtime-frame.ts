@@ -124,7 +124,7 @@ function snapshotFor<X extends Program>(
     textRules: options.textRules,
     scene,
     required,
-    menu: menuText(view.menu, turn.language),
+    menu: menuText(view.menu, turn.language, scope.process),
     activity: recent,
     older,
     objects,

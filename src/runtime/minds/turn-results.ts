@@ -38,6 +38,7 @@ export function resultsText(
   now: number,
   menus: Readonly<{ before: MindMenu; after: MindMenu }>,
   goesOn = true,
+  own?: string,
 ): string {
   const say = (part: Part) => turnResults.text(language, { part });
   // What the read act can read changes with every object: the menu's changes leave it out.
@@ -51,7 +52,7 @@ export function resultsText(
     `${say("now")} ${now} · ${new Date(now).toISOString()}`,
     ...menus.after
       .filter(item => !known.has(key(item)))
-      .map(item => `${say("added")} ${menuItemLine([item], language)}`),
+      .map(item => `${say("added")} ${menuItemLine([item], language, own)}`),
     ...before.filter(item => !kept.has(key(item))).map(item => `${say("removed")} ${item.act} → ${item.target}`),
     ...(goesOn ? [say("goOn")] : []),
   ]

@@ -10,6 +10,7 @@ import { requestKit, sendKit } from "./request-program.ts";
 import { talkKit } from "./talk-program.ts";
 import { requestMindFixture, answer, send, history, type RequestHouse } from "./request-mind-fixture.ts";
 import { currentTurn, lineOf } from "./request-mind-responder.ts";
+import { messageText } from "./frame-text.ts";
 export const opus = { model: "claude-opus-5-5", effort: "high" };
 /** A request fixture whose house has a supervisor with Opus 5.5, as Void sets it, unless told otherwise. */
 export const supervisedFixture = (resources: Partial<ProgramMindResources> = { supervisorCard: opus }) =>
@@ -23,12 +24,12 @@ export function request(frame: string) {
   return Value.Check(asked, value) ? value : undefined;
 }
 export const supervising = (frame: string) => frame.startsWith("Alcance:\nmind:supervisor");
-const shown = Type.Object({ messages: Type.Array(Type.Object({ content: Type.String() })) });
+const shown = Type.Object({ messages: Type.Array(Type.Object({ content: Type.Unknown() })) });
 /** What each model call was shown, in order. */
 export const framesOf = (f: Fixture) =>
   f.transport.mock.calls.map(call => {
     const body: unknown = JSON.parse(typeof call[1]?.body === "string" ? call[1].body : "{}");
-    return Value.Check(shown, body) ? (body.messages[0]?.content ?? "") : "";
+    return Value.Check(shown, body) ? messageText(body.messages[0]?.content) : "";
   });
 /** Every supervisor frame, in order: a verdict's or consultation's reason, or "turn" for a turn of its own. */
 export const moments = (frames: readonly string[]) =>

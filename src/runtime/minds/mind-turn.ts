@@ -186,7 +186,8 @@ class MindTurnRun {
   private results(reports: readonly ActReport[]): string {
     const now = this.ports.read(this.turn.scope);
     const menus = { before: this.talk.menu(), after: now.menu };
-    return resultsText(this.turn.language, reports, now.now, menus, this.turn.scope.kind === "journey");
+    const { scope } = this.turn;
+    return resultsText(this.turn.language, reports, now.now, menus, scope.kind === "journey", scope.process);
   }
   /** A consciousness answers once. A journey's turn closes only when its last act, applied, says how it goes on;
    * otherwise the mind hears what its acts did and answers again, bounded only by the twelve calls. */

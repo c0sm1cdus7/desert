@@ -44,13 +44,17 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 const note = "Mañana tomamos mate con Martín";
-/** What each model call was shown: the frame of one scope with its menu. */
+/** What each model call was shown: the frame of one scope, then its menu, which travels in the last stable layer. */
 const frames = (f: ReturnType<typeof fixture>) =>
   f.transport.mock.calls.map(call => {
     const body: unknown = JSON.parse(typeof call[1]?.body === "string" ? call[1].body : "{}");
-    return Value.Check(shown, body) ? (body.messages[0]?.content ?? "") : "";
+    if (!Value.Check(shown, body)) return "";
+    return `${body.messages[0]?.content ?? ""}\n\n${body.system.at(-1)?.text ?? ""}`;
   });
-const shown = Type.Object({ messages: Type.Array(Type.Object({ content: Type.String() })) });
+const shown = Type.Object({
+  system: Type.Array(Type.Object({ text: Type.String() })),
+  messages: Type.Array(Type.Object({ content: Type.String() })),
+});
 const talkMenu = "thread/say → talk/thread";
 it("a program mind may hold the talk program besides its own and its consciousness says lines with it", async () => {
   const f = fixture();

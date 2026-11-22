@@ -14,15 +14,20 @@ function kinds(menu: readonly Item[]): Item[][] {
   }
   return [...groups.values()];
 }
-export function menuItemLine(items: readonly Item[], language: Language, show = (id: string) => id): string {
+/** The targets of one kind as the menu says them: the read act's and any open journey other than the scope's own are
+ * said in words, so the cached menu stays the same while journeys open and close; their ids are in Contexto. */
+function targetsOf(items: readonly Item[], language: Language, own: string | undefined): string[] {
+  const words = (part: "targets" | "journeys") => frameReading.text(language, { part, count: 0, id: "" });
+  if (items[0]?.act === readAct) return [words("targets")];
+  return items.map(item =>
+    item.target.startsWith("journey:") && item.target !== own ? words("journeys") : item.target,
+  );
+}
+export function menuItemLine(items: readonly Item[], language: Language, own?: string): string {
   const [first] = items;
   if (!first) return "";
   const destinations = items.flatMap(item => item.destinations ?? []);
-  // The read act reads Actividad or any object: its targets are said, not listed.
-  const targets =
-    first.act === readAct
-      ? [frameReading.text(language, { part: "targets", count: 0, id: "" })]
-      : items.map(item => show(item.target));
+  const targets = targetsOf(items, language, own);
   return menuLine.text(language, {
     act: first.act,
     targets: unique(targets).join(", "),
@@ -31,8 +36,8 @@ export function menuItemLine(items: readonly Item[], language: Language, show = 
     purpose: first.purpose ?? "",
   });
 }
-export function menuText(menu: readonly Item[], language: Language, show?: (id: string) => string): string {
+export function menuText(menu: readonly Item[], language: Language, own?: string): string {
   return kinds(menu)
-    .map(items => menuItemLine(items, language, show))
+    .map(items => menuItemLine(items, language, own))
     .join("\n");
 }

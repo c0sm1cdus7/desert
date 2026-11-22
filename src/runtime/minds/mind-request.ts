@@ -10,7 +10,14 @@ export function mindRequest(
   schema: Record<string, unknown>,
   exchanges?: readonly TurnExchange[],
 ) {
-  const request = { card, maxOutputTokens: 16000, layers: frame.layers, changing: frame.changing, schema };
+  const request = {
+    card,
+    maxOutputTokens: 16000,
+    layers: frame.layers,
+    ...(frame.kept?.length ? { kept: frame.kept } : {}),
+    changing: frame.changing,
+    schema,
+  };
   return exchanges ? { ...request, exchanges } : request;
 }
 export function diagnoseMindRequest(

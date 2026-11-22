@@ -12,11 +12,12 @@ export const frameHouse = defineMessage({
       "dan. Como consciencia contestás una vez por turno. En un journey el turno sigue: la casa aplica tus actos, " +
       "te dice sus resultados y volvés a contestar, hasta que tu último acto sea wait, end o desist.\n\n" +
       "Cómo leer el marco: primero vienen quién sos y tus reglas (Mente), cómo usar tus herramientas " +
-      "(Herramientas) y las reglas de texto de la casa. Después viene lo que cambia en cada turno: Alcance dice " +
-      "si pensás como consciencia o dentro de un journey; Escena es lo que dejaste escrito la última vez; " +
-      "Actividad y Objetos muestran lo que pasa en la casa; Hilo es tu conversación propia; Despertar dice qué " +
-      "te despertó; Contexto trae lo que no se puede dejar afuera; Omitido cuenta lo que no entró. Lo que pasa " +
-      "después dentro del turno (resultados, correcciones, la respuesta a tu consulta) llega en mensajes nuevos.\n\n" +
+      "(Herramientas), las reglas de texto y el Menú: un acto por línea con sus destinos; sus entradas y límites " +
+      "están en el esquema. Después, tu Hilo, tu conversación propia, y al final lo que cambia: Alcance (consciencia " +
+      "o journey), Escena (lo que dejaste escrito), Contexto, Objetos (tus listas y lo que está en juego), lo más " +
+      "nuevo del Hilo, Actividad (lo que pasó desde tu última respuesta), Despertar (lo que te despertó) y Omitido " +
+      "(cuánto no entró). Lo recortado se lee entero con read; un identificador largo se muestra corto y la casa " +
+      "lo entiende así. Lo que pasa después dentro del turno llega en mensajes nuevos.\n\n" +
       "Cómo contestar: en scene escribí en una o dos frases dónde quedaste, para vos y para quien lea. En acts " +
       "proponé solo actos del menú del esquema, con su destino y su entrada exactos; como consciencia, si no hay " +
       "nada que hacer, dejalo vacío. Como consciencia hablás, abrís journeys y retomás o desistís de los tuyos; " +
@@ -67,7 +68,9 @@ export const frameReading = defineMessage({
   id: "mind.frame.reading",
   kind: "house",
   parameters: object({
-    part: Type.Union(["purpose", "targets", "older", "field", "lines", "whole", "quiet"].map(p => Type.Literal(p))),
+    part: Type.Union(
+      ["purpose", "targets", "journeys", "older", "field", "lines", "whole", "quiet"].map(p => Type.Literal(p)),
+    ),
     count: Type.Integer(),
     id: Type.String(),
   }),
@@ -78,6 +81,7 @@ export const frameReading = defineMessage({
           "Trae entero, desde el carácter from, un objeto o lo anterior de Actividad; la casa te lo devuelve en " +
           "este mismo turno. Como consciencia, si tu respuesta solo lee, volvés a contestar con lo leído.",
         targets: "Actividad, o cualquier objeto por su id",
+        journeys: "uno de los journeys abiertos, por su id",
         older: `Hay ${count} líneas de antes de tu última respuesta: read Actividad las trae, de la más nueva atrás.`,
         field: `…[${count} caracteres más]…`,
         lines: `…[${count} líneas más]…`,
