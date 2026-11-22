@@ -57,3 +57,29 @@ it("diagnostica el pedido exacto con la carta, capas y menú de una mente, sin l
     f.cleanup();
   }
 });
+it("names each act of the menu once, with its targets, and leaves inputs and their limits to the schema", async () => {
+  const f = programMindFixture();
+  try {
+    const house = await f.open();
+    const minds = await house.minds;
+    if (!minds) throw new Error("minds");
+    const body = minds.diagnose({
+      id: "diagnostic",
+      scope: { kind: "consciousness", actor: "mind:notas" },
+      language: "es",
+      through: house.tools.state().through,
+      wake: [],
+      limits: turnLimits,
+      usage: { calls: 0, corrections: 0, consultations: 0 },
+    });
+    const frame = JSON.stringify(body.messages[0]?.content) + JSON.stringify(body.system);
+    expect(frame).not.toMatch(/\\"(?:pattern|input|minLength|maxLength)\\"/u);
+    const menu = /Menú:\n([^]*?)(?:\n\n|$)/u.exec(frame.replace(/\\n/gu, "\n"))?.[1]?.split("\n") ?? [];
+    const acts = menu.map(line => line.split(" → ")[0]);
+    expect(acts).toContain("open");
+    expect(new Set(acts).size).toBe(acts.length);
+    expect(menu.find(line => line.startsWith("open → "))).toMatch(/^open → mind:notas — \S/u);
+  } finally {
+    f.cleanup();
+  }
+});

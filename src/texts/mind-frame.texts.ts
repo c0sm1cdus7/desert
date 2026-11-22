@@ -37,6 +37,27 @@ export const frameLabels = defineMessage({
   kind: "house",
   parameters: object({}),
   texts: {
-    es: "Mente|Herramientas|Reglas de texto|Escena|Actividad|Objetos|Hilo|Despertar|Contexto|Omitido|Alcance|Ahora",
+    es:
+      "Mente|Herramientas|Reglas de texto|Escena|Actividad|Objetos|Hilo|Despertar|Contexto|Omitido|Alcance|" +
+      "Ahora|Menú",
+  },
+});
+/** One act of the menu: its targets, where it runs and what it is for; its input and limits are in the schema
+ * (22/11, UNSIGNED: «en la casa»). */
+export const menuLine = defineMessage({
+  id: "mind.frame.menu",
+  kind: "house",
+  parameters: object({
+    act: Type.String(),
+    targets: Type.String(),
+    house: Type.Boolean(),
+    devices: Type.String(),
+    purpose: Type.String(),
+  }),
+  texts: {
+    es: ({ act, targets, house, devices, purpose }) => {
+      const at = [...(house ? ["la casa"] : []), ...(devices ? [devices] : [])].join(", ");
+      return `${act} → ${targets}${at ? ` · en ${at}` : ""}${purpose ? ` — ${purpose}` : ""}`;
+    },
   },
 });

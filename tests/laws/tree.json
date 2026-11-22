@@ -268,6 +268,7 @@
     "runtime/minds/model-spending-account.ts": "Keeps one host's model spending and opening balance in an independently owned durable journal.",
     "runtime/minds/mind-call-budget.ts": "Checks atomic reservations against the total cap and records settlement or uncertainty.",
     "runtime/minds/mind-frame-fit.ts": "Recorta unidades recuperables del marco y rechaza un mínimo que supera la cota explícita.",
+    "runtime/minds/mind-frame-menu.ts": "Says the menu once: one line per kind of act, with its targets, never its input.",
     "runtime/minds/mind-frame-text.ts": "Presents the four fixed layers and the variable content of the frame in the house language.",
     "runtime/minds/mind-frame.ts": "Builds an explicit snapshot of a mind's frame at the turn's sequence.",
     "runtime/minds/mind-model-bridge.ts": "Connects an assigned card to its provider and keeps the cost of each attempt.",

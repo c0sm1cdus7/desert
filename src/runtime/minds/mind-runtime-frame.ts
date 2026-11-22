@@ -15,6 +15,7 @@ import type { Event } from "../../journal/vocabulary.ts";
 import type { runtimeModel } from "./mind-runtime-model.ts";
 import { definitionOf } from "./mind-definitions.ts";
 import { wakeWords } from "./wake-words.ts";
+import { menuText } from "./mind-frame-menu.ts";
 import { withInterrupts } from "./journey-interrupts.ts";
 import type { Journeys } from "../../house/minds/journey-state.ts";
 import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
@@ -76,6 +77,21 @@ const ownJourneys = (journeys: Journeys, actor: string) =>
   [...journeys.values()]
     .filter(each => each.by === actor && !each.closed)
     .map(({ id, goal, waiting, interrupted }) => ({ id, goal, waiting, ...(interrupted ? { interrupted } : {}) }));
+/** What cannot be left out: the journey this turn thinks in, or the open journeys of a consciousness, and what this
+ * turn already answered, was corrected for or was told by its review. */
+function contextOf<X extends Program>(view: ReturnType<typeof runtimeView<X>>, scope: MindScope, turn: TurnContext) {
+  const current = view.state.house.minds.turns.get(turn.id);
+  const journeys = scope.kind === "consciousness" ? ownJourneys(view.state.house.journeys, scope.actor) : [];
+  const invalid = current?.invalid.map(event => event.data.faults) ?? [];
+  const review = current?.reviews.map(event => event.data.text) ?? [];
+  return JSON.stringify({
+    journey: scope.process ? view.state.house.journeys.get(scope.process) : undefined,
+    ...(journeys.length ? { journeys } : {}),
+    ...(invalid.length ? { invalid } : {}),
+    answer: current?.answer?.data.answer,
+    ...(review.length ? { review } : {}),
+  });
+}
 function snapshotFor<X extends Program>(
   view: ReturnType<typeof runtimeView<X>>,
   scope: MindScope,
@@ -87,27 +103,19 @@ function snapshotFor<X extends Program>(
   }: Readonly<{ options: MindRuntimeOptions; definition: MindDefinition; house: MindRuntimeHouse<X> }>,
   thread: FrameSnapshot["thread"],
 ) {
-  const current = view.state.house.minds.turns.get(turn.id);
   const history = house.history();
   const { journeys: all, devices } = view.state.house;
   const words = wakeWords(history, { journeys: all, devices, journey: scope.process }, turn.wake, turn.language);
   const woke = withInterrupts(words, turn.wake, history, view.state, turn.language);
   const scene = view.state.house.minds.scenes.get(scope.process ?? scope.actor)?.data.text ?? "";
-  const journeys = scope.kind === "consciousness" ? ownJourneys(view.state.house.journeys, scope.actor) : [];
-  const required = JSON.stringify({
-    menu: view.menu,
-    journey: scope.process ? view.state.house.journeys.get(scope.process) : undefined,
-    ...(journeys.length ? { journeys } : {}),
-    invalid: current?.invalid.map(event => event.data.faults),
-    answer: current?.answer?.data.answer,
-    review: current?.reviews.map(event => event.data.text),
-  });
+  const required = contextOf(view, scope, turn);
   return buildMindFrame(scope, turn, {
     definition,
     skills: view.skills,
     textRules: options.textRules,
     scene,
     required,
+    menu: menuText(view.menu, turn.language),
     activity: view.activity,
     objects: view.objects,
     thread,

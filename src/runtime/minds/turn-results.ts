@@ -2,6 +2,7 @@
 import type { Language } from "../../fields/languages.ts";
 import { cutText } from "../../fields/text-cut.ts";
 import { turnResults } from "../../texts/mind-turn.texts.ts";
+import { menuItemLine } from "./mind-frame-menu.ts";
 import type { MindMenu, ProposedAct } from "../../tools/minds/mind-answer.ts";
 export type ActReport = Readonly<{
   act: ProposedAct;
@@ -42,7 +43,9 @@ export function resultsText(
     say("heading"),
     ...reports.flatMap((report, index) => line(report, index, say)),
     `${say("now")} ${now} · ${new Date(now).toISOString()}`,
-    ...menus.after.filter(item => !known.has(key(item))).map(item => `${say("added")} ${JSON.stringify(item)}`),
+    ...menus.after
+      .filter(item => !known.has(key(item)))
+      .map(item => `${say("added")} ${menuItemLine([item], language)}`),
     ...menus.before.filter(item => !kept.has(key(item))).map(item => `${say("removed")} ${item.act} → ${item.target}`),
     ...(goesOn ? [say("goOn")] : []),
   ].join("\n");

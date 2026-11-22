@@ -8,6 +8,8 @@ export type FrameSource = Readonly<{
   textRules: readonly Readonly<{ id: string; text: Message<Record<string, never>, "house"> }>[];
   scene: string;
   required: string;
+  /** The menu said once: one line per kind of act. */
+  menu: string;
   activity: readonly FrameItem[];
   objects: readonly FrameItem[];
   thread: readonly FrameItem[];
@@ -39,6 +41,7 @@ export function buildMindFrame(scope: MindScope, turn: TurnContext, source: Fram
     textRules: [...source.textRules],
     scene: source.scene,
     required: source.required,
+    menu: source.menu,
     ...(source.now === undefined ? {} : { now: source.now }),
     ...(source.woke === undefined ? {} : { woke: [...source.woke] }),
     activity: source.activity.map(item => ({

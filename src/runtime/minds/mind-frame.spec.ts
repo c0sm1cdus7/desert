@@ -34,6 +34,7 @@ const source = {
   objects: [],
   thread: [],
   required: "Pedido actual",
+  menu: "",
 };
 describe("mind frame", () => {
   it("renders four stable ordered layers and the changing wake", () => {

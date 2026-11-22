@@ -51,7 +51,7 @@ const frames = (f: ReturnType<typeof fixture>) =>
     return Value.Check(shown, body) ? (body.messages[0]?.content ?? "") : "";
   });
 const shown = Type.Object({ messages: Type.Array(Type.Object({ content: Type.String() })) });
-const talkMenu = '"tool":"talk","act":"thread/say","target":"talk/thread"';
+const talkMenu = "thread/say → talk/thread";
 it("a program mind may hold the talk program besides its own and its consciousness says lines with it", async () => {
   const f = fixture();
   expect(f.distribution.mindDefinitions.find(mind => mind.actor === "mind:notes")?.communication).toEqual([

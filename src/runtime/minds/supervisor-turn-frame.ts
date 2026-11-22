@@ -16,6 +16,7 @@ import type { runtimeModel } from "./mind-runtime-model.ts";
 import type { runtimeView } from "./mind-runtime-view.ts";
 import { supervisorActor } from "./mind-definitions.ts";
 import { layers, mindsOf, ownThread, section } from "./supervisor-frame.ts";
+import { menuText } from "./mind-frame-menu.ts";
 type View = ReturnType<typeof runtimeView>;
 /** How many turns of each journey closed with a reason: a fact the supervisor reads, never a limit. */
 function cutsByJourney(history: readonly Event[]): ReadonlyMap<string, number> {
@@ -129,7 +130,7 @@ export function supervisorTurnFrame<X extends Program>(
         .length + providerMarginTokens;
     const fixed = {
       woke: woke(house, options, turn.wake).join("\n"),
-      context: JSON.stringify({ menu: current.menu }),
+      context: menuText(current.menu, options.language),
       scene: house.execution.state().house.minds.scenes.get(supervisorActor)?.data.text ?? "",
       thread: ownThread(house, options),
     };

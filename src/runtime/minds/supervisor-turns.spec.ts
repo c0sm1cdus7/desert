@@ -182,8 +182,13 @@ it("reads every mind with its journeys and speaks through the talk program, and 
   expect(frame).toContain("mind:notes terminó el journey «Mate el jueves»: Hecho");
   expect(frame).toMatch(/mind:notes: \{"scene":/u);
   expect(frame).toMatch(/assistant:ana: \{"scene":/u);
-  const context = frame.split("Contexto:\n")[1]?.split("\n")[0] ?? "";
-  expect([...context.matchAll(/"act":"([^"]+)"/gu)].map(match => match[1]).sort()).toEqual(["scene", "thread/say"]);
+  const context = frame.split("Contexto:\n")[1]?.split("\n\n")[0] ?? "";
+  expect(
+    context
+      .split("\n")
+      .map(line => line.split(" → ")[0])
+      .sort(),
+  ).toEqual(["scene", "thread/say"]);
   // Its first answer named an act on a program, outside its schema: it was corrected, and the note was never made.
   const turn = [...house.tools.state().house.minds.turns.values()].find(each => each.opened.by === "mind:supervisor");
   expect(turn?.invalid.map(event => event.data.faults)).toEqual([[{ code: "schema", path: "/" }]]);

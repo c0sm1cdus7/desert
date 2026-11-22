@@ -37,6 +37,7 @@ export function renderMindFrame(snapshot: FrameSnapshot, language: Language, omi
     section(6, render(snapshot.thread)),
     section(7, snapshot.woke ? snapshot.woke.join("\n") : snapshot.wake.join(", ")),
     section(8, snapshot.required),
+    section(12, snapshot.menu),
     ...(snapshot.now === undefined ? [] : [section(11, `${snapshot.now} · ${new Date(snapshot.now).toISOString()}`)]),
     ...omittedSection(omitted, labels, section),
   ].join("\n\n");

@@ -23,6 +23,7 @@ const snapshot = buildMindFrame(scope, turn, {
   textRules: [],
   scene: "escena",
   required: "consulta",
+  menu: "",
   activity: [
     { id: "a", text: "á".repeat(300), covered: true },
     { id: "a", text: "á".repeat(300), covered: true },
