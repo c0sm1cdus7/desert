@@ -335,6 +335,7 @@
     "surface/bridge/views/rows.ts": "a tool's text view read as rows: ids open, the rest is a label and its value",
     "surface/bridge/views/tool-index.ts": "toolIndex: lectura completa compartida por estado e instante para nombres, pertenencia y búsquedas.",
     "surface/contract/contract.ts": "what every renderer draws and sends back: Screen, Body, Row, Field, Mask, Intent, Hint",
+    "surface/contract/hint-sends.ts": "hintSends: what each hint of the toolbar sends, one table for every renderer",
     "surface/contract/limits.ts": "pasteLimit: the bounds every door keeps alike, in one place",
     "surface/contract/missing-view.ts": "Identifica una vista ausente sin confundirla con una lectura que falló.",
     "surface/contract/shown-tool.ts": "what a tool gives a surface: Tool, its acts and menus, ViewRow, Notice, Conversation, Result",

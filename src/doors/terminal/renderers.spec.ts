@@ -2,7 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { chosenText, hintTexts, mainTexts, panelTexts, walk } from "../../../tests/support/surface-walk.ts";
 import { fresh } from "../../../tests/support/surface-tools.ts";
-import type { HintKey, Intent, Screen } from "../../surface/contract/contract.ts";
+import type { HintKey, Screen } from "../../surface/contract/contract.ts";
+import { hintSends } from "../../surface/contract/hint-sends.ts";
 import { bytesOf, textOf, type Grid } from "./cells.ts";
 import { keysOf } from "./input.ts";
 import { contentRows, keyNames, paint } from "./paint.ts";
@@ -24,22 +25,16 @@ const column = (lines: readonly string[], from: number, to?: number): string =>
   squeeze(lines.map(line => line.slice(from, to).replace(/[─│]/gu, "")).join(""));
 const highlighted = (grid: Grid): string =>
   squeeze(grid.flatMap(row => row.filter(cell => cell.inverse || cell.lit).map(cell => cell.char)).join(""));
-const pressKey: Readonly<Record<string, string>> = {
-  enter: "\r",
-  esc: "\x1b",
-  tab: "\t",
-  espacio: " ",
-  f: "f",
-  "↑↓": "\x1b[A",
+/** The bytes a key name stands for on a terminal: the move control is both arrows. */
+const pressKey: Readonly<Record<string, readonly string[]>> = {
+  enter: ["\r"],
+  esc: ["\x1b"],
+  tab: ["\t"],
+  espacio: [" "],
+  f: ["f"],
+  "↑↓": ["\x1b[A", "\x1b[B"],
 };
-const expects: readonly (readonly [HintKey, Intent])[] = [
-  ["move", { kind: "up" }],
-  ["confirm", { kind: "confirm" }],
-  ["cancel", { kind: "cancel" }],
-  ["switch", { kind: "switch" }],
-  ["full", { kind: "type", text: "f" }],
-  ["mark", { kind: "type", text: " " }],
-];
+const hintKeys = Object.keys(hintSends).filter((key): key is HintKey => key in hintSends);
 const check = (screen: Screen, label: string): void => {
   const grid = paint(screen, size);
   const lines = textOf(grid);
@@ -69,9 +64,12 @@ describe("the terminal renderer, against the contract", () => {
     expect(screens.some(screen => screen.body.kind === "thread" && screen.body.options?.length)).toBe(true);
     expect(screens.some(screen => screen.hints.some(hint => hint.does === "cerrar"))).toBe(true);
   });
-  it("sends the intent each of its hints promises", () => {
-    for (const [hint, intent] of expects) {
-      expect(keysOf(pressKey[keyNames[hint]] ?? ""), hint).toEqual([intent]);
+  it("sends, for each hint, what the table says it sends", () => {
+    expect(hintKeys.length).toBe(7);
+    for (const hint of hintKeys) {
+      const sends = hintSends[hint];
+      const sent = (pressKey[keyNames[hint]] ?? []).flatMap(bytes => keysOf(bytes));
+      expect(sent, hint).toEqual(sends === "move" ? [{ kind: "up" }, { kind: "down" }] : [sends]);
     }
   });
 });
