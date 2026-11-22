@@ -35,14 +35,23 @@ function constants(branch: unknown): ReadonlyMap<string, unknown> {
       }),
   );
 }
+/** Whether no other branch allows a value of this branch's first field. */
+function alone(branches: readonly unknown[], index: number): boolean {
+  const mine = isObject(branches[index]) ? (firstValues(branches[index]) ?? []) : [];
+  return branches.every(
+    (other, at) => at === index || !isObject(other) || !(firstValues(other) ?? []).some(value => mine.includes(value)),
+  );
+}
 /** The provider form of a branch without its constants; the rest of the schema as it came. */
 export function withoutConstants(node: unknown): unknown {
   if (Array.isArray(node)) return node.map(withoutConstants);
   if (!isObject(node)) return node;
   const result = Object.fromEntries(Object.entries(node).map(([key, value]) => [key, withoutConstants(value)]));
   if (!Array.isArray(result.anyOf)) return result;
+  const original: unknown[] = Array.isArray(node.anyOf) ? node.anyOf : [];
   result.anyOf = result.anyOf.map((branch: unknown, index) => {
-    const dropped = constants(Array.isArray(node.anyOf) ? node.anyOf[index] : undefined);
+    // A branch is told apart only when no other branch allows a value of its first field: else nothing is dropped.
+    const dropped = alone(original, index) ? constants(original[index]) : new Map<string, unknown>();
     if (!dropped.size || !isObject(branch) || !isObject(branch.properties)) return branch;
     const properties = branch.properties;
     return {

@@ -9,7 +9,7 @@ const unique = (values: readonly string[]) => [...new Set(values)];
 function kinds(menu: readonly Item[]): Item[][] {
   const groups = new Map<string, Item[]>();
   for (const item of menu) {
-    const key = JSON.stringify([item.act, item.input]);
+    const key = JSON.stringify([item.tool, item.act, item.input, !item.destinations]);
     groups.set(key, [...(groups.get(key) ?? []), item]);
   }
   return [...groups.values()];

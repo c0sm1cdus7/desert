@@ -10,7 +10,6 @@ import type { ReviewPort } from "../../tools/minds/mind-review.ts";
 import { correctionNotice, invalidNotice, turnNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
 import { createMindActReview } from "./mind-act-review.ts";
 import { TurnConversation } from "./turn-conversation.ts";
-import { readAct } from "./mind-read.ts";
 import { applyActs } from "./turn-acts.ts";
 import { consultationText, resultsText, type ActReport } from "./turn-results.ts";
 import {
@@ -195,7 +194,7 @@ class MindTurnRun {
     const last = answer.acts.at(-1);
     const closes = !!last && continuation(menu.find(item => item.act === last.act && item.target === last.target));
     // A consciousness whose answer only reads hears what it read and answers again, within its twelve calls.
-    const reads = answer.acts.length > 0 && answer.acts.every(act => act.act === readAct);
+    const reads = reports.length > 0 && reports.every(report => report.page !== undefined);
     if (this.turn.scope.kind !== "journey" && !reads) return this.finish();
     if (closes && reports.at(-1)?.status === "accepted") return this.finish();
     this.talk.tell(this.results(reports));

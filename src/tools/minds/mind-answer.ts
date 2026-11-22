@@ -55,7 +55,8 @@ export function answerSchema(menu: MindMenu): TSchema {
   requireMind(Array.isArray(menu), "menu");
   const kinds = new Map<string, MindMenu[number][]>();
   for (const item of list) {
-    const key = JSON.stringify([item.act, item.input]);
+    // Two tools may name an act alike, and one may run somewhere while the other does not: each keeps its branch.
+    const key = JSON.stringify([item.tool, item.act, item.input, !item.destinations]);
     kinds.set(key, [...(kinds.get(key) ?? []), item]);
   }
   const acts = [...kinds.values()].map(items => {

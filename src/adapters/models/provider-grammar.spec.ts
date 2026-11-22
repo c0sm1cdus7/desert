@@ -223,3 +223,38 @@ it("puts back what the grammar left out, so the house reads the whole act", () =
   expect(readResponse(body([said]), schema).value).toMatchObject({ acts: [said] });
   expect(() => readResponse(body([{ act: "threads/say", input: { text: "Hola" } }]), schema)).toThrow("schema");
 });
+it("keeps each act's own target and destination when two tools name an act alike", () => {
+  const text = object({ text: Type.String() });
+  const menu: MindMenu = [
+    { tool: "notas", act: "create", target: "notas/lista", input: text, scope: "work" },
+    { tool: "agenda", act: "create", target: "agenda/dias", input: object({ when: Type.String() }), scope: "work" },
+    { tool: "correo", act: "send", target: "correo/salida", input: text, scope: "work" },
+    {
+      tool: "fax",
+      act: "send",
+      target: "fax/salida",
+      input: text,
+      scope: "work",
+      destinations: [{ kind: "house" }],
+    },
+  ];
+  const schema = answerSchema(menu);
+  const body = (acts: unknown[]) => ({
+    stop_reason: "end_turn",
+    content: [{ type: "text", text: JSON.stringify({ scene: "Listo", consulta: null, acts }) }],
+    usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+  });
+  const acts = [
+    { act: "create", target: "notas/lista", input: { text: "Mate" } },
+    { act: "create", target: "agenda/dias", input: { when: "jueves" } },
+    { act: "send", target: "correo/salida", input: { text: "Hola" } },
+    { act: "send", target: "fax/salida", input: { text: "Hola" }, destination: { kind: "house" } },
+  ];
+  const read = readResponse(body(acts), schema).value;
+  expect(read).toMatchObject({ acts });
+  const scope = { kind: "journey", actor: "mind:notas", process: "j", kit: [] } as const;
+  const context = { menu, scope, active: true, consulted: false, allowed: () => true };
+  const faults = validateAnswer(read, context);
+  // The kit is empty here, so each act is out of scope; no act is outside the menu or wrongly destined.
+  expect(faults.ok ? [] : faults.faults.filter(fault => fault.code !== "scope")).toEqual([]);
+});
