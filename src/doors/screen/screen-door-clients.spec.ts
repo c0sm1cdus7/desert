@@ -41,6 +41,8 @@ describe("the clients of a session", () => {
     const kept = await door.send("s", "h", firstBatch(oldest));
     expect([gone.refused, kept.refused]).toEqual(["client", undefined]);
   });
+});
+describe("what a session holds for whom", () => {
   it("ends the streams of a router left behind when the next one cannot be opened", async () => {
     const opens = [
       () => Promise.resolve(spyHouse().house),
