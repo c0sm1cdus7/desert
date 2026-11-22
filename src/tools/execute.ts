@@ -11,7 +11,7 @@ import type { ContractFailureReason } from "./contract-port.ts";
 import type { Execution } from "./execution-contract.ts";
 import { usingCapabilities } from "./execution/action-capabilities.ts";
 import { checkedDecision } from "./execution/action-decision.ts";
-import { resolve, refusal, type Resolving } from "./execution/action-authority.ts";
+import { authority, declined, resolve, refusal, type Resolving } from "./execution/action-authority.ts";
 import { actionDraft } from "./execution/action-draft.ts";
 import { deviceRun, executionReach } from "./execution/device-execution.ts";
 import { enforceMechanical, mechanicalRules, requiresSupervision } from "./execution/mechanical-rules.ts";
@@ -32,6 +32,8 @@ export type { Execution } from "./execution-contract.ts";
 type Origin = HouseEvent<"act">;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
   Readonly<{ value?: unknown; coreFailure?: ContractFailureReason }> &
+  /** The tool declined it before it ran (`offered`): the core did not start it, for the tool's own cause. */
+  Readonly<{ declined?: true }> &
   Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &
   Readonly<{ private?: string | undefined; output?: boolean; cleanupPending?: true; anchorPending?: true }>;
 type Processing<X extends Program> = Readonly<{ status: "processing"; effects: readonly []; reason?: string }> &
@@ -53,9 +55,14 @@ const decide = <X extends Program>(
   const { object: target } = origin.data;
   const found = resolve(ports, by, target, value.act);
   const { offered, tool, act } = found;
-  const refused = refusal(ports, origin, found);
-  if (refused !== undefined || !act)
-    return { ...rejected(refused ?? toolTexts.unknown), coreFailure: act ? "forbidden" : "invalid-reference" };
+  const denied = authority(ports, origin, found);
+  const declines = denied === undefined ? declined(ports, origin, found) : undefined;
+  if (denied !== undefined || declines !== undefined || !act)
+    return {
+      ...rejected(denied ?? declines ?? toolTexts.unknown),
+      coreFailure: act ? "forbidden" : "invalid-reference",
+      ...(declines !== undefined ? { declined: true as const } : {}),
+    };
   if (!Value.Check(executionSchema(act.input), value.input)) return rejected(toolTexts.invalid);
   const mechanical = mechanicalRules(
     ports,

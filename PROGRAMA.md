@@ -2389,6 +2389,10 @@ Una acción contractual devuelve `value` tanto al aceptar como al rechazar por n
 valor y recorta la respuesta al esquema pedido. Los fallos del core usan `status: "core-failure"`, separados
 del rechazo de negocio: `forbidden`, `interrupted`, `invalid-reference`, `defect` e `inconclusive`.
 El apagado y los resultados anidados inconclusos conservan su condición; no se convierten en rechazos.
+Un rechazo antes de correr (el `offered` o el `stops` del proveedor) sólo trae su motivo: llega como
+`{ status: "rejected", value: { reason } }` si `{ reason }` cabe en los `rechazos` ofrecidos, recortado a los pedidos,
+y como `defect` si no cabe. Un rechazo de la casa (kit, presencia) sigue siendo `forbidden` aunque sus palabras
+quepan. Prueba: `src/runtime/contracts/failures.spec.ts`.
 
 Los proyectores reciben sólo un mapa inmutable del estado propio del proveedor y una clave, sin ejecutor
 ni adaptadores. Deben ser puros. `objects.nombre.read(clave, cut)` recorta también objetos anidados, listas

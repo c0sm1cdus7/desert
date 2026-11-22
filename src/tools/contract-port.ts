@@ -43,6 +43,9 @@ export type ContractExecution = Readonly<{
   status: string;
   value?: unknown;
   coreFailure?: ContractFailureReason;
+  /** Why it was refused, and whether its tool declined it before running rather than the house refusing it. */
+  reason?: string;
+  declined?: true;
 }>;
 export type ContractInvocation = Readonly<{
   tool: string;

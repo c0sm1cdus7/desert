@@ -57,6 +57,8 @@ export interface KeyStore {
 type Effects<X extends Program> = Readonly<{
   value?: unknown;
   coreFailure?: ContractFailureReason;
+  /** A nested act its tool declined before running (`offered`): the tool's own cause, though the core refused it. */
+  declined?: true;
   effects?: readonly Emission<X["fact"]>[];
   cleanupPending?: true;
   anchorPending?: true;

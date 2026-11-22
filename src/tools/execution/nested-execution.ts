@@ -37,6 +37,7 @@ export async function executeNested<X extends Program>(
     ...done,
     ...(result.value !== undefined ? { value: result.value } : {}),
     ...(failure ? { coreFailure: failure } : {}),
+    ...(result.declined ? { declined: true } : {}),
     ...(result.cleanupPending ? { cleanupPending: true } : {}),
     ...(result.anchorPending ? { anchorPending: true } : {}),
   };

@@ -140,3 +140,88 @@ describe("core failures stay distinct from business refusals", () => {
     }
   });
 });
+describe("a refusal before running reaches the consumer as a business refusal when it fits", () => {
+  const declared = <T extends ReturnType<typeof documents>>(half: T, side: "ofrece" | "pide"): T => {
+    const contract = half[side]["documentos-fiscales"];
+    const emitir = contract?.acciones.emitir;
+    if (!contract || !emitir) throw new Error("missing fixture contract");
+    const acciones = {
+      emitir: {
+        ...emitir,
+        rechazos: Type.Union([emitir.rechazos, Type.Object({ reason: Type.Literal("sin fiscal") })]),
+      },
+    };
+    return { ...half, [side]: { "documentos-fiscales": { ...contract, acciones } } };
+  };
+  function refusing(said: Readonly<{ offered?: string; stops?: string }>) {
+    const house = contractHouse();
+    const registry = house.ports.registry.map(tool => {
+      const action = tool.acts["fiscal/emitir"];
+      if (tool.id !== "documentos" || !action) return tool;
+      const refusingAct = {
+        ...action,
+        offered: () => said.offered,
+        stops: () => said.stops,
+        refuses: ["sin fiscal", "otra cosa"],
+      };
+      return { ...tool, acts: { ...tool.acts, "fiscal/emitir": refusingAct } };
+    });
+    const ports = { ...house.ports, registry };
+    const runtime = createContractRuntime(
+      [declared(sales(), "pide"), declared(documents(), "ofrece")],
+      ports,
+      house.history,
+    );
+    const engine = startTools({
+      ...ports,
+      history: house.history.events(ports.state().through),
+      contracts: runtime.context,
+    });
+    for (const target of ["ventas/facturacion", "documentos/fiscal"])
+      engine.act({ act: "attend", input: { target } }, 0, "beto");
+    return { engine, house };
+  }
+  it.each([
+    [{ offered: "sin fiscal" }, { status: "rejected", value: { reason: "sin fiscal" } }],
+    [{ offered: "otra cosa" }, { status: "core-failure", reason: "defect" }],
+    [{ stops: "sin fiscal" }, { status: "rejected", value: { reason: "sin fiscal" } }],
+    [{ stops: "otra cosa" }, { status: "core-failure", reason: "defect" }],
+  ])("%o reaches the consumer as %o", async (said, expected) => {
+    const { engine, house } = refusing(said);
+    try {
+      const started = engine.act(
+        { act: "facturacion/facturar", target: "ventas/facturacion", input: { venta: "v1" } },
+        0,
+        "beto",
+      );
+      const result = started.status === "processing" ? await started.completion : started;
+      expect(result.value).toEqual(expected);
+      expect(house.events().filter(e => e.kind === "documentos/emitido")).toEqual([]);
+    } finally {
+      engine.stop();
+      house.close();
+    }
+  });
+  it("keeps a refusal of the kit a core failure even when its words would fit", async () => {
+    const { engine, house } = refusing({});
+    try {
+      house.ports.bus.emit(
+        effect(
+          "kit-set",
+          { version: 2, holder: "beto", kit: { version: 2, selections: [{ kind: "program", program: "ventas" }] } },
+          "ana",
+        ),
+      );
+      const started = engine.act(
+        { act: "facturacion/facturar", target: "ventas/facturacion", input: { venta: "v1" } },
+        0,
+        "beto",
+      );
+      const result = started.status === "processing" ? await started.completion : started;
+      expect(result.value).toEqual({ status: "core-failure", reason: "forbidden" });
+    } finally {
+      engine.stop();
+      house.close();
+    }
+  });
+});

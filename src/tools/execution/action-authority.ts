@@ -30,7 +30,20 @@ export const resolve = <X extends Program>(ports: Resolving<X>, by: string, targ
 /** An act that says where it stands is done there: on its tool itself, or on one of its tool's things. */
 const elsewhere = <X extends Program>(act: ToolAct<X>, tool: Tool<X>, target: string): boolean =>
   act.on !== undefined && (act.on === "tool") !== (target === tool.id);
+/** Why the house refuses an act, or its tool declines it now (`offered`): the house's cause comes first. */
 export function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: ReturnType<typeof resolve<X>>) {
+  return authority(ports, origin, found) ?? declined(ports, origin, found);
+}
+/** Why the tool itself declines an act now, before it runs: its own cause, not the house's. */
+export function declined<X extends Program>(ports: Execution<X>, origin: Origin, found: ReturnType<typeof resolve<X>>) {
+  return found.act ? programOffered(found.act, found.state, origin.data.object, ports.now()) : undefined;
+}
+/** Why the house refuses an act, whatever its tool says of it now. */
+export function authority<X extends Program>(
+  ports: Execution<X>,
+  origin: Origin,
+  found: ReturnType<typeof resolve<X>>,
+) {
   const { by, process } = origin;
   const { state, offered, tool, act } = found;
   const target = origin.data.object;
@@ -59,5 +72,5 @@ export function refusal<X extends Program>(ports: Execution<X>, origin: Origin, 
   )
     return toolTexts.outsideKit;
   if (!offered && !isMindActor(by) && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
-  return programOffered(act, state, target, ports.now());
+  return undefined;
 }
