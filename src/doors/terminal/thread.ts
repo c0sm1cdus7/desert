@@ -1,9 +1,10 @@
-// A thread, its rows, and what opened beside it, in cells. Which part is turned down comes from the screen.
+// A thread, its rows, and what opened beside it, in cells: which part is turned down comes from the pieces.
 import { drawEntry, drawRowEntry } from "./entry.ts";
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
-import type { Body, Panel, Span, ThreadEvent } from "../../surface/contract/contract.ts";
-import type { OptionsPiece, RowPiece } from "../../surface/pieces/pieces.ts";
+import type { Body, Panel, Span } from "../../surface/contract/contract.ts";
 import type { Tone } from "../../surface/contract/tones.ts";
+import { leftOut } from "../../surface/pieces/piece-notice.ts";
+import type { EventPiece, OptionsPiece, RowPiece } from "../../surface/pieces/pieces.ts";
+import type { ThreadPiece } from "../../surface/pieces/pieces.ts";
 import { edge, fit, light, put, putRight, width, type Grid } from "./cells.ts";
 /** A drawn line is cut where the block ends, never with an ellipsis: it is a picture, not a sentence. */
 function drawLine(grid: Grid, r: number, left: number, block: number, spans: readonly Span[]): void {
@@ -80,26 +81,14 @@ interface Drawn {
   readonly indent: number;
   readonly lit: boolean;
 }
-function linesOf(event: ThreadEvent, block: number): readonly Drawn[] {
-  const quiet = (spans: readonly Span[]): readonly Span[] =>
-    event.muted ? spans.map(span => ({ ...span, tone: "t3" as const })) : spans;
-  const on = event.selected ?? false;
-  const indent = event.head || event.nested ? 1 : 0;
+function linesOf(event: EventPiece, block: number): readonly Drawn[] {
+  const on = event.lit;
+  const indent = event.indent ? 1 : 0;
   return [
-    ...(event.head ? [{ spans: quiet(event.head), indent: 0, lit: on }] : []),
-    ...(event.quote ? [{ spans: [{ text: fit(event.quote, block - 2), tone: "t3" as const }], indent, lit: on }] : []),
-    ...wrapped(quiet(event.text), block - 1 - indent).map(spans => ({ spans, indent, lit: on })),
-    ...(event.attachments ?? []).map(attachment => ({
-      spans:
-        event.muted && !attachment.selected
-          ? [{ text: `${attachment.title} · ${attachment.detail}`, tone: "t3" as const }]
-          : [
-              { text: attachment.title, tone: "t1" as const, bold: true },
-              { text: ` · ${attachment.detail}`, tone: "t3" as const },
-            ],
-      indent,
-      lit: attachment.selected ?? false,
-    })),
+    ...(event.head ? [{ spans: event.head, indent: 0, lit: on }] : []),
+    ...(event.quote ? [{ spans: [{ ...event.quote, text: fit(event.quote.text, block - 2) }], indent, lit: on }] : []),
+    ...wrapped(event.text, block - 1 - indent).map(spans => ({ spans, indent, lit: on })),
+    ...event.attached.map(attached => ({ spans: attached.line, indent, lit: attached.lit })),
   ];
 }
 const blank: Drawn = { spans: [], indent: 0, lit: false };
@@ -112,28 +101,25 @@ function drawOptions(grid: Grid, options: OptionsPiece | undefined, left: number
   for (const row of rows) drawRow(grid, r++, { left, block }, row, options?.keyed ? 3 : 0);
   if (options?.below) put(grid, left + 1, r, options.below.text);
 }
-export function drawThread(
-  grid: Grid,
-  body: Extract<Body, { kind: "thread" }>,
-  options: OptionsPiece | undefined,
-  at: Readonly<{ left: number; block: number }>,
-): void {
-  const { left, block } = at;
+export function drawThread(grid: Grid, thread: ThreadPiece, left: number, block: number): void {
+  const { options } = thread;
   const listed = (options?.rows.length ?? 0) + Number(Boolean(options?.above)) + Number(Boolean(options?.below));
-  const taken = options?.rows.length ? listed + 1 : Number(Boolean(body.entry)) * 2 + Number(Boolean(body.reference));
+  const taken = options?.rows.length
+    ? listed + 1
+    : Number(Boolean(thread.entry)) * 2 + Number(Boolean(thread.reference));
   const bottom = grid.length - 4 - taken;
-  const lines = body.events.flatMap((event, i) => [...(i && !event.nested ? [blank] : []), ...linesOf(event, block)]);
+  const lines = thread.events.flatMap((event, i) => [...(i && !event.nested ? [blank] : []), ...linesOf(event, block)]);
   const room = bottom - 3 + 1;
   const lit = lines.findIndex(line => line.lit);
   const overflow = Math.max(lines.length - room + (lines.length > room ? 1 : 0), 0);
   /** What does not fit is cut from the top; reading back brings it down a window at a time, saying what is below. */
-  const cut = Math.max((lit >= 0 ? Math.min(overflow, lit) : overflow) - (body.read ?? 0) * Math.max(room - 2, 1), 0);
+  const cut = Math.max((lit >= 0 ? Math.min(overflow, lit) : overflow) - thread.read * Math.max(room - 2, 1), 0);
   const fits = room - (cut ? 1 : 0);
   /** What is left below is counted only where a line of what is said still fits above the count. */
   const under = fits > 1 && lines.length - cut > fits ? lines.length - cut - fits + 1 : 0;
   const shown = lines.slice(cut, cut + fits - (under ? 1 : 0));
-  if (cut) put(grid, left, 3, { text: `↑ ${cut} ${said.more}`, tone: "t3" });
-  if (under) put(grid, left, bottom, { text: `↓ ${under} ${said.more}`, tone: "t3" });
+  if (cut) put(grid, left, 3, leftOut("above", cut).text);
+  if (under) put(grid, left, bottom, leftOut("below", under).text);
   const rowOf = (i: number): number => bottom - (under ? 1 : 0) - shown.length + 1 + i;
   const first = shown.findIndex(line => line.lit);
   const last = shown.findLastIndex(line => line.lit);
@@ -150,7 +136,7 @@ export function drawThread(
     for (const span of line.spans) col = put(grid, col, r, span);
   });
   drawOptions(grid, options, left, block);
-  drawEntry(grid, body, left);
+  drawEntry(grid, thread, left);
 }
 /** What opened: its header, its line, and as much as fits from where it is scrolled. */
 export function drawPanel(grid: Grid, panel: Panel, col: number, room: number, split: number): void {

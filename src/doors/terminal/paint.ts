@@ -115,5 +115,5 @@ function drawBody(
 ): void {
   if (main.kind === "list") drawList(grid, main, at.left, at.block);
   else if (body.kind === "focus") drawFocus(grid, body, cols);
-  else if (body.kind === "thread" && main.kind === "thread") drawThread(grid, body, main.options, at);
+  else if (main.kind === "thread") drawThread(grid, main, at.left, at.block);
 }

@@ -16,15 +16,9 @@ const fromContract = (file: string): readonly string[] =>
 const waiting: readonly string[] = [
   "src/doors/terminal/paint.ts: imports ../../texts/surface.texts.ts",
   "src/doors/terminal/paint.ts: takes Body from the contract",
-  "src/doors/terminal/thread.ts: imports ../../texts/surface.texts.ts",
   "src/doors/terminal/thread.ts: takes Body from the contract",
   "src/doors/terminal/thread.ts: takes Panel from the contract",
-  "src/doors/terminal/thread.ts: takes ThreadEvent from the contract",
-  'src/doors/terminal/thread.ts: "t3"',
-  'src/doors/terminal/thread.ts: "thread"',
   'src/doors/terminal/thread.ts: "focus"',
-  "src/doors/terminal/entry.ts: takes Body from the contract",
-  'src/doors/terminal/entry.ts: "thread"',
 ];
 
 /** A program over the painters, with planted files served from memory beside them. */
