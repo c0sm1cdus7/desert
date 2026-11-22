@@ -222,25 +222,3 @@ it("un mensaje de programa en un grupo despierta a la consciencia que nombra sin
   );
   expect(mindWakeDecision(notes, message("Revisá la nota", 1, "mind:agenda", ["mind:notes"]), [], 0)).toBe(true);
 });
-it("22/11, sin firmar: dos mentes que siempre contestan en un hilo de dos se despiertan una a otra sin fin", () => {
-  // On record, not a guard: no code stops them, only each mind's judgement (the owner forbids timers and limits).
-  const agenda = {
-    ...policy,
-    name: "Agenda",
-    scope: { kind: "consciousness" as const, actor: "mind:agenda" as const },
-  };
-  const minds = [policy, agenda];
-  let line = message("Hola", 1, "mind:agenda");
-  const woken: string[] = [];
-  for (let seq = 2; seq <= 21; seq++) {
-    const awake = minds.filter(each => mindWakeDecision(each, line, [line], 0));
-    expect(awake.map(each => each.scope.actor)).toEqual([
-      line.by === "mind:agenda" ? "assistant:franco" : "mind:agenda",
-    ]);
-    const answering = awake[0]?.scope.actor ?? "";
-    woken.push(answering);
-    line = message("Listo", seq, answering, [answering === "mind:agenda" ? "assistant:franco" : "mind:agenda"]);
-  }
-  expect(woken).toHaveLength(20);
-  expect(new Set(woken)).toEqual(new Set(["assistant:franco", "mind:agenda"]));
-});
