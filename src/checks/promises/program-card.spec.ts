@@ -19,7 +19,7 @@ for (const shortcut of [false, true]) {
   const composed = compose({ ...sampleOptions, programs: [definition], singleToolShortcut: shortcut });
   const grouped = { ...composed.program, minds: { assistants: false, programs: ["notes"] } };
   for (const check of programChecks(grouped, composed.shown).filter(check =>
-    check.name.startsWith("notas · assign-mind-card ·"),
+    check.name.startsWith("notes · assign-mind-card ·"),
   ))
     it(`${shortcut} · ${check.name}`, check.run);
 }
