@@ -62,6 +62,21 @@ it("22/11: an assistant is named by the whole name it was given, whatever the sp
   for (const text of ["@Asistente  de\nMartín, ¿podés?", "@asistente de martin", "@assistant:ana, mirá"])
     expect(await callsFor(f, house, group, text), text).toBe(1);
 }, 60000);
+it("22/11: a given name made only of accents names nobody by it and stops no mind from waking", async () => {
+  const f = track(requestMindFixture(undefined, { assistantCard: { model: "claude-haiku-5-5", effort: "low" } }));
+  const house = await f.open(true, { assistant: false });
+  house.bus.emit(effect("attended", { target: identityTarget("ana") }, "ana"));
+  const enabled = house.tools.act(
+    { act: "enable-assistant", target: identityTarget("ana"), input: { name: "\u0301" } },
+    house.tools.state().through,
+    "ana",
+  );
+  expect((await settle(enabled)).status).toBe("accepted");
+  await (await house.minds)?.flush();
+  f.respond(() => answer());
+  expect(await callsFor(f, house, "assistant:ana,mind:notes,beto", "@\u0301 @Notas, anotá esto")).toBe(1);
+  expect(await callsFor(f, house, "assistant:ana,mind:notes,beto", "@assistant:ana, mirá")).toBe(1);
+}, 60000);
 it("22/11: the supervisor is named «@Supervisor» in a group, never by the word «supervisor»", async () => {
   const f = track(supervisedFixture());
   const house = await f.open();

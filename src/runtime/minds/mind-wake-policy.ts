@@ -21,10 +21,11 @@ export type WakePolicy = Readonly<{
 const normalized = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 const literal = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 /** Named (signed 22/11): «@» and the name, the «@» at the start or after no letter, digit or «_», the name ending the
- * text or followed by none of those; case, accents and any run of whitespace inside the name do not matter. */
+ * text or followed by none of those; case, accents and any run of whitespace inside the name do not matter. A name of
+ * accents alone, which the house accepts, is nothing once they go: it names nobody and breaks no other mind's wake. */
 function mentions(text: string, name: string): boolean {
   const wanted = normalized(name).trim();
-  requireMind(wanted, "policy.name");
+  if (!wanted) return false;
   const words = wanted.split(/\s+/u).map(literal).join("\\s+");
   return new RegExp(`(?<![\\p{L}\\p{N}_])@${words}(?![\\p{L}\\p{N}_])`, "u").test(normalized(text));
 }
