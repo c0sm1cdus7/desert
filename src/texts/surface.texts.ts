@@ -45,6 +45,7 @@ export const surfaceTexts = {
     empty: "sin mensajes",
   },
   chords: { menu: "ctrl o", quit: "ctrl c" },
+  controls: { switch: "tab", full: "f", move: "↑↓", confirm: "enter", cancel: "esc", mark: "espacio", find: "espacio" },
   keys: {
     menu: "menú",
     quit: "salir",

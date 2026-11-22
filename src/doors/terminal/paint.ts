@@ -7,21 +7,14 @@ interface Size {
   readonly cols: number;
   readonly rows: number;
 }
-export const keyNames: Readonly<Record<HintKey, string>> = {
-  switch: "tab",
-  full: "f",
-  move: "↑↓",
-  confirm: "enter",
-  cancel: "esc",
-  mark: "espacio",
-  find: "espacio",
-};
+/** The name of each hint's key: every hint has one in the catalog, or the door does not compile. */
+export const keyNames: Readonly<Record<HintKey, string>> = said.controls;
 /** How many lines of content a terminal of this height has. */
 export const contentRows = (rows: number): number => rows - 8;
 const edgeOf = (cols: number): number => (cols >= 60 ? 2 : 1);
 const blockOf = (cols: number): number => Math.min(76, cols - 2 * edgeOf(cols));
 
-const barIcons = {
+export const barIcons = {
   connected: ["●", "ok"],
   connecting: ["●", "wait"],
   "signal-lost": ["×", "cut"],
