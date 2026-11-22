@@ -16,6 +16,8 @@ export type ProgramLawOptions = Readonly<{
   exemptWords: Exemptions;
   exemptRules: RuleExemptions;
   data: Exemptions;
+  /** What interface a distribution admits, file by file, each with its reason: a program admits none. */
+  interface: Exemptions;
   maxLines: number;
 }>;
 /** The base keeps every file within 300 lines; a program may ask less of itself, never more. */
@@ -100,5 +102,6 @@ export function programLawOptions(root: string): ProgramLawOptions {
     exemptWords: exemptions(options, "exemptWords"),
     exemptRules: ruleExemptions(options),
     data: exemptions(options, "data"),
+    interface: exemptions(options, "interface"),
   };
 }

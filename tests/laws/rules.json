@@ -46,7 +46,11 @@
       "rule": "Tres zonas que nunca se mueven (Barra, Contenido, Toolbar)",
       "from": "REGLAS §3",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/client/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
+      ]
     },
     {
       "id": 6,
@@ -81,7 +85,8 @@
       "evidence": [
         "src/doors/terminal/paint.ts",
         "src/surface/router/resolve.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -101,7 +106,8 @@
         "src/surface/contract/contract.ts",
         "src/doors/socket/client/socket-ports.spec.ts",
         "src/checks/socket-terminal.spec.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -161,7 +167,8 @@
       "evidence": [
         "src/doors/terminal/paint.ts",
         "src/surface/router/resolve.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -175,7 +182,8 @@
         "src/surface/contract/shown-tool.ts",
         "src/surface/session/talk.ts",
         "src/surface/acts/walk.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -243,7 +251,8 @@
       "evidence": [
         "src/doors/terminal/paint.ts",
         "src/doors/terminal/thread.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -343,7 +352,8 @@
       "evidence": [
         "src/doors/terminal/thread.ts",
         "src/surface/session/talk.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -354,7 +364,8 @@
       "evidence": [
         "src/doors/terminal/paint.ts",
         "src/doors/terminal/thread.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -429,7 +440,8 @@
       "evidence": [
         "src/doors/terminal/thread.ts",
         "src/surface/menus/lists.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -464,7 +476,8 @@
         "src/surface/session/terminal.spec.ts",
         "src/surface/session/window.spec.ts",
         "src/surface/session/window.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -485,7 +498,8 @@
         "src/doors/terminal/thread.ts",
         "src/checks/promises/promised-keys.ts",
         "src/checks/promises/walk/promised-walk.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -496,7 +510,8 @@
       "evidence": [
         "src/doors/terminal/paint.ts",
         "src/surface/bridge/ports/house-ports.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -814,7 +829,8 @@
       "evidence": [
         "src/doors/terminal/thread.ts",
         "src/surface/acts/walk.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -3447,6 +3463,65 @@
       "guarantee": "spec",
       "evidence": [
         "tests/laws/surface-contract-entry.spec.ts",
+        "tests/laws/distribution-entries.spec.ts"
+      ]
+    },
+    {
+      "id": 320,
+      "rule": "El banco de piezas es un conjunto cerrado de quince clases (superficie, barra, latido, toolbar, acción, aviso, entrada, fila, pila, lista, opciones, evento, hilo, foco y panel), escritas una por una en la ley: una clase nueva se conversa antes y no entra sin querer.",
+      "from": "22/11 · superficies, banco de piezas",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/pieces-closed.spec.ts"
+      ]
+    },
+    {
+      "id": 321,
+      "rule": "Las reglas de forma se sostienen una sola vez, sobre las piezas, para todo renderer: el orden de las zonas, el latido, una barra sin palabras propias, los controles fijos, una acción por pista y lo que manda, sus verbos, lo apagado en su lugar y con su motivo, lo elegido, el dato que lidera lo que se lee, el lugar de las teclas, cuánto queda afuera, la pila vacía, lo apagado en texto 3, la forma de la entrada y la ventana chica. Cada una puede fallar sola.",
+      "from": "22/11 · superficies, banco de piezas",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/piece-rules.spec.ts",
+        "src/surface/pieces/pieces-of.spec.ts",
+        "src/surface/pieces/pieces-conformance.spec.ts"
+      ]
+    },
+    {
+      "id": 322,
+      "rule": "La terminal solo pinta piezas: `paint.ts`, `thread.ts` y `entry.ts` no leen el catálogo, del contrato toman solo tramos, temas y tonos (y `paint.ts` la pantalla de su firma), y no escriben ninguna palabra: cada nombre que escriben es uno de un conjunto cerrado que declaran sus tipos.",
+      "from": "22/11 · superficies, banco de piezas",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/painters.spec.ts"
+      ]
+    },
+    {
+      "id": 323,
+      "rule": "Los cuadros de la terminal están congelados: para cada pantalla de referencia y cada pantalla armada a mano, en ocho tamaños y en los tres temas, un resumen de los bytes que pinta; los escribió una sola vez el pintor sin tocar, y la ley los regenera en memoria y nombra cada pantalla que cambió.",
+      "from": "22/11 · superficies, banco de piezas",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/terminal-frames.spec.ts",
+        "tests/support/write-terminal-frames.ts"
+      ]
+    },
+    {
+      "id": 324,
+      "rule": "Ningún programa ni distribución escribe interfaz: ni archivos que son interfaz por su clase, ni imports o dependencias de lo que pinta (las entradas de pintura de DESERT y una lista cerrada de frameworks), ni bytes pintados a mano, ni la interfaz de dibujo del navegador. Lo que una distribución admite va en `desert.laws.interface`, archivo por archivo y con su motivo; una excepción que no admite nada se rechaza.",
+      "from": "22/11 · superficies, banco de piezas",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/laws/interface-code.spec.ts",
+        "tests/laws/interface-code.spec.ts"
+      ]
+    },
+    {
+      "id": 325,
+      "rule": "La entrada `desert/surface/pieces` es para pintores: lo que importa, siguiendo cada import, queda en las piezas, tres archivos del contrato y el catálogo de la superficie, sin módulos de node ni paquetes, para que la cargue un navegador; y ningún programa la puede importar, porque un programa nunca dibuja.",
+      "from": "22/11 · superficies, banco de piezas",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/surface-pieces-entry.spec.ts",
         "tests/laws/distribution-entries.spec.ts"
       ]
     },

@@ -2,9 +2,10 @@
 import { wide, width } from "../../fields/column-width.ts";
 import type { Span, Theme } from "../../surface/contract/contract.ts";
 import type { Tone } from "../../surface/contract/tones.ts";
+import type { ColorToken } from "../../surface/pieces/tokens.ts";
 export { wide, width } from "../../fields/column-width.ts";
 
-type Palette = Readonly<Record<Tone | "focus", number>>;
+type Palette = Readonly<Record<ColorToken, number>>;
 // The hex values of the UI rules, at their nearest 256 colors.
 // Data tones (azul, violeta, rosa, lima, arena) in each theme, from the UI rules' hex values.
 const data = {

@@ -158,6 +158,9 @@ const names = [
   "Failure",
   "surfaceWalk",
   "Stop",
+  // The piece bank: the form rules held once over the pieces of a screen.
+  "pieceRules",
+  "PieceFailure",
   // Surfaces, stage 4: the session a path leaves, so touching a row can be held equal to its keys.
   "replayed",
 ];
