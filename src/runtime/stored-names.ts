@@ -89,9 +89,13 @@ function folded(journal: StoredJournal, rows: readonly Row[]): unknown {
   return house;
 }
 
-function backupFile(folder: string | undefined, file: string): string {
+/** The backup folder must exist on every run; the copy in it must not, when there is something to write. */
+function backupFolder(folder: string | undefined): string {
   if (!folder || !existsSync(folder) || !statSync(folder).isDirectory())
     throw new Error(storedNamesTexts.backupRequired);
+  return folder;
+}
+function backupFile(folder: string, file: string): string {
   const target = join(folder, basename(file));
   if (existsSync(target)) throw new Error(storedNamesTexts.backupExists(target));
   return target;
@@ -117,7 +121,7 @@ function check(journal: StoredJournal, db: DatabaseSync, expected: unknown): voi
 /** Migrates one journal in place: refuses without a backup folder, writes the backup, rewrites, and checks. */
 export function migrateStoredNames(file: string, journal: StoredJournal, backups: string | undefined): MigrationResult {
   const canonical = storageIdentity(file);
-  const target = backupFile(backups, canonical);
+  const folder = backupFolder(backups);
   const lease = writerLease(canonical);
   const db = new DatabaseSync(canonical);
   try {
@@ -131,6 +135,7 @@ export function migrateStoredNames(file: string, journal: StoredJournal, backups
       check(journal, db, expected);
       return { rows: rows.length, changed: 0, backup: undefined };
     }
+    const target = backupFile(folder, canonical);
     db.prepare("vacuum into ?").run(target);
     db.exec("begin immediate");
     try {

@@ -97,7 +97,7 @@ it("renames in place after a backup, and folds to the very house the old code fo
   expect([...house.doors.keys.values()].map(key => key.door)).toContain("agent");
 });
 
-it("is idempotent: a second run renames nothing, writes no backup and leaves every row", () => {
+it("is idempotent: a second run renames nothing, writes no backup and leaves every row, in any backup folder", () => {
   const { file, backups } = copy("twice");
   expect(run("--backup", backups, "--journal", file).code).toBe(0);
   const once = rows(file);
@@ -108,6 +108,10 @@ it("is idempotent: a second run renames nothing, writes no backup and leaves eve
   expect(again.said).toContain("nada que renombrar");
   expect(rows(file)).toEqual(once);
   expect(readdirSync(second)).toEqual([]);
+  const same = run("--backup", backups, "--journal", file);
+  expect(same.code).toBe(0);
+  expect(same.said).toContain("nada que renombrar");
+  expect(rows(file)).toEqual(once);
 });
 
 it("refuses without a backup folder, with a folder that already holds a copy, and while a house writes", () => {
