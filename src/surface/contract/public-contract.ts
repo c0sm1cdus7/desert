@@ -5,6 +5,7 @@ export type {
   Hint,
   HintKey,
   Intent,
+  Keypad,
   Panel,
   Row,
   Screen,

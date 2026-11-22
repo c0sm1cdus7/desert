@@ -537,7 +537,8 @@
       "evidence": [
         "src/fields/opacity-surface.spec.ts",
         "src/checks/opacity-terminal.spec.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/surface/acts/walk-entry.spec.ts"
       ]
     },
     {
@@ -560,7 +561,8 @@
         "src/fields/fields.ts",
         "src/surface/contract/contract.ts",
         "src/surface/formats/masks.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/surface/acts/walk-entry.spec.ts"
       ]
     },
     {
@@ -580,7 +582,8 @@
         "src/surface/acts/walk.ts",
         "src/fields/fields.ts",
         "src/surface/bridge/questions/asking.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/surface/acts/walk-marked.spec.ts"
       ]
     },
     {
@@ -3445,6 +3448,53 @@
       "evidence": [
         "tests/laws/surface-contract-entry.spec.ts",
         "tests/laws/distribution-entries.spec.ts"
+      ]
+    },
+    {
+      "id": 360,
+      "rule": "Tocar es lo mismo que las teclas: elegir una fila por su identidad deja la sesión que dejarían las teclas de la persona, el cursor llevado a esa fila y la tecla que la toma; no tiene camino propio a una herramienta. Una identidad que ninguna fila tiene no hace nada, y tampoco elegir mientras corre una acción, sobre su resultado, en la pantalla de falla o en los avisos de apertura.",
+      "from": "22/11 · superficies, etapa 4 (P7, opción A)",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/router/choose-equals-keys.spec.ts"
+      ]
+    },
+    {
+      "id": 361,
+      "rule": "Una fila que se puede elegir tiene identidad: lo que hace elegirla, nunca el lugar donde está. Es única en su pantalla, la conserva aunque la lista se mueva, y no la tiene la fila apagada, la que no lleva a nada ni la que se está escribiendo. Una identidad más larga que su tope es una falla a la vista y nunca se corta.",
+      "from": "22/11 · superficies, etapa 4 (P7, opción A)",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/session/row-id.spec.ts",
+        "src/surface/contract/wire.spec.ts"
+      ]
+    },
+    {
+      "id": 362,
+      "rule": "Toda máscara dice qué teclado pide (dígitos, decimal o texto): una máscara sin teclado no compila.",
+      "from": "22/11 · superficies, etapa 4 (P7, opción A)",
+      "guarantee": "type",
+      "evidence": [
+        "src/surface/contract/contract.ts",
+        "src/surface/formats/masks.ts"
+      ]
+    },
+    {
+      "id": 363,
+      "rule": "Toda entrada dice qué teclado pide, el de su máscara o texto, y una entrada secreta dice que lo es.",
+      "from": "22/11 · superficies, etapa 4 (P7, opción A)",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/acts/walk-entry.spec.ts"
+      ]
+    },
+    {
+      "id": 364,
+      "rule": "En una pregunta que toma varias, cada opción dice si está marcada aparte de su tecla, que lo sigue diciendo igual para quien tiene teclas; ninguna otra pregunta lo dice.",
+      "from": "22/11 · superficies, etapa 4 (P7, opción A)",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/acts/walk-marked.spec.ts"
       ]
     }
   ]

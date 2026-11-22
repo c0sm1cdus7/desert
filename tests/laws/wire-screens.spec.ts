@@ -49,6 +49,12 @@ const shapes: Readonly<Record<string, (screen: Wired) => boolean>> = {
   "event attachments": screen => eventsOf(screen).some(event => (event.attachments?.length ?? 0) > 0),
   "panel focused": screen => screen.panel?.focused === true,
   "panel full": screen => screen.panel?.full === true,
+  "row with id": screen => rowsOf(screen).some(row => row.id !== undefined),
+  "option marked true": screen => (threadOf(screen)?.options ?? []).some(row => row.marked === true),
+  "option marked false": screen => (threadOf(screen)?.options ?? []).some(row => row.marked === false),
+  "entry keyboard digits": screen => threadOf(screen)?.entry?.keyboard === "digits",
+  "entry keyboard text": screen => threadOf(screen)?.entry?.keyboard === "text",
+  "entry secret": screen => threadOf(screen)?.entry?.secret === true,
   "menu true": screen => screen.menu,
   "menu false": screen => !screen.menu,
 };

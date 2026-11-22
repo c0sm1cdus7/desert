@@ -73,8 +73,9 @@ function controlsAndHints(screen: Screen, drawn: Drawn): readonly string[] {
     ...[...drawnHints].filter(hint => !hinted.has(hint)).map(hint => `${hint}/no-hint`),
   ];
 }
-const enums = new Set(["kind", "tone", "state", "intent", "fg", "bg"]);
-/** Every string the wired screen holds as text, walked whole: its kinds, tones and colors are no words. */
+const enums = new Set(["kind", "tone", "state", "intent", "fg", "bg", "id", "keyboard"]);
+/** Every string the wired screen holds as text, walked whole: its kinds, tones and colors are no words, and neither
+ * are a row's identity nor the keys an entry asks for, which are sent back or read, never drawn. */
 function textsIn(value: unknown): readonly string[] {
   if (typeof value === "string") return [value];
   if (Array.isArray(value)) return value.flatMap(textsIn);

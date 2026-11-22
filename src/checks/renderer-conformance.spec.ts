@@ -40,6 +40,11 @@ const listed = (screen: Screen): readonly string[] =>
     ? screen.body.stacks.flatMap(stack => stack.rows.map(row => row.title)).filter(title => lone(screen, title))
     : [];
 type Broken = (screen: Screen, drawn: Drawn) => Drawn | undefined;
+/** The first row of a screen that says what it is: an identity is sent back, never drawn. */
+function identified({ body }: Screen) {
+  if (body.kind === "list") return body.stacks.flatMap(stack => stack.rows).find(row => row.id !== undefined);
+  return body.kind === "thread" ? body.options?.find(row => row.id !== undefined) : undefined;
+}
 const without = (lines: readonly string[], text: string): readonly string[] => lines.filter(line => line !== text);
 const broken: Readonly<Record<string, readonly [Check, Broken]>> = {
   "drops a row": [
@@ -90,6 +95,13 @@ const broken: Readonly<Record<string, readonly [Check, Broken]>> = {
   "draws the Menu control where the screen offers none": [
     "menu-iff-offered",
     (screen, drawn) => (screen.menu ? undefined : { ...drawn, menu: true, toolbar: ["menu", ...drawn.toolbar] }),
+  ],
+  "prints a row's identity beside its title": [
+    "adds-no-words",
+    (screen, drawn) => {
+      const row = identified(screen);
+      return row?.id === undefined ? undefined : { ...drawn, main: [...drawn.main, `${row.title} ${row.id}`] };
+    },
   ],
   "draws another state": [
     "shows-the-state",
