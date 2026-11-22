@@ -18,7 +18,8 @@ export function houseRouter<X extends Program>(ports: HousePorts<X>, shown: Show
       instant = before;
     }
   };
-  const clock = (): string => new Date(reading.now()).toTimeString().slice(0, 5);
+  // The program's hour where it gives one (a web server runs in no person's zone); the process's own where not.
+  const clock = (): string => shown.hour?.(reading.now()) ?? new Date(reading.now()).toTimeString().slice(0, 5);
   const router = startRouter({
     tools: houseTools(reading, shown),
     bar: () => ({ state: ports.connection(), clock: clock(), now: reading.now() }),

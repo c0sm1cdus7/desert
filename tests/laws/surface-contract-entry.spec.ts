@@ -28,6 +28,15 @@ function specifiersIn(file: string): readonly string[] {
   visit(source);
   return found;
 }
+/** Every name a module exports by name, types included. */
+function exportedNames(file: string): readonly string[] {
+  const source = ts.createSourceFile(file, readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true);
+  return source.statements.flatMap(statement =>
+    ts.isExportDeclaration(statement) && statement.exportClause && ts.isNamedExports(statement.exportClause)
+      ? statement.exportClause.elements.map(element => element.name.text)
+      : [],
+  );
+}
 const allowedFolders = ["src/surface/contract/", "src/texts/"];
 const allowedPackages = new Set(["@sinclair/typebox", "@sinclair/typebox/value"]);
 /** What the entry's static import closure reaches that a browser bundle could not take, each named. */
@@ -60,6 +69,10 @@ describe("the public entry desert/surface/contract", () => {
   it("names what is unsafe in a planted closure", () => {
     expect(unsafeIn(join(root, "src/doors/terminal/input.ts")).length).toBeGreaterThan(0);
     expect(unsafeIn(join(root, "src/surface/contract/wire.ts"))).toEqual([]);
+  });
+  it("names the room a renderer has, Viewport, from a file of the contract that imports nothing", () => {
+    expect(exportedNames(join(root, "src/surface/contract/public-contract.ts"))).toContain("Viewport");
+    expect(specifiersIn(join(root, "src/surface/contract/viewport.ts"))).toEqual([]);
   });
   it("is no program entry: a program never draws", () => {
     expect(isProgramEntry("desert/surface/contract")).toBe(false);
