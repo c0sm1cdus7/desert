@@ -112,3 +112,10 @@ it("defect public text excludes thrown act data and the server prepares the diag
   expect(prepared).toBe(true);
   expect(f.house().tools.state().entries.at(-1)?.data.text).toBe(text);
 });
+it("keeps the order of a registry the house already completed, so its Menu reads as the house's", async () => {
+  const { f, connection } = await setup();
+  const ids = (registry: readonly { id: string }[]) => registry.map(tool => tool.id);
+  const ports = socketPorts(connection, { registry: f.house().registry, limits: { recentLines: 40 } });
+  expect(ids(f.house().registry).slice(-2)).toEqual(["rules", "personal"]);
+  expect(ids(ports.registry)).toEqual(ids(f.house().registry));
+});

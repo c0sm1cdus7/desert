@@ -20,9 +20,9 @@ export function rulesTool<X extends Program>(registry: ToolRegistry<X>): Program
   core.add(tool);
   return tool;
 }
+/** The registry with the core's rules tool last; one that already holds it keeps its order, as the house set it. */
 export function rulesRegistry<X extends Program>(registry: ToolRegistry<X>): ToolRegistry<X> {
   if (registry.some(tool => tool.id === "rules" && !isRulesTool(tool)))
     throw new Error("rules is reserved for the core");
-  const ordinary = registry.filter(tool => tool.id !== "rules");
-  return [...ordinary, registry.find(tool => tool.id === "rules") ?? rulesTool(ordinary)];
+  return registry.some(tool => tool.id === "rules") ? registry : [...registry, rulesTool(registry)];
 }
