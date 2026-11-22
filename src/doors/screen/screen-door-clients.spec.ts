@@ -53,4 +53,11 @@ describe("the clients of a session", () => {
     await flush();
     expect([stream.done(), door.alive()]).toEqual([true, 0]);
   });
+  it("opens no router for a first look from a hidden tab, which nothing may be drawn for yet", async () => {
+    const { door, opens } = spyDoor();
+    await expect(door.look("s", "h", { ...view, visible: false })).rejects.toThrow("nothing is drawn yet");
+    expect([opens.length, door.alive()]).toEqual([0, 0]);
+    const shown = await door.look("s", "h", view);
+    expect([shown.refused, opens.length, door.alive()]).toEqual([undefined, 1, 1]);
+  });
 });

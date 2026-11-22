@@ -56,9 +56,11 @@ class Door<X extends Program> implements ScreenDoor {
     const parsed = parseLook(body);
     const known = this.slots.get(keyOf(session, house));
     if (!parsed.ok) {
-      if (!known?.live) throw new Error("A first look that is not a look: nothing is drawn yet to refuse it with.");
+      if (!known?.live) throw unanswered();
       return refusal(known.live, named(known.live, body), parsed.reason);
     }
+    // A hidden tab may not be drawn for (S2): with nothing drawn yet, no router is opened only to say nothing.
+    if (!parsed.value.visible && !known?.live && !known?.opening) throw unanswered();
     const slot = known ?? this.slotOf(session, house);
     this.touch(slot);
     // A client that names itself to a session with no router comes back from a cut one, or from a restart.
@@ -224,6 +226,9 @@ class Door<X extends Program> implements ScreenDoor {
   }
 }
 const keyOf = (session: string, house: string): string => JSON.stringify([session, house]);
+/** A first look the door cannot answer with a frame: it is not a look, or it comes from a hidden tab. */
+const unanswered = (): Error =>
+  new Error("A first look that cannot be drawn for: nothing is drawn yet to answer with.");
 /** S5: the next batch is applied; the same one again answers what it led to; a skipped or an old one is refused. */
 function order(live: Live, send: Send): Ordered {
   const client = live.clients.get(send.client);
