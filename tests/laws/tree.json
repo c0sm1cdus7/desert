@@ -97,6 +97,7 @@
     "doors/socket/client/connection-state.ts": "Última vista recibida, reloj de la casa extrapolado y cuatro estados de conexión.",
     "doors/socket/client/socket-connection.ts": "Conexión reemplazable; tres estados inválidos consecutivos en la misma secuencia cierran con causa del catálogo.",
     "doors/socket/client/socket-ports.ts": "HousePorts remoto con observación automática explícita y defecto sin entrada ni diagnóstico del cliente.",
+    "doors/socket/client/open-house-router.ts": "openHouseRouter: the one way a door builds a house router over a socket connection, with no TTY.",
     "doors/socket/peers/environment-door-keys.ts": "Compone llaves de puertas desde variables declaradas y rechaza material repetido aun con otra codificación.",
     "doors/socket/peers/peer-input.ts": "Lectura por turnos de marcos con pausa de entrada, plazo por cuerpo y liberación al cortar.",
     "doors/socket/peers/peer-writer.ts": "Salida por conexión: tramos con backpressure, cola posterior acotada y corte con aviso por plazo.",

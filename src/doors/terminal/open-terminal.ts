@@ -1,5 +1,4 @@
 // The program's public terminal composition: one router for both local and remote HousePorts.
-import { coreRegistry } from "../../tools/identities/identities.ts";
 import { terminalError } from "./terminal-error.ts";
 import type { Composition } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -7,8 +6,7 @@ import type { Shown } from "../../surface/bridge/ports/house-ports.ts";
 import { connectRemoteTerminal } from "./remote-terminal-client.ts";
 import type { SocketConnection } from "../socket/client/socket-connection.ts";
 import { connectTerminal } from "./terminal-client.ts";
-import { socketPorts } from "../socket/client/socket-ports.ts";
-import { houseRouter } from "../../surface/bridge/assembly/house-router.ts";
+import { openHouseRouter } from "../socket/client/open-house-router.ts";
 import { startTerminal } from "./boot.ts";
 export async function openProgramTerminal<X extends Program>(
   root: string,
@@ -42,29 +40,16 @@ async function runTerminal<X extends Program>(
   program: Composition<X>,
   shown: Shown<X>,
 ) {
-  const router = houseRouter(
-    socketPorts(connection, {
-      registry: coreRegistry(
-        program.registry,
-        "house",
-        program.identities,
-        program.mentes?.asistentes,
-        program.mentes?.programas,
-      ),
-      limits: { recentLines: 40 },
-    }),
-    shown,
-  );
+  const house = openHouseRouter(connection, program, shown, { recentLines: 40 });
   const stop = new AbortController();
-  const unwatch = connection.watch(() => {
-    if (connection.failure()) stop.abort();
+  const unwatch = house.watch(() => {
+    if (house.failure()) stop.abort();
   });
   try {
-    await startTerminal(process.stdout, process.stdin, router, stop.signal);
-    if (connection.failure()) throw new Error(connection.failure());
+    await startTerminal(process.stdout, process.stdin, house.router, stop.signal);
+    if (house.failure()) throw new Error(house.failure());
   } finally {
     unwatch();
-    router.stop();
-    connection.close();
+    house.close();
   }
 }
