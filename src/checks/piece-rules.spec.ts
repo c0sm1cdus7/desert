@@ -108,15 +108,36 @@ const rowsOf = ({ body }: Screen): readonly Row[] => {
 };
 const thread = (change: (thread: ThreadPiece) => ThreadPiece): Change =>
   main(c => (c.kind === "thread" ? change(c) : c));
-const texts = (change: (row: RowPiece & { as: "text" }) => RowPiece): Change =>
+const rowPieces = (change: (row: RowPiece) => RowPiece): Change =>
   main(c => {
-    const each = (rows: readonly RowPiece[]) => rows.map(r => (r.as === "text" ? change(r) : r));
+    const each = (rows: readonly RowPiece[]) => rows.map(change);
     if (c.kind === "list") return { ...c, stacks: c.stacks.map(s => ({ ...s, rows: each(s.rows) })) };
     return c.kind === "thread" && c.options ? { ...c, options: { ...c.options, rows: each(c.options.rows) } } : c;
   });
+const texts = (change: (row: RowPiece & { as: "text" }) => RowPiece): Change =>
+  rowPieces(r => (r.as === "text" ? change(r) : r));
+const sent = { kind: "choose", row: "otra" } as const;
 /** One wrong piece per check of the three additions, on the first golden screen that shows what it holds. */
 const added: readonly (readonly [string, string, (screen: Screen) => boolean, Change])[] = [
   ["a-row-sends-its-choice", "a row with an id", s => rowsOf(s).some(r => r.id), texts(({ sends: _, ...r }) => r)],
+  [
+    "a-row-sends-its-choice",
+    "a row with an id, sending another",
+    s => rowsOf(s).some(r => r.id),
+    texts(r => (r.sends ? { ...r, sends: { ...r.sends, row: `${r.sends.row} ` } } : r)),
+  ],
+  [
+    "a-row-sends-its-choice",
+    "an off row",
+    s => rowsOf(s).some(r => r.off),
+    texts(r => (r.off ? { ...r, sends: sent } : r)),
+  ],
+  [
+    "a-row-sends-its-choice",
+    "a still row",
+    s => rowsOf(s).some(r => r.still && !r.entry && !r.spans),
+    texts(r => (r.still ? { ...r, sends: sent } : r)),
+  ],
   [
     "a-mark-is-said",
     "a marked option",
@@ -129,7 +150,32 @@ const added: readonly (readonly [string, string, (screen: Screen) => boolean, Ch
     s => s.body.kind === "thread" && s.body.entry?.secret === true,
     thread(c => (c.entry ? { ...c, entry: { ...c.entry, secret: false } } : c)),
   ],
+  [
+    "an-entry-says-its-keys",
+    "an entry asking for digits",
+    s => s.body.kind === "thread" && s.body.entry?.keyboard === "digits",
+    thread(c => (c.entry ? { ...c, entry: { ...c.entry, keyboard: "text" } } : c)),
+  ],
+  [
+    "an-entry-says-its-keys",
+    "a row written in",
+    s => rowsOf(s).some(r => r.entry),
+    rowPieces(r => (r.as === "entry" ? { ...r, entry: { ...r.entry, keyboard: "digits" } } : r)),
+  ],
 ];
+/** A multiple question where one option that can be taken does not say whether it is, on its screen and piece. */
+function unsaid(): Screen {
+  const screen = golden(s => rowsOf(s).some(r => r.marked !== undefined && !r.off));
+  const { body } = screen;
+  if (body.kind !== "thread" || !body.options) throw new Error("a marked option is in a question");
+  const at = body.options.findIndex(r => r.marked !== undefined && !r.off);
+  const options = body.options.map((r, i) => {
+    if (i !== at) return r;
+    const { marked: _gone, ...rest } = r;
+    return rest;
+  });
+  return { ...screen, body: { ...body, options } };
+}
 /** A secret entry whose screen shows what is written uncovered. */
 const uncovered: Screen = {
   ...painted("entry placeholder"),
@@ -164,6 +210,10 @@ describe("pieceRules", () => {
   });
   it("says a secret entry whose screen shows it uncovered, and nothing else", () => {
     expect(pieceRules(uncovered, piecesOf(uncovered))).toEqual([{ rule: "an-entry-says-its-keys", missing: "entry" }]);
+  });
+  it("says options where one says its mark and another does not, and only that", () => {
+    const screen = unsaid();
+    expect(pieceRules(screen, piecesOf(screen))).toEqual([{ rule: "a-mark-is-said", missing: "options" }]);
   });
   it("finds in no golden screen an off row that does not say why", () => {
     const silent = goldenScreens().flatMap(({ name, screen }) => {
