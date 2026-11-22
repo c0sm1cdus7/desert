@@ -1,8 +1,9 @@
-// A thread, and what opened beside it, in cells. Which part is turned down comes from the screen.
-import { drawEntry, drawWritten } from "./entry.ts";
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
-import type { Body, Panel, Row, Span, ThreadEvent } from "../../surface/contract/contract.ts";
-import type { Tone } from "../../surface/contract/tones.ts";
+// A thread, its rows, and what opened beside it, in cells: which part is turned down comes from the pieces.
+import { drawEntry, drawRowEntry } from "./entry.ts";
+import type { Span } from "../../surface/contract/contract.ts";
+import { leftOut } from "../../surface/pieces/piece-notice.ts";
+import type { EventPiece, FocusPiece, OptionsPiece, PanelPiece, RowPiece } from "../../surface/pieces/pieces.ts";
+import type { ThreadPiece } from "../../surface/pieces/pieces.ts";
 import { edge, fit, light, put, putRight, width, type Grid } from "./cells.ts";
 /** A drawn line is cut where the block ends, never with an ellipsis: it is a picture, not a sentence. */
 function drawLine(grid: Grid, r: number, left: number, block: number, spans: readonly Span[]): void {
@@ -15,49 +16,42 @@ function drawLine(grid: Grid, r: number, left: number, block: number, spans: rea
         .join(""),
     });
 }
-type Listing = Readonly<{ keys: number; reads?: boolean }>;
 /** How wide the keys of a list are drawn, brackets included: nothing when no row of it has one. Every row of the
  * list starts after that, so what they say lines up whatever key each takes. */
-export const keysOf = (rows: readonly Row[]): number =>
-  Math.max(0, ...rows.map(row => (row.key ? width(row.key) + 2 : 0)));
-/** One row of a list. In a list that is read, what a row says of its datum leads; in one that is chosen from, its
- * name does. A row with one text says it in the leading tone. */
+export const keysOf = (rows: readonly RowPiece[]): number =>
+  Math.max(0, ...rows.map(row => (row.as === "text" && row.key ? width(row.key.text) + 2 : 0)));
+/** One row of a list. Which of its two texts is kept whole when both do not fit comes with the row. */
 export function drawRow(
   grid: Grid,
   r: number,
   at: Readonly<{ left: number; block: number }>,
-  row: Row,
-  how: Listing,
+  row: RowPiece,
+  keys: number,
 ): void {
   const { left, block } = at;
-  const keyed = how.keys > 0;
-  if (row.spans) {
-    drawLine(grid, r, left, block, row.spans);
+  const keyed = keys > 0;
+  if (row.as === "line") {
+    drawLine(grid, r, left, block, row.line);
     return;
   }
-  const x = keyed ? left + 2 + how.keys : left + 1;
-  if (row.entry) {
-    drawWritten(grid, r, row.title ? x : left + 1, { ...row, entry: row.entry });
+  const x = keyed ? left + 2 + keys : left + 1;
+  if (row.as === "entry") {
+    drawRowEntry(grid, r, row.entry.label ? x : left + 1, row.entry);
     return;
   }
-  const on = row.selected ?? false;
+  const on = row.chosen;
   if (on) for (let c = left; c < left + block; c++) put(grid, c, r, { text: " ", tone: "t1" }, true);
-  /** What cannot be chosen now is all in the faintest tone: its key, its name and why. */
-  const quiet = (fallback: Tone): Tone => (row.off ? "t3" : fallback);
-  const tone = (fallback: Tone): Tone => (on ? "t1" : quiet(fallback));
-  if (keyed && row.key) put(grid, left + 1, r, { text: `[${row.key}]`, tone: tone("t3") }, on);
-  const detail = row.detail ?? "";
-  const fact = (how.reads === true || row.still === true) && detail !== "";
+  if (keyed && row.key) put(grid, left + 1, r, { ...row.key, text: `[${row.key.text}]` }, on);
+  const datum = row.datum?.text ?? "";
+  const leads = row.whole === "datum";
   const room = block - (x - left);
-  /** What does not fit is cut from what is not being read. Where a datum is read, from its name: the datum at the
-   * right is whole while the name keeps a dozen. Where a row is chosen, from what is beside it: the name is whole
-   * while what is beside it keeps a dozen. */
-  const [first, second] = fact ? [detail, row.title] : [row.title, detail];
+  /** What does not fit is cut from the side that is not kept whole: that one keeps a dozen. */
+  const [first, second] = leads ? [datum, row.name.text] : [row.name.text, datum];
   const whole = fit(first, Math.max(room - Math.min(width(second), 12) - 2, 10));
   const cut = fit(second, room - width(whole) - 2);
-  const [shown, title] = fact ? [whole, cut] : [cut, whole];
-  put(grid, x, r, { text: title, tone: tone(fact ? "t2" : "t1"), bold: on }, on);
-  if (shown) putRight(grid, left + block - 1, r, [{ text: shown, tone: tone(row.tone ?? (fact ? "t1" : "t2")) }], on);
+  const [shown, title] = leads ? [whole, cut] : [cut, whole];
+  put(grid, x, r, { ...row.name, text: title }, on);
+  if (shown && row.datum) putRight(grid, left + block - 1, r, [{ ...row.datum, text: shown }], on);
 }
 
 /** Word wrap that keeps each word's tone; a span never starts a line with a space. A line break in what is said
@@ -86,57 +80,45 @@ interface Drawn {
   readonly indent: number;
   readonly lit: boolean;
 }
-function linesOf(event: ThreadEvent, block: number): readonly Drawn[] {
-  const quiet = (spans: readonly Span[]): readonly Span[] =>
-    event.muted ? spans.map(span => ({ ...span, tone: "t3" as const })) : spans;
-  const on = event.selected ?? false;
-  const indent = event.head || event.nested ? 1 : 0;
+function linesOf(event: EventPiece, block: number): readonly Drawn[] {
+  const on = event.lit;
+  const indent = event.indent ? 1 : 0;
   return [
-    ...(event.head ? [{ spans: quiet(event.head), indent: 0, lit: on }] : []),
-    ...(event.quote ? [{ spans: [{ text: fit(event.quote, block - 2), tone: "t3" as const }], indent, lit: on }] : []),
-    ...wrapped(quiet(event.text), block - 1 - indent).map(spans => ({ spans, indent, lit: on })),
-    ...(event.attachments ?? []).map(attachment => ({
-      spans:
-        event.muted && !attachment.selected
-          ? [{ text: `${attachment.title} · ${attachment.detail}`, tone: "t3" as const }]
-          : [
-              { text: attachment.title, tone: "t1" as const, bold: true },
-              { text: ` · ${attachment.detail}`, tone: "t3" as const },
-            ],
-      indent,
-      lit: attachment.selected ?? false,
-    })),
+    ...(event.head ? [{ spans: event.head, indent: 0, lit: on }] : []),
+    ...(event.quote ? [{ spans: [{ ...event.quote, text: fit(event.quote.text, block - 2) }], indent, lit: on }] : []),
+    ...wrapped(event.text, block - 1 - indent).map(spans => ({ spans, indent, lit: on })),
+    ...event.attached.map(attached => ({ spans: attached.line, indent, lit: attached.lit })),
   ];
 }
 const blank: Drawn = { spans: [], indent: 0, lit: false };
 
 /** The options of a question, above the toolbar: with how many are left out before the first and after the last. */
-function drawOptions(grid: Grid, options: readonly Row[], more: Left, left: number, block: number): void {
-  const keyed = options.some(row => row.key);
-  let r = grid.length - 3 - options.length - Number(more.above > 0) - Number(more.below > 0);
-  if (more.above) put(grid, left + 1, r++, { text: `↑ ${more.above} ${said.more}`, tone: "t3" });
-  for (const row of options) drawRow(grid, r++, { left, block }, row, { keys: keyed ? 3 : 0 });
-  if (more.below) put(grid, left + 1, r, { text: `↓ ${more.below} ${said.more}`, tone: "t3" });
+function drawOptions(grid: Grid, options: OptionsPiece | undefined, left: number, block: number): void {
+  const rows = options?.rows ?? [];
+  let r = grid.length - 3 - rows.length - Number(Boolean(options?.above)) - Number(Boolean(options?.below));
+  if (options?.above) put(grid, left + 1, r++, options.above.text);
+  for (const row of rows) drawRow(grid, r++, { left, block }, row, options?.keyed ? 3 : 0);
+  if (options?.below) put(grid, left + 1, r, options.below.text);
 }
-type Left = Readonly<{ above: number; below: number }>;
-export function drawThread(grid: Grid, body: Extract<Body, { kind: "thread" }>, left: number, block: number): void {
-  const options = body.options ?? [];
-  const more = body.more ?? { above: 0, below: 0 };
-  const listed = options.length + Number(more.above > 0) + Number(more.below > 0);
-  const taken = options.length ? listed + 1 : Number(Boolean(body.entry)) * 2 + Number(Boolean(body.reference));
+export function drawThread(grid: Grid, thread: ThreadPiece, left: number, block: number): void {
+  const { options } = thread;
+  const listed = (options?.rows.length ?? 0) + Number(Boolean(options?.above)) + Number(Boolean(options?.below));
+  const taken = options?.rows.length
+    ? listed + 1
+    : Number(Boolean(thread.entry)) * 2 + Number(Boolean(thread.reference));
   const bottom = grid.length - 4 - taken;
-  const lines = body.events.flatMap((event, i) => [...(i && !event.nested ? [blank] : []), ...linesOf(event, block)]);
+  const lines = thread.events.flatMap((event, i) => [...(i && !event.nested ? [blank] : []), ...linesOf(event, block)]);
   const room = bottom - 3 + 1;
   const lit = lines.findIndex(line => line.lit);
   const overflow = Math.max(lines.length - room + (lines.length > room ? 1 : 0), 0);
   /** What does not fit is cut from the top; reading back brings it down a window at a time, saying what is below. */
-  const cut = Math.max((lit >= 0 ? Math.min(overflow, lit) : overflow) - (body.read ?? 0) * Math.max(room - 2, 1), 0);
+  const cut = Math.max((lit >= 0 ? Math.min(overflow, lit) : overflow) - thread.read * Math.max(room - 2, 1), 0);
   const fits = room - (cut ? 1 : 0);
   /** What is left below is counted only where a line of what is said still fits above the count. */
   const under = fits > 1 && lines.length - cut > fits ? lines.length - cut - fits + 1 : 0;
   const shown = lines.slice(cut, cut + fits - (under ? 1 : 0));
-  if (cut) put(grid, left, 3, { text: `↑ ${cut} ${said.more}`, tone: "t3" });
-  if (under) put(grid, left, bottom, { text: `↓ ${under} ${said.more}`, tone: "t3" });
+  if (cut) put(grid, left, 3, leftOut("above", cut).text);
+  if (under) put(grid, left, bottom, leftOut("below", under).text);
   const rowOf = (i: number): number => bottom - (under ? 1 : 0) - shown.length + 1 + i;
   const first = shown.findIndex(line => line.lit);
   const last = shown.findLastIndex(line => line.lit);
@@ -152,29 +134,28 @@ export function drawThread(grid: Grid, body: Extract<Body, { kind: "thread" }>, 
     let col = left + line.indent;
     for (const span of line.spans) col = put(grid, col, r, span);
   });
-  drawOptions(grid, options, more, left, block);
-  drawEntry(grid, body, left);
+  drawOptions(grid, options, left, block);
+  drawEntry(grid, thread, left);
 }
 /** What opened: its header, its line, and as much as fits from where it is scrolled. */
-export function drawPanel(grid: Grid, panel: Panel, col: number, room: number, split: number): void {
+export function drawPanel(grid: Grid, panel: PanelPiece, col: number, room: number, split: number): void {
   const rows = grid.length;
-  const quiet = (tone: Tone): Tone => (panel.focused ? tone : "t3");
-  const detail = panel.detail ?? "";
-  put(grid, col, 2, { text: fit(panel.title, room - width(detail) - 2), tone: quiet("t1") });
-  putRight(grid, col + room, 2, [{ text: detail, tone: "t3" }]);
+  const detail = panel.detail.text;
+  put(grid, col, 2, { ...panel.title, text: fit(panel.title.text, room - width(detail) - 2) });
+  putRight(grid, col + room, 2, [panel.detail]);
   if (split >= 0) for (let r = 2; r < rows - 2; r++) put(grid, split, r, { text: "│", tone: "line" });
   for (let c = Math.max(split + 1, 0); c < (grid[3]?.length ?? 0); c++) put(grid, c, 3, { text: "─", tone: "line" });
   const lines = panel.lines.flatMap(line => (line.length ? wrapped(line, room) : [[]]));
   lines.slice(panel.top, panel.top + rows - 7).forEach((line, i) => {
     let c = col;
-    for (const span of line) c = put(grid, c, 4 + i, { ...span, tone: quiet(span.tone) });
+    for (const span of line) c = put(grid, c, 4 + i, span);
   });
 }
 /** One thing in the middle: a greeting, and what to do. */
-export function drawFocus(grid: Grid, body: Extract<Body, { kind: "focus" }>, cols: number): void {
+export function drawFocus(grid: Grid, focus: FocusPiece, cols: number): void {
   const middle = Math.floor(grid.length / 2) - 1;
-  put(grid, Math.floor((cols - width(body.title)) / 2), middle, { text: body.title, tone: "t1", bold: true });
-  body.lines.forEach((line, i) => {
+  put(grid, Math.floor((cols - width(focus.title.text)) / 2), middle, focus.title);
+  focus.lines.forEach((line, i) => {
     let col = Math.floor((cols - line.reduce((sum, span) => sum + width(span.text), 0)) / 2);
     for (const span of line) col = put(grid, col, middle + 2 + i, span);
   });

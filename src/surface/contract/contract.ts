@@ -18,7 +18,9 @@ export type Intent =
     }
   | { readonly kind: "type"; readonly text: string }
   /** A whole text brought at once: written where something is being written, and never a key. */
-  | { readonly kind: "paste"; readonly text: string };
+  | { readonly kind: "paste"; readonly text: string }
+  /** The person pointed at a row: the one with this identity, wherever it is drawn now. */
+  | { readonly kind: "choose"; readonly row: string };
 export interface Row {
   readonly key?: string;
   readonly title: string;
@@ -32,6 +34,10 @@ export interface Row {
   readonly entry?: { readonly typed: string; readonly caret: number };
   /** One line drawn as it is: a line of a block, of a chart, of a page. */
   readonly spans?: readonly Span[];
+  /** What this row is, whatever place it is drawn at. Only a row that can be chosen now has one. */
+  readonly id?: string;
+  /** In a question that takes several: whether this one is taken. `key` still says it to who has keys. */
+  readonly marked?: boolean;
 }
 export interface Stack {
   readonly title: string;
@@ -68,7 +74,15 @@ export type Body =
       readonly options?: readonly Row[];
       /** How many options are left out above and below the ones that fit. */
       readonly more?: { readonly above: number; readonly below: number };
-      readonly entry?: { readonly typed: string; readonly caret: number; readonly placeholder: string } & {
+      readonly entry?: {
+        readonly typed: string;
+        readonly caret: number;
+        readonly placeholder: string;
+        /** The keys it asks for: its mask's, or text. */
+        readonly keyboard: Keypad;
+      } & {
+        /** What is written is a secret: it arrives covered, and no renderer keeps, completes or suggests it. */
+        readonly secret?: true;
         /** What is written was there when the question opened: it is shown whole, as what a key would replace. */
         readonly suggested?: true;
         /** The unfilled part of a mask, shown after the written part in text 3. */
@@ -124,8 +138,12 @@ interface Question {
   /** It is all its act asks: choosing what the datum already is would change nothing, so that option is off. */
   readonly only?: true;
 }
+/** The keys a written field asks for. */
+export type Keypad = "digits" | "decimal" | "text";
 /** What a field with a format takes and shows: only the keys that fit it, and its shape before anything is typed. */
 export interface Mask {
+  /** The keys it asks for: what a renderer that draws its own keyboard offers. */
+  readonly keyboard: Keypad;
   readonly empty: string;
   /** What is typed after one more key; the same as before when the key does not fit. */
   put(typed: string, text: string): string;

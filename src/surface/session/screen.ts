@@ -32,9 +32,7 @@ export interface Bar {
   readonly battery?: string;
   readonly now: number;
 }
-export interface Viewport {
-  readonly rows: number;
-}
+export type { Viewport } from "../contract/viewport.ts";
 export interface Stepped {
   readonly session: Session;
   readonly run?: Running;

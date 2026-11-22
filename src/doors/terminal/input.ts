@@ -1,6 +1,7 @@
 // A terminal's keys, in the words of the surface; anything else does nothing.
 import type { Intent } from "../../surface/contract/contract.ts";
-type Pressed = Exclude<Intent["kind"], "type" | "paste">;
+import { pasteLimit } from "../../surface/contract/limits.ts";
+type Pressed = Exclude<Intent["kind"], "type" | "paste" | "choose">;
 const sequences: Readonly<Record<string, Pressed>> = {
   "\x1b[A": "up",
   "\x1b[B": "down",
@@ -25,8 +26,6 @@ const controls: Readonly<Record<string, Pressed>> = {
 /** What a terminal puts around what is pasted, once it is asked to; and how it is asked, and told to stop. */
 const brackets = { start: "\x1b[200~", end: "\x1b[201~" } as const;
 export const pasteBrackets = { on: "\x1b[?2004h", off: "\x1b[?2004l" } as const;
-/** How much of one paste is kept: what comes past it is left out. */
-export const pasteLimit = 100_000;
 /** The start of a paste after its escape: what may still come once that escape was taken for the escape key. */
 const startRest = brackets.start.slice(1);
 /** The keys that leave: ctrl c and ctrl d. */

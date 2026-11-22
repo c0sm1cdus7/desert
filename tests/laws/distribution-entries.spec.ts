@@ -1,3 +1,4 @@
+// A distribution's entries: the host and door entries stay out of a program's reach and its secret API, every one.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "vitest";
@@ -96,6 +97,8 @@ it("does not silently bypass the secret boundary without testDistribution", () =
 for (const testDistribution of [false, true])
   for (const entry of [
     "surface/house-router",
+    "surface/contract",
+    "surface/pieces",
     "runtime/cloud",
     "doors/keys",
     "doors/mcp/handler",
@@ -105,6 +108,8 @@ for (const testDistribution of [false, true])
     "doors/socket",
     "doors/mcp",
     "calculation",
+    "doors/screen",
+    "doors/screen/wire",
   ])
     it.each([
       `import "desert/${entry}";`,

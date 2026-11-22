@@ -1,9 +1,9 @@
 // Walks a surface by its own intents, from a fresh set of tools each time, so no path has to be written by hand.
-import type { Hint, Intent, Screen, Span, ThreadEvent } from "../../src/surface/contract/contract.ts";
-import type { Tool } from "../../src/surface/contract/shown-tool.ts";
-import { resolve } from "../../src/surface/router/resolve.ts";
-import { actOf, start, type Session } from "../../src/surface/session/screen.ts";
-import { finished, settled, step } from "../../src/surface/router/step.ts";
+import type { Hint, Intent, Screen, Span, ThreadEvent } from "../surface/contract/contract.ts";
+import type { Tool } from "../surface/contract/shown-tool.ts";
+import { resolve } from "../surface/router/resolve.ts";
+import { actOf, start, type Session } from "../surface/session/screen.ts";
+import { finished, settled, step } from "../surface/router/step.ts";
 
 const bar = { state: "connected", clock: "14:32", now: 5_000 } as const;
 const tries: readonly Intent[] = [
@@ -13,6 +13,8 @@ const tries: readonly Intent[] = [
   { kind: "switch" },
   { kind: "type", text: "x" },
   { kind: "type", text: "f" },
+  /** A space marks an option of a many question, and starts looking for something on a menu. */
+  { kind: "type", text: " " },
   { kind: "erase" },
   { kind: "cancel" },
 ];
@@ -20,8 +22,10 @@ export interface Stop {
   readonly screen: Screen;
   readonly path: readonly Intent[];
 }
-async function replay(tools: readonly Tool[], path: readonly Intent[], rows: number) {
-  let session: Session = start;
+/** The session a path leaves, from the Menu or from where it is given: each act it starts has run and each message
+ * it sends has been answered before the next intent, as a person who waits sees it. */
+export async function replayed(tools: readonly Tool[], path: readonly Intent[], from = start): Promise<Session> {
+  let session: Session = from;
   for (const intent of path) {
     const stepped = step(session, intent, tools, bar.now);
     session = stepped.session;
@@ -31,10 +35,18 @@ async function replay(tools: readonly Tool[], path: readonly Intent[], rows: num
       session = finished(session, run, await actOf(tools, run).run(run.answers), "14:33");
     }
   }
-  return resolve(session, tools, bar, { rows });
+  return session;
 }
-/** Every distinct screen within reach, each with the intents that reach it. */
-export async function walk(fresh: () => readonly Tool[], rows: number, most: number): Promise<readonly Stop[]> {
+const replay = async (tools: readonly Tool[], path: readonly Intent[], rows: number) =>
+  resolve(await replayed(tools, path), tools, bar, { rows });
+/** Every distinct screen within reach, each with the intents that reach it; then the screen of each path given,
+ * for what lies deeper than the walk goes before its cap: a path is written by hand, a screen never is. */
+export async function surfaceWalk(
+  fresh: () => readonly Tool[],
+  rows: number,
+  most: number,
+  also: readonly (readonly Intent[])[] = [],
+): Promise<readonly Stop[]> {
   const seen = new Map<string, Stop>();
   const queue: Intent[][] = [[]];
   let budget = most * 30; // Most paths land on a screen already seen: stop looking long before they all run out.
@@ -45,6 +57,11 @@ export async function walk(fresh: () => readonly Tool[], rows: number, most: num
     if (seen.has(key)) continue;
     seen.set(key, { screen, path });
     for (const intent of tries) queue.push([...path, intent]);
+  }
+  for (const path of also) {
+    const screen = await replay(fresh(), path, rows);
+    const key = JSON.stringify(screen);
+    if (!seen.has(key)) seen.set(key, { screen, path });
   }
   return [...seen.values()];
 }

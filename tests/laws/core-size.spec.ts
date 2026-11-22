@@ -113,10 +113,12 @@ describe("the tree of src/", () => {
   // 21/11 stops that loop: +1 exact in supervisor.texts.ts: a stopped consciousness that fails having done nothing.
   // 22/11 whom a message wakes: +4 exact (program mind 2, assistant 1, supervisor 1): two wake, more must be named.
   // 22/11 «Con arroba»: +1 exact in supervisor.texts.ts: «hilo individual», «en grupo» and how a mind is named with @.
-  it("keeps every file within 300 lines and the texts within 1413", () => {
+  // 22/11 surfaces, stage 1: +1 exact in surface.texts.ts: the seven key names move out of paint.ts, unchanged.
+  // 22/11 surfaces, stage 2: +15 exact in screen-door.texts.ts: the entry's words and mask, a cut session's notice.
+  it("keeps every file within 300 lines and the texts within 1429", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1413);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1429);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

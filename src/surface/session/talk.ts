@@ -2,6 +2,7 @@
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import type { Attachment, Body, Hint, Intent, Panel, Span, ThreadEvent } from "../contract/contract.ts";
 import type { Conversation, Said, Tool } from "../contract/shown-tool.ts";
+import { talkIds, withId } from "./row-id.ts";
 import { must } from "./window.ts";
 export interface Talk {
   readonly kind: "talk";
@@ -78,16 +79,22 @@ export function talkBody(place: Talk, talk: Conversation): Body {
   const question = asking(place, talk);
   const placeholder = stop ? said.talk.answering : said.talk.writing;
   if (question) {
-    const rows = question.options.map((row, i) => ({ ...row, selected: i === place.option }));
-    const writing = place.option === rows.length;
-    const other = { title: said.talk.other, ...(writing ? { entry: { typed: place.typed, caret: place.caret } } : {}) };
+    const writing = place.option === question.options.length;
+    const ids = talkIds(question.options, writing);
+    const rows = question.options.map((row, i) => ({ ...withId(row, ids[i]), selected: i === place.option }));
+    const id = ids.at(-1);
+    const other = {
+      title: said.talk.other,
+      ...(writing ? { entry: { typed: place.typed, caret: place.caret } } : {}),
+      ...(id === undefined ? {} : { id }),
+    };
     return { kind: "thread", events: eventsOf(place, talk), options: [...rows, other] };
   }
   return {
     kind: "thread",
     events: eventsOf(place, talk),
     ...(stop && !stop.attachment && place.typed ? { reference: quoteOf(stop.said) } : {}),
-    ...(place.inPanel ? {} : { entry: { typed: place.typed, caret: place.caret, placeholder } }),
+    ...(place.inPanel ? {} : { entry: { typed: place.typed, caret: place.caret, placeholder, keyboard: "text" } }),
   };
 }
 export const talkPanel = (place: Talk, talk: Conversation): Panel | undefined =>
@@ -134,7 +141,11 @@ export function edited<T extends { readonly typed: string; readonly caret: numbe
 ): T | undefined {
   const chars = Array.from(place.typed);
   const { caret } = place;
-  if (key.kind === "type") return { ...place, typed: chars.toSpliced(caret, 0, key.text).join(""), caret: caret + 1 };
+  if (key.kind === "type") {
+    /** The caret goes past all a key wrote, counted as the typed text is: one place per character. */
+    const typed = chars.toSpliced(caret, 0, key.text).join("");
+    return { ...place, typed, caret: caret + Array.from(key.text).length };
+  }
   if (key.kind === "erase" && caret > 0)
     return { ...place, typed: chars.toSpliced(caret - 1, 1).join(""), caret: caret - 1 };
   if (key.kind === "left") return { ...place, caret: Math.max(caret - 1, 0) };
@@ -180,6 +191,13 @@ export function talkStep(place: Talk, key: Intent, talk: Conversation): Talk | "
   const stops = stopsOf(talk.said());
   const question = asking(place, talk);
   if (place.sending && key.kind === "confirm") return place;
+  if (question && key.kind === "choose") {
+    /** An answer pointed at is the cursor brought to it and Enter; «other» is the cursor brought to it. */
+    const at = talkIds(question.options, place.option === question.options.length).indexOf(key.row);
+    if (at < 0) return place;
+    const there = { ...place, option: at };
+    return at === question.options.length ? there : talkStep(there, { kind: "confirm" }, talk);
+  }
   if (question) return answering(place, key, talk, question);
   if (place.inPanel) return inPanel(place, key, place.open === undefined ? 0 : talk.open(place.open).lines.length);
   if (key.kind === "cancel") return place.at >= 0 ? { ...place, at: -1 } : "leave";

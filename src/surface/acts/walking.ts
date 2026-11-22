@@ -22,6 +22,7 @@ import {
 import { answersAfter } from "../session/kept-answers.ts";
 import { writtenAnswer } from "./written-answer.ts";
 import { movedOptions } from "../menus/reading.ts";
+import { optionIds } from "../session/row-id.ts";
 import { must } from "../session/window.ts";
 type Tools = readonly Tool[];
 export const up = (session: Session): Session => (session.length > 1 ? session.slice(0, -1) : session);
@@ -153,6 +154,19 @@ function picking(
   if (key.kind === "up" || key.kind === "down") return set(movedOptions(found, walk.at, key.kind, walk.reading));
   return taken(key.kind === "confirm" ? found[walk.at] : undefined);
 }
+/** An option pointed at is the cursor brought to it, with the options back in view as a key brings them, and the
+ * key that takes it: space in a question that takes several, Enter in any other. */
+function pointed(session: Session, walk: Asking, tools: Tools, field: Field, row: string, now: number): Stepped {
+  const options = field.kind === "pick" ? pickedFrom(field, walk) : optionsOf(field);
+  const at = optionIds(field, options).indexOf(row);
+  if (at < 0) return { session };
+  const { reading: _reading, ...shown } = walk;
+  const there: Asking = { ...shown, ...(walk.read ? { read: 0 } : {}), at };
+  const moved = replace(session, there);
+  if (field.kind === "pick") return picking(moved, there, tools, field, { kind: "confirm" }, now);
+  const takes: Intent = field.kind === "many" ? { kind: "type", text: " " } : { kind: "confirm" };
+  return choosing(moved, there, tools, field, takes, now);
+}
 function back(session: Session, walk: Asking, tools: readonly Tool[]): Session {
   const {
     error: _gone,
@@ -184,6 +198,7 @@ export function walking(session: Session, walk: Walk, tools: readonly Tool[], ke
   }
   if (walk.phase !== "asking") return { session };
   const field = must(fieldOf(tools, walk));
+  if (key.kind === "choose") return pointed(session, walk, tools, field, key.row, now);
   if (walk.reading !== undefined && key.kind === "confirm") {
     const { reading: _reading, ...back } = walk;
     return { session: replace(session, back) };

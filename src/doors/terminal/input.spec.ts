@@ -1,7 +1,8 @@
 // The keys of a terminal as they really come: cut between chunks, pasted, and with keys this surface has no word for.
 import { describe, expect, it } from "vitest";
 import type { Intent } from "../../surface/contract/contract.ts";
-import { keyReader, keysOf, pasteLimit } from "./input.ts";
+import { pasteLimit } from "../../surface/contract/limits.ts";
+import { keyReader, keysOf } from "./input.ts";
 
 const arrows = { "\x1b[A": "up", "\x1b[B": "down", "\x1b[C": "right", "\x1b[D": "left" } as const;
 const application = { "\x1bOA": "up", "\x1bOB": "down", "\x1bOC": "right", "\x1bOD": "left" } as const;

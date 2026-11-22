@@ -2,6 +2,7 @@
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import type { Body, Field, Hint, Row, Span, ThreadEvent } from "../contract/contract.ts";
 import type { Tool } from "../contract/shown-tool.ts";
+import { optionIds, withId } from "../session/row-id.ts";
 import { errorSpans } from "../session/talk.ts";
 import { must } from "../session/window.ts";
 import {
@@ -44,10 +45,11 @@ const shapeOf = (field: Field): string => {
  * for one, where they write comes first and the rows carry no key. */
 function pickRows(walk: Walk, question: Field & { kind: "pick" }): readonly Row[] {
   const found = pickedFrom(question, walk);
+  const ids = optionIds(question, found);
   const rows = found.map((option, i): Row => {
     /** What makes a new one keeps the key of its act; the things there are take their number. */
     const key = walk.finding || i > 8 || option.makes || option.off ? {} : { key: option.key ?? String(i + 1) };
-    return { ...option, ...key, selected: i === walk.at };
+    return { ...withId(option, ids[i]), ...key, selected: i === walk.at };
   });
   /** Nothing to pick among is said where the list would be: the question never stands over nothing. */
   if (!walk.finding && !rows.length && question.nothing())
@@ -88,21 +90,37 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   const note = told === undefined ? [] : [{ text: [{ text: told, tone: "t3" as const }], nested: true }];
   const events = [...answered, { text: askSpans(question) }, ...note, ...wrong];
   if (question.kind === "pick") return { kind: "thread", events, options: pickRows(walk, question) };
-  if (isTyped(field)) {
-    const typed = walk.typed === "" ? "" : maskOf(field, walk.typed);
-    const caret = "mask" in question ? Array.from(typed).length : walk.caret;
-    const whole = walk.suggested && typed !== "" ? { suggested: true as const } : {};
-    const remaining = "mask" in question ? question.mask.remaining?.(walk.typed) : undefined;
-    const padding = "mask" in question && !validOf(question, walk.typed) ? question.mask.padding?.(walk.typed) : 0;
-    const shape = { ...(typed && remaining ? { remaining } : {}), ...(typed && padding ? { padding } : {}) };
-    return { kind: "thread", events, entry: { typed, caret, placeholder: shapeOf(question), ...whole, ...shape } };
-  }
-  const options: readonly Row[] = optionsOf(field).map((option, i) => ({
-    ...option,
-    ...(field?.kind === "many" ? { key: walk.marks.includes(option.title) ? "x" : " " } : {}),
-    selected: i === walk.at,
-  }));
-  return { kind: "thread", events, options, ...(walk.read ? { read: walk.read } : {}) };
+  if (isTyped(field)) return { kind: "thread", events, entry: entryOf(walk, question) };
+  return { kind: "thread", events, options: optionRows(walk, question), ...(walk.read ? { read: walk.read } : {}) };
+}
+type Entry = NonNullable<Extract<Body, { kind: "thread" }>["entry"]>;
+/** Where an answer is written: what is written, in its shape; the keys it asks for, its mask's or text; and whether
+ * it is a secret. */
+function entryOf(walk: Walk, question: Field): Entry {
+  const typed = walk.typed === "" ? "" : maskOf(question, walk.typed);
+  const caret = "mask" in question ? Array.from(typed).length : walk.caret;
+  const whole = walk.suggested && typed !== "" ? { suggested: true as const } : {};
+  const remaining = "mask" in question ? question.mask.remaining?.(walk.typed) : undefined;
+  const padding = "mask" in question && !validOf(question, walk.typed) ? question.mask.padding?.(walk.typed) : 0;
+  const shape = { ...(typed && remaining ? { remaining } : {}), ...(typed && padding ? { padding } : {}) };
+  const keys = {
+    keyboard: "mask" in question ? question.mask.keyboard : "text",
+    placeholder: shapeOf(question),
+  } as const;
+  return { typed, caret, ...keys, ...whole, ...shape, ...(question.kind === "secret" ? { secret: true } : {}) };
+}
+/** The options of a question, each with what it is: in a question that takes several, whether it is taken, said
+ * apart from the key that shows it. */
+function optionRows(walk: Walk, field: Field): readonly Row[] {
+  const ids = optionIds(field, optionsOf(field));
+  return optionsOf(field).map((option, i) => {
+    const marked = walk.marks.includes(option.title);
+    return {
+      ...withId(option, ids[i]),
+      ...(field.kind === "many" ? { key: marked ? "x" : " ", marked } : {}),
+      selected: i === walk.at,
+    };
+  });
 }
 function enterSays(walk: Walk, field: Field | null, tools: readonly Tool[]): string {
   const options = optionsOf(field);

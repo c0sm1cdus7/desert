@@ -62,6 +62,7 @@ it("identifies the field whose mask failed", () => {
     kind: "text",
     ask: "Propina",
     mask: {
+      keyboard: "digits",
       empty: "",
       put: typed => typed,
       shown: () => {

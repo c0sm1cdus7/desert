@@ -10,7 +10,7 @@ export type Locale = Readonly<{ currency: string; thousands: string; decimal: st
 /** A mask that also knows the value it stands for, both ways: what was typed as data, and data as typed. */
 export type Format = Mask &
   Readonly<{ currency?: string; inCurrency?(symbol: string): Format }> &
-  Readonly<{ value(typed: string): unknown; typed(value: unknown): string; keyboard: "digits" | "decimal" | "text" }>;
+  Readonly<{ value(typed: string): unknown; typed(value: unknown): string }>;
 export type FormatName = "money" | "quantity" | "count" | "day" | "number";
 const digits = /^\d+$/;
 /** How many: digits, and one decimal mark after at least one digit. */

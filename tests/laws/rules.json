@@ -52,7 +52,11 @@
       "rule": "Tres zonas que nunca se mueven (Barra, Contenido, Toolbar)",
       "from": "REGLAS §3",
       "guarantee": "surface",
-      "evidence": ["src/doors/terminal/paint.ts", "src/doors/socket/client/same-screens.spec.ts"]
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
+      ]
     },
     {
       "id": 6,
@@ -87,7 +91,8 @@
       "evidence": [
         "src/doors/terminal/paint.ts",
         "src/surface/router/resolve.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -107,7 +112,8 @@
         "src/surface/contract/contract.ts",
         "src/doors/socket/client/socket-ports.spec.ts",
         "src/checks/socket-terminal.spec.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -167,7 +173,8 @@
       "evidence": [
         "src/doors/terminal/paint.ts",
         "src/surface/router/resolve.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -181,7 +188,8 @@
         "src/surface/contract/shown-tool.ts",
         "src/surface/session/talk.ts",
         "src/surface/acts/walk.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -249,7 +257,8 @@
       "evidence": [
         "src/doors/terminal/paint.ts",
         "src/doors/terminal/thread.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -349,7 +358,8 @@
       "evidence": [
         "src/doors/terminal/thread.ts",
         "src/surface/session/talk.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -360,7 +370,8 @@
       "evidence": [
         "src/doors/terminal/paint.ts",
         "src/doors/terminal/thread.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -435,7 +446,8 @@
       "evidence": [
         "src/doors/terminal/thread.ts",
         "src/surface/menus/lists.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -470,7 +482,8 @@
         "src/surface/session/terminal.spec.ts",
         "src/surface/session/window.spec.ts",
         "src/surface/session/window.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -491,7 +504,8 @@
         "src/doors/terminal/thread.ts",
         "src/checks/promises/promised-keys.ts",
         "src/checks/promises/walk/promised-walk.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -502,7 +516,8 @@
       "evidence": [
         "src/doors/terminal/paint.ts",
         "src/surface/bridge/ports/house-ports.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -543,7 +558,8 @@
       "evidence": [
         "src/fields/opacity-surface.spec.ts",
         "src/checks/opacity-terminal.spec.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/surface/acts/walk-entry.spec.ts"
       ]
     },
     {
@@ -566,7 +582,8 @@
         "src/fields/fields.ts",
         "src/surface/contract/contract.ts",
         "src/surface/formats/masks.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/surface/acts/walk-entry.spec.ts"
       ]
     },
     {
@@ -586,7 +603,8 @@
         "src/surface/acts/walk.ts",
         "src/fields/fields.ts",
         "src/surface/bridge/questions/asking.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/surface/acts/walk-marked.spec.ts"
       ]
     },
     {
@@ -817,7 +835,8 @@
       "evidence": [
         "src/doors/terminal/thread.ts",
         "src/surface/acts/walk.ts",
-        "src/doors/socket/client/same-screens.spec.ts"
+        "src/doors/socket/client/same-screens.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -3408,6 +3427,256 @@
         "src/tools/minds/journey-wait-notice.spec.ts",
         "src/runtime/minds/wake-words.spec.ts",
         "src/runtime/minds/supervisor-turns.spec.ts"
+      ]
+    },
+    {
+      "id": 307,
+      "rule": "La pantalla viaja con su forma cerrada: `wire` arma cada objeto campo por campo, sin spread, sin Object.assign y sin ida y vuelta por JSON, así que una clave que el contrato no nombra nunca sale; `WireScreen` y `Screen` son el mismo tipo, campos opcionales incluidos, o no compila. Una intención que llega pasa `parseIntent` o se rechaza con uno de sus motivos: forma, tipo, largo o control de una tecla, largo de un pegado.",
+      "from": "22/11 · superficies, etapa 1",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/wire-shape.spec.ts",
+        "src/surface/contract/wire.spec.ts",
+        "src/surface/contract/wire.ts"
+      ]
+    },
+    {
+      "id": 308,
+      "rule": "Las pantallas de referencia (`tests/fixtures/wire-screens.json`) son el recorrido de hoy con su forma de viaje, una por renglón, escritas por `pnpm screens` y nunca a mano; la ley las regenera en memoria y las compara. Tienen que mostrar cada forma que un renderer dibuja (cada pista, lista e hilo, cada clase de fila, de pila, de entrada y de evento, panel enfocado y completo, Menú sí y no) y nombran la que falte.",
+      "from": "22/11 · superficies, etapa 1",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/wire-screens.spec.ts",
+        "tests/support/write-wire-screens.ts"
+      ]
+    },
+    {
+      "id": 309,
+      "rule": "La entrada `desert/surface/contract` es para renderers y puertas: lo que importa, siguiendo cada import, queda en el contrato, sus textos y TypeBox, sin ningún módulo de node, para que la cargue un navegador; y ningún programa la puede importar, porque un programa nunca dibuja.",
+      "from": "22/11 · superficies, etapa 1",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/surface-contract-entry.spec.ts",
+        "tests/laws/distribution-entries.spec.ts"
+      ]
+    },
+    {
+      "id": 320,
+      "rule": "El banco de piezas es un conjunto cerrado de quince clases (superficie, barra, latido, toolbar, acción, aviso, entrada, fila, pila, lista, opciones, evento, hilo, foco y panel), escritas una por una en la ley: una clase nueva se conversa antes y no entra sin querer.",
+      "from": "22/11 · superficies, banco de piezas",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/pieces-closed.spec.ts"
+      ]
+    },
+    {
+      "id": 321,
+      "rule": "Las reglas de forma se sostienen una sola vez, sobre las piezas, para todo renderer: el orden de las zonas, el latido, una barra sin palabras propias, los controles fijos, una acción por pista y lo que manda, sus verbos, lo apagado en su lugar y con su motivo, lo elegido, el dato que lidera lo que se lee, el lugar de las teclas, cuánto queda afuera, la pila vacía, lo apagado en texto 3, la forma de la entrada y la ventana chica. Cada una puede fallar sola.",
+      "from": "22/11 · superficies, banco de piezas",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/piece-rules.spec.ts",
+        "src/surface/pieces/pieces-of.spec.ts",
+        "src/surface/pieces/pieces-conformance.spec.ts"
+      ]
+    },
+    {
+      "id": 322,
+      "rule": "La terminal solo pinta piezas: `paint.ts`, `thread.ts` y `entry.ts` no leen el catálogo, del contrato toman solo tramos, temas y tonos (y `paint.ts` la pantalla de su firma), y no escriben ninguna palabra: cada nombre que escriben es uno de un conjunto cerrado que declaran sus tipos.",
+      "from": "22/11 · superficies, banco de piezas",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/painters.spec.ts"
+      ]
+    },
+    {
+      "id": 323,
+      "rule": "Los cuadros de la terminal están congelados: para cada pantalla de referencia y cada pantalla armada a mano, en ocho tamaños y en los tres temas, un resumen de los bytes que pinta; los escribió una sola vez el pintor sin tocar, y la ley los regenera en memoria y nombra cada pantalla que cambió.",
+      "from": "22/11 · superficies, banco de piezas",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/terminal-frames.spec.ts",
+        "tests/support/write-terminal-frames.ts"
+      ]
+    },
+    {
+      "id": 324,
+      "rule": "Ningún programa ni distribución escribe interfaz: ni archivos que son interfaz por su clase, ni imports o dependencias de lo que pinta (las entradas de pintura de DESERT y una lista cerrada de frameworks), ni bytes pintados a mano, ni la interfaz de dibujo del navegador. Lo que una distribución admite va en `desert.laws.interface`, archivo por archivo y con su motivo; una excepción que no admite nada se rechaza.",
+      "from": "22/11 · superficies, banco de piezas",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/laws/interface-code.spec.ts",
+        "tests/laws/interface-code.spec.ts"
+      ]
+    },
+    {
+      "id": 325,
+      "rule": "La entrada `desert/surface/pieces` es para pintores: lo que importa, siguiendo cada import, queda en las piezas, tres archivos del contrato y el catálogo de la superficie, sin módulos de node ni paquetes, para que la cargue un navegador; y ningún programa la puede importar, porque un programa nunca dibuja.",
+      "from": "22/11 · superficies, banco de piezas",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/surface-pieces-entry.spec.ts",
+        "tests/laws/distribution-entries.spec.ts"
+      ]
+    },
+    {
+      "id": 340,
+      "rule": "La puerta de pantallas dibuja solo para quien mira: llama a la pantalla del router dentro de un `look`, de un `send` o de un tic, y solo por un cliente conectado y visible, una vez por tamaño distinto; sin nadie que mire, no dibuja.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/screen-door.spec.ts",
+        "src/doors/screen/screen-session.ts"
+      ]
+    },
+    {
+      "id": 341,
+      "rule": "Cada cliente aplica sus lotes en orden y una sola vez: el `seq` siguiente se aplica entero; el mismo otra vez contesta lo que produjo; uno salteado se rechaza `gap` y uno viejo `old`; cada cliente lleva su propio `seq`, y otra época se rechaza `epoch`.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/screen-door.spec.ts",
+        "src/doors/screen/screen-door.ts"
+      ]
+    },
+    {
+      "id": 342,
+      "rule": "Un Enter sobre una pantalla que ya no significa lo mismo se rechaza `stale`, con su lote entero: por cada uno de los últimos 64 `rev` de cada cliente queda el título, lo elegido y la palabra de confirmar, que el reloj o una cuenta que corre no cambian. Escribir, borrar, moverse, cancelar, Menú, cambiar y pegar no se cuidan. Una intención nueva no compila hasta que alguien diga si se cuida. Lectura de la etapa 2, sin firma del dueño.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/guard.spec.ts",
+        "src/doors/screen/guard.ts"
+      ]
+    },
+    {
+      "id": 343,
+      "rule": "Un rechazo de la puerta de pantallas no cambia la sesión y siempre contesta con el marco actual y su motivo, de un conjunto cerrado; el cliente no tiene palabras propias para eso.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/screen-door.spec.ts",
+        "src/doors/screen/screen-session.ts"
+      ]
+    },
+    {
+      "id": 344,
+      "rule": "Una sesión sin clientes conectados ni pedidos durante 30 minutos se cierra: router detenido, canal con la casa cerrado, sesión olvidada. El tiempo es el del anfitrión: la puerta no arma temporizadores propios ni lee `Date.now`.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/screen-door.spec.ts",
+        "src/doors/screen/screen-door.ts"
+      ]
+    },
+    {
+      "id": 345,
+      "rule": "Tres silencios de la puerta son una pantalla con su texto: quien vuelve de una sesión vencida entra al router nuevo detrás de un aviso que Enter deja; una casa que no abre muestra el motivo del catálogo sin nada para hacer más que esperar, y el próximo `look` vuelve a pedirla; un rechazo es el marco actual.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/screen-door.spec.ts",
+        "src/doors/screen/screen-silence.ts"
+      ]
+    },
+    {
+      "id": 346,
+      "rule": "En una puerta, un solo archivo arma un router de casa, `open-house-router.ts`, y la terminal lo usa: otra manera de armarlo no pasa el gate.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/screen-door-router.spec.ts",
+        "src/doors/socket/client/open-house-router.ts"
+      ]
+    },
+    {
+      "id": 347,
+      "rule": "La puerta de pantallas no habla con nada: ningún archivo de `src/doors/screen` importa red, disco ni procesos, ni nombra `fetch`, y la carpeta no está entre las que pueden hablar afuera; la red la presta el anfitrión.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/screen-door-entry.spec.ts"
+      ]
+    },
+    {
+      "id": 348,
+      "rule": "El cable de la puerta de pantallas se carga en un navegador: lo que importa es el contrato, sus textos, los límites de la puerta y TypeBox. Ningún programa importa `desert/doors/screen` ni su cable.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/screen-door-entry.spec.ts",
+        "tests/laws/distribution-entries.spec.ts",
+        "src/doors/screen/screen-wire.ts"
+      ]
+    },
+    {
+      "id": 349,
+      "rule": "Nada que mandó un cliente queda donde no debe: ninguna respuesta lleva la llave, ninguna cabecera la invitación y ningún marco de la casa el código canjeado; toda respuesta lleva `Cache-Control: no-store`, y un error no lleva nada de lo recibido.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/screen-door-http.spec.ts",
+        "src/doors/screen/screen-door.spec.ts"
+      ]
+    },
+    {
+      "id": 360,
+      "rule": "Tocar es lo mismo que las teclas: elegir una fila por su identidad deja la sesión que dejarían las teclas de la persona, el cursor llevado a esa fila y la tecla que la toma; no tiene camino propio a una herramienta. Una identidad que ninguna fila tiene no hace nada, y tampoco elegir mientras corre una acción, sobre su resultado, en la pantalla de falla o en los avisos de apertura.",
+      "from": "22/11 · superficies, etapa 4 (P7, opción A)",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/router/choose-equals-keys.spec.ts"
+      ]
+    },
+    {
+      "id": 361,
+      "rule": "Una fila que se puede elegir tiene identidad: lo que hace elegirla, nunca el lugar donde está. Es única en su pantalla, la conserva aunque la lista se mueva, y no la tiene la fila apagada, la que no lleva a nada ni la que se está escribiendo. Una identidad más larga que su tope es una falla a la vista y nunca se corta.",
+      "from": "22/11 · superficies, etapa 4 (P7, opción A)",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/session/row-id.spec.ts",
+        "src/surface/contract/wire.spec.ts",
+        "src/checks/piece-rules.spec.ts"
+      ]
+    },
+    {
+      "id": 362,
+      "rule": "Toda máscara dice qué teclado pide (dígitos, decimal o texto): una máscara sin teclado no compila.",
+      "from": "22/11 · superficies, etapa 4 (P7, opción A)",
+      "guarantee": "type",
+      "evidence": [
+        "src/surface/contract/contract.ts",
+        "src/surface/formats/masks.ts"
+      ]
+    },
+    {
+      "id": 363,
+      "rule": "Toda entrada dice qué teclado pide, el de su máscara o texto, y una entrada secreta dice que lo es.",
+      "from": "22/11 · superficies, etapa 4 (P7, opción A)",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/acts/walk-entry.spec.ts",
+        "src/checks/piece-rules.spec.ts"
+      ]
+    },
+    {
+      "id": 364,
+      "rule": "En una pregunta que toma varias, cada opción dice si está marcada aparte de su tecla, que lo sigue diciendo igual para quien tiene teclas; ninguna otra pregunta lo dice.",
+      "from": "22/11 · superficies, etapa 4 (P7, opción A)",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/acts/walk-marked.spec.ts",
+        "src/checks/piece-rules.spec.ts"
+      ]
+    },
+    {
+      "id": 365,
+      "rule": "Elegir una fila por su identidad se cuida aparte del Enter: por cada uno de esos 64 `rev` queda también qué filas se podían elegir, y el lote se rechaza `stale` si cambió el título, si la fila ya no está en la pantalla de ahora o si no estaba en la que la persona vio. Una fila que se movió o cuyo dato cambió es la misma y se aplica. Lo que abre un elegir nadie lo vio todavía: un lote con algo que se cuida después de un elegir se rechaza entero. Lectura de la etapa 4, sin firma del dueño.",
+      "from": "22/11 · superficies, etapa 4 (P7, opción A)",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/guard.spec.ts",
+        "src/doors/screen/guard.ts"
       ]
     }
   ]
