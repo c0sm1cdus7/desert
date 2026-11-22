@@ -2159,7 +2159,7 @@ credenciales no se renombran: la composición debe resolver esa colisión explí
 DESERT es el sistema operativo. Una distribución reúne versiones exactas de programas y elige sus mentes.
 Un programa agrupa herramientas; cada herramienta agrupa acciones. La terminal entra por **Menú › Programas**,
 conserva **Sistema** y, al abrir un programa, muestra la pila **Herramientas**, con una fila por cada herramienta
-del programa: ninguna vive dentro de otra. Prueba: `src/tools/installable/picking.spec.ts`. Una sola herramienta
+del programa: ninguna vive dentro de otra. Pruebas: `src/tools/installable/picking.spec.ts` y `program-tools.spec.ts`.
 conserva los tres niveles. `componer({ ..., atajoUnaHerramienta: true })` abre directamente esa herramienta desde el
 Menú; el interruptor es opcional y viene apagado. No cambia sus acciones, destinos ni permisos.
 

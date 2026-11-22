@@ -50,6 +50,16 @@ describe("a program's tools, composed for a surface", () => {
     expect(tools.map(tool => [tool.id, tool.place])).toContainEqual(["sample", { key: "m", section: "tools" }]);
   });
 
+  it("lists on the Menu a tool whose words still say the retired `inside`", () => {
+    const saying = Object.assign({}, must(shopWords.payments), { inside: "sales" });
+    const tools = composed([salesTool, paymentsTool], { ...shopShown, words: { ...shopWords, payments: saying } })();
+    const programs = stacksOf({ kind: "menu", at: 0 }, tools).find(stack => stack.title === "Programas");
+    expect(programs?.rows.map(row => [row.title, row.key])).toEqual([
+      ["ventas", "v"],
+      ["pagos", "p"],
+    ]);
+  });
+
   it("refuses a tool without words, and two tools that take the same key", () => {
     const onlySales = { sales: must(shopWords.sales) };
     expect(composed([salesTool, paymentsTool], { ...shopShown, words: onlySales })).toThrow(
