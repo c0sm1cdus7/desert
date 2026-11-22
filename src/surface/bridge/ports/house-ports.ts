@@ -62,9 +62,7 @@ export type Shown<X extends Program> = Readonly<{ words: SurfaceWords; locale: L
   Readonly<{ screens?: Readonly<Record<string, ProgramScreen<X>>> }> &
   /** How its country writes an instant, the day and the hour: what was done to a thing is read with it. And the
    * day of its calendar an instant falls on, as year-month-day: a day that is usually today opens on it. */
-  Readonly<{ moment?: (at: number) => string; day?: (at: number) => string }> &
-  /** What the distribution calls the members piece, and its key on the Menu: Identidades with i when it says none. */
-  Readonly<{ identidades?: Readonly<{ name: string; key: string }> }>;
+  Readonly<{ moment?: (at: number) => string; day?: (at: number) => string }>;
 /** The acts and menus of a tool as its declarations offer them: a screen passes them on as they are. */
 export type ScreenActs = Pick<SurfaceTool, "acts" | "actsOn" | "menusOn">;
 /** How a row starts a declared act of a thing: its own key, title or detail when it wants them; and what the thing

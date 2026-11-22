@@ -7,8 +7,6 @@ import { houseTools } from "../../surface/bridge/assembly/house-tools.ts";
 import { stacksOf } from "../../surface/menus/lists.ts";
 import { step } from "../../surface/router/step.ts";
 import { start } from "../../surface/session/screen.ts";
-import { seated, type, view } from "../../checks/promises/promised-keys.ts";
-import { cast, staged } from "../../checks/promises/promised-stage.ts";
 
 it.each([undefined, false, true])("keeps all three levels unless the one-tool shortcut is explicit: %s", shortcut => {
   const single = programa(sampleMetadata, {
@@ -57,43 +55,4 @@ it("keeps the folder screen for multiple tools even with the shortcut on", () =>
   } finally {
     rig.close();
   }
-});
-/** Names the members piece as `identidades` says, or leaves it as the base calls it. */
-const membersNamed = (identidades?: Readonly<{ name: string; key: string }>) =>
-  componer({
-    ...sampleOptions,
-    presentacion: identidades ? { ...sampleOptions.presentacion, identidades } : sampleOptions.presentacion,
-  });
-/** The key is test data: Capibara's «u» is already Casa's in Sistema, as the last case shows. */
-it.each([
-  [undefined, "Identidades", "i"],
-  [{ name: "Usuarios", key: "s" }, "Usuarios", "s"],
-] as const)("names the members piece as the distribution says: %j", (identidades, name, key) => {
-  const distribution = membersNamed(identidades);
-  return staged(distribution.program, ({ house }) => {
-    const seat = seated(house(), cast.admin, distribution.shown);
-    try {
-      const members = seat.tools.find(tool => tool.id === "identities");
-      expect([members?.name, members?.place]).toEqual([name, { key, section: "system" }]);
-      const system = stacksOf({ kind: "menu", at: 0 }, seat.tools).find(stack => stack.title === "Sistema");
-      const titles = system?.rows.map(row => row.title) ?? [];
-      expect(system?.rows.find(row => row.key === key)?.title).toBe(name.toLowerCase());
-      expect(titles.filter(title => ["identidades", "usuarios"].includes(title))).toEqual([name.toLowerCase()]);
-      type(seat.router, key);
-      expect(seat.router.screen(view).title).toBe(name);
-      const stacks = stacksOf({ kind: "view", tool: "identities", at: 0 }, seat.tools);
-      expect(stacks.map(stack => stack.title)).toContain(name);
-      expect(seat.defects).toEqual([]);
-    } finally {
-      seat.router.stop();
-    }
-    return Promise.resolve();
-  });
-});
-it("refuses a name for the members piece whose key another piece of Sistema already takes", () => {
-  const distribution = membersNamed({ name: "Usuarios", key: "u" });
-  return staged(distribution.program, ({ house }) => {
-    expect(() => seated(house(), cast.admin, distribution.shown)).toThrow("Two tools take the same key: u");
-    return Promise.resolve();
-  });
 });

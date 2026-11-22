@@ -19,7 +19,7 @@ function holderList(plain: Tool) {
   const listed = plain.view().flatMap(stack => stack.rows);
   return [
     section(
-      plain.name,
+      words.name,
       listed.filter(row => !row.opens || !mind(row.opens)),
       words.empty,
     ),
