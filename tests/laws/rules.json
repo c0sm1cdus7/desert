@@ -3674,6 +3674,16 @@
         "src/surface/acts/walk-marked.spec.ts",
         "src/checks/piece-rules.spec.ts"
       ]
+    },
+    {
+      "id": 365,
+      "rule": "Elegir una fila por su identidad se cuida aparte del Enter: por cada uno de esos 64 `rev` queda también qué filas se podían elegir, y el lote se rechaza `stale` si cambió el título, si la fila ya no está en la pantalla de ahora o si no estaba en la que la persona vio. Una fila que se movió o cuyo dato cambió es la misma y se aplica. Lo que abre un elegir nadie lo vio todavía: un lote con algo que se cuida después de un elegir se rechaza entero. Lectura de la etapa 4, sin firma del dueño.",
+      "from": "22/11 · superficies, etapa 4 (P7, opción A)",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/guard.spec.ts",
+        "src/doors/screen/guard.ts"
+      ]
     }
   ]
 }

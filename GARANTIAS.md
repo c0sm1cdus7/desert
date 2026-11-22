@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 309. Deudas: 22.
+Leyes: 310. Deudas: 22.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -316,3 +316,4 @@ Leyes: 309. Deudas: 22.
 | 362 | Toda máscara dice qué teclado pide (dígitos, decimal o texto): una máscara sin teclado no compila. | 22/11 · superficies, etapa 4 (P7, opción A) | no compila | `src/surface/contract/contract.ts` `src/surface/formats/masks.ts` |
 | 363 | Toda entrada dice qué teclado pide, el de su máscara o texto, y una entrada secreta dice que lo es. | 22/11 · superficies, etapa 4 (P7, opción A) | una spec a mano | `src/surface/acts/walk-entry.spec.ts` `src/checks/piece-rules.spec.ts` |
 | 364 | En una pregunta que toma varias, cada opción dice si está marcada aparte de su tecla, que lo sigue diciendo igual para quien tiene teclas; ninguna otra pregunta lo dice. | 22/11 · superficies, etapa 4 (P7, opción A) | una spec a mano | `src/surface/acts/walk-marked.spec.ts` `src/checks/piece-rules.spec.ts` |
+| 365 | Elegir una fila por su identidad se cuida aparte del Enter: por cada uno de esos 64 `rev` queda también qué filas se podían elegir, y el lote se rechaza `stale` si cambió el título, si la fila ya no está en la pantalla de ahora o si no estaba en la que la persona vio. Una fila que se movió o cuyo dato cambió es la misma y se aplica. Lo que abre un elegir nadie lo vio todavía: un lote con algo que se cuida después de un elegir se rechaza entero. Lectura de la etapa 4, sin firma del dueño. | 22/11 · superficies, etapa 4 (P7, opción A) | una spec a mano | `src/doors/screen/guard.spec.ts` `src/doors/screen/guard.ts` |
