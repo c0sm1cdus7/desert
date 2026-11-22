@@ -32,10 +32,7 @@ export function recentActivity(items: readonly FrameItem[], mark: number, wake: 
 export function page(text: string, from: number): string {
   return Array.from(text).slice(Math.max(0, from)).join("");
 }
-/** Activity from before the mark, newest first, one line each, as the read act returns it. */
-export const olderActivity = (items: readonly FrameItem[], mark: number, show: (item: FrameItem) => string) =>
-  items
-    .filter(item => (item.seq ?? Infinity) <= mark)
-    .reverse()
-    .map(show)
-    .join("\n");
+/** The whole activity, newest first, one line each, as the read act returns it: what came before the mind's last
+ * answer and what a fit had to leave out alike. */
+export const activityPage = (items: readonly FrameItem[], show: (item: FrameItem) => string) =>
+  [...items].reverse().map(show).join("\n");

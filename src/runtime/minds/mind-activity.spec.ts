@@ -1,6 +1,7 @@
 // Actividad shows what happened since the mind last answered, and the mind reads what came before when it needs it.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { answer, history, say } from "../../../tests/support/request-mind-fixture.ts";
+import { activityPage } from "./mind-frame-focus.ts";
 import { framesOf, supervisedFixture, supervising, think } from "../../../tests/support/supervisor-responder.ts";
 const fixtures: ReturnType<typeof supervisedFixture>[] = [];
 beforeEach(() =>
@@ -70,3 +71,7 @@ it("hears what it read even when the same answer also acted", async () => {
   const turns = history(house).filter(event => event.kind === "mind-turn-closed" && event.by === "mind:notes");
   expect(turns.at(-1)).toMatchObject({ data: { outcome: "done", calls: 2 } });
 }, 60000);
+it("reads the whole activity, newest first, including what the fit or the bound left out", () => {
+  const items = [1, 2, 3].map(seq => ({ id: `e${seq}`, text: `línea ${seq}`, seq }));
+  expect(activityPage(items, item => `${item.id}: ${item.text}`)).toBe("e3: línea 3\ne2: línea 2\ne1: línea 1");
+});

@@ -144,7 +144,8 @@ export function supervisorTurnFrame<X extends Program>(
       woke: woke(house, options, turn.wake)
         .map((line, index) => (line === turn.wake[index] ? line : `${turn.wake[index] ?? ""}: ${line}`))
         .join("\n"),
-      context: menuText(current.menu, options.language),
+      // Its Contexto is not cached and the house section may be cut: every journey it may stop by its id.
+      context: menuText(current.menu, options.language, undefined, false),
       scene: house.execution.state().house.minds.scenes.get(supervisorActor)?.data.text ?? "",
       thread: ownThread(house, options),
     };

@@ -29,7 +29,7 @@ import {
 import type { TurnPorts, TurnWake } from "./mind-ports.ts";
 import { referenceResolver, resolveAnswer } from "./mind-references.ts";
 import { activityTarget } from "./mind-read.ts";
-import { answeredMark, olderActivity, page } from "./mind-frame-focus.ts";
+import { activityPage, page } from "./mind-frame-focus.ts";
 import type { Event } from "../../journal/vocabulary.ts";
 import { expandKit } from "../../house/kit-selection.ts";
 import { assignDeclaredCards, publishMindCards } from "./mind-card-catalog.ts";
@@ -115,17 +115,16 @@ class HouseMindRuntime<X extends Program> {
       resolve: this.resolve,
     };
   }
-  /** The read act: an object whole, or the activity older than the mind's last answer, from a character on. */
+  /** The read act: an object whole, or the whole activity, newest first, from a character on. */
   private page: NonNullable<TurnPorts["page"]> = (turn, target, from) => {
-    const { house, options } = this;
+    const { options } = this;
     const view = this.view(turn.scope);
     if (target !== activityTarget(options.language)) {
       const object = view.objects.find(each => each.id === target);
       return object && page(object.text, from);
     }
-    const mark = answeredMark(house.execution.state().house.minds, house.history(), turn.scope, turn.id);
     return page(
-      olderActivity(view.activity, mark, item => `${item.id}: ${item.text}`),
+      activityPage(view.activity, item => `${item.id}: ${item.text}`),
       from,
     );
   };
