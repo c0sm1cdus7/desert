@@ -258,3 +258,25 @@ it("keeps each act's own target and destination when two tools name an act alike
   // The kit is empty here, so each act is out of scope; no act is outside the menu or wrongly destined.
   expect(faults.ok ? [] : faults.faults.filter(fault => fault.code !== "scope")).toEqual([]);
 });
+it("puts back what the grammar left out of a oneOf branch and of a branch behind a $ref", () => {
+  const branch = (kind: string) => ({
+    type: "object",
+    properties: { kind: { const: kind, type: "string" }, v: { const: 1, type: "integer" }, x: { type: "string" } },
+    required: ["kind", "v", "x"],
+  });
+  const schema = {
+    $defs: { b: branch("b") },
+    type: "object",
+    properties: { item: { oneOf: [branch("a"), { $ref: "#/$defs/b" }] } },
+    required: ["item"],
+  };
+  const sent = JSON.stringify(providerSchema(schema));
+  expect(sent).not.toContain('"v"');
+  const body = (item: unknown) => ({
+    stop_reason: "end_turn",
+    content: [{ type: "text", text: JSON.stringify({ item }) }],
+    usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+  });
+  expect(readResponse(body({ kind: "a", x: "1" }), schema).value).toEqual({ item: { kind: "a", x: "1", v: 1 } });
+  expect(readResponse(body({ kind: "b", x: "2" }), schema).value).toEqual({ item: { kind: "b", x: "2", v: 1 } });
+});

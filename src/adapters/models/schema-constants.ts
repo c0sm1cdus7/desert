@@ -72,22 +72,49 @@ function chosen(branches: readonly unknown[], value: Schema): Schema | undefined
   });
   return found.length === 1 ? found[0] : undefined;
 }
-/** Puts back, from the complete local contract, every constant the provider grammar left out. */
-export function withConstants(schema: unknown, value: unknown): unknown {
-  if (!isObject(schema)) return value;
+/** A node behind a local reference, as the provider received it inlined; any other node as it is. */
+function resolved(root: unknown, node: unknown, seen = 0): unknown {
+  if (!isObject(node) || typeof node.$ref !== "string" || seen > 32) return node;
+  const ref = node.$ref;
+  if (ref !== "#" && !ref.startsWith("#/")) return node;
+  const path =
+    ref === "#"
+      ? []
+      : ref
+          .slice(2)
+          .split("/")
+          .map(part => part.replace(/~1/g, "/").replace(/~0/g, "~"));
+  return resolved(
+    root,
+    path.reduce<unknown>((at, part) => (isObject(at) ? at[part] : undefined), root),
+    seen + 1,
+  );
+}
+/** Puts back, from the complete local contract, every constant the provider grammar left out: through its unions,
+ * exclusive ones too, and its references, as the provider read them. */
+export function withConstants(schema: unknown, value: unknown, root: unknown = schema): unknown {
+  const node = resolved(root, schema);
+  if (!isObject(node)) return value;
   if (Array.isArray(value))
-    return isObject(schema.items) ? value.map(each => withConstants(schema.items, each)) : value;
+    return isObject(node.items) ? value.map(each => withConstants(node.items, each, root)) : value;
   if (!isObject(value)) return value;
-  if (Array.isArray(schema.anyOf)) {
-    const branch = chosen(schema.anyOf, value);
+  const union = [node.anyOf, node.oneOf].find(each => Array.isArray(each));
+  if (Array.isArray(union)) {
+    const branch = chosen(
+      union.map(each => resolved(root, each)),
+      value,
+    );
     if (!branch) return value;
-    const filled = withConstants(branch, value);
+    const filled = withConstants(branch, value, root);
     // A field with one possible value has it, however an unconstrained answer spelled it.
     return isObject(filled) ? { ...filled, ...Object.fromEntries(constants(branch)) } : filled;
   }
-  if (!isObject(schema.properties)) return value;
-  const properties = schema.properties;
+  if (!isObject(node.properties)) return value;
+  const properties = node.properties;
   return Object.fromEntries(
-    Object.entries(value).map(([key, each]) => [key, key in properties ? withConstants(properties[key], each) : each]),
+    Object.entries(value).map(([key, each]) => [
+      key,
+      key in properties ? withConstants(properties[key], each, root) : each,
+    ]),
   );
 }
