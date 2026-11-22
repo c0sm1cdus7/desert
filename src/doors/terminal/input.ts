@@ -1,7 +1,7 @@
 // A terminal's keys, in the words of the surface; anything else does nothing.
 import type { Intent } from "../../surface/contract/contract.ts";
 import { pasteLimit } from "../../surface/contract/limits.ts";
-type Pressed = Exclude<Intent["kind"], "type" | "paste">;
+type Pressed = Exclude<Intent["kind"], "type" | "paste" | "choose">;
 const sequences: Readonly<Record<string, Pressed>> = {
   "\x1b[A": "up",
   "\x1b[B": "down",

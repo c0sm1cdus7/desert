@@ -3,9 +3,11 @@ import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { describe, expect, it } from "vitest";
 import { hintTexts, mainTexts, panelTexts } from "../../checks/surface-walk.ts";
-import { walked } from "../../../tests/support/surface-tools.ts";
+import { fresh, walked } from "../../../tests/support/surface-tools.ts";
+import { finished, settled, step } from "../router/step.ts";
+import { actOf, start, type Session } from "../session/screen.ts";
 import type { Intent } from "./contract.ts";
-import { pasteLimit } from "./limits.ts";
+import { pasteLimit, rowIdLimit } from "./limits.ts";
 import { parseIntent, wire, WireScreen } from "./wire.ts";
 
 const stops = await walked();
@@ -72,6 +74,8 @@ describe("an intent as it arrives", () => {
     ["a type of one astral character", { kind: "type", text: "😀" }],
     ["an empty paste", { kind: "paste", text: "" }],
     ["a paste at the limit", { kind: "paste", text: "x".repeat(pasteLimit) }],
+    ["a choose of a row", { kind: "choose", row: "x" }],
+    ["a choose of a row at the limit", { kind: "choose", row: "x".repeat(rowIdLimit) }],
   ];
   it.each(accepted)("accepts %s", (_, intent) => {
     expect(parseIntent(intent)).toEqual({ ok: true, intent });
@@ -89,10 +93,37 @@ describe("an intent as it arrives", () => {
     ["a type of an escape", { kind: "type", text: "\x1b" }, "type-control"],
     ["a type of a line break", { kind: "type", text: "\n" }, "type-control"],
     ["a paste over the limit", { kind: "paste", text: "x".repeat(pasteLimit + 1) }, "paste-length"],
+    ["a choose with no row", { kind: "choose" }, "shape"],
+    ["a choose with a row that is a number", { kind: "choose", row: 1 }, "shape"],
+    ["a choose with an extra key", { kind: "choose", row: "x", text: "a" }, "shape"],
+    ["a choose of an empty row", { kind: "choose", row: "" }, "choose-row"],
+    ["a choose of a row over the limit", { kind: "choose", row: "x".repeat(rowIdLimit + 1) }, "choose-row"],
     ["a text", "up", "shape"],
     ["null", null, "shape"],
     ["a list", [{ kind: "up" }], "shape"],
   ])("refuses %s, naming its reason", (_, value, reason) => {
     expect(parseIntent(value)).toEqual({ ok: false, reason });
+  });
+});
+
+/** The session a walked path leaves, from fresh tools, each act and message it started settled as the walk does. */
+async function sessionOf(path: readonly Intent[]) {
+  const tools = fresh();
+  let session: Session = start;
+  for (const intent of path) {
+    const stepped = step(session, intent, tools, 5_000);
+    session = stepped.session;
+    if (stepped.sending) session = settled(session, stepped.sending, await stepped.sending);
+    if (stepped.run) session = finished(session, stepped.run, await actOf(tools, stepped.run).run(stepped.run.answers));
+  }
+  return { tools, session };
+}
+describe("a choose that names no row", () => {
+  it("leaves every walked session as it was", async () => {
+    for (const { path } of stops) {
+      const { tools, session } = await sessionOf(path);
+      const stepped = step(session, { kind: "choose", row: "nothing" }, tools, 5_000);
+      expect(stepped).toEqual({ session });
+    }
   });
 });

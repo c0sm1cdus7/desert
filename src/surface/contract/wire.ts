@@ -2,7 +2,7 @@
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import type { Attachment, Body, Hint, Intent, Panel, Row, Screen, Span, Stack, ThreadEvent } from "./contract.ts";
-import { pasteLimit } from "./limits.ts";
+import { pasteLimit, rowIdLimit } from "./limits.ts";
 
 const closed = <T extends TProperties>(properties: T) => Type.Object(properties, { additionalProperties: false });
 const count = Type.Integer({ minimum: 0 });
@@ -202,16 +202,18 @@ export function wire(screen: Screen): WireScreen {
   return to;
 }
 const keyKinds = ["up", "down", "left", "right", "confirm", "cancel", "erase", "menu", "quit", "switch"] as const;
-/** The twelve intents and nothing else. */
+/** The thirteen intents and nothing else. */
 export const WireIntent = Type.Union([
   closed({ kind: Type.Union(keyKinds.map(kind => Type.Literal(kind))) }),
   closed({ kind: Type.Literal("type"), text: Type.String() }),
   closed({ kind: Type.Literal("paste"), text: Type.String() }),
+  closed({ kind: Type.Literal("choose"), row: Type.String() }),
 ]);
 export type WireIntent = Static<typeof WireIntent>;
-const kinds: ReadonlySet<unknown> = new Set([...keyKinds, "type", "paste"]);
-/** Why an intent that arrived is not one: its shape, its kind, a key that is not one key, a paste too long. */
-type IntentRefusal = "shape" | "kind" | "type-length" | "type-control" | "paste-length";
+const kinds: ReadonlySet<unknown> = new Set([...keyKinds, "type", "paste", "choose"]);
+/** Why an intent that arrived is not one: its shape, its kind, a key that is not one key, a paste too long, a row
+ * that is empty or longer than any identity. */
+type IntentRefusal = "shape" | "kind" | "type-length" | "type-control" | "paste-length" | "choose-row";
 type Parsed = { readonly ok: true; readonly intent: Intent } | { readonly ok: false; readonly reason: IntentRefusal };
 const refused = (reason: IntentRefusal): Parsed => ({ ok: false, reason });
 /** What a door received, as an intent, or why it is not one: a key is one character, a paste has its limit. */
@@ -222,5 +224,7 @@ export function parseIntent(value: unknown): Parsed {
   if (value.kind === "type" && Array.from(value.text).length !== 1) return refused("type-length");
   if (value.kind === "type" && /\p{Cc}/u.test(value.text)) return refused("type-control");
   if (value.kind === "paste" && value.text.length > pasteLimit) return refused("paste-length");
+  /** An identity is opaque: only its length is checked, and one that names nothing does nothing. */
+  if (value.kind === "choose" && (value.row === "" || value.row.length > rowIdLimit)) return refused("choose-row");
   return { ok: true, intent: value };
 }

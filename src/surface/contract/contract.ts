@@ -18,7 +18,9 @@ export type Intent =
     }
   | { readonly kind: "type"; readonly text: string }
   /** A whole text brought at once: written where something is being written, and never a key. */
-  | { readonly kind: "paste"; readonly text: string };
+  | { readonly kind: "paste"; readonly text: string }
+  /** The person pointed at a row: the one with this identity, wherever it is drawn now. */
+  | { readonly kind: "choose"; readonly row: string };
 export interface Row {
   readonly key?: string;
   readonly title: string;
