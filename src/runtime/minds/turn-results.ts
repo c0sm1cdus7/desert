@@ -50,7 +50,7 @@ export function resultsText(
     say("heading"),
     ...reports.flatMap((report, index) => line(report, index, say)),
     `${say("now")} ${now} · ${new Date(now).toISOString()}`,
-    ...menus.after
+    ...after
       .filter(item => !known.has(key(item)))
       .map(item => `${say("added")} ${menuItemLine([item], language, own)}`),
     ...before.filter(item => !kept.has(key(item))).map(item => `${say("removed")} ${item.act} → ${item.target}`),

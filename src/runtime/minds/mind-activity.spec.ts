@@ -1,6 +1,6 @@
 // Actividad shows what happened since the mind last answered, and the mind reads what came before when it needs it.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { answer, history } from "../../../tests/support/request-mind-fixture.ts";
+import { answer, history, say } from "../../../tests/support/request-mind-fixture.ts";
 import { framesOf, supervisedFixture, supervising, think } from "../../../tests/support/supervisor-responder.ts";
 const fixtures: ReturnType<typeof supervisedFixture>[] = [];
 beforeEach(() =>
@@ -47,6 +47,26 @@ it("shows only what came since the last answer, keeps what a failed turn saw, an
   const bodies = f.transport.mock.calls.map(call => (typeof call[1]?.body === "string" ? call[1].body : ""));
   const second = bodies.find(body => body.includes('"role":"assistant"')) ?? "";
   expect(second.split('"role":"assistant"')[1]).toContain("Primer pedido");
+  const turns = history(house).filter(event => event.kind === "mind-turn-closed" && event.by === "mind:notes");
+  expect(turns.at(-1)).toMatchObject({ data: { outcome: "done", calls: 2 } });
+}, 60000);
+it("hears what it read even when the same answer also acted", async () => {
+  const f = supervisedFixture();
+  fixtures.push(f);
+  const house = await f.open();
+  f.prepare(house);
+  let read = false;
+  f.respond(frame => {
+    if (!read || !frame.startsWith("Alcance:\nmind:notes")) return answer();
+    read = false;
+    return answer([say("ana", "Ya leo"), { act: "read", target: "Actividad", input: { from: 0 } }]);
+  });
+  await think(house, "Primer pedido");
+  read = true;
+  await think(house, "Segundo pedido");
+  const bodies = f.transport.mock.calls.map(call => (typeof call[1]?.body === "string" ? call[1].body : ""));
+  const second = bodies.find(body => body.includes('"role":"assistant"')) ?? "";
+  expect(second.split('"role":"assistant"')[1] ?? "").toContain("Primer pedido");
   const turns = history(house).filter(event => event.kind === "mind-turn-closed" && event.by === "mind:notes");
   expect(turns.at(-1)).toMatchObject({ data: { outcome: "done", calls: 2 } });
 }, 60000);

@@ -79,7 +79,7 @@ export const frameReading = defineMessage({
       ({
         purpose:
           "Trae entero, desde el carácter from, un objeto o lo anterior de Actividad; la casa te lo devuelve en " +
-          "este mismo turno. Como consciencia, si tu respuesta solo lee, volvés a contestar con lo leído.",
+          "este mismo turno. Como consciencia, si tu respuesta lee, volvés a contestar con lo leído.",
         targets: "Actividad, o cualquier objeto por su id",
         journeys: "uno de los journeys abiertos, por su id",
         older: `Hay ${count} líneas de antes de tu última respuesta: read Actividad las trae, de la más nueva atrás.`,

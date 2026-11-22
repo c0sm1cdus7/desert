@@ -1,5 +1,6 @@
 // Proves what a journey hears of each act's return: the receipt whole, or cut by whole characters with the count.
 import { expect, it } from "vitest";
+import { Type } from "@sinclair/typebox";
 import { resultsText } from "./turn-results.ts";
 const act = { act: "run", target: "agents", input: {} };
 const tell = (value: unknown, status: "accepted" | "rejected" = "accepted") =>
@@ -29,4 +30,10 @@ it("never leaves half a character where it cuts", () => {
   expect(new TextDecoder().decode(new TextEncoder().encode(returned))).toBe(returned);
   expect(returned.endsWith("a")).toBe(true);
   expect(lines[3]).toBe("   Recortado; caracteres que faltan: 12");
+});
+it("never tells the read act's targets as menu changes: they change with every object", () => {
+  const input = Type.Object({});
+  const read = (target: string) => ({ tool: "mind", act: "read", target, input, scope: "read" as const });
+  const lines = resultsText("es", [], 5, { before: [read("a")], after: [read("a"), read("b"), read("c")] });
+  expect(lines).not.toContain("read");
 });
