@@ -2,9 +2,10 @@
 import { describe, expect, it } from "vitest";
 import { paintedScreens } from "../../tests/support/painted-screens.ts";
 import { goldenScreens } from "../../tests/support/write-terminal-frames.ts";
-import type { Screen } from "../surface/contract/contract.ts";
+import type { Row, Screen } from "../surface/contract/contract.ts";
 import { piecesOf } from "../surface/pieces/pieces-of.ts";
-import type { ContentPiece, RowPiece, StackPiece, SurfacePiece, ToolbarPiece } from "../surface/pieces/pieces.ts";
+import type { ContentPiece, RowPiece, StackPiece, SurfacePiece, ThreadPiece } from "../surface/pieces/pieces.ts";
+import type { ToolbarPiece } from "../surface/pieces/pieces.ts";
 import { pieceRules } from "./piece-rules.ts";
 
 const painted = (name: string): Screen => {
@@ -95,6 +96,49 @@ const mutations: readonly (readonly [string, string, Change])[] = [
   ],
   ["small-is-one-notice", "focus", p => ({ ...p, small: { ...p.small, text: { text: "x", tone: "t1" } } })],
 ];
+/** The first golden screen that shows what a rule of the three additions holds. */
+const golden = (shows: (screen: Screen) => boolean): Screen => {
+  const found = goldenScreens().find(entry => shows(entry.screen));
+  if (!found) throw new Error("no golden screen shows it");
+  return found.screen;
+};
+const rowsOf = ({ body }: Screen): readonly Row[] => {
+  if (body.kind === "list") return body.stacks.flatMap(s => s.rows);
+  return body.kind === "thread" ? (body.options ?? []) : [];
+};
+const thread = (change: (thread: ThreadPiece) => ThreadPiece): Change =>
+  main(c => (c.kind === "thread" ? change(c) : c));
+const texts = (change: (row: RowPiece & { as: "text" }) => RowPiece): Change =>
+  main(c => {
+    const each = (rows: readonly RowPiece[]) => rows.map(r => (r.as === "text" ? change(r) : r));
+    if (c.kind === "list") return { ...c, stacks: c.stacks.map(s => ({ ...s, rows: each(s.rows) })) };
+    return c.kind === "thread" && c.options ? { ...c, options: { ...c.options, rows: each(c.options.rows) } } : c;
+  });
+/** One wrong piece per check of the three additions, on the first golden screen that shows what it holds. */
+const added: readonly (readonly [string, string, (screen: Screen) => boolean, Change])[] = [
+  ["a-row-sends-its-choice", "a row with an id", s => rowsOf(s).some(r => r.id), texts(({ sends: _, ...r }) => r)],
+  [
+    "a-mark-is-said",
+    "a marked option",
+    s => rowsOf(s).some(r => r.marked !== undefined),
+    texts(r => (r.marked === undefined ? r : { ...r, marked: !r.marked })),
+  ],
+  [
+    "an-entry-says-its-keys",
+    "a secret entry",
+    s => s.body.kind === "thread" && s.body.entry?.secret === true,
+    thread(c => (c.entry ? { ...c, entry: { ...c.entry, secret: false } } : c)),
+  ],
+];
+/** A secret entry whose screen shows what is written uncovered. */
+const uncovered: Screen = {
+  ...painted("entry placeholder"),
+  body: {
+    kind: "thread",
+    events: [],
+    entry: { typed: "abc", caret: 3, placeholder: "", keyboard: "text", secret: true },
+  },
+};
 describe("pieceRules", () => {
   it("finds nothing wrong in the bank's pieces of every golden and hand-built screen", () => {
     const failing = screens().flatMap(({ name, screen }) =>
@@ -110,6 +154,17 @@ describe("pieceRules", () => {
     expect(changed).not.toEqual(pieces);
     expect([...new Set(pieceRules(screen, changed).map(failure => failure.rule))]).toEqual([rule]);
   });
+  it.each(added)("%s fails alone when its piece is wrong (on %s)", (rule, _name, shows, change) => {
+    const screen = golden(shows);
+    const pieces = piecesOf(screen);
+    expect(pieceRules(screen, pieces)).toEqual([]);
+    const changed = change(pieces);
+    expect(changed).not.toEqual(pieces);
+    expect([...new Set(pieceRules(screen, changed).map(failure => failure.rule))]).toEqual([rule]);
+  });
+  it("says a secret entry whose screen shows it uncovered, and nothing else", () => {
+    expect(pieceRules(uncovered, piecesOf(uncovered))).toEqual([{ rule: "an-entry-says-its-keys", missing: "entry" }]);
+  });
   it("finds in no golden screen an off row that does not say why", () => {
     const silent = goldenScreens().flatMap(({ name, screen }) => {
       const { body } = screen;
@@ -120,6 +175,6 @@ describe("pieceRules", () => {
     expect(silent).toEqual([]);
   });
   it("has one mutation for each rule", () => {
-    expect(new Set(mutations.map(([rule]) => rule)).size).toBe(16);
+    expect(new Set([...mutations, ...added].map(([rule]) => rule)).size).toBe(19);
   });
 });

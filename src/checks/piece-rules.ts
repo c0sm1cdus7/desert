@@ -1,64 +1,11 @@
 // The form rules of the approved form, held once over the pieces of a screen: each names what does not hold.
-import type { Body, Row, Screen, Span } from "../surface/contract/contract.ts";
+import type { Row, Screen, Span } from "../surface/contract/contract.ts";
 import { hintSends } from "../surface/contract/hint-sends.ts";
-import type { Tone } from "../surface/contract/tones.ts";
 import { controlNames } from "../surface/pieces/controls.ts";
-import type { EntryPiece, NoticePiece, OptionsPiece, RowPiece, StackPiece } from "../surface/pieces/pieces.ts";
-import type { SurfacePiece } from "../surface/pieces/pieces.ts";
+import type { EntryPiece, NoticePiece, RowPiece, SurfacePiece } from "../surface/pieces/pieces.ts";
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
-
-type Held = (screen: Screen, pieces: SurfacePiece) => readonly string[];
-const same = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
-const says = (span: Span | undefined, text: string, tone: Tone): boolean => span?.text === text && span.tone === tone;
-const where = (place: string, ok: boolean): readonly string[] => (ok ? [] : [place]);
-const notice = (about: NoticePiece["about"], text: string, tone: Tone): NoticePiece => ({
-  kind: "notice",
-  about,
-  text: { text, tone },
-});
-type Thread = Extract<Body, { kind: "thread" }>;
-const threadOf = ({ body }: Screen): Thread | undefined => (body.kind === "thread" ? body : undefined);
-const mainOf = ({ zones: [, { main }] }: SurfacePiece) => main;
-
-/** A stack, or the options of a question, beside its piece. */
-type Group = Readonly<{
-  place: string;
-  rows: readonly Row[];
-  above?: number | undefined;
-  below?: number | undefined;
-  empty?: string | undefined;
-  reads: boolean;
-  piece: StackPiece | OptionsPiece | undefined;
-}>;
-function groupsOf(screen: Screen, pieces: SurfacePiece): readonly Group[] {
-  const { body } = screen;
-  const main = mainOf(pieces);
-  if (body.kind === "list") {
-    const stacks = main.kind === "list" ? main.stacks : [];
-    return body.stacks.map((stack, i) => ({
-      ...stack,
-      place: `stack ${i}`,
-      reads: stack.reads === true,
-      piece: stacks[i],
-    }));
-  }
-  if (body.kind !== "thread" || !body.options) return [];
-  const piece = main.kind === "thread" ? main.options : undefined;
-  return [{ place: "options", rows: body.options, ...body.more, reads: false, piece }];
-}
-/** Each row of the screen beside its piece, at the same index. */
-const pairsOf = (screen: Screen, pieces: SurfacePiece) =>
-  groupsOf(screen, pieces).flatMap(group =>
-    group.rows.map((row, i) => ({
-      place: `${group.place} row ${i}`,
-      row,
-      piece: group.piece?.rows[i],
-      reads: group.reads,
-    })),
-  );
-const asText = (piece: RowPiece | undefined) => (piece?.as === "text" ? piece : undefined);
-const textRows = (screen: Screen, pieces: SurfacePiece) =>
-  pairsOf(screen, pieces).filter(pair => !pair.row.spans && !pair.row.entry);
+import { asText, groupsOf, type Held, mainOf, notice, pairsOf, same, says, type Thread } from "./piece-pairs.ts";
+import { textRows, threadOf, where } from "./piece-pairs.ts";
 
 const beats = {
   connected: ["●", "ok"],
@@ -254,6 +201,52 @@ const entryShape: Held = (screen, pieces) => {
   ];
 };
 
+/** A row that can be chosen sends its choice, and it names that row; a row that cannot, off or still, sends none. */
+const sendsChoice: Held = (screen, pieces) =>
+  pairsOf(screen, pieces).flatMap(({ place, row, piece }) => {
+    const text = asText(piece);
+    if (!row.id) return where(place, text?.sends === undefined);
+    return where(place, same(text?.sends, { kind: "choose", row: row.id }) && !text?.off && !text?.still);
+  });
+/** A mark is said on the piece iff on the row, it says what the key shows, and every option that can be taken says
+ * it or none does. */
+const markSaid: Held = (screen, pieces) => [
+  ...textRows(screen, pieces).flatMap(({ place, row, piece }) => {
+    const marked = asText(piece)?.marked;
+    return where(
+      place,
+      marked === row.marked && (marked === undefined || marked === (asText(piece)?.key?.text === "x")),
+    );
+  }),
+  ...groupsOf(screen, pieces)
+    .filter(group => group.piece?.kind === "options")
+    .flatMap(({ place, piece }) => {
+      const saying = (piece?.rows ?? []).flatMap(r => (r.as === "text" && !r.off ? [r.marked !== undefined] : []));
+      return where(place, saying.every(Boolean) || !saying.some(Boolean));
+    }),
+];
+/** Every character a secret entry shows is covered. */
+const covered = (written: readonly Span[]): boolean =>
+  written.every(span => Array.from(span.text).every(character => character === "•"));
+const threadKeys = (entry: NonNullable<Thread["entry"]>, piece: EntryPiece | undefined): boolean =>
+  piece?.keyboard === entry.keyboard &&
+  piece.secret === (entry.secret === true) &&
+  (!piece.secret || covered(piece.written));
+/** An entry says the keys it asks for, the screen's or text in a row, and whether it is a secret, shown covered. */
+const entryKeys: Held = (screen, pieces) => {
+  const entry = threadOf(screen)?.entry;
+  const main = mainOf(pieces);
+  const piece = main.kind === "thread" ? main.entry : undefined;
+  return [
+    ...where("entry", !entry || threadKeys(entry, piece)),
+    ...pairsOf(screen, pieces)
+      .filter(pair => pair.row.entry)
+      .flatMap(({ place, piece: row }) =>
+        where(place, row?.as === "entry" && row.entry.keyboard === "text" && !row.entry.secret),
+      ),
+  ];
+};
+
 /** Every rule, by the name a failure carries. */
 const rules = [
   ["zones-in-order", zones],
@@ -271,6 +264,9 @@ const rules = [
   ["an-empty-stack-says-so", emptyStack],
   ["turned-down", turnedDown],
   ["entry-shows-its-shape", entryShape],
+  ["a-row-sends-its-choice", sendsChoice],
+  ["a-mark-is-said", markSaid],
+  ["an-entry-says-its-keys", entryKeys],
   ["small-is-one-notice", (_screen, { small }) => where("small", same(small, notice("small", said.tooSmall, "t1")))],
 ] as const satisfies readonly (readonly [string, Held])[];
 /** One rule that does not hold over the pieces of one screen, and where. */

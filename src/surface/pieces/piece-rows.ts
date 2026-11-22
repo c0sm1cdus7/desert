@@ -24,6 +24,8 @@ function textRow(row: Row, reads: boolean): RowPiece {
     chosen,
     off,
     still: row.still ?? false,
+    ...(row.id ? { sends: { kind: "choose", row: row.id } } : {}),
+    ...(row.marked === undefined ? {} : { marked: row.marked }),
   };
 }
 /** A row as a piece: a line drawn as it is, a row written in, or a row of text. */

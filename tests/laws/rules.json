@@ -3541,7 +3541,8 @@
       "guarantee": "spec",
       "evidence": [
         "src/surface/session/row-id.spec.ts",
-        "src/surface/contract/wire.spec.ts"
+        "src/surface/contract/wire.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -3560,7 +3561,8 @@
       "from": "22/11 · superficies, etapa 4 (P7, opción A)",
       "guarantee": "spec",
       "evidence": [
-        "src/surface/acts/walk-entry.spec.ts"
+        "src/surface/acts/walk-entry.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     },
     {
@@ -3569,7 +3571,8 @@
       "from": "22/11 · superficies, etapa 4 (P7, opción A)",
       "guarantee": "spec",
       "evidence": [
-        "src/surface/acts/walk-marked.spec.ts"
+        "src/surface/acts/walk-marked.spec.ts",
+        "src/checks/piece-rules.spec.ts"
       ]
     }
   ]

@@ -11,6 +11,9 @@ export function rowEntry(title: string, entry: NonNullable<Row["entry"]>): Entry
     written: [{ text: entry.typed, tone: "t1" }],
     whole: false,
     caret: { at: entry.caret, under: { text: Array.from(entry.typed)[entry.caret] ?? " ", tone: "t1" } },
+    // A row is written in only to search or to give another answer: free text, never a secret.
+    keyboard: "text",
+    secret: false,
   };
 }
 /** What is written, in order: the leading part of a mask not yet written, the rest, then the shape still to fill. */
@@ -36,5 +39,7 @@ export function threadEntry(entry: ThreadEntry): EntryPiece {
     whole,
     // The tone compares a code-point index with a UTF-16 length, as the terminal always drew it.
     ...(whole ? {} : { caret: { at: caret, under: { text: under, tone: caret < typed.length ? "t1" : "t3" } } }),
+    keyboard: entry.keyboard,
+    secret: entry.secret === true,
   };
 }

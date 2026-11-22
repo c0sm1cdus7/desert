@@ -1,5 +1,5 @@
 // The closed pieces of the approved form: what every painter draws, already decided, and nothing else.
-import type { HintKey, Intent, Screen, Span } from "../contract/contract.ts";
+import type { HintKey, Intent, Keypad, Screen, Span } from "../contract/contract.ts";
 import type { Tone } from "../contract/tones.ts";
 /** A run of spans whose tones the bank already chose: a painter only gives each token its value. */
 export type Text = readonly Span[];
@@ -52,6 +52,10 @@ export interface EntryPiece {
   readonly whole: boolean;
   /** Where the caret stands, in code points of what is written, and the character it stands on. */
   readonly caret?: { readonly at: number; readonly under: Span };
+  /** The keys it asks for: a written question's own, or text. The bank says it once, for every painter. */
+  readonly keyboard: Keypad;
+  /** What is written is a secret: it is shown covered, and no painter keeps, completes or suggests it. */
+  readonly secret: boolean;
 }
 /** Fila: a datum or a choice (REGLAS §8). */
 export type RowPiece =
@@ -68,6 +72,10 @@ export type RowPiece =
       readonly chosen: boolean;
       readonly off: boolean;
       readonly still: boolean;
+      /** What pointing at it sends: present iff the row can be chosen now, and then it names the row. */
+      readonly sends?: { readonly kind: "choose"; readonly row: string };
+      /** In a question that takes several: whether this one is taken. `key` still says it to who has keys. */
+      readonly marked?: boolean;
     };
 /** Pila: a titled stack of rows (REGLAS §9 «Lista»). */
 export interface StackPiece {
