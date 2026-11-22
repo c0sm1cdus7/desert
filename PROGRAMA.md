@@ -2156,8 +2156,9 @@ credenciales no se renombran: la composición debe resolver esa colisión explí
 
 DESERT es el sistema operativo. Una distribución reúne versiones exactas de programas y elige sus mentes.
 Un programa agrupa herramientas; cada herramienta agrupa acciones. La terminal entra por **Menú › Programas**,
-conserva **Sistema** y, al abrir un programa, muestra la pila **Herramientas**. Una sola herramienta conserva
-los tres niveles. `componer({ ..., atajoUnaHerramienta: true })` abre directamente esa herramienta desde el Menú;
+conserva **Sistema** y, al abrir un programa, muestra la pila **Herramientas**, con una fila por cada herramienta
+del programa: ninguna vive dentro de otra. Prueba: `src/tools/installable/picking.spec.ts`. Una sola herramienta
+conserva los tres niveles. `componer({ ..., atajoUnaHerramienta: true })` abre directamente esa herramienta desde el Menú;
 el interruptor es opcional y viene apagado. No cambia sus acciones, destinos ni permisos.
 
 `programa(metadata, body)` se importa de `desert/programa`. La metadata declara `id`, `version`, `desert`,
@@ -2191,15 +2192,6 @@ De quién es la cosa:
 Una necesidad (`needs`) de una herramienta nombra una de sus cosas o, con el nombre de la herramienta, la herramienta
 misma: `{ target: "orders", why: "sin pedidos" }`. Esa aparece en Atención con el nombre de la herramienta y abre su
 carpeta.
-
-Las palabras de una herramienta pueden decir `inside: "orders"`: vive dentro de esa otra herramienta del mismo
-programa. En un programa instalable no la lista nadie: no tiene fila en la pila **Herramientas** del programa ni en la
-herramienta en la que vive. Sus cosas se abren desde las cosas que las nombran (un pedido nombra sus extras), su
-carpeta solo desde Atención cuando necesita a alguien, y se la sigue encontrando por su nombre. Por eso no puede tener
-acciones sobre la herramienta (`on: "tool"`): quedarían sin camino. Las herramientas de la casa con `inside` (más
-arriba) son otra cosa: a esas la herramienta en la que viven las lista y las abre. El programa no se instala si
-`inside` nombra a la herramienta misma, una que el programa no tiene o una que vive dentro de otra, ni si la
-herramienta que vive dentro tiene una acción sobre la herramienta. Prueba: `src/tools/installable/picking.spec.ts`.
 
 Quien no tiene un programa puede abrir y leer sus objetos. Las acciones de cada objeto siguen visibles,
 apagadas con el motivo del kit, aunque además exijan ser su autora. Quien tiene la acción ve el motivo de

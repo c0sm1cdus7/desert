@@ -30,13 +30,6 @@ function filteredActions(program: InstalledProgram, acts: ScreenActs, ports: Sur
   );
   return { ...acts, actsOn, menusOn };
 }
-/** A tool that lives inside another has no row of its own among the tools its program lists: it is opened from what
- * names its things or from what it needs, and it is still found by its name. */
-function outerRows(program: InstalledProgram) {
-  const inner = new Set(program.groups.flatMap(group => (group.palabras.inside === undefined ? [] : [group.folder])));
-  return <R extends Readonly<{ opens?: string }>>(rows: readonly R[]): R[] =>
-    rows.filter(row => row.opens === undefined || !inner.has(row.opens));
-}
 /** Whether a destination is of a tool: its folder, one of its things, or a menu of one of them. */
 const holds = (group: InstalledGroup, state: State<Program>, target: string): boolean =>
   group.folder === target ||
@@ -46,7 +39,6 @@ const holds = (group: InstalledGroup, state: State<Program>, target: string): bo
       object => object === target || Object.keys(group.tool.menus ?? {}).some(menu => target === `${object}#${menu}`),
     );
 function screenFor(program: InstalledProgram, shortcut: boolean): ProgramScreen<Program> {
-  const outer = outerRows(program);
   return (ports, tool, words, acts, start) => {
     const root = anyToolScreen(ports, tool, words, acts, start);
     const groups = program.groups.map(group => ({
@@ -68,7 +60,7 @@ function screenFor(program: InstalledProgram, shortcut: boolean): ProgramScreen<
           : (found?.screen.titleOf?.(target) ?? root.titleOf?.(target) ?? target);
       },
       view: target => {
-        if (!target) return root.view().map(stack => ({ ...stack, rows: outer(stack.rows) }));
+        if (!target) return root.view();
         const found = find(target);
         if (!found) return root.view(target);
         return found.screen.view(target === found.group.folder ? undefined : target);

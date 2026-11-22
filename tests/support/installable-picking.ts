@@ -1,4 +1,4 @@
-// The picking fixture: its things, its orders and the extras of each order, a tool that lives inside the orders.
+// The picking fixture: its things, its orders and the extras of each order, three tools listed by their program.
 import { fileURLToPath } from "node:url";
 import { text } from "../../src/fields/fields.ts";
 import { defineMessage } from "../../src/fields/messages.ts";
@@ -25,56 +25,54 @@ const extrasOf = (state: State<Picking>) =>
     order.extras.map((extra, at) => ({ id: `${order.id}.${String(at + 1)}`, order: order.id, extra })),
   );
 const written = object({ note: text(said.note, "qué es") });
-/** Writes what an extra is; on the tool, as `todos`, only to prove that an inner tool cannot act there. */
-const note = (on: "tool" | "thing", name = "anotar", key = "a") =>
-  programAct<Picking, typeof written>({
-    name,
-    enter: "anotar",
-    purpose: "anotar el extra",
-    key,
-    undoable: true,
-    on,
-    input: written,
-    run: ({ note }, { by, target }) => {
-      const fact = {
-        layer: "program",
-        kind: "picking/extra-noted",
-        data: { id: target, note },
-        by,
-        cause: [],
-      } as const;
-      return { status: "accepted", text: said.noted(target), effects: [fact] };
-    },
-    cases: [
-      {
-        promise: "Anota un extra de un pedido",
-        /** The extra is of an order, and the order picks a thing: both are prepared with the other two tools. */
-        given: [
-          { act: "add", tool: "items", input: { name: "Tornillo" } },
-          { act: "take", tool: "orders", input: { main: "1", extras: [{ item: "1" }] } },
-        ],
-        ...(on === "thing" ? { on: "1.1" } : {}),
-        input: { note: "Arandela" },
-        then: {
-          says: said.noted("1.1"),
-          facts: [{ kind: "picking/extra-noted", data: { id: "1.1", note: "Arandela" } }],
-        },
+/** Writes what an extra is. */
+const note = programAct<Picking, typeof written>({
+  name: "anotar",
+  enter: "anotar",
+  purpose: "anotar el extra",
+  key: "a",
+  undoable: true,
+  on: "thing",
+  input: written,
+  run: ({ note }, { by, target }) => {
+    const fact = {
+      layer: "program",
+      kind: "picking/extra-noted",
+      data: { id: target, note },
+      by,
+      cause: [],
+    } as const;
+    return { status: "accepted", text: said.noted(target), effects: [fact] };
+  },
+  cases: [
+    {
+      promise: "Anota un extra de un pedido",
+      /** The extra is of an order, and the order picks a thing: both are prepared with the other two tools. */
+      given: [
+        { act: "add", tool: "items", input: { name: "Tornillo" } },
+        { act: "take", tool: "orders", input: { main: "1", extras: [{ item: "1" }] } },
+      ],
+      on: "1.1",
+      input: { note: "Arandela" },
+      then: {
+        says: said.noted("1.1"),
+        facts: [{ kind: "picking/extra-noted", data: { id: "1.1", note: "Arandela" } }],
       },
-    ],
-  });
-/** The extras of the orders: no act on the tool, which nothing lists; one on each extra, opened from its order. */
-const extras = (onTool: boolean): ProgramGroup<Picking> => ({
+    },
+  ],
+});
+/** The extras of the orders: one act on each extra, which its order also opens. */
+const extras: ProgramGroup<Picking> = {
   purpose: "Anotar los extras de los pedidos",
   palabras: {
     name: "Extras",
     key: "x",
-    inside: "orders",
     listed: "Extras",
     empty: "Sin extras",
     reads: {},
     presents: [{ title: "Extra", empty: "Sin datos", reads: { what: "Qué", order: "Pedido" } }],
   },
-  acts: onTool ? { note: note("thing"), all: note("tool", "todos", "t") } : { note: note("thing") },
+  acts: { note },
   targets: state => extrasOf(state).map(each => each.id),
   view: (state, target) => {
     const found = extrasOf(state).find(each => each.id === target);
@@ -87,7 +85,7 @@ const extras = (onTool: boolean): ProgramGroup<Picking> => ({
     return JSON.stringify({ what, order: { id: found.order, text: said.order(found.order), tool: "orders" } });
   },
   summary: state => String(extrasOf(state).length),
-});
+};
 /** A fact folded into what the program keeps; a note replaces what was written of that extra. */
 function plegar(own: Kept, event: Event<Picking["fact"]>): Kept {
   if (event.layer !== "program") return own;
@@ -107,13 +105,10 @@ const skill = defineMessage({
   parameters: Type.Object({}),
   texts: { es: "Tomá pedidos de las cosas guardadas." },
 });
-/** How the program varies: where each tool lives, whether its extras act on their tool, what each item's reading
- * adds. */
-type Variant = Readonly<{ inside?: Readonly<{ orders?: string; extras?: string }>; onTool?: boolean; named?: Named }>;
-export const pickingProgram = ({ inside = {}, onTool = false, named = {} }: Variant = {}) => {
-  const lives = (group: ProgramGroup<Picking>, home?: string) =>
-    home === undefined ? group : { ...group, palabras: { ...group.palabras, inside: home } };
-  return programa(
+/** How the program varies: what each item's reading adds. */
+type Variant = Readonly<{ named?: Named }>;
+export const pickingProgram = ({ named = {} }: Variant = {}) =>
+  programa(
     {
       ...definition,
       codigo: [import.meta.filename, fileURLToPath(new URL("./installable-picking-tools.ts", import.meta.url))],
@@ -124,14 +119,13 @@ export const pickingProgram = ({ inside = {}, onTool = false, named = {} }: Vari
       skill,
       herramientas: {
         items: itemsTool(named),
-        orders: lives(orders, inside.orders),
-        extras: lives(extras(onTool), inside.extras),
+        orders,
+        extras,
       },
       plegar,
       summary: () => "Cosas, pedidos y sus extras",
     },
   );
-};
 /** The program composed alone. */
 export const pickingDistribution = (variant: Variant = {}) =>
   componer({
