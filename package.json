@@ -157,6 +157,7 @@
     "./doors/device-remote": "./src/doors/devices/remote-device.ts",
     "./doors/redeem": "./src/runtime/redeem-door.ts",
     "./doors/redeem-cli": "./src/runtime/redeem-door-cli.ts",
+    "./doors/screen": "./src/doors/screen/public-screen.ts",
     "./doors/screen/wire": "./src/doors/screen/screen-wire.ts"
   }
 }
