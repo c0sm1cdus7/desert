@@ -1,6 +1,8 @@
-// The clients of one session: how many it holds, and who gives up a place when a new one comes.
+// The clients of one session: how many it holds, who gives up a place, and what ends with a router left behind.
 import { describe, expect, it } from "vitest";
-import { collect, spyDoor } from "../../../tests/support/screen-spy.ts";
+import { collect, flush, spyDoor, spyHouse } from "../../../tests/support/screen-spy.ts";
+import { socketTexts } from "../../texts/socket.texts.ts";
+import { SocketOpeningError } from "../socket/wire/socket-error.ts";
 import type { Frame } from "./screen-wire.ts";
 
 const view = { visible: true, viewport: { rows: 20 } };
@@ -38,5 +40,17 @@ describe("the clients of a session", () => {
     const gone = await door.send("s", "h", firstBatch(second));
     const kept = await door.send("s", "h", firstBatch(oldest));
     expect([gone.refused, kept.refused]).toEqual(["client", undefined]);
+  });
+  it("ends the streams of a router left behind when the next one cannot be opened", async () => {
+    const opens = [
+      () => Promise.resolve(spyHouse().house),
+      () => Promise.reject(new SocketOpeningError(socketTexts.startFailed)),
+    ];
+    const { door } = spyDoor(() => (opens.shift() ?? (() => Promise.reject(new Error("no more"))))());
+    const a = await door.look("s", "h", view);
+    const stream = attach(door, a);
+    await door.send("s", "h", { ...firstBatch(a), intents: [{ kind: "quit" }] });
+    await flush();
+    expect([stream.done(), door.alive()]).toEqual([true, 0]);
   });
 });

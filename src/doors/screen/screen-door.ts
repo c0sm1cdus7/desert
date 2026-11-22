@@ -211,12 +211,16 @@ class Door<X extends Program> implements ScreenDoor {
   private silent(reason: string, client = "", refused?: WireRefusal): Frame {
     return silentFrame(reason, this.host.shown.hour(this.host.time.now()), client, refused);
   }
-  /** The router asked to be left behind: the session goes on in a new epoch, with the same clients looking. */
+  /** The router asked to be left behind: the session goes on in a new epoch, with the same clients looking. When
+   * no next router opens, their streams end with the one left behind: nothing would ever be pushed on them. */
   private replace(slot: Slot, live: Live): Promise<Live> {
     live.unwatch();
     live.house.close();
     slot.live = undefined;
-    return this.open(slot, live.clients);
+    return this.open(slot, live.clients).catch((error: unknown) => {
+      live.clients.forEach(client => client.end?.());
+      throw error;
+    });
   }
 }
 const keyOf = (session: string, house: string): string => JSON.stringify([session, house]);
