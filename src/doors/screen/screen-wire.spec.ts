@@ -39,6 +39,8 @@ describe("the screen door's wire: its bounds and its batches", () => {
       [{ ...send, intents: [{ kind: "type", text: "ab" }] }, "type-length"],
       [{ ...send, intents: [{ kind: "type", text: "\x1b" }] }, "type-control"],
       [{ ...send, intents: [{ kind: "paste", text: "a".repeat(pasteLimit + 1) }] }, "paste-length"],
+      [{ ...send, intents: [{ kind: "choose", row: '["view","sales",null]' }] }, "accepted"],
+      [{ ...send, intents: [{ kind: "choose", row: "" }] }, "choose-row"],
       [{ ...send, intents: [{ kind: "down", also: 1 }] }, "shape"],
       ["down", "shape"],
       [null, "shape"],

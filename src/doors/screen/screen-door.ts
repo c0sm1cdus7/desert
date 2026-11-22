@@ -6,7 +6,7 @@ import { screenDoorTexts } from "../../texts/screen-door.texts.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { OpenHouse } from "../socket/client/open-house-router.ts";
 import { terminalError } from "../terminal/terminal-error.ts";
-import { commitmentOf, guarded, sameCommitment } from "./guard.ts";
+import { commitmentOf, guarded, holds } from "./guard.ts";
 import { screenLimits } from "./screen-limits.ts";
 import { current, drawAll, framed, named, refusal, type Client, type Item, type Live } from "./screen-session.ts";
 import { silentFrame } from "./screen-silence.ts";
@@ -245,6 +245,6 @@ function stale(live: Live, client: Client, send: Send): boolean {
   if (!send.intents.some(guarded)) return false;
   const seen = client.seen.get(send.rev);
   const now = client.visible ? framed(live, client, live.house.router.screen({ rows: client.rows })) : client.sent;
-  return !seen || !now || !sameCommitment(seen, commitmentOf(now.screen));
+  return !seen || !now || !holds(seen, commitmentOf(now.screen), send.intents);
 }
 export const screenDoor = <X extends Program>(host: ScreenHost<X>): ScreenDoor => new Door(host);
