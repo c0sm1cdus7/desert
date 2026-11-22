@@ -59,3 +59,13 @@ export const talkIds = (options: readonly Option[], writing: boolean): readonly 
     if (option === undefined) return writing ? undefined : ["other"];
     return option.off ? undefined : ["answer", option.title];
   });
+/** Where a row with this identity stands among the rows the keys move over (those that lead somewhere or press a
+ * control), as the cursor would stand on it; nothing when no row of these lists has it. */
+export function listChosen(stacks: readonly Listed[], row: string): number | undefined {
+  const at = listIds(stacks).flat().indexOf(row);
+  if (at < 0) return undefined;
+  return stacks
+    .flatMap(stack => stack.rows)
+    .slice(0, at)
+    .filter(each => each.open ?? each.press).length;
+}

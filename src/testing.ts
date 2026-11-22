@@ -12,7 +12,7 @@ export type { Aim, Check, Decided, Doing, House } from "./checks/promises/promis
 export { walkedChecks } from "./checks/promises/walk/promised-walk.ts";
 export { realTerminal, screenOf, type RealTerminal } from "./checks/real-terminal.ts";
 export { conformance, type Drawn, type Failure } from "./checks/renderer-conformance.ts";
-export { surfaceWalk, type Stop } from "./checks/surface-walk.ts";
+export { replayed, surfaceWalk, type Stop } from "./checks/surface-walk.ts";
 export { startTerminal } from "./doors/terminal/boot.ts";
 export {
   count,

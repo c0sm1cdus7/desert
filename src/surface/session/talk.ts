@@ -191,6 +191,13 @@ export function talkStep(place: Talk, key: Intent, talk: Conversation): Talk | "
   const stops = stopsOf(talk.said());
   const question = asking(place, talk);
   if (place.sending && key.kind === "confirm") return place;
+  if (question && key.kind === "choose") {
+    /** An answer pointed at is the cursor brought to it and Enter; «other» is the cursor brought to it. */
+    const at = talkIds(question.options, place.option === question.options.length).indexOf(key.row);
+    if (at < 0) return place;
+    const there = { ...place, option: at };
+    return at === question.options.length ? there : talkStep(there, { kind: "confirm" }, talk);
+  }
   if (question) return answering(place, key, talk, question);
   if (place.inPanel) return inPanel(place, key, place.open === undefined ? 0 : talk.open(place.open).lines.length);
   if (key.kind === "cancel") return place.at >= 0 ? { ...place, at: -1 } : "leave";

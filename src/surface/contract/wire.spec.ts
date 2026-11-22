@@ -2,10 +2,9 @@
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { describe, expect, it } from "vitest";
-import { hintTexts, mainTexts, panelTexts } from "../../checks/surface-walk.ts";
+import { hintTexts, mainTexts, panelTexts, replayed } from "../../checks/surface-walk.ts";
 import { fresh, walked } from "../../../tests/support/surface-tools.ts";
-import { finished, settled, step } from "../router/step.ts";
-import { actOf, start, type Session } from "../session/screen.ts";
+import { step } from "../router/step.ts";
 import type { Intent } from "./contract.ts";
 import { pasteLimit, rowIdLimit } from "./limits.ts";
 import { parseIntent, wire, WireScreen } from "./wire.ts";
@@ -106,22 +105,11 @@ describe("an intent as it arrives", () => {
   });
 });
 
-/** The session a walked path leaves, from fresh tools, each act and message it started settled as the walk does. */
-async function sessionOf(path: readonly Intent[]) {
-  const tools = fresh();
-  let session: Session = start;
-  for (const intent of path) {
-    const stepped = step(session, intent, tools, 5_000);
-    session = stepped.session;
-    if (stepped.sending) session = settled(session, stepped.sending, await stepped.sending);
-    if (stepped.run) session = finished(session, stepped.run, await actOf(tools, stepped.run).run(stepped.run.answers));
-  }
-  return { tools, session };
-}
 describe("a choose that names no row", () => {
   it("leaves every walked session as it was", async () => {
     for (const { path } of stops) {
-      const { tools, session } = await sessionOf(path);
+      const tools = fresh();
+      const session = await replayed(tools, path);
       const stepped = step(session, { kind: "choose", row: "nothing" }, tools, 5_000);
       expect(stepped).toEqual({ session });
     }

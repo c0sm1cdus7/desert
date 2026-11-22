@@ -3,7 +3,8 @@ import { renewedMoney } from "../acts/money-memory.ts";
 import type { Intent } from "../contract/contract.ts";
 import type { Result, Tool } from "../contract/shown-tool.ts";
 import { findable } from "../menus/finding.ts";
-import { choices, cursorOf, goneOf } from "../menus/lists.ts";
+import { choices, cursorOf, goneOf, stacksOf } from "../menus/lists.ts";
+import { listChosen } from "../session/row-id.ts";
 import {
   actOf,
   begin,
@@ -91,6 +92,7 @@ export function step(session: Session, key: Intent, tools: readonly Tool[], now:
     return { session: replace(session, next), ...(sending ? { sending } : {}) };
   }
   if (goneOf(session, tools)) return { session: key.kind === "cancel" ? up(session) : session };
+  if (key.kind === "choose") return pointed(session, place, tools, key.row, now);
   if (place.find !== undefined) return { session: seeking(session, { ...place, find: place.find }, tools, key) };
   const list = choices(place, tools);
   const cursor = cursorOf(place, tools);
@@ -111,6 +113,15 @@ export function step(session: Session, key: Intent, tools: readonly Tool[], now:
   const hot = key.kind === "type" ? list.find(row => row.key === key.text) : undefined;
   const chosen = hot ?? (key.kind === "confirm" ? list[cursor] : undefined);
   return { session: chosen?.open ? forward(session, chosen.open) : session };
+}
+/** A row pointed at on a list is the cursor brought to it and Enter. Outside a search the list first comes back
+ * to the chosen row, as Enter brings it back. */
+function pointed(session: Session, place: Picture, tools: Tools, row: string, now: number): Stepped {
+  const at = listChosen(stacksOf(place, tools), row);
+  if (at === undefined) return { session };
+  const { shift: _shift, reading: _reading, ...back } = place;
+  const there = place.find === undefined ? { ...back, at } : { ...place, at };
+  return step(replace(session, there), { kind: "confirm" }, tools, now);
 }
 /** A message the house settled; the place that sent it may be anywhere in the session by now. */
 export const settled = (session: Session, sending: Promise<unknown>, refused: string | undefined): Session =>

@@ -22,8 +22,10 @@ export interface Stop {
   readonly screen: Screen;
   readonly path: readonly Intent[];
 }
-async function replay(tools: readonly Tool[], path: readonly Intent[], rows: number) {
-  let session: Session = start;
+/** The session a path leaves, from the Menu or from where it is given: each act it starts has run and each message
+ * it sends has been answered before the next intent, as a person who waits sees it. */
+export async function replayed(tools: readonly Tool[], path: readonly Intent[], from = start): Promise<Session> {
+  let session: Session = from;
   for (const intent of path) {
     const stepped = step(session, intent, tools, bar.now);
     session = stepped.session;
@@ -33,8 +35,10 @@ async function replay(tools: readonly Tool[], path: readonly Intent[], rows: num
       session = finished(session, run, await actOf(tools, run).run(run.answers), "14:33");
     }
   }
-  return resolve(session, tools, bar, { rows });
+  return session;
 }
+const replay = async (tools: readonly Tool[], path: readonly Intent[], rows: number) =>
+  resolve(await replayed(tools, path), tools, bar, { rows });
 /** Every distinct screen within reach, each with the intents that reach it; then the screen of each path given,
  * for what lies deeper than the walk goes before its cap: a path is written by hand, a screen never is. */
 export async function surfaceWalk(
