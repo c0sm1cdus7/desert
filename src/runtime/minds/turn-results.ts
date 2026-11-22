@@ -2,6 +2,8 @@
 import type { Language } from "../../fields/languages.ts";
 import { cutText } from "../../fields/text-cut.ts";
 import { turnResults } from "../../texts/mind-turn.texts.ts";
+import { menuItemLine } from "./mind-frame-menu.ts";
+import { shortIds } from "./mind-references.ts";
 import type { MindMenu, ProposedAct } from "../../tools/minds/mind-answer.ts";
 export type ActReport = Readonly<{
   act: ProposedAct;
@@ -9,23 +11,25 @@ export type ActReport = Readonly<{
   reason?: string;
   text?: string;
   value?: unknown;
+  /** A text the read act brought: told as it reads, not as JSON. */
+  page?: string;
 }>;
 /** A returned value longer than a mind's own text is cut by whole characters, and the cut says how many it left. */
 const returnedLimit = 4000;
 const key = (item: Readonly<{ act: string; target: string }>) => JSON.stringify([item.act, item.target]);
 type Part = Parameters<typeof turnResults.text>[1]["part"];
-function returned(value: unknown, say: (part: Part) => string): string[] {
-  if (value === undefined) return [];
-  const text = JSON.stringify(value);
+function returned(report: ActReport, say: (part: Part) => string): string[] {
+  if (report.value === undefined && report.page === undefined) return [];
+  const text = report.page ?? JSON.stringify(report.value);
   const kept = cutText(text, returnedLimit);
   if (kept.length === text.length) return [`   ${say("returned")} ${text}`];
   return [`   ${say("returned")} ${kept}`, `   ${say("cut")} ${Array.from(text.slice(kept.length)).length}`];
 }
 function line(report: ActReport, index: number, say: (part: Part) => string): string[] {
-  const head = `${index + 1}. ${report.act.act} → ${report.act.target}:`;
+  const head = shortIds(`${index + 1}. ${report.act.act} → ${report.act.target}:`);
   if (report.status === "skipped") return [`${head} ${say("skipped")}`];
   const status = report.status === "rejected" ? `${say("rejected")} ${report.reason ?? ""}` : say("accepted");
-  return [`${head} ${status}${report.text ? ` ${report.text}` : ""}`, ...returned(report.value, say)];
+  return [`${head} ${status}${report.text ? ` ${report.text}` : ""}`, ...returned(report, say)];
 }
 /** A journey is told its turn goes on; a consciousness, which answers once, hears only what its acts did. */
 export function resultsText(
@@ -34,16 +38,24 @@ export function resultsText(
   now: number,
   menus: Readonly<{ before: MindMenu; after: MindMenu }>,
   goesOn = true,
+  own?: string,
 ): string {
   const say = (part: Part) => turnResults.text(language, { part });
-  const known = new Set(menus.before.map(key));
-  const kept = new Set(menus.after.map(key));
+  // What the read act can read changes with every object: the menu's changes leave it out.
+  const before = menus.before.filter(item => item.scope !== "read");
+  const after = menus.after.filter(item => item.scope !== "read");
+  const known = new Set(before.map(key));
+  const kept = new Set(after.map(key));
   return [
     say("heading"),
     ...reports.flatMap((report, index) => line(report, index, say)),
     `${say("now")} ${now} · ${new Date(now).toISOString()}`,
-    ...menus.after.filter(item => !known.has(key(item))).map(item => `${say("added")} ${JSON.stringify(item)}`),
-    ...menus.before.filter(item => !kept.has(key(item))).map(item => `${say("removed")} ${item.act} → ${item.target}`),
+    ...after
+      .filter(item => !known.has(key(item)))
+      .map(item => shortIds(`${say("added")} ${menuItemLine([item], language, own)}`)),
+    ...before
+      .filter(item => !kept.has(key(item)))
+      .map(item => shortIds(`${say("removed")} ${item.act} → ${item.target}`)),
     ...(goesOn ? [say("goOn")] : []),
   ].join("\n");
 }

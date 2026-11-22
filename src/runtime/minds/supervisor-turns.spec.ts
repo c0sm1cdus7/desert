@@ -182,8 +182,13 @@ it("reads every mind with its journeys and speaks through the talk program, and 
   expect(frame).toContain("mind:notes terminó el journey «Mate el jueves»: Hecho");
   expect(frame).toMatch(/mind:notes: \{"scene":/u);
   expect(frame).toMatch(/assistant:ana: \{"scene":/u);
-  const context = frame.split("Contexto:\n")[1]?.split("\n")[0] ?? "";
-  expect([...context.matchAll(/"act":"([^"]+)"/gu)].map(match => match[1]).sort()).toEqual(["scene", "thread/say"]);
+  const context = frame.split("Contexto:\n")[1]?.split("\n\n")[0] ?? "";
+  expect(
+    context
+      .split("\n")
+      .map(line => line.split(" → ")[0])
+      .sort(),
+  ).toEqual(["read", "scene", "thread/say"]);
   // Its first answer named an act on a program, outside its schema: it was corrected, and the note was never made.
   const turn = [...house.tools.state().house.minds.turns.values()].find(each => each.opened.by === "mind:supervisor");
   expect(turn?.invalid.map(event => event.data.faults)).toEqual([[{ code: "schema", path: "/" }]]);
@@ -197,7 +202,7 @@ it("reads every mind with its journeys and speaks through the talk program, and 
   const bodies = f.transport.mock.calls.map(call => (typeof call[1]?.body === "string" ? call[1].body : ""));
   const own = bodies.find(body => body.includes("Alcance:\\nmind:supervisor")) ?? "";
   // The whole request of its own turn, layers and schema included, is about 7 KB for this house; it is bounded by
-  // the input limit, trimming what it read in threads first and then minds, each one named under «Omitido».
+  // the input limit, trimming what it read in threads first and then minds, each counted under «Omitido».
   expect(own.length).toBeGreaterThan(frame.length);
   expect(own.length).toBeLessThan(50000);
 }, 60000);

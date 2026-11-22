@@ -19,6 +19,8 @@ import {
 } from "../../../tests/support/request-mind-fixture.ts";
 import { currentTurn, lineOf, lines, mention, respondToNotes } from "../../../tests/support/request-mind-responder.ts";
 import { assistantDefinition, definitionsNow } from "./mind-definitions.ts";
+import { shortIds } from "./mind-references.ts";
+import { messageText } from "../../../tests/support/frame-text.ts";
 const fixtures: ReturnType<typeof requestMindFixture>[] = [];
 const haiku = { model: "claude-haiku-5-5", effort: "low" };
 const fixture = () => {
@@ -38,11 +40,11 @@ afterEach(() => {
   fixtures.splice(0).forEach(f => f.cleanup());
   vi.unstubAllGlobals();
 });
-const shown = Type.Object({ model: Type.String(), messages: Type.Array(Type.Object({ content: Type.String() })) });
+const shown = Type.Object({ model: Type.String(), messages: Type.Array(Type.Object({ content: Type.Unknown() })) });
 const bodies = (f: ReturnType<typeof fixture>) =>
   f.transport.mock.calls.flatMap(call => {
     const body: unknown = JSON.parse(typeof call[1]?.body === "string" ? call[1].body : "{}");
-    return Value.Check(shown, body) ? [{ model: body.model, frame: body.messages[0]?.content ?? "" }] : [];
+    return Value.Check(shown, body) ? [{ model: body.model, frame: messageText(body.messages[0]?.content) }] : [];
   });
 /** The administrator, or the owner, acts on an identity's place as anyone does: attending it first. */
 async function onIdentity(house: RequestHouse, by: string, act: string, input: unknown) {
@@ -113,7 +115,12 @@ it("an assistant enabled while the house runs gets its card, answers through the
     ["thread/say", undefined],
   ]);
   const scopes = bodies(f).map(body => body.frame.split("\n")[1]?.replace(/ \/ \d+$/u, ""));
-  expect(scopes).toEqual(["assistant:ana", `assistant:ana / ${journeys[0]?.id}`, "mind:notes", "assistant:ana"]);
+  expect(scopes).toEqual([
+    "assistant:ana",
+    `assistant:ana / ${shortIds(journeys[0]?.id ?? "")}`,
+    "mind:notes",
+    "assistant:ana",
+  ]);
   const calls = [...house.tools.state().house.modelCalls.values()];
   expect(calls.map(call => [call.reserved.by, call.status])).toEqual([
     ["assistant:ana", "settled"],

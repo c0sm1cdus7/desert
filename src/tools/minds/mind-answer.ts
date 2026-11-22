@@ -20,7 +20,8 @@ export type MindMenu = readonly Readonly<{
   target: string;
   input: TSchema;
   destinations?: readonly ExecutionDestination[];
-  scope: "communication" | "open" | "work" | "control";
+  /** `read` asks the house for a whole text in the same turn: it changes nothing and writes no fact. */
+  scope: "communication" | "open" | "work" | "control" | "read";
 }>[];
 export type AnswerFault = Readonly<{ code: string; path: string }>;
 export type AnswerContext = Readonly<{
@@ -43,24 +44,48 @@ const shape = object({
     { maxItems: 32 },
   ),
 });
-/** The model adapter reduces transport-only constraints; this schema retains the complete local contract. */
+/** Acts over the journeys of others: their target is always one of several, even when only one is open. */
+const overJourneys = new Set(["resume", "desist", "interrupt"]);
+/** One branch per act and input shape, never per target: the grammar the provider compiles grows with the kinds of
+ * acts a mind has, not with its threads, journeys or devices (22/11). A kind with one target, or one destination,
+ * keeps it as a literal (the adapter leaves literals out of the grammar and puts them back); any other is a string
+ * the house checks against the menu. */
 export function answerSchema(menu: MindMenu): TSchema {
+  const list: MindMenu = menu;
   requireMind(Array.isArray(menu), "menu");
-  const acts = menu.map((item: MindMenu[number]) =>
-    object({
-      act: Type.Literal(item.act),
-      target: Type.Literal(item.target),
-      input: closedAnswerInput(item.input),
-      ...destinationFields(item.destinations),
-    }),
-  );
+  const kinds = new Map<string, MindMenu[number][]>();
+  for (const item of list) {
+    // Two tools may name an act alike, and one may run somewhere while the other does not: each keeps its branch.
+    const key = JSON.stringify([item.tool, item.act, item.input, !item.destinations]);
+    kinds.set(key, [...(kinds.get(key) ?? []), item]);
+  }
+  const acts = [...kinds.values()].map(items => {
+    const [first] = items;
+    requireMind(first, "menu");
+    const targets = [...new Set(items.map(item => item.target))];
+    const [only] = targets;
+    const literal = only !== undefined && targets.length === 1 && !overJourneys.has(first.act);
+    return object({
+      act: Type.Literal(first.act),
+      target: literal ? Type.Literal(only) : Type.String(),
+      input: closedAnswerInput(first.input),
+      ...destinationFields(destinationsOf(items)),
+    });
+  });
   return object({
     scene: mindText,
     consultation: Type.Union([object({ question: mindText }), Type.Null()]),
     acts: Type.Array(acts.length ? Type.Union(acts) : Type.Never(), { maxItems: 32 }),
   });
 }
+/** Every destination the items of one kind offer, each once. */
+function destinationsOf(items: readonly MindMenu[number][]): readonly ExecutionDestination[] | undefined {
+  if (!items.some(item => item.destinations)) return undefined;
+  const offered = items.flatMap(item => item.destinations ?? []);
+  return [...new Map(offered.map(each => [JSON.stringify(each), each])).values()];
+}
 const permittedScope = (context: AnswerContext, item: MindMenu[number]): boolean => {
+  if (item.scope === "read") return true;
   if (context.scope.kind === "consciousness")
     return (
       item.scope === "communication" || item.scope === "open" || (item.scope === "control" && item.tool === "journey")

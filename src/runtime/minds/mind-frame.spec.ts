@@ -34,6 +34,7 @@ const source = {
   objects: [],
   thread: [],
   required: "Pedido actual",
+  menu: "",
 };
 describe("mind frame", () => {
   it("renders four stable ordered layers and the changing wake", () => {
@@ -82,4 +83,51 @@ it("uses the same cached four-layer prefix for two catalog cards", () => {
   expect(a.system).toHaveLength(4);
   expect(a.system[3]).toMatchObject({ cache_control: { type: "ephemeral" } });
   expect(JSON.stringify(a.system)).not.toMatch(/precio|gasto|carta/i);
+});
+describe("the order of a frame", () => {
+  const entries = Array.from({ length: 19 }, (_, index) => ({ id: `h${index}`, text: `Escena ${index}` }));
+  const own = { kind: "journey", actor: "assistant:franco", process: "journey:x", kit: [] } as const;
+  const later = { ...turn, scope: own, through: 9, wake: ["e2"] };
+  const frameOf = (thread: typeof entries, through: number) =>
+    renderMindFrame(
+      buildMindFrame(own, { ...later, through }, { ...source, thread, menu: "resume → journey:x", now: through }),
+      "es",
+    );
+  it("puts the menu in the stable layers and the thread's sealed blocks before what changes", () => {
+    const frame = frameOf(entries, 9);
+    expect(frame.layers[3]).toContain("Menú:\nresume → journey:x");
+    expect(frame.changing).not.toContain("Menú:");
+    expect(frame.kept).toHaveLength(2);
+    expect(frame.kept?.[0]).toMatch(/^Hilo:\nh0: Escena 0\n/u);
+    expect(frame.kept?.join("")).not.toContain("Escena 16");
+    expect(frame.changing).toContain("h16: Escena 16");
+    expect(frame.changing.startsWith("Alcance:")).toBe(true);
+  });
+  it("keeps the layers and every sealed block byte for byte when the next wake adds an entry", () => {
+    const first = frameOf(entries, 9);
+    const next = frameOf([...entries, { id: "h19", text: "Escena 19" }], 12);
+    expect(next.layers).toEqual(first.layers);
+    expect(next.kept?.slice(0, 2)).toEqual(first.kept);
+    expect(next.changing).not.toEqual(first.changing);
+  });
+});
+describe("short references", () => {
+  const event = "a".repeat(64);
+  const digest = "b".repeat(64);
+  it("shortens only the ids the journal knows, keeps any other hash whole, and names each waking fact", () => {
+    const snapshot = buildMindFrame(
+      { ...scope },
+      { ...turn, wake: [event] },
+      {
+        ...source,
+        objects: [{ id: `tool/${event}`, text: `sha256 ${digest}` }],
+        woke: ["ana te habló"],
+        ids: new Set([event]),
+      },
+    );
+    const frame = renderMindFrame(snapshot, "es");
+    expect(frame.changing).toContain(`tool/aaaaaaaa: sha256 ${digest}`);
+    expect(frame.changing).toContain("Despertar:\naaaaaaaa: ana te habló");
+    expect(frame.changing).not.toContain(event);
+  });
 });

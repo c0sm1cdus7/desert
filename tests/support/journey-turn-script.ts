@@ -22,7 +22,7 @@ export const waitAct = (id: string): ProposedAct => ({
  * journey the consciousness opened, once it exists. */
 export type Seen = Readonly<{ journey?: string; call: number; changing: string; body: string; opened?: string }>;
 type Answer = (seen: Seen) => readonly ProposedAct[] | MindAnswer;
-const shown = Type.Object({ messages: Type.Array(Type.Object({ role: Type.String(), content: Type.String() })) });
+const shown = Type.Object({ messages: Type.Array(Type.Object({ role: Type.String(), content: Type.Unknown() })) });
 /** The messages a call sent, in order. */
 export function messagesOf(seen: Seen) {
   const body: unknown = JSON.parse(seen.body);

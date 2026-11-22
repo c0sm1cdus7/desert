@@ -17,12 +17,13 @@ import type { ProgramMindScene } from "../../src/tools/minds/program-mind-cases.
 import { sampleOptions } from "./installable-program.ts";
 import { requestProgram, requestKit } from "./request-program.ts";
 import { talkAct, talkKit, talkProgram } from "./talk-program.ts";
+import { messageText } from "./frame-text.ts";
 export const answer = (acts: MindAnswer["acts"] = [], scene = "Ready"): MindAnswer => ({
   scene,
   acts,
   consultation: null,
 });
-const requestShape = Type.Object({ messages: Type.Array(Type.Object({ content: Type.String() })) });
+const requestShape = Type.Object({ messages: Type.Array(Type.Object({ content: Type.Unknown() })) });
 function assignAssistant(house: RequestHouse, card: Pick<Card, "model" | "effort" | "capabilities">) {
   house.bus.emit(effect("assistant-enabled", { owner: "ana", name: "Nora" }, "ana"));
   const kit = explicitKit([talkKit], kitLayout(house.registry));
@@ -66,7 +67,7 @@ class RequestMindFixture {
     const body: unknown = JSON.parse(init.body);
     if (!Value.Check(requestShape, body)) throw new Error("request.shape");
     // The responder reads the whole conversation of the call, as the model does: the frame, then what followed it.
-    const value = await this.response(body.messages.map(message => message.content).join("\n\n"));
+    const value = await this.response(body.messages.map(message => messageText(message.content)).join("\n\n"));
     return new Response(
       JSON.stringify({
         stop_reason: "end_turn",

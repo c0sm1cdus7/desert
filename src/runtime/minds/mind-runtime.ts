@@ -27,6 +27,9 @@ import {
   type MindSwitches,
 } from "./mind-runtime-options.ts";
 import type { TurnPorts, TurnWake } from "./mind-ports.ts";
+import { referenceResolver, resolveAnswer } from "./mind-references.ts";
+import { activityTarget } from "./mind-read.ts";
+import { activityPage, page } from "./mind-frame-focus.ts";
 import type { Event } from "../../journal/vocabulary.ts";
 import { expandKit } from "../../house/kit-selection.ts";
 import { assignDeclaredCards, publishMindCards } from "./mind-card-catalog.ts";
@@ -108,8 +111,34 @@ class HouseMindRuntime<X extends Program> {
       supervision: { ...(this.supervisor ? { supervisor: this.supervisor.review } : {}), ...options.supervision },
       emit: this.emit,
       execute: runtimeActions(house, options, switches),
+      page: this.page,
+      resolve: this.resolve,
     };
   }
+  /** The read act: an object whole, or the whole activity, newest first, from a character on. */
+  private page: NonNullable<TurnPorts["page"]> = (turn, target, from) => {
+    const { options } = this;
+    const view = this.view(turn.scope);
+    if (target !== activityTarget(options.language)) {
+      const object = view.objects.find(each => each.id === target);
+      return object && page(object.text, from);
+    }
+    return page(
+      activityPage(view.activity, item => `${item.id}: ${item.text}`),
+      from,
+    );
+  };
+  /** The whole ids behind the short references an answer gives back: events, journeys and objects. */
+  private resolve: NonNullable<TurnPorts["resolve"]> = (scope, value) => {
+    const { house } = this;
+    const view = this.view(scope);
+    const known = [
+      ...house.history().map(event => event.id),
+      ...house.execution.state().house.journeys.keys(),
+      ...view.objects.map(object => object.id),
+    ];
+    return resolveAnswer(value, view.menu, referenceResolver(known));
+  };
   private emit: TurnPorts["emit"] = emission => {
     const { house } = this;
     if (!house.active()) return;

@@ -14,6 +14,7 @@ import { startHouse, type RunningHouse } from "../../src/runtime/house-runtime.t
 import { effect } from "../../src/house/facts.ts";
 import type { MindAnswer } from "../../src/tools/minds/mind-answer.ts";
 import type { ProgramMindResources } from "../../src/runtime/minds/program-mind-options.ts";
+import { messageText } from "./frame-text.ts";
 const bankScene: ProgramMindScene = {
   given: [],
   kit: [],
@@ -36,7 +37,7 @@ const other = defineProgram(
 const requestSchema = Type.Object({
   model: Type.String(),
   output_config: Type.Object({ effort: Type.String() }),
-  messages: Type.Array(Type.Object({ content: Type.String() })),
+  messages: Type.Array(Type.Object({ content: Type.Unknown() })),
 });
 type FakeRequest = { model: string; effort: string; changing: string; body: string };
 function syntheticModel() {
@@ -49,7 +50,7 @@ function syntheticModel() {
     const request = {
       model: body.model,
       effort: body.output_config.effort,
-      changing: body.messages[0]?.content ?? "",
+      changing: messageText(body.messages[0]?.content),
       body: init.body,
     };
     frames.push(request);

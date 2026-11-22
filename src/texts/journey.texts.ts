@@ -114,3 +114,24 @@ export const journeyNotice = defineMessage({
     },
   },
 });
+/** A waking fact said as itself, when no other line says it (22/11, UNSIGNED). */
+export const wakeFact = defineMessage({
+  id: "journey.wake.fact",
+  kind: "text",
+  parameters: object({
+    kind: Type.Union(["opened", "due", "act", "other"].map(kind => Type.Literal(kind))),
+    who: Type.String(),
+    what: Type.String(),
+    where: Type.String(),
+    detail: Type.String(),
+  }),
+  texts: {
+    es: ({ kind, who, what, where, detail }) =>
+      ({
+        opened: "Tu consciencia abrió este journey; su objetivo está en Contexto.",
+        due: `Llegó la hora que elegiste al esperar: ${detail}`,
+        act: `${who} hizo ${what} en ${where}${detail ? `: ${detail}` : ""}`,
+        other: `${who}: ${what}${where ? ` en ${where}` : ""}${detail ? ` · ${detail}` : ""}`,
+      })[kind] ?? what,
+  },
+});

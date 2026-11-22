@@ -118,10 +118,18 @@ describe("the tree of src/", () => {
   // 22/11 surfaces, stage 2: +15 exact in screen-door.texts.ts: the entry's words and mask, a cut session's notice.
   // 22/11 English names: +16 in stored-names.texts.ts, what the migration says; +1 the kit's verb and +1 «ninguno»
   // move into identities and secrets texts; -1 the retired «herramienta» parameter's refusal leaves mcp.texts.ts.
-  it("keeps every file within 300 lines and the texts within 1446", () => {
+  // 22/11 frames without noise: +25 exact in model.texts.ts: the limits a schema says in words (UNSIGNED).
+  // 22/11 frames without noise: +21 exact in mind-frame.texts.ts: the label Menú and one line per act (UNSIGNED).
+  // 22/11 frames without noise: +21 exact in journey.texts.ts: a waking fact said as itself (UNSIGNED).
+  // 22/11 frames without noise: +15 exact in mind-frame.texts.ts: the read act and Actividad's older lines (UNSIGNED).
+  // 22/11 frames without noise: +10 exact in mind-frame.texts.ts: what a capped object left out and how to read it,
+  // and how many things stayed rows of their list (UNSIGNED).
+  // 22/11 frames without noise: +4 exact in mind-frame.texts.ts: the house's reading guide for the stable-first order
+  // and the words for an open journey in the cached menu (UNSIGNED).
+  it("keeps every file within 300 lines and the texts within 1542", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1446);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1542);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

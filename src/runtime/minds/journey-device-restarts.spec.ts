@@ -14,6 +14,7 @@ import {
   wakesOf,
   type JourneyScript,
 } from "../../../tests/support/device-mind-fixture.ts";
+import { shortIds } from "./mind-references.ts";
 const rigs: ReturnType<typeof deviceMindFixture>[] = [];
 beforeEach(() =>
   vi.stubGlobal(
@@ -143,6 +144,6 @@ it("a restart that cuts the turn a notice woke says that notice again with the r
   await flush(again);
   expect(wakesOf(again, id)).toEqual([["journey-opened"], ["device-execution-notice"], ["mind-turn-closed"]]);
   const last = rig.frames.find(frame => frame.includes("La casa se reinició durante el turno anterior")) ?? "";
-  expect(last).toContain(`${told} (arranque: start:${execution}) se perdió.`);
+  expect(last).toContain(shortIds(`${told} (arranque: start:${execution}) se perdió.`));
   expect(journeyOf(again)?.closed?.data.outcome).toBe("done");
 }, 60000);

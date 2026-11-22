@@ -8,7 +8,12 @@ import type { MindScope, TurnContext } from "../../tools/minds/mind-contract.ts"
 import type { MindMenu, ProposedAct } from "../../tools/minds/mind-answer.ts";
 import type { ReviewPort, ReviewRequest, ReviewResult } from "../../tools/minds/mind-review.ts";
 import { turnNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
-export type MindFrame = Readonly<{ layers: readonly [string, string, string, string]; changing: string }>;
+/** The frame: four stable layers, the own thread's sealed blocks (append-only, cached) and the tail that changes. */
+export type MindFrame = Readonly<{
+  layers: readonly [string, string, string, string];
+  kept?: readonly string[];
+  changing: string;
+}>;
 export type FramePort = (scope: MindScope, turn: TurnContext) => MindFrame | Readonly<{ tooLarge: true }>;
 /** One exchange after the frame: the schema the answer was asked with, the answer when it could be read, and what
  * the house told the mind back. Later calls of a turn append exchanges and never rebuild the frame. */
@@ -72,6 +77,10 @@ export type TurnSnapshot = Readonly<{
 }>;
 export type TurnPorts = Readonly<{
   frame: FramePort;
+  /** The whole text the read act asks for, from a character on, or nothing when there is no such text. */
+  page?: (turn: Pick<TurnContext, "id" | "scope">, target: string, from: number) => string | undefined;
+  /** The answer with the whole ids behind the short references the mind read and gave back. */
+  resolve?: (scope: MindScope, value: unknown) => unknown;
   model: ModelPort;
   read: (scope: MindScope) => TurnSnapshot;
   isOpen: (id: string) => boolean;

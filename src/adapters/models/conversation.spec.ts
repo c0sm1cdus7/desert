@@ -55,3 +55,15 @@ it("an unconstrained schema stays in the history where it was asked, so the pref
   expect(second?.messages.slice(0, 2)).toEqual(first?.messages);
   expect(second?.messages).toHaveLength(5);
 });
+it("sends the kept thread as blocks before the tail, with a cache mark on the last kept block", () => {
+  const body = requestBody({ ...request(schema), kept: ["Hilo:\nA", "B"] });
+  expect(body.messages[0]).toEqual({
+    role: "user",
+    content: [
+      { type: "text", text: "Hilo:\nA" },
+      { type: "text", text: "B", cache_control: { type: "ephemeral" } },
+      { type: "text", text: "Marco" },
+    ],
+  });
+  expect(requestBody({ ...request(schema), kept: [] }).messages[0]).toEqual({ role: "user", content: "Marco" });
+});

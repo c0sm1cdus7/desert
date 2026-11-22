@@ -55,6 +55,10 @@ const reported = (act: ProposedAct, result: ExecuteResult, reason?: string): Act
 /** The acts after a refused one wait for the mind's decision. */
 const skippedAfter = (answer: MindAnswer, index: number) =>
   answer.acts.slice(index + 1).map((each): ActReport => ({ act: each, status: "skipped" }));
+function read(ports: TurnPorts, turn: TurnContext, act: ProposedAct): string | undefined {
+  const from = typeof act.input === "object" && act.input && "from" in act.input ? act.input.from : 0;
+  return ports.page?.(turn, act.target, typeof from === "number" ? from : 0);
+}
 export async function applyActs(
   run: Run,
   answer: MindAnswer,
@@ -68,6 +72,13 @@ export async function applyActs(
     if (!current.active || !ports.isOpen(turn.id)) return "inactive";
     if (current.rulesVersion !== version) return "review-stale";
     if (!ports.allowed(turn.scope, act)) return "permission";
+    // Reading changes nothing in the house: no fact, no review, nothing applied; the text comes with the results.
+    const offered = current.menu.find(item => item.act === act.act && item.target === act.target);
+    const text = offered?.scope === "read" ? read(ports, turn, act) : undefined;
+    if (text !== undefined) {
+      reports.push({ act, status: "accepted", page: text });
+      continue;
+    }
     const result = await perform(run, act);
     if ("code" in result) {
       const corrected: ActReport = { act, status: "rejected", reason: result.correction };

@@ -2,7 +2,8 @@
 import type { JourneyState } from "../../house/minds/journey-state.ts";
 import type { Event } from "../../journal/vocabulary.ts";
 import { turnNotice } from "../../texts/mind-turn.texts.ts";
-import { supervisorWoke } from "../../texts/supervisor.texts.ts";
+import { supervisorLabels, supervisorWoke } from "../../texts/supervisor.texts.ts";
+import type { Language } from "../../fields/languages.ts";
 import { answerSchema } from "../../tools/minds/mind-answer.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -15,6 +16,12 @@ import type { runtimeModel } from "./mind-runtime-model.ts";
 import type { runtimeView } from "./mind-runtime-view.ts";
 import { supervisorActor } from "./mind-definitions.ts";
 import { layers, mindsOf, ownThread, section } from "./supervisor-frame.ts";
+import { menuText } from "./mind-frame-menu.ts";
+import { factLine } from "./wake-words.ts";
+import { answeredMark, recentActivity } from "./mind-frame-focus.ts";
+import { framedObjects, inPlay } from "./mind-frame-objects.ts";
+import { frameReading } from "../../texts/mind-frame.texts.ts";
+import { shortIds } from "./mind-references.ts";
 type View = ReturnType<typeof runtimeView>;
 /** How many turns of each journey closed with a reason: a fact the supervisor reads, never a limit. */
 function cutsByJourney(history: readonly Event[]): ReadonlyMap<string, number> {
@@ -49,27 +56,39 @@ function houseItems<X extends Program>(house: MindRuntimeHouse<X>): FrameItem[] 
 /** Each waking fact in words: a journey that ended or desisted, a cut or failed turn, somebody who spoke to it. */
 function woke<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntimeOptions, wake: readonly string[]) {
   const { language } = options;
-  const journeys = house.execution.state().house.journeys;
-  const events = new Map(house.history().flatMap(event => (wake.includes(event.id) ? [[event.id, event]] : [])));
+  const { journeys, devices } = house.execution.state().house;
+  const history = house.history();
+  const events = new Map(history.flatMap(event => (wake.includes(event.id) ? [[event.id, event]] : [])));
   return wake.map(id => {
     const event = events.get(id);
     const message = event && options.message(event);
     if (message)
       return supervisorWoke.text(language, { kind: "spoken", who: message.by, goal: "", detail: message.text });
-    if (event?.layer !== "house") return id;
+    if (!event) return id;
+    const fact = () => factLine(event, { journeys, devices }, language, history);
+    if (event.layer !== "house") return fact();
     const goal = event.process ? (journeys.get(event.process)?.goal ?? event.process) : "";
     if (event.kind === "journey-closed" && event.process) {
       const kind = event.data.outcome === "done" ? "done" : "desisted";
       return supervisorWoke.text(language, { kind, who: event.by, goal, detail: event.data.summary });
     }
-    if (event.kind !== "mind-turn-closed" || !event.data.reason) return id;
+    if (event.kind !== "mind-turn-closed" || !event.data.reason) return fact();
     const detail = turnNotice.text(language, { reason: event.data.reason });
     // A closed turn with no process is a consciousness's own: no journey to name, only the mind that failed.
     return supervisorWoke.text(language, { kind: event.process ? "cut" : "failed", who: event.by, goal, detail });
   });
 }
 const render = (items: readonly FrameItem[]) => items.map(item => `${item.id}: ${item.text}`).join("\n");
-type Parts = Readonly<{ minds: FrameItem[]; activity: FrameItem[]; omitted: string[] }>;
+/** How many lines of activity and minds did not fit, by section: never which. */
+type Parts = Readonly<{ minds: FrameItem[]; activity: FrameItem[]; omitted: { activity: number; minds: number } }>;
+const omittedLine = (language: Language, omitted: Parts["omitted"]) => {
+  const label = (index: number) => supervisorLabels.text(language, {}).split("|")[index] ?? "";
+  const counts = [
+    ...(omitted.activity ? [`${label(13)}: ${omitted.activity}`] : []),
+    ...(omitted.minds ? [`${label(6)}: ${omitted.minds}`] : []),
+  ];
+  return counts.length ? [section(language, 14, counts.join(" · "))] : [];
+};
 function frameOf<X extends Program>(
   house: MindRuntimeHouse<X>,
   options: MindRuntimeOptions,
@@ -80,26 +99,29 @@ function frameOf<X extends Program>(
   const now = house.time.now();
   return {
     layers: layers(house, options),
-    changing: [
-      section(language, 3, `${supervisorActor} / ${house.execution.state().through}`),
-      section(language, 4, fixed.scene),
-      section(language, 5, fixed.thread),
-      section(language, 6, render(parts.minds)),
-      section(language, 10, fixed.woke),
-      section(language, 13, render(parts.activity)),
-      section(language, 12, fixed.context),
-      section(language, 11, `${now} ${new Date(now).toISOString()}`),
-      ...(parts.omitted.length ? [section(language, 14, parts.omitted.join(", "))] : []),
-    ].join("\n\n"),
+    changing: shortIds(
+      [
+        section(language, 3, `${supervisorActor} / ${house.execution.state().through}`),
+        section(language, 4, fixed.scene),
+        section(language, 5, fixed.thread),
+        section(language, 6, render(parts.minds)),
+        section(language, 10, fixed.woke),
+        section(language, 13, render(parts.activity)),
+        section(language, 12, fixed.context),
+        section(language, 11, `${now} ${new Date(now).toISOString()}`),
+        ...omittedLine(language, parts.omitted),
+      ].join("\n\n"),
+      new Set(house.history().map(event => event.id)),
+    ),
   };
 }
 /** The frame fits the request: what it read in threads goes first, then minds from the first, each one named. */
 function fit(frame: (parts: Parts) => MindFrame, parts: Parts, fits: (frame: MindFrame) => boolean) {
   let current = frame(parts);
   while (!fits(current)) {
-    const item = parts.activity.shift() ?? parts.minds.shift();
-    if (!item) return { tooLarge: true as const };
-    parts.omitted.push(item.id);
+    const key = parts.activity.length ? "activity" : "minds";
+    if (!parts[key].shift()) return { tooLarge: true as const };
+    parts.omitted[key] += 1;
     current = frame(parts);
   }
   return current;
@@ -118,13 +140,26 @@ export function supervisorTurnFrame<X extends Program>(
       new TextEncoder().encode(JSON.stringify(card ? diagnoseMindRequest(card, frame, schema) : { frame, schema }))
         .length + providerMarginTokens;
     const fixed = {
-      woke: woke(house, options, turn.wake).join("\n"),
-      context: JSON.stringify({ menu: current.menu }),
+      // Each waking fact after its id, which an act may give back as a reference.
+      woke: woke(house, options, turn.wake)
+        .map((line, index) => (line === turn.wake[index] ? line : `${turn.wake[index] ?? ""}: ${line}`))
+        .join("\n"),
+      // Its Contexto is not cached and the house section may be cut: every journey it may stop by its id.
+      context: menuText(current.menu, options.language, undefined, false),
       scene: house.execution.state().house.minds.scenes.get(supervisorActor)?.data.text ?? "",
       thread: ownThread(house, options),
     };
-    const activity = [...current.activity, ...current.objects].map(({ id, text }) => ({ id, text }));
-    const parts: Parts = { minds: houseItems(house), activity, omitted: [] };
+    // What it read since it last answered; the read act brings what came before.
+    const mark = answeredMark(house.execution.state().house.minds, house.history(), scope, turn.id);
+    const { recent, older } = recentActivity(current.activity, mark, turn.wake);
+    const olderItems = older
+      ? [{ id: "…", text: frameReading.text(options.language, { part: "older", count: older, id: "" }) }]
+      : [];
+    const { devices } = house.execution.state().house;
+    const play = inPlay({ history: house.history(), mark, wake: turn.wake, devices }, () => false);
+    const { objects } = framedObjects(current.objects, play, options.language);
+    const activity = [...recent, ...olderItems, ...objects].map(({ id, text }) => ({ id, text }));
+    const parts: Parts = { minds: houseItems(house), activity, omitted: { activity: 0, minds: 0 } };
     return fit(
       each => frameOf(house, options, fixed, each),
       parts,

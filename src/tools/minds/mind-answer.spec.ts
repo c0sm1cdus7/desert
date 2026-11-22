@@ -97,7 +97,8 @@ it("requires a destination offered to the journey and rejects a different or mis
       acts: answer.acts.map(act => ({ ...act, ...(device ? { destination: { kind: "device", device } } : {}) })),
     };
     const valid = device === "mac" || device === "vm";
-    expect(Value.Check(answerSchema(remoteMenu), value)).toBe(valid);
+    // Among several machines the schema asks for a name; the house checks it against the ones it offered.
+    expect(Value.Check(answerSchema(remoteMenu), value)).toBe(device !== undefined);
     expect(validateAnswer(value, { ...context, menu: remoteMenu }).ok).toBe(valid);
   }
 });

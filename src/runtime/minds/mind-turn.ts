@@ -174,7 +174,8 @@ class MindTurnRun {
    * correction. */
   private refused(done: Refused): TurnOutcome | undefined {
     const faults = [{ code: done.code, path: "/acts" }];
-    const applied = done.reports.some(report => report.status === "accepted");
+    // A page read is no act applied: it gives no correction back.
+    const applied = done.reports.some(report => report.status === "accepted" && report.page === undefined);
     if (applied) this.caller.settle();
     const told = applied ? this.results(done.reports) : undefined;
     return this.correct(done.correction, faults, false, told)
@@ -185,14 +186,18 @@ class MindTurnRun {
   private results(reports: readonly ActReport[]): string {
     const now = this.ports.read(this.turn.scope);
     const menus = { before: this.talk.menu(), after: now.menu };
-    return resultsText(this.turn.language, reports, now.now, menus, this.turn.scope.kind === "journey");
+    const { scope } = this.turn;
+    return resultsText(this.turn.language, reports, now.now, menus, scope.kind === "journey", scope.process);
   }
   /** A consciousness answers once. A journey's turn closes only when its last act, applied, says how it goes on;
    * otherwise the mind hears what its acts did and answers again, bounded only by the twelve calls. */
   private goOn(answer: MindAnswer, reports: readonly ActReport[], menu: TurnSnapshot["menu"]): TurnOutcome | undefined {
     const last = answer.acts.at(-1);
     const closes = !!last && continuation(menu.find(item => item.act === last.act && item.target === last.target));
-    if (this.turn.scope.kind !== "journey" || (closes && reports.at(-1)?.status === "accepted")) return this.finish();
+    // A consciousness whose answer reads hears what it read, and what its other acts did, and answers again.
+    const reads = reports.some(report => report.page !== undefined);
+    if (this.turn.scope.kind !== "journey" && !reads) return this.finish();
+    if (closes && reports.at(-1)?.status === "accepted") return this.finish();
     this.talk.tell(this.results(reports));
     return undefined;
   }
@@ -208,7 +213,8 @@ class MindTurnRun {
         : this.finish("invalid");
     }
     this.talk.answered(outcome.value);
-    const checked = this.inspect(outcome.value);
+    const value = this.ports.resolve ? this.ports.resolve(this.turn.scope, outcome.value) : outcome.value;
+    const checked = this.inspect(value);
     const reason =
       checked.ok || !checked.faults.some(fault => fault.code === "continuation") ? "schema" : "continuation";
     if (!checked.ok)

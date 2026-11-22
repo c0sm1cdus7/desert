@@ -1,8 +1,10 @@
 import { Type } from "@sinclair/typebox";
 import { expect, it } from "vitest";
-import { answerSchema, type MindMenu } from "../../tools/minds/mind-answer.ts";
+import { answerSchema, validateAnswer, type MindMenu } from "../../tools/minds/mind-answer.ts";
 import { matchesSchema, providerSchema } from "./schema.ts";
-import { callAnthropic } from "./anthropic.ts";
+import { callAnthropic, readResponse } from "./anthropic.ts";
+import { object } from "../../fields/visible-text.ts";
+import { journeyInputs } from "../../tools/minds/journey-menu.ts";
 import { cards } from "./catalog.ts";
 import { enumLimit } from "./schema-compaction.ts";
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -84,12 +86,18 @@ it("merges branches exactly while the lists are short, and the local contract ke
     expect(matchesSchema(sent, said)).toBe(true);
     expect(matchesSchema(local, said)).toBe(true);
   }
-  expect(matchesSchema(sent, answer("threads/say", "communicator/threads/9", { text: "Hola" }))).toBe(false);
+  // A target is a string in the grammar: the house refuses a thread outside its menu, with the fault «menu».
+  const outside = answer("threads/say", "communicator/threads/9", { text: "Hola" });
+  expect(matchesSchema(sent, outside)).toBe(true);
+  const scope = { kind: "journey", actor: "mind:communicator", process: "j", kit: [] } as const;
+  const context = { menu, scope, active: true, consulted: false, allowed: () => true };
+  expect(validateAnswer(outside, context)).toEqual({ ok: false, faults: [{ code: "menu", path: "/acts/0" }] });
   expect(matchesSchema(sent, answer("threads/say", "communicator/threads/1", { text: "x", replyTo: "other" }))).toBe(
     false,
   );
   const crossed = answer("threads/add", "mind:communicator", { identity: "franco" });
-  expect(matchesSchema(sent, crossed)).toBe(false);
+  expect(matchesSchema(sent, crossed)).toBe(true);
+  expect(validateAnswer(crossed, context)).toEqual({ ok: false, faults: [{ code: "menu", path: "/acts/0" }] });
   const huge = houseMenu(200, 200);
   const unknownReply = answer("threads/say", "communicator/threads/7", { text: "Hola", replyTo: "message-999" });
   expect(matchesSchema(providerSchema(answerSchema(huge)), unknownReply)).toBe(true);
@@ -132,4 +140,143 @@ it("resends a grammar the provider refuses without constraint, remembers it and 
     false,
   ]);
   expect(JSON.stringify(sent[1])).toContain("Respondé solo con un objeto JSON");
+});
+/** The journey menu whose grammar the provider refused on 21-22/11: three device tools with start, status and
+ * cancel on one device, a thread to report in among fourteen, and the journey's five controls. */
+function agentsJourney(threads: number, process: string): MindMenu {
+  const text = Type.String({ minLength: 1, maxLength: 4000 });
+  const job = object({ job: Type.String({ pattern: "^[a-f0-9-]{36}$" }) });
+  const device = [{ kind: "device" as const, device: "linux" }];
+  const start = (tool: string) =>
+    object({
+      folder: text,
+      assignment: text,
+      ...(tool === "shell" ? { command: Type.Array(text), timeoutSeconds: Type.Integer() } : {}),
+      ...(tool === "codex" ? { model: Type.Optional(text) } : {}),
+    });
+  return [
+    ...(["plan", "done", "wait", "end", "desist"] as const).map(act => ({
+      tool: "journey",
+      act,
+      target: process,
+      input: journeyInputs[act],
+      scope: "control" as const,
+    })),
+    ...ids(threads, "communicator/threads").map(target => ({
+      tool: "communicator",
+      act: "threads/say",
+      target,
+      input: object({ text }),
+      scope: "work" as const,
+    })),
+    ...["shell", "claude", "codex"].flatMap(tool =>
+      (["start", "status", "cancel"] as const).map(act => ({
+        tool: "agents",
+        act: `${tool}/${act}`,
+        target: `agents/${tool}`,
+        input: act === "start" ? start(tool) : job,
+        scope: "work" as const,
+        destinations: device,
+      })),
+    ),
+  ];
+}
+it("asks with one branch per kind of act, never spelling a journey, a tool's target or a device", () => {
+  const process = "journey:298bfaae-9dfb-4eb6-900a-9207d04d2e09";
+  const sent = providerSchema(answerSchema(agentsJourney(14, process)));
+  expect(providerSchema(answerSchema(agentsJourney(15, process)))).toEqual(sent);
+  const grammar = JSON.stringify(sent, (key, value: unknown) => (key === "description" ? undefined : value));
+  for (const spelled of [process, "agents/shell", "linux", "destination", "communicator/threads/1"])
+    expect(grammar).not.toContain(spelled);
+  const acts = (isObject(sent.properties) && isObject(sent.properties.acts) && sent.properties.acts.items) || {};
+  expect(isObject(acts) && Array.isArray(acts.anyOf) ? acts.anyOf.length : 0).toBeLessThanOrEqual(10);
+  expect(grammar.length).toBeLessThan(4064);
+});
+it("puts back what the grammar left out, so the house reads the whole act", () => {
+  const process = "journey:298bfaae-9dfb-4eb6-900a-9207d04d2e09";
+  const schema = answerSchema(agentsJourney(14, process));
+  const job = "c496a516-4530-480e-b970-f59c46320423";
+  const body = (acts: unknown[]) => ({
+    stop_reason: "end_turn",
+    content: [{ type: "text", text: JSON.stringify({ scene: "Sigo", consultation: null, acts }) }],
+    usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+  });
+  const read = readResponse(
+    body([
+      { act: "claude/status", input: { job } },
+      { act: "end", input: { summary: "Listo", references: [] } },
+    ]),
+    schema,
+  );
+  expect(read.value).toMatchObject({
+    acts: [
+      {
+        act: "claude/status",
+        target: "agents/claude",
+        input: { job },
+        destination: { kind: "device", device: "linux" },
+      },
+      { act: "end", target: process },
+    ],
+  });
+  const said = { act: "threads/say", target: "communicator/threads/3", input: { text: "Hola" } };
+  expect(readResponse(body([said]), schema).value).toMatchObject({ acts: [said] });
+  expect(() => readResponse(body([{ act: "threads/say", input: { text: "Hola" } }]), schema)).toThrow("schema");
+});
+it("keeps each act's own target and destination when two tools name an act alike", () => {
+  const text = object({ text: Type.String() });
+  const menu: MindMenu = [
+    { tool: "notes", act: "create", target: "notes/list", input: text, scope: "work" },
+    { tool: "calendar", act: "create", target: "calendar/days", input: object({ when: Type.String() }), scope: "work" },
+    { tool: "mail", act: "send", target: "mail/outbox", input: text, scope: "work" },
+    {
+      tool: "fax",
+      act: "send",
+      target: "fax/outbox",
+      input: text,
+      scope: "work",
+      destinations: [{ kind: "house" }],
+    },
+  ];
+  const schema = answerSchema(menu);
+  const body = (acts: unknown[]) => ({
+    stop_reason: "end_turn",
+    content: [{ type: "text", text: JSON.stringify({ scene: "Listo", consultation: null, acts }) }],
+    usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+  });
+  const acts = [
+    { act: "create", target: "notes/list", input: { text: "Mate" } },
+    { act: "create", target: "calendar/days", input: { when: "jueves" } },
+    { act: "send", target: "mail/outbox", input: { text: "Hola" } },
+    { act: "send", target: "fax/outbox", input: { text: "Hola" }, destination: { kind: "house" } },
+  ];
+  const read = readResponse(body(acts), schema).value;
+  expect(read).toMatchObject({ acts });
+  const scope = { kind: "journey", actor: "mind:notes", process: "j", kit: [] } as const;
+  const context = { menu, scope, active: true, consulted: false, allowed: () => true };
+  const faults = validateAnswer(read, context);
+  // The kit is empty here, so each act is out of scope; no act is outside the menu or wrongly destined.
+  expect(faults.ok ? [] : faults.faults.filter(fault => fault.code !== "scope")).toEqual([]);
+});
+it("puts back what the grammar left out of a oneOf branch and of a branch behind a $ref", () => {
+  const branch = (kind: string) => ({
+    type: "object",
+    properties: { kind: { const: kind, type: "string" }, v: { const: 1, type: "integer" }, x: { type: "string" } },
+    required: ["kind", "v", "x"],
+  });
+  const schema = {
+    $defs: { b: branch("b") },
+    type: "object",
+    properties: { item: { oneOf: [branch("a"), { $ref: "#/$defs/b" }] } },
+    required: ["item"],
+  };
+  const sent = JSON.stringify(providerSchema(schema));
+  expect(sent).not.toContain('"v"');
+  const body = (item: unknown) => ({
+    stop_reason: "end_turn",
+    content: [{ type: "text", text: JSON.stringify({ item }) }],
+    usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
+  });
+  expect(readResponse(body({ kind: "a", x: "1" }), schema).value).toEqual({ item: { kind: "a", x: "1", v: 1 } });
+  expect(readResponse(body({ kind: "b", x: "2" }), schema).value).toEqual({ item: { kind: "b", x: "2", v: 1 } });
 });

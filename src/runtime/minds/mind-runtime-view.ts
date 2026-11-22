@@ -16,6 +16,7 @@ import type { FrameSource } from "./mind-frame.ts";
 import type { MindRuntimeHouse, MindRuntimeOptions, MindSwitches } from "./mind-runtime-options.ts";
 import { enabledMind } from "./mind-runtime-options.ts";
 import { programCommunication } from "./program-mind-communication.ts";
+import { readMenu } from "./mind-read.ts";
 /** Whether a scope can think now, read from the house alone: the schedule asks this for every scope it weighs. A
  * journey the supervisor stopped is not among them, so nothing wakes it (its wait, a restart, a notice) until its
  * consciousness resumes it. */
@@ -54,6 +55,12 @@ export function runtimeView<X extends Program>(
       options.language,
     ),
     ...(active ? programCommunication(scope, definition, state) : []),
+    ...(active
+      ? readMenu(
+          options.language,
+          parts.objects.map(object => object.id),
+        )
+      : []),
   ];
   const activity = visibleActivity(house, options, scope, state, kit);
   return { control, menu, ...parts, activity, state };
@@ -90,11 +97,11 @@ function visibleActivity<X extends Program>(
   const registry = house.execution.registry;
   return house.history().flatMap(event => {
     const message = options.message(event);
-    if (message?.to.includes(scope.actor)) return [{ id: event.id, text: message.text }];
+    if (message?.to.includes(scope.actor)) return [{ id: event.id, text: message.text, seq: event.seq }];
     if (event.layer !== "house" || event.kind !== "tool-entry") return [];
     const tool = targetTool(registry, state, event.data.target)?.id ?? event.data.tool;
     return scope.actor === `mind:${tool}` || kit.some(item => item.tool === tool)
-      ? [{ id: event.id, text: event.data.text, covered: true }]
+      ? [{ id: event.id, text: event.data.text, covered: true, seq: event.seq }]
       : [];
   });
 }
