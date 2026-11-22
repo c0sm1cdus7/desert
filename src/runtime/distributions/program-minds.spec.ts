@@ -36,7 +36,7 @@ it("deriva una mente y abre sin llave, con el motivo visible", async () => {
     rmSync(home, { recursive: true, force: true });
   }
 });
-it("22/11: cada mente sabe cómo la despiertan; a la de un programa que habla no le nombran sus actos", () => {
+it("22/11: each mind knows what wakes it and how it is named; a talking program's mind is not told of its acts", () => {
   const distribution = componer({
     ...sampleOptions,
     programas: [requestProgram(), talkProgram],
@@ -44,16 +44,17 @@ it("22/11: cada mente sabe cómo la despiertan; a la de un programa que habla no
   });
   const rules = (actor: string) =>
     distribution.mindDefinitions.find(mind => mind.actor === actor)?.rules.text("es", {}) ?? "";
-  const threads = (text: string) => {
-    expect(text).toContain("en un hilo de dos, cada mensaje despierta al otro");
-    expect(text).toContain("en uno de más, solo a quien nombra");
-    expect(text).not.toContain("dirigidos a vos");
-    expect(text).not.toContain("despierta solo cuando la nombran");
+  const threads = (text: string, own: string) => {
+    expect(text).toContain("en un hilo individual, cada mensaje despierta al otro");
+    expect(text).toContain("en grupo, solo a quien se nombra con @ y el nombre que se ve, como «@Agentes»");
+    expect(text).toContain(`a vos, «@${own}»`);
+    for (const old of ["hilo de dos", "en uno de más", "dirigidos a vos", "despierta solo cuando la nombran"])
+      expect(text).not.toContain(old);
   };
-  threads(rules("mind:notes"));
+  threads(rules("mind:notes"), "Notas");
   expect(rules("mind:notes")).toContain("las acciones de tu programa");
-  threads(rules("mind:talk"));
+  threads(rules("mind:talk"), "Talk");
   expect(rules("mind:talk")).not.toContain("acciones de tu programa");
-  threads(assistantMindRules.text("es", { name: "Nora", owner: "ana" }));
-  threads(supervisorHouse.text("es", {}));
+  threads(assistantMindRules.text("es", { name: "Nora", owner: "ana" }), "Nora");
+  threads(supervisorHouse.text("es", {}), "Supervisor");
 });

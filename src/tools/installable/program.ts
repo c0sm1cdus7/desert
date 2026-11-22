@@ -35,7 +35,9 @@ export type ProgramGroup<X extends import("../tool-contract.ts").Program> = Omit
   Readonly<{ palabras: ProgramWords }>;
 import type { ProgramMindCase } from "../minds/program-mind-cases.ts";
 export type { ProgramMindCase, ProgramMindScene } from "../minds/program-mind-cases.ts";
-/** How a program's fact reads as a message to minds: who it is for and the line they see. */
+/** How a program's fact reads as a message to minds: who it is for and the line they see. `to` and `by` make the
+ * thread, and how many take part decides whom it wakes (22/11): in a thread of two, the other; in a group, only the
+ * minds the line names with «@» and the name people see, or «@» and the actor. */
 export type ProgramMessage = Readonly<{ text: string; to: readonly string[]; by: string }>;
 export type MessageReader = (event: Event) => ProgramMessage | undefined;
 /** A program minds talk through: how its facts read as messages and the acts a consciousness may say them with. */
