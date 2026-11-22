@@ -3436,6 +3436,16 @@
         "tests/laws/wire-screens.spec.ts",
         "tests/support/write-wire-screens.ts"
       ]
+    },
+    {
+      "id": 309,
+      "rule": "La entrada `desert/surface/contract` es para renderers y puertas: lo que importa, siguiendo cada import, queda en el contrato, sus textos y TypeBox, sin ningún módulo de node, para que la cargue un navegador; y ningún programa la puede importar, porque un programa nunca dibuja.",
+      "from": "22/11 · superficies, etapa 1",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/surface-contract-entry.spec.ts",
+        "tests/laws/distribution-entries.spec.ts"
+      ]
     }
   ]
 }

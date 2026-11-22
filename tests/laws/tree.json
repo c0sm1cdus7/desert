@@ -340,6 +340,7 @@
     "surface/contract/hint-sends.ts": "hintSends: what each hint of the toolbar sends, one table for every renderer",
     "surface/contract/limits.ts": "pasteLimit: the bounds every door keeps alike, in one place",
     "surface/contract/missing-view.ts": "Identifica una vista ausente sin confundirla con una lectura que falló.",
+    "surface/contract/public-contract.ts": "desert/surface/contract: the contract for renderers and doors, browser-safe, never for a program",
     "surface/contract/shown-tool.ts": "what a tool gives a surface: Tool, its acts and menus, ViewRow, Notice, Conversation, Result",
     "surface/contract/tones.ts": "surface tones: UI tones and chart data tones",
     "surface/contract/wire.ts": "WireScreen, WireIntent, wire, parseIntent: the closed shape a screen travels in and the check an intent passes",

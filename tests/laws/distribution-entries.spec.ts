@@ -96,6 +96,7 @@ it("does not silently bypass the secret boundary without testDistribution", () =
 for (const testDistribution of [false, true])
   for (const entry of [
     "surface/house-router",
+    "surface/contract",
     "runtime/cloud",
     "doors/keys",
     "doors/mcp/handler",
