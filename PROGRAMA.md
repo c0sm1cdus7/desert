@@ -2384,6 +2384,9 @@ inconcluso y cierre con actos pendientes. También rechaza una declaración cert
 El contexto de la acción recibe `contracts["documentos-fiscales"].actions.emitir(entrada)` y `cut`.
 La llamada conserva actor, causa y proceso y pasa por el ejecutor común, incluidos permisos vigentes,
 interrupción y autoridad de efectos. El puerto prestado deja de servir al terminar la acción.
+El acto que el contrato le pide al proveedor no exige tener al proveedor a la vista: quien actúa mira su propia
+herramienta (la venta), no Documentos. Sí se exigen la presencia en la casa y la acción del proveedor en el kit, y lo
+que ese acto pida a su vez vuelve a exigir la vista. Prueba: `src/runtime/contracts/ports.spec.ts`.
 
 Una acción contractual devuelve `value` tanto al aceptar como al rechazar por negocio. El puerto valida ese
 valor y recorta la respuesta al esquema pedido. Los fallos del core usan `status: "core-failure"`, separados

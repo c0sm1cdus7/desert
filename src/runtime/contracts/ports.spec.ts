@@ -4,7 +4,7 @@ import { createContractRuntime } from "./contract-runtime.ts";
 import { startTools } from "../../tools/start.ts";
 import { effect } from "../../house/facts.ts";
 
-async function run(by = "beto", denied = false) {
+async function run(by = "beto", denied = false, attended = ["ventas/facturacion", "documentos/fiscal"]) {
   const house = contractHouse();
   const runtime = createContractRuntime([sales(), documents()], house.ports, house.history);
   const engine = startTools({
@@ -12,8 +12,7 @@ async function run(by = "beto", denied = false) {
     history: house.history.events(house.ports.state().through),
     contracts: runtime.context,
   });
-  for (const target of ["ventas/facturacion", "documentos/fiscal"])
-    engine.act({ act: "attend", input: { target } }, house.ports.state().through, by);
+  for (const target of attended) engine.act({ act: "attend", input: { target } }, house.ports.state().through, by);
   if (denied)
     house.ports.bus.emit(
       effect(
@@ -51,5 +50,20 @@ describe("the contractual action port", () => {
     const { result, events } = await run("beto", true);
     expect(result.value).toEqual({ status: "core-failure", reason: "forbidden" });
     expect(events.filter(event => event.kind === "documentos/emitido")).toEqual([]);
+  });
+  it("does not ask the caller to have the provider in front: whoever acts looks at their own tool", async () => {
+    const { result, events } = await run("beto", false, ["ventas/facturacion"]);
+    expect(result.value).toEqual({ status: "accepted", value: { id: "v1" } });
+    expect(events.filter(event => event.kind === "documentos/emitido").map(event => event.by)).toEqual(["beto"]);
+  });
+  it("still asks for the provider's act in the kit with only the consumer in front", async () => {
+    const { result, events } = await run("beto", true, ["ventas/facturacion"]);
+    expect(result.value).toEqual({ status: "core-failure", reason: "forbidden" });
+    expect(events.filter(event => event.kind === "documentos/emitido")).toEqual([]);
+  });
+  it("still asks the caller to have the consumer's own tool in front", async () => {
+    const { result } = await run("beto", false, []);
+    expect(result.status).toBe("rejected");
+    expect(result.value).toBeUndefined();
   });
 });

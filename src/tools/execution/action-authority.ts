@@ -71,6 +71,7 @@ export function authority<X extends Program>(
       ))
   )
     return toolTexts.outsideKit;
-  if (!offered && !isMindActor(by) && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
+  const unseen = !offered && !ports.contractual && !isMindActor(by) && !isAttended(state, tool?.id ?? "", target);
+  if (unseen) return toolTexts.unattended;
   return undefined;
 }

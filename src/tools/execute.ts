@@ -149,7 +149,7 @@ function attachContracts<X extends Program>(
       signal: context.signal,
       execute: nested => {
         if (!ports.active?.controller.signal.aborted) check();
-        return executeNested(ports, origin, nested, execute);
+        return executeNested(ports, origin, nested, execute, true);
       },
       alive: () => ports.live() && ports.active?.closed !== true,
     }),

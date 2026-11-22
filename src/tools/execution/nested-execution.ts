@@ -13,6 +13,7 @@ export async function executeNested<X extends Program>(
   origin: Origin,
   nested: Act,
   run: typeof execute,
+  contractual = false,
 ): Promise<ActResult<X>> {
   if (ports.active?.closed || ports.active?.controller.signal.aborted)
     return { status: "interrupted", reason: toolTexts.withdrawn };
@@ -22,7 +23,9 @@ export async function executeNested<X extends Program>(
   if (!tool) return { ...unknown, coreFailure: "invalid-reference" };
   const parent = process ? (ports.state().house.journeys.get(process)?.opened ?? process) : undefined;
   const cause = [id, ...(parent ? [parent] : [])];
-  const started = run(ports, nested, origin.data.through ?? 0, by, cause);
+  // Only the act a contract asks of its provider is contractual; whatever that act asks in turn is not.
+  const { contractual: _outer, ...own } = ports;
+  const started = run(contractual ? { ...own, contractual: true } : own, nested, origin.data.through ?? 0, by, cause);
   const result = started.status === "processing" ? await started.completion : started;
   let done: ActResult<X>;
   if (result.status === "accepted") done = { status: "accepted" };

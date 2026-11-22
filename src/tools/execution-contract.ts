@@ -17,6 +17,10 @@ export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: 
   Readonly<{
     authorization?: AbortSignal;
     contracts?: ContractFactory;
+    /** The act a contract asks of its provider: whoever acts looks at the consumer, not at the provider, so it is not
+     * asked to have the provider in front. Presence and kit still are: the path is always the core, with the same
+     * actor and permissions. */
+    contractual?: true;
     devices?: DeviceDispatch;
     mindScope?: MindScope;
     review?: ReviewPort;
