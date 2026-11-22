@@ -55,10 +55,10 @@ const closedTurn = (reason: Stop | undefined, by = "mind:notes", seq = 5): Event
   ),
   ...position(seq),
 });
-const line = (by: string, text: string): Event => ({
+const line = (by: string, text: string, to = "mind:supervisor"): Event => ({
   layer: "program",
   kind: "talk/said",
-  data: { to: "mind:supervisor", text },
+  data: { to, text },
   by,
   cause: [],
   ...position(5),
@@ -66,7 +66,8 @@ const line = (by: string, text: string): Event => ({
 it("wakes only for a journey that closes or is cut, or a line addressed to it, after its frontier", () => {
   const message = (event: Event) => {
     const text: unknown = event.layer === "program" ? Reflect.get(Object(event.data), "text") : undefined;
-    return typeof text === "string" ? { by: event.by, to: ["mind:supervisor"], text } : undefined;
+    const to = String(Reflect.get(Object(event.data), "to")).split(",");
+    return typeof text === "string" ? { by: event.by, to, text } : undefined;
   };
   const policy: WakePolicy = {
     scope: { kind: "consciousness", actor: "mind:supervisor" },
@@ -83,8 +84,14 @@ it("wakes only for a journey that closes or is cut, or a line addressed to it, a
   expect(wakes(closedTurn("call-limit", "mind:supervisor"))).toBe(false);
   expect(wakes(closedTurn("call-limit", "mind:notes", 2))).toBe(false);
   expect(wakes(line("ana", "¿Cómo va?"))).toBe(true);
-  expect(wakes(line("mind:notes", "Listo"))).toBe(false);
+  // 22/11: in a thread of two every message wakes it, also a mind's; in a group only one that names it.
+  expect(wakes(line("mind:notes", "Listo"))).toBe(true);
   expect(wakes(line("mind:notes", "supervisor, mirá esto"))).toBe(true);
+  const group = "mind:supervisor,ana";
+  expect(wakes(line("mind:notes", "Listo", group))).toBe(false);
+  expect(wakes(line("beto", "¿Cómo va?", group))).toBe(false);
+  expect(wakes(line("beto", "Supervisor, ¿cómo va?", group))).toBe(true);
+  expect(wakes(line("mind:supervisor", "supervisor, listo", group))).toBe(false);
   const waiting = effect("journey-waiting", { what: "Algo", until: 9 }, "mind:notes", [], "journey:j");
   expect(wakes({ ...waiting, ...position(5) })).toBe(false);
 });

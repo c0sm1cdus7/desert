@@ -1,8 +1,8 @@
-// Wakes a mind for its own journeys and their stops, its rules and the program messages addressed to it.
+// Wakes a mind for its own journeys and their stops, its rules and the program messages that reach it by thread.
 import { ruleWake } from "./rule-wake.ts";
 import { journeyWake } from "./journey-wakes.ts";
 import { interruptWake } from "./journey-interrupts.ts";
-import { isMindActor, parseMindActor } from "../../fields/mind-actor.ts";
+import { parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import type { ProgramMessage } from "../../tools/installable/program.ts";
 import type { Event } from "../../journal/vocabulary.ts";
@@ -54,8 +54,12 @@ export function mindWakeDecision(policy: WakePolicy, event: Event, history: read
     return true;
   return addressed(policy, policy.message(event));
 }
-/** A mind wakes another mind only by naming it, so two minds in one thread never answer each other forever. */
+/** A message wakes by the shape of its thread (signed 22/11): in a thread of two, its author and one other, it always
+ * wakes the other; in a group it wakes only the minds it names, whoever wrote it. The thread is its author and its
+ * readers, whether or not the reader lists the author. Two minds in a thread of two may answer each other without
+ * end: only their judgement stops them, since no code decides when a mind acts. */
 export function addressed(policy: WakePolicy, message: ProgramMessage | undefined): boolean {
-  if (!message?.to.includes(policy.scope.actor)) return false;
-  return !isMindActor(message.by) || mentions(message.text, policy.name) || mentions(message.text, policy.scope.actor);
+  if (!message?.to.includes(policy.scope.actor) || message.by === policy.scope.actor) return false;
+  if (new Set([message.by, ...message.to]).size === 2) return true;
+  return mentions(message.text, policy.name) || mentions(message.text, policy.scope.actor);
 }

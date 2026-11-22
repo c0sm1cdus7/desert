@@ -1,4 +1,4 @@
-// A minimal talk program: one thread where anyone says a line to one reader, and minds read each line as a message.
+// A minimal talk program: anyone says a line to one reader or, comma-separated, a group; minds read it as a message.
 import { Value } from "@sinclair/typebox/value";
 import { text } from "../../src/fields/fields.ts";
 import { object } from "../../src/fields/visible-text.ts";
@@ -60,7 +60,7 @@ export const talkProgram = programa(metadata, {
   mensajes: {
     leer: event =>
       event.layer === "program" && event.kind === "talk/said" && Value.Check(talkInput, event.data)
-        ? { text: event.data.text, to: [event.data.to], by: event.by }
+        ? { text: event.data.text, to: event.data.to.split(","), by: event.by }
         : undefined,
     actos: ["thread/say"],
   },
