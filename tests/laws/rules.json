@@ -2651,7 +2651,7 @@
     },
     {
       "id": 241,
-      "rule": "La entrada exige hola en cinco segundos, llave válida y pertenencia actual según la casa; una mente nunca entra, aunque tenga llave. Identidad y puerta salen de la llave. Solo después de autenticar se comparan protocolo y versión completa de Node. Quien no entró no recibe versiones, estado, catálogo ni resultados; sacar una identidad corta sus conexiones en el aviso del bus.",
+      "rule": "La entrada exige hello en cinco segundos, llave válida y pertenencia actual según la casa; una mente nunca entra, aunque tenga llave. Identidad y puerta salen de la llave. Solo después de autenticar se comparan protocolo y versión completa de Node. Quien no entró no recibe versiones, estado, catálogo ni resultados; sacar una identidad corta sus conexiones en el aviso del bus.",
       "from": "14/11 · casa-servidor · paso 1",
       "guarantee": "spec",
       "evidence": [
@@ -2710,7 +2710,7 @@
     },
     {
       "id": 245,
-      "rule": "SIGINT, SIGTERM o apagar de quien administra dejan de aceptar y avisan cerrando. La casa espera hasta diez segundos, cuenta lo que sigue en curso, cierra sus recursos y borra socket y pid. La casa que lanza la terminal guarda stdout y stderr, incluidos cierre, pendientes y avisos del almacenamiento, en casa.log 0600 dentro de su carpeta 0700. La salida no admite enlaces simbólicos ni duros y tiene un tope de 1 MiB: al excederlo se reemplaza el tramo anterior con un aviso y lo más reciente, sin un segundo archivo. Una salida anterior sobredimensionada se recorta al abrir el relevo. Un arranque fallido deja su causa segura (código del sistema cuando lo hay), sin anunciar un cierre exitoso. Cerrar un cliente no apaga la casa.",
+      "rule": "SIGINT, SIGTERM o shutdown de quien administra dejan de aceptar y avisan closing. La casa espera hasta diez segundos, cuenta lo que sigue en curso, cierra sus recursos y borra socket y pid. La casa que lanza la terminal guarda stdout y stderr, incluidos cierre, pendientes y avisos del almacenamiento, en house.log 0600 dentro de su carpeta 0700. La salida no admite enlaces simbólicos ni duros y tiene un tope de 1 MiB: al excederlo se reemplaza el tramo anterior con un aviso y lo más reciente, sin un segundo archivo. Una salida anterior sobredimensionada se recorta al abrir el relevo. Un arranque fallido deja su causa segura (código del sistema cuando lo hay), sin anunciar un cierre exitoso. Cerrar un cliente no apaga la casa.",
       "from": "14/11 · casa-servidor · paso 1",
       "guarantee": "spec",
       "evidence": [
@@ -2752,7 +2752,7 @@
     },
     {
       "id": 248,
-      "rule": "La terminal prueba el socket y, si falta, lanza el programa declarado en un proceso independiente con un plazo de cinco segundos. El candado sin socket conserva su texto y no abre otro escritor. Cerrar la terminal no apaga la casa; reconectar conserva la pantalla. Toda falla al abrir sale con una línea del catálogo y código distinto de cero, sin traza cruda. Desde hola hasta el primer estado comprobado hay cinco segundos totales que los envíos no reinician. Tres estados inválidos consecutivos en la misma secuencia agotan dos pedidos de recuperación y cierran la terminal con una línea del catálogo y código 1, al entrar o ya adentro. La casa deja un único aviso de resincronización por conexión, no uno por vuelta. La salida del proceso lanzado se conserva con el límite y las condiciones de la ley 245; el rechazo de arranque llega a la terminal después de recoger la salida del hijo.",
+      "rule": "La terminal prueba el socket y, si falta, lanza el programa declarado en un proceso independiente con un plazo de cinco segundos. El candado sin socket conserva su texto y no abre otro escritor. Cerrar la terminal no apaga la casa; reconectar conserva la pantalla. Toda falla al abrir sale con una línea del catálogo y código distinto de cero, sin traza cruda. Desde hello hasta el primer estado comprobado hay cinco segundos totales que los envíos no reinician. Tres estados inválidos consecutivos en la misma secuencia agotan dos pedidos de recuperación y cierran la terminal con una línea del catálogo y código 1, al entrar o ya adentro. La casa deja un único aviso de resincronización por conexión, no uno por vuelta. La salida del proceso lanzado se conserva con el límite y las condiciones de la ley 245; el rechazo de arranque llega a la terminal después de recoger la salida del hijo.",
       "from": "14/11 · casa-servidor · paso 2",
       "guarantee": "spec",
       "evidence": [
@@ -3102,7 +3102,7 @@
     },
     {
       "id": 277,
-      "rule": "El Menú agrupa Programas y conserva Sistema. Cada programa abre Herramientas y cada herramienta sus acciones, incluso si es única. Solo atajoUnaHerramienta explícito salta el nivel intermedio.",
+      "rule": "El Menú agrupa Programas y conserva Sistema. Cada programa abre Herramientas y cada herramienta sus acciones, incluso si es única. Solo singleToolShortcut explícito salta el nivel intermedio.",
       "from": "18/11 · distribuciones, núcleo paso 2",
       "guarantee": "spec",
       "evidence": ["src/runtime/distributions/surface.spec.ts", "src/checks/distribution-terminal.spec.ts"]
@@ -3123,7 +3123,7 @@
     },
     {
       "id": 280,
-      "rule": "Un programa es para DESERT: solo importa sus archivos, entradas públicas de programa de desert o módulos pedidos por contrato; las distribuciones, el arranque de casas, las llaves, las puertas y la nube quedan fuera. La ley alcanza a todo paquete que declara desert.program, salvo desert.kind: distribution; faltar desert.testDistribution falla con motivo y no apaga imports ni secretos. El cargador comprueba ambas fronteras antes de evaluar el programa o su distribución de prueba. La ley controla todas las formas de importación y componer rechaza dependencias declaradas de distribuciones. La distribución puede armar su terminal local y su casa de nube mediante exports públicos desde paquetes enlazados fuera de node_modules, sin ampliar la frontera de secretos de los programas. El principal se inspecciona como código de programa: sólo puede usar import.meta.dirname en codigo del constructor programa real. desert/testing queda reservado a las pruebas; estos rechazos ocurren antes de evaluar el programa o su distribución de prueba.",
+      "rule": "Un programa es para DESERT: solo importa sus archivos, entradas públicas de programa de desert o módulos pedidos por contrato; las distribuciones, el arranque de casas, las llaves, las puertas y la nube quedan fuera. La ley alcanza a todo paquete que declara desert.program, salvo desert.kind: distribution; faltar desert.testDistribution falla con motivo y no apaga imports ni secretos. El cargador comprueba ambas fronteras antes de evaluar el programa o su distribución de prueba. La ley controla todas las formas de importación y componer rechaza dependencias declaradas de distribuciones. La distribución puede armar su terminal local y su casa de nube mediante exports públicos desde paquetes enlazados fuera de node_modules, sin ampliar la frontera de secretos de los programas. El principal se inspecciona como código de programa: sólo puede usar import.meta.dirname en code del constructor defineProgram real. desert/testing queda reservado a las pruebas; estos rechazos ocurren antes de evaluar el programa o su distribución de prueba.",
       "from": "18/11 · distribuciones, núcleo paso 2",
       "guarantee": "spec",
       "evidence": [
@@ -3677,6 +3677,20 @@
       "evidence": [
         "src/doors/screen/guard.spec.ts",
         "src/doors/screen/guard.ts"
+      ]
+    },
+    {
+      "id": 366,
+      "rule": "Todo nombre del código está en inglés fuera de los textos del catálogo: identificadores, claves, nombres de archivo y de carpeta y scripts de npm. Los nombres retirados de DESERT (la API pública, el protocolo de la casa y los códigos de diagnóstico) no vuelven nunca, ni como texto. Vale para cada programa y distribución por programLaws.",
+      "from": "22/11 · Franco: «No quiero una sola línea de código o archivo en español»",
+      "guarantee": "spec",
+      "evidence": [
+        "src/checks/laws/english-names.ts",
+        "src/checks/laws/spanish-names.json",
+        "tests/laws/english-names.spec.ts",
+        "tests/laws/english-names-cases.json",
+        "src/checks/laws/program-laws.ts",
+        "src/checks/laws/program-laws.spec.ts"
       ]
     }
   ]

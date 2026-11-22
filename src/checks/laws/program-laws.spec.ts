@@ -51,6 +51,7 @@ it.each([
   ["gate", 'it.only("focused", f);', "src/a.ts: it.only"],
   ["biases", 'const x = "A visible sentence";', "src/a.ts: A visible sentence"],
   ["prompts", 'const x = "never";', "src/a.ts: never"],
+  ["english names", "export const herramientas = 1;", "src/a.ts:1: herramientas"],
   [
     "messages",
     'import { defineMessage } from "./fields/messages.ts"; ' +

@@ -1,4 +1,4 @@
-// Every adopting program runs all seven repository laws from its own gate and its own declared folders.
+// Every adopting program runs all the repository laws from its own gate and its own declared folders.
 import { join } from "node:path";
 import ts from "typescript";
 import { isRecord } from "../../fields/json-values.ts";
@@ -6,6 +6,7 @@ import { outsideAccess, outsideGlobals } from "./adapters.ts";
 import { uncataloguedWords } from "./biases.ts";
 import { catalogLaws } from "./catalog-coverage.ts";
 import { importCycles } from "./cycles.ts";
+import { spanishNames } from "./english-names.ts";
 import {
   gateScripts,
   ignoredFiles,
@@ -74,5 +75,6 @@ export async function programLaws(root: string): Promise<string[]> {
     ...messageCoverage(repo),
     ...catalogLaws(repo, options.catalog),
     ...interfaceCode(repo, { exempt: options.interface }),
+    ...spanishNames(repo, { catalog: options.catalog }),
   ]);
 }

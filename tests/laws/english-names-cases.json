@@ -1,0 +1,36 @@
+{
+  "_": "Planted repositories for the English-names law: the Spanish they hold is the fixture, not code.",
+  "words": {
+    "herramientaDe": ["herramienta"],
+    "MATERIAL_SINTETICO": ["sintetico"],
+    "toolOf": []
+  },
+  "planted": {
+    "files": {
+      "package.json": "{\"name\": \"fixture\", \"scripts\": {\"preparar\": \"node x.ts\", \"gate\": \"pnpm test\"}}",
+      "src/a.ts": "// Plants one name of each kind.\nimport { compose } from \"desert/componer\";\nexport const herramientas = 1;\nexport const options = { mentes: true, \"notas-viejas\": 2, ok: \"programa\" };\nexport const wire = { type: \"hola\", reason: \"dependencia-distribucion\" };\nexport const path = \"programs/notes:id-repetido\";\nexport const shown = \"Una herramienta que se lee\";",
+      "src/texts/b.texts.ts": "// Says it in Spanish.\nexport const said = { greeting: \"hola\", programa: \"programa\" };",
+      "src/notas/c.ts": "// A folder in Spanish.\nexport {};\n"
+    },
+    "found": [
+      "src/a.ts:2: desert/componer",
+      "src/a.ts:3: herramientas",
+      "src/a.ts:4: mentes",
+      "src/a.ts:4: notas-viejas",
+      "src/a.ts:4: programa",
+      "src/a.ts:5: hola",
+      "src/a.ts:5: dependencia-distribucion",
+      "src/a.ts:6: programs/notes:id-repetido",
+      "src/texts/b.texts.ts:2: programa",
+      "src/notas/c.ts: file name",
+      "package.json: script preparar"
+    ]
+  },
+  "catalog": {
+    "files": {
+      "src/texts/b.texts.ts": "// Says it in Spanish.\nexport const said = { hello: \"hola\", reasons: { ciclo: \"x\" } };\n",
+      "src/a.ts": "// Plain English.\nexport const one = 1;\n"
+    },
+    "found": ["src/texts/b.texts.ts:2: ciclo"]
+  }
+}

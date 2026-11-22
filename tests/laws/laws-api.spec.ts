@@ -40,6 +40,10 @@ const names = [
   "RuleExemptions",
   "interfaceCode",
   "InterfaceOptions",
+  "spanishNames",
+  "spanishWordsOf",
+  "wordsOf",
+  "NameOptions",
 ];
 it("preserves the public laws entry's value and type exports", () => {
   const file = join(root, "src/laws.ts");
