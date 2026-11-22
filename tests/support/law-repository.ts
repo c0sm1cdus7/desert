@@ -24,6 +24,7 @@ export const lawOptions = {
   exemptWords: {},
   exemptRules: {},
   data: {},
+  interface: {},
   maxLines: 300,
 };
 export const lawPackage = {

@@ -38,6 +38,8 @@ const names = [
   "WordOptions",
   "PromptOptions",
   "RuleExemptions",
+  "interfaceCode",
+  "InterfaceOptions",
 ];
 it("preserves the public laws entry's value and type exports", () => {
   const file = join(root, "src/laws.ts");

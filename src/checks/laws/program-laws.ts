@@ -17,6 +17,7 @@ import {
   uncollectedTests,
 } from "./gate.ts";
 import { strayImports } from "./imports.ts";
+import { interfaceCode } from "./interface-code.ts";
 import { codeFiles, fromRoot, withParsedFiles, type Repository } from "./law-files.ts";
 import { messageCoverage } from "./message-coverage.ts";
 import { programImports } from "./program-imports.ts";
@@ -72,5 +73,6 @@ export async function programLaws(root: string): Promise<string[]> {
     ...instructionFiles(repo, options),
     ...messageCoverage(repo),
     ...catalogLaws(repo, options.catalog),
+    ...interfaceCode(repo, { exempt: options.interface }),
   ]);
 }

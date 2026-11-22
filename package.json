@@ -128,6 +128,13 @@
         }
       },
       "data": {},
+      "interface": {
+        "src/checks/real-terminal.ts": "Drives a real terminal in the checks: it writes and reads the bytes a person's terminal would.",
+        "src/doors/mcp/oauth-page.ts": "The consent page of the MCP door, written by hand until it is a screen (PROPUESTA.md, Crítica 21).",
+        "src/doors/terminal/boot.ts": "The terminal door: it opens and closes the terminal the cell painter draws on.",
+        "src/doors/terminal/cells.ts": "The cell painter: the bytes that turn a frame of cells into a terminal's picture.",
+        "src/doors/terminal/input.ts": "The terminal's keys: it reads the control sequences a terminal sends."
+      },
       "maxLines": 300
     }
   },

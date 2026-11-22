@@ -39,6 +39,7 @@
     "checks/laws/cycles.ts": "Law 21: a module that reaches itself again through what runs loads half-built, so no production file closes a ring.",
     "checks/laws/gate.ts": "Law 12: the repository gate covers every test and keeps its lint rules at their limits.",
     "checks/laws/imports.ts": "Law 2: explicit dependencies and isolated adapters, including type queries and require.",
+    "checks/laws/interface-code.ts": "interfaceCode: no program or distribution writes interface (files, painting imports and dependencies, bytes painted by hand, a browser's drawing), but what its map admits",
     "checks/laws/law-files.ts": "The code of a repository as a law reads it: its root and its code folders, each one present and holding code.",
     "checks/laws/law-words.ts": "Reads literal words and distinguishes prose from behavioral instructions.",
     "checks/laws/message-coverage.ts": "Exige traducciones explícitas para cada idioma declarado en todos los mensajes del código.",
