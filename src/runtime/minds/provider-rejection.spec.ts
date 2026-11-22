@@ -151,5 +151,5 @@ it("the bridge neither clones nor reads a whole rejection to look for usage", as
   expect(f.transport).toHaveBeenCalledOnce();
   expect(clone).not.toHaveBeenCalled();
   expect(bytes).toBe(8192);
-  expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toContain("400 sin_tipo");
+  expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toContain("400 untyped");
 });

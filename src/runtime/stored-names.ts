@@ -22,15 +22,6 @@ export const storedNames = Object.freeze({
     ["requiere-supervisor", "require-supervisor"],
   ]),
 });
-/** Where each renamed value sits: the fact kind, its path, and the core object an act must target to hold it. */
-export const migratedPositions = Object.freeze([
-  { kind: "door-key-issued", path: "data.door" },
-  { kind: "door-invitation-issued", path: "data.door" },
-  { kind: "rule-versioned", path: "data.definition.effect" },
-  { kind: "rule-evaluated", path: "data.results[].outcome" },
-  { kind: "act", path: "data.input.door", object: "identities/" },
-  { kind: "act", path: "data.input.effect", object: "rules" },
-] as const);
 /** A journal of a house, folded into the house, or a model account, folded into its balance. */
 export type StoredJournal = "house" | "account";
 export type MigrationResult = Readonly<{ rows: number; changed: number; backup: string | undefined }>;

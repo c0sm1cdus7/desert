@@ -13,9 +13,18 @@ import { emptyHouse, houseStep } from "../src/house/members.ts";
 import { readFact } from "../src/storage/journal-record.ts";
 import { SqliteJournal } from "../src/storage/journal-store.ts";
 import { openModelSpendingAccount } from "../src/runtime/minds/model-spending-account.ts";
-import { migratedPositions, renamedData, storedNames } from "../src/runtime/stored-names.ts";
+import { renamedData, storedNames } from "../src/runtime/stored-names.ts";
 import { migrationCommand } from "./migrate-stored-names.ts";
 
+/** Where each renamed value sits: the fact kind, its path, and the core object an act must target to hold it. */
+const migratedPositions = Object.freeze([
+  { kind: "door-key-issued", path: "data.door" },
+  { kind: "door-invitation-issued", path: "data.door" },
+  { kind: "rule-versioned", path: "data.definition.effect" },
+  { kind: "rule-evaluated", path: "data.results[].outcome" },
+  { kind: "act", path: "data.input.door", object: "identities/" },
+  { kind: "act", path: "data.input.effect", object: "rules" },
+] as const);
 const fixture = legacyDoorHouse({ migrate: false });
 const journal = join(fixture.home, "journal.sqlite");
 const original = join(fixture.backups, "original.sqlite");
