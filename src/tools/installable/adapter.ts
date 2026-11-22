@@ -92,9 +92,12 @@ function remapRow(row: unknown, reader: Reader, first: boolean, key: string): un
 /** The tool a reading says its thing is of: a text that names a tool of the same program, or a defect. */
 function namedTool(reader: Reader, key: string, tool: unknown): string {
   if (typeof tool === "string" && reader.tools.includes(tool)) return tool;
-  const where = key ? `under ${key}` : "as a row";
-  const what = `${folderOf(reader.id, reader.name)} names a thing ${where} of tool ${JSON.stringify(tool)}`;
-  throw new OutsideDefect(new Error(`${what}, which is not a tool of ${reader.id}`));
+  throw new OutsideDefect(
+    new Error(
+      `${folderOf(reader.id, reader.name)} names a thing ${key ? `under ${key}` : "as a row"} of tool ` +
+        `${JSON.stringify(tool)}, which is not a tool of ${reader.id}`,
+    ),
+  );
 }
 /** A tool lives in another tool of its own program, one that is itself listed among the program's tools. Nothing
  * lists the tool that lives inside, so it has no act on the tool: nothing would lead to it. */
