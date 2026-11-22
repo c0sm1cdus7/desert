@@ -117,10 +117,11 @@ describe("the tree of src/", () => {
   // 22/11 surfaces, stage 2: +15 exact in screen-door.texts.ts: the entry's words and mask, a cut session's notice.
   // 22/11 frames without noise: +25 exact in model.texts.ts: the limits a schema says in words (UNSIGNED).
   // 22/11 frames without noise: +21 exact in mind-frame.texts.ts: the label Menú and one line per act (UNSIGNED).
-  it("keeps every file within 300 lines and the texts within 1475", () => {
+  // 22/11 frames without noise: +21 exact in journey.texts.ts: a waking fact said as itself (UNSIGNED).
+  it("keeps every file within 300 lines and the texts within 1496", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1475);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1496);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

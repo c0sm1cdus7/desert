@@ -27,10 +27,42 @@ it("counts every cut since the journey opened up to the waking one, and no resta
     closed("t4", { outcome: "interrupted", reason: "uncertain" }),
   ]);
   const journeys = journeysOf(history);
-  const [first] = wakeWords(history, { journeys, devices: emptyDevices }, ["e3"], "es") ?? [];
+  const [first] = wakeWords(history, { journeys, devices: emptyDevices }, ["e3"], "es");
   expect(first).toContain("límite de doce llamadas");
   expect(first).toContain("contando este: 1.");
-  const [last] = wakeWords(history, { journeys, devices: emptyDevices }, ["e9"], "es") ?? [];
+  const [last] = wakeWords(history, { journeys, devices: emptyDevices }, ["e9"], "es");
   expect(last).toContain("La llamada quedó incierta.");
   expect(last).toContain("contando este: 2.");
+});
+it("says every waking fact itself: a message, an act and what it did, a closing, an opening, a wait due", () => {
+  const long = "f".repeat(64);
+  const said = effect(
+    "tool-entry",
+    { tool: "talk", target: "talk/thread", author: "ana", text: "Dicho · Mate" },
+    "ana",
+  );
+  const history = at([
+    effect("act", { object: "talk/thread", option: "thread/say", input: { text: "Mate" } }, "ana"),
+    { ...said, cause: ["e1"] },
+    opened,
+    effect("journey-waiting", { what: "La respuesta de ana", until: 5 }, actor, [], "j1"),
+    effect("journey-closed", { outcome: "done", summary: "Anoté el mate", references: [] }, actor, [], "j1"),
+  ]);
+  const journeys = journeysOf(history);
+  const message = (event: Event) =>
+    event.id === "e2" ? { text: "ana en talk/thread: Mate", to: [actor], by: "ana" } : undefined;
+  const lines = wakeWords(
+    history,
+    { journeys, devices: emptyDevices, message },
+    ["e2", "e1", "e3", "e4", "e5", long],
+    "es",
+  );
+  expect(lines).toEqual([
+    "ana en talk/thread: Mate",
+    "ana hizo thread/say en talk/thread: Dicho · Mate",
+    "Tu consciencia abrió este journey; su objetivo está en Contexto.",
+    "Llegó la hora que elegiste al esperar: La respuesta de ana",
+    "mind:notes terminó el journey «Anotar»: Anoté el mate",
+    long,
+  ]);
 });

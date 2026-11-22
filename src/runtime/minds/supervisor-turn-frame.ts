@@ -17,6 +17,7 @@ import type { runtimeView } from "./mind-runtime-view.ts";
 import { supervisorActor } from "./mind-definitions.ts";
 import { layers, mindsOf, ownThread, section } from "./supervisor-frame.ts";
 import { menuText } from "./mind-frame-menu.ts";
+import { factLine } from "./wake-words.ts";
 import { shortIds } from "./mind-references.ts";
 type View = ReturnType<typeof runtimeView>;
 /** How many turns of each journey closed with a reason: a fact the supervisor reads, never a limit. */
@@ -52,20 +53,23 @@ function houseItems<X extends Program>(house: MindRuntimeHouse<X>): FrameItem[] 
 /** Each waking fact in words: a journey that ended or desisted, a cut or failed turn, somebody who spoke to it. */
 function woke<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntimeOptions, wake: readonly string[]) {
   const { language } = options;
-  const journeys = house.execution.state().house.journeys;
-  const events = new Map(house.history().flatMap(event => (wake.includes(event.id) ? [[event.id, event]] : [])));
+  const { journeys, devices } = house.execution.state().house;
+  const history = house.history();
+  const events = new Map(history.flatMap(event => (wake.includes(event.id) ? [[event.id, event]] : [])));
   return wake.map(id => {
     const event = events.get(id);
     const message = event && options.message(event);
     if (message)
       return supervisorWoke.text(language, { kind: "spoken", who: message.by, goal: "", detail: message.text });
-    if (event?.layer !== "house") return id;
+    if (!event) return id;
+    const fact = () => factLine(event, { journeys, devices }, language, history);
+    if (event.layer !== "house") return fact();
     const goal = event.process ? (journeys.get(event.process)?.goal ?? event.process) : "";
     if (event.kind === "journey-closed" && event.process) {
       const kind = event.data.outcome === "done" ? "done" : "desisted";
       return supervisorWoke.text(language, { kind, who: event.by, goal, detail: event.data.summary });
     }
-    if (event.kind !== "mind-turn-closed" || !event.data.reason) return id;
+    if (event.kind !== "mind-turn-closed" || !event.data.reason) return fact();
     const detail = turnNotice.text(language, { reason: event.data.reason });
     // A closed turn with no process is a consciousness's own: no journey to name, only the mind that failed.
     return supervisorWoke.text(language, { kind: event.process ? "cut" : "failed", who: event.by, goal, detail });
