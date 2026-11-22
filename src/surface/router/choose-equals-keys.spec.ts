@@ -152,6 +152,8 @@ describe("a choose has no path of its own", () => {
     expect(touched).toEqual(await replayed(fresh(), [...path, { kind: "confirm" }]));
     expect(touched.at(-2)).not.toHaveProperty("find");
   });
+});
+describe("a choose has no path of its own: acts", () => {
   it("starts the act that makes a new thing, and what it makes answers the question", async () => {
     const tools = pointedTools();
     const asked = await replayed(tools, [
@@ -178,6 +180,8 @@ describe("a choose has no path of its own", () => {
     expect(done.at(-1)).toMatchObject({ phase: "done" });
     expect(step(done, choose(blue), tools, bar.now)).toEqual({ session: done });
   });
+});
+describe("a choose has no path of its own: screens that take nothing", () => {
   it("does nothing on the defect screen nor on the opening notices", () => {
     const boxes = JSON.stringify(["view", "boxes", null]);
     const broken: Tool = {

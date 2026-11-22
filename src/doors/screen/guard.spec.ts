@@ -127,46 +127,54 @@ describe("a stale look: the ring, and what is chosen", () => {
     expect(differ).toEqual([]);
   });
 });
+const first = { title: "Venta 1", id: "uno", selected: true };
+const second = { title: "Venta 2", id: "dos", detail: "$ 10" };
+const two = [first, second];
+const down = [
+  { ...first, title: "Venta 4", id: "cuatro" },
+  { title: "Venta 3", id: "tres" },
+  { ...first, selected: false },
+];
+const choose = [{ kind: "choose", row: "dos" }] as const;
+/** A batch that points at a row, the screen it was sent over, the screen when it arrives, and the refusal if any. */
+const pointedCases: readonly (readonly [string, Screen, Screen, readonly Intent[], string | undefined])[] = [
+  ["the row moved down two places", listOf(two), listOf([...down, second]), choose, undefined],
+  ["the row's datum changed", listOf(two), listOf([first, { ...second, detail: "$ 20" }]), choose, undefined],
+  ["Enter says another word, the row is there", listOf(two), listOf(two, "10:00", "ver"), choose, undefined],
+  [
+    "the row moved, after a move in the batch",
+    listOf(two),
+    listOf([...down, second]),
+    [{ kind: "up" }, ...choose],
+    undefined,
+  ],
+  ["the row is gone", listOf(two), listOf([first]), choose, "stale"],
+  ["the title changed", listOf(two), { ...listOf(two), title: "Compras" }, choose, "stale"],
+  ["the row was never on the screen seen", listOf([first]), listOf(two), choose, "stale"],
+  [
+    "the row is there, but an Enter in the batch now lands elsewhere",
+    listOf(two),
+    listOf([...down, second]),
+    [...choose, { kind: "confirm" }],
+    "stale",
+  ],
+];
 describe("a stale look: a row pointed at by its identity", () => {
-  const first = { title: "Venta 1", id: "uno", selected: true };
-  const second = { title: "Venta 2", id: "dos", detail: "$ 10" };
-  const two = [first, second];
-  const down = [
-    { ...first, title: "Venta 4", id: "cuatro" },
-    { title: "Venta 3", id: "tres" },
-    { ...first, selected: false },
-    second,
-  ];
-  const choose = [{ kind: "choose", row: "dos" }] as const;
-  const cases: readonly (readonly [string, Screen, Screen, string | undefined])[] = [
-    ["the row moved down two places", listOf(two), listOf(down), undefined],
-    ["the row's datum changed", listOf(two), listOf([first, { ...second, detail: "$ 20" }]), undefined],
-    ["Enter says another word, the row is there", listOf(two), listOf(two, "10:00", "ver"), undefined],
-    ["the row is gone", listOf(two), listOf([first]), "stale"],
-    ["the title changed", listOf(two), { ...listOf(two), title: "Compras" }, "stale"],
-    ["the row was never on the screen seen", listOf([first]), listOf(two), "stale"],
-  ];
-  it.each(cases)("S6: %s", async (_, before, after, refused) => {
-    const { frame, sent } = await sentOver(before, after, choose);
-    expect([frame.refused, sent]).toEqual([refused, refused ? 0 : 1]);
+  it.each(pointedCases)("S6: %s", async (_, before, after, intents, refused) => {
+    const { frame, sent } = await sentOver(before, after, intents);
+    expect([frame.refused, sent]).toEqual([refused, refused ? 0 : intents.length]);
   });
   it("S6: refuses a choose over a rev older than the ring, though the row is still there", async () => {
     const { door, houses } = spyDoor(undefined, text => listOf(two, text));
-    const first = await door.look("s", "h", view);
+    const seen = await door.look("s", "h", view);
     const spy = houses[0];
-    let last = first;
+    let last = seen;
     for (let minute = 1; minute <= 64; minute++) {
       if (spy) spy.state.text = `10:${String(minute).padStart(2, "0")}`;
-      last = await door.look("s", "h", { ...view, client: first.client });
+      last = await door.look("s", "h", { ...view, client: seen.client });
     }
-    const pointed = (frame: Frame) => ({
-      epoch: frame.epoch,
-      client: frame.client,
-      seq: 1,
-      rev: frame.rev,
-      intents: choose,
-    });
-    const old = await door.send("s", "h", pointed(first));
+    const pointed = ({ epoch, client, rev }: Frame) => ({ epoch, client, seq: 1, rev, intents: choose });
+    const old = await door.send("s", "h", pointed(seen));
     const fresh = await door.send("s", "h", pointed(last));
     expect([old.refused, fresh.refused, spy?.counts.send]).toEqual(["stale", undefined, 1]);
   });
