@@ -215,7 +215,7 @@ it.each([false, true])(
   },
   30000,
 );
-it("own lines, unnamed mind lines and legacy native messages schedule no work, including after restart", async () => {
+it("own lines and legacy native messages schedule no work, including after restart", async () => {
   const f = fixture();
   const house = await f.open();
   f.prepare(house);
@@ -223,8 +223,6 @@ it("own lines, unnamed mind lines and legacy native messages schedule no work, i
   const line = (by: string, text: string) =>
     house.bus.emit({ layer: "program", kind: "talk/said", data: { to: "mind:notes", text }, by, cause: [] });
   line("mind:notes", mention("mind:notes", note));
-  line("assistant:ana", note);
-  line("mind:migration", `Notes ${note}`);
   house.bus.emit(effect("mind-requested", { to: "mind:notes", text: note }, "ana"));
   house.bus.emit(effect("mind-turn-opened", { turn: "legacy", wake: [] }, "mind:agenda"));
   house.bus.emit(effect("mind-message", { turn: "legacy", to: "mind:notes", text: note }, "mind:agenda"));
@@ -235,6 +233,37 @@ it("own lines, unnamed mind lines and legacy native messages schedule no work, i
   house.close();
   await f.open();
   expect(f.transport).toHaveBeenCalledTimes(calls);
+});
+it("22/11: a mind's line that names nobody, in a thread of two, wakes the other mind once", async () => {
+  const f = fixture();
+  const house = await f.open();
+  f.prepare(house);
+  f.respond(() => answer());
+  const calls = f.transport.mock.calls.length;
+  const said = house.bus.emit({
+    layer: "program",
+    kind: "talk/said",
+    data: { to: "mind:notes", text: note },
+    by: "mind:migration",
+    cause: [],
+  });
+  await (await house.minds)?.flush();
+  expect(f.transport).toHaveBeenCalledTimes(calls + 1);
+  const opened = [...house.tools.state().house.minds.turns.values()].map(turn => turn.opened);
+  expect(opened.at(-1)).toMatchObject({ by: "mind:notes", data: { wake: [said.id] } });
+});
+it("22/11: in a group a person's line wakes only the mind it names", async () => {
+  const f = fixture();
+  const house = await f.open();
+  f.prepare(house);
+  f.respond(() => answer());
+  const calls = f.transport.mock.calls.length;
+  expect(send(house, "mind:notes,beto", note).status).toBe("accepted");
+  await (await house.minds)?.flush();
+  expect(f.transport).toHaveBeenCalledTimes(calls);
+  expect(send(house, "mind:notes,beto", mention("mind:notes", note)).status).toBe("accepted");
+  await (await house.minds)?.flush();
+  expect(f.transport).toHaveBeenCalledTimes(calls + 1);
 });
 it("a blank line is refused by the ordinary action engine and a line to nobody wakes no mind", async () => {
   const f = fixture();

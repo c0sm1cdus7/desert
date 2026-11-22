@@ -111,10 +111,12 @@ describe("the tree of src/", () => {
   // 21/11 failed turns: +4 exact in supervisor.texts.ts: the wake line of a consciousness turn that failed.
   // 21/11 failed turns, the exception: +0 exact in supervisor.texts.ts: its sentence fits two lines that were there.
   // 21/11 stops that loop: +1 exact in supervisor.texts.ts: a stopped consciousness that fails having done nothing.
-  it("keeps every file within 300 lines and the texts within 1408", () => {
+  // 22/11 whom a message wakes: +4 exact (program mind 2, assistant 1, supervisor 1): two wake, more must be named.
+  // 22/11 «Con arroba»: +1 exact in supervisor.texts.ts: «hilo individual», «en grupo» and how a mind is named with @.
+  it("keeps every file within 300 lines and the texts within 1413", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1408);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1413);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

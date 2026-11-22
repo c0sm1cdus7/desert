@@ -13,6 +13,7 @@ const policy: WakePolicy = {
       ? { text: e.data, to: ["assistant:franco"], by: e.by }
       : undefined,
   toolOf: target => target,
+  talks: false,
 };
 function fixture(initial: Event[] = []) {
   let events = [...initial];

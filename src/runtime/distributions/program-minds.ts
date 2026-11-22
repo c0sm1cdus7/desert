@@ -1,4 +1,4 @@
-// Deriva roles y reglas de las mentes elegidas sin cargar pensamiento ni proveedores.
+// Derives the roles and rules of the chosen minds without loading thinking or providers.
 import { programMindRules } from "../../texts/program-mind.texts.ts";
 import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
 import type { InstalledProgram } from "../../tools/installable/runtime.ts";
@@ -27,6 +27,7 @@ export function programMindDefinitions(installed: Installed, enabled: readonly s
             text: (language: Parameters<typeof programMindRules.text>[0]) =>
               programMindRules.text(language, {
                 name: item.words.name,
+                talks: item.definition.mensajes !== undefined,
                 words: JSON.stringify({ program: item.words, tools: item.groups.map(group => group.palabras) }),
               }),
           },

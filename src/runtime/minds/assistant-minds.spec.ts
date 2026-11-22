@@ -181,7 +181,7 @@ it("disabling the assistant stops it: a line to it wakes nothing, and enabling i
   expect(f.transport).toHaveBeenCalledTimes(3);
   expect(bodies(f)[2]?.frame).toContain("Volviste");
 });
-it("the assistant asks a program mind by naming it and the program mind answers in the thread", async () => {
+it("the assistant asks a program mind in an individual thread and the program mind answers in it", async () => {
   const f = fixture();
   const house = await f.open(true, { assistant: false });
   f.prepare(house);

@@ -52,6 +52,7 @@ it("wakes the journey that started the work with its recorded notice, and not it
     name: "agents",
     message: () => undefined,
     toolOf: () => "agents",
+    talks: false,
   });
   const journey = { kind: "journey" as const, actor: "mind:agents" as const, process: "j1", kit: [] };
   expect(mindWakeDecision(policy(journey), notice, history, 0)).toBe(true);

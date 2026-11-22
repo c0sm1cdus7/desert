@@ -2,7 +2,7 @@
 import { randomUUID } from "node:crypto";
 import { Value } from "@sinclair/typebox/value";
 import { effect } from "../../house/facts.ts";
-import { mindActor } from "../../fields/mind-actor.ts";
+import { mindActor, parseMindActor } from "../../fields/mind-actor.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import { targetTool } from "../../house/attendance.ts";
 import { identityView } from "../../house/members.ts";
@@ -121,6 +121,13 @@ class HouseMindRuntime<X extends Program> {
     const to = state.scenes.get(emission.by)?.data.to ?? {};
     house.execution.bus.emit(effect("scene", { general, to }, emission.by, emission.cause));
   };
+  /** The name people see, which a group line names with «@» (22/11): an assistant's given name, a program's name. */
+  private visibleName(actor: string, role: string): string {
+    const { house } = this;
+    const mind = parseMindActor(actor);
+    if (mind?.kind === "assistant") return house.execution.state().house.assistants.get(mind.owner)?.name ?? role;
+    return house.execution.registry.find(tool => tool.id === mind?.tool)?.name ?? role;
+  }
   private policies = (recover = false) => {
     const { house, options, switches } = this;
     const minds = definitionsNow(options, house.execution.state().house)
@@ -141,10 +148,11 @@ class HouseMindRuntime<X extends Program> {
           .filter(scope => recover || scopeActive(house, switches, scope))
           .map(scope => ({
             scope,
-            name: house.execution.state().house.assistants.get(each.actor.slice(10))?.name ?? each.role,
+            name: this.visibleName(each.actor, each.role),
             message: options.message,
             toolOf: (target: string) =>
               targetTool(house.execution.registry, identityView(house.execution.state(), each.actor), target)?.id,
+            talks: house.execution.registry.some(tool => tool.talks === true && each.actor === `mind:${tool.id}`),
           }));
       });
     return this.supervisor && house.active() ? [...minds, this.supervisor.policy(options.message)] : minds;

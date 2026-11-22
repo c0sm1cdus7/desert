@@ -1,17 +1,18 @@
-// Proves who a program message wakes: its readers, a mind only when named, never a journey or a legacy native message.
+// Proves who a program message wakes: the other one of a thread of two, only the named in a group, never a journey.
 import { expect, it } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { effect } from "../../house/facts.ts";
 import type { Event } from "../../journal/vocabulary.ts";
-import { mindWakeDecision, type WakePolicy } from "./mind-wake-policy.ts";
+import { addressed, mindWakeDecision, type WakePolicy } from "./mind-wake-policy.ts";
 const said = Type.Object({ text: Type.String(), to: Type.Array(Type.String()) });
 const policy: WakePolicy = {
   scope: { kind: "consciousness", actor: "assistant:franco" },
-  name: "Nóra",
+  name: "Nora",
   message: event =>
     event.layer === "program" && Value.Check(said, event.data) ? { ...event.data, by: event.by } : undefined,
   toolOf: target => target.split("/")[0],
+  talks: false,
 };
 const message = (text: string, seq = 1, by = "mind:agenda", to = ["assistant:franco"]): Event => ({
   layer: "program",
@@ -23,21 +24,70 @@ const message = (text: string, seq = 1, by = "mind:agenda", to = ["assistant:fra
   seq,
   at: 0,
 });
-it.each(["Nora, anotá", "¿NÓRA?", "nora", "Hola, No\u0301ra", "(Nora)", "assistant:franco, mirá"])(
-  "una mente despierta a otra solo nombrándola como palabra entera: %s",
-  text => {
-    expect(mindWakeDecision(policy, message(text), [], 0)).toBe(true);
-  },
+const group = ["ana", "assistant:franco", "beto"];
+const inGroup = (named: WakePolicy, text: string) =>
+  mindWakeDecision(named, message(text, 1, "mind:agenda", ["ana", named.scope.actor, "beto"]), [], 0);
+it.each(["@Nora, anotá", "¿@NÓRA?", "@nora", "Hola, @No\u0301ra", "(@Nora)", "@Nora.", "@assistant:franco, mirá"])(
+  "22/11: in a group a mind is named by @ and the name people see, or @ and its actor: %s",
+  text => expect(inGroup(policy, text)).toBe(true),
 );
-it.each(["anorada", "Noralí", "noradrenalina", "Buen día", "Llegué", "Gracias", "Mañana llevo bizcochitos"])(
-  "una mente que no la nombra no la despierta: %s",
-  text => expect(mindWakeDecision(policy, message(text), [], 0)).toBe(false),
+it.each([
+  "Nora, anotá",
+  "le pregunté a Nora y nada",
+  "assistant:franco, mirá",
+  "identities/assistant:franco",
+  "nora@example.com",
+  "x@nora",
+  "_@nora",
+  "@Norah",
+  "@Nora2",
+  "@Nora_",
+  "@ Nora",
+  "@assistant:francoa",
+  "anorada",
+  "Buen día",
+  "Mañana llevo bizcochitos",
+])("22/11: a bare word, a bare actor or an @ inside a word names nobody: %s", text =>
+  expect(inGroup(policy, text)).toBe(false),
 );
-it("una identidad despierta a quien le escribe sin nombrarlo; nadie despierta por lo propio ni por lo ajeno", () => {
+it("22/11: a program's mind is named by its program's name, never by the bare word", () => {
+  const notes = { ...policy, name: "Notas", scope: { kind: "consciousness" as const, actor: "mind:notes" as const } };
+  for (const text of ["@Notas, anotá esto", "@notas anotá esto", "@NOTAS: anotá esto", "@mind:notes anotá esto"])
+    expect(inGroup(notes, text)).toBe(true);
+  for (const text of ["Notas, anotá esto", "repasamos las notas compartidas", "mind:notes, anotá", "program:notes"])
+    expect(inGroup(notes, text)).toBe(false);
+});
+it("22/11: a name of several words matches any run of spaces, and only whole", () => {
+  const named = { ...policy, name: "Asistente de Martín" };
+  for (const text of ["@Asistente  de\nMartín, ¿podés?", "@asistente de martin", "(@Asistente\tde Martín)"])
+    expect(inGroup(named, text)).toBe(true);
+  for (const text of ["Martín, ¿podés?", "Asistente de Martín, ¿podés?", "@Asistente de Martíns", "@Asistente"])
+    expect(inGroup(named, text)).toBe(false);
+});
+it("una identidad despierta al otro en un hilo de dos; nadie despierta por lo propio ni por lo ajeno", () => {
   expect(mindWakeDecision(policy, message("Buen día", 1, "martin"), [], 0)).toBe(true);
-  expect(mindWakeDecision(policy, message("Nora", 1, "assistant:franco"), [], 0)).toBe(false);
-  expect(mindWakeDecision(policy, message("Nora", 1, "martin", ["mind:notes"]), [], 0)).toBe(false);
-  expect(mindWakeDecision(policy, message("Nora", 1, "martin", ["ana", "assistant:franco"]), [], 0)).toBe(true);
+  expect(mindWakeDecision(policy, message("@Nora", 1, "assistant:franco"), [], 0)).toBe(false);
+  expect(mindWakeDecision(policy, message("@Nora", 1, "martin", ["mind:notes"]), [], 0)).toBe(false);
+  expect(mindWakeDecision(policy, message("@Nora", 1, "martin", group), [], 0)).toBe(true);
+});
+it("22/11: en un grupo despierta solo a quien nombra, también si escribe una persona", () => {
+  expect(mindWakeDecision(policy, message("Buen día", 1, "martin", group), [], 0)).toBe(false);
+  expect(mindWakeDecision(policy, message("Buen día, @Nora", 1, "martin", group), [], 0)).toBe(true);
+  expect(mindWakeDecision(policy, message("@assistant:franco, mirá", 1, "martin", group), [], 0)).toBe(true);
+});
+it("22/11: en un hilo de dos todo mensaje despierta al otro, también si lo escribe una mente sin nombrarlo", () => {
+  expect(mindWakeDecision(policy, message("Listo", 1, "mind:agenda"), [], 0)).toBe(true);
+  // A reader that lists the author among those it reads for still makes a thread of two.
+  expect(mindWakeDecision(policy, message("Listo", 1, "mind:agenda", ["mind:agenda", "assistant:franco"]), [], 0)).toBe(
+    true,
+  );
+});
+it("22/11: una mente nunca despierta por su propio mensaje, aunque la lista de lectores la incluya y se nombre", () => {
+  const own = (to: string[]) => message("@Nora, listo", 1, "assistant:franco", to);
+  for (const to of [["assistant:franco"], ["assistant:franco", "ana"], ["assistant:franco", "ana", "beto"]]) {
+    expect(mindWakeDecision(policy, own(to), [], 0)).toBe(false);
+    expect(addressed(policy, policy.message(own(to)))).toBe(false);
+  }
 });
 it("los mensajes nativos de antes del 20/11 quedan en el diario y ya no despiertan a nadie", () => {
   const legacy = [
@@ -52,7 +102,7 @@ it("un journey no despierta por mensajes; los oye su consciencia", () => {
   expect(mindWakeDecision(journey, message("Nora, listo", 1, "martin"), [], 0)).toBe(false);
   expect(mindWakeDecision(journey, { ...message("Nora, listo", 1, "martin"), process: "j1" }, [], 0)).toBe(false);
 });
-it("la herramienta despierta por cada acto en ella y en sus objetos, salvo los propios", () => {
+it("la herramienta que no habla despierta por cada acto en ella y en sus objetos, salvo los propios", () => {
   const tool = { ...policy, scope: { kind: "consciousness" as const, actor: "mind:notes" as const } };
   const event = {
     ...effect("act", { object: "notes/n1", option: "edit", input: {} }, "franco"),
@@ -62,8 +112,29 @@ it("la herramienta despierta por cada acto en ella y en sus objetos, salvo los p
   };
   expect(mindWakeDecision(tool, event, [], 0)).toBe(true);
   expect(mindWakeDecision(tool, { ...event, by: "mind:notes" }, [], 0)).toBe(false);
-  expect(mindWakeDecision(tool, message("Nora", 1, "franco"), [], 0)).toBe(false);
+  expect(mindWakeDecision(tool, message("@Nora", 1, "franco"), [], 0)).toBe(false);
   expect(mindWakeDecision(tool, message("Anotá", 1, "franco", ["mind:notes"]), [], 0)).toBe(true);
+});
+it("22/11: el programa que habla no despierta a su mente por cada acto: la despiertan sus mensajes", () => {
+  const mind = { kind: "consciousness" as const, actor: "mind:communicator" as const };
+  const communicator = { ...policy, name: "Comunicador", scope: mind, talks: true };
+  const act = (option: string) => ({
+    ...effect("act", { object: "communicator/threads/1", option, input: {} }, "franco"),
+    id: "e1",
+    seq: 1,
+    at: 0,
+  });
+  for (const option of ["threads/say", "threads/open", "threads/add"])
+    expect(mindWakeDecision(communicator, act(option), [], 0)).toBe(false);
+  expect(mindWakeDecision(communicator, message("Hola", 1, "franco", ["ana"]), [], 0)).toBe(false);
+  expect(mindWakeDecision(communicator, message("Hola", 1, "franco", ["mind:communicator"]), [], 0)).toBe(true);
+  expect(mindWakeDecision(communicator, message("Hola", 1, "franco", ["mind:communicator", "ana"]), [], 0)).toBe(false);
+  const named = message("@Comunicador, mirá", 1, "franco", ["mind:communicator", "ana"]);
+  expect(mindWakeDecision(communicator, named, [], 0)).toBe(true);
+  const bare = message("Comunicador, mirá", 1, "franco", ["mind:communicator", "ana"]);
+  expect(mindWakeDecision(communicator, bare, [], 0)).toBe(false);
+  // The same mind of a program that does not talk still wakes for an act on its own object.
+  expect(mindWakeDecision({ ...communicator, talks: false }, act("threads/say"), [], 0)).toBe(true);
 });
 it("el final de su journey vuelve a la consciencia sin despertar al journey cerrado", () => {
   const event = {
@@ -124,8 +195,9 @@ it("abre el journey para trabajar una vez y no lo despierta por sus escenas, cos
 });
 it("un nombre compuesto conserva sus límites y no interpreta metacaracteres", () => {
   const named = { ...policy, name: "Nora (Sur)" };
-  expect(mindWakeDecision(named, message("Hola Nora (Sur)!"), [], 0)).toBe(true);
-  expect(mindWakeDecision(named, message("Nora Sur"), [], 0)).toBe(false);
+  expect(mindWakeDecision(named, message("Hola @Nora (Sur)!", 1, "mind:agenda", group), [], 0)).toBe(true);
+  expect(mindWakeDecision(named, message("@Nora Sur", 1, "mind:agenda", group), [], 0)).toBe(false);
+  expect(mindWakeDecision(named, message("@Nora (Sur", 1, "mind:agenda", group), [], 0)).toBe(false);
 });
 it("un argumento ausente nombra el campo que falta", () => {
   expect(() => {
@@ -139,11 +211,14 @@ it("un argumento ausente nombra el campo que falta", () => {
   }).toThrow("history");
 });
 
-it("un mensaje de programa despierta a la consciencia que nombra sin despertar otras mentes", () => {
-  const direct = message("Notas, revisá la nota", 1, "mind:agenda", ["mind:notes"]);
+it("un mensaje de programa en un grupo despierta a la consciencia que nombra sin despertar otras mentes", () => {
+  const direct = message("@Notas, revisá la nota", 1, "mind:agenda", ["mind:notes", "ana"]);
   const notes = { ...policy, name: "Notas", scope: { kind: "consciousness" as const, actor: "mind:notes" as const } };
   expect(mindWakeDecision(notes, direct, [direct], 0)).toBe(true);
   expect(mindWakeDecision(policy, direct, [direct], 0)).toBe(false);
   expect(mindWakeDecision(notes, { ...direct, by: "mind:notes" }, [direct], 0)).toBe(false);
-  expect(mindWakeDecision(notes, message("Revisá la nota", 1, "mind:agenda", ["mind:notes"]), [], 0)).toBe(false);
+  expect(mindWakeDecision(notes, message("Revisá la nota", 1, "mind:agenda", ["mind:notes", "ana"]), [], 0)).toBe(
+    false,
+  );
+  expect(mindWakeDecision(notes, message("Revisá la nota", 1, "mind:agenda", ["mind:notes"]), [], 0)).toBe(true);
 });

@@ -40,6 +40,7 @@ it("wakes for a consciousness turn that closed otherwise than done, for a reason
     name: "supervisor",
     message: () => undefined,
     toolOf: () => undefined,
+    talks: false,
   };
   const wakes = (event: Event) => supervisorWakes(policy, 2, event, []);
   expect(wakes(closed({ reason: "invalid" }))).toBe(true);
@@ -146,6 +147,7 @@ it("reads who wrote the facts that woke the failed turn: only when all are its o
     name: "supervisor",
     message: () => undefined,
     toolOf: () => undefined,
+    talks: false,
   };
   const failed = closed({ reason: "invalid" });
   // Its line is a message to the mind, the fact that really wakes a consciousness.
