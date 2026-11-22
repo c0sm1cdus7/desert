@@ -1,6 +1,6 @@
 // Cierra mapas contractuales sin propiedades heredadas y copia declaraciones antes de enlazarlas.
 import { Value } from "@sinclair/typebox/value";
-import type { ContractPackage } from "./package-contracts.ts";
+import type { ContractPackage } from "../../tools/contracts/package-contracts.ts";
 export function contractRecord<T>(entries: Iterable<readonly [string, T]>): Readonly<Record<string, T>> {
   const record = Object.fromEntries(entries);
   Object.setPrototypeOf(record, null);

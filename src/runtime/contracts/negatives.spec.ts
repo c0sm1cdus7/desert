@@ -6,7 +6,7 @@ import { structuralContractErrors } from "./package-checks.ts";
 import { validateContractPrograms } from "./validate-contracts.ts";
 import { runContractCases } from "./contract-gate.ts";
 import { contractSelections, contractHouse } from "../../../tests/support/distribution-contracts.ts";
-import type { ContractOffer, ContractPackage } from "./package-contracts.ts";
+import type { ContractOffer, ContractPackage } from "../../tools/contracts/package-contracts.ts";
 const path = "ventas/documentos-fiscales";
 const offered = (): ContractOffer => required(documents().ofrece["documentos-fiscales"]);
 const withOffer = (offer: ContractOffer): ContractPackage => ({

@@ -132,6 +132,7 @@
   "exports": {
     "./programa": "./src/tools/installable/program.ts",
     "./componer": "./src/runtime/distributions/compose.ts",
+    "./contracts": "./src/checks/contracts/public-contracts.ts",
     "./messages": "./src/fields/messages.ts",
     "./fields": "./src/fields/fields.ts",
     "./fields/*": "./src/fields/*.ts",

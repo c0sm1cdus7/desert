@@ -1,7 +1,7 @@
 // Ejecuta los pasos declarativos por el puerto real y conserva observaciones con secuencias y procedencia.
 import { Value } from "@sinclair/typebox/value";
 import type { ContractAccess, ContractCut, ContractPort, ContractPublicNotice } from "../../tools/contract-port.ts";
-import type { ContractCase, ContractCaseStep } from "./package-contracts.ts";
+import type { ContractCase, ContractCaseStep } from "../../tools/contracts/package-contracts.ts";
 import { coreFailure } from "./contract-actions.ts";
 type Walk = { notice?: ContractCut | undefined; observations: unknown[]; passed: boolean };
 function isNotices(value: unknown): value is readonly ContractPublicNotice[] {

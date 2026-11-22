@@ -1,8 +1,8 @@
 // Comprueba rutas propias y mitades completas antes de prestar puertos entre programas.
 import { diagnoseContracts } from "./contract-graph.ts";
 import { schemaInclusion } from "./schema-inclusion.ts";
-import type { ContractInterface } from "./contract-types.ts";
-import type { ContractPackage } from "./package-contracts.ts";
+import type { ContractInterface } from "../../tools/contracts/contract-types.ts";
+import type { ContractPackage } from "../../tools/contracts/package-contracts.ts";
 const supportedReading = (value: unknown): boolean => value === "casa";
 function shapes(half: ContractInterface, base: string): string[] {
   const errors: string[] = [];

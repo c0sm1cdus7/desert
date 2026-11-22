@@ -1,7 +1,7 @@
 // Calcula huellas de las mitades y acredita sólo ejecuciones emitidas por la compuerta local.
 import { createHash } from "node:crypto";
 import { contractTexts } from "../../texts/contracts.texts.ts";
-import type { ContractCase, ContractPackage } from "./package-contracts.ts";
+import type { ContractCase, ContractPackage } from "../../tools/contracts/package-contracts.ts";
 export type ContractBuild = Readonly<{ core: string; executor: string }>;
 export type ContractEvidence = Readonly<{
   provider: string;

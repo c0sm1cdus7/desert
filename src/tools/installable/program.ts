@@ -40,6 +40,19 @@ export type ProgramMessage = Readonly<{ text: string; to: readonly string[]; by:
 export type MessageReader = (event: Event) => ProgramMessage | undefined;
 /** A program minds talk through: how its facts read as messages and the acts a consciousness may say them with. */
 export type ProgramTalk = Readonly<{ leer: MessageReader; actos: readonly [string, ...string[]] }>;
+import type { ContractPackage } from "../contracts/package-contracts.ts";
+export type {
+  ContractCase,
+  ContractCaseStep,
+  ContractOffer,
+  ContractPackage,
+  ContractProjector,
+  ContractRequest,
+} from "../contracts/package-contracts.ts";
+export type { ContractAction, ContractInterface, ContractNotice, ContractObject } from "../contracts/contract-types.ts";
+/** Its own half of each contract, published with it: what it offers, what it requests, and the projectors its offers
+ * read. Composing checks them; a program that neither offers nor requests leaves them out. */
+type ContractHalf = Partial<Pick<ContractPackage, "artifact" | "ofrece" | "pide" | "proyectores">>;
 export type ProgramBody<M extends ProgramMetadata> = Readonly<{
   mindCases?: readonly ProgramMindCase[];
   mensajes?: ProgramTalk;
@@ -54,7 +67,8 @@ export type ProgramBody<M extends ProgramMetadata> = Readonly<{
   ) => DeepReadonly<ReturnType<M["inicial"]>>;
   summary: (state: State<LocalProgram<M>>) => string;
   effects?: unknown;
-}>;
+}> &
+  ContractHalf;
 export type InstallableProgram = ProgramMetadata &
   Readonly<{
     effects?: unknown;

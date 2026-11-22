@@ -1,5 +1,5 @@
 import { Type, type TSchema } from "@sinclair/typebox";
-import type { ContractAction } from "./contract-types.ts";
+import type { ContractAction } from "../../tools/contracts/contract-types.ts";
 import { describe, expect, it } from "vitest";
 import { compareContracts } from "./compare-contracts.ts";
 

@@ -1,7 +1,7 @@
 // Rechaza casos que invocan o esperan datos fuera de la mitad que declara quien pide.
 import { Value } from "@sinclair/typebox/value";
 import type { TSchema } from "@sinclair/typebox";
-import type { ContractCase, ContractCaseStep, ContractRequest } from "./package-contracts.ts";
+import type { ContractCase, ContractCaseStep, ContractRequest } from "../../tools/contracts/package-contracts.ts";
 import { projectValue } from "./project-value.ts";
 function exactShape(schema: TSchema, value: unknown): boolean {
   try {

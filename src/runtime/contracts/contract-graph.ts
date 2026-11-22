@@ -1,5 +1,5 @@
 // Diagnostica proveedores y recorridos cíclicos antes de enlazar programas.
-import type { ContractInterface } from "./contract-types.ts";
+import type { ContractInterface } from "../../tools/contracts/contract-types.ts";
 import { compareContracts } from "./compare-contracts.ts";
 
 export type ContractProgram = Readonly<{

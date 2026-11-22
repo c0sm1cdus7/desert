@@ -9,7 +9,7 @@ import { contractHash, evidenceIdentity, evidenceLedger } from "./contract-evide
 import type { ContractHistory } from "./contract-history.ts";
 import { ContractCompositionError, createContractRuntime } from "./contract-runtime.ts";
 import { structuralContractErrors } from "./package-checks.ts";
-import type { ContractPackage } from "./package-contracts.ts";
+import type { ContractPackage } from "../../tools/contracts/package-contracts.ts";
 export type ContractCaseHouse<X extends Program> = Readonly<{
   ports: Omit<Execution<X>, "live" | "own" | "process"> & Partial<Pick<Execution<X>, "own" | "process">>;
   history: ContractHistory<X>;

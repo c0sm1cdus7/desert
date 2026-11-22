@@ -5,7 +5,7 @@ import type { Program } from "../../tools/tool-contract.ts";
 import type { Execution } from "../../tools/execution-contract.ts";
 import type { ContractAccess, ContractCut, ContractFactory, ContractInvocation } from "../../tools/contract-port.ts";
 import { contractTexts } from "../../texts/contracts.texts.ts";
-import type { ContractPackage } from "./package-contracts.ts";
+import type { ContractPackage } from "../../tools/contracts/package-contracts.ts";
 import type { ContractHistory } from "./contract-history.ts";
 import { structuralContractErrors } from "./package-checks.ts";
 import { contractAction } from "./contract-actions.ts";

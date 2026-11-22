@@ -1,5 +1,5 @@
 // Compara lo que pide un programa con lo publicado por un proveedor.
-import type { ContractInterface } from "./contract-types.ts";
+import type { ContractInterface } from "../../tools/contracts/contract-types.ts";
 import { schemaInclusion } from "./schema-inclusion.ts";
 
 export function compareContracts(request: ContractInterface, offer: ContractInterface, path: string): string[] {

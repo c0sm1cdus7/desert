@@ -6,7 +6,7 @@ import type { ContractBuild, ContractEvidence, EvidenceVerifier } from "../contr
 import { contractHistory } from "../contracts/contract-history.ts";
 import { copyContractPackages } from "../contracts/contract-record.ts";
 import { checkContractBindings, createContractRuntime } from "../contracts/contract-runtime.ts";
-import type { ContractPackage } from "../contracts/package-contracts.ts";
+import type { ContractPackage } from "../../tools/contracts/package-contracts.ts";
 import { validateContractPrograms } from "../contracts/validate-contracts.ts";
 export type ContractualProgram = InstallableProgram &
   Partial<Pick<ContractPackage, "artifact" | "ofrece" | "pide" | "proyectores">>;

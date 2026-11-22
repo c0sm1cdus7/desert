@@ -1,5 +1,5 @@
 // Entrega a componer todos los motivos con camino y filas que separan inclusión de casos ejecutados.
-import type { ContractPackage } from "./package-contracts.ts";
+import type { ContractPackage } from "../../tools/contracts/package-contracts.ts";
 import { structuralContractErrors } from "./package-checks.ts";
 import { caseDeclarationErrors } from "./case-declaration.ts";
 import { compatibilityLabel, evidenceIdentity } from "./contract-evidence.ts";

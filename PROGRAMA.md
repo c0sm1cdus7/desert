@@ -2156,12 +2156,16 @@ DESERT es el sistema operativo. Una distribución reúne versiones exactas de pr
 Un programa agrupa herramientas; cada herramienta agrupa acciones. La terminal entra por **Menú › Programas**,
 conserva **Sistema** y, al abrir un programa, muestra la pila **Herramientas**, con una fila por cada herramienta
 del programa: ninguna vive dentro de otra. Prueba: `src/tools/installable/picking.spec.ts`. Una sola herramienta
-conserva los tres niveles. `componer({ ..., atajoUnaHerramienta: true })` abre directamente esa herramienta desde el Menú;
-el interruptor es opcional y viene apagado. No cambia sus acciones, destinos ni permisos.
+conserva los tres niveles. `componer({ ..., atajoUnaHerramienta: true })` abre directamente esa herramienta desde el
+Menú; el interruptor es opcional y viene apagado. No cambia sus acciones, destinos ni permisos.
 
 `programa(metadata, body)` se importa de `desert/programa`. La metadata declara `id`, `version`, `desert`,
 `codigo`, `hechos` e `inicial`; el cuerpo declara `purpose`, `skill`, `palabras`, `herramientas`, `plegar` y
 `summary`. Cada herramienta lleva sus palabras, lecturas y acciones creadas con `programAct`, con sus casos.
+Un programa que habla por contratos declara su mitad en el mismo cuerpo: `ofrece`, `pide`, `proyectores` y,
+si lo fija, `artifact` (si no, es la huella de su código). Sus tipos (`ContractPackage`, `ContractOffer`,
+`ContractRequest`, `ContractCase`, `ContractCaseStep`, `ContractProjector`, `ContractAction`, `ContractObject`,
+`ContractNotice` y `ContractInterface`) se importan con `import type` de `desert/programa`.
 La entrada de metadata mantiene sus herramientas en archivos propios; la frontera de secretos rastrea
 `programa` hasta esas declaraciones y conserva separadas composición, herramientas y adaptadores.
 El programa recibe su estado bajo `tools.own`; el adaptador conserva los destinos de sus herramientas y objetos.
@@ -2255,8 +2259,8 @@ Los paquetes viven fuera de `node_modules`, fijados por commit, y se enlazan des
 Las entradas públicas son `desert/programa`, `desert/componer`, `desert/messages`, `desert/fields`,
 `desert/fields/*`, `desert/journal`, `desert/runtime`, `desert/doors/terminal`, `desert/doors/socket`,
 `desert/doors/mcp`, `desert/testing`, `desert/program-gate`, `desert/laws`, `desert/program-types`, `desert/surface`,
-`desert/calculation`, `desert/surface/house-router`, `desert/runtime/cloud`, `desert/doors/keys` y
-`desert/doors/mcp/handler`. Las rutas públicas de `fields/*` no llevan `.ts` en el especificador.
+`desert/calculation`, `desert/surface/house-router`, `desert/runtime/cloud`, `desert/doors/keys`,
+`desert/doors/mcp/handler` y `desert/contracts`. Las rutas públicas de `fields/*` no llevan `.ts` en el especificador.
 
 Para armar una distribución, `desert/surface/house-router` publica `houseRouter`, que arma la terminal local;
 `desert/runtime/cloud` publica `startCloudHouse`, que abre la casa de nube con la raíz del anfitrión;
@@ -2403,6 +2407,15 @@ para acreditarla en otro proceso hay que volver a correr la compuerta. No hay fi
 devuelve `errors` completos con camino y `rows`. Sin ejecución, la fila dice «casos no comprobados».
 Las comprobaciones estructurales se pueden usar antes de ejecutar casos con `structuralContractErrors`;
 por sí solas no acreditan compatibilidad.
+
+Una distribución certifica sus contratos con `certifyContracts(opciones)`, de `desert/contracts`: recibe las mismas
+opciones que `componer`, sin `contratos`, instala los programas, arma la composición candidata y corre cada caso de
+cada pedido contra su único proveedor con `runContractCases`, cada uno en su propia casa aislada
+(`prepareContractHouse`). Devuelve `{ build, evidence, verify }`, que `componer` recibe como `contratos`. Un pedido
+sin proveedor único no se corre: `componer` dice por qué. Sólo cuenta la evidencia emitida por esa llamada; una fila
+copiada no. `desert/contracts` publica también los tipos de los contratos y es del ensamblador: no está entre las
+entradas de un programa, así que la ley de importaciones la rechaza en su código. Prueba:
+`src/checks/contracts/public-contracts.spec.ts`.
 
 ## Mentes de programas compuestas y banco por rol (18/11)
 

@@ -2,7 +2,7 @@
 import { Value } from "@sinclair/typebox/value";
 import { publicValue } from "../../adapters/public-value.ts";
 import type { ContractInvocation, ContractResponse, CoreFailure } from "../../tools/contract-port.ts";
-import type { ContractAction } from "./contract-types.ts";
+import type { ContractAction } from "../../tools/contracts/contract-types.ts";
 import { projectValue } from "./project-value.ts";
 export const coreFailure = (reason: CoreFailure["reason"]): CoreFailure => ({ status: "core-failure", reason });
 export function contractAction(

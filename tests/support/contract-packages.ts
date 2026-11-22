@@ -1,6 +1,6 @@
 // Independent consumer and provider declarations for the contractual execution fixtures.
 import { Type } from "@sinclair/typebox";
-import type { ContractPackage, ContractOffer, ContractCase } from "../../src/runtime/contracts/package-contracts.ts";
+import type { ContractPackage, ContractOffer, ContractCase } from "../../src/tools/contracts/package-contracts.ts";
 export function required<T>(value: T | undefined): T {
   if (value === undefined) throw new Error("Missing fixture member");
   return value;

@@ -7,7 +7,7 @@ import { publicValue } from "../../adapters/public-value.ts";
 import type { Program, State } from "../../tools/tool-contract.ts";
 import type { ContractCut, ContractPort, ContractReading, ContractPublicNotice } from "../../tools/contract-port.ts";
 import type { ContractHistory } from "./contract-history.ts";
-import type { ContractPackage, ContractOffer, ContractRequest } from "./package-contracts.ts";
+import type { ContractPackage, ContractOffer, ContractRequest } from "../../tools/contracts/package-contracts.ts";
 import { projectValue } from "./project-value.ts";
 import { coreFailure } from "./contract-actions.ts";
 export type ReadingScope<X extends Program> = Readonly<{
