@@ -15,7 +15,7 @@ export const frameHouse = defineMessage({
       "(Herramientas) y las reglas de texto de la casa. Después viene lo que cambia en cada turno: Alcance dice " +
       "si pensás como consciencia o dentro de un journey; Escena es lo que dejaste escrito la última vez; " +
       "Actividad y Objetos muestran lo que pasa en la casa; Hilo es tu conversación propia; Despertar dice qué " +
-      "te despertó; Contexto trae lo que no se puede dejar afuera; Omitido nombra lo que no entró. Lo que pasa " +
+      "te despertó; Contexto trae lo que no se puede dejar afuera; Omitido cuenta lo que no entró. Lo que pasa " +
       "después dentro del turno (resultados, correcciones, la respuesta a tu consulta) llega en mensajes nuevos.\n\n" +
       "Cómo contestar: en scene escribí en una o dos frases dónde quedaste, para vos y para quien lea. En acts " +
       "proponé solo actos del menú del esquema, con su destino y su entrada exactos; como consciencia, si no hay " +

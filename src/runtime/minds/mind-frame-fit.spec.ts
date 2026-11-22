@@ -37,7 +37,21 @@ it("reports omissions while retaining wake and required context", () => {
     expect(result.frame.changing).toContain("despertar");
     expect(result.frame.changing).toContain("consulta");
     expect(result.omitted).toContain("a");
-    expect(result.frame.changing).toContain("a");
+  }
+});
+it("says under Omitido how much of each section did not fit, never which ids", () => {
+  const long = "f".repeat(64);
+  const rich = {
+    ...snapshot,
+    activity: [{ id: long, text: "á".repeat(300), covered: true }],
+    objects: [{ id: "obj", text: "o".repeat(300) }],
+  };
+  const result = fitMindFrame(rich, "es", { max: 349, bound: size });
+  expect(result.tooLarge).toBe(false);
+  if (!result.tooLarge) {
+    expect(result.omitted).toEqual([long, "obj"]);
+    expect(result.frame.changing).not.toContain(long);
+    expect(result.frame.changing).toContain("Omitido:\nActividad: 1 · Objetos: 1");
   }
 });
 it("refuses when even the minimum does not fit", () => {

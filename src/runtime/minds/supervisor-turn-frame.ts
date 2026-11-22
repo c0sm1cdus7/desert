@@ -2,7 +2,8 @@
 import type { JourneyState } from "../../house/minds/journey-state.ts";
 import type { Event } from "../../journal/vocabulary.ts";
 import { turnNotice } from "../../texts/mind-turn.texts.ts";
-import { supervisorWoke } from "../../texts/supervisor.texts.ts";
+import { supervisorLabels, supervisorWoke } from "../../texts/supervisor.texts.ts";
+import type { Language } from "../../fields/languages.ts";
 import { answerSchema } from "../../tools/minds/mind-answer.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -69,7 +70,16 @@ function woke<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntim
   });
 }
 const render = (items: readonly FrameItem[]) => items.map(item => `${item.id}: ${item.text}`).join("\n");
-type Parts = Readonly<{ minds: FrameItem[]; activity: FrameItem[]; omitted: string[] }>;
+/** How many lines of activity and minds did not fit, by section: never which. */
+type Parts = Readonly<{ minds: FrameItem[]; activity: FrameItem[]; omitted: { activity: number; minds: number } }>;
+const omittedLine = (language: Language, omitted: Parts["omitted"]) => {
+  const label = (index: number) => supervisorLabels.text(language, {}).split("|")[index] ?? "";
+  const counts = [
+    ...(omitted.activity ? [`${label(13)}: ${omitted.activity}`] : []),
+    ...(omitted.minds ? [`${label(6)}: ${omitted.minds}`] : []),
+  ];
+  return counts.length ? [section(language, 14, counts.join(" · "))] : [];
+};
 function frameOf<X extends Program>(
   house: MindRuntimeHouse<X>,
   options: MindRuntimeOptions,
@@ -89,7 +99,7 @@ function frameOf<X extends Program>(
       section(language, 13, render(parts.activity)),
       section(language, 12, fixed.context),
       section(language, 11, `${now} ${new Date(now).toISOString()}`),
-      ...(parts.omitted.length ? [section(language, 14, parts.omitted.join(", "))] : []),
+      ...omittedLine(language, parts.omitted),
     ].join("\n\n"),
   };
 }
@@ -97,9 +107,9 @@ function frameOf<X extends Program>(
 function fit(frame: (parts: Parts) => MindFrame, parts: Parts, fits: (frame: MindFrame) => boolean) {
   let current = frame(parts);
   while (!fits(current)) {
-    const item = parts.activity.shift() ?? parts.minds.shift();
-    if (!item) return { tooLarge: true as const };
-    parts.omitted.push(item.id);
+    const key = parts.activity.length ? "activity" : "minds";
+    if (!parts[key].shift()) return { tooLarge: true as const };
+    parts.omitted[key] += 1;
     current = frame(parts);
   }
   return current;
@@ -124,7 +134,7 @@ export function supervisorTurnFrame<X extends Program>(
       thread: ownThread(house, options),
     };
     const activity = [...current.activity, ...current.objects].map(({ id, text }) => ({ id, text }));
-    const parts: Parts = { minds: houseItems(house), activity, omitted: [] };
+    const parts: Parts = { minds: houseItems(house), activity, omitted: { activity: 0, minds: 0 } };
     return fit(
       each => frameOf(house, options, fixed, each),
       parts,

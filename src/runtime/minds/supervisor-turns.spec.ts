@@ -197,7 +197,7 @@ it("reads every mind with its journeys and speaks through the talk program, and 
   const bodies = f.transport.mock.calls.map(call => (typeof call[1]?.body === "string" ? call[1].body : ""));
   const own = bodies.find(body => body.includes("Alcance:\\nmind:supervisor")) ?? "";
   // The whole request of its own turn, layers and schema included, is about 7 KB for this house; it is bounded by
-  // the input limit, trimming what it read in threads first and then minds, each one named under «Omitido».
+  // the input limit, trimming what it read in threads first and then minds, each counted under «Omitido».
   expect(own.length).toBeGreaterThan(frame.length);
   expect(own.length).toBeLessThan(50000);
 }, 60000);
