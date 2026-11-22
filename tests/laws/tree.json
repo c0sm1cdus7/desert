@@ -351,6 +351,7 @@
     "surface/contract/public-contract.ts": "desert/surface/contract: the contract for renderers and doors, browser-safe, never for a program",
     "surface/contract/shown-tool.ts": "what a tool gives a surface: Tool, its acts and menus, ViewRow, Notice, Conversation, Result",
     "surface/contract/tones.ts": "surface tones: UI tones and chart data tones",
+    "surface/contract/viewport.ts": "Viewport: the room a renderer has, the only size the router knows; a type with no import.",
     "surface/contract/wire.ts": "WireScreen, WireIntent, wire, parseIntent: the closed shape a screen travels in and the check an intent passes",
     "surface/formats/invalid-money.ts": "Detecta importes inválidos al dibujar y conserva el nombre del campo para la persona.",
     "surface/formats/mask-keys.ts": "Decide si una tecla entra en la máscara y comparte esa decisión con el motivo visible de rechazo.; explica el cero que no cambia el valor",

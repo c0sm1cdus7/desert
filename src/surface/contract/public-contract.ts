@@ -15,4 +15,5 @@ export type {
 } from "./contract.ts";
 export { hintSends } from "./hint-sends.ts";
 export type { Tone } from "./tones.ts";
+export type { Viewport } from "./viewport.ts";
 export { parseIntent, wire, WireIntent, WireScreen } from "./wire.ts";

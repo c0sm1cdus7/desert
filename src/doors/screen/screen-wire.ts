@@ -1,6 +1,7 @@
 // What the screen door sends and takes: closed schemas built on the contract's wire, each parsed without throwing.
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import type { Viewport } from "../../surface/contract/viewport.ts";
 import { parseIntent, WireIntent, WireScreen } from "../../surface/contract/wire.ts";
 import { screenLimits } from "./screen-limits.ts";
 
@@ -13,7 +14,14 @@ export type WireRefusal = Static<typeof WireRefusal>;
 type IntentRefusal = Extract<ReturnType<typeof parseIntent>, { ok: false }>["reason"];
 // Every reason parseIntent gives is a reason a frame can carry: one more there does not compile here.
 const everyIntentRefusal: [Exclude<IntentRefusal, WireRefusal>] extends [never] ? true : false = true;
+/** The schema of the contract's Viewport, bounded: the same type, or this file does not compile. */
 export const WireViewport = closed({ rows: Type.Integer({ minimum: 1, maximum: screenLimits.rows }) });
+const sameViewport: [Readonly<Static<typeof WireViewport>>, Viewport] extends [
+  Viewport,
+  Readonly<Static<typeof WireViewport>>,
+]
+  ? true
+  : false = true;
 /** What the door sends: the screen for this client, and where it stands in the order. */
 export const WireFrame = closed({
   v: Type.Literal(1),
@@ -63,5 +71,5 @@ export function parseSend(value: unknown): Parsed<Send> {
   }
   return Value.Check(WireSend, value) ? { ok: true, value } : refused("shape");
 }
-/** The proof above, kept where the compiler reads it. */
-export const wireRefusalsCovered = everyIntentRefusal;
+/** The proofs above, kept where the compiler reads them. */
+export const wireProofs = { refusals: everyIntentRefusal, viewport: sameViewport } as const;
