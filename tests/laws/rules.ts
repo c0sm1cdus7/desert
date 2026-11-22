@@ -7,6 +7,8 @@ export type Rule = Readonly<{ id: number; rule: string; from: string; guarantee:
 export const rules: readonly Rule[] = manifest.rules;
 /** How many laws nothing makes hold yet: written down, so the list only grows or shrinks on purpose. */
 export const debts: number = manifest.debts;
+/** A guarantee taken back: its number is not used again, and the list says why. */
+export const retired: readonly Readonly<{ id: number; why: string }>[] = manifest.retired;
 const named: Readonly<Record<string, string>> = {
   type: "no compila",
   compose: "el programa no arranca",
@@ -29,6 +31,8 @@ export function rulesText(): string {
     "Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.",
     "",
     `Leyes: ${rules.length}. Deudas: ${debts}.`,
+    "",
+    `Retiradas, su número no se vuelve a usar: ${retired.map(({ id, why }) => `${id} (${why})`).join("; ")}.`,
     "",
     "| # | Ley | De dónde | Garantía | Dónde, o cómo se salda |",
     "|---|---|---|---|---|",

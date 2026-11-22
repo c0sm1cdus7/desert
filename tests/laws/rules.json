@@ -1,5 +1,11 @@
 {
   "debts": 22,
+  "retired": [
+    {
+      "id": 133,
+      "why": "Franco, 22/11/2026: programa alberga herramientas; una herramienta ya no vive dentro de otra, y la ley 16 se retiró con ella"
+    }
+  ],
   "rules": [
     {
       "id": 1,

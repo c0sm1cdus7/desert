@@ -65,7 +65,6 @@ código a una identidad que tenga la herramienta; si no puede verla, llega a qui
 derivada mira también desde cada destinatario prometido y falla si no puede verla. La escena explica, no calcula.
 Queda la deuda 224: una acción fuera del kit debe verse apagada con su motivo (leyes 4 y 6), a saldar por lectura y kit.
 El número 222 no se usa: el mensaje corresponde al motor de la mente.
-El número 133 no se usa: Franco, 22/11/2026: programa alberga herramientas.
 
 
 ## La mente actúa desde su herramienta (14/11, ley 256)

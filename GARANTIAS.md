@@ -5,6 +5,8 @@ Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o sal
 
 Leyes: 284. Deudas: 22.
 
+Retiradas, su número no se vuelve a usar: 133 (Franco, 22/11/2026: programa alberga herramientas; una herramienta ya no vive dentro de otra, y la ley 16 se retiró con ella).
+
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
 | 1 | Celda 12×24, IBM Plex Mono 20/24 | REGLAS §2 | DEUDA | No aplica a la terminal; tipo de tamaños en un renderer web. |

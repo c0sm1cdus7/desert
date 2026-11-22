@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { root } from "../support/sources.ts";
-import { debts, guarantees, rules, rulesText } from "./rules.ts";
+import { debts, guarantees, retired, rules, rulesText } from "./rules.ts";
 
 const owed = rules.filter(rule => rule.guarantee === "debt");
 const held = rules.filter(rule => rule.guarantee !== "debt");
@@ -39,6 +39,13 @@ describe("law 13: a rule nothing makes hold is a wish", () => {
         guarantee === "spec" && !evidence.some(file => /\.(spec|checks)\.ts$/u.test(file)),
     );
     expect(bare.map(rule => rule.id)).toEqual([]);
+  });
+  it("says, in GARANTIAS.md, why a retired guarantee's number is not used, and never reuses it", () => {
+    expect(retired.map(gone => gone.id)).toContain(133);
+    expect(retired.filter(gone => gone.why.trim() === "").map(gone => gone.id)).toEqual([]);
+    expect(rules.filter(rule => retired.some(gone => gone.id === rule.id)).map(rule => rule.id)).toEqual([]);
+    expect(rulesText()).toContain("133 (Franco, 22/11/2026");
+    expect(readFileSync(join(root, "LEYES.md"), "utf8")).not.toContain("El número 133");
   });
   it("keeps GARANTIAS.md as the list says: nobody edits it by hand", () => {
     expect(readFileSync(join(root, "GARANTIAS.md"), "utf8")).toBe(rulesText());
