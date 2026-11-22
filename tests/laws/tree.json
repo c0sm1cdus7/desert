@@ -353,6 +353,7 @@
     "surface/pieces/piece-rows.ts": "rowPiece, stackPiece, listPiece, optionsPiece: which side of a row leads, what is chosen, what is off",
     "surface/pieces/piece-thread.ts": "eventPiece, threadPiece, panelPiece, focusPiece: what is turned down in a thread and beside it",
     "surface/pieces/pieces-of.ts": "piecesOf: a resolved screen as the closed pieces every painter draws, with no state, size or measure",
+    "surface/pieces/public-pieces.ts": "desert/surface/pieces: the piece types, pieceKinds, piecesOf, leftOut, controlNames and the token names, for painters",
     "surface/pieces/pieces.ts": "the closed pieces of the approved form, pieceKinds: what every painter draws, already decided",
     "surface/pieces/tokens.ts": "token names a skin gives values to: colour, space, type, radius, motion, and the Skin shape",
     "surface/formats/invalid-money.ts": "Detecta importes inválidos al dibujar y conserva el nombre del campo para la persona.",

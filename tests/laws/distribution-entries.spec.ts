@@ -97,6 +97,7 @@ for (const testDistribution of [false, true])
   for (const entry of [
     "surface/house-router",
     "surface/contract",
+    "surface/pieces",
     "runtime/cloud",
     "doors/keys",
     "doors/mcp/handler",
