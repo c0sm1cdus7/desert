@@ -1,8 +1,11 @@
 // A row's identity is what choosing it does: unique on its screen, absent where nothing is chosen, kept as it moves.
 import { describe, expect, it } from "vitest";
-import { walked } from "../../../tests/support/surface-tools.ts";
+import { fresh, walked } from "../../../tests/support/surface-tools.ts";
+import { pieceRules } from "../../checks/piece-rules.ts";
+import { replayed } from "../../checks/surface-walk.ts";
+import { piecesOf } from "../pieces/pieces-of.ts";
 import { surfaceTexts } from "../../texts/surface.texts.ts";
-import type { Row, Screen } from "../contract/contract.ts";
+import type { Intent, Row, Screen } from "../contract/contract.ts";
 import { rowIdLimit } from "../contract/limits.ts";
 import type { Tool, ViewRow } from "../contract/shown-tool.ts";
 import { resolve } from "../router/resolve.ts";
@@ -16,8 +19,8 @@ function rowsOf({ body }: Screen): readonly Row[] {
   if (body.kind === "list") return body.stacks.flatMap(stack => stack.rows);
   return body.kind === "thread" ? (body.options ?? []) : [];
 }
-/** Where a person writes: a line with an entry that is no control of a tool. */
-const writtenIn = (row: Row): boolean => row.entry !== undefined && !("press" in row);
+/** Where a person writes: a line with an entry, a control of a tool where the cursor stands included. */
+const writtenIn = (row: Row): boolean => row.entry !== undefined;
 /** How long each kind of tuple is, before the ordinal among equals. */
 const lengths: Readonly<Record<string, number>> = { view: 3, talk: 3, act: 6, press: 3, answer: 2, makes: 3, other: 1 };
 function wellFormed(id: string): boolean {
@@ -103,5 +106,25 @@ describe("the identity of a row, by hand", () => {
     router.stop();
     expect(screen.title).toBe(surfaceTexts.error);
     expect(String(reported[0])).toContain(`over ${rowIdLimit}`);
+  });
+});
+/** The screen of the errands with the cursor moved down so many times. */
+async function errandsDown(times: number): Promise<Screen> {
+  const tools = fresh();
+  const keys: readonly Intent[] = [
+    { kind: "type", text: "e" },
+    ...Array.from({ length: times }, (): Intent => ({ kind: "down" })),
+  ];
+  return resolve(await replayed(tools, keys), tools, bar, { rows: 40 });
+}
+describe("the identity of a control that shows where one writes", () => {
+  it("is gone while the cursor stands on it, being written in, and the bank finds nothing wrong", async () => {
+    const screens = await Promise.all([0, 1, 2, 3].map(errandsDown));
+    const writing = screens.flatMap(screen => rowsOf(screen).filter(row => row.selected && row.entry));
+    expect(writing.length).toBeGreaterThan(0);
+    expect(writing.map(row => [row.title, row.id])).toEqual(writing.map(() => ["Nota", undefined]));
+    expect(screens.flatMap(screen => pieceRules(screen, piecesOf(screen)))).toEqual([]);
+    const resting = screens.flatMap(screen => rowsOf(screen).filter(row => row.title === "Nota" && !row.selected));
+    expect(resting.map(row => row.id)).toEqual(resting.map(() => JSON.stringify(["press", "Pendientes", "Nota"])));
   });
 });

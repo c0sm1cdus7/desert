@@ -84,7 +84,8 @@ function drawnRows(stacks: readonly Listed[], cursor: number) {
     if (row.off) return row;
     if (!row.open && !row.press) return { ...row, still: true };
     index += 1;
-    if (index === cursor) return { ...row, selected: true };
+    // Where the cursor stands, a control that shows where you type is being written in: it has no identity then.
+    if (index === cursor) return { ...(row.entry ? withId(row, undefined) : row), selected: true };
     const { entry: _typing, ...resting } = row; // A control shows where you type only where you stand.
     return resting;
   };
