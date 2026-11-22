@@ -36,6 +36,8 @@ export interface Row {
   readonly spans?: readonly Span[];
   /** What this row is, whatever place it is drawn at. Only a row that can be chosen now has one. */
   readonly id?: string;
+  /** In a question that takes several: whether this one is taken. `key` still says it to who has keys. */
+  readonly marked?: boolean;
 }
 export interface Stack {
   readonly title: string;

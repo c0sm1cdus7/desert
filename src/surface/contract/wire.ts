@@ -30,6 +30,7 @@ const WireRow = closed({
   entry: Type.Optional(closed({ typed: Type.String(), caret: count })),
   spans: Type.Optional(WireLine),
   id: Type.Optional(Type.String({ minLength: 1, maxLength: rowIdLimit })),
+  marked: Type.Optional(Type.Boolean()),
 });
 const WireStack = closed({
   title: Type.String(),
@@ -132,6 +133,7 @@ function rowOf(from: Row): Static<typeof WireRow> {
   if (from.entry !== undefined) to.entry = { typed: from.entry.typed, caret: from.entry.caret };
   if (from.spans !== undefined) to.spans = lineOf(from.spans);
   if (from.id !== undefined) to.id = from.id;
+  if (from.marked !== undefined) to.marked = from.marked;
   return to;
 }
 function stackOf(from: Stack): Static<typeof WireStack> {

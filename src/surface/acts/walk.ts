@@ -109,14 +109,18 @@ function entryOf(walk: Walk, question: Field): Entry {
   } as const;
   return { typed, caret, ...keys, ...whole, ...shape, ...(question.kind === "secret" ? { secret: true } : {}) };
 }
-/** The options of a question, each with what it is: in a question that takes several, whether it is taken. */
+/** The options of a question, each with what it is: in a question that takes several, whether it is taken, said
+ * apart from the key that shows it. */
 function optionRows(walk: Walk, field: Field): readonly Row[] {
   const ids = optionIds(field, optionsOf(field));
-  return optionsOf(field).map((option, i) => ({
-    ...withId(option, ids[i]),
-    ...(field.kind === "many" ? { key: walk.marks.includes(option.title) ? "x" : " " } : {}),
-    selected: i === walk.at,
-  }));
+  return optionsOf(field).map((option, i) => {
+    const marked = walk.marks.includes(option.title);
+    return {
+      ...withId(option, ids[i]),
+      ...(field.kind === "many" ? { key: marked ? "x" : " ", marked } : {}),
+      selected: i === walk.at,
+    };
+  });
 }
 function enterSays(walk: Walk, field: Field | null, tools: readonly Tool[]): string {
   const options = optionsOf(field);

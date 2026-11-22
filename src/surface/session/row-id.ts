@@ -27,9 +27,9 @@ function identified<T>(rows: readonly T[], doing: (row: T) => Doing | undefined)
     return id;
   });
 }
-/** The row as drawn, with its identity when it has one: never one a tool brought along. */
-export function withId<T extends Row>(row: T, id: string | undefined): Omit<T, "id"> & Pick<Row, "id"> {
-  const { id: _brought, ...rest } = row;
+/** The row as drawn, with its identity when it has one: never an identity or a mark a tool brought along. */
+export function withId<T extends Row>(row: T, id: string | undefined): Omit<T, "id" | "marked"> & Pick<Row, "id"> {
+  const { id: _brought, marked: _said, ...rest } = row;
   return id === undefined ? rest : { ...rest, id };
 }
 /** The ids of a menu's or a view's rows, list by list: a control in its line, or where a row leads. A row that is
