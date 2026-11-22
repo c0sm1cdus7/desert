@@ -3446,6 +3446,106 @@
         "tests/laws/surface-contract-entry.spec.ts",
         "tests/laws/distribution-entries.spec.ts"
       ]
+    },
+    {
+      "id": 340,
+      "rule": "La puerta de pantallas dibuja solo para quien mira: llama a la pantalla del router dentro de un `look`, de un `send` o de un tic, y solo por un cliente conectado y visible, una vez por tamaño distinto; sin nadie que mire, no dibuja.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/screen-door.spec.ts",
+        "src/doors/screen/screen-session.ts"
+      ]
+    },
+    {
+      "id": 341,
+      "rule": "Cada cliente aplica sus lotes en orden y una sola vez: el `seq` siguiente se aplica entero; el mismo otra vez contesta lo que produjo; uno salteado se rechaza `gap` y uno viejo `old`; cada cliente lleva su propio `seq`, y otra época se rechaza `epoch`.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/screen-door.spec.ts",
+        "src/doors/screen/screen-door.ts"
+      ]
+    },
+    {
+      "id": 342,
+      "rule": "Un Enter sobre una pantalla que ya no significa lo mismo se rechaza `stale`, con su lote entero: por cada uno de los últimos 64 `rev` de cada cliente queda el título, lo elegido y la palabra de confirmar, que el reloj o una cuenta que corre no cambian. Escribir, borrar, moverse, cancelar, Menú, cambiar y pegar no se cuidan. Una intención nueva no compila hasta que alguien diga si se cuida. Lectura de la etapa 2, sin firma del dueño.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/guard.spec.ts",
+        "src/doors/screen/guard.ts"
+      ]
+    },
+    {
+      "id": 343,
+      "rule": "Un rechazo de la puerta de pantallas no cambia la sesión y siempre contesta con el marco actual y su motivo, de un conjunto cerrado; el cliente no tiene palabras propias para eso.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/screen-door.spec.ts",
+        "src/doors/screen/screen-session.ts"
+      ]
+    },
+    {
+      "id": 344,
+      "rule": "Una sesión sin clientes conectados ni pedidos durante 30 minutos se cierra: router detenido, canal con la casa cerrado, sesión olvidada. El tiempo es el del anfitrión: la puerta no arma temporizadores propios ni lee `Date.now`.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/screen-door.spec.ts",
+        "src/doors/screen/screen-door.ts"
+      ]
+    },
+    {
+      "id": 345,
+      "rule": "Tres silencios de la puerta son una pantalla con su texto: quien vuelve de una sesión vencida entra al router nuevo detrás de un aviso que Enter deja; una casa que no abre muestra el motivo del catálogo sin nada para hacer más que esperar, y el próximo `look` vuelve a pedirla; un rechazo es el marco actual.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/screen-door.spec.ts",
+        "src/doors/screen/screen-silence.ts"
+      ]
+    },
+    {
+      "id": 346,
+      "rule": "En una puerta, un solo archivo arma un router de casa, `open-house-router.ts`, y la terminal lo usa: otra manera de armarlo no pasa el gate.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/screen-door-router.spec.ts",
+        "src/doors/socket/client/open-house-router.ts"
+      ]
+    },
+    {
+      "id": 347,
+      "rule": "La puerta de pantallas no habla con nada: ningún archivo de `src/doors/screen` importa red, disco ni procesos, ni nombra `fetch`, y la carpeta no está entre las que pueden hablar afuera; la red la presta el anfitrión.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/screen-door-entry.spec.ts"
+      ]
+    },
+    {
+      "id": 348,
+      "rule": "El cable de la puerta de pantallas se carga en un navegador: lo que importa es el contrato, sus textos, los límites de la puerta y TypeBox. Ningún programa importa `desert/doors/screen` ni su cable.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "tests/laws/screen-door-entry.spec.ts",
+        "tests/laws/distribution-entries.spec.ts",
+        "src/doors/screen/screen-wire.ts"
+      ]
+    },
+    {
+      "id": 349,
+      "rule": "Nada que mandó un cliente queda donde no debe: ninguna respuesta lleva la llave, ninguna cabecera la invitación y ningún marco de la casa el código canjeado; toda respuesta lleva `Cache-Control: no-store`, y un error no lleva nada de lo recibido.",
+      "from": "22/11 · superficies, etapa 2",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/screen/screen-door-http.spec.ts",
+        "src/doors/screen/screen-door.spec.ts"
+      ]
     }
   ]
 }
