@@ -1,6 +1,6 @@
 // Presents the four fixed layers and the variable content of the frame in the house language.
 import type { Language } from "../../fields/languages.ts";
-import { frameHouse, frameLabels, frameSection } from "../../texts/mind-frame.texts.ts";
+import { frameHouse, frameLabels, frameRead, frameSection } from "../../texts/mind-frame.texts.ts";
 import type { FrameItem, FrameSnapshot, MindFrame } from "./mind-frame.ts";
 import { shortIds } from "./mind-references.ts";
 /** How many items of each cut section did not fit: the mind reads counts, never the ids of what is missing. */
@@ -33,7 +33,7 @@ export function renderMindFrame(snapshot: FrameSnapshot, language: Language, omi
   const changing = [
     section(10, `${scope} / ${snapshot.through}`),
     section(3, snapshot.scene),
-    section(4, render(snapshot.activity)),
+    section(4, olderLine(render(snapshot.activity), snapshot.older, language)),
     section(5, render(snapshot.objects)),
     section(6, render(snapshot.thread)),
     section(7, snapshot.woke ? snapshot.woke.join("\n") : snapshot.wake.join(", ")),
@@ -45,6 +45,9 @@ export function renderMindFrame(snapshot: FrameSnapshot, language: Language, omi
   return { layers: [layers[0], layers[1], layers[2], shortIds(layers[3])], changing: shortIds(changing) };
 }
 
+/** Actividad says how many of its lines are older than the mind's last answer, and how to read them. */
+const olderLine = (lines: string, older: number | undefined, language: Language) =>
+  older ? [lines, frameRead.text(language, { part: "older", count: older })].filter(Boolean).join("\n") : lines;
 function omittedSection(
   omitted: OmittedCounts,
   labels: readonly string[],

@@ -20,7 +20,8 @@ export type MindMenu = readonly Readonly<{
   target: string;
   input: TSchema;
   destinations?: readonly ExecutionDestination[];
-  scope: "communication" | "open" | "work" | "control";
+  /** `read` asks the house for a whole text in the same turn: it changes nothing and writes no fact. */
+  scope: "communication" | "open" | "work" | "control" | "read";
 }>[];
 export type AnswerFault = Readonly<{ code: string; path: string }>;
 export type AnswerContext = Readonly<{
@@ -83,6 +84,7 @@ function destinationsOf(items: readonly MindMenu[number][]): readonly ExecutionD
   return [...new Map(offered.map(each => [JSON.stringify(each), each])).values()];
 }
 const permittedScope = (context: AnswerContext, item: MindMenu[number]): boolean => {
+  if (item.scope === "read") return true;
   if (context.scope.kind === "consciousness")
     return (
       item.scope === "communication" || item.scope === "open" || (item.scope === "control" && item.tool === "journey")

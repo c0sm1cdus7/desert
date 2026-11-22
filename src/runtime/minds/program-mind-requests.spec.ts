@@ -25,7 +25,6 @@ import {
   lines,
   mention,
 } from "../../../tests/support/request-mind-responder.ts";
-import { shortIds } from "./mind-references.ts";
 const fixtures: ReturnType<typeof requestMindFixture>[] = [];
 const fixture = () => {
   const f = requestMindFixture();
@@ -193,7 +192,8 @@ it.each([false, true])(
       f.respond(frame => {
         expect(frame).toContain("assistant:ana");
         if (frame.startsWith("Alcance:\nassistant:ana")) {
-          expect(frame).toContain(shortIds(reply.id));
+          // What woke it is said as itself in Despertar: the line the notes mind sent back.
+          expect(frame.split("Despertar:\n")[1]?.split("\n\n")[0]).toContain(note);
           expect(frame).toContain(note);
           return answer([], "Received");
         }

@@ -18,6 +18,8 @@ import { supervisorActor } from "./mind-definitions.ts";
 import { layers, mindsOf, ownThread, section } from "./supervisor-frame.ts";
 import { menuText } from "./mind-frame-menu.ts";
 import { factLine } from "./wake-words.ts";
+import { answeredMark, recentActivity } from "./mind-frame-focus.ts";
+import { frameRead } from "../../texts/mind-frame.texts.ts";
 import { shortIds } from "./mind-references.ts";
 type View = ReturnType<typeof runtimeView>;
 /** How many turns of each journey closed with a reason: a fact the supervisor reads, never a limit. */
@@ -141,7 +143,13 @@ export function supervisorTurnFrame<X extends Program>(
       scene: house.execution.state().house.minds.scenes.get(supervisorActor)?.data.text ?? "",
       thread: ownThread(house, options),
     };
-    const activity = [...current.activity, ...current.objects].map(({ id, text }) => ({ id, text }));
+    // What it read since it last answered; the read act brings what came before.
+    const mark = answeredMark(house.execution.state().house.minds, house.history(), scope, turn.id);
+    const { recent, older } = recentActivity(current.activity, mark, turn.wake);
+    const olderItems = older
+      ? [{ id: "…", text: frameRead.text(options.language, { part: "older", count: older }) }]
+      : [];
+    const activity = [...recent, ...olderItems, ...current.objects].map(({ id, text }) => ({ id, text }));
     const parts: Parts = { minds: houseItems(house), activity, omitted: { activity: 0, minds: 0 } };
     return fit(
       each => frameOf(house, options, fixed, each),

@@ -16,6 +16,7 @@ import type { runtimeModel } from "./mind-runtime-model.ts";
 import { definitionOf } from "./mind-definitions.ts";
 import { wakeWords } from "./wake-words.ts";
 import { menuText } from "./mind-frame-menu.ts";
+import { answeredMark, recentActivity } from "./mind-frame-focus.ts";
 import { withInterrupts } from "./journey-interrupts.ts";
 import type { Journeys } from "../../house/minds/journey-state.ts";
 import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
@@ -110,6 +111,8 @@ function snapshotFor<X extends Program>(
   const woke = withInterrupts(words, turn.wake, history, view.state, turn.language);
   const scene = view.state.house.minds.scenes.get(scope.process ?? scope.actor)?.data.text ?? "";
   const required = contextOf(view, scope, turn);
+  const mark = answeredMark(view.state.house.minds, history, scope, turn.id);
+  const { recent, older } = recentActivity(view.activity, mark, turn.wake);
   return buildMindFrame(scope, turn, {
     definition,
     skills: view.skills,
@@ -117,7 +120,8 @@ function snapshotFor<X extends Program>(
     scene,
     required,
     menu: menuText(view.menu, turn.language),
-    activity: view.activity,
+    activity: recent,
+    older,
     objects: view.objects,
     thread,
     now: house.time.now(),

@@ -14,6 +14,7 @@ import type { TurnContext } from "../../tools/minds/mind-contract.ts";
 import type { ReviewPort } from "../../tools/minds/mind-review.ts";
 import type { ExecuteResult, TurnPorts } from "./mind-ports.ts";
 import type { ActReport } from "./turn-results.ts";
+import { readAct } from "./mind-read.ts";
 type Refusal = Readonly<{ code: "kit" | "wait" | "plan" | "stopped" | "act"; correction: string }>;
 /** A correction carries the results of the acts its answer already applied, so the mind hears what they did. */
 type ActCorrection = Refusal & Readonly<{ reports: readonly ActReport[] }>;
@@ -55,6 +56,10 @@ const reported = (act: ProposedAct, result: ExecuteResult, reason?: string): Act
 /** The acts after a refused one wait for the mind's decision. */
 const skippedAfter = (answer: MindAnswer, index: number) =>
   answer.acts.slice(index + 1).map((each): ActReport => ({ act: each, status: "skipped" }));
+function read(ports: TurnPorts, turn: TurnContext, act: ProposedAct): string | undefined {
+  const from = typeof act.input === "object" && act.input && "from" in act.input ? act.input.from : 0;
+  return ports.page?.(turn, act.target, typeof from === "number" ? from : 0);
+}
 export async function applyActs(
   run: Run,
   answer: MindAnswer,
@@ -68,6 +73,12 @@ export async function applyActs(
     if (!current.active || !ports.isOpen(turn.id)) return "inactive";
     if (current.rulesVersion !== version) return "review-stale";
     if (!ports.allowed(turn.scope, act)) return "permission";
+    // Reading changes nothing in the house: no fact, no review, nothing applied; the text comes with the results.
+    const text = act.act === readAct ? read(ports, turn, act) : undefined;
+    if (text !== undefined) {
+      reports.push({ act, status: "accepted", page: text });
+      continue;
+    }
     const result = await perform(run, act);
     if ("code" in result) {
       const corrected: ActReport = { act, status: "rejected", reason: result.correction };

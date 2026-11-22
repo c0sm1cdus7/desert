@@ -1,7 +1,7 @@
 // Builds an explicit snapshot of a mind's frame at the turn's sequence.
 import type { Skill, Message } from "../../fields/messages.ts";
 import type { MindDefinition, MindScope, TurnContext } from "../../tools/minds/mind-contract.ts";
-export type FrameItem = Readonly<{ id: string; text: string; covered?: boolean }>;
+export type FrameItem = Readonly<{ id: string; text: string; covered?: boolean; seq?: number }>;
 export type FrameSource = Readonly<{
   definition: MindDefinition;
   skills: readonly Readonly<{ id: string; skill: Skill }>[];
@@ -17,6 +17,8 @@ export type FrameSource = Readonly<{
   now?: number;
   /** What woke the mind, in words, one line per waking fact, when some fact has words. */
   woke?: readonly string[];
+  /** How many lines of activity came before the mind last answered: the read act brings them. */
+  older?: number;
 }>;
 export type FrameSnapshot = Readonly<FrameSource & { scope: MindScope; through: number; wake: readonly string[] }>;
 export type { FramePort, MindFrame } from "./mind-ports.ts";
@@ -44,10 +46,12 @@ export function buildMindFrame(scope: MindScope, turn: TurnContext, source: Fram
     menu: source.menu,
     ...(source.now === undefined ? {} : { now: source.now }),
     ...(source.woke === undefined ? {} : { woke: [...source.woke] }),
+    ...(source.older ? { older: source.older } : {}),
     activity: source.activity.map(item => ({
       id: item.id,
       text: item.text,
       ...(item.covered === undefined ? {} : { covered: item.covered }),
+      ...(item.seq === undefined ? {} : { seq: item.seq }),
     })),
     objects: source.objects.map(item => ({ id: item.id, text: item.text })),
     thread: source.thread.map(item => ({ id: item.id, text: item.text })),

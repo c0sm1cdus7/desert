@@ -72,6 +72,8 @@ export type TurnSnapshot = Readonly<{
 }>;
 export type TurnPorts = Readonly<{
   frame: FramePort;
+  /** The whole text the read act asks for, from a character on, or nothing when there is no such text. */
+  page?: (turn: Pick<TurnContext, "id" | "scope">, target: string, from: number) => string | undefined;
   /** The answer with the whole ids behind the short references the mind read and gave back. */
   resolve?: (scope: MindScope, value: unknown) => unknown;
   model: ModelPort;

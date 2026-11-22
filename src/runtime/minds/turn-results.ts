@@ -11,14 +11,16 @@ export type ActReport = Readonly<{
   reason?: string;
   text?: string;
   value?: unknown;
+  /** A text the read act brought: told as it reads, not as JSON. */
+  page?: string;
 }>;
 /** A returned value longer than a mind's own text is cut by whole characters, and the cut says how many it left. */
 const returnedLimit = 4000;
 const key = (item: Readonly<{ act: string; target: string }>) => JSON.stringify([item.act, item.target]);
 type Part = Parameters<typeof turnResults.text>[1]["part"];
-function returned(value: unknown, say: (part: Part) => string): string[] {
-  if (value === undefined) return [];
-  const text = JSON.stringify(value);
+function returned(report: ActReport, say: (part: Part) => string): string[] {
+  if (report.value === undefined && report.page === undefined) return [];
+  const text = report.page ?? JSON.stringify(report.value);
   const kept = cutText(text, returnedLimit);
   if (kept.length === text.length) return [`   ${say("returned")} ${text}`];
   return [`   ${say("returned")} ${kept}`, `   ${say("cut")} ${Array.from(text.slice(kept.length)).length}`];
@@ -27,7 +29,7 @@ function line(report: ActReport, index: number, say: (part: Part) => string): st
   const head = `${index + 1}. ${report.act.act} → ${report.act.target}:`;
   if (report.status === "skipped") return [`${head} ${say("skipped")}`];
   const status = report.status === "rejected" ? `${say("rejected")} ${report.reason ?? ""}` : say("accepted");
-  return [`${head} ${status}${report.text ? ` ${report.text}` : ""}`, ...returned(report.value, say)];
+  return [`${head} ${status}${report.text ? ` ${report.text}` : ""}`, ...returned(report, say)];
 }
 /** A journey is told its turn goes on; a consciousness, which answers once, hears only what its acts did. */
 export function resultsText(
