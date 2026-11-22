@@ -1,4 +1,4 @@
-// Enlaza pedidos con su único proveedor y presta puertos acotados al contexto real de una acción.
+// Binds each request to its one provider and lends ports bounded to the real context of an action.
 import { contractRecord, copyContractPackages } from "./contract-record.ts";
 import { present } from "../../house/kit.ts";
 import type { Program } from "../../tools/tool-contract.ts";

@@ -1,4 +1,4 @@
-// Ejecuta los pasos declarativos por el puerto real y conserva observaciones con secuencias y procedencia.
+// Runs the declarative steps through the real port and keeps observations with sequences and provenance.
 import { Value } from "@sinclair/typebox/value";
 import type { ContractAccess, ContractCut, ContractPort, ContractPublicNotice } from "../../tools/contract-port.ts";
 import type { ContractCase, ContractCaseStep } from "../../tools/contracts/package-contracts.ts";

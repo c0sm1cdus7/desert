@@ -1,3 +1,4 @@
+// Core failures stay apart from business refusals, also for a refusal before the act runs.
 import { describe, expect, it } from "vitest";
 import { contractHouse, documents, sales, type Demo } from "../../../tests/support/distribution-contracts.ts";
 import { createContractRuntime } from "./contract-runtime.ts";

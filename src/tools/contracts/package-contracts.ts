@@ -1,4 +1,4 @@
-// Declara artefactos de programas, ofertas enlazables y casos independientes de quien pide.
+// Declares program artifacts, bindable offers and cases independent of whoever requests them.
 import type { ContractAction, ContractInterface, ContractNotice, ContractObject } from "./contract-types.ts";
 export type ContractCaseStep =
   | Readonly<{ kind: "action"; name: string; input: unknown; expect: unknown }>

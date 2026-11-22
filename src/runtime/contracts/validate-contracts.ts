@@ -1,4 +1,4 @@
-// Entrega a componer todos los motivos con camino y filas que separan inclusión de casos ejecutados.
+// Gives compose every reason with its path, and rows that tell inclusion apart from executed cases.
 import type { ContractPackage } from "../../tools/contracts/package-contracts.ts";
 import { structuralContractErrors } from "./package-checks.ts";
 import { caseDeclarationErrors } from "./case-declaration.ts";

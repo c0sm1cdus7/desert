@@ -1,3 +1,4 @@
+// The named public imports a program may use, stopping at the audited engine boundary.
 import { join } from "node:path";
 /** Named public imports stop at the audited engine boundary. Internal composition and storage never do. */
 const modules: Record<string, readonly string[]> = {

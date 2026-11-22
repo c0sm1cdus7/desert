@@ -1,4 +1,4 @@
-// Calcula huellas de las mitades y acredita sólo ejecuciones emitidas por la compuerta local.
+// Fingerprints the halves and credits only the runs issued by the local gate.
 import { createHash } from "node:crypto";
 import { contractTexts } from "../../texts/contracts.texts.ts";
 import type { ContractCase, ContractPackage } from "../../tools/contracts/package-contracts.ts";

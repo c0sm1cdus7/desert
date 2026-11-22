@@ -1,4 +1,4 @@
-// Declara el puerto contractual que el core presta a una acción sin exponer el ejecutor.
+// Declares the contract port the core lends an action, without exposing the executor.
 import type { Act } from "../house/own-acts.ts";
 export type ContractFailureReason = "forbidden" | "interrupted" | "invalid-reference" | "defect" | "inconclusive";
 export type CoreFailure = Readonly<{ status: "core-failure"; reason: ContractFailureReason }>;

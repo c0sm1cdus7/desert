@@ -1,4 +1,4 @@
-// Diagnostica proveedores y recorridos cíclicos antes de enlazar programas.
+// Diagnoses providers and cyclic paths before programs are bound.
 import type { ContractInterface } from "../../tools/contracts/contract-types.ts";
 import { compareContracts } from "./compare-contracts.ts";
 

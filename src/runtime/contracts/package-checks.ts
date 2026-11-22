@@ -1,4 +1,4 @@
-// Comprueba rutas propias y mitades completas antes de prestar puertos entre programas.
+// Checks own paths and complete halves before lending ports between programs.
 import { diagnoseContracts } from "./contract-graph.ts";
 import { schemaInclusion } from "./schema-inclusion.ts";
 import type { ContractInterface } from "../../tools/contracts/contract-types.ts";

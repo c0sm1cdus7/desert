@@ -1,4 +1,4 @@
-// Sirve objetos y avisos desde cortes auténticos, con presencia vigente y datos recortados al pedido.
+// Serves objects and notices from authentic cuts, with current presence and data trimmed to the request.
 import { contractRecord } from "./contract-record.ts";
 import { contractTexts } from "../../texts/contracts.texts.ts";
 import { Value } from "@sinclair/typebox/value";

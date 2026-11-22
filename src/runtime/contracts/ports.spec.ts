@@ -1,3 +1,4 @@
+// The contract action port: the common executor, the caller's own permissions, and what it must have in front.
 import { describe, expect, it } from "vitest";
 import { contractHouse, documents, sales } from "../../../tests/support/distribution-contracts.ts";
 import { createContractRuntime } from "./contract-runtime.ts";

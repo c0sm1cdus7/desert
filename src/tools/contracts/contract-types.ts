@@ -1,4 +1,4 @@
-// Declara las mitades independientes de una comunicación entre programas.
+// Declares the independent halves of a communication between programs.
 import type { TSchema } from "@sinclair/typebox";
 
 export type ContractAction = Readonly<{ entrada: TSchema; salida: TSchema; rechazos: TSchema }>;

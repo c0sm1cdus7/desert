@@ -1,3 +1,4 @@
+// Law 13: every law has its guarantee or its debt, and GARANTIAS.md is written from that list.
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -40,15 +41,17 @@ describe("law 13: a rule nothing makes hold is a wish", () => {
     );
     expect(bare.map(rule => rule.id)).toEqual([]);
   });
+  it("keeps GARANTIAS.md as the list says: nobody edits it by hand", () => {
+    expect(readFileSync(join(root, "GARANTIAS.md"), "utf8")).toBe(rulesText());
+  });
+});
+describe("law 13: a guarantee taken back", () => {
   it("says, in GARANTIAS.md, why a retired guarantee's number is not used, and never reuses it", () => {
     expect(retired.map(gone => gone.id)).toContain(133);
     expect(retired.filter(gone => gone.why.trim() === "").map(gone => gone.id)).toEqual([]);
     expect(rules.filter(rule => retired.some(gone => gone.id === rule.id)).map(rule => rule.id)).toEqual([]);
     expect(rulesText()).toContain("133 (Franco, 22/11/2026");
     expect(readFileSync(join(root, "LEYES.md"), "utf8")).not.toContain("El número 133");
-  });
-  it("keeps GARANTIAS.md as the list says: nobody edits it by hand", () => {
-    expect(readFileSync(join(root, "GARANTIAS.md"), "utf8")).toBe(rulesText());
   });
 });
 

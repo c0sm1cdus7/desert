@@ -1,4 +1,4 @@
-// Conserva actor, journey y destino de acciones anidadas al volver al ejecutor común.
+// Keeps actor, journey and target of nested actions when they return to the common executor.
 import type { execute, Execution } from "../execute.ts";
 import type { Act } from "../../house/own-acts.ts";
 import type { HouseEvent } from "../../house/facts.ts";

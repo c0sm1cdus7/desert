@@ -1,4 +1,4 @@
-// Programas instalables independientes para ejercer los contratos por el adaptador del núcleo.
+// Independent installable programs that exercise contracts through the core adapter.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../../src/fields/messages.ts";
 import { text } from "../../src/fields/fields.ts";

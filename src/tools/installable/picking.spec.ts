@@ -1,3 +1,4 @@
+// A program whose tools pick among each other's things: its questions, readings, needs and listed tools.
 import { describe, expect, it } from "vitest";
 import {
   pickingDistribution,

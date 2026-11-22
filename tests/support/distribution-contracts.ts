@@ -1,4 +1,4 @@
-// Compone programas contractuales y certifica sus casos en una casa aislada antes de abrir las casas de prueba.
+// Composes contract programs and certifies their cases in an isolated house before the test houses open.
 import { Value } from "@sinclair/typebox/value";
 import { Bus } from "../../src/journal/bus.ts";
 import { vocabulary, type Event } from "../../src/journal/vocabulary.ts";

@@ -1,4 +1,4 @@
-// Rechaza casos que invocan o esperan datos fuera de la mitad que declara quien pide.
+// Refuses cases that call or expect data outside the half the requester declares.
 import { Value } from "@sinclair/typebox/value";
 import type { TSchema } from "@sinclair/typebox";
 import type { ContractCase, ContractCaseStep, ContractRequest } from "../../tools/contracts/package-contracts.ts";

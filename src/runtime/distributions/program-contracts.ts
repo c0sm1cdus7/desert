@@ -1,4 +1,4 @@
-// Adapta las mitades declaradas en programas instalables para comprobarlas con sus artefactos y evidencia.
+// Adapts the halves installable programs declare, to check them with their artifacts and evidence.
 import type { InstallableProgram } from "../../tools/installable/program.ts";
 import type { ContractSetup, Program, ToolRegistry } from "../../tools/tool-contract.ts";
 import { codeProjectionVersion } from "../calculation-version.ts";

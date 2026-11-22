@@ -1,4 +1,4 @@
-// Corre casos del artefacto consumidor en casas aisladas del proveedor y emite evidencia por huellas.
+// Runs the consumer artifact's cases in isolated provider houses and issues evidence by fingerprint.
 import type { Execution } from "../../tools/execute.ts";
 import { startTools } from "../../tools/start.ts";
 import type { Program } from "../../tools/tool-contract.ts";

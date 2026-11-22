@@ -1,3 +1,4 @@
+// Isolated runtime negatives: cycles, missing cases and evidence, incompatible and unsupported schemas.
 import { required } from "../../../tests/support/distribution-contracts.ts";
 import { Type } from "@sinclair/typebox";
 import { describe, expect, it } from "vitest";

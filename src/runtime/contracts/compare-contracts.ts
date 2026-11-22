@@ -1,4 +1,4 @@
-// Compara lo que pide un programa con lo publicado por un proveedor.
+// Compares what a program requests with what a provider publishes.
 import type { ContractInterface } from "../../tools/contracts/contract-types.ts";
 import { schemaInclusion } from "./schema-inclusion.ts";
 

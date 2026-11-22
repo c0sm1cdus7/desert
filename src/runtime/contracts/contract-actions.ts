@@ -1,4 +1,4 @@
-// Enruta acciones contractuales por el ejecutor del actor y separa fallos centrales de rechazos de negocio.
+// Routes contract actions through the actor's executor and tells core failures from business refusals.
 import { Value } from "@sinclair/typebox/value";
 import { publicValue } from "../../adapters/public-value.ts";
 import type {

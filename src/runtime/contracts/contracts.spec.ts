@@ -1,3 +1,4 @@
+// Contract halves compare in the right direction: wider offers, missing members, constraints and unions.
 import { Type, type TSchema } from "@sinclair/typebox";
 import type { ContractAction } from "../../tools/contracts/contract-types.ts";
 import { describe, expect, it } from "vitest";

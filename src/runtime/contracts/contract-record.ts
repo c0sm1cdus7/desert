@@ -1,4 +1,4 @@
-// Cierra mapas contractuales sin propiedades heredadas y copia declaraciones antes de enlazarlas.
+// Closes contract maps without inherited properties and copies declarations before binding them.
 import { Value } from "@sinclair/typebox/value";
 import type { ContractPackage } from "../../tools/contracts/package-contracts.ts";
 export function contractRecord<T>(entries: Iterable<readonly [string, T]>): Readonly<Record<string, T>> {
