@@ -6,6 +6,7 @@ import { screenDoorTexts } from "../../texts/screen-door.texts.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { OpenHouse } from "../socket/client/open-house-router.ts";
 import { terminalError } from "../terminal/terminal-error.ts";
+import { commitmentOf, guarded, sameCommitment } from "./guard.ts";
 import { screenLimits } from "./screen-limits.ts";
 import { current, drawAll, framed, named, refusal, type Client, type Item, type Live } from "./screen-session.ts";
 import { silentFrame } from "./screen-silence.ts";
@@ -86,7 +87,10 @@ class Door<X extends Program> implements ScreenDoor {
     const parsed = parseSend(body);
     if (!parsed.ok) return refusal(live, named(live, body), parsed.reason);
     const ordered = order(live, parsed.value);
-    return "frame" in ordered ? ordered.frame : this.apply(slot, live, ordered.apply, parsed.value);
+    if ("frame" in ordered) return ordered.frame;
+    return stale(live, ordered.apply, parsed.value)
+      ? refusal(live, ordered.apply, "stale")
+      : this.apply(slot, live, ordered.apply, parsed.value);
   }
   stream(session: string, house: string, client: string, signal: AbortSignal): AsyncIterable<Item> {
     const slot = this.slots.get(keyOf(session, house));
@@ -154,7 +158,8 @@ class Door<X extends Program> implements ScreenDoor {
   private attach(live: Live, look: Look): Client | undefined {
     const known = look.client === undefined ? undefined : live.clients.get(look.client);
     if (known || live.clients.size >= screenLimits.clients) return known;
-    const client: Client = { id: this.host.epoch(), visible: look.visible, rows: look.viewport.rows, seq: 0, rev: 0 };
+    const { visible, viewport } = look;
+    const client: Client = { id: this.host.epoch(), visible, rows: viewport.rows, seq: 0, rev: 0, seen: new Map() };
     live.clients.set(client.id, client);
     return client;
   }
@@ -189,5 +194,13 @@ function order(live: Live, send: Send): Ordered {
   if (send.seq > client.seq + 1) return { frame: refusal(live, client, "gap") };
   if (send.seq < client.seq) return { frame: refusal(live, client, "old") };
   return { apply: client };
+}
+/** S6: a batch that commits to the screen is refused whole when what its rev meant is not what the screen means now,
+ * or its rev left the ring. The screen now is drawn for a client that looks, and is what it was last sent if not. */
+function stale(live: Live, client: Client, send: Send): boolean {
+  if (!send.intents.some(guarded)) return false;
+  const seen = client.seen.get(send.rev);
+  const now = client.visible ? framed(live, client, live.house.router.screen({ rows: client.rows })) : client.sent;
+  return !seen || !now || !sameCommitment(seen, commitmentOf(now.screen));
 }
 export const screenDoor = <X extends Program>(host: ScreenHost<X>): ScreenDoor => new Door(host);

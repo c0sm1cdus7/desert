@@ -72,7 +72,7 @@ export function fakeTime(start = 1_800_000_000_000) {
   return { time, advance, armed: () => armed.size };
 }
 /** A door over spy houses: every open is counted, and each house is kept for the spec to drive. */
-export function spyDoor(open?: () => Promise<OpenHouse>) {
+export function spyDoor(open?: () => Promise<OpenHouse>, screen?: (text: string, rows: number) => Screen) {
   const clock = fakeTime();
   const houses: ReturnType<typeof spyHouse>[] = [];
   const opens: { readonly id: string; readonly house: string }[] = [];
@@ -84,7 +84,7 @@ export function spyDoor(open?: () => Promise<OpenHouse>) {
     open: session => {
       opens.push(session);
       if (open) return open();
-      const spy = spyHouse();
+      const spy = spyHouse(screen);
       houses.push(spy);
       return Promise.resolve(spy.house);
     },

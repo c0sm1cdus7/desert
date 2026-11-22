@@ -97,6 +97,7 @@
     "doors/socket/client/connection-state.ts": "Última vista recibida, reloj de la casa extrapolado y cuatro estados de conexión.",
     "doors/socket/client/socket-connection.ts": "Conexión reemplazable; tres estados inválidos consecutivos en la misma secuencia cierran con causa del catálogo.",
     "doors/socket/client/socket-ports.ts": "HousePorts remoto con observación automática explícita y defecto sin entrada ni diagnóstico del cliente.",
+    "doors/screen/guard.ts": "What an Enter meant on a screen (title, chosen, its word); which intents commit to it, by a switch with no default.",
     "doors/screen/public-screen.ts": "desert/doors/screen: the screen door, its host contract and frame, the house router a host opens and the remote connection.",
     "doors/screen/screen-door.ts": "screenDoor: one router per device session and house; draws only for who looks, applies batches in order, refuses aloud with the current frame.",
     "doors/screen/screen-limits.ts": "screenLimits: the bounds of the screen door (idle cut, batch, rows, clients, revs, keepalive) in one typed constant.",

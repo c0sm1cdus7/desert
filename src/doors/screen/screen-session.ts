@@ -2,6 +2,8 @@
 import type { Screen } from "../../surface/contract/contract.ts";
 import { wire } from "../../surface/contract/wire.ts";
 import type { OpenHouse } from "../socket/client/open-house-router.ts";
+import { commitmentOf, type Commitment } from "./guard.ts";
+import { screenLimits } from "./screen-limits.ts";
 import type { Frame, WireRefusal } from "./screen-wire.ts";
 
 export type Item = Frame | "keepalive";
@@ -16,6 +18,8 @@ export interface Client {
   rev: number;
   sent?: Frame;
   sentKey?: string;
+  /** What an Enter meant on each of the last revs this client was sent. */
+  readonly seen: Map<number, Commitment>;
   /** Set while the client has a stream open: it is attached then, and frames reach it. */
   push?: ((item: Item) => void) | undefined;
   end?: (() => void) | undefined;
@@ -34,6 +38,8 @@ export function framed(live: Live, client: Client, screen: Screen): Frame {
   if (key !== client.sentKey || client.sent?.epoch !== live.epoch) {
     client.rev += 1;
     client.sentKey = key;
+    client.seen.set(client.rev, commitmentOf(screen));
+    client.seen.delete(client.rev - screenLimits.revs);
   }
   const frame: Frame = { v: 1, epoch: live.epoch, client: client.id, seq: client.seq, rev: client.rev, screen: wired };
   client.sent = frame;
