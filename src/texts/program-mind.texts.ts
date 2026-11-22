@@ -1,4 +1,4 @@
-// Define las reglas comunes de la mente de programa y del asistente, y sus avisos de disponibilidad.
+// Declares the rules a program's mind and an assistant share, and their availability notices.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 export const programMindRules = defineMessage({
