@@ -2,6 +2,7 @@
 import { checkSchemaKeywords, localKeywords } from "./schema-keywords.ts";
 import { compactProviderSchema } from "./schema-compaction.ts";
 import { limitWords } from "./schema-limits.ts";
+import { withoutConstants } from "./schema-constants.ts";
 import type { Language } from "../../fields/languages.ts";
 import { isDeepStrictEqual } from "node:util";
 import { Kind, TypeGuard } from "@sinclair/typebox";
@@ -77,7 +78,7 @@ export function providerSchema(schema: Schema, language: Language = "es"): Schem
     described(node, result, language);
     return result;
   };
-  const result = compactProviderSchema(visit(schema, new Set()));
+  const result = compactProviderSchema(withoutConstants(visit(schema, new Set())));
   if (!isObject(result)) throw new Error("schema");
   return result;
 }

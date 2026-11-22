@@ -16,6 +16,7 @@
     "adapters/models/catalog.ts": "Define las cartas, sus capacidades, resultados y cálculo conservador de costos.",
     "adapters/models/provider-error.ts": "Lee solo un prefijo acotado del rechazo y limpia sus datos antes de conservarlos.",
     "adapters/models/schema-compaction.ts": "Bounds the provider grammar as the house grows; dropped constraints stay in the local contract.",
+    "adapters/models/schema-constants.ts": "Leaves one-valued fields of a union out of the provider grammar and puts them back.",
     "adapters/models/schema-limits.ts": "Says in words the limits of a schema node that the provider's grammar cannot hold.",
     "adapters/models/schema.ts": "Translates provider schemas while checking answers against the complete local contract.",
     "adapters/public-value.ts": "Copia datos públicos sin accesores ni capacidades y cierra los esquemas JSON declarados.",

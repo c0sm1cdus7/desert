@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { modelTexts } from "../../texts/model.texts.ts";
 import type { Card, Usage } from "./catalog.ts";
 import { providerSchema, matchesSchema } from "./schema.ts";
+import { withConstants } from "./schema-constants.ts";
 import type { ProviderRejection } from "../../fields/provider-rejection.ts";
 import { readProviderError } from "./provider-error.ts";
 
@@ -111,7 +112,8 @@ export function readResponse(data: unknown, schema: Record<string, unknown>): { 
   if (typeof text !== "string") throw new ModelFailure("response", modelTexts.response);
   let value: unknown;
   try {
-    value = JSON.parse(unfenced(text));
+    // The grammar left out every field with one possible value: the local contract puts them back.
+    value = withConstants(schema, JSON.parse(unfenced(text)));
   } catch {
     throw new ModelFailure("json", modelTexts.json);
   }
