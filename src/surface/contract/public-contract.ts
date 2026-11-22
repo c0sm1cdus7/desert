@@ -13,6 +13,7 @@ export type {
   Theme,
   ThreadEvent,
 } from "./contract.ts";
+export { barState, type Link } from "./bar-state.ts";
 export { hintSends } from "./hint-sends.ts";
 export type { Tone } from "./tones.ts";
 export type { Viewport } from "./viewport.ts";

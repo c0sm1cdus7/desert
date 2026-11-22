@@ -344,6 +344,7 @@
     "surface/bridge/views/record.ts": "recordOf: everything that was done to a thing, as the journal has it, read as its last list",
     "surface/bridge/views/rows.ts": "a tool's text view read as rows: ids open, the rest is a label and its value",
     "surface/bridge/views/tool-index.ts": "toolIndex: lectura completa compartida por estado e instante para nombres, pertenencia y búsquedas.",
+    "surface/contract/bar-state.ts": "barState: the one state a Barra shows for the device's link and the house's; no signal wins.",
     "surface/contract/contract.ts": "what every renderer draws and sends back: Screen, Body, Row, Field, Mask, Intent, Hint",
     "surface/contract/hint-sends.ts": "hintSends: what each hint of the toolbar sends, one table for every renderer",
     "surface/contract/limits.ts": "pasteLimit: the bounds every door keeps alike, in one place",
