@@ -19,7 +19,8 @@ import { layers, mindsOf, ownThread, section } from "./supervisor-frame.ts";
 import { menuText } from "./mind-frame-menu.ts";
 import { factLine } from "./wake-words.ts";
 import { answeredMark, recentActivity } from "./mind-frame-focus.ts";
-import { frameRead } from "../../texts/mind-frame.texts.ts";
+import { framedObjects, inPlay } from "./mind-frame-objects.ts";
+import { frameReading } from "../../texts/mind-frame.texts.ts";
 import { shortIds } from "./mind-references.ts";
 type View = ReturnType<typeof runtimeView>;
 /** How many turns of each journey closed with a reason: a fact the supervisor reads, never a limit. */
@@ -147,9 +148,12 @@ export function supervisorTurnFrame<X extends Program>(
     const mark = answeredMark(house.execution.state().house.minds, house.history(), scope, turn.id);
     const { recent, older } = recentActivity(current.activity, mark, turn.wake);
     const olderItems = older
-      ? [{ id: "…", text: frameRead.text(options.language, { part: "older", count: older }) }]
+      ? [{ id: "…", text: frameReading.text(options.language, { part: "older", count: older, id: "" }) }]
       : [];
-    const activity = [...recent, ...olderItems, ...current.objects].map(({ id, text }) => ({ id, text }));
+    const { devices } = house.execution.state().house;
+    const play = inPlay({ history: house.history(), mark, wake: turn.wake, devices }, () => false);
+    const { objects } = framedObjects(current.objects, play, options.language);
+    const activity = [...recent, ...olderItems, ...objects].map(({ id, text }) => ({ id, text }));
     const parts: Parts = { minds: houseItems(house), activity, omitted: { activity: 0, minds: 0 } };
     return fit(
       each => frameOf(house, options, fixed, each),

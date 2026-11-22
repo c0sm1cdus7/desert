@@ -61,18 +61,28 @@ export const menuLine = defineMessage({
     },
   },
 });
-/** The act that reads a whole text in the same turn, and the line that says how much of Actividad is older
- * (22/11, UNSIGNED). */
-export const frameRead = defineMessage({
-  id: "mind.frame.read",
+/** The read act and the cuts it undoes: what a capped object left out, how many lines of Actividad are older, how
+ * many things stayed rows of their list (22/11, UNSIGNED). */
+export const frameReading = defineMessage({
+  id: "mind.frame.reading",
   kind: "house",
-  parameters: object({ part: Type.Union([Type.Literal("purpose"), Type.Literal("older")]), count: Type.Integer() }),
+  parameters: object({
+    part: Type.Union(["purpose", "targets", "older", "field", "lines", "whole", "quiet"].map(p => Type.Literal(p))),
+    count: Type.Integer(),
+    id: Type.String(),
+  }),
   texts: {
-    es: ({ part, count }) =>
-      part === "purpose"
-        ? "Trae entero, desde el carácter from, un objeto o lo anterior de Actividad; la casa te lo devuelve en este " +
-          "mismo turno. Como consciencia, si tu respuesta solo lee, volvés a contestar con lo leído."
-        : `Hay ${count} líneas anteriores, de antes de tu última respuesta: read Actividad las trae, de la más nueva ` +
-          "a la más vieja.",
+    es: ({ part, count, id }) =>
+      ({
+        purpose:
+          "Trae entero, desde el carácter from, un objeto o lo anterior de Actividad; la casa te lo devuelve en " +
+          "este mismo turno. Como consciencia, si tu respuesta solo lee, volvés a contestar con lo leído.",
+        targets: "Actividad, o cualquier objeto por su id",
+        older: `Hay ${count} líneas de antes de tu última respuesta: read Actividad las trae, de la más nueva atrás.`,
+        field: `…[${count} caracteres más]…`,
+        lines: `…[${count} líneas más]…`,
+        whole: `[Recortado de ${count} caracteres: read ${id} lo trae entero.]`,
+        quiet: `${count} objetos sin novedad desde tu última respuesta son filas de su lista: read <id> trae uno.`,
+      })[part] ?? "",
   },
 });

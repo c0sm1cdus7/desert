@@ -55,7 +55,12 @@ export function runtimeView<X extends Program>(
       options.language,
     ),
     ...(active ? programCommunication(scope, definition, state) : []),
-    ...(active ? readMenu(options.language) : []),
+    ...(active
+      ? readMenu(
+          options.language,
+          parts.objects.map(object => object.id),
+        )
+      : []),
   ];
   const activity = visibleActivity(house, options, scope, state, kit);
   return { control, menu, ...parts, activity, state };

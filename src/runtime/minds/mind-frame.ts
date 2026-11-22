@@ -19,6 +19,8 @@ export type FrameSource = Readonly<{
   woke?: readonly string[];
   /** How many lines of activity came before the mind last answered: the read act brings them. */
   older?: number;
+  /** How many listed things nothing touched since the mind last answered: rows of their list, readable whole. */
+  quiet?: number;
 }>;
 export type FrameSnapshot = Readonly<FrameSource & { scope: MindScope; through: number; wake: readonly string[] }>;
 export type { FramePort, MindFrame } from "./mind-ports.ts";
@@ -47,6 +49,7 @@ export function buildMindFrame(scope: MindScope, turn: TurnContext, source: Fram
     ...(source.now === undefined ? {} : { now: source.now }),
     ...(source.woke === undefined ? {} : { woke: [...source.woke] }),
     ...(source.older ? { older: source.older } : {}),
+    ...(source.quiet ? { quiet: source.quiet } : {}),
     activity: source.activity.map(item => ({
       id: item.id,
       text: item.text,

@@ -115,13 +115,17 @@ class HouseMindRuntime<X extends Program> {
       resolve: this.resolve,
     };
   }
-  /** The read act: the activity older than the mind's last answer, from a character on. */
+  /** The read act: an object whole, or the activity older than the mind's last answer, from a character on. */
   private page: NonNullable<TurnPorts["page"]> = (turn, target, from) => {
     const { house, options } = this;
-    if (target !== activityTarget(options.language)) return undefined;
+    const view = this.view(turn.scope);
+    if (target !== activityTarget(options.language)) {
+      const object = view.objects.find(each => each.id === target);
+      return object && page(object.text, from);
+    }
     const mark = answeredMark(house.execution.state().house.minds, house.history(), turn.scope, turn.id);
     return page(
-      olderActivity(this.view(turn.scope).activity, mark, item => `${item.id}: ${item.text}`),
+      olderActivity(view.activity, mark, item => `${item.id}: ${item.text}`),
       from,
     );
   };

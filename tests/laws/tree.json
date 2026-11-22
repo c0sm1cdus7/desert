@@ -270,6 +270,7 @@
     "runtime/minds/mind-frame-fit.ts": "Recorta unidades recuperables del marco y rechaza un mínimo que supera la cota explícita.",
     "runtime/minds/mind-frame-focus.ts": "Bounds a frame to what happened since the mind last answered; serves the rest.",
     "runtime/minds/mind-read.ts": "Offers every mind the read act: a whole text in the same turn, writing no fact.",
+    "runtime/minds/mind-frame-objects.ts": "Shows each thing in play capped, with how to read it whole; the rest stay rows.",
     "runtime/minds/mind-frame-menu.ts": "Says the menu once: one line per kind of act, with its targets, never its input.",
     "runtime/minds/mind-references.ts": "Shows long ids by short references and resolves the ones a mind gives back.",
     "runtime/minds/mind-frame-text.ts": "Presents the four fixed layers and the variable content of the frame in the house language.",

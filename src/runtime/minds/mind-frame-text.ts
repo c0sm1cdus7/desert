@@ -1,6 +1,6 @@
 // Presents the four fixed layers and the variable content of the frame in the house language.
 import type { Language } from "../../fields/languages.ts";
-import { frameHouse, frameLabels, frameRead, frameSection } from "../../texts/mind-frame.texts.ts";
+import { frameHouse, frameLabels, frameReading, frameSection } from "../../texts/mind-frame.texts.ts";
 import type { FrameItem, FrameSnapshot, MindFrame } from "./mind-frame.ts";
 import { shortIds } from "./mind-references.ts";
 /** How many items of each cut section did not fit: the mind reads counts, never the ids of what is missing. */
@@ -34,7 +34,7 @@ export function renderMindFrame(snapshot: FrameSnapshot, language: Language, omi
     section(10, `${scope} / ${snapshot.through}`),
     section(3, snapshot.scene),
     section(4, olderLine(render(snapshot.activity), snapshot.older, language)),
-    section(5, render(snapshot.objects)),
+    section(5, quietLine(render(snapshot.objects), snapshot.quiet, language)),
     section(6, render(snapshot.thread)),
     section(7, snapshot.woke ? snapshot.woke.join("\n") : snapshot.wake.join(", ")),
     section(8, snapshot.required),
@@ -47,7 +47,14 @@ export function renderMindFrame(snapshot: FrameSnapshot, language: Language, omi
 
 /** Actividad says how many of its lines are older than the mind's last answer, and how to read them. */
 const olderLine = (lines: string, older: number | undefined, language: Language) =>
-  older ? [lines, frameRead.text(language, { part: "older", count: older })].filter(Boolean).join("\n") : lines;
+  older
+    ? [lines, frameReading.text(language, { part: "older", count: older, id: "" })].filter(Boolean).join("\n")
+    : lines;
+/** Objetos says how many listed things stayed rows of their list, and how to read one whole. */
+const quietLine = (lines: string, quiet: number | undefined, language: Language) =>
+  quiet
+    ? [lines, frameReading.text(language, { part: "quiet", count: quiet, id: "" })].filter(Boolean).join("\n")
+    : lines;
 function omittedSection(
   omitted: OmittedCounts,
   labels: readonly string[],

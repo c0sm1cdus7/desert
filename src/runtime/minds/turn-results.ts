@@ -40,8 +40,11 @@ export function resultsText(
   goesOn = true,
 ): string {
   const say = (part: Part) => turnResults.text(language, { part });
-  const known = new Set(menus.before.map(key));
-  const kept = new Set(menus.after.map(key));
+  // What the read act can read changes with every object: the menu's changes leave it out.
+  const before = menus.before.filter(item => item.scope !== "read");
+  const after = menus.after.filter(item => item.scope !== "read");
+  const known = new Set(before.map(key));
+  const kept = new Set(after.map(key));
   return [
     say("heading"),
     ...reports.flatMap((report, index) => line(report, index, say)),
@@ -49,7 +52,7 @@ export function resultsText(
     ...menus.after
       .filter(item => !known.has(key(item)))
       .map(item => `${say("added")} ${menuItemLine([item], language)}`),
-    ...menus.before.filter(item => !kept.has(key(item))).map(item => `${say("removed")} ${item.act} → ${item.target}`),
+    ...before.filter(item => !kept.has(key(item))).map(item => `${say("removed")} ${item.act} → ${item.target}`),
     ...(goesOn ? [say("goOn")] : []),
   ]
     .map(shortIds)
