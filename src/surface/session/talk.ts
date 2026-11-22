@@ -2,6 +2,7 @@
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import type { Attachment, Body, Hint, Intent, Panel, Span, ThreadEvent } from "../contract/contract.ts";
 import type { Conversation, Said, Tool } from "../contract/shown-tool.ts";
+import { talkIds, withId } from "./row-id.ts";
 import { must } from "./window.ts";
 export interface Talk {
   readonly kind: "talk";
@@ -78,9 +79,15 @@ export function talkBody(place: Talk, talk: Conversation): Body {
   const question = asking(place, talk);
   const placeholder = stop ? said.talk.answering : said.talk.writing;
   if (question) {
-    const rows = question.options.map((row, i) => ({ ...row, selected: i === place.option }));
-    const writing = place.option === rows.length;
-    const other = { title: said.talk.other, ...(writing ? { entry: { typed: place.typed, caret: place.caret } } : {}) };
+    const writing = place.option === question.options.length;
+    const ids = talkIds(question.options, writing);
+    const rows = question.options.map((row, i) => ({ ...withId(row, ids[i]), selected: i === place.option }));
+    const id = ids.at(-1);
+    const other = {
+      title: said.talk.other,
+      ...(writing ? { entry: { typed: place.typed, caret: place.caret } } : {}),
+      ...(id === undefined ? {} : { id }),
+    };
     return { kind: "thread", events: eventsOf(place, talk), options: [...rows, other] };
   }
   return {

@@ -34,6 +34,8 @@ export interface Row {
   readonly entry?: { readonly typed: string; readonly caret: number };
   /** One line drawn as it is: a line of a block, of a chart, of a page. */
   readonly spans?: readonly Span[];
+  /** What this row is, whatever place it is drawn at. Only a row that can be chosen now has one. */
+  readonly id?: string;
 }
 export interface Stack {
   readonly title: string;

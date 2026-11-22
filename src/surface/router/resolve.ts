@@ -5,8 +5,18 @@ import type { Body, Hint, Row, Screen } from "../contract/contract.ts";
 import type { Tool } from "../contract/shown-tool.ts";
 import { findable } from "../menus/finding.ts";
 import { cursorOf, goneOf, stacksOf } from "../menus/lists.ts";
-import { type Choice, actOf, fieldOf, toolOf, type Bar, type Session, type Viewport } from "../session/screen.ts";
+import {
+  type Choice,
+  type Listed,
+  actOf,
+  fieldOf,
+  toolOf,
+  type Bar,
+  type Session,
+  type Viewport,
+} from "../session/screen.ts";
 
+import { listIds, withId } from "../session/row-id.ts";
 import { conversationOf, errorSpans, talkBody, talkHints, talkPanel, type Talk } from "../session/talk.ts";
 import { walkBody, walkHints } from "../acts/walk.ts";
 import { fitted, must, windowed } from "../session/window.ts";
@@ -64,16 +74,13 @@ export function resolve(session: Session, tools: readonly Tool[], bar: Bar, view
   }
   return { ...common, ...listScreen(place, tools, viewport) };
 }
-function listScreen(
-  place: Extract<NonNullable<Session[number]>, { kind: "menu" | "view" }>,
-  tools: readonly Tool[],
-  viewport: Viewport,
-): Pick<Screen, "title" | "body" | "hints" | "menu"> {
-  const stacks = stacksOf(place, tools);
-  if (place.kind === "view") toolOf(tools, place.tool).rendered?.(place.target);
-  const cursor = cursorOf(place, tools);
+/** The rows of a list as drawn: the one the cursor is on, and each with what it is, read from the same lists the
+ * keys move over, so what is drawn is what is chosen. */
+function drawnRows(stacks: readonly Listed[], cursor: number) {
   let index = -1;
-  const pick = (row: Choice): Row => {
+  const ids = listIds(stacks);
+  const pick = (choice: Choice, id: string | undefined): Row => {
+    const row = withId(choice, id);
     if (row.off) return row;
     if (!row.open && !row.press) return { ...row, still: true };
     index += 1;
@@ -81,8 +88,17 @@ function listScreen(
     const { entry: _typing, ...resting } = row; // A control shows where you type only where you stand.
     return resting;
   };
-  const marked = stacks.map(stack => ({ ...stack, rows: stack.rows.map(pick) }));
-  const chosen = index >= 0;
+  const marked = stacks.map((stack, s) => ({ ...stack, rows: stack.rows.map((row, r) => pick(row, ids[s]?.[r])) }));
+  return { marked, chosen: index >= 0 };
+}
+function listScreen(
+  place: Extract<NonNullable<Session[number]>, { kind: "menu" | "view" }>,
+  tools: readonly Tool[],
+  viewport: Viewport,
+): Pick<Screen, "title" | "body" | "hints" | "menu"> {
+  const stacks = stacksOf(place, tools);
+  if (place.kind === "view") toolOf(tools, place.tool).rendered?.(place.target);
+  const { marked, chosen } = drawnRows(stacks, cursorOf(place, tools));
   const k = said.keys;
   const moves: readonly Hint[] = chosen
     ? [

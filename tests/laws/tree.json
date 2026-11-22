@@ -360,6 +360,7 @@
     "surface/session/answer-status.ts": "Live reasons and readiness for a written answer from field and act declarations; Live and submitted reasons from fields and actions; unchanged answers never advance",
     "surface/session/current-field.ts": "Current values and answers that would finish an edit without changing its data; Valores actuales de una edición, comparados también por moneda",
     "surface/session/kept-answers.ts": "keptAfter: the answers a walk keeps past one that changed, each under the question it answered; Conserva respuestas bajo su pregunta solo mientras su moneda sea la misma",
+    "surface/session/row-id.ts": "listIds, optionIds, talkIds, withId: a row's identity, read from what choosing it does, never from where it stands",
     "surface/session/screen.ts": "Session, Walk, begin: where a device stands and the act it walks, started with what it already has; field resolution, current values and currency when opening questions",
     "surface/session/talk.ts": "talk place: thread, entry, side panel, pending question, a message's act, keys by focus",
     "surface/session/walk-state.ts": "Estado local de preguntas: respuestas, moneda al escribirlas, edición y resultado; conserva avisos independientes del resultado de ejecución",

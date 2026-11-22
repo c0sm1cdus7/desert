@@ -2,6 +2,7 @@
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import type { Body, Field, Hint, Row, Span, ThreadEvent } from "../contract/contract.ts";
 import type { Tool } from "../contract/shown-tool.ts";
+import { optionIds, withId } from "../session/row-id.ts";
 import { errorSpans } from "../session/talk.ts";
 import { must } from "../session/window.ts";
 import {
@@ -44,10 +45,11 @@ const shapeOf = (field: Field): string => {
  * for one, where they write comes first and the rows carry no key. */
 function pickRows(walk: Walk, question: Field & { kind: "pick" }): readonly Row[] {
   const found = pickedFrom(question, walk);
+  const ids = optionIds(question, found);
   const rows = found.map((option, i): Row => {
     /** What makes a new one keeps the key of its act; the things there are take their number. */
     const key = walk.finding || i > 8 || option.makes || option.off ? {} : { key: option.key ?? String(i + 1) };
-    return { ...option, ...key, selected: i === walk.at };
+    return { ...withId(option, ids[i]), ...key, selected: i === walk.at };
   });
   /** Nothing to pick among is said where the list would be: the question never stands over nothing. */
   if (!walk.finding && !rows.length && question.nothing())
@@ -97,12 +99,16 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
     const shape = { ...(typed && remaining ? { remaining } : {}), ...(typed && padding ? { padding } : {}) };
     return { kind: "thread", events, entry: { typed, caret, placeholder: shapeOf(question), ...whole, ...shape } };
   }
-  const options: readonly Row[] = optionsOf(field).map((option, i) => ({
-    ...option,
-    ...(field?.kind === "many" ? { key: walk.marks.includes(option.title) ? "x" : " " } : {}),
+  return { kind: "thread", events, options: optionRows(walk, question), ...(walk.read ? { read: walk.read } : {}) };
+}
+/** The options of a question, each with what it is: in a question that takes several, whether it is taken. */
+function optionRows(walk: Walk, field: Field): readonly Row[] {
+  const ids = optionIds(field, optionsOf(field));
+  return optionsOf(field).map((option, i) => ({
+    ...withId(option, ids[i]),
+    ...(field.kind === "many" ? { key: walk.marks.includes(option.title) ? "x" : " " } : {}),
     selected: i === walk.at,
   }));
-  return { kind: "thread", events, options, ...(walk.read ? { read: walk.read } : {}) };
 }
 function enterSays(walk: Walk, field: Field | null, tools: readonly Tool[]): string {
   const options = optionsOf(field);
