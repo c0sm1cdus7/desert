@@ -17,6 +17,7 @@ import {
   money,
 } from "../../fields/fields.ts";
 import { object } from "../../fields/visible-text.ts";
+import { mindText } from "../../house/minds/journey-facts.ts";
 import { matchesSchema, providerSchema } from "./schema.ts";
 const field = { ...text("Text", "Example"), verbatim: true };
 it("removes surface metadata recursively and retains the complete local text constraints", () => {
@@ -80,4 +81,28 @@ it("sends exclusive branches as plain branches and never two branch sets with th
     anyOf: [{ type: "string" }, { type: "number" }],
   });
   expect(() => providerSchema({ oneOf: [{ type: "string" }], anyOf: [{ type: "number" }] })).toThrow("schema branches");
+});
+it("says in each field's description every limit the provider cannot enforce, without the pattern itself", () => {
+  const schema = object({
+    text: mindText,
+    seconds: Type.Integer({ minimum: 1, maximum: 86400 }),
+    names: Type.Array(Type.String({ maxLength: 160 }), { maxItems: 8, uniqueItems: true }),
+    job: Type.String({ title: "Trabajo", pattern: "^[a-f0-9-]{36}$" }),
+  });
+  const sent = providerSchema(schema);
+  const serialized = JSON.stringify(sent);
+  expect(serialized).not.toMatch(/"(?:minimum|maximum|pattern|minLength|maxLength|maxItems|uniqueItems)":/);
+  expect(serialized).not.toContain("u0000");
+  expect(sent).toMatchObject({
+    properties: {
+      text: { type: "string", description: "De 1 a 4000 caracteres. Texto visible: ni vacío ni solo espacios." },
+      seconds: { type: "integer", description: "De 1 a 86400." },
+      names: {
+        type: "array",
+        description: "Hasta 8 elementos. Sin repetidos.",
+        items: { description: "Hasta 160 caracteres." },
+      },
+      job: { title: "Trabajo", description: "Con el formato ^[a-f0-9-]{36}$." },
+    },
+  });
 });

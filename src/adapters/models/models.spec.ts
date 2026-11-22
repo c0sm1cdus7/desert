@@ -42,7 +42,7 @@ describe("cartas y Anthropic", () => {
           type: "json_schema",
           schema: {
             type: "object",
-            properties: { text: { type: "string" } },
+            properties: { text: { type: "string", description: "Al menos 2 caracteres." } },
             required: ["text"],
             additionalProperties: false,
           },

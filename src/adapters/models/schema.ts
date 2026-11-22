@@ -1,6 +1,8 @@
 // Translates provider schemas while checking answers against the complete local contract.
 import { checkSchemaKeywords, localKeywords } from "./schema-keywords.ts";
 import { compactProviderSchema } from "./schema-compaction.ts";
+import { limitWords } from "./schema-limits.ts";
+import type { Language } from "../../fields/languages.ts";
 import { isDeepStrictEqual } from "node:util";
 import { Kind, TypeGuard } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -33,7 +35,13 @@ const providerKeywords = new Set([
 const providerOmitted = (key: string) => !providerKeywords.has(key);
 const isObject = (value: unknown): value is Schema =>
   typeof value === "object" && value !== null && !Array.isArray(value);
-export function providerSchema(schema: Schema): Schema {
+/** The limits left out travel as words in the node's description, which the provider's grammar does not compile. */
+const described = (node: Schema, result: Schema, language: Language) => {
+  const words = limitWords(node, language);
+  if (!words) return;
+  result.description = typeof node.description === "string" ? `${node.description} ${words}` : words;
+};
+export function providerSchema(schema: Schema, language: Language = "es"): Schema {
   checkSchemaKeywords(schema);
   const visit = (node: unknown, seen: Set<object>): unknown => {
     if (typeof node === "boolean") return node ? {} : { not: {} };
@@ -66,6 +74,7 @@ export function providerSchema(schema: Schema): Schema {
       } else result[key] = value;
     }
     if (node.type === "object") result.additionalProperties = false;
+    described(node, result, language);
     return result;
   };
   const result = compactProviderSchema(visit(schema, new Set()));
