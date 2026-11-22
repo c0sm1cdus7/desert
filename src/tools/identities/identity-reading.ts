@@ -115,14 +115,17 @@ function identityKit<X extends Program>(house: House, identity: string, registry
       return [`${programName(tool)} · ${detail}`];
     });
 }
-/** The core piece brings its own words when the composition asked for it. */
-export const withIdentityWords = <S extends { words: Readonly<Record<string, ToolWords>> }>(
+/** The core piece brings its own words when the composition asked for it, under the name and key the distribution
+ * gives it, if it gives one. */
+export const withIdentityWords = <S extends Readonly<{ words: Readonly<Record<string, ToolWords>> }>>(
   registry: readonly { id: string }[],
-  shown: S,
-): S =>
-  registry.some(tool => tool.id === "identities")
-    ? { ...shown, words: { ...shown.words, identities: identityWords } }
-    : shown;
+  shown: S & Readonly<{ identidades?: Readonly<{ name: string; key: string }> }>,
+): S => {
+  if (!registry.some(tool => tool.id === "identities")) return shown;
+  const named = shown.identidades;
+  const identities = named ? { ...identityWords, name: named.name, key: named.key, listed: named.name } : identityWords;
+  return { ...shown, words: { ...shown.words, identities } };
+};
 
 function doorReading(house: House, identity: string) {
   const keys = [...house.doors.keys.values()].filter(key => key.identity === identity);

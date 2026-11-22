@@ -2203,7 +2203,10 @@ exige en la carpeta ni en objetos de otra herramienta. El chequeo de kit parcial
 las demás acciones y programas.
 
 `componer`, de `desert/componer`, recibe `programas`, `identidades`, `mentes` y `presentacion`. La presentación
-incluye el país en `locale` y las rutas de cálculo en `codigo`. Devuelve `program`, `shown`, `manifest`,
+incluye el país en `locale` y las rutas de cálculo en `codigo`, y puede nombrar la pieza de integrantes con
+`identidades: { name, key }`: sin eso es «Identidades» con `i`. El id `identities` no cambia, y la tecla no puede
+repetir otra de Sistema (Casa usa `u`). Prueba: `src/runtime/distributions/surface.spec.ts`.
+Devuelve `program`, `shown`, `manifest`,
 `calculation` y `mentes`. Rechaza ids y hechos repetidos, hechos ajenos, contratos DESERT distintos, mentes
 inexistentes o repetidas, asistentes sin identidades y dependencias de distribuciones. Los diagnósticos incluyen
 cada camino y motivo. Rechaza `effects` de programas instalables: no los ejecuta por fuera del motor.
