@@ -104,8 +104,8 @@ export interface Tool {
   notices?(): { readonly needs: readonly Notice[]; readonly news: readonly Notice[]; readonly quiet: boolean };
   readonly id: string;
   readonly name: string;
-  /** Where it is opened from: a section of the Menu, or the tool it lives in, which lists it among its own. */
-  readonly place: { readonly key: string; readonly section: "tools" | "system" | "hidden"; readonly inside?: string };
+  /** Where it is opened from: its section of the Menu. */
+  readonly place: { readonly key: string; readonly section: "tools" | "system" };
   summary(): string;
   /** What the Barra says on one of its things. */
   titleOf?(target: string): string;

@@ -33,10 +33,8 @@ export type SurfacePorts<X extends Program> = Omit<HousePorts<X>, "act" | "obser
   readonly act: (value: Act) => ExecutionResult<X>;
   readonly observe?: (value: Act) => ExecutionResult<X>;
 };
-/** What a program calls a tool where a person reads it; its acts say their own words where they are declared.
- * The tool it lives in, when it lives in one: it has no row on the Menu, and is opened from that tool's own, as the
- * Menu opens others. */
-type Called = Readonly<{ name: string; key: string; system?: true; inside?: string }>;
+/** What a program calls a tool where a person reads it; its acts say their own words where they are declared. */
+type Called = Readonly<{ name: string; key: string; system?: true }>;
 /** A tool of things: what it says with none, what heads their list, the label of each datum read on that list,
  * and how one of its things is presented: its stacks, in order. */
 type Lists = Readonly<{ empty: string; listed: string }> &
@@ -98,6 +96,8 @@ export async function attendAndAct<X extends Program>(
     : attended;
 }
 export const section = (title: string, rows: readonly ViewRow[], empty = "") => ({ title, rows, empty });
-/** Where a tool is opened from: its section of the Menu, or the tool it lives in. */
-export const placed = ({ key, system, inside }: ToolWords): SurfaceTool["place"] =>
-  inside === undefined ? { key, section: system ? "system" : "tools" } : { key, section: "hidden", inside };
+/** Where a tool is opened from: its section of the Menu. */
+export const placed = ({ key, system }: ToolWords): SurfaceTool["place"] => ({
+  key,
+  section: system ? "system" : "tools",
+});

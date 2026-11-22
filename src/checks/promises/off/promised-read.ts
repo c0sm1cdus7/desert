@@ -51,7 +51,7 @@ export function absentCheck<X extends Program>(program: Composition<X>, shown: S
           const rows = menuRows(seat.tools);
           for (const tool of program.registry) {
             const row = rows.find(item => item.key === shown.words[tool.id]?.key);
-            if (shown.words[tool.id]?.inside === undefined) strictEqual(row?.open, undefined);
+            strictEqual(row?.open, undefined);
           }
         } finally {
           seat.router.stop();

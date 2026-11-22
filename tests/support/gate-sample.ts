@@ -114,7 +114,6 @@ export const gateSample: ProgramTool<Shop> = {
 export const gateSampleWords = {
   name: words.title,
   key: "m",
-  inside: "sales",
   empty: words.empty,
   listed: words.title,
   reads: {},

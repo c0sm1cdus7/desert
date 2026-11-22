@@ -51,7 +51,7 @@ function foreignCheck<X extends Program>(program: Composition<X>, shown: Shown<X
       if (example) await given(house(), tool.id, example.given, example.at);
       const seat = seated(house(), cast.outsider, shown);
       const key = shown.words[tool.id]?.key ?? "";
-      const row = () => menuRows(seat.tools, shown.words[tool.id]?.inside).find(listed => listed.key === key);
+      const row = () => menuRows(seat.tools).find(listed => listed.key === key);
       try {
         ok(row()?.open, said.notOnMenu(tool.id));
         type(seat.router, keysTo(shown, tool.id));

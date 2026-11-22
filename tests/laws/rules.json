@@ -1286,18 +1286,6 @@
       ]
     },
     {
-      "id": 133,
-      "rule": "Una herramienta puede vivir dentro de otra: no tiene fila en el Menú, se lista y se abre desde la herramienta en la que vive, con su tecla, y sus promesas se recorren por ahí. Vive en una herramienta que está en el Menú, y su tecla no repite la de otra fila de ese lugar",
-      "from": "LEYES 16 · 11/11 · obra de Capibara: canales en Ventas, publicaciones en Productos, documentos en Identidades",
-      "guarantee": "derived",
-      "evidence": [
-        "src/surface/menus/lists.ts",
-        "src/surface/bridge/assembly/house-tools.ts",
-        "src/surface/bridge/assembly/house-tools.spec.ts",
-        "src/checks/promises/cases/promised-inside.spec.ts"
-      ]
-    },
-    {
       "id": 134,
       "rule": "Un objeto nunca se elige para lo que se le hace a él mismo: no figura en la lista de la que elige una acción sobre ese objeto",
       "from": "11/11 · obra de Capibara: «unir» ofrecía a la misma identidad",

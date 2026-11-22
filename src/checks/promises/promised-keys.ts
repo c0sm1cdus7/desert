@@ -101,11 +101,9 @@ function pathTo(tools: readonly Tool[], tool: string, on: string, entry?: string
   }
   return undefined;
 }
-/** The keys that open a tool from the Menu: its own, or first the key of the tool it lives in. */
+/** The key that opens a tool from the Menu. */
 export function keysTo<X extends Program>(shown: Shown<X>, tool: string): string {
-  const words = shown.words[tool];
-  const outer = words?.inside === undefined ? undefined : shown.words[words.inside];
-  return `${outer?.key ?? ""}${words?.key ?? ""}`;
+  return shown.words[tool]?.key ?? "";
 }
 /** From the Menu to where an act stands, by keys alone: its tool, then its thing by what each view opens. */
 export function goTo<X extends Program>({ router, tools, shown }: Seat<X>, tool: string, on: string): void {
@@ -178,8 +176,6 @@ export function openRows(router: Router, rows: readonly number[]): void {
     router.send({ kind: "confirm" });
   }
 }
-/** Every row of where a tool is listed, the tools that cannot be opened too: the Menu, or the tool it lives in. */
-export const menuRows = (tools: readonly Tool[], inside?: string): readonly Choice[] =>
-  stacksOf(inside === undefined ? { kind: "menu", at: 0 } : { kind: "view", tool: inside, at: 0 }, tools).flatMap(
-    stack => stack.rows,
-  );
+/** Every row of the Menu, where every tool is listed, the tools that cannot be opened too. */
+export const menuRows = (tools: readonly Tool[]): readonly Choice[] =>
+  stacksOf({ kind: "menu", at: 0 }, tools).flatMap(stack => stack.rows);

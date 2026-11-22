@@ -38,7 +38,7 @@ Reglas:
 ## Sexto paso (11/11/2026)
 - Un objeto lo presenta su herramienta y lo dibuja la base: grupos declarados, lo nombrado se abre con su número, sea
   de la herramienta que sea (`src/surface/bridge/views/presented.ts`).
-- Una herramienta puede vivir dentro de otra (`inside`).
+- Una herramienta podía vivir dentro de otra (`inside`); se retiró el 22/11/2026: un programa alberga herramientas.
 - Un valor sugerido se reemplaza con la primera tecla; lo que no entra en pantalla se alcanza con las flechas.
 - Cómo se arma un programa sobre esta base: `PROGRAMA.md`.
 

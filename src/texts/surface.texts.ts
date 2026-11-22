@@ -11,7 +11,7 @@ export const surfaceTexts = {
   find: "Buscar",
   found: "Encontrados",
   nothingFound: "Sin resultados.",
-  sections: { programs: "Programas", tools: "Herramientas", system: "Sistema" },
+  sections: { programs: "Programas", system: "Sistema" },
   back: "volver",
   unchanged: "",
   current: "actual", // What the option that the datum already is says to its right.
