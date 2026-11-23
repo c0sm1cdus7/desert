@@ -28,7 +28,7 @@ export type FrameSnapshot = Readonly<FrameSource & { scope: MindScope; through: 
 export type { FramePort, MindFrame } from "./mind-ports.ts";
 export function buildMindFrame(scope: MindScope, turn: TurnContext, source: FrameSource): FrameSnapshot {
   const required = (value: unknown, name: string) => {
-    if (value == null) throw new Error(`Falta el argumento · ${name}`);
+    if (value == null) throw new Error(`Missing argument · ${name}`);
   };
   for (const [name, value] of Object.entries({ scope, turn, source })) required(value, name);
   if (

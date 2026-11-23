@@ -6,6 +6,10 @@ export const identitySkill = defineMessage({
   kind: "skill",
   parameters: Type.Object({}, { additionalProperties: false }),
   texts: {
+    en:
+      "Use Identities to read who is in the house, what tools each one has and each one's language. " +
+      "To change tools or kits, use the offered acts and respect their refusal reasons. " +
+      "Never change another identity's scene: each one describes its own.",
     es:
       "Usá Identidades para leer quién está en la casa y qué herramientas tiene. " +
       "Para cambiar herramientas o kits, usá los actos ofrecidos y respetá sus motivos de rechazo. " +

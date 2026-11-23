@@ -31,7 +31,7 @@ function journeyRig(dispatch: Dispatch) {
     id: "device-test.rules",
     kind: "mind",
     parameters: Type.Object({}),
-    texts: { es: "Usá tus acciones." },
+    texts: { en: "Use your actions.", es: "Usá tus acciones." },
   });
   const definition: MindDefinition = { actor: "mind:agents", role: "program:agents", rules, communication: [] };
   const transport = vi.fn<typeof fetch>(() => {

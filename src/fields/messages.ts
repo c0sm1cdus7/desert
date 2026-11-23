@@ -18,7 +18,7 @@ type Definition<S extends TObject, K extends MessageKind> = Readonly<{
   texts: Readonly<Record<Language, string | ((parameters: Static<S>) => string)>>;
 }>;
 const required = (value: unknown, name: string): void => {
-  if (value === undefined) throw new Error(`Falta el argumento · ${name}`);
+  if (value === undefined) throw new Error(`Missing argument · ${name}`);
 };
 function renderMessage<S extends TObject>(
   definition: Definition<S, MessageKind>,
@@ -26,20 +26,20 @@ function renderMessage<S extends TObject>(
   values: unknown,
 ): string {
   const { id, parameters, texts } = definition;
-  if (language === undefined) throw new Error(`Idioma ausente · ${id}`);
-  if (typeof language !== "string") throw new Error(`Idioma inválido · ${id}`);
+  if (language === undefined) throw new Error(`Missing language · ${id}`);
+  if (typeof language !== "string") throw new Error(`Invalid language · ${id}`);
   const chosen = languages.find(known => known === language);
-  if (chosen === undefined) throw new Error(`Idioma no declarado · ${id} · ${language}`);
-  if (values === undefined) throw new Error(`Parámetros ausentes · ${id}`);
+  if (chosen === undefined) throw new Error(`Undeclared language · ${id} · ${language}`);
+  if (values === undefined) throw new Error(`Missing parameters · ${id}`);
   if (!Value.Check(parameters, values)) {
     const error = Value.Errors(parameters, values).First();
-    throw new Error(`Parámetros inválidos · ${id} · ${error?.path}`);
+    throw new Error(`Invalid parameters · ${id} · ${error?.path}`);
   }
   const translation = texts[chosen];
   if (typeof translation !== "string" && typeof translation !== "function")
-    throw new Error(`Falta traducción · ${id} · ${chosen}`);
+    throw new Error(`Missing translation · ${id} · ${chosen}`);
   const text = typeof translation === "string" ? translation : translation(values);
-  if (!text.trim()) throw new Error(`Traducción vacía · ${id} · ${chosen}`);
+  if (!text.trim()) throw new Error(`Empty translation · ${id} · ${chosen}`);
   return text;
 }
 /** The schema checks untyped callers too; each translation receives the same parameter type. */
@@ -49,12 +49,12 @@ export function defineMessage<S extends TObject, const K extends MessageKind>(
   required(definition, "definition");
   const { id, kind, parameters, texts } = definition;
   for (const [name, value] of Object.entries({ id, kind, parameters, texts })) required(value, name);
-  if (!id.trim()) throw new Error("Falta el id del mensaje");
+  if (!id.trim()) throw new Error("Missing message id");
   for (const language of languages) {
     const text = texts[language];
     if (!Object.hasOwn(texts, language) || (typeof text !== "string" && typeof text !== "function"))
-      throw new Error(`Falta traducción · ${id} · ${language}`);
-    if (typeof text === "string" && !text.trim()) throw new Error(`Traducción vacía · ${id} · ${language}`);
+      throw new Error(`Missing translation · ${id} · ${language}`);
+    if (typeof text === "string" && !text.trim()) throw new Error(`Empty translation · ${id} · ${language}`);
   }
   return Object.freeze({
     id,

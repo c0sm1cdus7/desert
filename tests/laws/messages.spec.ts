@@ -12,14 +12,16 @@ it("gives every production message text in every declared language", () => {
 });
 it("turns red for a missing translation, including a newly declared language", () => {
   const repo = lawRepository({ "src/texts/sample.ts": declaration("text", '{ es: "Hola" }') });
-  expect(messageCoverage(repo)).toEqual([]);
-  expect(messageCoverage(repo, ["es", "en"])).toEqual(["src/texts/sample.ts:test.words:en"]);
+  expect(messageCoverage(repo)).toEqual(["src/texts/sample.ts:test.words:en"]);
+  expect(messageCoverage(repo, ["es"])).toEqual([]);
+  const english = lawRepository({ "src/texts/sample.ts": declaration("text", '{ en: "Hello" }') });
+  expect(messageCoverage(english)).toEqual(["src/texts/sample.ts:test.words:es"]);
   const complete = lawRepository({
     "src/texts/sample.ts": declaration("text", '{ es: "Hola", en: "Hello" }'),
   });
   expect(messageCoverage(complete, ["es", "en"])).toEqual([]);
   const missing = lawRepository({ "src/texts/sample.ts": declaration("skill", "{}") });
-  expect(messageCoverage(missing)).toEqual(["src/texts/sample.ts:test.words:es"]);
+  expect(messageCoverage(missing)).toEqual(["src/texts/sample.ts:test.words:en", "src/texts/sample.ts:test.words:es"]);
 });
 it.each(["skill", "house", "mind"])("allows normative words only in the translations of %s messages", kind => {
   const repo = lawRepository({ "src/texts/sample.ts": declaration(kind, '{ es: "Nunca inventes datos" }') });
@@ -44,7 +46,10 @@ it("does not exempt a common string just because identical words occur in a skil
   expect(hiddenRules(repo, { exempt: {} })).toEqual(["src/texts/sample.ts: Nunca inventes datos"]);
 });
 it("recognizes imported aliases and template translations without exempting ids", () => {
-  const source = declaration("skill", "{ es: ({ name }) => `Nunca inventes ${name}` }")
+  const source = declaration(
+    "skill",
+    "{ en: ({ name }) => `Never invent ${name}`, es: ({ name }) => `Nunca inventes ${name}` }",
+  )
     .replace("{ defineMessage }", "{ defineMessage as message }")
     .replace("= defineMessage(", "= message(");
   const repo = lawRepository({ "src/texts/sample.ts": source });
@@ -61,13 +66,13 @@ it("rejects indirect or spread translation declarations that cannot establish co
 });
 
 it("rejects undefined, empty translations and duplicated ids", () => {
-  for (const texts of ["{ es: undefined }", '{ es: " " }']) {
+  for (const texts of ['{ en: "Hello", es: undefined }', '{ en: "Hello", es: " " }']) {
     const repo = lawRepository({ "src/texts/sample.ts": declaration("text", texts) });
     expect(messageCoverage(repo)).toEqual(["src/texts/sample.ts:test.words:es"]);
   }
   const repo = lawRepository({
-    "src/texts/one.ts": declaration("text", '{ es: "Hola" }'),
-    "src/texts/two.ts": declaration("text", '{ es: "Hola" }'),
+    "src/texts/one.ts": declaration("text", '{ en: "Hello", es: "Hola" }'),
+    "src/texts/two.ts": declaration("text", '{ en: "Hello", es: "Hola" }'),
   });
   expect(messageCoverage(repo)).toEqual(["src/texts/two.ts:test.words:duplicate"]);
 });

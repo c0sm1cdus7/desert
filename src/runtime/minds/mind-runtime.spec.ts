@@ -21,13 +21,13 @@ const skill = defineMessage({
   id: "test.skill",
   kind: "skill",
   parameters: Type.Object({}),
-  texts: { es: "Usá las acciones de prueba." },
+  texts: { en: "Use the test actions.", es: "Usá las acciones de prueba." },
 });
 const rules = defineMessage({
   id: "test.mind",
   kind: "mind",
   parameters: Type.Object({}),
-  texts: { es: "Trabajá con tu kit." },
+  texts: { en: "Work with your kit.", es: "Trabajá con tu kit." },
 });
 const fingerprint = { cases: "c", skill: "s", frameTexts: "f" };
 const input = Type.Object({ text: Type.String() }, { additionalProperties: false });

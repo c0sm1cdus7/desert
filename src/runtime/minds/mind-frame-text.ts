@@ -7,7 +7,7 @@ import { shortIds } from "./mind-references.ts";
 export type OmittedCounts = Readonly<Partial<Record<"activity" | "objects" | "thread", number>>>;
 const omittedLabels = { activity: 4, objects: 5, thread: 6 } as const;
 const present = (value: unknown) => {
-  if (value == null) throw new Error("Falta el argumento · snapshot");
+  if (value == null) throw new Error("Missing argument · snapshot");
 };
 /** The own thread travels in sealed blocks of this many entries, each kept byte for byte from wake to wake; the newer
  * entries ride in the tail until they fill a block. */

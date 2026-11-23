@@ -12,9 +12,14 @@ const mind = defineMessage({
   id: "test.mind",
   kind: "mind",
   parameters: object({}),
-  texts: { es: "Sos Nora. Ayudá a Franco." },
+  texts: { en: "You are Nora. Help Franco.", es: "Sos Nora. Ayudá a Franco." },
 });
-const skill = defineMessage({ id: "test.skill", kind: "skill", parameters: object({}), texts: { es: "Usá notas." } });
+const skill = defineMessage({
+  id: "test.skill",
+  kind: "skill",
+  parameters: object({}),
+  texts: { en: "Use notes.", es: "Usá notas." },
+});
 const scope = { kind: "consciousness", actor: "assistant:franco" } as const;
 const turn = {
   id: "t",

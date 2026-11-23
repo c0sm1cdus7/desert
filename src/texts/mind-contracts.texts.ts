@@ -6,5 +6,8 @@ export const mindContractProblem = defineMessage({
   id: "mind.contract.problem",
   kind: "text",
   parameters: object({ field: Type.String() }),
-  texts: { es: ({ field }) => `Contrato de mente inválido · ${field}` },
+  texts: {
+    en: ({ field }) => `Invalid mind contract · ${field}`,
+    es: ({ field }) => `Contrato de mente inválido · ${field}`,
+  },
 });

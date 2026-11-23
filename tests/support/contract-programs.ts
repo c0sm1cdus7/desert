@@ -10,7 +10,7 @@ const skill = defineMessage({
   id: "fixture.contracts.skill",
   kind: "skill",
   parameters: Type.Object({}),
-  texts: { es: "Usá las acciones declaradas por el programa." },
+  texts: { en: "Use the actions the program declares.", es: "Usá las acciones declaradas por el programa." },
 });
 const metadata = {
   id: "documents",

@@ -103,7 +103,7 @@ const skill = defineMessage({
   id: "fixture.picking.skill",
   kind: "skill",
   parameters: Type.Object({}),
-  texts: { es: "Tomá pedidos de las cosas guardadas." },
+  texts: { en: "Take orders of the saved things.", es: "Tomá pedidos de las cosas guardadas." },
 });
 /** How the program varies: what each item's reading adds. */
 type Variant = Readonly<{ named?: Named }>;

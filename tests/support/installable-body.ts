@@ -14,7 +14,7 @@ const skill = defineMessage({
   id: "fixture.installable.skill",
   kind: "skill",
   parameters: Type.Object({}),
-  texts: { es: "Anotá con las acciones del programa." },
+  texts: { en: "Take notes with the program's actions.", es: "Anotá con las acciones del programa." },
 });
 const words = {
   name: "Notas",

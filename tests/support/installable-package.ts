@@ -13,7 +13,7 @@ export const actionWords = { name: "note", enter: "note", key: "a", purpose: "gu
 export const saved = "Anotada · Nota";
 export const promise = "Notes once";
 export const skill = defineMessage({ id: "toy.skill", kind: "skill", parameters: Type.Object({}),
-  texts: { es: "Anotá con las acciones del programa." } });
+  texts: { en: "Take notes with the program's actions.", es: "Anotá con las acciones del programa." } });
 `,
   "src/metadata.ts": `// Declares the toy's state and facts.
 export const metadata = { id: "toy", version: "1.0.0", desert: 1,

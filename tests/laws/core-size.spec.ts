@@ -126,10 +126,12 @@ describe("the tree of src/", () => {
   // and how many things stayed rows of their list (UNSIGNED).
   // 22/11 frames without noise: +4 exact in mind-frame.texts.ts: the house's reading guide for the stable-first order
   // and the words for an open journey in the cached menu (UNSIGNED).
-  it("keeps every file within 300 lines and the texts within 1542", () => {
+  // 23/11 language: +286 exact for the English of every typed message (frame, supervisor, journeys, turns, schema
+  // limits, assistants, program minds, the Identities skill) and the frame's lines on languages (UNSIGNED).
+  it("keeps every file within 300 lines and the texts within 1828", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1542);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1828);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

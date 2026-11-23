@@ -32,7 +32,8 @@ export const toy = defineProgram({ id: "toy", version: "1.0.0", desert: DESERT_C
   code: [import.meta.filename], facts: [], initial: () => 0 }, {
   purpose: "contar", words: { name: "Juguete", key: "j", itself: [] }, tools: {},
   skill: defineMessage({ id: "toy.skill", kind: "skill", parameters: Type.Object({}),
-    texts: { es: "Contá con tus acciones." } }), fold: value => value, summary: () => "Juguete"
+    texts: { en: "Count with your actions.", es: "Contá con tus acciones." } }),
+  fold: value => value, summary: () => "Juguete"
 });
 `,
     );

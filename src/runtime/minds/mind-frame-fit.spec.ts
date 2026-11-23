@@ -4,7 +4,12 @@ import { buildMindFrame, type MindFrame } from "./mind-frame.ts";
 import { defineMessage } from "../../fields/messages.ts";
 import { object } from "../../fields/visible-text.ts";
 import { turnLimits } from "../../tools/minds/mind-contract.ts";
-const mind = defineMessage({ id: "test.rules", kind: "mind", parameters: object({}), texts: { es: "Sos Nora." } });
+const mind = defineMessage({
+  id: "test.rules",
+  kind: "mind",
+  parameters: object({}),
+  texts: { en: "You are Nora.", es: "Sos Nora." },
+});
 const scope = { kind: "consciousness", actor: "assistant:franco" } as const;
 const turn = {
   id: "t",
