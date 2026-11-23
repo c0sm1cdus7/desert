@@ -170,7 +170,7 @@ it("checks also.off against declared causes while drawing, and fails the derived
       expect(screen).not.toContain("motivo ajeno");
       expect(JSON.stringify(house().tools.state().entries)).toContain("motivo ajeno");
       seat.router.send({ kind: "cancel" });
-      expect(seat.router.screen(view).title).toBe("Ventas");
+      expect(seat.router.screen(view).title).toBe("Sales");
     } finally {
       seat.router.stop();
     }

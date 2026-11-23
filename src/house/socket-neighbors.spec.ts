@@ -62,7 +62,9 @@ it("members with no tools see the same tools and peer activity as identityView",
     f
       .house()
       .tools.state()
-      .entries.some(entry => entry.data.text === "Recibido · p"),
+      .entries.some(
+        entry => JSON.stringify(entry.data.text) === JSON.stringify({ en: "Received · p", es: "Recibido · p" }),
+      ),
   ).toBe(true);
 });
 it("unauthenticated requests disclose no catalog, results or state and cannot act", async () => {

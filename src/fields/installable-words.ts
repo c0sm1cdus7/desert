@@ -1,12 +1,13 @@
-// Declares program and group words without depending on the surface layer.
-export type StackWords = Readonly<{ title: string; empty: string; reads: Readonly<Record<string, string>> }>;
-export type ProgramWords = Readonly<{ name: string; key: string }> &
+// Declares program and group words without depending on the surface layer: each word in every language.
+import type { Text } from "./phrases.ts";
+export type StackWords = Readonly<{ title: Text; empty: Text; reads: Readonly<Record<string, Text>> }>;
+export type ProgramWords = Readonly<{ name: Text; key: string }> &
   (
     | Readonly<{ itself: readonly StackWords[] }>
     | Readonly<{
-        empty: string;
-        listed: string;
-        reads: Readonly<Record<string, string>>;
+        empty: Text;
+        listed: Text;
+        reads: Readonly<Record<string, Text>>;
         presents: readonly StackWords[];
       }>
   );

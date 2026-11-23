@@ -2,6 +2,7 @@
 import { said, type Text } from "../fields/phrases.ts";
 export const identityTexts = {
   name: { en: "Identities", es: "Identidades" },
+  one: { en: "Identity", es: "Identidad" },
   minds: { en: "Minds", es: "Mentes" },
   scene: {
     name: { en: "scene", es: "escena" },

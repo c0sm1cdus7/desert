@@ -1,6 +1,7 @@
 // Declares an installable program with its own state, facts and named groups, independent of a distribution.
 import type { TSchema } from "@sinclair/typebox";
 import type { Skill } from "../../fields/messages.ts";
+import type { Text } from "../../fields/phrases.ts";
 import { deepFreeze } from "../../journal/vocabulary.ts";
 import type { ProgramFacts, Event } from "../../journal/vocabulary.ts";
 import type { DeepReadonly } from "../../journal/readonly-state.ts";
@@ -58,7 +59,7 @@ type ContractHalf = Partial<Pick<ContractPackage, "artifact" | "offers" | "reque
 export type ProgramBody<M extends ProgramMetadata> = Readonly<{
   mindCases?: readonly ProgramMindCase[];
   messages?: ProgramTalk;
-  purpose: string;
+  purpose: Text;
   skill: Skill;
   words: ProgramWords;
   tools: Readonly<Record<string, ProgramGroup<LocalProgram<M>>>>;
@@ -67,7 +68,7 @@ export type ProgramBody<M extends ProgramMetadata> = Readonly<{
     event: Event<LocalProgram<M>["fact"]>,
     before: State<LocalProgram<M>>,
   ) => DeepReadonly<ReturnType<M["initial"]>>;
-  summary: (state: State<LocalProgram<M>>) => string;
+  summary: (state: State<LocalProgram<M>>) => Text;
   effects?: unknown;
 }> &
   ContractHalf;

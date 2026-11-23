@@ -12,6 +12,6 @@ export function cancelInheritedWake<P extends Foreign>(
   const current = state();
   const owner = current.wakeOwners.get(id);
   if (!by || by !== current.house.admin || !owner || owner.startsWith(ids.mind))
-    throw new Error("Solo quien administra puede cancelar un despertar heredado de una identidad");
+    throw new Error("Only whoever administers cancels a wake inherited from an identity");
   return bus.emit(effect("wake-at", { id, at: null }, by));
 }

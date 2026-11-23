@@ -34,41 +34,47 @@ import { startHouse } from "../../runtime/house-runtime.ts";
 import * as vault from "./open-secret-vault.ts";
 for (const bound of [true, false])
   for (const withKeys of [false, true])
-    it(`B3: opens and walks before and after renewing, bound=${bound}, provider=${withKeys}`, async () => {
-      const rig = adapterHouse({ rotate: sign }, { view: () => "{}" });
-      if (bound) expect((await rig.act("rotate")).status).toBe("accepted");
-      rig.close();
-      const folder = mkdtempSync(join(tmpdir(), "kept-custody-"));
-      folders.push(folder);
-      copyFileSync(join(rig.path, "journal.sqlite"), join(folder, "kept.sqlite"));
-      const { secretKeys: _keys, ...options } = rig.options;
-      const program: Composition<Shop> = {
-        ...options,
-        registry: declaredRegistry(options.registry),
-      };
-      const keys = new MemoryHouseKeys();
-      const open = vi.spyOn(vault, "openSecretVault");
-      const calls = [
-        vi.spyOn(keys, "key"),
-        vi.spyOn(keys, "has"),
-        vi.spyOn(keys, "head"),
-        vi.spyOn(keys, "anchor"),
-        vi.spyOn(keys, "forget"),
-        vi.spyOn(keys, "forgetHouse"),
-      ];
-      const variant = withKeys ? { ...program, secretKeys: keys } : program;
-      for (const version of ["desert/1", "desert/3", "renewed"]) {
-        if (version === "renewed") expect(renewKeptJournals(program, folder)).toEqual(["kept.sqlite"]);
-        else base.version = version;
-        const checks = keptChecks(variant, inspectionShown, folder);
-        // The manual evidence must be renewed after changing the calculation version.
-        const applicable = version === "desert/3" ? checks.slice(0, 3) : checks;
-        for (const check of applicable) await expect(check.run(), `${version}: ${check.name}`).resolves.toBeUndefined();
-      }
-      expect(open).not.toHaveBeenCalled();
-      open.mockRestore();
-      for (const call of calls) expect(call).not.toHaveBeenCalled();
-    });
+    // Each walk opens a kept journal three times: about five seconds alone, more beside other files.
+    it(
+      `B3: opens and walks before and after renewing, bound=${bound}, provider=${withKeys}`,
+      { timeout: 30_000 },
+      async () => {
+        const rig = adapterHouse({ rotate: sign }, { view: () => "{}" });
+        if (bound) expect((await rig.act("rotate")).status).toBe("accepted");
+        rig.close();
+        const folder = mkdtempSync(join(tmpdir(), "kept-custody-"));
+        folders.push(folder);
+        copyFileSync(join(rig.path, "journal.sqlite"), join(folder, "kept.sqlite"));
+        const { secretKeys: _keys, ...options } = rig.options;
+        const program: Composition<Shop> = {
+          ...options,
+          registry: declaredRegistry(options.registry),
+        };
+        const keys = new MemoryHouseKeys();
+        const open = vi.spyOn(vault, "openSecretVault");
+        const calls = [
+          vi.spyOn(keys, "key"),
+          vi.spyOn(keys, "has"),
+          vi.spyOn(keys, "head"),
+          vi.spyOn(keys, "anchor"),
+          vi.spyOn(keys, "forget"),
+          vi.spyOn(keys, "forgetHouse"),
+        ];
+        const variant = withKeys ? { ...program, secretKeys: keys } : program;
+        for (const version of ["desert/1", "desert/3", "renewed"]) {
+          if (version === "renewed") expect(renewKeptJournals(program, folder)).toEqual(["kept.sqlite"]);
+          else base.version = version;
+          const checks = keptChecks(variant, inspectionShown, folder);
+          // The manual evidence must be renewed after changing the calculation version.
+          const applicable = version === "desert/3" ? checks.slice(0, 3) : checks;
+          for (const check of applicable)
+            await expect(check.run(), `${version}: ${check.name}`).resolves.toBeUndefined();
+        }
+        expect(open).not.toHaveBeenCalled();
+        open.mockRestore();
+        for (const call of calls) expect(call).not.toHaveBeenCalled();
+      },
+    );
 
 it("B3: inspecting never opens custody, runs an adapter or enables a live house", async () => {
   let used = false;

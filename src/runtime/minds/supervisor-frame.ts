@@ -51,7 +51,7 @@ export function actRules<X extends Program>(house: MindRuntimeHouse<X>, scope: A
 }
 export const section = (language: Language, index: number, content: string) => {
   const name = supervisorLabels.text(language, {}).split("|")[index];
-  if (name === undefined) throw new Error("Rótulo de marco ausente");
+  if (name === undefined) throw new Error("Missing frame label");
   return frameSection.text(language, { name, content });
 };
 /** The fixed part: who the supervisor is, every program's purpose and the house's rules, text and mechanical. */

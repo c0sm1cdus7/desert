@@ -77,7 +77,13 @@ function deviceAction(root: string) {
       ),
   );
   const texts = join(root, "src/texts.ts");
-  writeFileSync(texts, readFileSync(texts, "utf8").replace("Anotada · Nota", "Terminada · Ejecución · toy"));
+  writeFileSync(
+    texts,
+    readFileSync(texts, "utf8").replace(
+      '{ en: "Noted · Note", es: "Anotada · Nota" }',
+      '{ en: "Finished · Execution · toy", es: "Terminada · Ejecución · toy" }',
+    ),
+  );
   const distribution = join(root, "tests/distribution.ts");
   writeFileSync(distribution, readFileSync(distribution, "utf8").replace("identities: false", "identities: true"));
 }

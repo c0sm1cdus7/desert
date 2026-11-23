@@ -8,9 +8,10 @@ const toyFiles = {
   "src/texts.ts": `// Names the toy's action and its result.
 import { defineMessage } from "desert/messages";
 import { Type } from "desert/program";
-export const words = { name: "Juguete", key: "j", itself: [] };
-export const actionWords = { name: "note", enter: "note", key: "a", purpose: "guardar una nota" };
-export const saved = "Anotada · Nota";
+export const words = { name: { en: "Toy", es: "Juguete" }, key: "j", itself: [] };
+export const actionWords = { name: { en: "note", es: "anotar" }, enter: { en: "note", es: "anotar" }, key: "a",
+  purpose: { en: "save a note", es: "guardar una nota" } };
+export const saved = { en: "Noted · Note", es: "Anotada · Nota" };
 export const promise = "Notes once";
 export const skill = defineMessage({ id: "toy.skill", kind: "skill", parameters: Type.Object({}),
   texts: { en: "Take notes with the program's actions.", es: "Anotá con las acciones del programa." } });

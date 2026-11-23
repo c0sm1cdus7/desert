@@ -64,7 +64,7 @@ describe("mind frame", () => {
 it("rejects a frame attributed to another mind", () => {
   expect(() =>
     buildMindFrame(scope, turn, { ...source, definition: { ...source.definition, actor: "mind:notes" } }),
-  ).toThrow("Mente");
+  ).toThrow("Invalid frame mind");
 });
 
 it("returns tooLarge through the turn port before any model call", () => {

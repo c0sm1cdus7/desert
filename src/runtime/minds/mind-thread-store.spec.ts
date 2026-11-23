@@ -32,7 +32,7 @@ it("neither ignores a corrupt cut nor rewrites the file when rejecting reference
   const home = mkdtempSync(join(tmpdir(), "mind-thread-"));
   try {
     const store = openMindThreads(home);
-    expect(() => store.compact(scope, [], { through: 0, keep: ["absent"] })).toThrow("Referencias");
+    expect(() => store.compact(scope, [], { through: 0, keep: ["absent"] })).toThrow("Invalid thread references");
     writeFileSync(join(home, "mind-threads.json"), JSON.stringify({ version: 9, threads: [] }));
     expect(() => openMindThreads(home)).toThrow("thread.store");
   } finally {

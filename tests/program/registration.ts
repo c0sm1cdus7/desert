@@ -2,6 +2,7 @@
 import { keptNames } from "../../src/checks/kept/kept-names.ts";
 import { keptChecks } from "../../src/checks/kept/kept-journals.ts";
 import { programChecks } from "../../src/checks/program-checks.ts";
+import { languageChecks } from "../../src/checks/promises/cases/promised-languages.ts";
 import type { Check } from "../../src/checks/promises/promised-stage.ts";
 import type { Program } from "../../src/tools/tool-contract.ts";
 import type { Composed } from "./load.ts";
@@ -60,6 +61,7 @@ export function programGroups<X extends Program>({
         },
       ],
     },
+    { name: "the languages the program says its words in", checks: languageChecks(program, shown) },
   ];
 }
 

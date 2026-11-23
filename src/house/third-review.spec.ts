@@ -95,7 +95,7 @@ it("a wake request rejects extra fields and invalid dates with useful errors", (
   const bus = mind.startup().bus;
   for (const at of [NaN, -1, 1e300, "bad"]) {
     expect(() => emitUnchecked(bus, { layer: "house", kind: "wake-at", data: { id: "desk:x", at } })).toThrow(
-      /inválid/i,
+      /invalid/i,
     );
   }
   for (const extra of [{ cause: [] }, { process: "x" }]) {
@@ -104,7 +104,7 @@ it("a wake request rejects extra fields and invalid dates with useful errors", (
     ).toThrow();
   }
   expect(() => emitUnchecked(bus, { layer: "house", kind: "wake-at", data: { id: "other:x", at: null } })).toThrow(
-    /despertar/i,
+    /wake/i,
   );
   expect(() =>
     emitUnchecked(bus, { layer: "house", kind: "wake-at", data: { id: "desk:x", at: null, extra: true } }),

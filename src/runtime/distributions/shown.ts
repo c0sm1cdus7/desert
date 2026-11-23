@@ -1,5 +1,11 @@
 // Presents program folders and each group's own words through the existing surface contract.
-import type { ProgramScreen, ScreenActs, Shown, SurfacePorts } from "../../surface/bridge/ports/house-ports.ts";
+import {
+  say,
+  type ProgramScreen,
+  type ScreenActs,
+  type Shown,
+  type SurfacePorts,
+} from "../../surface/bridge/ports/house-ports.ts";
 import { anyToolScreen } from "../../surface/bridge/views/any-tool.ts";
 import { distributionTexts } from "../../texts/distributions.texts.ts";
 import type { InstalledGroup, InstalledProgram } from "../../tools/installable/runtime.ts";
@@ -56,7 +62,7 @@ function screenFor(program: InstalledProgram, shortcut: boolean): ProgramScreen<
       titleOf: target => {
         const found = find(target);
         return found?.group.folder === target
-          ? found.group.words.name
+          ? say(ports, found.group.words.name)
           : (found?.screen.titleOf?.(target) ?? root.titleOf?.(target) ?? target);
       },
       view: target => {

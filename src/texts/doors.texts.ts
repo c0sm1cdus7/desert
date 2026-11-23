@@ -1,16 +1,16 @@
-// Spanish words for invitation delivery, credential recovery and host setup.
+// Words in every language for invitation delivery, credential recovery and host setup.
 export const doorTexts = {
   promises: {
-    redeemed: "Orienta a la persona invitada para canjear en su equipo",
-    missingInvitation: "Rechaza una invitación ausente",
-    redeemAdmin: "Solo quien administra orienta desde la casa",
-    expiredInvitation: "Rechaza una invitación vencida",
-    invited: "Emite una invitación para una identidad existente",
-    inviteAdmin: "Solo quien administra emite invitaciones",
-    inviteAbsent: "Rechaza invitaciones para quien salió de la casa",
-    revoked: "Revoca una llave vigente",
-    revokeAdmin: "Solo quien administra revoca llaves",
-    unknownKey: "Rechaza una llave inexistente",
+    redeemed: "Guides the invited person to redeem on their own computer",
+    missingInvitation: "Refuses a missing invitation",
+    redeemAdmin: "Only whoever administers guides from the house",
+    expiredInvitation: "Refuses an expired invitation",
+    invited: "Issues an invitation for an existing identity",
+    inviteAdmin: "Only whoever administers issues invitations",
+    inviteAbsent: "Refuses invitations for whoever left the house",
+    revoked: "Revokes a current key",
+    revokeAdmin: "Only whoever administers revokes keys",
+    unknownKey: "Refuses a key that does not exist",
   },
   invitation: {
     name: { en: "new invitation", es: "nueva invitación" },

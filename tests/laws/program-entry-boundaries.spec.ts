@@ -60,7 +60,8 @@ it.each([
   expect(programSecretBoundaries(repo.root).some(reason => reason.endsWith(" → import.meta"))).toBe(true);
 });
 
-it("accepts the Notes declaration and export alias, with testing confined to specs", async () => {
+// It type-checks a whole package: about five seconds alone, more beside other files.
+it("accepts the Notes declaration and export alias, with testing confined to specs", { timeout: 30_000 }, async () => {
   const repo = installablePackage();
   const path = join(repo.root, "src/program.ts");
   writeFileSync(path, readFileSync(path, "utf8") + "\nexport { program as notes };\n");

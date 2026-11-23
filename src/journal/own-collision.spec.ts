@@ -65,5 +65,5 @@ it("a declaration cannot take over a fact reserved for the house", () => {
   expect(() => {
     const rig = shopRig({ registry: [Object.assign({}, salesTool, { facts: ["granted"] }), paymentsTool] });
     rigs.push(rig);
-  }).toThrow(/granted.*casa/);
+  }).toThrow(/granted.*house/);
 });

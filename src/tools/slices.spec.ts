@@ -6,7 +6,8 @@ import { toolTexts } from "../texts/tools.texts.ts";
 import type { Slices, State } from "./tool-contract.ts";
 import { emptyHouseState, startState, toolsStep } from "../house/state.ts";
 import { runner, shopRig } from "../../tests/support/shop-rig.ts";
-import { shopSlices, type Sales, type Shop, type ShopEvent } from "../../tests/support/shop.ts";
+import { repeated, shopSlices, type Sales, type Shop, type ShopEvent } from "../../tests/support/shop.ts";
+import { said } from "../fields/phrases.ts";
 
 const rigs: ReturnType<typeof shopRig>[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
@@ -35,7 +36,7 @@ describe("what each tool keeps", () => {
         .tools()
         .state()
         .entries.filter(entry => !entry.data.silent)
-        .map(entry => entry.data.text),
+        .map(entry => said(entry.data.text, "es")),
     ).toEqual(["Registrada · s1", "Recibido · p1", "Recibido · p2", "Avisado · Pago sin venta · p2"]);
   });
 
@@ -101,7 +102,7 @@ describe("whole tools are the only unit of assignment", () => {
     expect(rig.act("carla", "attend", { target: "sales" }).reason).toBe(toolTexts.unassigned);
     expect(rig.state().tools.sales.size).toBe(0);
     expect(rig.act("ana", "register", { sale: "s1", total: 1 }, "sales").status).toBe("accepted");
-    expect(rig.act("ana", "register", { sale: "s1", total: 1 }, "sales").reason).toBe("repeated");
+    expect(rig.act("ana", "register", { sale: "s1", total: 1 }, "sales").reason).toEqual(repeated);
   });
 
   it("writes every act and its result, also the refused ones", () => {

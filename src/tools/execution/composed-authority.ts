@@ -11,7 +11,7 @@ export function checkOwn<X extends Program>(registry: ToolRegistry<X>, state: St
   for (const act of acts) {
     const tool = targetTool(registry, state, act.object);
     if (tool && Object.hasOwn(tool.acts, act.option))
-      throw new Error(`El acto propio ${act.option} sobre ${act.object} tapa una acción de ${tool.id}`);
+      throw new Error(`The own act ${act.option} on ${act.object} hides an action of ${tool.id}`);
   }
 }
 export function checkComposition<X extends Program>(
@@ -26,7 +26,7 @@ export function checkComposition<X extends Program>(
         throw new Error(meant(deviceTexts.invalid));
     for (const kind of tool.facts ?? []) {
       if (layerOf(kind) === "house" || owners.has(kind))
-        throw new Error(`El hecho ${kind} de ${tool.id} ya pertenece a ${owners.get(kind) ?? "la casa"}`);
+        throw new Error(`The fact ${kind} of ${tool.id} already belongs to ${owners.get(kind) ?? "the house"}`);
       owners.set(kind, tool.id);
     }
   }

@@ -1,4 +1,5 @@
 // Shops that break a promise, each in one way: the derived checks have to catch exactly what each one broke.
+import type { Text } from "../../src/fields/phrases.ts";
 import { emptyHouse } from "../../src/house/members.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { RunResult } from "../../src/tools/outside.ts";
@@ -8,6 +9,7 @@ import { chargingShop } from "./charging-shop.ts";
 import {
   registerCases,
   registerOffer,
+  repeated,
   salesTool,
   shop,
   shopCatalog,
@@ -22,12 +24,13 @@ type Told = { sale: string; total: number };
 type Run = (input: Told, context: ActContext<Shop>) => RunResult<Shop, readonly []>;
 const honest: Run = (input, { by }) => ({
   status: "accepted",
-  text: `Registrada · ${input.sale}`,
+  text: { en: `Registered · ${input.sale}`, es: `Registrada · ${input.sale}` },
   effects: [shop.fact("sale-registered", input, by)],
 });
 const stops = salesTool.acts.register?.stops ?? (() => undefined);
 /** The shop with another way of registering a sale, under the same promises. */
-const registering = (run: Run, refuses: readonly string[] = ["repeated"], repeat = false): Composition<Shop> => {
+const closed = { en: "closed", es: "cerrada" };
+const registering = (run: Run, refuses: readonly Text[] = [repeated], repeat = false): Composition<Shop> => {
   const input = shopCatalog["sale-registered"];
   const register = programAct<Shop, typeof input>({
     ...registerOffer,
@@ -42,7 +45,7 @@ const registering = (run: Run, refuses: readonly string[] = ["repeated"], repeat
 /** The shop that speaks to who registered: its case promises those very words, so only how it says it is wrong. */
 const speaking = (): Composition<Shop> => {
   const input = shopCatalog["sale-registered"];
-  const says = "Registraste · s1";
+  const says = { en: "Registered · s1 · for you", es: "Registraste · s1" };
   const [first, second] = registerCases;
   const cases = [{ ...first, then: { ...first.then, says } }, second] as const;
   const run: Run = (said, context) => {
@@ -52,7 +55,7 @@ const speaking = (): Composition<Shop> => {
   const register = programAct<Shop, typeof input>({
     ...registerOffer,
     input,
-    refuses: ["repeated"],
+    refuses: [repeated],
     stops: stops,
     run,
     cases,
@@ -108,7 +111,7 @@ export const brokenShops: readonly Readonly<{
   },
   {
     name: "a shop that registers the same sale twice",
-    program: registering(honest, ["repeated"], true),
+    program: registering(honest, [repeated], true),
     fails: [again, keys(again)],
     because: ["The refusal differs from the case", "An internal refusal could be submitted"],
   },
@@ -116,11 +119,11 @@ export const brokenShops: readonly Readonly<{
     name: "a shop that refuses with a cause it never declared",
     program: registering(honest, []),
     fails: [covered, again, keys(again)],
-    because: ["Declared causes differ from the cases", "E-PROG-1 · The program failed · registrar"],
+    because: ["Declared causes differ from the cases", "E-PROG-1 · The program failed · register"],
   },
   {
     name: "a shop that declares a refusal and promises no case for it",
-    program: registering(honest, ["repeated", "closed"]),
+    program: registering(honest, [repeated, closed]),
     fails: [covered],
     because: ["Declared causes differ from the cases"],
   },
@@ -131,13 +134,13 @@ export const brokenShops: readonly Readonly<{
       return done.status === "accepted" ? { ...done, text: "Done" } : done;
     }),
     fails: [told, keys(told)],
-    because: ["The action says something other than its case", "the screen does not say: Registrada · s1"],
+    because: ["The action says something other than its case", "the screen does not say: Registered · s1"],
   },
   {
     name: "a shop that says what was done to who did it, as it promised to",
     program: speaking(),
     fails: [told],
-    because: ["what the act says speaks to who reads it: Registraste · s1"],
+    because: ["what the act says speaks to who reads it: Registered · s1 · for you"],
   },
   {
     name: "a shop that keeps another total than the one its sale reads",

@@ -1,5 +1,6 @@
 // A failed program has one public result; Activity keeps its technical detail for support.
 import { inspect } from "node:util";
+import { isPhrase } from "../fields/phrases.ts";
 import { effect, type HouseEvent } from "../house/facts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { OutsideDefect } from "../fields/program-call.ts";
@@ -12,7 +13,7 @@ export function defectEntry(
   declared?: object,
 ) {
   const name: unknown = declared && Reflect.get(declared, "name");
-  const reason = toolTexts.defect(typeof name === "string" ? name : `${tool}/${option}`);
+  const reason = toolTexts.defect(typeof name === "string" || isPhrase(name) ? name : `${tool}/${option}`);
   const detail = {
     action: option,
     target,

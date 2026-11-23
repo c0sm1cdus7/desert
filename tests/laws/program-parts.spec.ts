@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { program, shown } from "../support/shop-program.ts";
 import { keptChecks } from "../../src/checks/kept/kept-journals.ts";
+import { languageChecks } from "../../src/checks/promises/cases/promised-languages.ts";
 import { programChecks } from "../../src/checks/program-checks.ts";
 import { checksInPart, programPartCount } from "../program/parts.ts";
 import { summarize } from "../program/manifest.ts";
@@ -66,6 +67,7 @@ describe("every derived check belongs to one part", () => {
       check => `what the program composed in ${where} promises > ${check.name}`,
     );
     original.push(
+      ...languageChecks(program, shown).map(check => `the languages the program says its words in > ${check.name}`),
       "the journals the program keeps > checks upgrade evidence even when the program names no journal folder",
       ...keptChecks(program, shown).map(check => `the journals the program keeps > ${check.name}`),
       /** Law 212 joined the parts: the same check that had its own file, run once. */

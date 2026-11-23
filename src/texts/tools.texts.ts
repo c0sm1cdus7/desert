@@ -56,9 +56,9 @@ export const toolTexts = {
   outsideKit: { en: "outside the kit", es: "fuera del kit" },
   kitRefusal: (tool: string) =>
     tool === "identities" || tool === "rules" ? identityTexts.only : { en: "outside the kit", es: "fuera del kit" },
-  defect: (act: string) => ({
-    en: `E-PROG-1 · The program failed · ${act}`,
-    es: `E-PROG-1 · Falló el programa · ${act}`,
+  defect: (act: Text) => ({
+    en: `E-PROG-1 · The program failed · ${said(act, "en")}`,
+    es: `E-PROG-1 · Falló el programa · ${said(act, "es")}`,
   }),
   baseFailure: { en: "E-BASE-1 · The base failed", es: "E-BASE-1 · Falló la base" },
   disconnected: { en: "no connection with the service", es: "sin conexión con el servicio" },

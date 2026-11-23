@@ -114,7 +114,7 @@ it("a broken program fold records a defect and rolls back its facts instead of e
     expect(done).toMatchObject({
       status: "rejected",
       defect: true,
-      reason: { en: "E-PROG-1 · The program failed · registrar", es: "E-PROG-1 · Falló el programa · registrar" },
+      reason: { en: "E-PROG-1 · The program failed · register", es: "E-PROG-1 · Falló el programa · registrar" },
     });
     expect(wroteSince(house(), before)).toEqual([]);
     expect(JSON.stringify(house().tools.state().entries)).toContain("broken fold");

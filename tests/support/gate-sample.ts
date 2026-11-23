@@ -46,7 +46,13 @@ function destination(at: NonNullable<ProgramAct<Shop>["execution"]>["at"]) {
   });
 }
 const input = object({
-  material: Type.String({ secret: true, title: words.secret, placeholder: words.placeholder, maxLength: 100 }),
+  material: Type.String({
+    secret: true,
+    title: words.secret.en,
+    said: words.secret,
+    placeholder: words.placeholder,
+    maxLength: 100,
+  }),
 });
 export const gateSample: ProgramTool<Shop> = {
   id: "sample",

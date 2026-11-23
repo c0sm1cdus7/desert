@@ -116,7 +116,7 @@ it("acts with the socket book, accepts once and explains a refusal", async () =>
   expect(JSON.parse(accepted.body)).toMatchObject({ result: { content: [{ text: "Registrada · one" }] } });
   const rejected = await h.call("act", args, h.beto);
   expect(JSON.parse(rejected.body)).toMatchObject({ result: { isError: true } });
-  expect(rejected.body).toContain("repeated");
+  expect(rejected.body).toContain("repetida");
   const acts = h.rig.facts().filter(event => event.layer === "house" && event.kind === "act");
   expect(acts.every(event => event.cause.some(cause => cause.startsWith("socket-request:")))).toBe(true);
   expect(h.rig.state().tools.sales.get("one")?.by).toBe("beto");

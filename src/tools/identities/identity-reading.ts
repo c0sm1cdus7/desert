@@ -34,7 +34,7 @@ export const identityWords: ToolWords = {
   reads: {},
   presents: [
     {
-      title: "Identidad",
+      title: words.one,
       empty: words.emptyData,
       reads: { identifier: words.identifier, name: words.display, state: words.state, language: words.language },
     },

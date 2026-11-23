@@ -81,5 +81,5 @@ it("preserves uncovered activity and drops whole objects before older thread ent
   }
 });
 it("rejects an invalid bound instead of assuming a token estimate", () => {
-  expect(() => fitMindFrame(snapshot, "es", { max: 100, bound: () => Number.NaN })).toThrow("Cota");
+  expect(() => fitMindFrame(snapshot, "es", { max: 100, bound: () => Number.NaN })).toThrow("Invalid input bound");
 });

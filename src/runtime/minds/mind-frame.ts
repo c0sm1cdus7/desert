@@ -37,7 +37,7 @@ export function buildMindFrame(scope: MindScope, turn: TurnContext, source: Fram
     (scope.kind === "journey" && (turn.scope.kind !== "journey" || scope.process !== turn.scope.process))
   )
     throw new Error("Invalid turn scope");
-  if (source.definition.actor !== scope.actor) throw new Error("Mente de marco inválida");
+  if (source.definition.actor !== scope.actor) throw new Error("Invalid frame mind");
   return {
     scope,
     through: turn.through,

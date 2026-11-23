@@ -1,4 +1,4 @@
-// Spanish MCP tool descriptions, orientation, results and protocol errors.
+// MCP tool descriptions, orientation, results and protocol errors, in every language.
 export const mcpTexts = {
   instructions: {
     en: "The house gathers identities and programs. Objects: notes/notes/<id>. Cents: 4500 is 45.00.",

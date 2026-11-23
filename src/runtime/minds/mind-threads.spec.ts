@@ -25,7 +25,7 @@ it("never drops an arrival made after compaction even inside the old interval", 
 it("rejects a reference outside the compacted interval", () => {
   expect(() =>
     threadStep({ entries: [{ seq: 3, id: "future", text: "tres" }], compacted: [] }, { through: 2, keep: ["future"] }),
-  ).toThrow("Referencias");
+  ).toThrow("Invalid thread references");
 });
 it("separates the consciousness and journeys of different minds", () => {
   const empty = { entries: [], compacted: [] };

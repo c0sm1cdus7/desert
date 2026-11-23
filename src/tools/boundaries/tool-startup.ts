@@ -87,9 +87,7 @@ function startupEmission<P extends Foreign>(
     throw new OutsideDefect(new Error(meant(journalTexts.executionOnly)));
   };
   const wakeRefuse = (): never => {
-    throw new OutsideDefect(
-      new Error("Despertar inválido o ajeno: pedí un despertar propio por el bus; para hechos usá act"),
-    );
+    throw new OutsideDefect(new Error("Invalid or foreign wake: ask for an own wake on the bus; facts go through act"));
   };
   const isWake = entry.layer === "house" && entry.kind === "wake-at";
   const by: unknown = Reflect.get(entry, "by");

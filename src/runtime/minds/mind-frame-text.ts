@@ -90,7 +90,7 @@ type Section = (index: number, content: string) => string;
 function makeSection(labels: readonly string[], language: Language): Section {
   return (index: number, content: string) => {
     const name = labels[index];
-    if (name === undefined) throw new Error("Rótulo de marco ausente");
+    if (name === undefined) throw new Error("Missing frame label");
     return frameSection.text(language, { name, content });
   };
 }

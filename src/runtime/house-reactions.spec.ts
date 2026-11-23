@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it, vi } from "vitest";
+import { said } from "../fields/phrases.ts";
 import { effect } from "../house/facts.ts";
 import { startHouse } from "./house-runtime.ts";
 import { shop, shopRegistry, shopSlices, type ShopEvent } from "../../tests/support/shop.ts";
@@ -24,7 +25,7 @@ it("recovers from disk without thinking and does not notify again on rebuilding"
   let house = startHouse(home, options);
   const entries = () => house.journal.replay<ShopEvent[]>([], (all, event) => [...all, event]);
   const notices = () =>
-    entries().filter(e => e.kind === "tool-entry" && e.data.text === "Avisado · Pago sin venta · p1");
+    entries().filter(e => e.kind === "tool-entry" && said(e.data.text, "es") === "Avisado · Pago sin venta · p1");
   try {
     house.bus.emit(effect("kit-set", { holder: "mind:payments", tool: "payments", acts: [] }, "ana"));
     house.bus.emit(shop.fact("payment-received", { payment: "p1", amount: 10 }, "ana"));

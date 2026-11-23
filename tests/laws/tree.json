@@ -67,6 +67,7 @@
     "checks/promises/answers/repeated-answer.ts": "Repeats a current answer by keys without running an action or showing it unchanged.",
     "checks/promises/cases/also-causes.ts": "An origin-specific cause has a case too; its ordinary execution may be closed by a different rule.",
     "checks/promises/cases/opening-checks.ts": "Checks initial values computed over the states and destinations of each case.",
+    "checks/promises/cases/promised-languages.ts": "languageChecks: a program says every word it declares in every language",
     "checks/promises/cases/promised-laws.ts": "lawChecks, coverage: the laws every act keeps, checked from a case the house accepts",
     "checks/promises/cases/promised-shapes.ts": "bareIn: the data of a case written in a shape of digits, which no reading may show without it",
     "checks/promises/cases/promised.ts": "Every check a program's promises derive: nobody writes them. Each case is a check; so is each law of every act.",

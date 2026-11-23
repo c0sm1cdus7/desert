@@ -75,7 +75,7 @@ it("every open reader sees identity and mind data change, including the direct o
         state:
           value === "yes" ? { en: "Some actions", es: "Algunas acciones" } : { en: "No actions", es: "Sin acciones" },
         kit: [
-          { en: `registrar · ${value}`, es: `registrar · ${value === "yes" ? "sí" : "no"}` },
+          { en: `register · ${value}`, es: `registrar · ${value === "yes" ? "sí" : "no"}` },
           { en: "aguardar · no", es: "aguardar · no" },
         ],
       });

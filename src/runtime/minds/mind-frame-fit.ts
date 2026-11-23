@@ -8,7 +8,7 @@ export type FitResult =
   Readonly<{ tooLarge: true }> | Readonly<{ tooLarge: false; frame: MindFrame; omitted: readonly string[] }>;
 export function fitMindFrame(snapshot: FrameSnapshot, language: Language, limits: FrameLimits): FitResult {
   if (!Number.isSafeInteger(limits.max) || limits.max < 0 || typeof limits.bound !== "function")
-    throw new Error("Límite de marco inválido");
+    throw new Error("Invalid frame limit");
   const seen = new Set<string>();
   let activity = snapshot.activity.filter(item => {
     if (seen.has(item.id)) return false;
@@ -22,13 +22,13 @@ export function fitMindFrame(snapshot: FrameSnapshot, language: Language, limits
   const frame = () => renderMindFrame({ ...snapshot, activity, objects, thread }, language, counts);
   const fits = (value: MindFrame) => {
     const size = limits.bound(value);
-    if (!Number.isSafeInteger(size) || size < 0) throw new Error("Cota de entrada inválida");
+    if (!Number.isSafeInteger(size) || size < 0) throw new Error("Invalid input bound");
     return size <= limits.max;
   };
   let current = frame();
   const remove = (items: readonly FrameItem[], index: number, section: keyof typeof counts) => {
     const item = items[index];
-    if (item === undefined) throw new Error("Elemento de marco ausente");
+    if (item === undefined) throw new Error("Missing frame element");
     omitted.push(item.id);
     counts[section] += 1;
     return items.filter((_, i) => i !== index);
