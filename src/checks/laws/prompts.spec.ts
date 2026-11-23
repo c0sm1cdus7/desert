@@ -43,6 +43,17 @@ it("catches instructions and limits each exemption to its exact existing tokens"
     "src/a.ts",
   );
 });
+it("23/11: a program's skill, declared through desert/messages, may tell a mind how to behave in any language", () => {
+  const skill = (from: string) =>
+    `import { defineMessage } from "${from}";\n` +
+    'export const skill = defineMessage({ id: "s", kind: "skill", parameters: {}, ' +
+    'texts: { en: "You are its mind: never edit.", es: "Sos su mente: nunca edites." } });';
+  expect(hiddenRules(lawRepository({ "src/skill.ts": skill("desert/messages") }), { exempt: {} })).toEqual([]);
+  expect(hiddenRules(lawRepository({ "src/skill.ts": skill("other/messages") }), { exempt: {} })).toEqual([
+    "src/skill.ts: You are its mind: never edit.",
+    "src/skill.ts: Sos su mente: nunca edites.",
+  ]);
+});
 it("catches instruction files and expired data exemptions", () => {
   const repo = lawRepository({ "src/rules.md": "Instructions" });
   expect(instructionFiles(repo, { data: {} })).toEqual(["src/rules.md"]);

@@ -17,7 +17,8 @@ export function messageDeclarations(source: ts.SourceFile): readonly ts.Expressi
   const names = new Set<string>();
   for (const statement of source.statements) {
     if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
-    if (!/(?:^|\/)fields\/messages\.ts$/.test(statement.moduleSpecifier.text)) continue;
+    /** DESERT's own messages module, or the public entry a program imports it through. */
+    if (!/(?:^|\/)fields\/messages\.ts$|^desert\/messages$/.test(statement.moduleSpecifier.text)) continue;
     const bindings = statement.importClause?.namedBindings;
     if (!bindings || !ts.isNamedImports(bindings)) continue;
     for (const binding of bindings.elements) {
