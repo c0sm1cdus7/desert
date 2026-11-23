@@ -117,3 +117,15 @@ it("accepts an installable fact emitted as a registered action's literal effect"
     }),
   ).toEqual([]);
 });
+it("reads a kind nested inside a declared fact's data or a case's expected data as data, not as a fact", () => {
+  expect(
+    inspect({
+      "src/factory.ts": factories,
+      "src/program.ts": `import {programAct} from './factory.ts';
+      const document = {kind:"tax-id",number:"1"}; const changes=[{kind:"owned",schema:{}}];
+      const cases=[{then:{facts:[{kind:"owned",data:{document,other:{kind:"passport"}}}]}}];
+      export const program={facts:changes,tools:{notes:{acts:{write:programAct({cases,
+      run:()=>({effects:[{layer:"program",kind:"owned",data:{}}]})})}}}};`,
+    }),
+  ).toEqual([]);
+});

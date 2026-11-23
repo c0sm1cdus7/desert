@@ -122,6 +122,15 @@ it("rejects a tool modified directly in the composition", () => {
   });
   expect(found.some(message => message.includes("separate tool declarations"))).toBe(true);
 });
+it("accepts a list of act names next to the registry: a program's messages declare no tool", () => {
+  const found = fixture({
+    "src/main.ts":
+      "import { tool } from '../lib/t.ts'; const talk = { read: () => undefined, acts: ['t/say'] }; " +
+      "export const program = { registry: [tool], talk };",
+    "lib/t.ts": 'export const tool = { id: "t", acts: {} };',
+  });
+  expect(found.some(message => message.includes("separate tool declarations"))).toBe(false);
+});
 it("points at the program's composition when its registry is computed", () => {
   const found = fixture({
     "src/main.ts":

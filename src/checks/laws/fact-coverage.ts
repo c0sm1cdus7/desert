@@ -50,18 +50,34 @@ function emitter(graph: CatalogGraph, node: ts.CallExpression): boolean {
     ) === true
   );
 }
-function installableFacts(graph: CatalogGraph, node: ts.Node, found: Map<string, string>, seen = new Set<ts.Node>()) {
+/** The kinds an installable program declares: each element of its `facts` list names one with its own `kind`. A value
+ * nested inside an element (a datum's own `kind`, a case's expected data) declares nothing. */
+function elementKinds(graph: CatalogGraph, element: ts.ObjectLiteralExpression, found: Map<string, string>): void {
+  for (const item of element.properties)
+    if (ts.isPropertyAssignment(item) && item.name.getText() === "kind")
+      for (const kind of values(graph, item.initializer)) found.set(kind, nodeLocation(item));
+}
+function installableFacts(
+  graph: CatalogGraph,
+  node: ts.Node,
+  found: Map<string, string>,
+  seen = new Set<ts.Node>(),
+): void {
   if (seen.has(node)) return;
   seen.add(node);
-  visitNodes(node, child => {
-    if (ts.isPropertyAssignment(child) && child.name.getText() === "kind")
-      for (const kind of values(graph, child.initializer)) found.set(kind, nodeLocation(child));
-    if (ts.isIdentifier(child)) {
-      for (const declaration of graph.symbol(child)?.declarations ?? [])
-        if (ts.isVariableDeclaration(declaration) && declaration.initializer)
-          installableFacts(graph, declaration.initializer, found, seen);
-    }
-  });
+  const follow = (next: ts.Node): void => {
+    installableFacts(graph, next, found, seen);
+  };
+  if (ts.isArrayLiteralExpression(node))
+    node.elements.forEach(element => {
+      follow(ts.isSpreadElement(element) ? element.expression : element);
+    });
+  else if (ts.isObjectLiteralExpression(node)) elementKinds(graph, node, found);
+  else if (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isSatisfiesExpression(node))
+    follow(node.expression);
+  else if (ts.isIdentifier(node))
+    for (const declaration of graph.symbol(node)?.declarations ?? [])
+      if (ts.isVariableDeclaration(declaration) && declaration.initializer) follow(declaration.initializer);
 }
 function literalFact(graph: CatalogGraph, node: ts.Node, core: boolean): string[] {
   if (!ts.isObjectLiteralExpression(node)) return [];

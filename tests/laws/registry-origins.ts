@@ -182,7 +182,11 @@ class RegistryTrace {
     const visit = (node: ts.Node): void => {
       if (ts.isObjectLiteralExpression(node)) {
         const type = this.checker.getTypeAtLocation(node);
-        if (type.getProperty("acts") || type.getProperty("run"))
+        const acts = type.getProperty("acts");
+        // A list of act names (a program's messages) declares no tool; a record of acts does.
+        const given = acts && this.checker.getTypeOfSymbolAtLocation(acts, node);
+        const named = given && !(given.flags & ts.TypeFlags.Any) && this.checker.isArrayLikeType(given);
+        if ((acts && !named) || type.getProperty("run"))
           this.fail(node, "separate tool declarations from composition and adapters");
       }
       ts.forEachChild(node, visit);
