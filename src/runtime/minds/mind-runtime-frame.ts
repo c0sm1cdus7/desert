@@ -125,7 +125,8 @@ function snapshotFor<X extends Program>(
 ) {
   const history = house.history();
   const { journeys: all, devices } = view.state.house;
-  const seen = { journeys: all, devices, journey: scope.process, message: options.message };
+  const language = (identity: string) => view.state.house.languages.get(identity);
+  const seen = { journeys: all, devices, journey: scope.process, message: options.message, language };
   const words = wakeWords(history, seen, turn.wake, workingLanguage);
   const woke = withInterrupts(words, turn.wake, history, view.state, workingLanguage);
   const scene = view.state.house.minds.scenes.get(scope.process ?? scope.actor)?.data.text ?? "";

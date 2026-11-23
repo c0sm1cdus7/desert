@@ -16,6 +16,8 @@ type Seen = Readonly<{
   journey?: string | undefined;
   /** How the programs read a fact as a message, so a waking message is said as it reads. */
   message?: ((event: Event) => ProgramMessage | undefined) | undefined;
+  /** The language each identity reads the house in: a message from one is answered in it. */
+  language?: ((identity: string) => Language | undefined) | undefined;
 }>;
 type NoticeStatus = HouseEvent<"device-execution-notice">["data"]["status"];
 /** How many turns of this journey were cut up to this one: a fact, not a limit. A restart is no failure of the mind,
@@ -104,10 +106,12 @@ function actDetail(history: readonly Event[], act: Event, language: Language): s
 }
 /** Any fact said as itself: a message as the programs read it, an act, a journey's news, else its kind and author. */
 export function factLine(event: Event, seen: Seen, language: Language, history: readonly Event[]): string {
-  const message = seen.message?.(event);
-  if (message) return message.text;
-  const say = (kind: "opened" | "due" | "act" | "other", what: string, where = "", detail = "") =>
+  const say = (kind: "opened" | "due" | "act" | "message" | "other", what: string, where = "", detail = "") =>
     wakeFact.text(language, { kind, who: event.by, what, where, detail });
+  const message = seen.message?.(event);
+  /** A message from an identity says who wrote it and the language to write back to them in. */
+  const reads = message && seen.language?.(event.by);
+  if (message) return reads ? say("message", message.text, "", reads) : message.text;
   if (event.layer !== "house") return say("other", event.kind);
   if (event.kind === "act")
     return say("act", event.data.option, event.data.object, actDetail(history, event, language));

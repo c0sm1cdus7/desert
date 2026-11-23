@@ -82,14 +82,14 @@ export function declaredWords<X extends Program>(tool: ProgramTool<X>, shown: Sh
 export function languageChecks<X extends Program>(program: Composition<X>, shown: Shown<X>): readonly Check[] {
   return program.registry.map(tool => ({
     name: `${tool.id} · ${said.everyLanguage}`,
-    run: () => {
-      const missing = declaredWords(tool, shown).filter(([, text]) => !isPhrase(text));
-      deepStrictEqual(
-        missing.map(([where]) => where),
-        [],
-        said.oneLanguage(tool.id),
-      );
-      return Promise.resolve();
-    },
+    run: () =>
+      Promise.resolve().then(() => {
+        const missing = declaredWords(tool, shown).filter(([, text]) => !isPhrase(text));
+        deepStrictEqual(
+          missing.map(([where]) => where),
+          [],
+          said.oneLanguage(tool.id),
+        );
+      }),
   }));
 }

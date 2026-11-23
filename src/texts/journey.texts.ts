@@ -159,7 +159,7 @@ export const wakeFact = defineMessage({
   id: "journey.wake.fact",
   kind: "text",
   parameters: object({
-    kind: Type.Union(["opened", "due", "act", "other"].map(kind => Type.Literal(kind))),
+    kind: Type.Union(["opened", "due", "act", "message", "other"].map(kind => Type.Literal(kind))),
     who: Type.String(),
     what: Type.String(),
     where: Type.String(),
@@ -171,6 +171,7 @@ export const wakeFact = defineMessage({
         opened: "Your consciousness opened this journey; its goal is in Context.",
         due: `The time you chose when waiting has come: ${detail}`,
         act: `${who} did ${what} on ${where}${detail ? `: ${detail}` : ""}`,
+        message: `${who} wrote: ${what} (write to ${who} in ${detail})`,
         other: `${who}: ${what}${where ? ` on ${where}` : ""}${detail ? ` · ${detail}` : ""}`,
       })[kind] ?? what,
     es: ({ kind, who, what, where, detail }) =>
@@ -178,6 +179,7 @@ export const wakeFact = defineMessage({
         opened: "Tu consciencia abrió este journey; su objetivo está en Contexto.",
         due: `Llegó la hora que elegiste al esperar: ${detail}`,
         act: `${who} hizo ${what} en ${where}${detail ? `: ${detail}` : ""}`,
+        message: `${who} escribió: ${what} (escribile a ${who} en ${detail})`,
         other: `${who}: ${what}${where ? ` en ${where}` : ""}${detail ? ` · ${detail}` : ""}`,
       })[kind] ?? what,
   },

@@ -134,10 +134,12 @@ describe("the tree of src/", () => {
   // few English-only texts a person reads gain their Spanish (UNSIGNED).
   // 23/11 language: +3 exact: «Identity» as the title of an identity's stack, and the gate's two lines on a
   // program that declares a word in one language only (UNSIGNED).
-  it("keeps every file within 300 lines and the texts within 2513", () => {
+  // 23/11 language: +2 exact in journey.texts.ts: a waking message names who wrote it and the language to write back
+  // to them in (UNSIGNED).
+  it("keeps every file within 300 lines and the texts within 2515", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(2513);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(2515);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));
