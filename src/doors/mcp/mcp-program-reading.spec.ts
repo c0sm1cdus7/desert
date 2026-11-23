@@ -54,6 +54,7 @@ describe.each(["handler", "HTTP"])("installed program reading through MCP %s", t
     rig
       .house()
       .bus.emit(effect("granted", { version: 2, identity: "martin", kit: { version: 2, selections: [] } }, "ana"));
+    rig.house().bus.emit(effect("language-set", { identity: "martin", language: "es" }, "ana"));
     const keys = new Map<string, DoorKey>();
     const credentials = new Map(
       ["ana", "martin"].map(identity => {
@@ -134,7 +135,7 @@ function readingCases(access: () => Context) {
     expect(root.isError).toBe(false);
     const folders = mcpList(root);
     expect(folders.map((folder: { id: string }) => folder.id)).toEqual(["notes/personal", "notes/shared"]);
-    const terminal = houseTools(rig.ports(), composition.shown).find(tool => tool.id === "notes");
+    const terminal = houseTools(rig.ports(), composition.shown, "es").find(tool => tool.id === "notes");
     for (const folder of folders) {
       const reading = await read(folder.id);
       expect(reading.isError).toBe(false);
@@ -160,7 +161,7 @@ function readingCases(access: () => Context) {
       const before = rig.state().through;
       for (const name of ["read", "actions"]) {
         expect(await call(name, { program: "notes", target: target })).toEqual({
-          content: [{ type: "text", text: mcpTexts.action }],
+          content: [{ type: "text", text: mcpTexts.action.es }],
           isError: true,
         });
       }
@@ -199,14 +200,14 @@ function actionCases(access: () => Context) {
   });
   it("lets an identity without the program read all levels, with actions disabled just like the terminal", async () => {
     const { rig, read, call, composition } = access();
-    const terminal = houseTools(localPorts(rig.house(), "martin", { recentLines: 20 }), composition.shown).find(
+    const terminal = houseTools(localPorts(rig.house(), "martin", { recentLines: 20 }), composition.shown, "es").find(
       tool => tool.id === "notes",
     );
     for (const target of ["notes", "notes/personal", "notes/shared", "notes/personal/same", "notes/shared/a%2Fb%23c"]) {
       expect(await read(target, "martin")).toEqual(await read(target));
       const actions = mcpActions(await call("actions", { program: "notes", target: target }, "martin"));
       for (const action of actions) {
-        expect(action.reason).toBe(toolTexts.kitRefusal("notes"));
+        expect(action.reason).toBe(toolTexts.kitRefusal("notes").es);
         expect(terminal?.actsOn?.[action.action]?.off?.(target)).toBe(action.reason);
         const before = rig.state().through;
         expect(
@@ -284,7 +285,8 @@ function replayCases(access: () => Context) {
         const result = mcpResult(response.body);
         expect(result.isError).toBe(false);
         if (name === "read") expect(rows(result)).toEqual({ count: 1 });
-        else expect(rows(result)).toMatchObject([{ action: "personal/edit", reason: toolTexts.kitRefusal("notes") }]);
+        else
+          expect(rows(result)).toMatchObject([{ action: "personal/edit", reason: toolTexts.kitRefusal("notes").es }]);
       }
     } finally {
       await reopened.close();

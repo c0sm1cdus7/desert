@@ -94,6 +94,6 @@ it("preserves the action's own confirmation and irreversible warning beside the 
   await f.press("c");
   expect(f.screen()).toContain("Confirmación original");
   expect(f.screen()).toContain("Ejecutar en Casa");
-  expect(f.screen()).toContain(genericTexts.irreversible);
+  expect(f.screen()).toContain(genericTexts.irreversible.es);
   expect(f.rig.state().tools.sales.size).toBe(0);
 });

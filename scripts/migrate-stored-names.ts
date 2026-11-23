@@ -1,4 +1,5 @@
 // Migrates a house journal (English names, a language per identity) and a model account: `pnpm migrate-names`.
+import { meant } from "../src/fields/phrases.ts";
 import { checkStoredNames, migrateStoredNames, type StoredJournal } from "../src/runtime/stored-names.ts";
 import { storedNamesTexts } from "../src/texts/stored-names.texts.ts";
 
@@ -22,20 +23,20 @@ export function migrationArguments(args: readonly string[]) {
 export function migrationCommand(args: readonly string[], say: (line: string) => void): number {
   const parsed = migrationArguments(args);
   if (!parsed) {
-    say(storedNamesTexts.usage);
+    say(meant(storedNamesTexts.usage));
     return 2;
   }
   if (parsed.backup === undefined) {
-    say(storedNamesTexts.backupRequired);
+    say(meant(storedNamesTexts.backupRequired));
     return 2;
   }
   for (const [file, journal] of parsed.files)
     try {
       const result = migrateStoredNames(file, journal, parsed.backup);
       checkStoredNames(file, journal);
-      say(storedNamesTexts.migrated(file, result.changed, result.rows, result.spoken, result.backup));
+      say(meant(storedNamesTexts.migrated(file, result.changed, result.rows, result.spoken, result.backup)));
     } catch (error) {
-      say(storedNamesTexts.failed(file, error instanceof Error ? error.message : String(error)));
+      say(meant(storedNamesTexts.failed(file, error instanceof Error ? error.message : String(error))));
       return 1;
     }
   return 0;

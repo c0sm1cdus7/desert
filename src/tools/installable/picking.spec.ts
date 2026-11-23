@@ -1,4 +1,5 @@
 // A program whose tools pick among each other's things: its questions, readings, needs and listed tools.
+import { meant, wordsIn } from "../../fields/phrases.ts";
 import { describe, expect, it } from "vitest";
 import {
   pickingDistribution,
@@ -31,9 +32,11 @@ const stock = async (house: House<Picking>, ...names: readonly string[]): Promis
   for (const name of names) await accepted(house, { act: "items/add", on: folder("items"), input: { name } });
 };
 const rowsAt = <X extends Program>(seat: Seat<X>, target?: string) =>
-  stacksOf({ kind: "view", tool: "picking", at: 0, ...(target === undefined ? {} : { target }) }, seat.tools).flatMap(
-    stack => stack.rows,
-  );
+  stacksOf(
+    { kind: "view", tool: "picking", at: 0, ...(target === undefined ? {} : { target }) },
+    seat.tools,
+    seat.language,
+  ).flatMap(stack => stack.rows);
 /** The question a person has in front and what it offers, as the terminal draws it. */
 function question(seat: Seat<Picking>) {
   const { body } = seat.router.screen(view);
@@ -195,8 +198,8 @@ describe("what a reading names outside the tool that reads", () => {
   it.each([["nope"], [7]])("fails loud on a reading that names a thing of tool %j, which its program lacks", tool =>
     reading({ bogus: { id: "1", text: "Fantasma", tool } }, (seat, house) => {
       goTo(seat, "picking", thingOf("items", "1"));
-      expect(seat.router.screen(view).title).toBe(surface.error);
-      expect(seat.defects).toEqual([tools.defect("picking/picking")]);
+      expect(seat.router.screen(view).title).toBe(seat.say(surface.error));
+      expect(seat.defects).toEqual([meant(tools.defect("picking/picking"))]);
       const told = house.journal.replay<string[]>([], (all, event) =>
         event.layer === "house" && event.kind === "tool-entry" ? [...all, event.data.diagnostic ?? ""] : all,
       );
@@ -219,8 +222,12 @@ describe("what a tool itself needs", () => {
     staged(program, async ({ house }) => {
       const seat = seated(house(), cast.admin, shown);
       const needs = (tool?: string) =>
-        stacksOf(tool === undefined ? { kind: "menu", at: 0 } : { kind: "view", tool, at: 0 }, seat.tools)
-          .find(stack => stack.title === surface.attentionList)
+        stacksOf(
+          tool === undefined ? { kind: "menu", at: 0 } : { kind: "view", tool, at: 0 },
+          seat.tools,
+          seat.language,
+        )
+          .find(stack => stack.title === wordsIn(surface, seat.language).attentionList)
           ?.rows.filter(row => row.open?.kind === "view" && row.open.tool === "picking");
       try {
         const row = { title: "Pedidos", detail: said.pending, opens: folder("orders") };
@@ -251,8 +258,8 @@ describe("the tools a program holds", () => {
       });
       const seat = seated(house(), cast.admin, shown);
       try {
-        const listed = stacksOf({ kind: "view", tool: "picking", at: 0 }, seat.tools).find(
-          stack => stack.title === distribution.groups,
+        const listed = stacksOf({ kind: "view", tool: "picking", at: 0 }, seat.tools, seat.language).find(
+          stack => stack.title === wordsIn(distribution, seat.language).groups,
         );
         expect(listed?.rows.map(row => [row.title, row.opens])).toEqual([
           ["Cosas", folder("items")],

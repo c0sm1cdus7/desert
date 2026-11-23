@@ -9,14 +9,14 @@ import { actOf, start, type Session } from "./screen.ts";
 import type { Tool } from "../contract/shown-tool.ts";
 import { finished, step } from "../router/step.ts";
 
-const bar = { state: "connected", clock: "14:32", battery: "71%", now: 5_000 } as const;
+const bar = { language: "es", state: "connected", clock: "14:32", battery: "71%", now: 5_000 } as const;
 const size = { cols: 106, rows: 30 };
 const shown = (session: Session, tools: readonly Tool[]): readonly string[] =>
   textOf(paint(resolve(session, tools, bar, { rows: contentRows(size.rows) }), size));
 async function press(session: Session, keys: string, tools: readonly Tool[]): Promise<Session> {
   let now = session;
   for (const key of keysOf(keys)) {
-    const stepped = step(now, key, tools, bar.now);
+    const stepped = step(now, key, tools, bar.now, "es");
     now = stepped.session;
     if (stepped.run) now = finished(now, stepped.run, await actOf(tools, stepped.run).run(stepped.run.answers));
   }

@@ -1,4 +1,5 @@
 // Compiling broken programs must finish visibly, preserve support detail, and fail their derived gate.
+import { meant, said } from "../../../fields/phrases.ts";
 import { describe, expect, it } from "vitest";
 import { object } from "../../../fields/visible-text.ts";
 import { text } from "../../../fields/fields.ts";
@@ -89,7 +90,7 @@ describe("a program defect is never the thrown cause on the action", () => {
         / · (prints|offline)(, by keys)?$/.test(check.name),
       );
       expect(checks).toHaveLength(4);
-      for (const check of checks) await expect(check.run()).rejects.toThrow("E-PROG-1 · Falló el programa · imprimir");
+      for (const check of checks) await expect(check.run()).rejects.toThrow("E-PROG-1 · The program failed · imprimir");
     });
   }
   it("does not accept a defect even if a declared outside case promises the fixed public text", async () => {
@@ -103,7 +104,7 @@ describe("a program defect is never the thrown cause on the action", () => {
     Reflect.set(act, "cases", [{ promise: "misclassified", input: { receipt: "receipt" }, then: { refused: reason } }]);
     const checks = programChecks(program, shopShown).filter(check => / · misclassified(, by keys)?$/.test(check.name));
     expect(checks).toHaveLength(2);
-    for (const check of checks) await expect(check.run()).rejects.toThrow(reason);
+    for (const check of checks) await expect(check.run()).rejects.toThrow(meant(reason));
   });
 
   it("does not promise no changes when a nested act already wrote", () =>
@@ -122,8 +123,8 @@ describe("a program defect is never the thrown cause on the action", () => {
         const done = await perform(house(), "sales", { act: "print", input: { receipt: "receipt" } });
         expect(done.defect).toBe(true);
         expect(wroteSince(house(), before)).toHaveLength(1);
-        expect(done.reason).toBe(toolTexts.defect("imprimir"));
-        expect(done.reason).not.toContain("no se guardó nada");
+        expect(done.reason).toEqual(toolTexts.defect("imprimir"));
+        expect(said(done.reason ?? "", "es")).not.toContain("no se guardó nada");
       },
     ));
 });

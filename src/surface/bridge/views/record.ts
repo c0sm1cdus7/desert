@@ -1,9 +1,10 @@
 // The record of a thing: everything that was done to it, as the journal has it, read as its last list.
 import { programCall } from "../../../fields/program-call.ts";
-import { genericTexts as generic } from "../../../texts/generic-surface.texts.ts";
+import { wordsIn } from "../../../fields/phrases.ts";
+import { genericTexts } from "../../../texts/generic-surface.texts.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import type { Tool } from "../../contract/shown-tool.ts";
-import type { SurfacePorts } from "../ports/house-ports.ts";
+import { say, type SurfacePorts } from "../ports/house-ports.ts";
 import { authorName } from "./author-name.ts";
 import { firstLine } from "./notices.ts";
 /** An instant as the journal keeps it, for a program that does not say how its country writes one. */
@@ -18,9 +19,9 @@ export const recordOf =
       .state()
       .entries.filter(({ data }) => (data.target === target || data.made?.includes(target)) && data.draft !== true);
     const rows = done.toReversed().map(entry => ({
-      title: firstLine(entry.data.text),
+      title: firstLine(say(ports, entry.data.text)),
       detail: `${authorName(ports)(entry.data.author)} · ${programCall(moment, entry.at)}`,
       still: true,
     }));
-    return rows.length ? [{ ...generic.record, reads: true as const, rows }] : [];
+    return rows.length ? [{ ...wordsIn(genericTexts, ports.language).record, reads: true as const, rows }] : [];
   };

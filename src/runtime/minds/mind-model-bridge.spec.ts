@@ -181,7 +181,7 @@ it("a provider HTTP error settles at zero and does not leave the reservation unc
   expect(outcome).toEqual({
     kind: "failed",
     reason: "http",
-    rejection: { status: 529, type: "untyped", message: "El proveedor no informó un mensaje de error." },
+    rejection: { status: 529, type: "untyped", message: "The provider reported no error message." },
   });
   expect(settled).toEqual([{ usage: { input: 0, cacheWrite: 0, cacheRead: 0, output: 0 }, amount: 0 }]);
   expect(uncertain).toBe(0);

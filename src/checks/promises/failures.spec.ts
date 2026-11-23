@@ -73,7 +73,7 @@ const publicReason = (mode: string) => {
   if (mode.startsWith("program observer")) return "E-PROG-1";
   if (["program", "program observer", "fold", "escaped program", "program listener"].includes(mode)) return "E-PROG-1";
   if (mode === "port") return "servicio sin respuesta";
-  return mode === "port without cause" ? toolTexts.disconnected : "E-BASE-1";
+  return mode === "port without cause" ? toolTexts.disconnected.en : "E-BASE-1";
 };
 for (const mode of [
   "program",

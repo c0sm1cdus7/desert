@@ -1,6 +1,7 @@
 // The declarations a program supplies once, shared by execution, surfaces and derived checks.
 import type { Static, TSchema } from "@sinclair/typebox";
 import type { ProgramWords } from "../fields/installable-words.ts";
+import type { Text } from "../fields/phrases.ts";
 import type { KitMigration } from "../house/kit-migration.ts";
 import type { Selection } from "../house/kit-selection.ts";
 import type { Vocabulary } from "../journal/vocabulary.ts";
@@ -54,14 +55,14 @@ export type Told<X extends Program> = X["fact"] extends infer F
     : never
   : never;
 /** What a case promises happens: the act says something and writes facts, or it is refused with one cause. */
-export type Outcome<X extends Program> = Done<X> | Readonly<{ refused: string }>;
+export type Outcome<X extends Program> = Done<X> | Readonly<{ refused: Text }>;
 /** A fact another program of the composition writes when a consumer's act asks it through a contract, by the
  * program that writes it. */
 export type ToldBy = Readonly<{ program: string; kind: string; data: unknown }>;
 /** What the act says and writes; and, when the case promises it, what its tool reads afterwards on a target. */
-type Done<X extends Program> = Readonly<{ says: string; facts: readonly (Told<X> | ToldBy)[] }> &
+type Done<X extends Program> = Readonly<{ says: Text; facts: readonly (Told<X> | ToldBy)[] }> &
   /** What the act puts before the person to be sure, word for word, when it asks that. */
-  Readonly<{ sure?: string }> &
+  Readonly<{ sure?: Text }> &
   /** What it says is for who did it alone, when the case promises that: otherwise whoever holds the tool reads it. */
   Readonly<{ reads?: Readonly<{ on?: string; lines: readonly unknown[] }> }> &
   /** Whom the act calls for attention, when the case promises it: nobody, for what is written only for the record. */
@@ -70,10 +71,10 @@ type Done<X extends Program> = Readonly<{ says: string; facts: readonly (Told<X>
    * each by its name, when doing this is what makes something of theirs need someone. */
   Readonly<{ needs?: readonly Need[]; needsIn?: Readonly<Record<string, readonly Need[]>> }>;
 /** A thing that needs someone to act, and why: it stays so until what it says is no longer true. */
-export type Need = Readonly<{ target: string; why: string; to?: string }>;
+export type Need = Readonly<{ target: string; why: Text; to?: string }>;
 /** Given this, when someone does this, this happens. Nobody writes its spec: every door's check derives from it. */
 export type Case<X extends Program, S extends TSchema = TSchema> = Readonly<{
-  promise: string;
+  promise: Text;
   /** The initial instant of this case, before its given steps; otherwise the base's fixed case instant. */
   at?: number;
   given?: readonly Step[];
@@ -89,42 +90,42 @@ export type Case<X extends Program, S extends TSchema = TSchema> = Readonly<{
  * a verb on its thing (`cancelar`), a new thing on its tool (`nueva venta`), the datum it changes (`cliente`).
  * `enter` is the one verb that confirms it and that `enter` says on its last question. `purpose` is why it
  * exists: an agent and help read it; a row shows a datum, never this. */
-export type Offered = Readonly<{ name: string; enter: string; purpose: string; key: string }> &
+export type Offered = Readonly<{ name: Text; enter: Text; purpose: Text; key: string }> &
   /** Whether what it does can be undone: what cannot asks to be confirmed with going back chosen. */
   Readonly<{ undoable: boolean }> &
   /** Whether it acts on the tool or on one thing of it; an act on a thing may make that thing leave its list. */
   Readonly<{ on: "tool" | "thing"; leaves?: boolean }> &
   /** The menu of its thing it is taken from, when it is not among the thing's own actions; and what the bar says
    * while it is walked, when its name with a capital does not say it. */
-  Readonly<{ under?: string; title?: string }> &
+  Readonly<{ under?: string; title?: Text }> &
   /** The datum its tool reads that it changes, by the name the reading gives it: the act is taken from the row
    * of that datum, which shows what it is today, and is not among the actions. */
   Readonly<{ changes?: string }>;
 /** What a row says to the right of an act: something of use about what it would do now, or nothing. */
-export type Datum<X extends Program> = (state: State<X>, target: string) => string | undefined;
+export type Datum<X extends Program> = (state: State<X>, target: string) => Text | undefined;
 /** An act on a tool that is also offered among the actions of each thing of another tool: it starts there with what
  * that thing already says of what it takes, the first things it asks; nothing, when it is not for that thing. */
 export type Also<X extends Program> = Readonly<{
   tool: string;
   /** What its row says there, when it is not what it says on its own tool: `cobrar` on a sale. */
-  name?: string;
+  name?: Text;
   datum?: Datum<X>;
   with: (state: State<X>, target: string, at: number) => Readonly<Record<string, unknown>> | undefined;
   /** Why it cannot be done on that thing, when that is so: it stays among the thing's actions, off, saying this. */
-  off?: (state: State<X>, target: string, at: number) => string | undefined;
+  off?: (state: State<X>, target: string, at: number) => Text | undefined;
   /** What the questions after those open on, when that thing suggests an answer the person may change. */
   opens?: (state: State<X>, target: string) => Readonly<Record<string, unknown>>;
 }>;
 /** A menu of a tool's things: an option among their actions that leads to the acts under it. */
-export type Menu = Readonly<{ name: string; purpose: string; key: string }>;
-export type ProgramAct<X extends Program, O extends readonly string[] = readonly string[]> = Omit<ToolAct<X>, "run"> &
+export type Menu = Readonly<{ name: Text; purpose: Text; key: string }>;
+export type ProgramAct<X extends Program, O extends readonly Text[] = readonly Text[]> = Omit<ToolAct<X>, "run"> &
   Readonly<{ run: ProgramRun<X, O> }> &
   /** The folder an installed group acts on, while authority remains with the owning engine tool. */
   Readonly<{ folder?: string }> &
   Offered &
-  Readonly<{ refuses: readonly string[]; outside: ProgramOutside<O>; cases: readonly Case<X>[] }> &
+  Readonly<{ refuses: readonly Text[]; outside: ProgramOutside<O>; cases: readonly Case<X>[] }> &
   /** What is put before the person to confirm, once everything was answered, when the act wants that. */
-  Readonly<{ confirms?: (input: unknown, state: State<X>, target: string, at: number) => string | undefined }> &
+  Readonly<{ confirms?: (input: unknown, state: State<X>, target: string, at: number) => Text | undefined }> &
   /** What the thing has today, in the shape the act takes: an act that changes it opens on it. */
   Readonly<{ today?: (state: State<X>, target: string, at: number) => unknown; also?: Also<X>; datum?: Datum<X> }> &
   SoFar<X>;
@@ -152,7 +153,7 @@ export type Composition<X extends Program> = AdapterComposition &
     registry: readonly ProgramTool<X>[];
     slices: Slices<X>;
   }>;
-export type Declared<X extends Program, S extends TSchema, O extends readonly string[]> = Readonly<{
+export type Declared<X extends Program, S extends TSchema, O extends readonly Text[]> = Readonly<{
   input: S;
   reach?: Reach;
   needs?: ToolAct<X>["needs"];
@@ -163,12 +164,12 @@ export type Declared<X extends Program, S extends TSchema, O extends readonly st
   Offered &
   /** What is put before the person to confirm: said from what they answered, from what the house keeps, and from
    * the thing it is done to (the tool itself, for an act on the tool). */
-  Readonly<{ confirms?: (input: Static<S>, state: State<X>, target: string, at: number) => string | undefined }> &
+  Readonly<{ confirms?: (input: Static<S>, state: State<X>, target: string, at: number) => Text | undefined }> &
   Readonly<{ today?: (state: State<X>, target: string, at: number) => Static<S> | undefined }> &
   Readonly<{ also?: Also<X>; datum?: Datum<X> }> &
   SoFar<X> &
   /** Every cause this act may refuse with; refusing with any other is a defect of the program. */
-  Readonly<{ refuses?: readonly string[]; offered?: NonNullable<ToolAct<X>["offered"]> }> &
+  Readonly<{ refuses?: readonly Text[]; offered?: NonNullable<ToolAct<X>["offered"]> }> &
   (O extends readonly []
     ? Readonly<{ outside?: O }>
     : Readonly<{ outside: O & (string extends O[number] ? never : unknown) }>) &

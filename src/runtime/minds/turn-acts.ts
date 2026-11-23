@@ -1,4 +1,5 @@
 // Applies the acts of one answer in order: a journey hears each result, a consciousness corrects or stops.
+import { workingLanguage } from "../../fields/languages.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import { journeyPlanRefusal } from "../../texts/journey.texts.ts";
 import { invalidNotice, type TurnStop } from "../../texts/mind-turn.texts.ts";
@@ -26,21 +27,21 @@ async function perform({ ports, turn, review }: Run, act: ProposedAct): Promise<
     return await ports.execute(act, { turn, review });
   } catch (error) {
     if (error instanceof JourneyKitRefused)
-      return { code: "kit", correction: `${invalidNotice.text(turn.language, { reason: "kit" })} ${error.kit}` };
+      return { code: "kit", correction: `${invalidNotice.text(workingLanguage, { reason: "kit" })} ${error.kit}` };
     if (error instanceof JourneyNoticeRefused) {
       const reason = error.retired ? "retired" : "notice";
-      return { code: "wait", correction: invalidNotice.text(turn.language, { reason }) };
+      return { code: "wait", correction: invalidNotice.text(workingLanguage, { reason }) };
     }
     if (error instanceof JourneyWaitRefused)
-      return { code: "wait", correction: `${invalidNotice.text(turn.language, { reason: "wait" })} ${error.now}` };
+      return { code: "wait", correction: `${invalidNotice.text(workingLanguage, { reason: "wait" })} ${error.now}` };
     if (error instanceof JourneyPlanRefused) {
       const { problem, step, pending } = error;
-      return { code: "plan", correction: journeyPlanRefusal.text(turn.language, { problem, step, pending }) };
+      return { code: "plan", correction: journeyPlanRefusal.text(workingLanguage, { problem, step, pending }) };
     }
     if (error instanceof JourneyStopRefused)
       return {
         code: "stopped",
-        correction: `${invalidNotice.text(turn.language, { reason: "stopped" })} ${error.goal}`,
+        correction: `${invalidNotice.text(workingLanguage, { reason: "stopped" })} ${error.goal}`,
       };
     throw error;
   }

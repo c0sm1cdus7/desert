@@ -2,6 +2,8 @@
 import { programCall } from "../../../fields/program-call.ts";
 import { allowed } from "../../../house/kit.ts";
 import { hides } from "../../../house/members.ts";
+import type { Language } from "../../../fields/languages.ts";
+import { said, type Text } from "../../../fields/phrases.ts";
 import { toolTexts } from "../../../texts/tools.texts.ts";
 import { withIdentityWords } from "../../../tools/identities/identity-reading.ts";
 import { kitScreen } from "../../../tools/identities/kit-screen.ts";
@@ -18,6 +20,7 @@ import {
   listsOf,
   ownReads,
   type HousePorts,
+  say,
   type Shown,
   type SurfacePorts,
   type ToolWords,
@@ -40,15 +43,20 @@ const repeated = (keys: readonly string[]): string[] =>
   keys.filter((key, index) => key !== "" && keys.indexOf(key) !== index);
 /** What can be changed is changed where it is read: an act that is named as a datum its tool reads is taken from
  * the row of that datum. Listed among the actions it would say the datum twice. */
-function auditData<X extends Program>(tool: ProgramTool<X>, reads: Readonly<Record<string, string>>): void {
-  const labels = Object.values(reads).map(label => label.toLowerCase());
+function auditData<X extends Program>(
+  tool: ProgramTool<X>,
+  reads: Readonly<Record<string, Text>>,
+  language: Language,
+): void {
+  const labels = Object.values(reads).map(label => said(label, language).toLowerCase());
   for (const [name, act] of Object.entries(tool.acts)) {
     /** What is done to a thing is among its actions: only what a tool itself reads is changed where it is read. */
     if (act.changes !== undefined && act.on === "thing")
       throw new Error(`${name} of ${tool.id} changes a datum of a thing: it goes among the actions of the thing`);
     if (act.changes !== undefined && reads[act.changes] === undefined)
       throw new Error(`${name} of ${tool.id} changes a datum its tool does not read: ${act.changes}`);
-    const loose = act.changes === undefined && act.under === undefined && labels.includes(act.name.toLowerCase());
+    const loose =
+      act.changes === undefined && act.under === undefined && labels.includes(said(act.name, language).toLowerCase());
     if (loose)
       throw new Error(`${name} of ${tool.id} changes a datum its tool reads: it is taken from that datum's row`);
   }
@@ -91,17 +99,17 @@ function sameAction(left: object, right: object): boolean {
   );
 }
 /** Every option is reached by a key of its own where it is offered: two with the same key is a defect. */
-function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown<X>): void {
+function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown<X>, language: Language): void {
   const wordless = tools.filter(tool => !shown.words[tool.id]).map(tool => tool.id);
   if (wordless.length) throw new Error(`No words for the tools ${wordless.join(", ")}`);
   auditPlaces(tools, shown);
   if (tools.some(tool => tool.id === preferencesPlace.id)) throw new Error(`A tool takes the name of Preferences`);
   const declarations = tools.flatMap(groupedTools);
-  declarations.forEach(auditActs);
+  declarations.forEach(tool => auditActs(tool, language));
   auditFields(tools, shown);
   tools.forEach(tool => {
-    if (tool.groups) tool.groups.forEach(group => auditData(group.tool, ownReads(group.words)));
-    else auditData(tool, ownReads(shown.words[tool.id]));
+    if (tool.groups) tool.groups.forEach(group => auditData(group.tool, ownReads(group.words), language));
+    else auditData(tool, ownReads(shown.words[tool.id]), language);
   });
   for (const tool of declarations) {
     const also = tools.flatMap(other => Object.values(other.acts).filter(act => act.also?.tool === tool.id));
@@ -112,17 +120,17 @@ function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown
   const astray = declarations.flatMap(tool =>
     Object.values(tool.acts)
       .filter(act => act.also && (act.on !== "tool" || !declarations.some(other => other.id === act.also?.tool)))
-      .map(act => `${tool.id} ${act.name}`),
+      .map(act => `${tool.id} ${said(act.name, language)}`),
   );
   if (astray.length)
     throw new Error(`Acts offered on things that are not a tool's own act or name no tool: ${astray.join(", ")}`);
 }
 /** The acts of one tool, where each is taken: on the tool, among a thing's actions with its menus, or under a menu. */
-function auditActs<X extends Program>(tool: ProgramTool<X>): void {
+function auditActs<X extends Program>(tool: ProgramTool<X>, language: Language): void {
   const acts = Object.values(tool.acts);
   const menus = Object.entries(tool.menus ?? {});
   /** Where an act asks to be confirmed, the initial of its verb takes it and this one goes back: never the same. */
-  if (acts.some(act => act.enter.startsWith(back)))
+  if (acts.some(act => said(act.enter, language).startsWith(back)))
     throw new Error(`The verb of an act of ${tool.id} starts with the key that goes back: ${back}`);
   const lost = acts.flatMap(act => (act.under !== undefined && !tool.menus?.[act.under] ? [act.under] : []));
   if (lost.length) throw new Error(`Acts of ${tool.id} are under menus it does not declare: ${lost.join(", ")}`);
@@ -141,7 +149,7 @@ function auditActs<X extends Program>(tool: ProgramTool<X>): void {
 /** A row that leads to a thing, as an option that picks it. */
 const picked = ({ title, detail }: ViewRow, value: string): Option => ({ title, ...(detail ? { detail } : {}), value });
 /** The things of a tool as an answer picks them: found the way its menu finds, whatever the kit. */
-const thingsOf = <X extends Program>(ports: HousePorts<X>, { words }: Shown<X>, shown: () => readonly Tool[]) => {
+const thingsOf = <X extends Program>(ports: SurfacePorts<X>, { words }: Shown<X>, shown: () => readonly Tool[]) => {
   const make = makerOptions();
   return (id: string): Things | undefined => {
     const tool = shown().find(known => known.id === id);
@@ -150,12 +158,12 @@ const thingsOf = <X extends Program>(ports: HousePorts<X>, { words }: Shown<X>, 
     const open = (thing: string): boolean =>
       programCall(contract.closed?.bind(contract), ports.state(), thing, ports.now()) !== true;
     return {
-      empty: listsOf(words[id])?.empty ?? "",
+      empty: say(ports, listsOf(words[id])?.empty ?? ""),
       found: sought =>
         (tool.find?.(sought) ?? []).flatMap(row => (row.opens && open(row.opens) ? [picked(row, row.opens)] : [])),
       shown: thing => tool.titleOf?.(thing) ?? thing,
       has: thing => programCall(contract.targets.bind(contract), ports.state()).includes(thing) && open(thing),
-      make: act => make(contract, tool, act),
+      make: act => make(contract, tool, act, ports.language),
     };
   };
 };
@@ -184,7 +192,7 @@ function withThings<X extends Program>(
   return { ...screen, has, view: target => (isThing(target) ? thing(target) : screen.view(target)) };
 }
 /** The program's calendar keeps its receiver; reference readers resolve the assembled tools lazily. */
-export function questionsFor<X extends Program>(ports: HousePorts<X>, shown: Shown<X>, tools: () => readonly Tool[]) {
+export function questionsFor<X extends Program>(ports: SurfacePorts<X>, shown: Shown<X>, tools: () => readonly Tool[]) {
   return {
     locale: shown.locale,
     day: shown.day?.bind(shown),
@@ -204,13 +212,30 @@ const namedScreen = <X extends Program>(...args: Parameters<typeof builtScreen<X
   authorThread(builtScreen(...args), authorName(args[1]));
 const coreWords = <X extends Program>(registry: HousePorts<X>["registry"], given: Shown<X>) =>
   withPersonalWords(registry, withRulesWords(registry, withIdentityWords(registry, given)));
-export function houseTools<X extends Program>(ports: HousePorts<X>, given: Shown<X>): readonly Tool[] {
+/** What the other tools offer on a thing of this one: only on a thing, never on a view that groups them. */
+const offeredOn =
+  <X extends Program>(
+    ports: HousePorts<X>,
+    contract: ProgramTool<X>,
+    built: readonly Readonly<{ contract: ProgramTool<X>; offers: (tool: string, target: string) => ViewRow[] }>[],
+  ) =>
+  (target: string): ViewRow[] => {
+    const others = built.filter(other => other.contract.id !== contract.id || contract.groups !== undefined);
+    if (!programCall(contract.targets.bind(contract), ports.state()).includes(target)) return [];
+    const group = contract.groups?.find(group => group.tool.targets(ports.state()).includes(target));
+    return others.flatMap(other => other.offers(group?.tool.id ?? contract.id, target));
+  };
+export function houseTools<X extends Program>(
+  ports: HousePorts<X>,
+  given: Shown<X>,
+  language: Language,
+): readonly Tool[] {
   const shown = coreWords(ports.registry, given);
   const seen = new Map<string, number>();
-  const observed = observedPorts(ports, seen);
+  const observed = observedPorts(ports, seen, language);
   const tools = declaredTools(ports.registry);
-  audit(tools, shown);
-  const asked = questionsFor(ports, shown, () => own);
+  audit(tools, shown, language);
+  const asked = questionsFor(observed, shown, () => own);
   const built = tools.flatMap(contract => {
     const words = shown.words[contract.id];
     return words ? [{ contract, words, ...programActs(observed, contract, asked) }] : [];
@@ -220,18 +245,12 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, given: Shown
     const screen = namedScreen(shown.screens?.[contract.id], observed, contract, words, acts, start);
     const tool = kitScreen(observed, contract, withThings(observed, contract, { words, shown }, screen), start);
     const calls = () => ports.state().attention.has(contract.id);
-    const { notices, seen: looked } = noticesOf(observed, contract, tool, authorName(ports));
-    /** What the other tools offer on a thing of this one: only on a thing, never on a view that groups them. */
-    const others = built.filter(other => other.contract.id !== contract.id || contract.groups !== undefined);
-    const alsoOn = (target: string): ViewRow[] => {
-      if (!programCall(contract.targets.bind(contract), ports.state()).includes(target)) return [];
-      const group = contract.groups?.find(group => group.tool.targets(ports.state()).includes(target));
-      return others.flatMap(other => other.offers(group?.tool.id ?? contract.id, target));
-    };
+    const { notices, seen: looked } = noticesOf(observed, contract, tool, authorName(observed));
+    const alsoOn = offeredOn(ports, contract, built);
     return {
       ...tool,
       notices,
-      off: () => (ports.state().house.grants.has(ports.me) ? undefined : toolTexts.unassigned),
+      off: () => (ports.state().house.grants.has(ports.me) ? undefined : say(observed, toolTexts.unassigned)),
       alsoOn,
       /** A tool nobody gave you is on your Menu unless you prefer not to see what is not yours. */
       listed: () => contract.id === "identities" || mine() || !hides(ports.state().house, ports.me, "foreign"),

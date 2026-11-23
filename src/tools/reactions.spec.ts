@@ -61,7 +61,7 @@ it("H3: revoking the mind leaves a visible reason and a pending one recoverable 
   await rig.tools().recoverReactions();
   expect(marks(rig)).toEqual([]);
   expect(rig.tools().pendingReactions()).toMatchObject([
-    { notice: source.id, by: "mind:sales", reason: "fuera del kit" },
+    { notice: source.id, by: "mind:sales", reason: { en: "outside the kit", es: "fuera del kit" } },
   ]);
   rig.restart();
   await rig.tools().recoverReactions();
@@ -151,5 +151,5 @@ it("a revocation during the wait cuts the reaction and keeps the pending one", a
   release();
   await recovery;
   expect(marks(rig)).toEqual([]);
-  expect(rig.tools().pendingReactions()[0]?.reason).toBe("sacada");
+  expect(rig.tools().pendingReactions()[0]?.reason).toEqual({ en: "removed", es: "sacada" });
 });

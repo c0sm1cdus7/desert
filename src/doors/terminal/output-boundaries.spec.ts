@@ -1,3 +1,4 @@
+import { meant } from "../../fields/phrases.ts";
 import {
   mkdtempSync,
   rmSync,
@@ -33,7 +34,7 @@ it("N9: the failed detached startup records its safe cause before replying", asy
     const program = join(import.meta.dirname, "../../../tests/support/shop-program.ts");
     writeFileSync(join(home, "package.json"), JSON.stringify({ desert: { program } }));
     mkdirSync(join(home, "house.sock"));
-    await expect(launchHouse(home, home)).rejects.toThrow(socketTexts.startFailed);
+    await expect(launchHouse(home, home)).rejects.toThrow(meant(socketTexts.startFailed));
     const text = readFileSync(join(home, "house.log"), "utf8");
     expect(text).toContain("EISDIR");
     expect(text).not.toContain(" at ");
@@ -68,7 +69,7 @@ it("N10: detached stdout and stderr stay bounded after launch and retain recent 
       writeFileSync(join(home, `go${fd}`), "go");
       await vi.waitFor(() => expect(readFileSync(path, "utf8")).toContain(`fin-${fd}`));
       expect(statSync(path).size).toBeLessThanOrEqual(1024 * 1024);
-      expect(readFileSync(path, "utf8")).toContain("Se alcanzó el tope");
+      expect(readFileSync(path, "utf8")).toContain("The output reached its cap");
     }
   } finally {
     if (pid) {

@@ -1,4 +1,5 @@
 // Verifies envelopes, presence, bindings and anchor on opening without decrypting; accepts explicit restores.
+import { meant } from "../../fields/phrases.ts";
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import type { CustodyState } from "./custody-state.ts";
 import { CustodyError, type LedgerHead } from "./house-keys.ts";
@@ -27,7 +28,7 @@ export function openCustody(state: CustodyState, restore = false, expected?: Led
     if (row.payload !== null) {
       state.cipher.check(row.ref, row.payload);
       if (!retired.has(row.ref) && !state.cipher.present(row.ref))
-        throw new CustodyError("E-CUSTODY-KEY", secretTexts.missingKey);
+        throw new CustodyError("E-CUSTODY-KEY", meant(secretTexts.missingKey));
     }
   const present = new Set(rows.filter(row => row.payload !== null && !retired.has(row.ref)).map(row => row.ref));
   for (const fact of latestBindings(facts))

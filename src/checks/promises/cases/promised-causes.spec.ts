@@ -1,4 +1,5 @@
 // An undeclared cause in any previous rule is a program defect on execution and while the person answers.
+import { said } from "../../../fields/phrases.ts";
 import { describe, expect, it } from "vitest";
 import { object } from "../../../fields/visible-text.ts";
 import { holding, text, thing } from "../../../fields/fields.ts";
@@ -52,14 +53,14 @@ for (const mode of ["offered", "stops", "wrong", "among"] satisfies readonly Mod
         expect(done).toMatchObject({
           status: "rejected",
           defect: true,
-          reason: "E-PROG-1 · Falló el programa · probar",
+          reason: { en: "E-PROG-1 · The program failed · probar", es: "E-PROG-1 · Falló el programa · probar" },
         });
         expect(wroteSince(house(), before)).toEqual([]);
         reopen();
         expect(house().tools.state().processing.size).toBe(0);
         const entries = house()
           .tools.state()
-          .entries.filter(entry => entry.data.text.includes("E-PROG-1"));
+          .entries.filter(entry => said(entry.data.text, "es").includes("E-PROG-1"));
         expect(entries).toHaveLength(1);
         expect(JSON.stringify(entries[0]?.data.detail)).toContain(detail);
       }));
@@ -87,7 +88,7 @@ for (const mode of ["offered", "stops", "wrong", "among"] satisfies readonly Mod
       for (const check of checks) {
         const onMenu = check.name.endsWith(", by keys") && (mode === "offered" || mode === "among");
         await expect(check.run()).rejects.toThrow(
-          `E-PROG-1 · Falló el programa · ${onMenu ? "payments/payments" : "probar"}`,
+          `E-PROG-1 · The program failed · ${onMenu ? "payments/payments" : "probar"}`,
         );
       }
     });
@@ -113,7 +114,7 @@ it("a broken program fold records a defect and rolls back its facts instead of e
     expect(done).toMatchObject({
       status: "rejected",
       defect: true,
-      reason: "E-PROG-1 · Falló el programa · registrar",
+      reason: { en: "E-PROG-1 · The program failed · registrar", es: "E-PROG-1 · Falló el programa · registrar" },
     });
     expect(wroteSince(house(), before)).toEqual([]);
     expect(JSON.stringify(house().tools.state().entries)).toContain("broken fold");

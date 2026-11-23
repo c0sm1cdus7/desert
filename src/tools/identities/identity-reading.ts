@@ -1,4 +1,5 @@
 // List and object of identities and minds: name, administration, kit, last general scene and the reader's part.
+import { joined, type Text } from "../../fields/phrases.ts";
 import { holderKit } from "../../house/kit-history.ts";
 import { allowedAct, mindTool } from "../../house/kit.ts";
 import { identityDisplayName, languageOf, type House } from "../../house/members.ts";
@@ -13,7 +14,7 @@ import { actionName, kitCatalog, kitDatum, programName } from "./kit-catalog.ts"
 export const identityTarget = (identity: string) => `identities/${identity}`;
 export const targetIdentity = (target: string) => target.slice("identities/".length);
 export const members = (house: House) => [...new Set([...house.grants.keys(), ...house.removed])];
-function identityDatum(house: House, identity: string): string {
+function identityDatum(house: House, identity: string): Text {
   if (house.removed.has(identity)) return words.removed;
   const selections = holderKit(house, identity).selections;
   return identity === house.admin
@@ -88,8 +89,8 @@ export function identityReading<X extends Program>(
       identifier: identity,
       name: words.mind(programName(tool)),
       state: kitDatum(house, identity, tool.id, Object.keys(tool.acts)),
-      kit: Object.keys(tool.acts).map(
-        act => `${actionName(tool.acts[act], act)} · ${allowedAct(house, identity, tool.id, act) ? "sí" : words.no}`,
+      kit: Object.keys(tool.acts).map(act =>
+        joined([actionName(tool.acts[act], act), allowedAct(house, identity, tool.id, act) ? words.yes : words.no]),
       ),
     });
   return JSON.stringify({
@@ -103,7 +104,7 @@ export function identityReading<X extends Program>(
     ...deviceReading(house, identity),
   });
 }
-function identityKit<X extends Program>(house: House, identity: string, registry: ToolRegistry<X>): string[] {
+function identityKit<X extends Program>(house: House, identity: string, registry: ToolRegistry<X>): Text[] {
   return registry
     .filter(tool => !systemTool(tool.id))
     .flatMap(tool => {
@@ -113,7 +114,7 @@ function identityKit<X extends Program>(house: House, identity: string, registry
           holderKit(house, identity).selections.some(selection => selection.program === tool.id));
       if (!has) return [];
       const detail = kitDatum(house, identity, tool.id, Object.keys(tool.acts));
-      return [`${programName(tool)} · ${detail}`];
+      return [joined([programName(tool), detail])];
     });
 }
 /** The core piece brings its own words when the composition asked for it. */
@@ -136,7 +137,7 @@ function doorReading(house: House, identity: string) {
     ? {
         doorKeys: keys.map(key => {
           const door = key.door === "agent" ? doorTexts.doors.agent : doorTexts.doors.terminal;
-          return `${key.id} · ${door} · ${key.revoked ? doorTexts.status.retired : doorTexts.status.active}`;
+          return joined([key.id, door, key.revoked ? doorTexts.status.retired : doorTexts.status.active]);
         }),
       }
     : {};
@@ -148,7 +149,7 @@ function deviceReading(house: House, identity: string) {
   return {
     ...(devices.length
       ? {
-          devices: devices.map(device => `${device.id} · ${device.name} · ${deviceStatus(device)}`),
+          devices: devices.map(device => joined([device.id, device.name, deviceStatus(device)])),
         }
       : {}),
     ...(card ? { card: `${card.card} · ${card.version}` } : {}),

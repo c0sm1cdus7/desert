@@ -1,6 +1,7 @@
 // One written edit keeps the first rejected character beside any reason that the value already had.
 import { entryAdvice } from "../../texts/entry-advice.ts";
 import { fieldTexts } from "../../texts/field-texts.ts";
+import type { Text } from "../../fields/phrases.ts";
 import type { Field, Intent } from "../contract/contract.ts";
 import type { Asking } from "../session/walk-state.ts";
 import { edited } from "../session/talk.ts";
@@ -8,7 +9,7 @@ import { edited } from "../session/talk.ts";
 function rewritten({ error: _was, ignored: _key, failed: _result, notices: _notices, ...written }: Asking): Asking {
   return { ...written, suggested: false };
 }
-function plainReason(walk: Asking, field: Field, char: string): string | undefined {
+function plainReason(walk: Asking, field: Field, char: string): Text | undefined {
   if ("max" in field && Array.from(walk.typed).length >= (field.max ?? Infinity))
     return fieldTexts.ignored.characters(field.max ?? 0);
   if (char !== " " || ("verbatim" in field && field.verbatim)) return undefined;
@@ -37,7 +38,7 @@ export function writtenAnswer(walk: Asking, field: Field, key: Intent): Asking |
   }
   if (field.kind === "secret") return secretAnswer(walk, key.text);
   let changed = walk;
-  let reason: string | undefined;
+  let reason: Text | undefined;
   for (const char of Array.from(key.text)) {
     const rejected = "mask" in field ? field.mask.rejected?.(changed.typed, char) : plainReason(changed, field, char);
     reason ??= rejected;

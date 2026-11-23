@@ -1,4 +1,5 @@
 // Says each fact that woke a mind as itself: a message, an act and what it did, a journey's news, a device's word.
+import { said } from "../../fields/phrases.ts";
 import type { Language } from "../../fields/languages.ts";
 import type { DeviceExecution, DeviceState } from "../../house/devices/device-state.ts";
 import type { HouseEvent } from "../../house/facts.ts";
@@ -93,11 +94,11 @@ const named = (goal: string) => {
   return first.length > 200 ? `${Array.from(first).slice(0, 200).join("")}…` : first;
 };
 /** What an act did: the entry its tool wrote, or its outcome. */
-function actDetail(history: readonly Event[], act: Event): string {
+function actDetail(history: readonly Event[], act: Event, language: Language): string {
   for (const e of history) {
     if (e.layer !== "house" || e.seq < act.seq) continue;
-    if (e.kind === "tool-entry" && e.cause.includes(act.id)) return e.data.text;
-    if (e.kind === "act-done" && e.data.act === act.id) return e.data.text;
+    if (e.kind === "tool-entry" && e.cause.includes(act.id)) return said(e.data.text, language);
+    if (e.kind === "act-done" && e.data.act === act.id) return said(e.data.text, language);
   }
   return "";
 }
@@ -108,7 +109,8 @@ export function factLine(event: Event, seen: Seen, language: Language, history: 
   const say = (kind: "opened" | "due" | "act" | "other", what: string, where = "", detail = "") =>
     wakeFact.text(language, { kind, who: event.by, what, where, detail });
   if (event.layer !== "house") return say("other", event.kind);
-  if (event.kind === "act") return say("act", event.data.option, event.data.object, actDetail(history, event));
+  if (event.kind === "act")
+    return say("act", event.data.option, event.data.object, actDetail(history, event, language));
   if (event.kind === "journey-opened") return say("opened", "");
   if (event.kind === "journey-waiting") return say("due", "", "", event.data.what);
   if (event.kind === "journey-closed") {
@@ -116,7 +118,7 @@ export function factLine(event: Event, seen: Seen, language: Language, history: 
     const kind = event.data.outcome === "done" ? "done" : "desisted";
     return supervisorWoke.text(language, { kind, who: event.by, goal, detail: event.data.summary });
   }
-  if (event.kind === "tool-entry") return say("other", event.data.text, event.data.target);
+  if (event.kind === "tool-entry") return say("other", said(event.data.text, language), event.data.target);
   return say("other", event.kind);
 }
 /** One line per waking fact; an id the journal does not hold stays an id. */

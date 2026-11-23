@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { meant } from "../../fields/phrases.ts";
 import { readdirSync, statSync, existsSync } from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
 import { socketHouse } from "../../../tests/support/socket-house.ts";
@@ -75,7 +76,7 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
     const before = f.house().tools.state().through;
     const grantMind = () =>
       f.house().bus.emit(effect("granted", { identity: "mind:payments", tools: ["payments"] }, "ana"));
-    expect(grantMind).toThrow(identityNameProblem("mind:payments", "house"));
+    expect(grantMind).toThrow(meant(identityNameProblem("mind:payments", "house") ?? ""));
     expect(f.house().tools.state().through).toBe(before);
     const mind = await f.client("mind-terminal");
     expect(await mind.until(mind.closed)).toBe(true);

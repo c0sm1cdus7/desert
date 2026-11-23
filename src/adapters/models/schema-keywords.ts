@@ -1,6 +1,7 @@
 // Rejects unknown schema keywords and distinguishes local field metadata from JSON validation.
 const surfaceKeywords = [
   "plain",
+  "said",
   "placeholder",
   "verbatim",
   "mask",

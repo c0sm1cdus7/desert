@@ -1,4 +1,5 @@
 // The same cases, walked by keys through the router every renderer uses: what a person does to keep each promise.
+import { meant } from "../../../fields/phrases.ts";
 import { directRefusal } from "./fixed-entries.ts";
 import { deepStrictEqual, ok } from "node:assert/strict";
 import { asking } from "../../../surface/bridge/questions/asking.ts";
@@ -36,10 +37,10 @@ async function closedConstruction<X extends Program>(
 function assertReading<X extends Program>(seat: Seat<X>, kase: Case<X>): void {
   const screen = seat.router.screen(view).body;
   const promised = "refused" in kase.then ? kase.then.refused : kase.then.says;
-  const text = `${"refused" in kase.then ? surface.error : surface.ok} ${promised}`;
+  const text = `${seat.say("refused" in kase.then ? surface.error : surface.ok)} ${seat.say(promised)}`;
   ok(
     linesIn(screen).some(line => line === text || line.startsWith(`${text} · `)),
-    said.notSaid(promised),
+    said.notSaid(meant(promised)),
   );
 }
 /** A completed act leaves its promised facts and a surviving place to return to. */
@@ -48,7 +49,7 @@ function completed<X extends Program>(house: House<X>, seat: Seat<X>, aim: Aim<X
   deepStrictEqual(wroteSince(house, before), "refused" in kase.then ? [] : kase.then.facts, said.factsMismatch);
   /** Closing what was done leaves the person on a screen that exists: never on a thing its act took away. */
   seat.router.send({ kind: "cancel" });
-  ok(!errorIn(seat.router.screen(view).body, surface.gone), said.lost(aim.name));
+  ok(!errorIn(seat.router.screen(view).body, surface.gone, seat.language), said.lost(aim.name));
   ok(seat.defects.length === 0, seat.defects.join("\n"));
 }
 /** Checks retain their closure message for reporters without writing to the terminal. */
@@ -70,7 +71,7 @@ async function runCase<X extends Program>(house: House<X>, seat: Seat<X>, told: 
   /** What is off said why, and what a field does not let be written cannot be sent: neither breaks a refusal. */
   const row = quietly(seat.router, router => takenOrConstructed({ ...seat, router }, told));
   if (row === "construction") return closedConstruction(house, seat, told, before);
-  if (row?.open?.kind === "act") currentCloses(seat.tools, row.open);
+  if (row?.open?.kind === "act") currentCloses(seat.tools, row.open, seat.language);
   const outcome = row !== undefined && quietly(seat.router, router => walk({ ...seat, router }, told, row));
   const done = outcome === true;
   ok(
@@ -106,7 +107,7 @@ export function walkCheck<X extends Program>(
       }
     });
   return {
-    name: label(aim, said.byKeys(kase.promise)),
+    name: label(aim, said.byKeys(meant(kase.promise))),
     run: reporting(run, value => {
       report = value;
     }),

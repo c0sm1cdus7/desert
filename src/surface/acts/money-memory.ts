@@ -1,4 +1,5 @@
 // A number belongs to the currency in which it was written, including while the house changes underneath it.
+import { same } from "../../fields/phrases.ts";
 import { entryAdvice } from "../../texts/entry-advice.ts";
 import type { Field } from "../contract/contract.ts";
 import type { Walk } from "../session/walk-state.ts";
@@ -18,7 +19,7 @@ export function renewedMoney(walk: Walk, next: Next, stops?: (answers: readonly 
   const field = next(answers);
   const checked =
     (!walk.failed && walk.error !== undefined) ||
-    walk.notices?.some(notice => !notice.ignored && notice.reason !== entryAdvice.currencyChanged);
+    walk.notices?.some(notice => !notice.ignored && !same(notice.reason, entryAdvice.currencyChanged));
   const reason = field?.wrong?.("", !!checked) ?? stops?.([...answers, ""]);
   // Action failures and discarded keys survive independently of the emptied value.
   const error = walk.failed ? walk.error : reason;

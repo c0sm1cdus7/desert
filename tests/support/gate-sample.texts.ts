@@ -1,6 +1,6 @@
 // Spanish catalog for the renderer forms exercised by DESERT's own distribution gate.
 export const gateSampleTexts = {
-  deviceResult: "Terminada · Ejecución · sample-result",
+  deviceResult: { en: "Finished · Execution · sample-result", es: "Terminada · Ejecución · sample-result" },
   title: "Muestra",
   empty: "Sin muestras.",
   object: "Ejemplo",

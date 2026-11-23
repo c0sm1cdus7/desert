@@ -1,4 +1,5 @@
 // A temporary real journal, synthetic founders and a controllable clock for door lifecycle tests.
+import { meant, type Text } from "../../src/fields/phrases.ts";
 import { solveInvitationProof } from "../../src/runtime/invitation-proof.ts";
 import { randomBytes } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
@@ -41,8 +42,10 @@ export function doorHouse(founders?: FounderDoorKeys, folder?: string) {
     },
   };
 }
-export function invitationCode(result: { private?: string | undefined }): string {
-  const code = result.private?.match(/[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}/)?.[0];
+export function invitationCode(result: { private?: Text | undefined }): string {
+  const code = (result.private === undefined ? undefined : meant(result.private))?.match(
+    /[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}/,
+  )?.[0];
   if (!code) throw new Error("Missing invitation receipt");
   return code;
 }

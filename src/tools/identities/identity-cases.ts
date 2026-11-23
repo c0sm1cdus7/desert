@@ -1,4 +1,5 @@
 // Declared cases to take out, readmit and hand over administration, including the refusal reasons.
+import { joined } from "../../fields/phrases.ts";
 import { programName } from "./kit-catalog.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import type { Case } from "../promises.ts";
@@ -89,7 +90,7 @@ export const handCases = <X extends Program>(registry: ToolRegistry<X>): readonl
             name: "carla",
             state: words.admin,
             language: words.languageNames.en,
-            kit: registry.map(tool => `${programName(tool)} · ${words.all}`),
+            kit: registry.map(tool => joined([programName(tool), words.all])),
           },
         ],
       },

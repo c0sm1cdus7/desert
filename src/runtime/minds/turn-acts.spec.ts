@@ -30,7 +30,6 @@ it("applies a tool's act named read through the tool, and serves the house's rea
   const turn: TurnContext = {
     id: "t",
     scope: { kind: "journey", actor: "mind:books", process: "j", kit: [] },
-    language: "es",
     wake: [],
     through: 1,
     limits: turnLimits,

@@ -1,4 +1,5 @@
 // Builds door keys from declared variables and refuses repeated material, even under another encoding.
+import { meant } from "../../../fields/phrases.ts";
 import { timingSafeEqual } from "node:crypto";
 import { environmentDoorKey, type KeyEnvironment } from "../../../runtime/environment-key.ts";
 import { cloudTexts } from "../../../texts/cloud.texts.ts";
@@ -16,8 +17,8 @@ export function environmentDoorKeys(
       const bytes = environmentDoorKey({ [variable]: value }, variable);
       const repeated = decoded.some(other => other.length === bytes.length && timingSafeEqual(other, bytes));
       decoded.push(bytes);
-      if (repeated) throw new Error(cloudTexts.repeated(variable));
-      if (!value) throw new Error(cloudTexts.door(variable));
+      if (repeated) throw new Error(meant(cloudTexts.repeated(variable)));
+      if (!value) throw new Error(meant(cloudTexts.door(variable)));
       keys.set(value, Object.freeze({ identity, door }));
     }
     return keys;

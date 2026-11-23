@@ -18,17 +18,21 @@ const tool: Tool = {
   },
 };
 it("does not turn a broken reading into a removed thing", () => {
-  expect(() => goneOf(session, [tool])).toThrow("broken reading");
+  expect(() => goneOf(session, [tool], "es")).toThrow("broken reading");
 });
 it("recognizes only an explicit absence as gone", () => {
   expect(
-    goneOf(session, [
-      {
-        ...tool,
-        view: () => {
-          throw new MissingView("shop", "sale");
+    goneOf(
+      session,
+      [
+        {
+          ...tool,
+          view: () => {
+            throw new MissingView("shop", "sale");
+          },
         },
-      },
-    ]),
+      ],
+      "es",
+    ),
   ).toBe(true);
 });

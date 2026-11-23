@@ -1,4 +1,5 @@
 // Routes contract actions through the actor's executor and tells core failures from business refusals.
+import { meant } from "../../fields/phrases.ts";
 import { Value } from "@sinclair/typebox/value";
 import { publicValue } from "../../adapters/public-value.ts";
 import type {
@@ -11,9 +12,10 @@ import type { ContractAction } from "../../tools/contracts/contract-types.ts";
 import { projectValue } from "./project-value.ts";
 export const coreFailure = (reason: CoreFailure["reason"]): CoreFailure => ({ status: "core-failure", reason });
 /** A refusal before running (`offered`, `stops`) says only its cause: it reaches the consumer as `{ reason }`, a
- * business refusal when that fits the declared refusals, and a defect when it does not. */
+ * business refusal when that fits the declared refusals, and a defect when it does not. Between programs a cause
+ * is data: it travels as its English words, the id both sides declare. */
 const refusedBefore = (result: ContractExecution) =>
-  result.status === "rejected" && result.reason !== undefined ? { reason: result.reason } : undefined;
+  result.status === "rejected" && result.reason !== undefined ? { reason: meant(result.reason) } : undefined;
 export function contractAction(
   need: ContractAction,
   have: ContractAction & { route: string },

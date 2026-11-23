@@ -1,4 +1,5 @@
 // The kit's authority reaches the mind: an effect with another author, a house fact or another tool's fact rejects
+import { type Text } from "../fields/phrases.ts";
 // the whole batch in view and writes nothing; the mind's own declared fact is written under its name.
 import { afterEach, expect, it } from "vitest";
 import { effect } from "../house/facts.ts";
@@ -12,7 +13,7 @@ import { shop, shopRegistry, type Shop, type ShopFact } from "../../tests/suppor
 const rigs: ReturnType<typeof shopRig>[] = [];
 afterEach(() => rigs.splice(0).forEach(r => r.close()));
 const empty = object({});
-type Forged = readonly [Emission<ShopFact>, string];
+type Forged = readonly [Emission<ShopFact>, Text];
 const forged: Readonly<Record<string, Forged>> = {
   // The five cases the mind left pending until the kit joined it.
   forgeKit: [effect("kit-set", { holder: "mind:desk", tool: "desk", acts: null }, "ana"), why.otherAuthor],

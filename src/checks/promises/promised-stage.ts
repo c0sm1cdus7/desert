@@ -15,6 +15,7 @@ import { promiseTexts as said } from "../../texts/promises.texts.ts";
 import type { Composition, Did, ProgramAct, ProgramTool, Step } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import { workingLanguage } from "../../fields/languages.ts";
+import { meant, type Text } from "../../fields/phrases.ts";
 export type Check = Readonly<{
   name: string;
   run: () => Promise<void>;
@@ -138,9 +139,10 @@ export async function given<X extends Program>(
     }
     if (!("act" in step)) throw new Error("Unsupported case step");
     const done = await perform(house, tool, step);
-    ok(done.status === "accepted", said.givenRefused(step.act, done.reason ?? done.status));
+    ok(done.status === "accepted", said.givenRefused(step.act, meant(done.reason ?? done.status)));
   }
 }
 export type Aim<X extends Program> = Readonly<{ tool: ProgramTool<X>; name: string; act: ProgramAct<X> }>;
-export const label = <X extends Program>({ tool, name }: Aim<X>, promise: string): string =>
-  `${tool.id} · ${name} · ${promise}`;
+/** A derived check is named by its tool, its act and what its case promises, in the working language. */
+export const label = <X extends Program>({ tool, name }: Aim<X>, promise: Text): string =>
+  `${tool.id} · ${name} · ${meant(promise)}`;

@@ -1,4 +1,5 @@
 // Adapt legacy founder maps once; authentication always reads the house's current fingerprint state.
+import { meant } from "../../../fields/phrases.ts";
 import { receiveRedemption } from "../../../tools/identities/redemption-recipient.ts";
 import type { DoorIdentity } from "../../../house/doors/door-material.ts";
 import { doorAccess, seedDoorKeys, type DoorBus } from "../../../runtime/door-access.ts";
@@ -30,7 +31,7 @@ export function liveDoorKeys<X extends Program>(
             house.tools.state().through,
             by,
           );
-          if (result.status !== "processing" && result.defect) throw new Error(doorTexts.denied);
+          if (result.status !== "processing" && result.defect) throw new Error(meant(doorTexts.denied));
           return result.status === "accepted";
         },
         material,

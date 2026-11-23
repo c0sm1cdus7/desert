@@ -1,4 +1,5 @@
 // The bank composes the catalog offline; opening a house never calls a model.
+import { said } from "../../fields/phrases.ts";
 import { afterEach, expect, it } from "vitest";
 import { programMindFixture } from "../../../tests/support/program-mind-fixture.ts";
 import { modelAccount } from "../../house/minds/model-call-state.ts";
@@ -33,7 +34,9 @@ it("picks the cheapest that passes its three scenes and does not try the next", 
   expect(evidence).toEqual(["high:false:3", "low:true:3"]);
   expect(
     f.frames.every(
-      frame => frame.body.includes("Sos la mente de Notas") && frame.body.includes("Anotá con las acciones"),
+      frame =>
+        frame.body.includes("You are the mind of Notas") &&
+        frame.body.includes("Take notes with the program's actions"),
     ),
   ).toBe(true);
   expect(modelAccount(house.tools.state().house.modelCalls, "test").spentNanoUsd).toBeGreaterThan(0);
@@ -51,8 +54,14 @@ it("with no card passing the bank it keeps its failed evidence, assigns nothing 
   const prepared = await f.bank(house, { capNanoUsd: 10000000000 });
   expect(f.transport).toHaveBeenCalledTimes(cards.length * 3);
   expect(house.tools.state().house.mindAssignments.has("mind:notes")).toBe(false);
-  expect(programMindNotices(prepared).join(" ")).toContain("carta");
-  expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toContain("carta");
+  expect(
+    programMindNotices(prepared)
+      .map(notice => said(notice, "es"))
+      .join(" "),
+  ).toContain("carta");
+  expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toContain(
+    "No card is enabled for this mind.",
+  );
   await f.bank(house, { capNanoUsd: 10000000000 });
   expect(f.transport).toHaveBeenCalledTimes(cards.length * 3);
 });
@@ -90,7 +99,12 @@ it("with no declared or chosen card the house opens, calls no model and says the
   const f = fixture();
   const house = await f.open({ cards: {} });
   expect(house.tools.state().house.mindAssignments.has("mind:notes")).toBe(false);
-  expect(house.mindNotices?.().join(" ")).toContain("carta");
+  expect(
+    house
+      .mindNotices?.()
+      .map(notice => said(notice, "es"))
+      .join(" "),
+  ).toContain("carta");
   f.wake(house);
   await (await house.minds)?.flush();
   expect(f.transport).not.toHaveBeenCalled();
@@ -108,17 +122,29 @@ it("thinking's spending survives closing, reopening and recomputing", async () =
   house.close();
   const reopened = await f.open({ capNanoUsd: maximumProgramCall(card, 50000) + spent - 1 }, true, "redeployed/2");
   expect(modelAccount(reopened.tools.state().house.modelCalls, "test").spentNanoUsd).toBe(spent);
-  expect(reopened.mindNotices?.().join(" ")).toContain("saldo");
+  expect(
+    reopened
+      .mindNotices?.()
+      .map(notice => said(notice, "es"))
+      .join(" "),
+  ).toContain("saldo");
   f.wake(reopened);
   await (await reopened.minds)?.flush();
   expect(f.transport).toHaveBeenCalledTimes(count);
-  expect(reopened.tools.state().house.scenes.get("mind:notes")?.data.general).toContain("saldo");
+  expect(reopened.tools.state().house.scenes.get("mind:notes")?.data.general).toContain(
+    "The available balance is not enough for another call.",
+  );
 });
 it.each(["no-key", "cap"])("abre con %s sin llamar al transporte", async reason => {
   const f = fixture();
   const house = await f.open(reason === "no-key" ? { key: () => Promise.resolve(undefined) } : { capNanoUsd: 0 });
   expect(f.transport).not.toHaveBeenCalled();
-  expect(house.mindNotices?.().join(" ")).toContain(reason === "no-key" ? "llave" : "saldo");
+  expect(
+    house
+      .mindNotices?.()
+      .map(notice => said(notice, "es"))
+      .join(" "),
+  ).toContain(reason === "no-key" ? "llave" : "saldo");
   f.wake(house);
   await (await house.minds)?.flush();
   expect(f.transport).not.toHaveBeenCalled();
@@ -133,7 +159,7 @@ it("the bank opens journeys and checks real work without writing notes in the li
   });
   fixtures.push(f);
   f.respond(request => {
-    const journey = request.changing.match(/^Alcance:\nmind:notes \/ (journey:[a-f0-9-]+)/)?.[1];
+    const journey = request.changing.match(/^Scope:\nmind:notes \/ (journey:[a-f0-9-]+)/)?.[1];
     if (journey)
       return {
         scene: "Banco aprobado",
@@ -146,7 +172,7 @@ it("the bank opens journeys and checks real work without writing notes in the li
     return {
       scene: "Banco aprobado",
       consultation: null,
-      acts: request.changing.includes("Escena:\nBanco aprobado")
+      acts: request.changing.includes("Scene:\nBanco aprobado")
         ? []
         : [
             {

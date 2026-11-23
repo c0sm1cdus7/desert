@@ -1,4 +1,5 @@
 import type { Capability } from "../../../src/fields/capabilities.ts";
+import { meant } from "../../../src/fields/phrases.ts";
 // Historical fixtures preserve checks of retired APIs without shipping those APIs in the base.
 import { type Card, cards, costUsd } from "../../../src/adapters/models/catalog.ts";
 import { modelTexts } from "../../../src/texts/model.texts.ts";
@@ -29,7 +30,7 @@ export function withinCap(args: {
   return spentUsd + Math.max(...costs) <= capUsd;
 }
 const required = (value: unknown, name: string) => {
-  if (value === undefined || value === null) throw new Error(`${modelTexts.missing}: ${name}`);
+  if (value === undefined || value === null) throw new Error(`${meant(modelTexts.missing)}: ${name}`);
 };
 const validNumber = (value: number, name: string) => {
   if (!Number.isFinite(value) || value < 0) throw new Error(name);

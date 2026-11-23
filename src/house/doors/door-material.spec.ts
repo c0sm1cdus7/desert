@@ -1,4 +1,5 @@
 // Known credentials disappear inside arbitrary strings and object keys without changing ordinary text.
+import { meant } from "../../fields/phrases.ts";
 import { expect, it } from "vitest";
 import { doorFingerprint, scrubDoorText, scrubDoorValue } from "./door-material.ts";
 import { emptyDoors, type DoorState } from "./door-state.ts";
@@ -30,7 +31,7 @@ it.each([false, true])("scrubs embedded current and historical fingerprints (leg
       ["á", "🙂"],
     ]) {
       const text = `${prefix}${material}${suffix}`;
-      const expected = `${prefix}${mcpTexts.redacted}${suffix}`;
+      const expected = `${prefix}${meant(mcpTexts.redacted)}${suffix}`;
       expect(scrubDoorText(text, state)).toBe(expected);
       expect(scrubDoorValue({ [text]: [text, new Map([[text, new Set([text])]])] }, state)).toEqual({
         [expected]: [expected, new Map([[expected, new Set([expected])]])],
@@ -55,6 +56,6 @@ it("redacts overlapping and repeated matches without exposing a remainder", () =
       ] as const,
   );
   expect(scrubDoorText("xabcdefghyabcdez", { ...emptyDoors, keys: new Map(keys) })).toBe(
-    `x${mcpTexts.redacted}y${mcpTexts.redacted}z`,
+    `x${meant(mcpTexts.redacted)}y${meant(mcpTexts.redacted)}z`,
   );
 });

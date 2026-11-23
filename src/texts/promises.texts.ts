@@ -5,18 +5,18 @@ type Cut = Readonly<{ tool: string; action: string; reason: string }>;
 type Walked = Readonly<{ whole: number; paths: number; states: number; clipped: number; unavailable: readonly Cut[] }>;
 export const promiseTexts = {
   inspectionDenied: (reason: string) => `E-CUSTODY-DENIED · ${reason}`,
-  inspectionAdapter: (id: string, method: string) => `adaptador ${id}.${method}`,
-  inspectionCapture: "capturar credencial",
-  inspectionReplace: "reemplazar credencial",
-  inspectionRelease: "liberar credencial",
-  inspectionRead: "leer credencial fuera del préstamo o casillero declarado",
-  inspectionWrite: "capturar credencial o escribir custodia",
+  inspectionAdapter: (id: string, method: string) => `adapter ${id}.${method}`,
+  inspectionCapture: "capture a credential",
+  inspectionReplace: "replace a credential",
+  inspectionRelease: "release a credential",
+  inspectionRead: "read a credential outside its declared loan or locker",
+  inspectionWrite: "capture a credential or write custody",
   keptUpgrades: (name: string) => `the journal kept as ${name} upgrades from previous folds to the complete replay`,
   ...checkDiagnostics,
   ...closureTexts,
-  nonOpaqueInput: (slot: string) => `Entrada no opaca: ${slot}`,
-  opaqueSecretPositions: "posiciones secretas opacas",
-  uncoveredSecretPositions: "Posiciones secretas sin caso ejecutado",
+  nonOpaqueInput: (slot: string) => `Input not opaque: ${slot}`,
+  opaqueSecretPositions: "opaque secret positions",
+  uncoveredSecretPositions: "Secret positions without an executed case",
   keptWalks: (name: string, to: Readonly<{ whole: number; paths: number; depth: number; choices: number }>) =>
     `the journal kept as ${name} walks every answer offered in its first ${to.whole} levels, and past them ` +
     `${to.paths} paths within ${to.depth} levels, ${to.choices} choices`,
@@ -24,7 +24,7 @@ export const promiseTexts = {
     `the journal kept as ${name}: ${walk.whole} paths walked its first levels whole and ${walk.paths} went past ` +
     `them, through ${walk.states} places; ` +
     `${walk.clipped} offered answers were left unwalked by limits; ` +
-    `${walk.unavailable.length} ramas no recorribles en inspección` +
+    `${walk.unavailable.length} branches could not be walked under inspection` +
     walk.unavailable.map(cut => `; ${cut.tool}/${cut.action}: ${cut.reason}`).join(""),
   disabledReason: "A disabled row has no reason",
   offeredFailed: (reason: string) => `An offered answer failed internally: ${reason}`,
@@ -51,8 +51,8 @@ export const promiseTexts = {
   foreign: "is read by who does not hold it, with actions off; hidden from the Menu by preference",
   outsideKit: "is refused when its action is outside the kit",
   partialKit: "shows an action outside a partial kit",
-  readableReferences: "referencias legibles",
-  absentReader: "quien no está no lee",
+  readableReferences: "readable references",
+  absentReader: "who is not in the house reads nothing",
   stillShown: (tool: string) => `the tool ${tool} is still on the Menu of who prefers not to see what is not theirs`,
   hiding: (promise: string) => `${promise}, hidden for who prefers not to see what cannot be done`,
   saysNothing: (act: string) => `the row of ${act} says nothing to its right: its datum, or what it is for`,

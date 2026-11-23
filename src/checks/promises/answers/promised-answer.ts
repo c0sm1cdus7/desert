@@ -18,7 +18,8 @@ export function answer(router: Router, field: Field, given: string, opened = fie
     confirmAnswer(router, field, given);
     /** What is complete and wrong stays where it was written, and the screen says why. */
     const why = field.wrong?.(given);
-    if (why !== undefined) ok(reasonIn(router.screen(view).body, why), said.notSaid(why));
+    const screen = router.screen(view);
+    if (why !== undefined) ok(reasonIn(screen.body, why, screen.language), said.notSaid(why));
     if (canSend && why === undefined) return true;
     const reason = field.wrong?.(given, true);
     return {
@@ -52,7 +53,7 @@ function pickAnswer(router: Router, field: Field & { kind: "pick" }, given: stri
       const why = row.off ? row.detail : undefined;
       if (why !== undefined)
         ok(
-          readThrough(router, screen => reasonIn(screen.body, why, row)),
+          readThrough(router, screen => reasonIn(screen.body, why, screen.language, row)),
           said.closedCause(field.ask, why),
         );
       return { kind: "cause", ask: field.ask };

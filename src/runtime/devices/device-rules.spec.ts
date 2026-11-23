@@ -1,4 +1,5 @@
 // Mechanical rules stop remote actions through doors and after the supervisor's verdict.
+import { said } from "../../fields/phrases.ts";
 import { expect, it, vi } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -82,7 +83,7 @@ it.each(["ana", "beto"])("blocks a device action over MCP for %s and keeps the r
       ],
     });
     expect(response.body).toContain('"isError":true');
-    expect(response.body).toContain(rulesTexts.blocked);
+    expect(response.body).toContain(said(rulesTexts.blocked, "es"));
     expect(rig.requests).toEqual([]);
     expect(rig.house.tools.state().house.devices.executions.size).toBe(0);
     expect(evaluations(rig)).toContainEqual({

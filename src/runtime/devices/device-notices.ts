@@ -1,4 +1,5 @@
 // Records a device's notice once, with author and journey taken from the house's record of that execution.
+import { meant } from "../../fields/phrases.ts";
 import { Value } from "@sinclair/typebox/value";
 import { publicValue } from "../../adapters/public-value.ts";
 import { isRecord } from "../../fields/json-values.ts";
@@ -35,7 +36,7 @@ export function announceNotice(
   const house = ports.state();
   const owner = house.devices.devices.get(device);
   if (!owner?.accepted || owner.retired || owner.connection !== connection.id || !house.grants.has(owner.owner))
-    throw new Error(deviceTexts.unavailable);
+    throw new Error(meant(deviceTexts.unavailable));
   const safe = journaled(ports, notice);
   if (!safe) return "refused";
   const execution = house.devices.executions.get(safe.execution);

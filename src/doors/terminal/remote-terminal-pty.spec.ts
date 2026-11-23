@@ -1,4 +1,5 @@
 // Real PTY and localhost HTTP acceptance: one renderer opens, acts, reconnects and loses access on live revocation.
+import { everySaid } from "../../fields/phrases.ts";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -89,7 +90,7 @@ it("http: an invalid credential shows a catalogued refusal on the real terminal 
     const key = "synthetic-invalid-remote-key";
     directory = config(`http://127.0.0.1:${address.port}/mcp`, key);
     client = terminal(directory, { expectedExit: { code: 1, signal: null } });
-    await client.until(socketTexts.denied);
+    await client.until(everySaid(socketTexts.denied));
     expect(client.written()).not.toContain(key);
     expect(client.written()).not.toContain("Error:");
     expect(client.written()).not.toContain(" at ");

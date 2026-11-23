@@ -28,7 +28,7 @@ for (const mode of ["one", "text", "pick"] satisfies readonly ("one" | "text" | 
           if (mode === "text") type(seat.router, "old");
           else {
             const options = before.body.kind === "thread" ? (before.body.options ?? []) : [];
-            const current = options.filter(option => option.detail === "actual");
+            const current = options.filter(option => option.detail === "current");
             expect(current).toHaveLength(1);
             expect(current[0]).toMatchObject({ off: true, title: mode === "pick" ? "s1" : "Anterior" });
             type(seat.router, mode === "pick" ? "2" : "a");
@@ -47,7 +47,7 @@ for (const mode of ["one", "text", "pick"] satisfies readonly ("one" | "text" | 
           } else type(seat.router, mode === "pick" ? "1" : "n");
           await seat.router.idle();
           expect(seat.requests.filter(request => request.act === "adjust")).toHaveLength(1);
-          expect(JSON.stringify(seat.router.screen(view))).toContain("Listo");
+          expect(JSON.stringify(seat.router.screen(view))).toContain("Done");
         } finally {
           seat.router.stop();
         }
@@ -81,7 +81,7 @@ it("fails the derived guarantee when a compiling screen turns current back into 
                     ? {
                         ...field,
                         options: field.options.map(option =>
-                          option.detail === "actual" ? { ...option, detail: "sin cambios" } : option,
+                          option.detail === "current" ? { ...option, detail: "no changes" } : option,
                         ),
                       }
                     : field;
@@ -98,5 +98,5 @@ it("fails the derived guarantee when a compiling screen turns current back into 
   );
   expect(checks).toHaveLength(3);
   for (const check of checks)
-    await expect(check.run()).rejects.toMatchObject({ actual: "sin cambios", expected: "actual" });
+    await expect(check.run()).rejects.toMatchObject({ actual: "no changes", expected: "current" });
 });

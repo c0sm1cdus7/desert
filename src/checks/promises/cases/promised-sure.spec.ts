@@ -44,16 +44,16 @@ describe("what is confirmed", () => {
     const { title, said, options } = await confirming(settlingShop, shopShown, "s");
     expect(title).toBe("Saldar · s1");
     expect(said).toEqual(["Todo lo que la venta debe", "irreversible"]);
-    expect(options).toEqual(["volver", "saldar"]);
+    expect(options).toEqual(["back", "saldar"]);
   });
   it("is what the act puts to be confirmed; under it, what it is for and that it cannot be undone", async () => {
     const { said, options } = await confirming(summing, shopShown, "s");
     expect(said).toEqual(["s1 queda sin deuda", "todo lo que la venta debe · irreversible"]);
-    expect(options).toEqual(["volver", "saldar"]);
+    expect(options).toEqual(["back", "saldar"]);
   });
   it("is what the act puts to be confirmed and nothing under it, when it can be undone", async () => {
     const { said, options } = await confirming(markingShop, knowingShown, "kt");
     expect(said.at(-1)).toBe("Marcar · $ 15,00");
-    expect(options).toEqual(["marcar", "volver"]);
+    expect(options).toEqual(["marcar", "back"]);
   });
 });

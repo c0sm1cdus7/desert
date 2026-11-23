@@ -1,4 +1,5 @@
 import { performance } from "node:perf_hooks";
+import { same } from "../fields/phrases.ts";
 import { duplexPair } from "node:stream";
 import { afterEach, expect, it, vi } from "vitest";
 import { socketHouse } from "../../tests/support/socket-house.ts";
@@ -70,12 +71,12 @@ it("N8: two thousand cheap requests have a per-connection quota and visible refu
     ).toBe(true);
     expect(c.messages.filter(m => m.type === "response")).toHaveLength(32);
     expect(c.messages.filter(m => m.type === "rejection")).toHaveLength(1968);
-    expect(c.messages.filter(m => m.type === "rejection").every(m => m.reason === socketTexts.quota)).toBe(true);
+    expect(c.messages.filter(m => m.type === "rejection").every(m => same(m.reason, socketTexts.quota))).toBe(true);
     expect(
       f
         .house()
         .tools.state()
-        .entries.filter(e => e.seq > before && e.data.author === "beto" && e.data.text === toolTexts.baseFailure),
+        .entries.filter(e => e.seq > before && e.data.author === "beto" && same(e.data.text, toolTexts.baseFailure)),
     ).toHaveLength(32);
     const other = await f.client("ana-terminal");
     other.send({ type: "read", what: "catalog", id: "other" });

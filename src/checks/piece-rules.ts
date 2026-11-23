@@ -1,4 +1,6 @@
 // The form rules of the approved form, held once over the pieces of a screen: each names what does not hold.
+import type { Language } from "../fields/languages.ts";
+import { wordsIn } from "../fields/phrases.ts";
 import type { Row, Screen, Span } from "../surface/contract/contract.ts";
 import { hintSends } from "../surface/contract/hint-sends.ts";
 import { controlNames } from "../surface/pieces/controls.ts";
@@ -42,7 +44,10 @@ const fixed: Held = (screen, { zones: [, , toolbar] }) => [
   ),
   ...toolbar.fixed.flatMap(({ control, key, does }) =>
     control === "menu" || control === "quit"
-      ? where(control, says(key, said.chords[control], "t2") && says(does, said.keys[control], "t3"))
+      ? where(
+          control,
+          says(key, said.chords[control], "t2") && says(does, wordsIn(said, screen.language).keys[control], "t3"),
+        )
       : [control],
   ),
 ];
@@ -61,7 +66,7 @@ const sends: Held = (_screen, { zones: [, , toolbar] }) =>
 const verbs: Held = (screen, { zones: [, , toolbar] }) =>
   toolbar.aids.flatMap(({ control, key, does }, i) => {
     const verb = screen.hints[i]?.does ?? "";
-    const named = control !== "menu" && control !== "quit" && says(key, controlNames[control], "t2");
+    const named = control !== "menu" && control !== "quit" && says(key, controlNames(screen.language)[control], "t2");
     return where(`aid ${i}`, verb !== "" && !/[.!?¿¡]/u.test(verb) && says(does, verb, "t3") && named);
   });
 const off: Held = (screen, pieces) =>
@@ -109,11 +114,21 @@ const datum: Held = (screen, pieces) =>
   });
 const keyPlace: Held = (screen, pieces) =>
   groupsOf(screen, pieces).flatMap(group => where(group.place, group.piece?.keyed === group.rows.some(row => row.key)));
-const counted = (n: number | undefined, way: "above" | "below", piece: NoticePiece | undefined): boolean =>
-  n ? same(piece, notice(way, `${way === "above" ? "↑" : "↓"} ${n} ${said.more}`, "t3")) : piece === undefined;
+const counted = (
+  n: number | undefined,
+  way: "above" | "below",
+  piece: NoticePiece | undefined,
+  language: Language,
+): boolean =>
+  n
+    ? same(piece, notice(way, `${way === "above" ? "↑" : "↓"} ${n} ${wordsIn(said, language).more}`, "t3"))
+    : piece === undefined;
 const howMuch: Held = (screen, pieces) =>
   groupsOf(screen, pieces).flatMap(({ place, above, below, piece }) =>
-    where(place, counted(above, "above", piece?.above) && counted(below, "below", piece?.below)),
+    where(
+      place,
+      counted(above, "above", piece?.above, screen.language) && counted(below, "below", piece?.below, screen.language),
+    ),
   );
 const emptyStack: Held = (screen, pieces) =>
   groupsOf(screen, pieces)
@@ -267,7 +282,10 @@ const rules = [
   ["a-row-sends-its-choice", sendsChoice],
   ["a-mark-is-said", markSaid],
   ["an-entry-says-its-keys", entryKeys],
-  ["small-is-one-notice", (_screen, { small }) => where("small", same(small, notice("small", said.tooSmall, "t1")))],
+  [
+    "small-is-one-notice",
+    (screen, { small }) => where("small", same(small, notice("small", wordsIn(said, screen.language).tooSmall, "t1"))),
+  ],
 ] as const satisfies readonly (readonly [string, Held])[];
 /** One rule that does not hold over the pieces of one screen, and where. */
 export interface PieceFailure {

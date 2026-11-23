@@ -28,7 +28,7 @@ it("an identity proposes over MCP and not even the admin gets past the approved 
       (await f.call("act", { program: "sales", action: "register", data: { sale: "s1", total: 1500 } })).body,
     );
     expect(result.isError).toBe(true);
-    expect(mcpText(result)).toContain(rulesTexts.blocked);
+    expect(mcpText(result)).toContain(rulesTexts.blocked.es);
     expect(f.rig.state().tools.sales.size).toBe(0);
     const query = mcpResult((await f.call("act", { program: "rules", action: "consult", data: {} }, f.carla)).body);
     expect(mcpText(query)).toContain("sales-limit");

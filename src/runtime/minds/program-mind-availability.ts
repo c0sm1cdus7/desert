@@ -1,4 +1,6 @@
 // Explains unavailable program minds using the selected billing account and public scenes.
+import { workingLanguage } from "../../fields/languages.ts";
+import { phrase } from "../../fields/phrases.ts";
 import { costUsd, type Card } from "../../adapters/models/catalog.ts";
 import { effect } from "../../house/facts.ts";
 import { billingAccount, billingFor } from "./mind-billing.ts";
@@ -25,9 +27,9 @@ export async function programMindAvailability<X extends Program>(
     if (reason && house.active()) {
       unavailable.set(definition.actor, reason);
       const rejection = options.providerRejections?.get(definition.actor);
-      const general = programMindUnavailable.text(options.language, {
+      const general = programMindUnavailable.text(workingLanguage, {
         actor: definition.actor,
-        reason: turnNotice.text(options.language, {
+        reason: turnNotice.text(workingLanguage, {
           reason,
           ...(rejection ? { rejection } : {}),
         }),
@@ -71,9 +73,11 @@ async function unavailableReason<X extends Program>(
 export function programMindNotices(options: MindRuntimeOptions) {
   return [...(options.unavailable ?? [])].map(([actor, reason]) => {
     const rejection = options.providerRejections?.get(actor);
-    return programMindUnavailable.text(options.language, {
-      actor,
-      reason: turnNotice.text(options.language, { reason, ...(rejection ? { rejection } : {}) }),
-    });
+    return phrase(language =>
+      programMindUnavailable.text(language, {
+        actor,
+        reason: turnNotice.text(language, { reason, ...(rejection ? { rejection } : {}) }),
+      }),
+    );
   });
 }

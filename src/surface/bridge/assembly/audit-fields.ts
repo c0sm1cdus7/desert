@@ -1,5 +1,6 @@
 // What the fields of a program's acts need from the rest of the program, checked when it is composed: a day held
 // to today needs how its country counts days, and a thing made where it is picked needs the act that makes it.
+import { everySaid, isPhrase } from "../../../fields/phrases.ts";
 import { short } from "../../../tools/act-words.ts";
 import type { ProgramTool } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
@@ -17,11 +18,12 @@ const fieldsIn = (schema: unknown, seen = new WeakSet<object>()): readonly Field
 /** Only a thing field uses empty as metadata; a program can still have a datum named empty. */
 function emptyReason(field: Field, where: string): void {
   if (typeof field.of !== "string") return;
-  if (field.empty !== undefined && (typeof field.empty !== "string" || field.empty.trim() === ""))
+  const empty = typeof field.empty === "string" || isPhrase(field.empty) ? field.empty : undefined;
+  if (field.empty !== undefined && (empty === undefined || everySaid(empty).trim() === ""))
     throw new Error(`${where} has no usable empty reason`);
-  if (typeof field.makes !== "string" && typeof field.empty !== "string")
+  if (typeof field.makes !== "string" && empty === undefined)
     throw new Error(`${where} picks a thing without a maker or an empty reason`);
-  if (typeof field.empty === "string") short(field.empty);
+  if (empty !== undefined) short(empty);
 }
 /** A field that cannot work as declared is a defect of the program: it shows when the program is composed, not on
  * the screen of whoever reaches that question first. */

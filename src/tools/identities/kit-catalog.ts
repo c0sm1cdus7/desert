@@ -1,4 +1,5 @@
 // Describes grantable programs and folders without limiting the number of rows.
+import { isPhrase, type Text } from "../../fields/phrases.ts";
 import { systemTool } from "../../house/system-tools.ts";
 import { holderKit } from "../../house/kit-history.ts";
 import { covers, toolOf } from "../../house/kit-selection.ts";
@@ -29,13 +30,13 @@ export function kitProblem(house: House, holder: string, tool: string) {
   const own = mindTool(holder);
   return own !== undefined && !mindMayHold(house, own, tool) ? words.ownActions : undefined;
 }
-export function actionName(action: unknown, fallback: string): string {
+export function actionName(action: unknown, fallback: string): Text {
   const name: unknown = action && typeof action === "object" ? Reflect.get(action, "name") : undefined;
-  return typeof name === "string" ? name : fallback;
+  return typeof name === "string" || isPhrase(name) ? name : fallback;
 }
 
-export const programName = <X extends Program>(tool: Tool<X>) => tool.name ?? tool.id;
-export const folderName = <X extends Program>(tool: Tool<X>, group?: string) =>
+export const programName = <X extends Program>(tool: Tool<X>): Text => tool.name ?? tool.id;
+export const folderName = <X extends Program>(tool: Tool<X>, group?: string): Text =>
   group === undefined
     ? programName(tool)
     : (tool.toolNames?.[group] ?? (group === tool.id ? programName(tool) : group));

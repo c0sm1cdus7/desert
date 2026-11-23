@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { said, same } from "../../../fields/phrases.ts";
 import { authorOf, authorOnly, objectDistribution } from "../../../../tests/support/installable-objects.ts";
 import { programChecks } from "../../program-checks.ts";
 import { cast, perform, staged } from "../promised-stage.ts";
@@ -26,12 +27,14 @@ it.each([false, true])("keeps object rows, author rules and foreign preferences 
           const target = objectOf("notes", "notes", local);
           seat.router.send({ kind: "menu" });
           goTo(seat, "notes", target);
-          const rows = stacksOf({ kind: "view", tool: "notes", target, at: 0 }, seat.tools).flatMap(s => s.rows);
+          const rows = stacksOf({ kind: "view", tool: "notes", target, at: 0 }, seat.tools, seat.language).flatMap(
+            s => s.rows,
+          );
           expect(rows.some(row => row.title === "Cantidad")).toBe(true);
           const actions = rows.filter(row => row.starts);
           expect(actions.map(row => row.starts)).toEqual([{ tool: "notes", act: "notes/edit", target }]);
           const authorReason = by === authorOf(local) ? undefined : authorOnly;
-          const reason = by === cast.outsider ? toolTexts.kitRefusal("notes") : authorReason;
+          const reason = by === cast.outsider ? said(toolTexts.kitRefusal("notes"), seat.language) : authorReason;
           const row = actions[0];
           expect(row).toBeDefined();
           expect(row?.off === true).toBe(reason !== undefined);
@@ -41,11 +44,11 @@ it.each([false, true])("keeps object rows, author rules and foreign preferences 
           );
           const result = await perform(house(), "notes", { act: "notes/edit", on: target, input: {}, by });
           expect(result.status).toBe(reason ? "rejected" : "accepted");
-          expect(reason === undefined || result.reason === reason).toBe(true);
+          expect(reason === undefined || same(result.reason, reason)).toBe(true);
         }
         seat.router.send({ kind: "menu" });
         await prefer(seat, "foreign", true);
-        expect(menuRows(seat.tools).some(row => row.key === "n")).toBe(by !== cast.outsider);
+        expect(menuRows(seat.tools, seat.language).some(row => row.key === "n")).toBe(by !== cast.outsider);
       } finally {
         seat.router.stop();
       }
@@ -53,15 +56,17 @@ it.each([false, true])("keeps object rows, author rules and foreign preferences 
     reopen();
     const seat = seated(house(), cast.outsider, shown);
     try {
-      expect(menuRows(seat.tools).some(row => row.key === "n")).toBe(false);
+      expect(menuRows(seat.tools, seat.language).some(row => row.key === "n")).toBe(false);
       await prefer(seat, "foreign", false);
-      expect(menuRows(seat.tools).some(row => row.key === "n")).toBe(true);
+      expect(menuRows(seat.tools, seat.language).some(row => row.key === "n")).toBe(true);
       house().bus.emit(
         effect("kit-set", { version: 2, holder: cast.outsider, kit: programKit(["notes"]) }, cast.admin),
       );
       const target = objectOf("notes", "notes", "a/b#c");
       goTo(seat, "notes", target);
-      const rows = stacksOf({ kind: "view", tool: "notes", target, at: 0 }, seat.tools).flatMap(s => s.rows);
+      const rows = stacksOf({ kind: "view", tool: "notes", target, at: 0 }, seat.tools, seat.language).flatMap(
+        s => s.rows,
+      );
       expect(rows.find(row => row.starts?.act === "notes/edit")?.open).toBeDefined();
       expect(
         (await perform(house(), "notes", { act: "notes/edit", on: target, input: {}, by: cast.outsider })).status,
@@ -82,14 +87,14 @@ it("keeps two tools' identically named and encoded objects separate even without
           const target = local === undefined ? `notes/${group}` : objectOf("notes", group, local);
           seat.router.send({ kind: "menu" });
           goTo(seat, "notes", target);
-          const actions = stacksOf({ kind: "view", tool: "notes", target, at: 0 }, seat.tools)
+          const actions = stacksOf({ kind: "view", tool: "notes", target, at: 0 }, seat.tools, seat.language)
             .flatMap(s => s.rows)
             .filter(row => row.starts);
           expect(actions.map(row => row.starts)).toEqual([
             { tool: "notes", act: `${group}/${local === undefined ? "note" : "edit"}`, target },
           ]);
           expect(actions[0]?.off).toBe(true);
-          expect(actions[0]?.detail?.endsWith(toolTexts.kitRefusal("notes"))).toBe(true);
+          expect(actions[0]?.detail?.endsWith(said(toolTexts.kitRefusal("notes"), seat.language))).toBe(true);
           expect(actions[0]?.open).toBeUndefined();
         }
       }

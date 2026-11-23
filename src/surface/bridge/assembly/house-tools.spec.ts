@@ -21,6 +21,7 @@ const composed = (registry: ToolRegistry<Shop>, shown: Shown<Shop> = shopShown) 
     houseTools(
       rig.ports("ana", () => testTime.now()),
       shown,
+      "es",
     );
 };
 const register = must(salesTool.acts.register);
@@ -41,7 +42,7 @@ describe("a program's tools, composed for a surface", () => {
 
   it("lists every tool on the Menu, the gate's sample too: no tool lives inside another", () => {
     const tools = composed(gate.registry, gateShown)();
-    const programs = stacksOf({ kind: "menu", at: 0 }, tools).find(stack => stack.title === "Programas");
+    const programs = stacksOf({ kind: "menu", at: 0 }, tools, "es").find(stack => stack.title === "Programas");
     expect(programs?.rows.map(row => [row.title, row.key])).toEqual([
       ["ventas", "v"],
       ["pagos", "p"],
@@ -53,7 +54,7 @@ describe("a program's tools, composed for a surface", () => {
   it("lists on the Menu a tool whose words still say the retired `inside`", () => {
     const saying = Object.assign({}, must(shopWords.payments), { inside: "sales" });
     const tools = composed([salesTool, paymentsTool], { ...shopShown, words: { ...shopWords, payments: saying } })();
-    const programs = stacksOf({ kind: "menu", at: 0 }, tools).find(stack => stack.title === "Programas");
+    const programs = stacksOf({ kind: "menu", at: 0 }, tools, "es").find(stack => stack.title === "Programas");
     expect(programs?.rows.map(row => [row.title, row.key])).toEqual([
       ["ventas", "v"],
       ["pagos", "p"],

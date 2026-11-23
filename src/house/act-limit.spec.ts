@@ -1,4 +1,5 @@
 // One bound for the data of an act (actLimits.inputBytes): what enters by the mind at the exact border also enters by
+import { meant } from "../fields/phrases.ts";
 // the terminal, because a JSON frame holds that bound plus room for its envelope; one byte more is refused in view.
 import { duplexPair } from "node:stream";
 import { Type } from "@sinclair/typebox";
@@ -66,7 +67,9 @@ it("the same act at the exact bound enters by the terminal; a frame one byte pas
   ana.send(message);
   expect(await ana.result("edge")).toMatchObject({ status: "accepted" });
   // One byte past the frame limit: the terminal cannot even build it, and the house cuts a peer that sends it.
-  expect(() => clientFrame({ ...message, input: { text: "x".repeat(socketLimits.json) } })).toThrow(socketTexts.frame);
+  expect(() => clientFrame({ ...message, input: { text: "x".repeat(socketLimits.json) } })).toThrow(
+    meant(socketTexts.frame),
+  );
   const other = await client();
   const before = rig.house().tools.state().through;
   const header = Buffer.alloc(5);

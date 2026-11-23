@@ -1,4 +1,6 @@
 // Every check a program's promises derive: nobody writes them. Each case is a check; so is each law of every act.
+import { languages } from "../../../fields/languages.ts";
+import { meant, said as inWords, type Text } from "../../../fields/phrases.ts";
 import { stateResult } from "../../../journal/readonly-state.ts";
 import type { Shown } from "../../../surface/bridge/ports/house-ports.ts";
 import { addresses } from "../../../texts/addressing.ts";
@@ -70,11 +72,19 @@ export const promisedNeeds = <X extends Program>(aim: Aim<X>, then: Case<X>["the
 };
 /** A case, checked on a real house: what it says and writes, or its refusal; and the same house after reopening. */
 function assertSummaries<X extends Program>(program: Composition<X>, state: ReturnType<House<X>["tools"]["state"]>) {
-  const bare = program.registry.filter(tool => /^\d+$/u.test(tool.summary(state)));
+  const bare = program.registry.filter(tool => /^\d+$/u.test(meant(tool.summary(state))));
   deepStrictEqual(
     bare.map(tool => said.bareCount(tool.id)),
     [],
   );
+}
+/** What an act says is composed in every language, and speaks to nobody. */
+function assertSays(says: Text): void {
+  ok(
+    languages.every(language => composed.test(inWords(says, language))),
+    said.notComposed(meant(says)),
+  );
+  ok(!addresses(says), said.speaks(meant(says)));
 }
 function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase: Case<X>): Check {
   const run = (): Promise<void> =>
@@ -82,17 +92,16 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
       await given(house(), aim.tool.id, kase.given, kase.at);
       const before = house().tools.state();
       const done = await perform(house(), aim.tool.id, { ...kase, act: aim.name });
-      ok(!done.defect, done.reason);
+      ok(!done.defect, meant(done.reason ?? ""));
       if ("refused" in kase.then) {
         deepStrictEqual([done.status, done.reason], ["rejected", kase.then.refused], said.refusalMismatch);
         deepStrictEqual(wroteSince(house(), before.through), []);
         deepStrictEqual(stateResult(house().tools.state().tools), stateResult(before.tools));
       } else {
-        strictEqual(done.status, "accepted", done.reason);
+        strictEqual(done.status, "accepted", meant(done.reason ?? ""));
         deepStrictEqual(wroteSince(house(), before.through), kase.then.facts, said.factsMismatch);
-        strictEqual(saidBy(done)?.text, kase.then.says, said.saysMismatch);
-        ok(composed.test(kase.then.says), said.notComposed(kase.then.says));
-        ok(!addresses(kase.then.says), said.speaks(kase.then.says));
+        deepStrictEqual(saidBy(done)?.text, kase.then.says, said.saysMismatch);
+        assertSays(kase.then.says);
         const reads = kase.then.reads;
         if (reads) deepStrictEqual(readOn(house(), aim, kase, reads.on), reads.lines, said.readsMismatch);
         /** What was written in a shape is read in it, on the thing the act left and on its tool's list. */

@@ -1,4 +1,5 @@
 // Runs confirmed notices as acts of their mind and recovers pending ones by reaction and notice.
+import { meant, type Text } from "../../fields/phrases.ts";
 import { OutsideDefect } from "../../fields/program-call.ts";
 import { houseCatalog } from "../../house/facts.ts";
 import { mindOf } from "../../house/kit.ts";
@@ -8,7 +9,7 @@ import { execute, type Execution } from "../execute.ts";
 import { defectReporter } from "../failures/defect-reporter.ts";
 import type { Program } from "../tool-contract.ts";
 
-type Pending = Readonly<{ reaction: string; notice: string; by: string; reason: string }>;
+type Pending = Readonly<{ reaction: string; notice: string; by: string; reason: Text }>;
 type Reaction = Readonly<{ id: string; tool: string; target: string; when: string; act: string }>;
 const keyOf = (reaction: string, notice: string) => JSON.stringify([reaction, notice]);
 export function declaredReactions<X extends Program>(ports: Pick<Execution<X>, "registry">): readonly Reaction[] {
@@ -18,7 +19,7 @@ export function declaredReactions<X extends Program>(ports: Pick<Execution<X>, "
       const known =
         Object.hasOwn(houseCatalog, reaction.when) || ports.registry.some(tool => tool.facts?.includes(reaction.when));
       if (!action || !Object.hasOwn(tool.acts, reaction.act) || action.reach !== "house" || !known)
-        throw new OutsideDefect(new Error(toolTexts.invalidReaction(tool.id, reaction.act)));
+        throw new OutsideDefect(new Error(meant(toolTexts.invalidReaction(tool.id, reaction.act))));
       return {
         id: JSON.stringify([tool.id, id]),
         tool: tool.id,
@@ -32,7 +33,7 @@ export function declaredReactions<X extends Program>(ports: Pick<Execution<X>, "
 function receipts(events: readonly Event[]) {
   const attempts = new Map<string, string>();
   const completed = new Set<string>();
-  const reasons = new Map<string, string>();
+  const reasons = new Map<string, Text>();
   for (const event of events) {
     if (event.layer !== "house") continue;
     if (event.kind === "act" && event.data.reaction) {
@@ -63,7 +64,8 @@ class ReactionRunner<X extends Program> {
     this.declarations = declaredReactions(ports);
     for (const event of history) if (this.relevant(event)) this.events.push(event);
     for (const tool of ports.registry) {
-      if ("effects" in tool) this.report(new OutsideDefect(new Error(toolTexts.legacyReactions)), tool.id, "effects");
+      if ("effects" in tool)
+        this.report(new OutsideDefect(new Error(meant(toolTexts.legacyReactions))), tool.id, "effects");
     }
     this.unlisten = ports.bus.on(event => this.hear(event));
     if (this.pendingWork().length) this.schedule();

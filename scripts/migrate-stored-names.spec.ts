@@ -25,6 +25,8 @@ const migratedPositions = Object.freeze([
   { kind: "act", path: "data.input.door", object: "identities/" },
   { kind: "act", path: "data.input.effect", object: "rules" },
 ] as const);
+/** What a row of the journal holds, read back as data. */
+const dataOf = (row: { data?: unknown }): unknown => JSON.parse(String(row.data));
 const fixture = legacyDoorHouse({ migrate: false });
 const journal = join(fixture.home, "journal.sqlite");
 const original = join(fixture.backups, "original.sqlite");
@@ -89,8 +91,8 @@ it("renames in place after a backup, gives each identity Spanish, and folds to t
   const { file, backups } = copy("migrate");
   const result = run("--backup", backups, "--journal", file);
   expect(result.code).toBe(0);
-  expect(result.said).toContain("renombrados");
-  expect(result.said).toContain("2 identidades sin idioma reciben el castellano");
+  expect(result.said).toContain("renamed");
+  expect(result.said).toContain("2 identities without a language receive Spanish");
   const before = rows(original),
     all = rows(file),
     after = all.slice(0, before.length),
@@ -103,7 +105,7 @@ it("renames in place after a backup, gives each identity Spanish, and folds to t
     expect(JSON.parse(String(row.data))).toEqual(renamed ?? JSON.parse(String(old.data)));
   });
   // Who administers says, after the last fact, the language each identity has seen the house in: Spanish.
-  expect(added.map(row => [row.seq, row.kind, row.by, row.cause, JSON.parse(String(row.data))])).toEqual(
+  expect(added.map(row => [row.seq, row.kind, row.by, row.cause, dataOf(row)])).toEqual(
     ["ana", "beto"].map((identity, index) => [
       before.length + index + 1,
       "language-set",
@@ -132,12 +134,12 @@ it("is idempotent: a second run renames nothing, writes no backup and leaves eve
   mkdirSync(second);
   const again = run("--backup", second, "--journal", file);
   expect(again.code).toBe(0);
-  expect(again.said).toContain("nada que renombrar");
+  expect(again.said).toContain("nothing to rename");
   expect(rows(file)).toEqual(once);
   expect(readdirSync(second)).toEqual([]);
   const same = run("--backup", backups, "--journal", file);
   expect(same.code).toBe(0);
-  expect(same.said).toContain("nada que renombrar");
+  expect(same.said).toContain("nothing to rename");
   expect(rows(file)).toEqual(once);
 });
 
@@ -182,7 +184,7 @@ it("checks a model account, which holds no Spanish name, and leaves it as it was
   const before = rows(file);
   const checked = run("--backup", backups, "--account", file);
   expect(checked.code).toBe(0);
-  expect(checked.said).toContain("nada que renombrar");
+  expect(checked.said).toContain("nothing to rename");
   expect(rows(file)).toEqual(before);
 });
 

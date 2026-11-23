@@ -95,13 +95,15 @@ it.each(["resume", "desist"] as const)(
       [{ code: "stopped", path: "/acts" }],
     ]);
     expect(
-      framesOf(f).some(frame => frame.includes("Ese journey ya está frenado y su consciencia todavía no lo retomó")),
+      framesOf(f).some(frame =>
+        frame.includes("That journey is already stopped and its consciousness has not resumed it yet"),
+      ),
     ).toBe(true);
     // The owner consciousness woke once, with the goal, the reason and what was left pending.
-    const told = seen.filter(frame => frame.includes("El supervisor frenó tu journey «Mate el jueves»"));
+    const told = seen.filter(frame => frame.includes("The supervisor stopped your journey «Mate el jueves»"));
     expect(told).toHaveLength(1);
     expect(told[0]).toContain(reason);
-    expect(told[0]).toContain("Quedó pendiente: nada.");
+    expect(told[0]).toContain("Left pending: nothing.");
     const final = journeyOf(house);
     if (after === "desist") {
       expect(final?.closed?.data).toMatchObject({ outcome: "desisted", summary: "Sin visto no sigo" });
@@ -110,7 +112,7 @@ it.each(["resume", "desist"] as const)(
     }
     expect(final?.closed?.data.outcome).toBe("done");
     expect(final?.interrupted).toEqual({ reason, frozen: false });
-    const resumed = seen.filter(frame => frame.includes("Tu consciencia retomó este journey"));
+    const resumed = seen.filter(frame => frame.includes("Your consciousness resumed this journey"));
     expect(resumed).toHaveLength(1);
     expect(resumed[0]).toContain(`"interrupted":{"reason":"${reason}","frozen":false}`);
     expect(house.tools.state().tools.notes.notes).toEqual(["Mate"]);
@@ -137,7 +139,7 @@ it("wakes once for a consciousness that fails on the stop of its journey: a stop
       : [],
   );
   expect(closings).toEqual(["mind:notes done", "mind:supervisor done", "mind:notes failed", "mind:supervisor done"]);
-  expect(framesOf(f).filter(supervising).at(-1)).toContain("Falló un turno de la consciencia de mind:notes");
+  expect(framesOf(f).filter(supervising).at(-1)).toContain("A turn of the consciousness of mind:notes failed");
   expect(journeyFrozen(journeyOf(house))).toBe(true);
 }, 60000);
 /** A supervisor that, in each of its first six own turns, stops every open journey that is not frozen. */

@@ -1,4 +1,5 @@
 // Declared cases for adding with a name and kit, adding empty, duplicates and administration permission.
+import { joined } from "../../fields/phrases.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import type { Case } from "../promises.ts";
 import { programName } from "./kit-catalog.ts";
@@ -21,7 +22,7 @@ const namedCase = <X extends Program>(tools: ToolRegistry<X>): NewCase<X> => ({
           name: "Luz",
           state: words.count(tools.length),
           language: words.languageNames.en,
-          kit: tools.map(tool => `${programName(tool)} · ${words.all}`),
+          kit: tools.map(tool => joined([programName(tool), words.all])),
         },
       ],
     },

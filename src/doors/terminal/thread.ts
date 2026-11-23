@@ -1,4 +1,5 @@
 // A thread, its rows, and what opened beside it, in cells: which part is turned down comes from the pieces.
+import type { Language } from "../../fields/languages.ts";
 import { drawEntry, drawRowEntry } from "./entry.ts";
 import type { Span } from "../../surface/contract/contract.ts";
 import { leftOut } from "../../surface/pieces/piece-notice.ts";
@@ -100,7 +101,7 @@ function drawOptions(grid: Grid, options: OptionsPiece | undefined, left: number
   for (const row of rows) drawRow(grid, r++, { left, block }, row, options?.keyed ? 3 : 0);
   if (options?.below) put(grid, left + 1, r, options.below.text);
 }
-export function drawThread(grid: Grid, thread: ThreadPiece, left: number, block: number): void {
+export function drawThread(grid: Grid, thread: ThreadPiece, left: number, block: number, language: Language): void {
   const { options } = thread;
   const listed = (options?.rows.length ?? 0) + Number(Boolean(options?.above)) + Number(Boolean(options?.below));
   const taken = options?.rows.length
@@ -117,8 +118,8 @@ export function drawThread(grid: Grid, thread: ThreadPiece, left: number, block:
   /** What is left below is counted only where a line of what is said still fits above the count. */
   const under = fits > 1 && lines.length - cut > fits ? lines.length - cut - fits + 1 : 0;
   const shown = lines.slice(cut, cut + fits - (under ? 1 : 0));
-  if (cut) put(grid, left, 3, leftOut("above", cut).text);
-  if (under) put(grid, left, bottom, leftOut("below", under).text);
+  if (cut) put(grid, left, 3, leftOut("above", cut, language).text);
+  if (under) put(grid, left, bottom, leftOut("below", under, language).text);
   const rowOf = (i: number): number => bottom - (under ? 1 : 0) - shown.length + 1 + i;
   const first = shown.findIndex(line => line.lit);
   const last = shown.findLastIndex(line => line.lit);

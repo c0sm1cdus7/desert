@@ -14,7 +14,7 @@ it("the different admin enables and only the holder delegates", async () => {
     expect(house().tools.state().house.assistants.get("beto")).toMatchObject({ name: "Nora", kit: [] });
     for (const by of ["ana", "carla"])
       expect(await perform(house(), "identities", { act: "delegate-assistant", on, by, input: { kit } })).toMatchObject(
-        { status: "rejected", reason: "solo el titular del asistente" },
+        { status: "rejected", reason: { en: "only the assistant's holder", es: "solo el titular del asistente" } },
       );
     const done = await perform(house(), "identities", { act: "delegate-assistant", on, by: "beto", input: { kit } });
     expect(done).toMatchObject({ status: "accepted" });
@@ -45,7 +45,10 @@ it("refuses a delegation without permission, missing, repeated or of Identities,
     }
     house().bus.emit(effect("kit-set", { holder: "beto", tool: "sales", acts: [] }, "ana"));
     const done = await perform(house(), "identities", { act: "delegate-assistant", on, by: "beto", input: { kit } });
-    expect(done).toMatchObject({ status: "rejected", reason: "el titular no tiene ese acto" });
+    expect(done).toMatchObject({
+      status: "rejected",
+      reason: { en: "the holder does not have that act", es: "el titular no tiene ese acto" },
+    });
     expect(house().tools.state().house.assistants.get("beto")?.kit).toEqual([]);
   });
 });

@@ -1,4 +1,5 @@
 // Kit editing cases that derive execution, walks, permissions and current values.
+import type { Text } from "../../fields/phrases.ts";
 import type { Case } from "../promises.ts";
 import type { Program } from "../tool-contract.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
@@ -65,7 +66,7 @@ function additionalCases<X extends Program>(
   on: string,
   first: { act: string; on: string; input: { value: string } },
   mindOnly: boolean,
-  saved: string,
+  saved: Text,
 ): KitCase<X>[] {
   const cases: KitCase<X>[] = [];
   const done = { says: saved, facts: [] };

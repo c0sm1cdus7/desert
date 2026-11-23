@@ -1,4 +1,6 @@
 // Routes proposals through the journey controls or the engine, with the turn as author and its verdict port.
+import { meant } from "../../fields/phrases.ts";
+import { workingLanguage } from "../../fields/languages.ts";
 import { ruleControl } from "./rule-controls.ts";
 import { applyProgramCommunication } from "./program-mind-communication.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
@@ -56,7 +58,8 @@ async function applyControl<X extends Program>(
 ): ReturnType<TurnPorts["execute"]> {
   const { turn, review } = context;
   const checked = await ruleControl(house, turn, cause, proposal, { review, supervised });
-  if (!checked.ok) return { status: "rejected", id: turn.id, ...(checked.reason ? { reason: checked.reason } : {}) };
+  if (!checked.ok)
+    return { status: "rejected", id: turn.id, ...(checked.reason ? { reason: meant(checked.reason) } : {}) };
   const facts = controlFacts({ turn, cause, state: read }, proposal);
   if (!facts.length || !house.active()) return { status: "rejected", id: turn.id };
   const events = house.execution.bus.together(() => facts.map(fact => house.execution.bus.emit(fact)));
@@ -71,7 +74,7 @@ const receipt = <X extends Program>(done: Decision<X>, device: boolean) =>
 /** What an accepted act returned reaches a journey with its results: its line, and a device's receipt. */
 function acceptedResult<X extends Program>(done: Decision<X>, id: string, device: boolean): ExecuteResult {
   const text = done.effects.flatMap(each =>
-    each.layer === "house" && each.kind === "act-done" ? [each.data.text] : [],
+    each.layer === "house" && each.kind === "act-done" ? [meant(each.data.text)] : [],
   )[0];
   return { status: "accepted", id, ...(text ? { text } : {}), ...receipt(done, device) };
 }
@@ -107,7 +110,7 @@ async function applyAct<X extends Program>(
   // Only the tool's own refusal teaches the mind something; a rule or the core stays a stop.
   const taught = done.status === "rejected" && !("coreFailure" in done && done.coreFailure);
   const device = proposal.destination?.kind === "device";
-  if (taught) return { status, id, ...(done.reason ? { reason: done.reason } : {}), ...receipt(done, device) };
+  if (taught) return { status, id, ...(done.reason ? { reason: meant(done.reason) } : {}), ...receipt(done, device) };
   if (done.status !== "accepted") return { status, id };
   return acceptedResult(done, id, device);
 }
@@ -140,8 +143,8 @@ export function runtimeActions<X extends Program>(
         "mind",
       );
       if (!checked.ok)
-        return { status: "rejected", id: turn.id, ...(checked.reason ? { reason: checked.reason } : {}) };
-      const event = applyProgramCommunication(house, proposal, turn.scope, options.language);
+        return { status: "rejected", id: turn.id, ...(checked.reason ? { reason: meant(checked.reason) } : {}) };
+      const event = applyProgramCommunication(house, proposal, turn.scope, workingLanguage);
       return { status: event ? "accepted" : "rejected", id: event?.id ?? turn.id };
     }
     if (item.scope === "control" || item.scope === "open")

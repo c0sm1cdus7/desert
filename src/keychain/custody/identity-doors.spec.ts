@@ -80,7 +80,7 @@ function checkDoor(action: () => unknown, valid: boolean, count: () => number) {
   const before = count();
   if (valid) expect(action).not.toThrow();
   else {
-    expect(action).toThrow(/letra.*64/);
+    expect(action).toThrow(/letter.*64/);
     expect(count()).toBe(before);
   }
 }
@@ -120,7 +120,7 @@ it.each(cases)("validates each door for case %#", (identity, valid) => {
       const create = () =>
         startHouse(other, { ...options, creation: { admin: identity, language: "es" as const, assignments: [] } });
       if (valid) create().close();
-      else expect(create).toThrow(/letra.*64/);
+      else expect(create).toThrow(/letter.*64/);
     } finally {
       rmSync(other, { recursive: true, force: true });
     }
@@ -144,9 +144,9 @@ it("folds historical invalid identities unchanged across reopening", () => {
     try {
       expect(reopened.tools.state().house.admin).toBe("Ana​");
       expect(reopened.tools.state().house.removed.has("Bad")).toBe(true);
-      expect(() => reopened.bus.emit(effect("granted", { identity: "Bad", tools: [] }, "Ana​"))).toThrow(/letra.*64/);
+      expect(() => reopened.bus.emit(effect("granted", { identity: "Bad", tools: [] }, "Ana​"))).toThrow(/letter.*64/);
       expect(reopened.tools.state().house.grants.get("Ana​")).toEqual(["sales"]);
-      expect(() => reopened.bus.emit(effect("handed", { to: "Ana​" }, "Ana​"))).toThrow(/letra.*64/);
+      expect(() => reopened.bus.emit(effect("handed", { to: "Ana​" }, "Ana​"))).toThrow(/letter.*64/);
     } finally {
       reopened.close();
     }
@@ -167,7 +167,7 @@ it("bounds visible display names before writing and validates all initial assign
           assignments: [{ identity: "Bad", tools: [], language: "es" as const }],
         },
       }),
-    ).toThrow(/letra.*64/);
+    ).toThrow(/letter.*64/);
     const journal = new SqliteJournal(join(path, "journal.sqlite"), shop);
     expect(journal.replay(0, n => n + 1)).toBe(0);
     journal.close();
@@ -199,7 +199,7 @@ it("rejects an invalid identity through the running journal before writing", () 
     try {
       const before = facts(house);
       expect(() => house.journal.append(effect("granted", { identity: "Bad", tools: [] }, "ana"), 1)).toThrow(
-        /letra.*64/,
+        /letter.*64/,
       );
       expect(facts(house)).toBe(before);
     } finally {

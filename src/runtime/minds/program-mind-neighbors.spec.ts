@@ -1,4 +1,5 @@
 // The offline bank keeps its spending, its fingerprints and its uncertainty; opening keys and caps stay visible.
+import { said } from "../../fields/phrases.ts";
 import { afterEach, expect, it, vi } from "vitest";
 import { programMindFixture } from "../../../tests/support/program-mind-fixture.ts";
 import { modelAccount } from "../../house/minds/model-call-state.ts";
@@ -17,7 +18,12 @@ it("a rejecting key leaves the house open and explains its absence", async () =>
   const house = await f.open({
     key: () => Promise.reject(new Error("synthetic")),
   });
-  expect(house.mindNotices?.().join(" ")).toContain("llave");
+  expect(
+    house
+      .mindNotices?.()
+      .map(notice => said(notice, "es"))
+      .join(" "),
+  ).toContain("llave");
   expect(f.transport).not.toHaveBeenCalled();
   expect(f.wake(house).status).toBe("accepted");
   await (await house.minds)?.flush();
@@ -29,7 +35,11 @@ it("exhausting the cap between scenes certifies no role rejection, and the next 
   const house = await f.open({}, false);
   const first = await f.bank(house, { capNanoUsd: maximumProgramCall(card, 50000) + 2999 });
   expect(f.transport).toHaveBeenCalledTimes(1);
-  expect(programMindNotices(first).join(" ")).toContain("saldo");
+  expect(
+    programMindNotices(first)
+      .map(notice => said(notice, "es"))
+      .join(" "),
+  ).toContain("saldo");
   expect(house.journal.replay(0, (count, event) => count + Number(event.kind === "mind-bank-tested"))).toBe(0);
   const spent = modelAccount(house.tools.state().house.modelCalls, "test").spentNanoUsd;
   expect(spent).toBe(3000);

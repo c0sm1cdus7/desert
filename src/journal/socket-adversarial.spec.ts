@@ -61,7 +61,7 @@ it("g03: failure writing act returns a final result, also on repeat and lookup",
   c.send(request);
   const result = await c.result("failed");
   expect(result?.status).toBe("rejected");
-  expect(result?.reason).toBe(toolTexts.baseFailure);
+  expect(result?.reason).toEqual(toolTexts.baseFailure);
   c.send(request);
   c.send({ type: "read", id: "failed", what: "request" });
   expect(await c.until(() => c.messages.filter(m => "id" in m && m.id === "failed").length === 3)).toBe(true);

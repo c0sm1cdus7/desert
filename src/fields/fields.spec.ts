@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { Type } from "@sinclair/typebox";
 import { day, holding, when, wrongIn } from "./fields.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
 import { object } from "./visible-text.ts";
 import { asking } from "../surface/bridge/questions/asking.ts";
 import { formats } from "../surface/formats/masks.ts";
@@ -9,6 +10,7 @@ const words = {
   now: () => 17,
   today: () => "2026-11-13",
   optionalMark: "",
+  language: "es" as const,
   formats: formats({ currency: "$", decimal: ",", thousands: ".", day: "dd/mm/aaaa" }),
 };
 describe("holding preserves the field's own reasons", () => {
@@ -17,7 +19,7 @@ describe("holding preserves the field's own reasons", () => {
       it(`${value}, added reason: ${extended}`, () => {
         const base = day("Día");
         const field = extended ? holding(base, () => "motivo del programa") : base;
-        expect(wrongIn(field, value, 17)).toBe("día inexistente");
+        expect(wrongIn(field, value, 17)).toEqual(toolTexts.noSuchDay);
         const question = asking(object({ date: field }), words).next([]);
         expect(question?.wrong?.(value.split("-").reverse().join(""))).toBe("día inexistente");
       });
@@ -26,7 +28,7 @@ describe("holding preserves the field's own reasons", () => {
     const added = vi.fn((value: string, at: number) => (value === "2024-02-29" && at === 17 ? "cerrado" : undefined));
     const base = day("Día");
     const field = holding(holding(base, added), () => "segundo motivo");
-    expect(wrongIn(field, "2026-02-30", 17)).toBe("día inexistente");
+    expect(wrongIn(field, "2026-02-30", 17)).toEqual(toolTexts.noSuchDay);
     expect(added).not.toHaveBeenCalled();
     expect(wrongIn(field, "2024-02-29", 17)).toBe("cerrado");
     expect(wrongIn(field, "2026-02-28", 17)).toBe("segundo motivo");
@@ -53,9 +55,9 @@ describe("holding preserves the field's own reasons", () => {
   it("preserves the reason through optional, conditional, array and union fields", () => {
     const date = holding(day("Día"), () => undefined);
     const fields = [Type.Optional(date), when(date, () => true)];
-    for (const field of fields) expect(wrongIn(field, "2026-04-31", 17)).toBe("día inexistente");
+    for (const field of fields) expect(wrongIn(field, "2026-04-31", 17)).toEqual(toolTexts.noSuchDay);
     const schema = object({ dates: Type.Array(Type.Union([date, Type.Literal("none")])) });
-    expect(wrongIn(schema, { dates: ["2024-02-29", "2026-04-31"] }, 17)).toBe("día inexistente");
+    expect(wrongIn(schema, { dates: ["2024-02-29", "2026-04-31"] }, 17)).toEqual(toolTexts.noSuchDay);
     expect(wrongIn(object({ date: Type.Optional(date) }), {}, 17)).toBeUndefined();
   });
 });

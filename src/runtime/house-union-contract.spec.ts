@@ -1,4 +1,5 @@
 // The custody and the house contract as one contract: kits, a tool's mind, scenes and a credential, through reopening;
+import { meant } from "../fields/phrases.ts";
 // and a registry written by the custody alone (3e69d44) folds the same in the joined tree.
 import { migratedJournal } from "../../tests/support/migrated-journal.ts";
 import { Type } from "@sinclair/typebox";
@@ -89,9 +90,9 @@ const folded = (value: unknown): unknown => JSON.parse(JSON.stringify(value, pla
 const mind = mindOf("vault");
 const outcome = async (rig: ReturnType<typeof opened>, by: string, act: string) => {
   const { status, reason } = await rig.act(by, act);
-  return status === "accepted" ? "accepted" : `${status} · ${reason ?? ""}`;
+  return status === "accepted" ? "accepted" : `${status} · ${meant(reason ?? "")}`;
 };
-const denied = `rejected · ${toolTexts.outsideKit}`;
+const denied = `rejected · ${meant(toolTexts.outsideKit)}`;
 
 it("custody house: kits, mind, acts with and without credential, scenes; closes and reopens the same", async () => {
   const home = temporary(),

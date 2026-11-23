@@ -1,4 +1,5 @@
 // The Screen and the Intent as they travel: closed schemas, a screen built field by field, an intent checked on entry.
+import { languages } from "../../fields/languages.ts";
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import type { Attachment, Body, Hint, Intent, Panel, Row, Screen, Span, Stack, ThreadEvent } from "./contract.ts";
@@ -85,6 +86,7 @@ const WirePanel = closed({
 });
 /** A Screen and nothing else: every object closed, so a field the contract does not name never travels. */
 export const WireScreen = closed({
+  language: Type.Union(languages.map(language => Type.Literal(language))),
   title: Type.String(),
   state: Type.Union(states.map(state => Type.Literal(state))),
   clock: Type.String(),
@@ -203,6 +205,7 @@ function panelOf(from: Panel): Static<typeof WirePanel> {
 /** The screen as it travels, built field by field: what the contract does not name is never copied. */
 export function wire(screen: Screen): WireScreen {
   const to: WireScreen = {
+    language: screen.language,
     title: screen.title,
     state: screen.state,
     clock: screen.clock,

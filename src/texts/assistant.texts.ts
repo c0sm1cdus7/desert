@@ -1,7 +1,7 @@
 // Gathers messages about assistants' administration, delegation, adoption and visible authorship.
 import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
-import type { Language } from "../fields/languages.ts";
+import type { Phrase } from "../fields/phrases.ts";
 import { object } from "../fields/visible-text.ts";
 const texts = {
   enable: { en: "enable assistant", es: "habilitar asistente" },
@@ -70,22 +70,8 @@ const texts = {
   caseAdmin: { en: "only whoever has authority administers", es: "solo administra quien tiene autoridad" },
 } as const;
 export type AssistantTextKey = keyof typeof texts;
-const assistantEntry = (key: string) => {
-  const found = Object.entries(texts).find(([id]) => id === key);
-  if (!found) throw new Error(`Missing assistant text · ${key}`);
-  return found[1];
-};
-const interfaceMessage = defineMessage({
-  id: "assistant.interface",
-  kind: "text",
-  parameters: object({ key: Type.Union(Object.keys(texts).map(key => Type.Literal(key))) }),
-  texts: {
-    en: ({ key }) => assistantEntry(key).en,
-    es: ({ key }) => assistantEntry(key).es,
-  },
-});
-export const assistantText = (key: AssistantTextKey, language: Language): string =>
-  interfaceMessage.text(language, { key });
+/** One of the assistant's words, in every language. */
+export const assistantText = (key: AssistantTextKey): Phrase => texts[key];
 export const assistantAuthor = defineMessage({
   id: "assistant.author",
   kind: "text",

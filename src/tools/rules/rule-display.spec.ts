@@ -8,9 +8,9 @@ it("labels effects and the always condition without rewriting free text, inputs 
     { condition: { operator: "always" }, text: "always" },
   ];
   expect(JSON.parse(ruleDisplay(value))).toEqual([
-    { definition: { effect: "Frena", text: "block" } },
-    { outcome: "Requiere supervisión" },
-    { condition: { operator: "Siempre" }, text: "always" },
+    { definition: { effect: { en: "Stops", es: "Frena" }, text: "block" } },
+    { outcome: { en: "Requires supervision", es: "Requiere supervisión" } },
+    { condition: { operator: { en: "At all times", es: "Siempre" } }, text: "always" },
   ]);
   expect(value[0]?.definition?.effect).toBe("block");
   expect(value[1]?.outcome).toBe("require-supervisor");

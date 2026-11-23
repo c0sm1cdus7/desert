@@ -1,4 +1,5 @@
 // Verifies the advertised effect before the final answer in an actual terminal and after reopening.
+import { said } from "../../fields/phrases.ts";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -26,10 +27,10 @@ it.each([
       await terminal.until("Resultado");
       if (promote) writeFileSync(join(home, "promote"), "promote synthetic member");
       const notice = by === "ana" || promote ? rulesTexts.saveNotice : rulesTexts.proposalNotice;
-      const screen = (await terminal.until(notice)).join("\n");
+      const screen = (await terminal.until(said(notice, "es"))).join("\n");
       expect(screen).toContain(by === "ana" || promote ? "guardar" : "proponer");
       terminal.press("f");
-      await terminal.until(active === 2 ? rulesTexts.saved : rulesTexts.draft);
+      await terminal.until(said(active === 2 ? rulesTexts.saved : rulesTexts.draft, "es"));
       await terminal.close();
       const result: unknown = JSON.parse(readFileSync(join(home, "result.json"), "utf8"));
       expect(result).toMatchObject({

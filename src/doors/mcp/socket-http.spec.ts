@@ -1,4 +1,5 @@
 // The complete remote wire runs without sockets; live keys govern both doors and interrupted acts are not replayed.
+import { everySaid, meant } from "../../fields/phrases.ts";
 import { afterEach, expect, it, vi } from "vitest";
 import { setTimeout as delay } from "node:timers/promises";
 import { doorHouse, invitationCode, rpcRequest } from "../../../tests/support/door-house.ts";
@@ -96,7 +97,9 @@ it("revokes the open stream and MCP while another key remains usable, without ou
   await h.act("revoke-key", { key: h.access().get(key)?.id }, "identities/ana");
   await vi.waitFor(() => expect(connection.status()).not.toBe("connected"));
   expect((await door.handle(rpcRequest(key))).status).toBe(401);
-  await expect(httpStream("https://unit.invalid", key, undefined, transport.send)).rejects.toThrow(socketTexts.denied);
+  await expect(httpStream("https://unit.invalid", key, undefined, transport.send)).rejects.toThrow(
+    everySaid(socketTexts.denied),
+  );
   expect((await door.handle(rpcRequest(h.founder))).status).toBe(200);
   expect(JSON.stringify(output.mock.calls)).not.toContain(key);
   expect(h.history()).not.toContain(key);
@@ -134,11 +137,11 @@ it("rejects invalid keys before consuming bodies and binds a stream to its crede
 it("does not expose URL or credentials in failed transport errors or follow redirects", async () => {
   const send = vi.fn<typeof fetch>(() => Promise.reject(new Error("synthetic-private-payload")));
   await expect(httpStream("http://remote.invalid", "synthetic-private-payload", undefined, send)).rejects.toThrow(
-    socketTexts.remoteAddress,
+    meant(socketTexts.remoteAddress),
   );
   expect(send).not.toHaveBeenCalled();
   await expect(httpStream("https://unit.invalid", "synthetic-private-payload", undefined, send)).rejects.toThrow(
-    socketTexts.beforeState,
+    meant(socketTexts.beforeState),
   );
   expect(send.mock.calls[0]?.[1]?.redirect).toBe("error");
 });

@@ -18,7 +18,7 @@ it("keeps same-named menus separate and opens only the actions of their own grou
   const rig = distributionRig(result.program);
   try {
     rig.attend("notes");
-    const notes = houseTools(rig.ports(), result.shown).find(tool => tool.id === "notes");
+    const notes = houseTools(rig.ports(), result.shown, "es").find(tool => tool.id === "notes");
     expect(notes?.menusOn?.["personal/more"]?.listed?.("notes/personal/same")).toBe(true);
     expect(notes?.menusOn?.["personal/more"]?.listed?.("notes/shared/same")).toBe(false);
     expect(notes?.menusOn?.["personal/more"]?.listed?.("notes/personal")).toBe(false);
@@ -55,7 +55,7 @@ it("offers a group action from another group while preserving its owner, folder 
   const rig = distributionRig(result.program);
   try {
     rig.attend("notes");
-    const notes = houseTools(rig.ports(), result.shown).find(tool => tool.id === "notes");
+    const notes = houseTools(rig.ports(), result.shown, "es").find(tool => tool.id === "notes");
     const rows = notes?.alsoOn?.("notes/shared/same") ?? [];
     expect(rows.map(row => [row.act, row.on])).toEqual([["personal/add", { tool: "notes", target: "notes/personal" }]]);
     expect(seen).toContain("own:same");
@@ -116,7 +116,9 @@ it("does not let group metadata hide an engine action from surface laws", () => 
     const tool = result.program.registry[0];
     if (!tool) throw new Error("Missing program");
     const ports = { ...rig.ports(), registry: [{ ...tool, groups: [] }] };
-    expect(() => houseTools(ports, result.shown)).toThrow("Group coverage differs from the installed actions of notes");
+    expect(() => houseTools(ports, result.shown, "es")).toThrow(
+      "Group coverage differs from the installed actions of notes",
+    );
   } finally {
     rig.close();
   }

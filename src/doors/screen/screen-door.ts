@@ -1,4 +1,5 @@
 // The screen door: one router per device session, screens out to whoever looks, intents in, in order, refused aloud.
+import { everySaid } from "../../fields/phrases.ts";
 import type { TimeSource } from "../../journal/clock.ts";
 import type { Shown } from "../../surface/bridge/ports/house-ports.ts";
 import { withOpeningNotices } from "../../surface/bridge/assembly/opening-notices.ts";
@@ -71,7 +72,7 @@ class Door<X extends Program> implements ScreenDoor {
     );
     if ("error" in opened) {
       const cut = this.slots.get(keyOf(session, house)) !== slot;
-      return this.silent(cut ? screenDoorTexts.expired : terminalError(opened.error), parsed.value.client);
+      return this.silent(cut ? everySaid(screenDoorTexts.expired) : terminalError(opened.error), parsed.value.client);
     }
     const { live } = opened;
     const client = this.attach(live, parsed.value);
@@ -87,7 +88,7 @@ class Door<X extends Program> implements ScreenDoor {
     const live = slot?.live ?? (await slot?.opening?.catch(() => undefined));
     const id =
       typeof body === "object" && body && "client" in body && typeof body.client === "string" ? body.client : "";
-    if (!slot || !live) return this.silent(screenDoorTexts.expired, id, "epoch");
+    if (!slot || !live) return this.silent(everySaid(screenDoorTexts.expired), id, "epoch");
     this.touch(slot);
     const parsed = parseSend(body);
     if (!parsed.ok) return refusal(live, named(live, body), parsed.reason);

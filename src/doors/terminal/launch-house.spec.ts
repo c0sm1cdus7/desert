@@ -31,7 +31,7 @@ it("an unresponsive startup is stopped after five seconds", async () => {
   const root = fixture("");
   try {
     const started = performance.now();
-    await expect(launchHouse(root, root)).rejects.toThrow("cinco segundos");
+    await expect(launchHouse(root, root)).rejects.toThrow("five seconds");
     expect(performance.now() - started).toBeGreaterThanOrEqual(4900);
     const pid = Number(readFileSync(`${root}/pid`, "utf8"));
     await delay(50);

@@ -1,4 +1,5 @@
 // Bind a cloud house's bus to a domain-separated verifier, without retaining its root or changing door ports.
+import { meant } from "../../fields/phrases.ts";
 import { hkdfSync, timingSafeEqual } from "node:crypto";
 import { oauthTexts } from "../../texts/oauth.texts.ts";
 const verifiers = new WeakMap<object, Buffer>();
@@ -12,7 +13,7 @@ export function checkDoorRoot(bus: object, root: Uint8Array | undefined): void {
   if (!expected || !root) return;
   const supplied = rootVerifier(root);
   try {
-    if (!timingSafeEqual(expected, supplied)) throw new Error(oauthTexts.rootMismatch);
+    if (!timingSafeEqual(expected, supplied)) throw new Error(meant(oauthTexts.rootMismatch));
   } finally {
     supplied.fill(0);
   }

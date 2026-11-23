@@ -1,10 +1,11 @@
 // Public, synthetic registration examples prove owner boundaries and lifecycle navigation without sockets.
+import { meant } from "../../fields/phrases.ts";
 import { deviceActionTexts as words } from "../../texts/devices.texts.ts";
 import type { Case } from "../promises.ts";
 import type { Program } from "../tool-contract.ts";
 const registration = {
   id: "example",
-  name: words.sample,
+  name: meant(words.sample),
   publicKey: "MCowBQYDK2VwAyEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
 };
 const registered = { act: "register-device", on: "identities/ana", input: registration };

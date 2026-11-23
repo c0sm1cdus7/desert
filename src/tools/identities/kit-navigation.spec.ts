@@ -64,7 +64,7 @@ it("H2 rejects changing the administrator through the normal command", async () 
       on: "identities/ana",
       input: { value: "no" },
     });
-    expect(result).toMatchObject({ status: "rejected", reason: "administra · todas" });
+    expect(result).toMatchObject({ status: "rejected", reason: { en: "administers · all", es: "administra · todas" } });
     expect(allowedAct(house().tools.state().house, "ana", "sales", "action9")).toBe(true);
   });
 });

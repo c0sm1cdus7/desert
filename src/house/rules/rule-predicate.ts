@@ -1,4 +1,5 @@
 // Validates each condition against declared fields and evaluates it with verifiable data and clock.
+import { type Text } from "../../fields/phrases.ts";
 import { Value } from "@sinclair/typebox/value";
 import type { TSchema, Static } from "@sinclair/typebox";
 import { fieldSchema, numericField, fieldValue, actorKind } from "./rule-fields.ts";
@@ -18,12 +19,12 @@ function bounded(value: unknown, depth = 0, budget = { left: 1024 }): boolean {
     return descriptor !== undefined && "value" in descriptor && bounded(descriptor.value, depth + 1, budget);
   });
 }
-export function ruleProblem(value: unknown, input: TSchema | undefined): string | undefined {
+export function ruleProblem(value: unknown, input: TSchema | undefined): Text | undefined {
   if (!bounded(value) || !Value.Check(ruleDefinition, value)) return words.invalid;
   if (!input) return words.action;
   return predicateProblem(value.condition, input);
 }
-export function predicateProblem(predicate: Predicate, input: TSchema): string | undefined {
+export function predicateProblem(predicate: Predicate, input: TSchema): Text | undefined {
   if (predicate.operator === "all" || predicate.operator === "any")
     return predicate.conditions.map(child => predicateProblem(child, input)).find(Boolean);
   if (predicate.operator === "not") return predicateProblem(predicate.condition, input);

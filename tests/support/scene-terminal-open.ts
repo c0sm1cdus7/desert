@@ -1,4 +1,5 @@
 // A real terminal with optional scenes written through the house act, in a temporary test home.
+import { meant } from "../../src/fields/phrases.ts";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { startTerminal } from "../../src/doors/terminal/boot.ts";
@@ -28,7 +29,7 @@ if (existsSync(seed)) {
   for (const by of Object.keys(scenes)) {
     const input: unknown = Reflect.get(scenes, by);
     const result = house.tools.act({ act: "scene", input }, house.tools.state().through, by);
-    if (result.status !== "accepted") throw new Error(`Scene refused: ${result.reason}`);
+    if (result.status !== "accepted") throw new Error(`Scene refused: ${meant(result.reason ?? "")}`);
   }
 }
 const router = houseRouter(localPorts(house, process.argv[3] ?? "beto", { recentLines: 40 }), identitiesShown);

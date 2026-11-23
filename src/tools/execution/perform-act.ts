@@ -1,4 +1,5 @@
 // Runs the announced body, classifies failures and closes sync or pending results with their notices.
+import { type Text } from "../../fields/phrases.ts";
 import { MechanicalRuleFailure } from "../rules/rule-failure.ts";
 import { effect, type HouseEvent } from "../../house/facts.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
@@ -9,7 +10,7 @@ import { actNews, type Program } from "../tool-contract.ts";
 import type { Decision, Execution, ExecutionResult } from "../execute.ts";
 import { actionFailure } from "./action-failure.ts";
 /** A rejected decision that carries its reason and no effects. */
-export const rejected = (reason: string) => ({ status: "rejected" as const, reason, effects: [] });
+export const rejected = (reason: Text) => ({ status: "rejected" as const, reason, effects: [] });
 export const performAct = <X extends Program>(
   ports: Execution<X>,
   act: HouseEvent<"act">,

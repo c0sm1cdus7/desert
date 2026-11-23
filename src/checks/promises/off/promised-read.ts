@@ -27,6 +27,7 @@ export function foreignReferences<X extends Program>(seat: Seat<X>, program: Com
       const resolved = stacksOf(
         { kind: "view", tool: source.id, ...(target === source.id ? {} : { target }), at: 0 },
         seat.tools,
+        seat.language,
       ).flatMap(stack => stack.rows);
       for (const reference of references)
         ok(resolved.some(row => row.opens === reference.opens && row.open?.kind === "view"));
@@ -44,11 +45,11 @@ export function absentCheck<X extends Program>(program: Composition<X>, shown: S
         const seat = seated(house(), absent, shown);
         try {
           for (const tool of seat.tools.filter(item => item.id !== "preferences")) {
-            strictEqual(tool.off?.(), toolTexts.unassigned);
+            strictEqual(tool.off?.(), seat.say(toolTexts.unassigned));
             deepStrictEqual(tool.notices?.().needs ?? [], []);
             deepStrictEqual(tool.notices?.().news ?? [], []);
           }
-          const rows = menuRows(seat.tools);
+          const rows = menuRows(seat.tools, seat.language);
           for (const tool of program.registry) {
             const row = rows.find(item => item.key === shown.words[tool.id]?.key);
             strictEqual(row?.open, undefined);

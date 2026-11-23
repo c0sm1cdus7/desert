@@ -14,6 +14,7 @@ it("describes selection and disabled actions in tools/list for an identity witho
   rig
     .house()
     .bus.emit(effect("granted", { version: 2, identity: "martin", kit: { version: 2, selections: [] } }, "ana"));
+  rig.house().bus.emit(effect("language-set", { identity: "martin", language: "es" }, "ana"));
   const credential = randomUUID();
   const door = mcpDoor(rig.house(), new Map([[credential, { identity: "martin", door: "agent" }]]), {
     name: "Prueba",

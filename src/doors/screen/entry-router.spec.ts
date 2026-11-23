@@ -1,7 +1,9 @@
 // The entry router: signing in is a screen, walked, painted, worded and handed over to the house like any other.
+import { everySaid, wordsIn } from "../../fields/phrases.ts";
+import { languages } from "../../fields/languages.ts";
 import { describe, expect, it } from "vitest";
 import { collect, flush, spyDoor, spyHouse } from "../../../tests/support/screen-spy.ts";
-import { catalog, drawn, size } from "../../../tests/support/terminal-drawn.ts";
+import { catalogIn, drawn, size } from "../../../tests/support/terminal-drawn.ts";
 import { composed } from "../../checks/promises/cases/promised.ts";
 import { conformance } from "../../checks/renderer-conformance.ts";
 import { asked } from "../../surface/bridge/questions/asking-parts.ts";
@@ -18,8 +20,12 @@ import { entryHouse, entryRouter } from "./entry-router.ts";
 
 const code = "ABCD-2345";
 const redeem = (given: string): Promise<Result> =>
-  Promise.resolve(given === code ? { ok: true, text: "" } : { ok: false, reason: doorTexts.denied });
-const source = { redeem, bar: () => ({ state: "connected", clock: "10:00", now: 0 }) as const, defect: () => "" };
+  Promise.resolve(given === code ? { ok: true, text: "" } : { ok: false, reason: everySaid(doorTexts.denied) });
+const source = {
+  redeem,
+  bar: () => ({ language: "es", state: "connected", clock: "10:00", now: 0 }) as const,
+  defect: () => "",
+};
 const plain = (screen: Screen): string =>
   screen.body.kind === "thread"
     ? screen.body.events.map(event => event.text.map(span => span.text).join("")).join("\n")
@@ -54,29 +60,29 @@ describe("the entry router: signing in is a screen", () => {
   it("opens on the question, not on a menu, with the Barra disconnected", async () => {
     const first = await after([]);
     expect([first.title, first.state, first.body.kind, first.menu]).toEqual([
-      words.tool,
+      everySaid(words.tool),
       "disconnected",
       "thread",
       false,
     ]);
-    expect(plain(first)).toContain(words.ask);
+    expect(plain(first)).toContain(everySaid(words.ask));
     expect(first.hints.map(hint => hint.intent)).not.toContain("confirm");
     const written = await after([{ kind: "paste", text: code }]);
-    expect(written.hints.find(hint => hint.intent === "confirm")?.does).toBe(words.verb);
+    expect(written.hints.find(hint => hint.intent === "confirm")?.does).toBe(everySaid(words.verb));
   });
   it("ignores a character the invitation does not take, and says why", async () => {
     const screen = await after(typed("A!"));
     expect(screen.body.kind === "thread" && screen.body.entry?.typed).toBe("A");
-    expect(plain(screen)).toContain(genericTexts.ignored.character);
+    expect(plain(screen)).toContain(genericTexts.ignored.character.en);
   });
   it("keeps a refused code on the question, with the error and what was written", async () => {
     const screen = await after([{ kind: "paste", text: "ZZZZ-9999" }, { kind: "confirm" }]);
     expect(screen.body.kind === "thread" && screen.body.entry?.typed).toBe("ZZZZ-9999");
-    expect(plain(screen)).toContain(doorTexts.denied);
+    expect(plain(screen)).toContain(everySaid(doorTexts.denied));
   });
   it("ends an accepted code in Listo, and its house says it was admitted", async () => {
     const screen = await after([{ kind: "paste", text: code }, { kind: "confirm" }]);
-    expect(plain(screen)).toContain(`${surfaceTexts.ok} ${words.done}`);
+    expect(plain(screen)).toContain(`${surfaceTexts.ok.en} ${everySaid(words.done)}`);
     const house = entryHouse(source);
     try {
       expect([house.ended(), house.failure(), house.admitted?.()]).toEqual([false, undefined, false]);
@@ -98,7 +104,7 @@ describe("the entry router: its walk, its words, its hand-over", () => {
       const key = JSON.stringify(screen);
       if (seen.has(key) || path.length > 4) continue;
       seen.set(key, path);
-      const failures = conformance(screen, drawn(screen, paint(screen, size)), catalog);
+      const failures = conformance(screen, drawn(screen, paint(screen, size)), catalogIn(screen.language));
       expect([path, failures]).toEqual([path, []]);
       for (const intent of tries) queue.push([...path, intent]);
     }
@@ -107,9 +113,12 @@ describe("the entry router: its walk, its words, its hand-over", () => {
   it("words itself as the base words everything: no address, a question as a noun, a result as done", () => {
     const all = Object.values(words);
     expect(all.filter(text => addresses(text))).toEqual([]);
-    expect(() => asked(words.ask)).not.toThrow();
-    expect(() => worded({ name: words.verb, enter: words.verb })).not.toThrow();
-    expect(composed.test(words.done)).toBe(true);
+    for (const language of languages) {
+      const said = wordsIn(words, language);
+      expect(() => asked(said.ask)).not.toThrow();
+      expect(() => worded({ name: said.verb, enter: said.verb })).not.toThrow();
+      expect(composed.test(said.done)).toBe(true);
+    }
   });
   it("hands the session to the house once a code is accepted: the host is asked again, in a new epoch", async () => {
     const houses = [entryHouse(source), spyHouse().house];

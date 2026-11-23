@@ -105,7 +105,6 @@ function contextOf(context: JourneyControlContext): JourneyControlContext {
   requireMind(context, "context");
   requireMind(context.turn, "turn");
   requireMind(Value.Check(mindName, context.turn.id), "turn.id");
-  requireMind(Value.Check(Type.Literal("es"), context.turn.language), "turn.language");
   requireMind(Value.Check(Type.Array(mindName, { uniqueItems: true }), context.cause), "cause");
   requireMind(typeof context.state === "function", "state");
   validateJourneyAccess(context.turn.scope, context.state());

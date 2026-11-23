@@ -5,7 +5,9 @@ import { wrongIn } from "../../../fields/fields.ts";
 import { at, isList, plain } from "../../../fields/json-values.ts";
 import { visibleText } from "../../../fields/visible-text.ts";
 import { addresses } from "../../../texts/addressing.ts";
-import { genericTexts as generic } from "../../../texts/generic-surface.texts.ts";
+import type { Language } from "../../../fields/languages.ts";
+import { isPhrase, said, wordsIn, type Text } from "../../../fields/phrases.ts";
+import { genericTexts } from "../../../texts/generic-surface.texts.ts";
 import type { Field, Option } from "../../contract/contract.ts";
 import { isFormat, limited, padded, shaped, type Format, type FormatName } from "../../formats/masks.ts";
 import { moneyQuestion, type MoneyContext } from "./money-question.ts";
@@ -23,19 +25,22 @@ export type Things = Readonly<{
 /** What asking needs beyond the declaration: the formats of the program's country, the marks of an optional field
  * and of picking nothing, and the things of each tool that an answer can pick. */
 export type AskWords = MoneyContext &
-  Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string }> &
+  Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string; language: Language }> &
   Readonly<{
     things?: (tool: string, target?: string) => Things | undefined;
     secret?: (material: string, position: number) => string;
-    cause?: (reason: string | undefined) => string | undefined;
+    cause?: (reason: Text | undefined) => Text | undefined;
   }> &
   /** Today, as the program's country counts its days: what a day that is usually today opens on. */
   Readonly<{ today: () => string; now: () => number }>;
 export type Got = Readonly<{ value: unknown; at: number }> | Readonly<{ ask: Field }>;
 export type Ctx = AskWords & Readonly<{ answers: readonly string[]; n: number; optional: boolean; position?: number }>;
 
-export const word = (schema: unknown, key: string): string => {
-  const found = at(schema, key);
+/** What a field says, in the reader's language: its question in every language under `said`, any other word as
+ * the field declares it, a phrase or what is written the same in every language. */
+export const word = (schema: unknown, key: string, language: Language): string => {
+  const declared = key === "title" ? (at(schema, "said") ?? at(schema, key)) : at(schema, key);
+  const found = isPhrase(declared) ? said(declared, language) : declared;
   if (typeof found !== "string" || found === "") throw new Error(`A field does not say its ${key}`);
   return found;
 };
@@ -46,7 +51,8 @@ export const asked = (question: string): string => {
   return question;
 };
 /** A field's question, with `{n}` as its place among the items of a list. */
-const numbered = (schema: unknown, ctx: Ctx): string => asked(word(schema, "title")).replace("{n}", String(ctx.n));
+const numbered = (schema: unknown, ctx: Ctx): string =>
+  asked(word(schema, "title", ctx.language)).replace("{n}", String(ctx.n));
 export const titleOf = (schema: unknown, ctx: Ctx): string =>
   `${numbered(schema, ctx)}${ctx.optional ? ctx.optionalMark : ""}`;
 export const armsOf = (schema: unknown): readonly unknown[] => {
@@ -58,7 +64,10 @@ export const markedArms = (schema: unknown): readonly unknown[] => {
   const items = at(schema, "items");
   return at(items, "const") !== undefined ? [items] : armsOf(items);
 };
-export const choiceOf = (literal: unknown): Option => ({ title: word(literal, "title"), key: word(literal, "key") });
+export const choiceOf = (literal: unknown, language: Language): Option => ({
+  title: word(literal, "title", language),
+  key: word(literal, "key", language),
+});
 /** The property every shape of a union carries as one fixed option: what tells them apart. */
 export const tellingOf = (arms: readonly unknown[]): string | undefined =>
   Object.keys(at(arms[0], "properties") ?? {}).find(key =>
@@ -73,7 +82,11 @@ export const formatOf = (schema: unknown, ctx: AskWords): Format | undefined => 
   if (mask === "digits") return shaped(strings(at(schema, "shapes")));
   if (mask === "padded") return padded(Number(at(schema, "width")));
   if (mask !== "chars") return undefined;
-  return limited(word(schema, "allowed"), Number(at(schema, "max")), word(schema, "placeholder"));
+  return limited(
+    word(schema, "allowed", ctx.language),
+    Number(at(schema, "max")),
+    word(schema, "placeholder", ctx.language),
+  );
 };
 /** What was typed as the datum it stands for; nothing when an optional field was left empty. */
 export const valueOf = (schema: unknown, ctx: Ctx, answer: string): unknown => {
@@ -90,7 +103,7 @@ export const valueOf = (schema: unknown, ctx: Ctx, answer: string): unknown => {
 function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   /** Asked for each time: when a program is composed the other tools may not be there yet. */
   const things = (): Things | undefined => ctx.things?.(of, ctx.target);
-  const absent = ctx.optional ? word(schema, "none") : "";
+  const absent = ctx.optional ? word(schema, "none", ctx.language) : "";
   const none: Option = { title: absent, value: "" };
   const makes = at(schema, "makes");
   /** Making a new one is offered after the ones there are, and never among what a person is looking for. */
@@ -106,12 +119,14 @@ function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   const valid = (answer: string): boolean => (ctx.optional && answer === "") || things()?.has(answer) === true;
   const shown = (answer: string): string => (answer === "" ? absent : (things()?.shown(answer) ?? answer));
   const empty = at(schema, "empty");
-  const nothing = (): string => (typeof empty === "string" ? empty : (things()?.empty ?? ""));
+  const nothing = (): string =>
+    empty !== undefined && empty !== "" ? word(schema, "empty", ctx.language) : (things()?.empty ?? "");
   /** Numbered like the other fields, without the optional mark: an optional thing says so with its none. */
   return { ask: numbered(schema, ctx), kind: "pick", of, found, shown, valid, nothing };
 }
 /** A numeric prefix below the minimum can still grow: only a complete value gets a reason. */
 function numericReason(schema: TSchema, ctx: Ctx, typed: string, submitted: boolean): string | undefined {
+  const generic = wordsIn(genericTexts, ctx.language);
   const value = valueOf(schema, ctx, typed);
   if (typeof value !== "number") return undefined;
   const format = formatOf(schema, ctx);
@@ -128,6 +143,7 @@ function numericReason(schema: TSchema, ctx: Ctx, typed: string, submitted: bool
 }
 /** A submitted value that cannot satisfy its field says what still needs completing. */
 function invalidReason(schema: TSchema, ctx: Ctx, typed: string, submitted: boolean): string | undefined {
+  const generic = wordsIn(genericTexts, ctx.language);
   const value = valueOf(schema, ctx, typed);
   const numeric = numericReason(schema, ctx, typed, submitted);
   if (numeric !== undefined || !submitted) return numeric;
@@ -148,12 +164,24 @@ const secretField = (schema: TSchema, ctx: Ctx): Field => ({
   valid: typed => (ctx.optional && typed === "") || Value.Check(schema, typed),
   wrong: (typed, submitted = false) => {
     if (ctx.optional && typed === "") return undefined;
-    if (!Value.Check(schema, typed)) return submitted ? secretReason(schema, typed) : undefined;
+    if (!Value.Check(schema, typed)) return submitted ? secretReason(schema, typed, ctx.language) : undefined;
     const reason = wrongIn(schema, valueOf(schema, ctx, typed), ctx.now());
-    return ctx.cause ? ctx.cause(reason) : reason;
+    const caused = ctx.cause ? ctx.cause(reason) : reason;
+    return caused === undefined ? undefined : said(caused, ctx.language);
   },
 });
 const literalText = (schema: TSchema) => (at(schema, "verbatim") === true ? { verbatim: true as const } : {});
+/** Why what is written is wrong, in the reader's words: its shape, then its declaration, then the act's own cause. */
+const writtenWrong =
+  (schema: TSchema, ctx: Ctx, valid: (typed: string) => boolean, late: (value: unknown) => boolean) =>
+  (typed: string, submitted = false): string | undefined => {
+    const value = valueOf(schema, ctx, typed);
+    if (!valid(typed)) return invalidReason(schema, ctx, typed, submitted);
+    const reason = wrongIn(schema, value, ctx.now());
+    if (reason === undefined && late(value)) return wordsIn(genericTexts, ctx.language).future;
+    const caused = ctx.cause ? ctx.cause(reason) : reason;
+    return caused === undefined ? undefined : said(caused, ctx.language);
+  };
 export function written(schema: TSchema, ctx: Ctx): Field {
   if (schema.secret === true || schema.concealed === true) return secretField(schema, ctx);
   ctx = moneyQuestion(schema, ctx);
@@ -168,13 +196,7 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   /** A day that already happened is not after today, as the program's country counts its days. */
   const late = (value: unknown): boolean =>
     at(schema, "last") === "today" && typeof value === "string" && value > ctx.today();
-  const wrong = (typed: string, submitted = false): string | undefined => {
-    const value = valueOf(schema, ctx, typed);
-    if (!valid(typed)) return invalidReason(schema, ctx, typed, submitted);
-    const reason = wrongIn(schema, value, ctx.now());
-    if (reason === undefined && late(value)) return generic.future;
-    return ctx.cause ? ctx.cause(reason) : reason;
-  };
+  const wrong = writtenWrong(schema, ctx, valid, late);
   /** What a person writes has a top: a number without one, or a text without a length, is a defect. */
   const numeric = at(schema, "type") === "integer" || at(schema, "type") === "number";
   if (format && numeric && typeof at(schema, "maximum") !== "number") throw new Error(`The field ${ask} has no top`);
@@ -192,7 +214,7 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   /** A datum with a shape takes only what fits it: declared as free text, any key would go in. */
   if (at(schema, "pattern") !== undefined && at(schema, "plain") !== true)
     throw new Error(`The field ${ask} has a shape and no mask`);
-  const placeholder = word(schema, "placeholder");
+  const placeholder = word(schema, "placeholder", ctx.language);
   const max = at(schema, "maxLength");
   if (typeof max !== "number") throw new Error(`The field ${ask} does not say how long it may be`);
   return { ask, valid, wrong, kind: "text", placeholder, max, ...initial, ...literalText(schema) };

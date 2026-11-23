@@ -5,6 +5,7 @@ import { money, text } from "./fields.ts";
 import { renewedMoney } from "../surface/acts/money-memory.ts";
 import { formats } from "../surface/formats/masks.ts";
 import type { Asking } from "../surface/session/walk-state.ts";
+import { entryAdvice } from "../texts/entry-advice.ts";
 
 it.each([
   ["minimum", "screen"],
@@ -101,7 +102,7 @@ it("a previous session's stored value reasons are removed but its action Error a
   expect(walk.notices).toEqual([
     { reason: "solo números", ignored: true },
     { reason: "sin signo", ignored: true },
-    { reason: "cambió la moneda" },
+    { reason: entryAdvice.currencyChanged },
   ]);
 });
 
@@ -113,7 +114,7 @@ it("a program reason that still holds is evaluated on empty answers in the new c
   });
   expect(seen).toEqual([[""]]);
   expect(walk.error).toBe("no respondió");
-  expect(walk.notices).toEqual([{ reason: "importe requerido en US$" }, { reason: "cambió la moneda" }]);
+  expect(walk.notices).toEqual([{ reason: "importe requerido en US$" }, { reason: entryAdvice.currencyChanged }]);
 });
 
 it("a fresh device does not restore the previous amount or validation result", () => {
@@ -143,5 +144,5 @@ it("a live field reason is also checked on empty with the new symbol even beside
     wrong: value => (value === "" ? "mínimo US$ 0,01" : "importe anterior"),
   }));
   expect(walk.error).toBe("no respondió");
-  expect(walk.notices).toEqual([{ reason: "mínimo US$ 0,01" }, { reason: "cambió la moneda" }]);
+  expect(walk.notices).toEqual([{ reason: "mínimo US$ 0,01" }, { reason: entryAdvice.currencyChanged }]);
 });

@@ -1,10 +1,11 @@
 import { afterEach, expect, it } from "vitest";
+import { same } from "../fields/phrases.ts";
 import { runningRig, saved, settled } from "../../tests/support/kit-running.ts";
 import { shop } from "../../tests/support/shop.ts";
 
 const rigs: ReturnType<typeof runningRig>[] = [];
 afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
-const cut = { status: "interrupted", reason: "sacada" };
+const cut = { status: "interrupted", reason: { en: "removed", es: "sacada" } };
 
 it.each(["beto", "mind:slow"])("R2/R2m: %s cuts pending children without cutting independent acts", async by => {
   const rig = runningRig();
@@ -100,7 +101,7 @@ it("a world child receives the cut and keeps what it already did outside", async
   rig.calls[1]?.done.resolve(saved);
   expect(await child).toMatchObject({ status: "accepted" });
   rig.calls[0]?.done.resolve(saved);
-  expect(await settled(parent)).toMatchObject({ status: "accepted", reason: "sacada" });
+  expect(await settled(parent)).toMatchObject({ status: "accepted", reason: { en: "removed", es: "sacada" } });
   expect(rig.outside).toHaveLength(2);
-  expect(rig.facts().filter(event => event.kind === "act-result" && event.data.reason === "sacada")).toHaveLength(2);
+  expect(rig.facts().filter(event => event.kind === "act-result" && same(event.data.reason, "sacada"))).toHaveLength(2);
 });

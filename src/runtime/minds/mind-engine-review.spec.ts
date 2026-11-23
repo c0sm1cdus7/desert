@@ -81,7 +81,10 @@ it.each([false, true])("the supervisor rejects a marked act, nested=%s", async n
   try {
     expect(await act(f.ports, nested)).toMatchObject({
       status: "rejected",
-      reason: "Rechazado por el supervisor: Revisión de prueba",
+      reason: {
+        en: "Rejected by the supervisor: Revisión de prueba",
+        es: "Rechazado por el supervisor: Revisión de prueba",
+      },
     });
     expect(review).toHaveBeenCalledOnce();
     expect(f.run).not.toHaveBeenCalled();
@@ -126,7 +129,7 @@ it("a verdict that never arrives leaves the act undone and says why", async () =
   try {
     const done = await act(f.ports, false);
     expect(done).toMatchObject({ status: "rejected" });
-    expect("reason" in done && done.reason).toBe(rulesTexts.verdict("failed", "Falta la llave del proveedor."));
+    expect("reason" in done && done.reason).toEqual(rulesTexts.verdict("failed", "Falta la llave del proveedor."));
     expect(f.run).not.toHaveBeenCalled();
   } finally {
     f.close();

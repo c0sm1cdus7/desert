@@ -1,4 +1,5 @@
 // What a person sees of what they cannot do, and what they may prefer not to see: checked for every tool and act.
+import { meant } from "../../../fields/phrases.ts";
 import { absentCheck, foreignReferences } from "./promised-read.ts";
 import { absentMindAction } from "../identities/kit-checks.ts";
 import { actionTargets } from "../identities/group-checks.ts";
@@ -35,10 +36,10 @@ function foreignActions<X extends Program>(seat: Seat<X>, tool: ProgramTool<X>):
     for (const target of targets) {
       const found = actRow(seat, { tool, name, act }, target);
       if (absentMindAction(tool, name, target, found, seat.state().house.talk ?? [])) continue;
-      if (checkOwnRow(tool.id, name, seat.state(), target, found?.row)) continue;
+      if (checkOwnRow(tool.id, name, seat.state(), target, seat.language, found?.row)) continue;
       ok(found, said.notOffered(name));
       ok(found.row.off);
-      ok(found.row.detail?.endsWith(toolTexts.kitRefusal(tool.id)));
+      ok(found.row.detail?.endsWith(seat.say(toolTexts.kitRefusal(tool.id))));
       strictEqual(found.row.open, undefined);
     }
   }
@@ -51,12 +52,12 @@ function foreignCheck<X extends Program>(program: Composition<X>, shown: Shown<X
       if (example) await given(house(), tool.id, example.given, example.at);
       const seat = seated(house(), cast.outsider, shown);
       const key = shown.words[tool.id]?.key ?? "";
-      const row = () => menuRows(seat.tools).find(listed => listed.key === key);
+      const row = () => menuRows(seat.tools, seat.language).find(listed => listed.key === key);
       try {
         ok(row()?.open, said.notOnMenu(tool.id));
         type(seat.router, keysTo(shown, tool.id));
         const opened = seat.router.screen(view);
-        ok(opened.title !== surface.menu, said.notOnMenu(tool.id));
+        ok(opened.title !== seat.say(surface.menu), said.notOnMenu(tool.id));
         foreignActions(seat, tool);
         foreignReferences(seat, program);
         seat.router.send({ kind: "menu" });
@@ -106,10 +107,10 @@ function partialCheck<X extends Program>(program: Composition<X>, shown: Shown<X
           }
           const target = isCoreScene(aim) ? `identities/${cast.member}` : (kase.on ?? aim.tool.id);
           const row = actRow(seat, aim, target, undefined, caseOrigin(aim, kase));
-          if (checkOwnRow(aim.tool.id, aim.name, seat.state(), target, row?.row)) return;
+          if (checkOwnRow(aim.tool.id, aim.name, seat.state(), target, seat.language, row?.row)) return;
           ok(row, said.notOffered(aim.name));
           ok(row.row.off);
-          ok(row.row.detail?.endsWith(toolTexts.kitRefusal(aim.tool.id)));
+          ok(row.row.detail?.endsWith(seat.say(toolTexts.kitRefusal(aim.tool.id))));
         } finally {
           seat.router.stop();
         }
@@ -155,7 +156,7 @@ function hiddenCheck<X extends Program>(program: Composition<X>, shown: Shown<X>
         ok(original, said.notOffered(aim.name));
         const cause = actionUnavailable(seat, aim, on, [], from?.target);
         /** What the row read of the thing was read all along: hiding takes the way to change it, never the datum. */
-        const read = readBy(original.row, cause);
+        const read = readBy(original.row, cause === undefined ? undefined : seat.say(cause));
         await prefer(seat, "off", true);
         const target = read === undefined ? (from?.target ?? on) : (original.target ?? from?.target ?? on);
         goTo(seat, from?.tool ?? aim.tool.id, target);
@@ -176,7 +177,7 @@ function hiddenCheck<X extends Program>(program: Composition<X>, shown: Shown<X>
         seat.router.stop();
       }
     });
-  return { name: label(aim, said.hiding(kase.promise)), run };
+  return { name: label(aim, said.hiding(meant(kase.promise))), run };
 }
 export function shownChecks<X extends Program>(program: Composition<X>, shown: Shown<X>): readonly Check[] {
   const refusals = program.registry.flatMap(tool =>

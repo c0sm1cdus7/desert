@@ -68,6 +68,7 @@ describe("what is said, when it does not fit above its options", () => {
   ];
   const screen = (read?: number): Screen => ({
     title: "Nueva factura",
+    language: "es" as const,
     state: "connected",
     clock: "12:00",
     hints: [],

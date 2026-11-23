@@ -1,4 +1,5 @@
 // Startup bus limited to original credentials and own wakes, with the author fixed by the house.
+import { meant } from "../../fields/phrases.ts";
 import { readonlyPorts } from "./readonly-ports.ts";
 import { mindOf } from "../../house/kit.ts";
 import { OutsideDefect, programCall } from "../../fields/program-call.ts";
@@ -83,7 +84,7 @@ function startupEmission<P extends Foreign>(
 ) {
   const { tool, owner } = scope;
   const refuse = (): never => {
-    throw new OutsideDefect(new Error(journalTexts.executionOnly));
+    throw new OutsideDefect(new Error(meant(journalTexts.executionOnly)));
   };
   const wakeRefuse = (): never => {
     throw new OutsideDefect(

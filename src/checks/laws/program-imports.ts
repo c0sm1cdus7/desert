@@ -1,4 +1,5 @@
 // Checks standalone program imports against DESERT, owned code and explicitly requested contract modules.
+import { meant } from "../../fields/phrases.ts";
 import { distributionTexts } from "../../texts/distributions.texts.ts";
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { dirname, join, resolve, sep } from "node:path";
@@ -63,8 +64,8 @@ export function programImports(repo: Repository): string[] {
   return [
     ...(typeof field(desert, "testDistribution") === "string" && field(desert, "testDistribution") !== ""
       ? []
-      : [distributionTexts.testDistributionRequired]),
-    ...dependencies.filter(d => d.kind === "distribution").map(d => distributionTexts.dependencyImport(d.name)),
+      : [meant(distributionTexts.testDistributionRequired)]),
+    ...dependencies.filter(d => d.kind === "distribution").map(d => meant(distributionTexts.dependencyImport(d.name))),
     ...files.flatMap(file =>
       importsIn(parsed(file))
         .filter(specifier => !allowedImport(repo, own, dependencies, file, specifier, devices, shared))

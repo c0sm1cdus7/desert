@@ -28,9 +28,12 @@ function specifiersIn(file: string): readonly string[] {
   visit(source);
   return found;
 }
-/** The pieces, the three files of the contract they speak, and the one catalog they read: nothing else. */
+/** The pieces, the three files of the contract they speak, the one catalog they read and the two files that catalog
+ * reads its languages through: nothing else. */
 const allowed = (at: string): boolean =>
   at.startsWith("src/surface/pieces/") ||
+  at === "src/fields/languages.ts" ||
+  at === "src/fields/phrases.ts" ||
   ["contract", "tones", "hint-sends"].some(name => at === `src/surface/contract/${name}.ts`) ||
   at === "src/texts/surface.texts.ts";
 /** What the entry's static import closure reaches that a browser bundle could not take, each named. */

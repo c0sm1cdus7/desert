@@ -19,11 +19,11 @@ type Fixture = ReturnType<typeof supervisedFixture>;
 const asked = Type.Object({ reason: Type.String(), acts: Type.Array(Type.Unknown()), question: Type.Unknown() });
 /** What the supervisor was asked for a verdict or a consultation, or nothing for a frame of its own turn. */
 export function request(frame: string) {
-  const line = frame.split("Pedido:\n")[1]?.split("\n")[0];
+  const line = frame.split("Request:\n")[1]?.split("\n")[0];
   const value: unknown = line ? JSON.parse(line) : undefined;
   return Value.Check(asked, value) ? value : undefined;
 }
-export const supervising = (frame: string) => frame.startsWith("Alcance:\nmind:supervisor");
+export const supervising = (frame: string) => frame.startsWith("Scope:\nmind:supervisor");
 const shown = Type.Object({ messages: Type.Array(Type.Object({ content: Type.Unknown() })) });
 /** What each model call was shown, in order. */
 export const framesOf = (f: Fixture) =>

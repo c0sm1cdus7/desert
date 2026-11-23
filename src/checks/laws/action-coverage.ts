@@ -1,4 +1,5 @@
 // Trace action factories to registered catalog slots, including aliases and helper functions.
+import { meant } from "../../fields/phrases.ts";
 import ts from "typescript";
 import { catalogLawTexts as words } from "../../texts/catalog-laws.texts.ts";
 import { nodeLocation, visitNodes, type CatalogGraph } from "./catalog-graph.ts";
@@ -70,5 +71,5 @@ export function actionCatalogCoverage(graph: CatalogGraph): string[] {
   const { live, definitions } = registeredActions(graph);
   return definitions
     .filter(item => !item.owner || !live.has(item.owner))
-    .map(item => words.action(nodeLocation(item.node)));
+    .map(item => meant(words.action(nodeLocation(item.node))));
 }

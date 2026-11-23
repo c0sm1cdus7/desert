@@ -29,10 +29,10 @@ it("recovers from disk without thinking and does not notify again on rebuilding"
     house.bus.emit(effect("kit-set", { holder: "mind:payments", tool: "payments", acts: [] }, "ana"));
     house.bus.emit(shop.fact("payment-received", { payment: "p1", amount: 10 }, "ana"));
     await house.tools.recoverReactions();
-    expect(house.tools.pendingReactions()[0]?.reason).toBe("fuera del kit");
+    expect(house.tools.pendingReactions()[0]?.reason).toEqual({ en: "outside the kit", es: "fuera del kit" });
     house.close();
     house = startHouse(home, options);
-    expect(house.tools.pendingReactions()[0]?.reason).toBe("fuera del kit");
+    expect(house.tools.pendingReactions()[0]?.reason).toEqual({ en: "outside the kit", es: "fuera del kit" });
     house.bus.emit(effect("kit-set", { holder: "mind:payments", tool: "payments", acts: ["notice"] }, "ana"));
     // The runtime's scheduler, without an explicit recovery call, resumes the committed notice.
     await vi.waitFor(() => expect(notices()).toHaveLength(1));

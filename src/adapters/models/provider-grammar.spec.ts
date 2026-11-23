@@ -68,8 +68,8 @@ const answer = (act: string, target: string, input: unknown) => ({
   acts: [{ act, target, input }],
 });
 it("keeps the grammar the same size and inside the documented limits however much the house grows", () => {
-  const small = providerSchema(answerSchema(houseMenu(enumLimit + 1, enumLimit + 1)));
-  const large = providerSchema(answerSchema(houseMenu(300, 1000)));
+  const small = providerSchema(answerSchema(houseMenu(enumLimit + 1, enumLimit + 1)), "en");
+  const large = providerSchema(answerSchema(houseMenu(300, 1000)), "en");
   expect(large).toEqual(small);
   const measured = providerComplexity(large);
   expect(measured.optional).toBeLessThanOrEqual(providerLimits.optional);
@@ -79,7 +79,7 @@ it("keeps the grammar the same size and inside the documented limits however muc
 it("merges branches exactly while the lists are short, and the local contract keeps every dropped constraint", () => {
   const menu = houseMenu(3, 4);
   const local = answerSchema(menu);
-  const sent = providerSchema(local);
+  const sent = providerSchema(local, "en");
   expect(JSON.stringify(sent).match(/threads\/say/g)).toHaveLength(1);
   for (const target of ids(3, "communicator/threads")) {
     const said = answer("threads/say", target, { text: "Hola", replyTo: "message-2" });
@@ -100,7 +100,7 @@ it("merges branches exactly while the lists are short, and the local contract ke
   expect(validateAnswer(crossed, context)).toEqual({ ok: false, faults: [{ code: "menu", path: "/acts/0" }] });
   const huge = houseMenu(200, 200);
   const unknownReply = answer("threads/say", "communicator/threads/7", { text: "Hola", replyTo: "message-999" });
-  expect(matchesSchema(providerSchema(answerSchema(huge)), unknownReply)).toBe(true);
+  expect(matchesSchema(providerSchema(answerSchema(huge), "en"), unknownReply)).toBe(true);
   expect(matchesSchema(answerSchema(huge), unknownReply)).toBe(false);
 });
 it("resends a grammar the provider refuses without constraint, remembers it and reads fenced JSON", async () => {
@@ -139,7 +139,7 @@ it("resends a grammar the provider refuses without constraint, remembers it and 
     false,
     false,
   ]);
-  expect(JSON.stringify(sent[1])).toContain("Respondé solo con un objeto JSON");
+  expect(JSON.stringify(sent[1])).toContain("Respond only with a JSON object");
 });
 /** The journey menu whose grammar the provider refused on 21-22/11: three device tools with start, status and
  * cancel on one device, a thread to report in among fourteen, and the journey's five controls. */
@@ -183,8 +183,8 @@ function agentsJourney(threads: number, process: string): MindMenu {
 }
 it("asks with one branch per kind of act, never spelling a journey, a tool's target or a device", () => {
   const process = "journey:298bfaae-9dfb-4eb6-900a-9207d04d2e09";
-  const sent = providerSchema(answerSchema(agentsJourney(14, process)));
-  expect(providerSchema(answerSchema(agentsJourney(15, process)))).toEqual(sent);
+  const sent = providerSchema(answerSchema(agentsJourney(14, process)), "en");
+  expect(providerSchema(answerSchema(agentsJourney(15, process)), "en")).toEqual(sent);
   const grammar = JSON.stringify(sent, (key, value: unknown) => (key === "description" ? undefined : value));
   for (const spelled of [process, "agents/shell", "linux", "destination", "communicator/threads/1"])
     expect(grammar).not.toContain(spelled);
@@ -270,7 +270,7 @@ it("puts back what the grammar left out of a oneOf branch and of a branch behind
     properties: { item: { oneOf: [branch("a"), { $ref: "#/$defs/b" }] } },
     required: ["item"],
   };
-  const sent = JSON.stringify(providerSchema(schema));
+  const sent = JSON.stringify(providerSchema(schema, "en"));
   expect(sent).not.toContain('"v"');
   const body = (item: unknown) => ({
     stop_reason: "end_turn",

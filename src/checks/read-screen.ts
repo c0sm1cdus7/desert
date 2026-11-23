@@ -1,6 +1,8 @@
 // Read through the same small windows and movement keys available to a person.
 import type { Body, Row, Screen, ThreadEvent } from "../surface/contract/contract.ts";
 import type { Router } from "../surface/router/router.ts";
+import type { Language } from "../fields/languages.ts";
+import { said, type Text } from "../fields/phrases.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { surfaceTexts } from "../texts/surface.texts.ts";
 export const rowsIn = (body: Body): readonly Row[] => {
@@ -15,11 +17,17 @@ const notesIn = (body: Body): readonly string[] =>
 /** List rows compose a datum followed by its reason; thread options carry the reason itself. */
 const rowReason = (body: Body, detail: string | undefined, cause: string): boolean =>
   detail === cause || (body.kind === "list" && detail?.endsWith(` · ${cause}`) === true);
-export const unchangedIn = (body: Body): boolean =>
-  rowsIn(body).some(row => row.off && rowReason(body, row.detail, toolTexts.unchanged)) ||
-  notesIn(body).includes(toolTexts.unchanged);
+export const unchangedIn = (body: Body, language: Language): boolean =>
+  rowsIn(body).some(row => row.off && rowReason(body, row.detail, said(toolTexts.unchanged, language))) ||
+  notesIn(body).includes(said(toolTexts.unchanged, language));
 /** Read the actual screen: reasons belong to a disabled row or to the live question, never an unrelated datum. */
-export const reasonIn = (body: Body, cause: string, thing?: Row & { readonly value?: string }): boolean => {
+export const reasonIn = (
+  body: Body,
+  text: Text,
+  language: Language,
+  thing?: Row & { readonly value?: string },
+): boolean => {
+  const cause = said(text, language);
   const matches = (text = "") => text === cause || text.startsWith(`${cause} · `);
   const same = (row: Row): boolean =>
     thing === undefined ||
@@ -30,9 +38,11 @@ export const reasonIn = (body: Body, cause: string, thing?: Row & { readonly val
     (thing === undefined && notesIn(body).some(matches))
   );
 };
-export const errorIn = (body: Body, cause: string): boolean =>
+export const errorIn = (body: Body, cause: Text, language: Language): boolean =>
   eventsIn(body).some(
-    event => event.text.some(span => span.tone === "cut") && textOf(event) === `${surfaceTexts.error} ${cause}`,
+    event =>
+      event.text.some(span => span.tone === "cut") &&
+      textOf(event) === `${said(surfaceTexts.error, language)} ${said(cause, language)}`,
   );
 /** The full row count bounds movement; only the visible small window can supply evidence. */
 export function readThrough(router: Router, test: (screen: Screen) => boolean, rows = 8): boolean {

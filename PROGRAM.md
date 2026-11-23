@@ -1864,7 +1864,7 @@ await http.close();
 ```
 
 La dirección y el puerto los decide el programa. Railway termina TLS y reenvía HTTP a ese puerto.
-`GET /salud` responde `200` con `ok`, sin llave ni datos de la casa. El protocolo entra por `POST /mcp`;
+`GET /health` responde `200` con `ok`, sin llave ni datos de la casa. El protocolo entra por `POST /mcp`;
 `GET /mcp` responde `405` porque no hay SSE. OAuth agrega las rutas de ingreso descritas abajo.
 Para conectar Claude:
 

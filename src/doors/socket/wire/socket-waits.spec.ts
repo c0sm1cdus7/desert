@@ -1,4 +1,5 @@
 import { clientFrame } from "./frame.ts";
+import { same } from "../../../fields/phrases.ts";
 import { performance } from "node:perf_hooks";
 import { expect, it, vi } from "vitest";
 import { socketHouse } from "../../../../tests/support/socket-house.ts";
@@ -16,7 +17,7 @@ it("N8: twenty thousand waits leave only eight alive; a change answers all admit
     c.socket.write(Buffer.concat(frames));
     expect(await c.until(() => c.messages.filter(m => m.type === "rejection").length === 19992, 30000)).toBe(true);
     expect(c.messages.filter(m => m.type === "response")).toHaveLength(0);
-    expect(c.messages.filter(m => m.type === "rejection").every(m => m.reason === socketTexts.quota)).toBe(true);
+    expect(c.messages.filter(m => m.type === "rejection").every(m => same(m.reason, socketTexts.quota))).toBe(true);
     now = 1000;
     c.send({ type: "wait", id: "still-full", until: f.house().now() + 200000 });
     expect(await c.until(() => c.messages.some(m => m.type === "rejection" && m.id === "still-full"))).toBe(true);

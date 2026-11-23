@@ -18,7 +18,7 @@ it("derives foreign references from a case with a populated source", async () =>
   try {
     const program = { ...shopProgram, registry: fixture.registry };
     const check = shownChecks(program, fixture.shown).find(
-      item => item.name.includes("select") && item.name.includes("referencias legibles"),
+      item => item.name.includes("select") && item.name.includes("readable references"),
     );
     expect(check).toBeDefined();
     await check?.run();

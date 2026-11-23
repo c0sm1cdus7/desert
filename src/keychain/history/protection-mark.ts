@@ -1,4 +1,5 @@
 // Reads the mark with a typed error; v1 marks also require reviewing facts.
+import { meant } from "../../fields/phrases.ts";
 import { isRecord } from "../../fields/json-values.ts";
 import { existsSync, readFileSync } from "node:fs";
 import { secretTexts } from "../../texts/secrets.texts.ts";
@@ -7,7 +8,7 @@ class SecretProtectionError extends Error {
   readonly code = "E-SECRET-PROTECTION";
   readonly file: string;
   constructor(file: string) {
-    super(secretTexts.protection(file));
+    super(meant(secretTexts.protection(file)));
     this.file = file;
   }
 }

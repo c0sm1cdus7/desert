@@ -6,6 +6,7 @@ export const sceneLimits = { general: 4000, each: 1000, identities: 64, name: 16
 /** One bound for the JSON data of one act, whatever door it enters by: the act and its target and input. */
 export const actLimits = { inputBytes: 1024 * 1024 } as const;
 
+import { meant } from "../fields/phrases.ts";
 import { executionDestination } from "../fields/device-protocol.ts";
 import { languages } from "../fields/languages.ts";
 import { Type, type Static } from "@sinclair/typebox";
@@ -14,7 +15,7 @@ import { object, visibleText } from "../fields/visible-text.ts";
 
 /** The schema of a nonempty house name. */
 export const name = Type.String({ minLength: toolLimits.minText });
-const target = object({ target: Type.String({ ...name, description: toolTexts.target }) });
+const target = object({ target: Type.String({ ...name, description: meant(toolTexts.target) }) });
 /** What a person may prefer not to see: what cannot be done now, the tools that are not theirs, and the lists
  * every menu opens with while they have nothing. */
 export const hideable = ["off", "foreign", "empty"] as const;

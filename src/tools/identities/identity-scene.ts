@@ -1,4 +1,5 @@
 // The same bounded general scene, offered on its author's row by the ordinary declared action path.
+import { meant } from "../../fields/phrases.ts";
 import { object } from "../../fields/visible-text.ts";
 import { scene } from "../../house/own-acts.ts";
 import { text } from "../../fields/fields.ts";
@@ -16,26 +17,26 @@ const cases = [
     promise: words.promises.memberScene,
     by: "carla",
     on: "identities/carla",
-    input: { general: words.sceneExample },
+    input: { general: meant(words.sceneExample) },
     then: { says: words.sceneSaved, facts: [] },
   },
   {
     promise: words.promises.adminScene,
     on: "identities/ana",
-    input: { general: words.sceneExample },
+    input: { general: meant(words.sceneExample) },
     then: { says: words.sceneSaved, facts: [] },
   },
   {
     promise: words.promises.memberSceneOnly,
     by: "beto",
     on: "identities/carla",
-    input: { general: words.sceneExample },
+    input: { general: meant(words.sceneExample) },
     then: { refused: words.ownScene },
   },
   {
     promise: words.promises.adminSceneOnly,
     on: "identities/carla",
-    input: { general: words.sceneExample },
+    input: { general: meant(words.sceneExample) },
     then: { refused: words.ownScene },
   },
 ] as const;

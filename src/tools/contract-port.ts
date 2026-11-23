@@ -1,4 +1,5 @@
 // Declares the contract port the core lends an action, without exposing the executor.
+import type { Text } from "../fields/phrases.ts";
 import type { Act } from "../house/own-acts.ts";
 export type ContractFailureReason = "forbidden" | "interrupted" | "invalid-reference" | "defect" | "inconclusive";
 export type CoreFailure = Readonly<{ status: "core-failure"; reason: ContractFailureReason }>;
@@ -44,7 +45,7 @@ export type ContractExecution = Readonly<{
   value?: unknown;
   coreFailure?: ContractFailureReason;
   /** Why it was refused, and whether its tool declined it before running rather than the house refusing it. */
-  reason?: string;
+  reason?: Text;
   declined?: true;
 }>;
 export type ContractInvocation = Readonly<{

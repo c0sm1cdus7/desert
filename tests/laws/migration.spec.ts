@@ -25,6 +25,7 @@ function toolsFor(gate: Gate, reason = true): readonly Tool[] {
     bare,
     value => (gate === "among" && value === "new" ? "no admitida" : undefined),
     () => false,
+    "es",
   );
   return [
     {

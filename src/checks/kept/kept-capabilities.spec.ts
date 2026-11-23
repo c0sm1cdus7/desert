@@ -42,9 +42,9 @@ for (const kind of ["credential-released", "credential-unusable"] as const)
 it("C1: capture, replace and release each have their own mark and a reason", () => {
   const capabilities = lease([bound]);
   for (const [reason, operation] of [
-    ["capturar credencial", () => capabilities.capture("synthetic")],
-    ["reemplazar credencial", () => capabilities.credentials.replace("signing", {}, 1)],
-    ["liberar credencial", () => capabilities.credentials.release("signing", 1)],
+    ["capture a credential", () => capabilities.capture("synthetic")],
+    ["replace a credential", () => capabilities.credentials.replace("signing", {}, 1)],
+    ["release a credential", () => capabilities.credentials.release("signing", 1)],
   ] as const) {
     expect(operation).toThrow(
       expect.objectContaining({

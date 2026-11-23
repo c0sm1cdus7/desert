@@ -1,4 +1,6 @@
 // Starts the thinking the distribution asks for over the rebuilt journal and stops it with the house.
+import type { Text } from "../../fields/phrases.ts";
+import { workingLanguage } from "../../fields/languages.ts";
 import { randomUUID } from "node:crypto";
 import { Value } from "@sinclair/typebox/value";
 import { effect } from "../../house/facts.ts";
@@ -42,7 +44,6 @@ function validateRuntime<X extends Program>(
   switches: MindSwitches,
   options: MindRuntimeOptions,
 ) {
-  requireMind(options.language, "runtime.language");
   requireMind(options.account.trim(), "runtime.account");
   for (const name of ["message", "fingerprint", "rulesVersion", "key", "transport"] as const)
     requireMind(typeof options[name] === "function", `runtime.${name}`);
@@ -117,9 +118,8 @@ class HouseMindRuntime<X extends Program> {
   }
   /** The read act: an object whole, or the whole activity, newest first, from a character on. */
   private page: NonNullable<TurnPorts["page"]> = (turn, target, from) => {
-    const { options } = this;
     const view = this.view(turn.scope);
-    if (target !== activityTarget(options.language)) {
+    if (target !== activityTarget) {
       const object = view.objects.find(each => each.id === target);
       return object && page(object.text, from);
     }
@@ -146,12 +146,12 @@ class HouseMindRuntime<X extends Program> {
     if (emission.kind !== "mind-scene" || emission.process) return;
     // The consciousness's scene is the mind's house scene, with its cut journeys first until each one goes on.
     const state = house.execution.state().house;
-    const general = withCuts(state, emission.by, this.options.language, emission.data.text);
+    const general = withCuts(state, emission.by, workingLanguage, emission.data.text);
     const to = state.scenes.get(emission.by)?.data.to ?? {};
     house.execution.bus.emit(effect("scene", { general, to }, emission.by, emission.cause));
   };
   /** The name people see, which a group line names with «@» (22/11): an assistant's given name, a program's name. */
-  private visibleName(actor: string, role: string): string {
+  private visibleName(actor: string, role: string): Text {
     const { house } = this;
     const mind = parseMindActor(actor);
     if (mind?.kind === "assistant") return house.execution.state().house.assistants.get(mind.owner)?.name ?? role;
@@ -203,7 +203,7 @@ class HouseMindRuntime<X extends Program> {
   /** Every mind thinks through the same turn; the supervisor's turn reads its own frame of the whole house. */
   private async run(ports: TurnPorts, wake: TurnWake) {
     const outcome = await runMindTurn(ports, wake);
-    journeyCutScene(this.house, wake, this.options.language);
+    journeyCutScene(this.house, wake, workingLanguage);
     this.options.observeTurn?.(outcome);
     return outcome;
   }
@@ -225,7 +225,6 @@ class HouseMindRuntime<X extends Program> {
       bus: house.execution.bus,
       history: house.history,
       policies: this.policies,
-      language: options.language,
       time: house.time,
       nextId: randomUUID,
       emit: emission => {
@@ -234,7 +233,7 @@ class HouseMindRuntime<X extends Program> {
       run: wake => this.run(wake.scope.actor === supervisorActor ? supervising : ports, wake),
       failed: cause => {
         this.live = false;
-        house.failed(new Error(turnNotice.text(options.language, { reason: "internal" }), { cause }));
+        house.failed(new Error(turnNotice.text(workingLanguage, { reason: "internal" }), { cause }));
       },
     };
     this.recover(schedulePorts, model.model);

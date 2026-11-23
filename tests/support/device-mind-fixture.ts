@@ -113,4 +113,4 @@ export function wakesOf(house: RequestHouse, journey: string) {
 }
 export const flush = async (house: RequestHouse) => (await house.minds)?.flush();
 export const journeyOf = (house: RequestHouse) => [...house.tools.state().house.journeys.values()][0];
-export const told = "Avisó el dispositivo Linux: el trabajo outbox/send → notes/outbox que arrancó este journey";
+export const told = "The device Linux gave notice: the job outbox/send → notes/outbox that this journey started";

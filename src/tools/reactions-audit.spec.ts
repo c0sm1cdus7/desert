@@ -1,4 +1,6 @@
 // Reproduces the attribution and permission forged by a reaction with no authority.
+import { meant, said } from "../fields/phrases.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
 import { toolAct } from "./act-definition.ts";
 import { object } from "../fields/visible-text.ts";
 import { scene } from "../house/own-acts.ts";
@@ -24,7 +26,7 @@ it("does not let a reaction forge a sale or grant tools", () => {
     grants: { ana: ["sales", "payments", "desk"], beto: ["desk"] },
   });
   try {
-    expect(rig.state().entries.some(entry => entry.data.diagnostic?.includes("La reacción usa emisiones libres"))).toBe(
+    expect(rig.state().entries.some(entry => entry.data.diagnostic?.includes(meant(toolTexts.legacyReactions)))).toBe(
       true,
     );
     expect(rig.act("mind:desk", "scene", { general: "aviso" }).status).toBe("accepted");
@@ -59,7 +61,7 @@ for (const attack of ["author", "grant", "foreign"] as const)
       rig.bus.emit(effect("kit-set", { holder: "mind:desk", tool: "desk", acts: ["forge"] }, "ana"));
       expect(rig.act("mind:desk", "scene", { general: "aviso" }).status).toBe("accepted");
       await rig.tools().recoverReactions();
-      expect(rig.tools().pendingReactions()[0]?.reason).toContain("Efecto no permitido");
+      expect(said(rig.tools().pendingReactions()[0]?.reason ?? "", "es")).toContain("Efecto no permitido");
       rig.restart();
       await rig.tools().recoverReactions();
       expect(rig.state().tools.sales.has("forged")).toBe(false);

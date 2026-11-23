@@ -1,4 +1,5 @@
 import { afterEach, expect, it } from "vitest";
+import { meant } from "../fields/phrases.ts";
 import { effect, houseCatalog } from "../house/facts.ts";
 import { allowedAct } from "../house/kit.ts";
 import { settle } from "../surface/bridge/ports/house-ports.ts";
@@ -17,7 +18,7 @@ for (const by of ["ana", "beto", "mind:sales"]) {
     const before = rig.facts().length;
     const result = await settle(rig.act(by, "forge", {}, "sales"));
     expect(result).toMatchObject({ status: "rejected", effects: [] });
-    expect(result.reason).toContain(forged.kind);
+    expect(meant(result.reason ?? "")).toContain(forged.kind);
     expect(rig.state().tools.sales.size).toBe(0);
     expect(
       rig

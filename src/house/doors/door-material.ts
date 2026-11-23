@@ -1,4 +1,5 @@
 // Generate unpredictable bearer material and compare only its domain-separated fingerprint.
+import { meant } from "../../fields/phrases.ts";
 import { credentialEqual } from "./credential-equal.ts";
 import { scrubVolatileDoorText } from "./volatile-door-material.ts";
 import { createHash, randomBytes, randomUUID, randomInt, scryptSync } from "node:crypto";
@@ -61,7 +62,7 @@ export function scrubDoorText(text: string, state: DoorState): string {
   const fingerprint = doorFingerprint(text);
   if (index.keys.has(fingerprint)) {
     recordMatch(index, fingerprint, text.length);
-    return mcpTexts.redacted;
+    return meant(mcpTexts.redacted);
   }
   if (index.ordinary.has(fingerprint)) return text;
   let covered: Uint8Array | undefined;
@@ -88,7 +89,7 @@ export function scrubDoorText(text: string, state: DoorState): string {
     [...state.invitations.values()].some(
       invitation => invitation.fingerprint === invitationFingerprint(token, invitation.id),
     )
-      ? mcpTexts.redacted
+      ? meant(mcpTexts.redacted)
       : token,
   );
   // Retain only hashes of unchanged public text, never the text or a matched credential.
@@ -101,7 +102,7 @@ function replaceCovered(text: string, covered: Uint8Array | undefined) {
   let clean = "";
   for (let i = 0; i < text.length; i++) {
     if (!covered[i]) clean += text.charAt(i);
-    else if (i === 0 || !covered[i - 1]) clean += mcpTexts.redacted;
+    else if (i === 0 || !covered[i - 1]) clean += meant(mcpTexts.redacted);
   }
   return clean;
 }

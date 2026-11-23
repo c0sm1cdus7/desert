@@ -56,7 +56,7 @@ it("wakes on a notice that comes after its wait, and says which work it was and 
   expect(wakesOf(house, id)).toEqual([["journey-opened"], ["device-execution-notice"]]);
   const frame = rig.frames.find(frame => frame.includes(told)) ?? "";
   expect(frame).toContain(
-    shortIds(`(arranque: start:${execution?.execution ?? ""}) falló. Referencia del aviso: aviso:failed.`),
+    shortIds(`(start: start:${execution?.execution ?? ""}) failed. Notice reference: aviso:failed.`),
   );
   expect(journeyOf(house)?.closed?.data.outcome).toBe("done");
 }, 60000);
@@ -97,7 +97,7 @@ it.each([
       if (turn === 1) return answer([sendOn("Uno"), sendOn("Dos"), waitNotice(id)]);
       if (turn === 2) return answer([waitNotice(id, "El otro envío")]);
       // Both notices were read: nothing will announce, so the wait comes back as a correction and the journey ends.
-      return frame.includes("nada va a avisar") ? answer([endJourney(id)]) : answer([waitNotice(id, "Nada")]);
+      return frame.includes("nothing will give notice") ? answer([endJourney(id)]) : answer([waitNotice(id, "Nada")]);
     });
     const [first = "", second = ""] = executions(house, id);
     const order = { first, second };
@@ -109,7 +109,7 @@ it.each([
     expect(wakesOf(house, id)).toEqual([["journey-opened"], ["device-execution-notice"], ["device-execution-notice"]]);
     expect(invalid(house, id)).toEqual([[], [], ["wait"]]);
     expect(rig.frames.filter(frame => frame.includes(told))).toHaveLength(3);
-    expect(rig.frames.some(frame => frame.includes("se canceló. Referencia del aviso: aviso:cancelled."))).toBe(true);
+    expect(rig.frames.some(frame => frame.includes("was cancelled. Notice reference: aviso:cancelled."))).toBe(true);
     expect(journeyOf(house)?.closed?.data.outcome).toBe("done");
   },
   60000,

@@ -1,4 +1,5 @@
 // The catalog guides administrators; only the invitation presenter receives a scoped private delivery.
+import { meant } from "../../fields/phrases.ts";
 import { redemptionRecipient } from "./redemption-recipient.ts";
 import { text } from "../../fields/fields.ts";
 import { object } from "../../fields/visible-text.ts";
@@ -30,7 +31,7 @@ export function redeemInvitationAction<X extends Program>() {
     },
     run: ({ invitation }, { state, by }) => {
       const found = state.house.doors.invitations.get(invitation);
-      if (!found) throw new Error(words.noInvitation);
+      if (!found) throw new Error(meant(words.noInvitation));
       const recipient = redemptionRecipient(invitation);
       if (!recipient) return { status: "accepted", text: words.guided, effects: [] };
       const issued = issueDoorKey(found.identity, found.door, by, recipient.material, recipient.oauth);

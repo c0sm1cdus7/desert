@@ -1,4 +1,5 @@
 // Defines rule writes and queries with current authority and validation against installed actions.
+import { linesIn, phrase, said, type Text } from "../../fields/phrases.ts";
 import { ruleDisplay } from "./rule-display.ts";
 import { type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -21,7 +22,7 @@ export function versionProblem<X extends Program>(
   state: State<X>,
   registry: ToolRegistry<X>,
   operation: "approve" | "retire",
-): string | undefined {
+): Text | undefined {
   if (!Value.Check(ruleReference, input)) return words.invalid;
   const version = state.house.rules.versions.get(input.id)?.find(each => each.version === input.version);
   if (!version) return words.missing;
@@ -94,17 +95,26 @@ export function ruleConsult<X extends Program>() {
     output: true,
     run: (_, { state }) => ({
       status: "accepted",
-      text: words.consulted(ruleReading(state)),
+      text: consultedWords(state),
       value: [...state.house.rules.versions].map(([id, versions]) => ({
         id,
         versions,
         active: state.house.rules.active.get(id) ?? null,
       })),
     }),
-    cases: [{ promise: words.empty, input: {}, then: { says: words.consulted(words.empty), facts: [] } }],
+    cases: [
+      {
+        promise: words.empty,
+        input: {},
+        then: { says: phrase(language => said(words.consulted(said(words.empty, language)), language)), facts: [] },
+      },
+    ],
   });
 }
-export function ruleReading<X extends Program>(state: State<X>): string {
+/** What consulting the rules says: each rule as data, its labels in each language; or that there is none yet. */
+const consultedWords = <X extends Program>(state: State<X>) =>
+  phrase(language => said(words.consulted(linesIn(said(ruleReading(state), language), language)), language));
+export function ruleReading<X extends Program>(state: State<X>): Text {
   const rules = state.house.rules;
   return rules.versions.size
     ? ruleDisplay(

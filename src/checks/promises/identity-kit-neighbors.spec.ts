@@ -16,7 +16,7 @@ it("a partial whole-tool row permits both removal and giving all, preserving the
     await perform(house(), "identities", change("kit:sales:register", "yes"));
     await perform(house(), "identities", change("kit:payments:receive", "yes"));
     await perform(house(), "identities", change("kit:payments:receive", "no"));
-    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), kitShown).find(
+    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), kitShown, "es").find(
       tool => tool.id === "identities",
     );
     const whole = core
@@ -51,7 +51,7 @@ it("two open editors merge action changes using today's kit and lose authority i
       await press("1");
       await perform(house(), "identities", { act: "hand", on: "identities/beto", input: {} });
       await press("n");
-      expect(JSON.stringify(router.screen({ rows: 40 }))).toContain("solo quien administra");
+      expect(JSON.stringify(router.screen({ rows: 40 }))).toContain("only whoever administers");
       expect(allowedAct(house().tools.state().house, "carla", "sales", "register")).toBe(true);
     } finally {
       router.stop();
@@ -69,7 +69,7 @@ it("removing a subject during an open question cannot readmit it or restore its 
       await press("i3h111");
       await perform(house(), "identities", { act: "remove", on: "identities/carla", input: {} });
       await press("s");
-      expect(JSON.stringify(router.screen({ rows: 40 }))).toContain("sacada");
+      expect(JSON.stringify(router.screen({ rows: 40 }))).toContain("removed");
       expect(house().tools.state().house.grants.has("carla")).toBe(false);
     } finally {
       router.stop();
@@ -87,7 +87,7 @@ it("mind kits survive reopening and grant only their own program and never ident
       expect(
         (await perform(house(), "identities", { act, on, input: act.startsWith("kit:") ? { value: "yes" } : {} }))
           .reason,
-      ).toBe("solo acciones propias");
+      ).toEqual({ en: "only own actions", es: "solo acciones propias" });
     expect((await perform(house(), "identities", change("kit:sales", "yes", on))).status).toBe("accepted");
     expect(house().tools.state().house.grants.has("mind:sales")).toBe(false);
     await perform(house(), "identities", change("kit:sales:register", "no", on));
@@ -97,7 +97,7 @@ it("mind kits survive reopening and grant only their own program and never ident
 });
 it.each([8, 9, 10])("law 2 boundary: %i tool actions plus the whole-tool row", async count => {
   await staged(kitBoundary(count), ({ house }) => {
-    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), boundaryShown).find(
+    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), boundaryShown, "es").find(
       tool => tool.id === "identities",
     );
     const rows = core?.view("identities/carla#tools").flatMap(stack => stack.rows);
@@ -123,7 +123,10 @@ it("an identity can lose the whole tool after its last action was removed", asyn
     await perform(house(), "identities", change("kit:sales:register", "no"));
     expect(house().tools.state().house.grants.has("carla")).toBe(true);
     expect(holderKit(house().tools.state().house, "carla").selections).toEqual([]);
-    expect((await perform(house(), "identities", change("kit:sales", "no"))).reason).toBe("sin cambios");
+    expect((await perform(house(), "identities", change("kit:sales", "no"))).reason).toEqual({
+      en: "no changes",
+      es: "sin cambios",
+    });
     expect(house().tools.state().house.grants.has("carla")).toBe(true);
   });
 });

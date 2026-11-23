@@ -1,9 +1,10 @@
 // Builds the frame of the supervisor's own turn: every mind with its journeys, every program, and what woke it.
+import { spokenIdentities } from "../../house/members.ts";
 import type { JourneyState } from "../../house/minds/journey-state.ts";
 import type { Event } from "../../journal/vocabulary.ts";
 import { turnNotice } from "../../texts/mind-turn.texts.ts";
 import { supervisorLabels, supervisorWoke } from "../../texts/supervisor.texts.ts";
-import type { Language } from "../../fields/languages.ts";
+import { workingLanguage, type Language } from "../../fields/languages.ts";
 import { answerSchema } from "../../tools/minds/mind-answer.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -55,7 +56,7 @@ function houseItems<X extends Program>(house: MindRuntimeHouse<X>): FrameItem[] 
 }
 /** Each waking fact in words: a journey that ended or desisted, a cut or failed turn, somebody who spoke to it. */
 function woke<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntimeOptions, wake: readonly string[]) {
-  const { language } = options;
+  const language = workingLanguage;
   const { journeys, devices } = house.execution.state().house;
   const history = house.history();
   const events = new Map(history.flatMap(event => (wake.includes(event.id) ? [[event.id, event]] : [])));
@@ -95,7 +96,7 @@ function frameOf<X extends Program>(
   fixed: Readonly<{ woke: string; context: string; scene: string; thread: string }>,
   parts: Parts,
 ): MindFrame {
-  const { language } = options;
+  const language = workingLanguage;
   const now = house.time.now();
   return {
     layers: layers(house, options),
@@ -126,6 +127,12 @@ function fit(frame: (parts: Parts) => MindFrame, parts: Parts, fits: (frame: Min
   }
   return current;
 }
+/** The supervisor's Context: every journey it may stop by its id, and each identity with its language. */
+const supervisorContext = <X extends Program>(house: MindRuntimeHouse<X>, menu: View["menu"]) =>
+  [
+    menuText(menu, workingLanguage, undefined, false),
+    JSON.stringify({ identities: spokenIdentities(house.execution.state().house) }),
+  ].join("\n");
 export function supervisorTurnFrame<X extends Program>(
   house: MindRuntimeHouse<X>,
   options: MindRuntimeOptions,
@@ -145,7 +152,7 @@ export function supervisorTurnFrame<X extends Program>(
         .map((line, index) => (line === turn.wake[index] ? line : `${turn.wake[index] ?? ""}: ${line}`))
         .join("\n"),
       // Its Contexto is not cached and the house section may be cut: every journey it may stop by its id.
-      context: menuText(current.menu, options.language, undefined, false),
+      context: supervisorContext(house, current.menu),
       scene: house.execution.state().house.minds.scenes.get(supervisorActor)?.data.text ?? "",
       thread: ownThread(house, options),
     };
@@ -153,11 +160,11 @@ export function supervisorTurnFrame<X extends Program>(
     const mark = answeredMark(house.execution.state().house.minds, house.history(), scope, turn.id);
     const { recent, older } = recentActivity(current.activity, mark, turn.wake);
     const olderItems = older
-      ? [{ id: "…", text: frameReading.text(options.language, { part: "older", count: older, id: "" }) }]
+      ? [{ id: "…", text: frameReading.text(workingLanguage, { part: "older", count: older, id: "" }) }]
       : [];
     const { devices } = house.execution.state().house;
     const play = inPlay({ history: house.history(), mark, wake: turn.wake, devices }, () => false);
-    const { objects } = framedObjects(current.objects, play, options.language);
+    const { objects } = framedObjects(current.objects, play, workingLanguage);
     const activity = [...recent, ...olderItems, ...objects].map(({ id, text }) => ({ id, text }));
     const parts: Parts = { minds: houseItems(house), activity, omitted: { activity: 0, minds: 0 } };
     return fit(

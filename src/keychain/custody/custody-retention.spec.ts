@@ -23,7 +23,7 @@ it("the per-house format of unjoined commits is rejected and not converted", () 
   db.saveKeyCheck("1.ancient");
   db.close();
   const before = readFileSync(rig.file);
-  expect(() => rig.open()).toThrow(/E-CUSTODY-FORMAT.*no se convierte/u);
+  expect(() => rig.open()).toThrow(/E-CUSTODY-FORMAT.*not converted/u);
   expect(readFileSync(rig.file)).toEqual(before);
 });
 it("M7c: compacting removes the legacy free pages, not only the table", () => {
@@ -67,7 +67,7 @@ it("forgetting warns about copies; only with acceptance does it erase every key"
   store.close();
   copyFileSync(rig.file, copy.file);
   const again = rig.open();
-  expect(again.forgetWarning()).toMatch(/ilegibles.*otras copias.*misma carpeta/u);
+  expect(again.forgetWarning()).toMatch(/other copies of the same folder.*unreadable/u);
   expect(() => again.forgetHouse("yes")).toThrow("E-CUSTODY-DENIED");
   again.forgetHouse(again.forgetWarning());
   expect(() => new SecretCustody(copy.file, copy.home, rig.keys)).toThrow("E-CUSTODY-KEY");

@@ -6,7 +6,7 @@ import { toolTexts } from "../../texts/tools.texts.ts";
 
 it("rejects invalid data as a disabled reason", () => {
   expect(() => answerChange(toolTexts.invalid)).toThrow("OutsideDefect");
-  expect(() => disabled({ title: "Cosa" }, toolTexts.invalid)).toThrow("OutsideDefect");
+  expect(() => disabled({ title: "Cosa" }, toolTexts.invalid, "es")).toThrow("OutsideDefect");
 });
 it("rejects invalid offered answers without a reason, while a missing reference simply is not valid", () => {
   const field = narrowed(
@@ -21,6 +21,7 @@ it("rejects invalid offered answers without a reason, while a missing reference 
     },
     () => undefined,
     () => false,
+    "es",
   );
   expect(field.valid("missing")).toBe(false);
   expect(() => answerValidity(false)).toThrow("OutsideDefect");

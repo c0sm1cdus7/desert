@@ -23,7 +23,7 @@ it("lists the root card action beside grouped actions, with only the published c
     ]);
     const member = mcpReading(house(), "beto", { recentLines: 40 }).actions("notes", "notes");
     expect(mcpRows(member)).toEqual([
-      expect.objectContaining({ action: "assign-mind-card", reason: "solo quien administra" }),
+      expect.objectContaining({ action: "assign-mind-card", reason: "only whoever administers" }),
     ]);
   });
 });

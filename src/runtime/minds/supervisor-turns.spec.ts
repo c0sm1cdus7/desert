@@ -117,7 +117,7 @@ it("a new supervisor learns from now on: nothing that closed before it wakes it 
   await think(house, "Facturas el viernes");
   expect(moments(framesOf(f))).toEqual(["turn"]);
   expect(framesOf(f).find(supervising)).toContain("«Facturas el viernes»");
-  expect(framesOf(f).find(supervising)).not.toContain("terminó el journey «Mate el jueves»");
+  expect(framesOf(f).find(supervising)).not.toContain("ended the journey «Mate el jueves»");
 }, 60000);
 /** A journey of the notes mind opens and closes at once, as its own turn would leave it. */
 function closed(house: RequestHouse, goal: string) {
@@ -163,7 +163,7 @@ it("wakes for a closing a restart left pending while it had its card on both sid
   expect(moments(framesOf(f))).toEqual([]);
   (await f.open()).close();
   expect(moments(framesOf(f))).toEqual(["turn"]);
-  expect(framesOf(f).find(supervising)).toContain("terminó el journey «Uno»");
+  expect(framesOf(f).find(supervising)).toContain("ended the journey «Uno»");
 }, 60000);
 it("reads every mind with its journeys and speaks through the talk program, and acts on no program", async () => {
   const f = fixture();
@@ -179,16 +179,14 @@ it("reads every mind with its journeys and speaks through the talk program, and 
   f.respond(frame => (supervising(frame) ? judge(frame) : notes(house, frame, (goal, _, id) => [add(goal), end(id)])));
   await think(house, "Mate el jueves");
   const frame = framesOf(f).find(supervising) ?? "";
-  expect(frame).toContain("mind:notes terminó el journey «Mate el jueves»: Hecho");
+  expect(frame).toContain("mind:notes ended the journey «Mate el jueves»: Hecho");
   expect(frame).toMatch(/mind:notes: \{"scene":/u);
   expect(frame).toMatch(/assistant:ana: \{"scene":/u);
-  const context = frame.split("Contexto:\n")[1]?.split("\n\n")[0] ?? "";
-  expect(
-    context
-      .split("\n")
-      .map(line => line.split(" → ")[0])
-      .sort(),
-  ).toEqual(["read", "scene", "thread/say"]);
+  const context = frame.split("Context:\n")[1]?.split("\n\n")[0] ?? "";
+  // Context brings its menu, then each identity with its language.
+  const [identities, ...menu] = context.split("\n").reverse();
+  expect(identities).toBe('{"identities":[{"identity":"ana","name":"ana","language":"es"}]}');
+  expect(menu.map(line => line.split(" → ")[0]).sort()).toEqual(["read", "scene", "thread/say"]);
   // Its first answer named an act on a program, outside its schema: it was corrected, and the note was never made.
   const turn = [...house.tools.state().house.minds.turns.values()].find(each => each.opened.by === "mind:supervisor");
   expect(turn?.invalid.map(event => event.data.faults)).toEqual([[{ code: "schema", path: "/" }]]);
@@ -200,7 +198,7 @@ it("reads every mind with its journeys and speaks through the talk program, and 
   const direct = house.tools.act(add("Del supervisor"), house.tools.state().through, "mind:supervisor");
   expect(direct.status).toBe("rejected");
   const bodies = f.transport.mock.calls.map(call => (typeof call[1]?.body === "string" ? call[1].body : ""));
-  const own = bodies.find(body => body.includes("Alcance:\\nmind:supervisor")) ?? "";
+  const own = bodies.find(body => body.includes("Scope:\\nmind:supervisor")) ?? "";
   // The whole request of its own turn, layers and schema included, is about 7 KB for this house; it is bounded by
   // the input limit, trimming what it read in threads first and then minds, each counted under «Omitido».
   expect(own.length).toBeGreaterThan(frame.length);
@@ -217,7 +215,7 @@ it("wakes when ana speaks to it, and says who spoke and what", async () => {
   expect(send(house, "mind:supervisor", "¿Cómo va la casa?").status).toBe("accepted");
   await (await house.minds)?.flush();
   expect(moments(framesOf(f))).toEqual(["turn"]);
-  expect(framesOf(f).find(supervising)).toContain("ana te habló: ¿Cómo va la casa?");
+  expect(framesOf(f).find(supervising)).toContain("ana spoke to you: ¿Cómo va la casa?");
   expect(said(house).at(-1)).toEqual(["mind:supervisor", JSON.stringify({ to: "ana", text: "Todo en orden" })]);
 }, 60000);
 it("a restart that cuts its own turn does not lose what woke it: it wakes again for the same line", async () => {
@@ -237,7 +235,7 @@ it("a restart that cuts its own turn does not lose what woke it: it wakes again 
   const again = await f.open();
   await (await again.minds)?.flush();
   expect(moments(framesOf(f))).toEqual(["turn", "turn"]);
-  expect(framesOf(f).filter(supervising)[1]).toContain("ana te habló: ¿Cómo va la casa?");
+  expect(framesOf(f).filter(supervising)[1]).toContain("ana spoke to you: ¿Cómo va la casa?");
   const closings = history(again).flatMap(event =>
     event.layer === "house" && event.kind === "mind-turn-closed" && event.by === "mind:supervisor" && !event.process
       ? [event.data]

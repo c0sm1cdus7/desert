@@ -1,5 +1,7 @@
 // Talking to a tool: one thread, one Entry, and what opened beside it. Which part has the focus decides the keys.
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
+import type { Language } from "../../fields/languages.ts";
+import { wordsIn } from "../../fields/phrases.ts";
+import { surfaceTexts } from "../../texts/surface.texts.ts";
 import type { Attachment, Body, Hint, Intent, Panel, Span, ThreadEvent } from "../contract/contract.ts";
 import type { Conversation, Said, Tool } from "../contract/shown-tool.ts";
 import { talkIds, withId } from "./row-id.ts";
@@ -39,11 +41,11 @@ const stopsOf = (all: readonly Said[]): readonly Stop[] =>
 const quoteOf = ({ who, text }: Said): string => `↳ ${who?.[0]?.text ?? ""} · ${plainOf(text)}`;
 
 /** What could not be done, the same in a thread and in an action. */
-export const errorSpans = (reason: string): readonly Span[] => [
-  { text: `${said.error} `, tone: "cut" },
+export const errorSpans = (reason: string, language: Language): readonly Span[] => [
+  { text: `${wordsIn(surfaceTexts, language).error} `, tone: "cut" },
   { text: reason, tone: "t1" },
 ];
-function eventsOf(place: Talk, talk: Conversation): readonly ThreadEvent[] {
+function eventsOf(place: Talk, talk: Conversation, language: Language): readonly ThreadEvent[] {
   const stop = stopsOf(talk.said())[place.at];
   const quiet = place.inPanel || stop !== undefined;
   const events = talk.said().map((item): ThreadEvent => {
@@ -62,7 +64,7 @@ function eventsOf(place: Talk, talk: Conversation): readonly ThreadEvent[] {
     };
   });
   const live = talk.live();
-  const refused: readonly ThreadEvent[] = place.refused ? [{ text: errorSpans(place.refused) }] : [];
+  const refused: readonly ThreadEvent[] = place.refused ? [{ text: errorSpans(place.refused, language) }] : [];
   return [...events, ...(live ? [{ text: live, muted: quiet }] : []), ...refused];
 }
 const asking = (place: Talk, talk: Conversation) => {
@@ -74,7 +76,8 @@ export function writesMessage(place: Talk, talk: Conversation): boolean {
   const question = asking(place, talk);
   return question ? question.options[place.option] === undefined : !place.inPanel;
 }
-export function talkBody(place: Talk, talk: Conversation): Body {
+export function talkBody(place: Talk, talk: Conversation, language: Language): Body {
+  const said = wordsIn(surfaceTexts, language);
   const stop = stopsOf(talk.said())[place.at];
   const question = asking(place, talk);
   const placeholder = stop ? said.talk.answering : said.talk.writing;
@@ -88,11 +91,11 @@ export function talkBody(place: Talk, talk: Conversation): Body {
       ...(writing ? { entry: { typed: place.typed, caret: place.caret } } : {}),
       ...(id === undefined ? {} : { id }),
     };
-    return { kind: "thread", events: eventsOf(place, talk), options: [...rows, other] };
+    return { kind: "thread", events: eventsOf(place, talk, language), options: [...rows, other] };
   }
   return {
     kind: "thread",
-    events: eventsOf(place, talk),
+    events: eventsOf(place, talk, language),
     ...(stop && !stop.attachment && place.typed ? { reference: quoteOf(stop.said) } : {}),
     ...(place.inPanel ? {} : { entry: { typed: place.typed, caret: place.caret, placeholder, keyboard: "text" } }),
   };
@@ -102,7 +105,8 @@ export const talkPanel = (place: Talk, talk: Conversation): Panel | undefined =>
     ? undefined
     : { ...talk.open(place.open), focused: place.inPanel, full: place.full, top: place.top };
 
-export function talkHints(place: Talk, talk: Conversation): readonly Hint[] {
+export function talkHints(place: Talk, talk: Conversation, language: Language): readonly Hint[] {
+  const said = wordsIn(surfaceTexts, language);
   const t = said.talk;
   const question = asking(place, talk);
   if (question) {

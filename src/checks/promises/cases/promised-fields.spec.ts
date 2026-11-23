@@ -38,7 +38,7 @@ describe("a program with a field that knows what is wrong", () => {
       for (let erased = 0; erased < 3; erased++) router.send({ kind: "erase" });
       /** Enter is not offered for an empty field; trying it explains what is missing without advancing. */
       router.send({ kind: "confirm" });
-      expect(now()).toEqual(["Anotar", "Pago", "falta completar", "› "]);
+      expect(now()).toEqual(["Anotar", "Pago", "incomplete", "› "]);
       type(router, "p7");
       router.send({ kind: "confirm" });
       expect(now()).toEqual(["Anotar", "Pago p7", "Monto", "› "]);
@@ -61,7 +61,7 @@ describe("a program with a field that knows what is wrong", () => {
         [check],
         check.name.includes("promises a case")
           ? "Declared causes differ from the cases"
-          : "E-PROG-1 · Falló el programa · anotar",
+          : "E-PROG-1 · The program failed · anotar",
       );
       if (requiredFailures.includes(check.name)) expect(failed).toContain(check.name);
     });

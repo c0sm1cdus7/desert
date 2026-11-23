@@ -89,7 +89,6 @@ class ProgramMindFixture {
   readonly respond = this.model.respond;
   private readonly houses: { close(): void }[] = [];
   readonly resources: ProgramMindResources = {
-    language: "es",
     key: () => Promise.resolve("synthetic"),
     transport: this.transport,
     account: "test",

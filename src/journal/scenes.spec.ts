@@ -1,4 +1,5 @@
 // Scenes preserve membership boundaries and rebuild under the current protected projection version.
+import { said } from "../fields/phrases.ts";
 import { houseActs } from "../house/scenes.ts";
 import { noCapabilities } from "../tools/execution/execution-capabilities.ts";
 import { Value } from "@sinclair/typebox/value";
@@ -100,7 +101,7 @@ it("A6: recipients must still belong, and rejection leaves the previous scene wh
   rig.restart();
   const result = rig.act("mind:desk", "scene", input);
   expect(result.status).toBe("rejected");
-  expect(result.reason).toContain(name);
+  expect(said(result.reason ?? "", "es")).toContain(name);
   expect(rig.state().house.scenes.get("mind:desk")).toEqual(previous);
   rig.bus.emit(effect("granted", { identity: name, tools: [] }, "ana"));
   expect(rig.act("mind:desk", "scene", input).status).toBe("accepted");

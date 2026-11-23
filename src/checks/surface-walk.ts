@@ -1,11 +1,13 @@
 // Walks a surface by its own intents, from a fresh set of tools each time, so no path has to be written by hand.
+import { workingLanguage, type Language } from "../fields/languages.ts";
 import type { Hint, Intent, Screen, Span, ThreadEvent } from "../surface/contract/contract.ts";
 import type { Tool } from "../surface/contract/shown-tool.ts";
 import { resolve } from "../surface/router/resolve.ts";
 import { actOf, start, type Session } from "../surface/session/screen.ts";
 import { finished, settled, step } from "../surface/router/step.ts";
 
-const bar = { state: "connected", clock: "14:32", now: 5_000 } as const;
+/** The Barra a walk reads its screens under: a fixed hour, in the language of whoever walks. */
+const barIn = (language: Language) => ({ state: "connected", clock: "14:32", now: 5_000, language }) as const;
 const tries: readonly Intent[] = [
   { kind: "confirm" },
   { kind: "down" },
@@ -24,10 +26,15 @@ export interface Stop {
 }
 /** The session a path leaves, from the Menu or from where it is given: each act it starts has run and each message
  * it sends has been answered before the next intent, as a person who waits sees it. */
-export async function replayed(tools: readonly Tool[], path: readonly Intent[], from = start): Promise<Session> {
+export async function replayed(
+  tools: readonly Tool[],
+  path: readonly Intent[],
+  from = start,
+  language: Language = workingLanguage,
+): Promise<Session> {
   let session: Session = from;
   for (const intent of path) {
-    const stepped = step(session, intent, tools, bar.now);
+    const stepped = step(session, intent, tools, barIn(language).now, language);
     session = stepped.session;
     const { run, sending } = stepped;
     if (sending) session = settled(session, sending, await sending);
@@ -37,8 +44,8 @@ export async function replayed(tools: readonly Tool[], path: readonly Intent[], 
   }
   return session;
 }
-const replay = async (tools: readonly Tool[], path: readonly Intent[], rows: number) =>
-  resolve(await replayed(tools, path), tools, bar, { rows });
+const replay = async (tools: readonly Tool[], path: readonly Intent[], rows: number, language: Language) =>
+  resolve(await replayed(tools, path, start, language), tools, barIn(language), { rows });
 /** Every distinct screen within reach, each with the intents that reach it; then the screen of each path given,
  * for what lies deeper than the walk goes before its cap: a path is written by hand, a screen never is. */
 export async function surfaceWalk(
@@ -46,20 +53,21 @@ export async function surfaceWalk(
   rows: number,
   most: number,
   also: readonly (readonly Intent[])[] = [],
+  language: Language = workingLanguage,
 ): Promise<readonly Stop[]> {
   const seen = new Map<string, Stop>();
   const queue: Intent[][] = [[]];
   let budget = most * 30; // Most paths land on a screen already seen: stop looking long before they all run out.
   while (queue.length && seen.size < most && budget-- > 0) {
     const path = queue.shift() ?? [];
-    const screen = await replay(fresh(), path, rows);
+    const screen = await replay(fresh(), path, rows, language);
     const key = JSON.stringify(screen);
     if (seen.has(key)) continue;
     seen.set(key, { screen, path });
     for (const intent of tries) queue.push([...path, intent]);
   }
   for (const path of also) {
-    const screen = await replay(fresh(), path, rows);
+    const screen = await replay(fresh(), path, rows, language);
     const key = JSON.stringify(screen);
     if (!seen.has(key)) seen.set(key, { screen, path });
   }

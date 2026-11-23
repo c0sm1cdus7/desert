@@ -42,7 +42,7 @@ const described = (node: Schema, result: Schema, language: Language) => {
   if (!words) return;
   result.description = typeof node.description === "string" ? `${node.description} ${words}` : words;
 };
-export function providerSchema(schema: Schema, language: Language = "es"): Schema {
+export function providerSchema(schema: Schema, language: Language): Schema {
   checkSchemaKeywords(schema);
   const visit = (node: unknown, seen: Set<object>): unknown => {
     if (typeof node === "boolean") return node ? {} : { not: {} };

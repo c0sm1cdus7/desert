@@ -1,4 +1,5 @@
 // External provider with keys per reference, presence queries, anchors and forgetting a house.
+import { meant } from "../../fields/phrases.ts";
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { randomBytes } from "node:crypto";
 export type LedgerHead = Readonly<{ count: number; authentication: string }>;
@@ -31,14 +32,14 @@ export class CustodyError extends Error {
   readonly code: CustodyCode;
   constructor(code: CustodyCode, message?: string) {
     const detail: Partial<Record<CustodyCode, string>> = {
-      "E-CUSTODY-TRANSACTION": secretTexts.transaction,
-      "E-CUSTODY-KEY": secretTexts.key,
-      "E-CUSTODY-PROVIDER": secretTexts.provider,
-      "E-CUSTODY-INTEGRITY": secretTexts.integrity,
-      "E-CUSTODY-MISSING": secretTexts.missing,
-      "E-CUSTODY-LOCKED": secretTexts.locked,
-      "E-CUSTODY-STORAGE": secretTexts.storage,
-      "E-CUSTODY-FORMAT": secretTexts.format,
+      "E-CUSTODY-TRANSACTION": meant(secretTexts.transaction),
+      "E-CUSTODY-KEY": meant(secretTexts.key),
+      "E-CUSTODY-PROVIDER": meant(secretTexts.provider),
+      "E-CUSTODY-INTEGRITY": meant(secretTexts.integrity),
+      "E-CUSTODY-MISSING": meant(secretTexts.missing),
+      "E-CUSTODY-LOCKED": meant(secretTexts.locked),
+      "E-CUSTODY-STORAGE": meant(secretTexts.storage),
+      "E-CUSTODY-FORMAT": meant(secretTexts.format),
     };
     const text = message ?? detail[code];
     super(text ? `${code}: ${text}` : code);

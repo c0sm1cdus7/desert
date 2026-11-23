@@ -1,4 +1,5 @@
 // Offers communication or authorized work and own controls according to each journey's state.
+import { workingLanguage } from "../../fields/languages.ts";
 import type { KitMigration } from "../../house/kit-migration.ts";
 import { journeyAllows } from "../../house/minds/journey-state.ts";
 import type { KitLayout } from "../../house/kit-selection.ts";
@@ -110,7 +111,7 @@ export function journeyMenu(scope: MindScope, state: JourneyMenuState, language:
   validateJourneyAccess(scope, state);
   requireMind(Array.isArray(state.menu), "state.menu");
   requireMind(Array.isArray(state.communication), "state.communication");
-  requireMind(Value.Check(Type.Literal("es"), language), "language");
+  requireMind(language === workingLanguage, "language");
   if (!state.active) return [];
   const journey = scope.kind === "journey" ? state.journeys.get(scope.process) : undefined;
   if (scope.kind === "journey" && (!journey || journey.closed || journey.by !== scope.actor)) return [];

@@ -1,4 +1,5 @@
 // Every intermediate screen reached by keys is a question, not an action result: no Error and no unusable Enter.
+import { said as inWords } from "../../../fields/phrases.ts";
 import { deepStrictEqual, ok } from "node:assert/strict";
 import type { Field, Screen } from "../../../surface/contract/contract.ts";
 import type { Router } from "../../../surface/router/router.ts";
@@ -9,7 +10,7 @@ import { withReason } from "./checked-reason.ts";
 import { view } from "../promised-keys.ts";
 export const quietEntry = (router: Router): void => quietScreen(router.screen(view));
 export function quietScreen(screen: Screen): void {
-  ok(!unchangedIn(screen.body));
+  ok(!unchangedIn(screen.body, screen.language));
   if (screen.body.kind !== "thread") return;
   const options = screen.body.options;
   if (options && !options.some(row => row.entry)) {
@@ -22,7 +23,7 @@ export function quietScreen(screen: Screen): void {
   for (const event of screen.body.events) {
     const text = event.text.map(span => span.text).join("");
     ok(!event.text.some(span => span.tone === "cut"), text);
-    ok(!text.startsWith(`${surfaceTexts.error} `), said.questionError);
+    ok(!text.startsWith(`${inWords(surfaceTexts.error, screen.language)} `), said.questionError);
     if (!screen.body.entry || !event.nested) continue;
     ok(event.text.every(span => span.tone === "t3"));
     if (!event.ignored) ok(!screen.hints.some(hint => hint.intent === "confirm"));
@@ -56,7 +57,11 @@ export function probeWritten(router: Router, field: Field, typed: string): void 
   );
   if (key === undefined) return;
   router.send({ kind: "type", text: key });
-  deepStrictEqual(router.screen(view), withReason(before, field.mask.rejected?.(typed, key), true));
+  const reason = field.mask.rejected?.(typed, key);
+  deepStrictEqual(
+    router.screen(view),
+    withReason(before, reason === undefined ? undefined : inWords(reason, before.language), true),
+  );
 }
 /** A prefix that can still become the case's valid value has no reason line, only its unfilled shape. */
 export function writeAnswer(router: Router, field: Field, given: string): void {

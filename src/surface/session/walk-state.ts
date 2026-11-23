@@ -1,4 +1,5 @@
 // The device-local state of an action: its answers, current edit, ignored key and execution result.
+import type { Text } from "../../fields/phrases.ts";
 interface Walking {
   readonly kind: "act";
   readonly tool: string;
@@ -28,10 +29,10 @@ interface Walking {
   readonly reading?: number;
   /** What is written was there when the question opened: the first key written replaces it, any other edits it. */
   readonly suggested: boolean;
-  readonly error?: string;
-  readonly ignored?: string;
+  readonly error?: Text;
+  readonly ignored?: Text;
   /** Reasons still unresolved by a currency change or a key that changed no value. */
-  readonly notices?: readonly { readonly reason: string; readonly ignored?: true }[];
+  readonly notices?: readonly { readonly reason: Text; readonly ignored?: true }[];
   /** Only a result returned by an action that ran is an Error. */
   readonly failed?: true;
   /** In a question that picks a thing, the person is looking for it: what they type is what they look for. */

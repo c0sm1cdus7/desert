@@ -1,10 +1,10 @@
 // Schedules confirmed wakes and recovers interrupted turns without new facts or resends.
+import { workingLanguage } from "../../fields/languages.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import { parseMindActor } from "../../fields/mind-actor.ts";
 import { effect, type HouseEmission, type HouseEvent } from "../../house/facts.ts";
 import type { Event } from "../../journal/vocabulary.ts";
 import type { TimeSource } from "../../journal/clock.ts";
-import type { Language } from "../../fields/languages.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
 import { turnNotice } from "../../texts/mind-turn.texts.ts";
 import { ids } from "../../house/ids.ts";
@@ -100,7 +100,6 @@ export type MindSchedulePorts = Readonly<{
   bus: Readonly<{ on: (listener: (event: Event) => void) => () => void; confirmation: () => () => boolean }>;
   history: () => readonly Event[];
   policies: () => readonly WakePolicy[];
-  language: Language;
   time: TimeSource;
   nextId: () => string;
   emit: (emission: HouseEmission) => void;
@@ -145,7 +144,7 @@ export function recoverMindSchedule(ports: MindSchedulePorts): void {
   for (const event of history) {
     if (event.layer !== "house" || event.kind !== "mind-turn-opened" || closed.has(event.data.turn)) continue;
     if (!ports.policies().some(p => sameScope(event, p.scope) && parseMindActor(p.scope.actor))) continue;
-    const text = turnNotice.text(ports.language, { reason: "interrupted" });
+    const text = turnNotice.text(workingLanguage, { reason: "interrupted" });
     ports.emit(effect("mind-scene", { turn: event.data.turn, text }, event.by, [event.id], event.process));
     ports.emit(
       effect(
@@ -203,7 +202,7 @@ class Schedule {
         if (!this.live) return;
         this.dirty = false;
         this.cancel();
-        this.failure = new Error(turnNotice.text(this.ports.language, { reason: "internal" }), { cause });
+        this.failure = new Error(turnNotice.text(workingLanguage, { reason: "internal" }), { cause });
         this.ports.failed(cause);
       });
   };
@@ -229,7 +228,7 @@ class Schedule {
       const policies = this.ports.policies().filter(p => parseMindActor(p.scope.actor));
       const pending = pendingMindWakes(policies, this.ports.history(), this.ports.time.now())[0];
       if (!pending) break;
-      await this.ports.run({ ...pending, id: this.ports.nextId(), language: this.ports.language });
+      await this.ports.run({ ...pending, id: this.ports.nextId() });
       if (this.closed()) return;
       const opened = this.ports
         .history()
@@ -250,7 +249,6 @@ class Schedule {
 }
 export function startMindSchedule(ports: MindSchedulePorts): MindSchedule {
   requireMind(ports, "schedule.ports");
-  requireMind(["es"].includes(ports.language), "schedule.language");
   for (const name of ["history", "policies", "nextId", "emit", "run", "failed"] as const)
     requireMind(typeof ports[name] === "function", `schedule.${name}`);
   requireMind(ports.bus, "schedule.bus");

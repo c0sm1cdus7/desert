@@ -1,4 +1,5 @@
 // Fingerprints the halves and credits only the runs issued by the local gate.
+import { type Text } from "../../fields/phrases.ts";
 import { createHash } from "node:crypto";
 import { contractTexts } from "../../texts/contracts.texts.ts";
 import type { ContractCase, ContractPackage } from "../../tools/contracts/package-contracts.ts";
@@ -70,7 +71,7 @@ export function evidenceLedger() {
   return { record, matches };
 }
 export type EvidenceVerifier = ReturnType<typeof evidenceLedger>["matches"];
-export const compatibilityLabel = (checked: boolean, failed = false): string => {
+export const compatibilityLabel = (checked: boolean, failed = false): Text => {
   if (failed) return contractTexts.failed;
   return checked ? contractTexts.passed : contractTexts.unchecked;
 };

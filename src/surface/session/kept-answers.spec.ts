@@ -12,6 +12,7 @@ const words = {
   today: () => "2026-11-11",
   formats: formats({ currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" }),
   optionalMark: "",
+  language: "es" as const,
 };
 const kinds = oneOf("Tipo", option("cuit", "CUIT", "c"), option("cuil", "CUIL", "l"));
 const elevens = ({ number }: Readonly<Record<string, unknown>>): boolean => String(number).length === 11;

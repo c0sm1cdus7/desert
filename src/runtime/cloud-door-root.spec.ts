@@ -1,4 +1,5 @@
 // The actual cloud composition binds custody's root to the MCP host credential before any request is served.
+import { meant } from "../fields/phrases.ts";
 import { expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { startCloudHouse } from "./cloud-house.ts";
@@ -38,7 +39,7 @@ it("admits root A as the cloud host and rejects root B at composition, with and 
     expect((await door.handle(rpcRequest(deriveHostCredential(wrong)))).status).toBe(401);
     for (const oauth of [undefined, { origin: "https://house.example" }])
       expect(() => mcpDoor(cloud.door, { ...options, rootKey: wrong, ...(oauth ? { oauth } : {}) })).toThrow(
-        oauthTexts.rootMismatch,
+        meant(oauthTexts.rootMismatch),
       );
     expect(
       cloud.door.journal.replay<string[]>([], (events, event) => [...events, JSON.stringify(event)]).join(""),

@@ -1,4 +1,5 @@
 // Remote device sessions live only in memory, keyed by token digest, with bounded calls, answers and one waiting poll.
+import { meant } from "../../fields/phrases.ts";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { Value } from "@sinclair/typebox/value";
 import {
@@ -54,7 +55,7 @@ export class RemoteDeviceSession {
   /** Each notice is answered now or, if held, when the house records it; it throws while the house cannot record. */
   announce(notices: readonly DeviceNotice[]) {
     const connection = this.connection;
-    if (this.ended || !connection) throw new Error(deviceTexts.unavailable);
+    if (this.ended || !connection) throw new Error(meant(deviceTexts.unavailable));
     for (const notice of notices) {
       const answer = connection.announce(
         notice,
@@ -89,7 +90,7 @@ export class RemoteDeviceSession {
   }
   private receive(request: DeviceRequest) {
     if (this.ended || this.calls.size >= deviceHttpLimits.calls)
-      return Promise.reject(new Error(deviceTexts.unavailable));
+      return Promise.reject(new Error(meant(deviceTexts.unavailable)));
     const call = randomUUID();
     return new Promise<DeviceResult>((resolve, reject) => {
       this.calls.set(call, { request, delivered: false, resolve, reject });
@@ -104,7 +105,7 @@ export class RemoteDeviceSession {
       if (!call?.delivered) continue;
       this.calls.delete(each.call);
       if (!("result" in each) || !Value.Check(deviceResult, each.result)) {
-        call.reject(new Error(deviceTexts.failed));
+        call.reject(new Error(meant(deviceTexts.failed)));
         continue;
       }
       try {
@@ -148,7 +149,7 @@ export class RemoteDeviceSession {
     this.ended = true;
     this.waiting?.();
     this.connection?.disconnect();
-    for (const call of this.calls.values()) call.reject(new Error(deviceTexts.disconnected));
+    for (const call of this.calls.values()) call.reject(new Error(meant(deviceTexts.disconnected)));
     this.calls.clear();
     this.queue.length = 0;
     this.answers.clear();

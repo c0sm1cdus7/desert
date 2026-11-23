@@ -21,7 +21,7 @@ it("releasing through the API inside a transaction rejects the second addition b
     session.replace("signing", refs, 0);
     const before = store.facts();
     expect(() => bridge.transaction(() => journal.batch(() => session.release("signing", 1)))).toThrow(
-      /E-CUSTODY-TRANSACTION.*agregado/u,
+      /E-CUSTODY-TRANSACTION.*aggregate/u,
     );
     expect(store.facts()).toEqual(before);
     expect(session.current("signing")?.refs).toEqual(refs);

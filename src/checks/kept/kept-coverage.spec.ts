@@ -10,19 +10,19 @@ it("counts every blocked branch before deduplicating the state, even if no actio
         ? {
             fingerprint: "same state",
             branches: [],
-            unavailable: { tool: "vault", action: path[0]?.kind ?? "", reason: "liberar credencial" },
+            unavailable: { tool: "vault", action: path[0]?.kind ?? "", reason: "release a credential" },
           }
         : { fingerprint: "start", branches },
     );
   const coverage = await breadthFirst(replay);
   expect(coverage.unavailable).toEqual([
-    { tool: "vault", action: "confirm", reason: "liberar credencial" },
-    { tool: "vault", action: "cancel", reason: "liberar credencial" },
+    { tool: "vault", action: "confirm", reason: "release a credential" },
+    { tool: "vault", action: "cancel", reason: "release a credential" },
   ]);
   expect(coverage.clipped).toBe(0);
   const report = promiseTexts.keptWalked("todo impedido", coverage);
-  expect(report).toContain("2 ramas no recorribles en inspección");
-  expect(report).toContain("vault/confirm: liberar credencial");
-  expect(report).toContain("vault/cancel: liberar credencial");
+  expect(report).toContain("2 branches could not be walked under inspection");
+  expect(report).toContain("vault/confirm: release a credential");
+  expect(report).toContain("vault/cancel: release a credential");
   expect(report).not.toContain("no offered answer was left unwalked");
 });

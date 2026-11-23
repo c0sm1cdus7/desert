@@ -70,7 +70,7 @@ export function windowShop(count = 41, recentLines = 40, needs = 1) {
     },
   };
   const ports = { ...rig.ports("ana", () => 1), limits: { recentLines } };
-  const tools = houseTools(ports, shown);
+  const tools = houseTools(ports, shown, "es");
   const router = houseRouter(ports, shown);
   const type = (text: string) => {
     for (const char of text) router.send({ kind: "type", text: char });

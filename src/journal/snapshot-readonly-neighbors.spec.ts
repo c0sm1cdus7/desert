@@ -31,7 +31,7 @@ it("even a checksum-valid sequence-zero snapshot is checked before any tail fold
   const house = open(path);
   try {
     expect(house.tools.state().house.admin).toBe("ana");
-    expect(house.journal.restoration().warnings.some(w => w.reason.includes("registro"))).toBe(true);
+    expect(house.journal.restoration().warnings.some(w => w.reason.includes("record"))).toBe(true);
     matches(house, current);
   } finally {
     house.close();

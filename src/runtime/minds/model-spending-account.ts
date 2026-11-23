@@ -1,4 +1,5 @@
 // Keeps one host's model spending and opening balance in an independently owned durable journal.
+import { meant } from "../../fields/phrases.ts";
 import { realpathSync } from "node:fs";
 import { isAbsolute, relative, sep } from "node:path";
 import { Type } from "@sinclair/typebox";
@@ -133,6 +134,6 @@ function openJournal(file: string): SqliteJournal {
   try {
     return new SqliteJournal(file, words);
   } catch (cause) {
-    throw new Error(journalTexts.spendingUnavailable, { cause });
+    throw new Error(meant(journalTexts.spendingUnavailable), { cause });
   }
 }

@@ -40,10 +40,10 @@ it("serves only the two routes, with a public and empty-of-house health response
   const h = setup();
   const body = vi.fn(() => []);
   for (const [method, path, status] of [
-    ["GET", "/salud", 200],
+    ["GET", "/health", 200],
     ["GET", "/mcp", 405],
     ["PUT", "/mcp", 404],
-    ["POST", "/salud", 404],
+    ["POST", "/health", 404],
     ["GET", "/other", 404],
   ] as const) {
     const response = await h.door.handle({ method, path, headers: {}, body });
@@ -89,7 +89,7 @@ it.each(["2025-03-26", "2025-06-18", "2025-11-25", "unknown"])("negotiates %s", 
       protocolVersion: version === "unknown" ? "2025-11-25" : version,
       serverInfo: { name: "Almacén" },
       capabilities: { tools: { listChanged: false } },
-      instructions: mcpTexts.instructions,
+      instructions: mcpTexts.instructions.es,
     },
   });
   expect(Object.keys(response.headers).join().toLowerCase()).not.toContain("mcp-session-id");

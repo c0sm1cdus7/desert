@@ -1,4 +1,5 @@
 // Derived checks compare an ordinary reopen with a second reopen whose saved folds have been removed.
+import { meant } from "../../fields/phrases.ts";
 import { checkCalculations } from "./check-calculations.ts";
 import { journalTexts } from "../../texts/journal.texts.ts";
 import { deepStrictEqual } from "node:assert/strict";
@@ -10,9 +11,9 @@ function reopened<X extends Program>(file: string, folds: HouseFolds<X>) {
   const journal = houseJournal(file, folds.words);
   try {
     const { state, clock } = houseProjections(journal, folds);
-    if (journal.restoration().warnings.some(warning => warning.reason === journalTexts.divergentFold))
-      throw new Error(journalTexts.reopenedMismatch);
-    deepStrictEqual(checkCalculations(journal, folds), state(), journalTexts.reopenedMismatch);
+    if (journal.restoration().warnings.some(warning => warning.reason === meant(journalTexts.divergentFold)))
+      throw new Error(meant(journalTexts.reopenedMismatch));
+    deepStrictEqual(checkCalculations(journal, folds), state(), meant(journalTexts.reopenedMismatch));
     return { state: state(), clock: clock() };
   } finally {
     journal.close();
@@ -21,5 +22,5 @@ function reopened<X extends Program>(file: string, folds: HouseFolds<X>) {
 export function checkReopenedState<X extends Program>(file: string, folds: HouseFolds<X>): void {
   const cached = reopened(file, folds);
   journalKept(file);
-  deepStrictEqual(reopened(file, folds), cached, journalTexts.reopenedMismatch);
+  deepStrictEqual(reopened(file, folds), cached, meant(journalTexts.reopenedMismatch));
 }

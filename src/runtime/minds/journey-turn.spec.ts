@@ -10,7 +10,6 @@ import type { MindMenu } from "../../tools/minds/mind-answer.ts";
 const wake: TurnWake = {
   id: "t1",
   scope: { kind: "journey", actor: "assistant:franco", process: "j1", kit: [{ tool: "chat", acts: ["say"] }] },
-  language: "es",
   wake: ["e1"],
   through: 1,
 };
@@ -44,9 +43,9 @@ it("a tool's refusal is a result, not a correction: the rest waits and the mind 
   expect(second?.frame).toBe(first?.frame);
   expect(first?.exchanges).toEqual([]);
   const told = second?.exchanges?.[0]?.told ?? "";
-  expect(told).toContain("1. say → chat: rechazado: Muy largo");
-  expect(told).toContain("2. wait → j1: no se aplicó");
-  expect(told).toContain("Ahora: 5");
+  expect(told).toContain("1. say → chat: rejected: Muy largo");
+  expect(told).toContain("2. wait → j1: not applied, because an earlier act was rejected.");
+  expect(told).toContain("Now: 5");
   expect(second?.exchanges?.[0]?.answer).toBe(JSON.stringify({ scene: "Sigo", consultation: null, acts: [say, wait] }));
 });
 it("corrections in a row go on: only the twelve calls end a journey turn (21/11)", async () => {
@@ -86,8 +85,8 @@ it("acts applied before a refused wait reach the mind with the correction, in on
   const second = f.model.mock.calls[1]?.[0];
   expect(second?.exchanges).toHaveLength(1);
   const told = second?.exchanges?.[0]?.told ?? "";
-  expect(told).toContain("1. say → chat: aceptado.");
-  expect(told).toContain("2. wait → j1: rechazado: La espera termina después de Ahora");
+  expect(told).toContain("1. say → chat: accepted.");
+  expect(told).toContain("2. wait → j1: rejected: The wait ends after Now: until in milliseconds, greater than");
   expect(f.events.flatMap(event => (event.kind === "mind-answer-invalid" ? [event.data.faults] : []))).toEqual([
     [{ code: "wait", path: "/acts" }],
   ]);
@@ -98,7 +97,7 @@ it("a refused wait after applied acts gets its own correction, even when the las
   const f = fixture([empty, answer([say, wait]), answer([later])]);
   const outcome = await runMindTurn({ ...f.ports, execute: refusingPastWaits(), read }, wake);
   expect(outcome).toMatchObject({ outcome: "done", calls: 3, applied: ["a1", "a2"] });
-  expect(f.model.mock.calls[2]?.[0].exchanges?.at(-1)?.told).toContain("1. say → chat: aceptado.");
+  expect(f.model.mock.calls[2]?.[0].exchanges?.at(-1)?.told).toContain("1. say → chat: accepted.");
 });
 it("a rejected act tells what it returned, a device's receipt among them", async () => {
   const f = fixture([answer([say, wait]), answer([wait])]);
@@ -111,7 +110,7 @@ it("a rejected act tells what it returned, a device's receipt among them", async
   };
   await runMindTurn({ ...f.ports, execute, read }, wake);
   const told = f.model.mock.calls[1]?.[0].exchanges?.[0]?.told ?? "";
-  expect(told).toContain('1. say → chat: rechazado: exit 1\n   Devolvió: {"exit":1,"out":"RECIBO"}');
+  expect(told).toContain('1. say → chat: rejected: exit 1\n   Returned: {"exit":1,"out":"RECIBO"}');
 });
 it("every call of a turn asks with the same schema, so a menu that changes keeps the cached prefix", async () => {
   const control = (act: "plan" | "done" | "wait" | "end" | "desist") => ({
@@ -140,7 +139,7 @@ it("every call of a turn asks with the same schema, so a menu that changes keeps
   const [first, second] = f.model.mock.calls.map(call => JSON.stringify(call[0].schema));
   expect(second).toBe(first);
   expect(first).toContain('"const":"done"');
-  expect(f.model.mock.calls[1]?.[0].exchanges?.[0]?.told).toContain("Apareció en el menú:");
+  expect(f.model.mock.calls[1]?.[0].exchanges?.[0]?.told).toContain("Appeared on the menu:");
 });
 it("an act that left the menu is corrected against the current menu, though the schema names it", async () => {
   const [chat] = menu;
@@ -204,7 +203,7 @@ it("a consciousness hears its applied acts with a refused kit, without the journ
     calls: 2,
   });
   const told = f.model.mock.calls[1]?.[0].exchanges?.[0]?.told ?? "";
-  expect(told).toContain("1. say → chat: aceptado.");
-  expect(told).toContain("2. open → assistant:franco: rechazado: El kit del journey sale de tu kit");
-  expect(told).not.toContain("El turno sigue");
+  expect(told).toContain("1. say → chat: accepted.");
+  expect(told).toContain("2. open → assistant:franco: rejected: The journey's kit comes out of your kit");
+  expect(told).not.toContain("The turn goes on");
 });

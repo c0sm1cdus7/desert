@@ -1,5 +1,6 @@
 // What each intent does where you are, and how the session receives completed actions and messages.
 import { renewedMoney } from "../acts/money-memory.ts";
+import type { Language } from "../../fields/languages.ts";
 import type { Intent } from "../contract/contract.ts";
 import type { Result, Tool } from "../contract/shown-tool.ts";
 import { findable } from "../menus/finding.ts";
@@ -30,14 +31,20 @@ function forward(session: Session, open: Session[number]): Session {
 }
 /** A menu while a person looks for something: what they type is what they look for, and no key is a shortcut.
  * Escape closes the search; enter goes to the thing the cursor is on, and the search is over. */
-function seeking(session: Session, place: Picture & { find: string }, tools: Tools, key: Intent): Session {
+function seeking(
+  session: Session,
+  place: Picture & { find: string },
+  tools: Tools,
+  key: Intent,
+  language: Language,
+): Session {
   const { find, reading: _reading, ...menu } = place;
   const still = (sought: string): Session => replace(session, { ...menu, find: sought, at: 0 });
   if (key.kind === "cancel") return replace(session, { ...menu, at: 0 });
   if (key.kind === "type") return still(find + key.text);
   if (key.kind === "erase") return still(Array.from(find).slice(0, -1).join(""));
-  const list = choices(place, tools);
-  const cursor = cursorOf(place, tools);
+  const list = choices(place, tools, language);
+  const cursor = cursorOf(place, tools, language);
   if (key.kind === "up") return replace(session, { ...place, at: Math.max(cursor - 1, 0) });
   if (key.kind === "down") return replace(session, { ...place, at: Math.min(cursor + 1, list.length - 1) });
   const chosen = key.kind === "confirm" ? list[cursor]?.open : undefined;
@@ -53,12 +60,12 @@ function writing(place: Session[number], tools: Tools): boolean {
 /** What is pasted is written where something is being written, one character after another, with each line break
  * or tab inside it as a space and none at its ends; anywhere else it does nothing. It never confirms, never chooses,
  * and is never a shortcut. */
-function pasted(session: Session, text: string, tools: Tools, now: number): Stepped {
+function pasted(session: Session, text: string, tools: Tools, now: number, language: Language): Stepped {
   const place = must(session.at(-1));
   const field = place.kind === "act" && place.phase === "asking" ? fieldOf(tools, place) : undefined;
   /** Secret material is typed whole, line breaks and spaces included: a paste never trims or joins it. */
   if (place.kind === "act" && field && (field.kind === "secret" || ("verbatim" in field && field.verbatim)))
-    return step(session, { kind: "type", text }, tools, now);
+    return step(session, { kind: "type", text }, tools, now, language);
   const chars = Array.from(text.trim().replace(/[\r\n\t]+/gu, " ")).filter(char => !/\p{Cc}/u.test(char));
   /** A written paste is one edit: later accepted characters cannot hide an earlier rejection. */
   if (place.kind === "act" && field && (field.kind === "text" || field.kind === "secret")) {
@@ -68,17 +75,19 @@ function pasted(session: Session, text: string, tools: Tools, now: number): Step
   return chars.reduce<Stepped>(
     (stepped, char) => {
       const there = must(stepped.session.at(-1));
-      return writing(there, tools) ? step(stepped.session, { kind: "type", text: char }, tools, now) : stepped;
+      return writing(there, tools)
+        ? step(stepped.session, { kind: "type", text: char }, tools, now, language)
+        : stepped;
     },
     { session },
   );
 }
-export function step(session: Session, key: Intent, tools: readonly Tool[], now: number): Stepped {
+export function step(session: Session, key: Intent, tools: readonly Tool[], now: number, language: Language): Stepped {
   if (key.kind === "quit") return { session, quit: true };
   const previous = must(session.at(-1));
   if (previous.kind === "act")
     session = replace(session, renewedMoney(previous, actOf(tools, previous).next, actOf(tools, previous).stops));
-  if (key.kind === "paste") return pasted(session, key.text, tools, now);
+  if (key.kind === "paste") return pasted(session, key.text, tools, now, language);
   const place = must(session.at(-1));
   if (place.kind === "act") return walking(session, place, tools, key, now);
   if (key.kind === "menu") return { session: start };
@@ -91,11 +100,12 @@ export function step(session: Session, key: Intent, tools: readonly Tool[], now:
     const sending = next.sending === place.sending ? undefined : next.sending;
     return { session: replace(session, next), ...(sending ? { sending } : {}) };
   }
-  if (goneOf(session, tools)) return { session: key.kind === "cancel" ? up(session) : session };
-  if (key.kind === "choose") return pointed(session, place, tools, key.row, now);
-  if (place.find !== undefined) return { session: seeking(session, { ...place, find: place.find }, tools, key) };
-  const list = choices(place, tools);
-  const cursor = cursorOf(place, tools);
+  if (goneOf(session, tools, language)) return { session: key.kind === "cancel" ? up(session) : session };
+  if (key.kind === "choose") return pointed(session, place, tools, key.row, now, language);
+  if (place.find !== undefined)
+    return { session: seeking(session, { ...place, find: place.find }, tools, key, language) };
+  const list = choices(place, tools, language);
+  const cursor = cursorOf(place, tools, language);
   const control = list[cursor]?.press;
   if (control && (key.kind === "confirm" || key.kind === "type" || key.kind === "erase")) {
     control(key);
@@ -103,8 +113,9 @@ export function step(session: Session, key: Intent, tools: readonly Tool[], now:
   }
   /** Nothing is being written on a menu, so space is free there: it starts looking for something. */
   if (key.kind === "type" && key.text === " " && findable(place, tools))
-    return { session: seeking(session, { ...place, find: "" }, tools, { kind: "type", text: "" }) };
-  if (key.kind === "up" || key.kind === "down") return { session: replace(session, movedList(place, tools, key.kind)) };
+    return { session: seeking(session, { ...place, find: "" }, tools, { kind: "type", text: "" }, language) };
+  if (key.kind === "up" || key.kind === "down")
+    return { session: replace(session, movedList(place, tools, key.kind, language)) };
   if (key.kind === "cancel") return { session: up(session) };
   /** With what is shown moved away from the chosen row, Enter first brings it back: nobody opens a row they are
    * not looking at. */
@@ -116,12 +127,19 @@ export function step(session: Session, key: Intent, tools: readonly Tool[], now:
 }
 /** A row pointed at on a list is the cursor brought to it and Enter. Outside a search the list first comes back
  * to the chosen row, as Enter brings it back. */
-function pointed(session: Session, place: Picture, tools: Tools, row: string, now: number): Stepped {
-  const at = listChosen(stacksOf(place, tools), row);
+function pointed(
+  session: Session,
+  place: Picture,
+  tools: Tools,
+  row: string,
+  now: number,
+  language: Language,
+): Stepped {
+  const at = listChosen(stacksOf(place, tools, language), row);
   if (at === undefined) return { session };
   const { shift: _shift, reading: _reading, ...back } = place;
   const there = place.find === undefined ? { ...back, at } : { ...place, at };
-  return step(replace(session, there), { kind: "confirm" }, tools, now);
+  return step(replace(session, there), { kind: "confirm" }, tools, now, language);
 }
 /** A message the house settled; the place that sent it may be anywhere in the session by now. */
 export const settled = (session: Session, sending: Promise<unknown>, refused: string | undefined): Session =>

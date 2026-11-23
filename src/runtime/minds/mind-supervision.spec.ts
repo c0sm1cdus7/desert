@@ -8,7 +8,6 @@ const answer: ModelOutcome = { kind: "answer", value: {}, usage: { input: 0, out
 const context = (): TurnContext => ({
   id: "t1",
   scope: { kind: "consciousness", actor: "assistant:franco" },
-  language: "es",
   wake: ["e1"],
   through: 1,
   limits: turnLimits,
@@ -71,7 +70,7 @@ it("with no supervisor and no rules it passes, and consultation comes back witho
   expect(await reviewMindProposal({}, request(turn), caller, "v1")).toMatchObject({ outcome: "passed" });
   expect(
     await answerConsultation({}, { ...request(turn), reason: "consultation", question: "¿Sigo?" }, caller, "v1"),
-  ).toMatchObject({ outcome: "passed", text: "Sin supervisor" });
+  ).toMatchObject({ outcome: "passed", text: "No supervisor" });
   expect(turn.usage.calls).toBe(0);
 });
 it("the rules reject before invoking the supervisor", async () => {

@@ -1,4 +1,5 @@
 // Threads and their events, what opened beside, and one thing in the middle: which part is turned down.
+import type { Language } from "../../fields/languages.ts";
 import type { Attachment, Body, Panel, Span, ThreadEvent } from "../contract/contract.ts";
 import { optionsPiece } from "./piece-rows.ts";
 import { referenceNotice } from "./piece-notice.ts";
@@ -32,11 +33,11 @@ export function eventPiece(event: ThreadEvent): EventPiece {
     nested: event.nested ?? false,
   };
 }
-export const threadPiece = (body: Extract<Body, { kind: "thread" }>): ThreadPiece => ({
+export const threadPiece = (body: Extract<Body, { kind: "thread" }>, language: Language): ThreadPiece => ({
   kind: "thread",
   events: body.events.map(eventPiece),
   read: body.read ?? 0,
-  ...(body.options ? { options: optionsPiece(body.options, body.more) } : {}),
+  ...(body.options ? { options: optionsPiece(body.options, body.more, language) } : {}),
   ...(body.reference ? { reference: referenceNotice(body.reference) } : {}),
   ...(body.entry ? { entry: threadEntry(body.entry) } : {}),
 });

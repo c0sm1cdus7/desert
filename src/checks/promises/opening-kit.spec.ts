@@ -32,7 +32,7 @@ it("an act outside the case identity's kit is off on the screen and its suggesti
     const seat = seated(house(), cast.member, shopShown);
     try {
       const found = actRow(seat, aim, "payments", () => true, { tool: "sales", target: "sales/s1" });
-      expect(found?.row).toMatchObject({ off: true, detail: toolTexts.kitRefusal("payments") });
+      expect(found?.row).toMatchObject({ off: true, detail: seat.say(toolTexts.kitRefusal("payments")) });
     } finally {
       seat.router.stop();
     }

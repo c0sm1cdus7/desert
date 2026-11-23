@@ -86,5 +86,5 @@ it("desisting in its own turn costs the consciousness no further call, and the s
   );
   expect(own).toHaveLength(2);
   expect(moments(framesOf(f))).toEqual(["turn"]);
-  expect(framesOf(f).find(supervising)).toContain("mind:notes desistió del journey «Anotar»: Ya no hace falta");
+  expect(framesOf(f).find(supervising)).toContain("mind:notes desisted from the journey «Anotar»: Ya no hace falta");
 }, 60000);

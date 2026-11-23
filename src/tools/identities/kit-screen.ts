@@ -3,7 +3,7 @@ import { mindTool } from "../../house/kit.ts";
 import type { Program } from "../tool-contract.ts";
 import type { ProgramTool } from "../promises.ts";
 import type { Tool, ThingAct } from "../../surface/contract/shown-tool.ts";
-import type { Start, SurfacePorts } from "../../surface/bridge/ports/house-ports.ts";
+import { say, type Start, type SurfacePorts } from "../../surface/bridge/ports/house-ports.ts";
 import { menuTarget } from "../../surface/bridge/acts/program-acts.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
 import { identityTarget, targetIdentity, members } from "./identity-reading.ts";
@@ -35,8 +35,8 @@ export function kitScreen<X extends Program>(
     actsOn,
     menusOn: {
       tools: {
-        label: words.programs.toLowerCase(),
-        purpose: words.kitPurpose,
+        label: say(ports, words.programs).toLowerCase(),
+        purpose: say(ports, words.kitPurpose),
         key: "h",
         listed: identity,
         opens: toolsMenu,
@@ -60,22 +60,20 @@ function folderConfirmation<X extends Program>(ports: SurfacePorts<X>, name: str
       const holder = targetIdentity(target);
       const house = ports.state().house;
       const status = kitDatum(house, holder, tool.id, Object.keys(tool.acts), group);
+      const current = { off: true, detail: say(ports, surfaceTexts.current) };
       const options = [
-        { title: words.give, key: "d", ...(status === words.all ? { off: true, detail: surfaceTexts.current } : {}) },
-        {
-          title: words.take,
-          key: "s",
-          ...(status === words.noActions ? { off: true, detail: surfaceTexts.current } : {}),
-        },
+        { title: say(ports, words.give), key: "d", ...(status === words.all ? current : {}) },
+        { title: say(ports, words.take), key: "s", ...(status === words.noActions ? current : {}) },
       ];
       const owner = mindTool(holder);
       const holderName = owner
-        ? words.mind(programName(ports.registry.find(tool => tool.id === owner) ?? tool))
+        ? say(ports, words.mind(programName(ports.registry.find(tool => tool.id === owner) ?? tool)))
         : identityDisplayName(house, holder);
       return {
         kind: "confirm",
-        ask: words.folderQuestion(folderName(tool, group), holderName),
+        ask: say(ports, words.folderQuestion(folderName(tool, group), holderName)),
         options,
+        back: say(ports, surfaceTexts.back),
         reversible: true,
       };
     },
@@ -83,11 +81,11 @@ function folderConfirmation<X extends Program>(ports: SurfacePorts<X>, name: str
 }
 
 function kitTitle<X extends Program>(ports: SurfacePorts<X>, plain: Tool, target: string): string {
-  if (target.endsWith("#tools")) return words.programs;
+  if (target.endsWith("#tools")) return say(ports, words.programs);
   const branch = target.split("#kit:")[1];
   const [program, group] = branch?.split("/") ?? [];
   const named = ports.registry.find(tool => tool.id === program);
   if (named && (named.name !== undefined || named.toolNames?.[group ?? ""] !== undefined))
-    return folderName(named, group);
+    return say(ports, folderName(named, group));
   return plain.titleOf?.(target) ?? target;
 }

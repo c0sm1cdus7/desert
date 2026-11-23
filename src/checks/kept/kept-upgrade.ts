@@ -1,4 +1,5 @@
 // Compare actual cache reuse/reconstruction with full replay, before boot or effects.
+import { meant } from "../../fields/phrases.ts";
 import { ok } from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -16,7 +17,7 @@ import type { Check } from "../promises/promised-stage.ts";
 type Restoration = ReturnType<typeof upgradeComparison>["status"];
 const describe = ({ reused, warnings }: Restoration) => {
   const reasons = warnings.map(warning => `${warning.name}: ${warning.reason}`);
-  return journalTexts.foldRestoration(reused, reasons);
+  return meant(journalTexts.foldRestoration(reused, reasons));
 };
 function inspect<X extends Program>(
   program: Composition<X>,
@@ -40,7 +41,7 @@ function inspect<X extends Program>(
     const projectionVersion = changedCode(program.projectionVersion);
     const changed = upgradeComparison({ ...program, projectionVersion }, copy, runner, name);
     try {
-      ok(!changed.status.reused, journalTexts.codeRebuildFailed);
+      ok(!changed.status.reused, meant(journalTexts.codeRebuildFailed));
       changed.compare();
     } finally {
       changed.close();
@@ -53,7 +54,7 @@ export function keptUpgrade<X extends Program>(program: Composition<X>, file: st
   let report: string | undefined;
   let reused = false;
   const run = () => {
-    report = journalTexts.upgradeNotProved(name);
+    report = meant(journalTexts.upgradeNotProved(name));
     reused = false;
     inspect(
       program,
@@ -64,7 +65,8 @@ export function keptUpgrade<X extends Program>(program: Composition<X>, file: st
       },
       name,
     );
-    if (program.projectionVersion instanceof CodeProjectionVersion) report = journalTexts.codeUpgradeProved(report);
+    if (program.projectionVersion instanceof CodeProjectionVersion)
+      report = meant(journalTexts.codeUpgradeProved(report));
   };
   const check: Check = {
     name: said.keptUpgrades(name),
@@ -81,12 +83,12 @@ export function keptUpgrade<X extends Program>(program: Composition<X>, file: st
 }
 export function upgradeEvidence(checks: readonly ReturnType<typeof keptUpgrade>[]): Check {
   return {
-    name: journalTexts.manualEvidenceCheck,
+    name: meant(journalTexts.manualEvidenceCheck),
     run: () =>
       Promise.resolve().then(() => {
         let reused = false;
         for (const check of checks) reused = check.evidence() || reused;
-        ok(reused, journalTexts.noManualEvidence);
+        ok(reused, meant(journalTexts.noManualEvidence));
       }),
   };
 }

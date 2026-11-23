@@ -33,7 +33,7 @@ it("all assigned tools excludes the core even for the administrator", async () =
 it("rejects invisible display names atomically, without a program defect", async () => {
   await staged(identitiesProgram, async ({ house }) => {
     const result = await perform(house(), "identities", create("luz", "\u200b"));
-    expect(result).toMatchObject({ status: "rejected", reason: "datos inválidos" });
+    expect(result).toMatchObject({ status: "rejected", reason: { en: "invalid data", es: "datos inválidos" } });
     expect(result.defect).not.toBe(true);
     expect(house().tools.state().house.grants.has("luz")).toBe(false);
   });
@@ -44,10 +44,14 @@ it("can create with an empty catalog and accepts identifier boundaries", async (
     async ({ house, reopen }) => {
       for (const identity of ["a", "a".repeat(64), "a.", "a-"])
         expect((await perform(house(), "identities", create(identity))).status).toBe("accepted");
-      const tool = houseTools(localPorts(house(), "ana", { recentLines: 20 }), {
-        words: {},
-        locale: shopShown.locale,
-      }).find(tool => tool.id === "identities");
+      const tool = houseTools(
+        localPorts(house(), "ana", { recentLines: 20 }),
+        {
+          words: {},
+          locale: shopShown.locale,
+        },
+        "es",
+      ).find(tool => tool.id === "identities");
       expect(tool?.acts.new?.next(["sol", ""])).toMatchObject({ kind: "many", options: [] });
       expect((await tool?.acts.new?.run(["sol", "", "", "Español"]))?.ok).toBe(true);
       reopen();
@@ -62,9 +66,12 @@ it("duplicate requests cannot replace a kit or recreate a removed identity", asy
       perform(house(), "identities", create("luz")),
     ]);
     expect(results.map(result => result.status)).toEqual(["accepted", "rejected"]);
-    expect(results[1].reason).toBe("identidad existente");
+    expect(results[1].reason).toEqual({ en: "existing identity", es: "identidad existente" });
     await perform(house(), "identities", { act: "remove", on: "identities/luz", input: {} });
-    expect((await perform(house(), "identities", create("luz"))).reason).toBe("identidad existente");
+    expect((await perform(house(), "identities", create("luz"))).reason).toEqual({
+      en: "existing identity",
+      es: "identidad existente",
+    });
   });
 });
 it("does not trim an invalid identifier entered on the surface", async () => {
@@ -74,7 +81,7 @@ it("does not trim an invalid identifier entered on the surface", async () => {
       type(seat.router, "in a");
       seat.router.send({ kind: "confirm" });
       expect(seat.router.screen({ rows: 40 }).body.kind).toBe("thread");
-      expect(JSON.stringify(seat.router.screen({ rows: 40 }))).toContain("letra minúscula ASCII");
+      expect(JSON.stringify(seat.router.screen({ rows: 40 }))).toContain("lowercase ASCII letter");
       expect(house().tools.state().house.grants.has("a")).toBe(false);
     } finally {
       seat.router.stop();
@@ -91,7 +98,7 @@ it("does not normalize a pasted identifier", async () => {
         type(seat.router, "in");
         seat.router.send({ kind: "paste", text });
         seat.router.send({ kind: "confirm" });
-        expect(JSON.stringify(seat.router.screen({ rows: 40 }))).toContain("letra minúscula ASCII");
+        expect(JSON.stringify(seat.router.screen({ rows: 40 }))).toContain("lowercase ASCII letter");
         expect(seat.requests.filter(request => request.act === "new")).toEqual([]);
       } finally {
         seat.router.stop();
@@ -103,7 +110,7 @@ it("does not normalize a pasted identifier", async () => {
 });
 it("a question opened by the old administrator cannot write after a handover", async () => {
   await staged(identitiesProgram, async ({ house }) => {
-    const tool = houseTools(localPorts(house(), "ana", { recentLines: 20 }), identitiesShown).find(
+    const tool = houseTools(localPorts(house(), "ana", { recentLines: 20 }), identitiesShown, "es").find(
       tool => tool.id === "identities",
     );
     expect(tool?.acts.new?.next([])?.kind).toBe("text");
@@ -133,7 +140,7 @@ it("the visible name persists and an unnamed identity reads as its identifier", 
   await staged(identitiesProgram, ({ house, reopen }) => {
     house().bus.emit(effect("named", { identity: "beto", name: "Beto 🦫" }, "ana"));
     reopen();
-    const tool = houseTools(localPorts(house(), "carla", { recentLines: 20 }), identitiesShown).find(
+    const tool = houseTools(localPorts(house(), "carla", { recentLines: 20 }), identitiesShown, "es").find(
       tool => tool.id === "identities",
     );
     expect(tool?.titleOf?.("identities/beto")).toBe("Beto 🦫");
@@ -147,7 +154,7 @@ it("rejects an invisible scene atomically, without a program defect, and keeps t
     const scene = (general: string) => ({ act: "scene", on: "identities/carla", by: "carla", input: { general } });
     expect(await perform(house(), "identities", scene("En curso"))).toMatchObject({ status: "accepted" });
     const result = await perform(house(), "identities", scene("​"));
-    expect(result).toMatchObject({ status: "rejected", reason: "datos inválidos" });
+    expect(result).toMatchObject({ status: "rejected", reason: { en: "invalid data", es: "datos inválidos" } });
     expect(result.defect).not.toBe(true);
     expect(house().tools.state().house.scenes.get("carla")?.data.general).toBe("En curso");
   });

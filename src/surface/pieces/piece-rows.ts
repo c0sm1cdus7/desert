@@ -1,4 +1,5 @@
 // Rows, stacks, lists and the options of a question: which side leads, what is chosen, what is off and why.
+import type { Language } from "../../fields/languages.ts";
 import type { Body, Row, Stack } from "../contract/contract.ts";
 import type { Tone } from "../contract/tones.ts";
 import { countedOut, emptyNotice } from "./piece-notice.ts";
@@ -35,25 +36,26 @@ export function rowPiece(row: Row, reads: boolean): RowPiece {
   return textRow(row, reads);
 }
 const keyed = (rows: readonly Row[]): boolean => rows.some(row => Boolean(row.key));
-export const stackPiece = (stack: Stack): StackPiece => ({
+export const stackPiece = (stack: Stack, language: Language): StackPiece => ({
   kind: "stack",
   title: { text: stack.title, tone: "t3" },
   keyed: keyed(stack.rows),
-  ...countedOut(stack.above, stack.below),
+  ...countedOut(stack.above, stack.below, language),
   ...(stack.rows.length ? {} : { empty: emptyNotice(stack.empty ?? "") }),
   rows: stack.rows.map(row => rowPiece(row, stack.reads === true)),
 });
-export const listPiece = (body: Extract<Body, { kind: "list" }>): ListPiece => ({
+export const listPiece = (body: Extract<Body, { kind: "list" }>, language: Language): ListPiece => ({
   kind: "list",
-  stacks: body.stacks.map(stackPiece),
+  stacks: body.stacks.map(stack => stackPiece(stack, language)),
 });
 /** The options of a question, with how many are left out before the first and after the last. */
 export const optionsPiece = (
   rows: readonly Row[],
   more: { readonly above: number; readonly below: number } | undefined,
+  language: Language,
 ): OptionsPiece => ({
   kind: "options",
   keyed: keyed(rows),
-  ...countedOut(more?.above, more?.below),
+  ...countedOut(more?.above, more?.below, language),
   rows: rows.map(row => rowPiece(row, false)),
 });

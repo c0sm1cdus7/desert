@@ -1,4 +1,5 @@
 import { explicitKit } from "../../house/kit-selection.ts";
+import { said } from "../../fields/phrases.ts";
 import { expect, it, vi } from "vitest";
 import { object } from "../../fields/visible-text.ts";
 import { text } from "../../fields/fields.ts";
@@ -150,11 +151,16 @@ it("Martín does not delegate to Nora; the different admin adopts without signin
     expect(domain(result.effects)).toHaveLength(3);
     expect(house().tools.state().house.assistants.get("franco")?.kit).toEqual([]);
     expect(
-      result.effects.some(e => e.kind === "tool-entry" && e.data.text.includes("falta delegación del titular")),
+      result.effects.some(
+        e => e.kind === "tool-entry" && said(e.data.text, "es").includes("falta delegación del titular"),
+      ),
     ).toBe(true);
     expect(
       await perform(house(), "identities", { act: "delegate-assistant", by: "martin", on, input: { kit } }),
-    ).toMatchObject({ status: "rejected", reason: "solo el titular del asistente" });
+    ).toMatchObject({
+      status: "rejected",
+      reason: { en: "only the assistant's holder", es: "solo el titular del asistente" },
+    });
     expect(
       (await perform(house(), "identities", { act: "delegate-assistant", by: "franco", on, input: { kit } })).status,
     ).toBe("accepted");
@@ -174,9 +180,9 @@ it("repeating after disabling does not revive or change name, kit or link", asyn
       });
       expect(result.status).toBe("accepted");
       expect(domain(result.effects)).toEqual([]);
-      expect(result.effects.some(e => e.kind === "tool-entry" && e.data.text.includes("Adopción ya realizada"))).toBe(
-        true,
-      );
+      expect(
+        result.effects.some(e => e.kind === "tool-entry" && said(e.data.text, "es").includes("Adopción ya realizada")),
+      ).toBe(true);
       expect(house().tools.state().house).toEqual(before);
     }
   });

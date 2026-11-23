@@ -1,4 +1,5 @@
 // Gathers additions, compares the anchor and exposes pending anchoring without rejecting confirmed commits.
+import { meant } from "../../fields/phrases.ts";
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { latestBindings } from "./custody-restoration.ts";
 import { factBody, VerifiedHistory } from "./ledger-verification.ts";
@@ -59,7 +60,7 @@ export class AuthenticatedLedger implements CredentialLedger {
       return;
     }
     const head = this.#cipher.head();
-    if (!head) throw new CustodyError("E-CUSTODY-KEY", secretTexts.missingAnchor);
+    if (!head) throw new CustodyError("E-CUSTODY-KEY", meant(secretTexts.missingAnchor));
     const prefix = head.count === 0 ? "" : facts[head.count - 1]?.authentication;
     const extra = facts.length - head.count;
     if (
@@ -69,21 +70,23 @@ export class AuthenticatedLedger implements CredentialLedger {
     )
       throw new CustodyError(
         "E-CUSTODY-ROLLBACK",
-        secretTexts.rollback(
-          head.count,
-          facts.length,
-          extra < 0 ? secretTexts.shorterLedger : this.anchorDifference(prefix !== head.authentication),
-          latestBindings(facts)
-            .map(f => `${f.actor}/${f.tool}/${f.target}/${f.slot}`)
-            .join(", ") || secretTexts.noBindings,
+        meant(
+          secretTexts.rollback(
+            head.count,
+            facts.length,
+            meant(extra < 0 ? secretTexts.shorterLedger : this.anchorDifference(prefix !== head.authentication)),
+            latestBindings(facts)
+              .map(f => `${f.actor}/${f.tool}/${f.target}/${f.slot}`)
+              .join(", ") || meant(secretTexts.noBindings),
+          ),
         ),
       );
     if (extra) this.anchor({ count: facts.length, authentication: last });
     else this.#anchorPending = false;
   }
   private anchorDifference(different: boolean): string {
-    if (different) return secretTexts.differentAnchor;
-    return secretTexts.incompleteBatch;
+    if (different) return meant(secretTexts.differentAnchor);
+    return meant(secretTexts.incompleteBatch);
   }
   facts(): readonly CredentialFact[] {
     const facts = this.#view ?? this.verified();

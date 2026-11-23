@@ -1,4 +1,5 @@
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
+import { type Text } from "../fields/phrases.ts";
 import { Value } from "@sinclair/typebox/value";
 import { parseMindActor } from "../fields/mind-actor.ts";
 import { effect, type HouseEvent } from "../house/facts.ts";
@@ -34,9 +35,9 @@ export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["statu
   Readonly<{ value?: unknown; coreFailure?: ContractFailureReason }> &
   /** The tool declined it before it ran (`offered`): the core did not start it, for the tool's own cause. */
   Readonly<{ declined?: true }> &
-  Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &
-  Readonly<{ private?: string | undefined; output?: boolean; cleanupPending?: true; anchorPending?: true }>;
-type Processing<X extends Program> = Readonly<{ status: "processing"; effects: readonly []; reason?: string }> &
+  Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: Text; draft?: unknown; defect?: true }> &
+  Readonly<{ private?: Text | undefined; output?: boolean; cleanupPending?: true; anchorPending?: true }>;
+type Processing<X extends Program> = Readonly<{ status: "processing"; effects: readonly []; reason?: Text }> &
   Readonly<{ completion: Promise<Decision<X>> }>;
 export type ExecutionResult<X extends Program> = Decision<X> | Processing<X>;
 type Perform<X extends Program> = () => Decision<X> | Promise<Decision<X>>;

@@ -15,6 +15,6 @@ it("capturing a secret position of a fact also keeps the inspection mark", async
   ).rejects.toMatchObject({
     name: "InspectionUnavailable",
     code: "E-CUSTODY-DENIED",
-    reason: "capturar credencial o escribir custodia",
+    reason: "capture a credential or write custody",
   });
 });

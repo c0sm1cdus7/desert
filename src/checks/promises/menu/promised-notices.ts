@@ -8,6 +8,8 @@ import type { Tool } from "../../../surface/contract/shown-tool.ts";
 import { choices, stacksOf } from "../../../surface/menus/lists.ts";
 import type { Choice } from "../../../surface/session/screen.ts";
 import { promiseTexts as said } from "../../../texts/promises.texts.ts";
+import type { Language } from "../../../fields/languages.ts";
+import { meant, said as inWords, type Text } from "../../../fields/phrases.ts";
 import { surfaceTexts as surface } from "../../../texts/surface.texts.ts";
 import type { Case, Composition } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
@@ -18,9 +20,9 @@ import { openRows, seated, view, type Seat } from "../promised-keys.ts";
 import { cast, given, label, perform, staged, type Aim, type Check } from "../promised-stage.ts";
 /** The rows of one of the two lists where a person stands: on the Menu, or on a tool's own menu. Nothing when the
  * list is not there at all. */
-function listAt(tools: readonly Tool[], title: string, tool?: string): readonly Choice[] | undefined {
+function listAt(tools: readonly Tool[], language: Language, title: Text, tool?: string): readonly Choice[] | undefined {
   const place = tool === undefined ? ({ kind: "menu", at: 0 } as const) : ({ kind: "view", tool, at: 0 } as const);
-  return stacksOf(place, tools).find(stack => stack.title === title)?.rows;
+  return stacksOf(place, tools, language).find(stack => stack.title === inWords(title, language))?.rows;
 }
 /** What someone does is in Activity for other identities, on the Menu and on the tool's own menu, until
  * they open it by its key; and it is never there for who did it. */
@@ -40,42 +42,45 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
       const theirs = seated(house(), other, shown);
       const own = seated(house(), actor, shown);
       const outside = seated(house(), actor === cast.outsider ? cast.admin : cast.outsider, shown);
-      const news = (tools: readonly Tool[], tool?: string) =>
-        listAt(tools, surface.activity, tool)?.find(row => row.title === firstLine(entry.data.text));
-      try {
-        ok(news(theirs.tools) && news(theirs.tools, aim.tool.id), said.noActivity(entry.data.text));
-        strictEqual(news(own.tools), undefined, said.ownActivity(entry.data.text));
-        await outsideActivity(outside, news, entry.data.text, aim.tool.id);
-        if (!holdsAny(outside.state().house, outside.state().by, aim.tool.id, Object.keys(aim.tool.acts)))
-          strictEqual((listAt(outside.tools, surface.attentionList, aim.tool.id) ?? []).length, 0);
-        const at = choices({ kind: "menu", at: 0 }, theirs.tools).findIndex(
-          row => row.title === firstLine(entry.data.text),
+      const text = meant(entry.data.text);
+      const news = (seat: Seat<X>, tool?: string) =>
+        listAt(seat.tools, seat.language, surface.activity, tool)?.find(
+          row => row.title === firstLine(seat.say(entry.data.text)),
         );
-        ok(at >= 0, said.noActivity(entry.data.text));
+      try {
+        ok(news(theirs) && news(theirs, aim.tool.id), said.noActivity(text));
+        strictEqual(news(own), undefined, said.ownActivity(text));
+        await outsideActivity(outside, news, text, aim.tool.id);
+        if (!holdsAny(outside.state().house, outside.state().by, aim.tool.id, Object.keys(aim.tool.acts)))
+          strictEqual((listAt(outside.tools, outside.language, surface.attentionList, aim.tool.id) ?? []).length, 0);
+        const at = choices({ kind: "menu", at: 0 }, theirs.tools, theirs.language).findIndex(
+          row => row.title === firstLine(theirs.say(entry.data.text)),
+        );
+        ok(at >= 0, said.noActivity(text));
         openRows(theirs.router, [at]);
-        ok(!errorIn(theirs.router.screen(view).body, surface.gone), said.lost(aim.name));
+        ok(!errorIn(theirs.router.screen(view).body, surface.gone, theirs.language), said.lost(aim.name));
         theirs.router.send({ kind: "menu" });
-        strictEqual(news(theirs.tools), undefined, said.staysNew(entry.data.text));
+        strictEqual(news(theirs), undefined, said.staysNew(text));
       } finally {
         [theirs, own, outside].forEach(seat => seat.router.stop());
       }
     });
-  return { name: label(aim, said.activity(kase.promise)), run };
+  return { name: label(aim, said.activity(meant(kase.promise))), run };
 }
 /** Who has no tool still reads Activity, also hiding what is not theirs; who left the house reads nothing (6a). */
 async function outsideActivity<X extends Program>(
   outside: Seat<X>,
-  news: (tools: readonly Tool[], tool?: string) => unknown,
+  news: (seat: Seat<X>, tool?: string) => unknown,
   text: string,
   tool: string,
 ): Promise<void> {
   if (!outside.state().house.grants.has(outside.state().by)) {
-    strictEqual(news(outside.tools), undefined, said.absentReader);
+    strictEqual(news(outside), undefined, said.absentReader);
     return;
   }
-  ok(news(outside.tools) && news(outside.tools, tool), said.noActivity(text));
+  ok(news(outside) && news(outside, tool), said.noActivity(text));
   await prefer(outside, "foreign", true);
-  ok(news(outside.tools), said.noActivity(text));
+  ok(news(outside), said.noActivity(text));
   await prefer(outside, "foreign", false);
 }
 function checkPartialAttention<X extends Program>(
@@ -131,16 +136,16 @@ function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>,
           cast.member,
         ]);
         for (const by of readers) {
-          const { tools, router } = seated(house(), by, shown);
+          const { tools, router, language } = seated(house(), by, shown);
           const told = (at?: string) =>
-            (listAt(tools, surface.attentionList, at) ?? [])
+            (listAt(tools, language, surface.attentionList, at) ?? [])
               .filter(row => row.open?.kind === "view" && row.open.tool === tool)
               .map(row => ({ target: row.opens ?? tool, why: row.detail }));
           try {
             const mine = [
               ...promised
                 .filter(need => need.to === undefined || need.to === by)
-                .map(({ target, why }) => ({ target, why })),
+                .map(({ target, why }) => ({ target, why: inWords(why, language) })),
               ...unreadNeeds(house(), tool, by),
             ];
             deepStrictEqual(told(tool), mine, said.needRecipient(tool, by));
@@ -152,7 +157,7 @@ function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>,
         }
       }
     });
-  return { name: label(aim, said.needing(kase.promise)), run };
+  return { name: label(aim, said.needing(meant(kase.promise))), run };
 }
 /** The two lists are on the Menu and on every tool's own menu even with nothing in them; and each one that has
  * nothing is off them for who prefers not to see it then. A list with something in it stays: a program may need
@@ -164,15 +169,15 @@ function emptyCheck<X extends Program>(program: Composition<X>, shown: Shown<X>)
       const outside = seated(house(), cast.outsider, shown);
       const places = [undefined, ...program.registry.map(tool => tool.id)];
       const lists = [surface.attentionList, surface.activity];
-      const there = (tools: readonly Tool[], tool?: string): boolean[] =>
-        lists.map(list => listAt(tools, list, tool) !== undefined);
-      const everywhere = (): boolean[] => places.flatMap(tool => there(seat.tools, tool));
+      const there = (at: Seat<X>, tool?: string): boolean[] =>
+        lists.map(list => listAt(at.tools, at.language, list, tool) !== undefined);
+      const everywhere = (): boolean[] => places.flatMap(tool => there(seat, tool));
       const filled = (): boolean[] =>
-        places.flatMap(tool => lists.map(list => (listAt(seat.tools, list, tool)?.length ?? 0) > 0));
+        places.flatMap(tool => lists.map(list => (listAt(seat.tools, seat.language, list, tool)?.length ?? 0) > 0));
       try {
         ok(everywhere().every(Boolean), said.listsMissing);
         /** Who holds no tool has the two lists on the Menu all the same. */
-        ok(there(outside.tools).every(Boolean), said.listsMissing);
+        ok(there(outside).every(Boolean), said.listsMissing);
         const kept = filled();
         await prefer(seat, "empty", true);
         deepStrictEqual(everywhere(), kept, said.listsShown);

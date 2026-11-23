@@ -19,9 +19,9 @@ for (const by of ["ana", "mind:other", "mind:desk"])
       const rig = shopRig({ registry: [...shopRegistry, mind.tool] });
       rigs.push(rig);
       const before = rig.facts();
-      expect(() => emitUnchecked(mind.startup().bus, fact)).toThrow("reservado a la ejecución");
+      expect(() => emitUnchecked(mind.startup().bus, fact)).toThrow("reserved to execution");
       expect(() => mind.startup().bus.together(() => emitUnchecked(mind.startup().bus, fact))).toThrow(
-        "reservado a la ejecución",
+        "reserved to execution",
       );
       expect(rig.facts()).toEqual(before);
     });

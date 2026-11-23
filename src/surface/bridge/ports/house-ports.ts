@@ -8,11 +8,13 @@ import type { Screen } from "../../contract/contract.ts";
 import type { Tool as SurfaceTool, ViewRow } from "../../contract/shown-tool.ts";
 import type { Locale } from "../../formats/masks.ts";
 import type { ProgramTool } from "../../../tools/promises.ts";
+import type { Language } from "../../../fields/languages.ts";
+import { said, type Text } from "../../../fields/phrases.ts";
 /** What the surface needs from a running house; nothing here knows how it runs. */
 export interface HousePorts<X extends Program> {
   readonly me: string;
   /** Opening diagnostics are transient; they never become journal facts. */
-  readonly openingNotices?: () => readonly string[];
+  readonly openingNotices?: () => readonly Text[];
   /** The house as this identity reads it. */
   readonly state: () => State<X>;
   readonly registry: ToolRegistry<X>;
@@ -21,7 +23,7 @@ export interface HousePorts<X extends Program> {
   /** Repeated observations from drawing may share an in-flight request; personal acts never do. */
   readonly observe?: (value: Act) => ExecutionResult<X>;
   readonly now: () => number;
-  readonly defect: (error: unknown, tool: string, target: string, option: string) => string;
+  readonly defect: (error: unknown, tool: string, target: string, option: string) => Text;
   /** How this device reaches the house right now. */
   readonly connection: () => Screen["state"];
   /** Calls back whenever something in the house changed. */
@@ -32,28 +34,32 @@ export interface HousePorts<X extends Program> {
 export type SurfacePorts<X extends Program> = Omit<HousePorts<X>, "act" | "observe"> & {
   readonly act: (value: Act) => ExecutionResult<X>;
   readonly observe?: (value: Act) => ExecutionResult<X>;
+  /** The language whoever reads reads the house in: every word of the house is drawn in it. */
+  readonly language: Language;
 };
+/** A text as whoever reads it reads it: the house's words in their language, what someone wrote as written. */
+export const say = <X extends Program>(ports: Pick<SurfacePorts<X>, "language">, text: Text): string =>
+  said(text, ports.language);
 /** What a program calls a tool where a person reads it; its acts say their own words where they are declared. */
-type Called = Readonly<{ name: string; key: string; system?: true }>;
+type Called = Readonly<{ name: Text; key: string; system?: true }>;
 /** A tool of things: what it says with none, what heads their list, the label of each datum read on that list,
  * and how one of its things is presented: its stacks, in order. */
-type Lists = Readonly<{ empty: string; listed: string }> &
-  Readonly<{ reads: Readonly<Record<string, string>>; presents: readonly Presented[] }>;
+type Lists = Readonly<{ empty: Text; listed: Text }> &
+  Readonly<{ reads: Readonly<Record<string, Text>>; presents: readonly Presented[] }>;
 /** A tool that reads data of its own: the stacks that data goes in, in order, as the stacks of a thing. */
 type Itself = Readonly<{ itself: readonly Presented[] }>;
 /** A tool lists things, reads data of its own, or both: its data first, then its things. */
 export type ToolWords = Called & (Lists | Itself);
 /** One stack of a thing: its title, what it says with nothing in it, and each datum of the reading that goes in
  * it, with its label. */
-export type Presented = Readonly<{ title: string; empty: string }> &
-  Readonly<{ reads: Readonly<Record<string, string>> }>;
+export type Presented = Readonly<{ title: Text; empty: Text }> & Readonly<{ reads: Readonly<Record<string, Text>> }>;
 export type SurfaceWords = Readonly<Record<string, ToolWords>>;
 /** The words of a tool for the things it lists, when it lists any. */
 export const listsOf = (words?: ToolWords): Lists | undefined => (words && "listed" in words ? words : undefined);
 /** The stacks of what a tool reads of its own, when it reads any. */
 export const itselfOf = (words?: ToolWords): readonly Presented[] => (words && "itself" in words ? words.itself : []);
 /** The label of every datum a tool itself reads: on the list of its things, and in the stacks of its own data. */
-export const ownReads = (words?: ToolWords): Readonly<Record<string, string>> => ({
+export const ownReads = (words?: ToolWords): Readonly<Record<string, Text>> => ({
   ...listsOf(words)?.reads,
   ...Object.fromEntries(itselfOf(words).flatMap(stack => Object.entries(stack.reads))),
 });

@@ -1,4 +1,5 @@
 import { chmodSync, linkSync, mkdirSync, renameSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { meant } from "../fields/phrases.ts";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { expect, it, vi } from "vitest";
@@ -54,7 +55,7 @@ it.each(["wal", "off", "memory"])("takes a real writer lock even if the old side
   try {
     expect(await child.next()).toBe("ready");
     child.send("open");
-    expect(await child.next()).toBe(journalTexts.locked);
+    expect(await child.next()).toBe(meant(journalTexts.locked));
     expect(owner.append(sale("owned"), 0).seq).toBe(1);
   } finally {
     await child.stop(true);
@@ -134,7 +135,7 @@ it("closing a lost owner cannot unlock its successor in another process", async 
     expect(await successor.next()).toBe("opened");
     expect(() => owner.close()).toThrow(expect.objectContaining({ code: "WRITER_LEASE_LOST" }));
     third.send("open");
-    expect(await third.next()).toBe(journalTexts.locked);
+    expect(await third.next()).toBe(meant(journalTexts.locked));
     successor.send("write");
     expect(await successor.next()).toBe("wrote");
   } finally {

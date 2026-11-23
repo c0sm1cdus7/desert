@@ -1,4 +1,5 @@
 // One complete reading per tool, state version and reading instant, shared by names and searches.
+import { linesIn } from "../../../fields/phrases.ts";
 import { authorName } from "./author-name.ts";
 import { programCall } from "../../../fields/program-call.ts";
 import type { ProgramTool } from "../../../tools/promises.ts";
@@ -13,7 +14,10 @@ export function toolIndex<X extends Program>(
   skipOwn: boolean,
 ) {
   const build = (state: State<X>, now: number) => {
-    const view = programCall(tool.view.bind(tool), state, tool.id, { recentLines: Number.MAX_SAFE_INTEGER, now });
+    const view = linesIn(
+      programCall(tool.view.bind(tool), state, tool.id, { recentLines: Number.MAX_SAFE_INTEGER, now }),
+      ports.language,
+    );
     const rows = rowsIn(skipOwn ? view.split("\n").slice(1).join("\n") : view, label, undefined, authorName(ports));
     const targets = new Set(programCall(tool.targets.bind(tool), state));
     const named = new Map(

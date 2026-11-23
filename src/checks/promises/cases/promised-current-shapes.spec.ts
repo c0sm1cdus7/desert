@@ -116,7 +116,7 @@ describe("a current thing among references", () => {
         };
         try {
           type(router, "vc");
-          expect(rows()?.find(row => row.off)).toMatchObject({ title: "s1", detail: "actual", selected: false });
+          expect(rows()?.find(row => row.off)).toMatchObject({ title: "s1", detail: "current", selected: false });
           expect(rows()?.find(row => row.selected)?.title).toBe("s2");
           const before = router.screen(view);
           type(router, "1");

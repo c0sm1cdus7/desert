@@ -1,4 +1,5 @@
 // Pastes valid and malformed samples into a real PTY and checks screens, replay and SQLite after reopening.
+import { said } from "../../fields/phrases.ts";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -17,7 +18,7 @@ it.each(["first", "second", "invalid"])(
     try {
       await terminal.until("[r] reglas");
       terminal.press("rspublic-limit\r1\r");
-      await terminal.until(ruleFormTexts.samples);
+      await terminal.until(said(ruleFormTexts.samples, "es"));
       const samples =
         kind === "invalid"
           ? `{${simulationMarker}`
@@ -28,7 +29,7 @@ it.each(["first", "second", "invalid"])(
       await terminal.rest(100);
       expect(terminal.written()).not.toContain(simulationMarker);
       terminal.press("\r");
-      await terminal.until(kind === "invalid" ? ruleFormTexts.casesInvalid : "Frena");
+      await terminal.until(said(kind === "invalid" ? ruleFormTexts.casesInvalid : "Frena", "es"));
       expect(terminal.written()).not.toContain(simulationMarker);
       await terminal.close();
       expect(readFileSync(join(home, "result.json"), "utf8")).not.toContain(simulationMarker);

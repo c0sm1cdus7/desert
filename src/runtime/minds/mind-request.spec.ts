@@ -11,7 +11,6 @@ it("diagnoses the exact request with a mind's card, layers and menu, without cal
     const turn = {
       id: "diagnostic",
       scope: { kind: "consciousness", actor: "mind:notes" } as const,
-      language: "es" as const,
       through: house.tools.state().through,
       wake: [],
       limits: turnLimits,
@@ -26,8 +25,8 @@ it("diagnoses the exact request with a mind's card, layers and menu, without cal
     expect(house.tools.state()).toEqual(before);
     expect(body.model).toBe(before.house.mindAssignments.get("mind:notes")?.card);
     expect(body.output_config.effort).toBe(before.house.mindAssignments.get("mind:notes")?.version);
-    expect(body.system[1]?.text).toContain("Sos la mente de Notas");
-    expect(body.system[2]?.text).toContain("Anotá con las acciones");
+    expect(body.system[1]?.text).toContain("You are the mind of Notas");
+    expect(body.system[2]?.text).toContain("Take notes with the program's actions");
     expect(body.system).toHaveLength(4);
     expect(JSON.stringify(body.output_config.format?.schema)).toContain("consultation");
     let compared = false;
@@ -66,7 +65,6 @@ it("names each act of the menu once, with its targets, and leaves inputs and the
     const body = minds.diagnose({
       id: "diagnostic",
       scope: { kind: "consciousness", actor: "mind:notes" },
-      language: "es",
       through: house.tools.state().through,
       wake: [],
       limits: turnLimits,
@@ -74,7 +72,7 @@ it("names each act of the menu once, with its targets, and leaves inputs and the
     });
     const frame = JSON.stringify(body.messages[0]?.content) + JSON.stringify(body.system);
     expect(frame).not.toMatch(/\\"(?:pattern|input|minLength|maxLength)\\"/u);
-    const menu = /Menú:\n([^]*?)(?:\n\n|$)/u.exec(frame.replace(/\\n/gu, "\n"))?.[1]?.split("\n") ?? [];
+    const menu = /Menu:\n([^]*?)(?:\n\n|$)/u.exec(frame.replace(/\\n/gu, "\n"))?.[1]?.split("\n") ?? [];
     const acts = menu.map(line => line.split(" → ")[0]);
     expect(acts).toContain("open");
     expect(new Set(acts).size).toBe(acts.length);

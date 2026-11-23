@@ -1,4 +1,5 @@
 // A mind is an action-kit subject, never an identity to remove, readmit or hand administration to.
+import type { Text } from "../../../fields/phrases.ts";
 import { deepStrictEqual, strictEqual } from "node:assert/strict";
 import type { Composition, ProgramTool } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
@@ -35,9 +36,9 @@ export function absentMindAction<X extends Program>(
   return true;
 }
 /** Derive every forbidden mind destination from the catalog, and try execution as the administrator too. */
-export async function mindTargetCauses<X extends Program>(program: Composition<X>, aim: Aim<X>): Promise<string[]> {
+export async function mindTargetCauses<X extends Program>(program: Composition<X>, aim: Aim<X>): Promise<Text[]> {
   if (aim.tool.id !== "identities" || aim.act.on !== "thing") return [];
-  const causes: string[] = [];
+  const causes: Text[] = [];
   await staged(program, async ({ house }) => {
     const targets = aim.tool.targets(house().tools.state());
     const talk = house().tools.state().house.talk ?? [];

@@ -1,4 +1,5 @@
 // A hello completes only with a verified state; malformed or silent peers cannot leave attachment waiting forever.
+import { everySaid, meant } from "../../../fields/phrases.ts";
 import type { Duplex } from "node:stream";
 import { houseProtocolVersion, socketLimits, readServer, type ServerMessage } from "../wire/protocol.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
@@ -14,7 +15,7 @@ function attachmentWait(stream: Duplex) {
   });
   let waiting = true;
   const expired = () => {
-    reject(new Error(socketTexts.startTimeout));
+    reject(new Error(meant(socketTexts.startTimeout)));
     stream.destroy();
   };
   const total = setTimeout(expired, socketLimits.helloMs);
@@ -38,7 +39,7 @@ function attachmentWait(stream: Duplex) {
     closed: () => {
       clearTimeout(total);
       clearTimeout(timer);
-      reject(new Error(socketTexts.beforeState));
+      reject(new Error(meant(socketTexts.beforeState)));
     },
   };
 }
@@ -54,14 +55,14 @@ export function clientStream(
     if (!Buffer.isBuffer(message) && message.type === "state") ready.begin();
     if (receive(message)) ready.complete();
     else if (!Buffer.isBuffer(message) && message.type === "rejection" && !message.id)
-      ready.reject(new Error(message.reason));
+      ready.reject(new SocketOpeningError(everySaid(message.reason)));
   });
   stream.on("data", (bytes: Buffer) => {
     try {
       reader.push(bytes);
       ready.progress(reader.pending());
     } catch (error) {
-      ready.reject(error instanceof SocketOpeningError ? error : new Error(socketTexts.frame));
+      ready.reject(error instanceof SocketOpeningError ? error : new Error(meant(socketTexts.frame)));
       stream.destroy();
     }
   });

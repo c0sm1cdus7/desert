@@ -92,7 +92,6 @@ it.each([
         emit,
         history,
         policies: () => [{ ...policy, scope: { kind: "consciousness" as const, actor } }],
-        language: "es" as const,
         time: { now: () => at, wait: () => () => {} },
         nextId: () => `new${++id}`,
         run: (wake: TurnWake) => runMindTurn(turn, wake),

@@ -106,7 +106,10 @@ it.each([11, 1])("matches the real guard after normalizing exactly once to %i", 
   const actual = await f.call("send", input, "probe");
   expect({ status: actual.status, reason: actual.reason }).toEqual({
     status: amount > 10 ? "rejected" : "accepted",
-    reason: amount > 10 ? "El acto quedó frenado por una regla mecánica" : undefined,
+    reason:
+      amount > 10
+        ? { en: "The act was stopped by a mechanical rule", es: "El acto quedó frenado por una regla mecánica" }
+        : undefined,
   });
   expect(normalizations).toBe(2);
   expect(executed).toBe(amount > 10 ? 0 : 1);
@@ -134,7 +137,10 @@ it("refuses unsafe normalization without calling it or announcing a rule outcome
     version: 1,
     samples: JSON.stringify([{ actor: "ana", now: 0, input: { amount: 1 } }]),
   });
-  expect(result).toMatchObject({ status: "rejected", reason: "simulación fiel no disponible" });
+  expect(result).toMatchObject({
+    status: "rejected",
+    reason: { en: "faithful simulation not available", es: "simulación fiel no disponible" },
+  });
   expect(result.value).toBeUndefined();
   expect(calls).toBe(0);
 });
@@ -163,7 +169,10 @@ it("does not normalize without secret inputs when that could change public rule 
     version: 1,
     samples: JSON.stringify([{ actor: "ana", now: 0, input: { amount: 1, token: simulationMarker } }]),
   });
-  expect(result).toMatchObject({ status: "rejected", reason: "simulación fiel no disponible" });
+  expect(result).toMatchObject({
+    status: "rejected",
+    reason: { en: "faithful simulation not available", es: "simulación fiel no disponible" },
+  });
   expect(result.value).toBeUndefined();
   expect(calls).toBe(0);
   expect(JSON.stringify(f.events()).includes(simulationMarker)).toBe(false);

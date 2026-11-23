@@ -34,7 +34,7 @@ it("names object threads, keeps the focus and rereads the names without mutating
   expect(tool.conversationAt?.("chat/missing")).toBeUndefined();
   expect(shown.said()[0]).toBe(shown.said()[0]);
   expect(shown.said()[0]).toEqual({ ...message, who: [{ text: "Lucía", tone: "t1", bold: true }, message.who?.[1]] });
-  const body = talkBody({ ...startTalk("chat", "chat/1"), at: 0 }, shown);
+  const body = talkBody({ ...startTalk("chat", "chat/1"), at: 0 }, shown, "es");
   expect(body.kind === "thread" && body.events[0]?.selected).toBe(true);
   name = "Lucía Gómez";
   expect(shown.said()[0]?.who?.[0]?.text).toBe(name);

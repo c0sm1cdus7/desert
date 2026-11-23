@@ -1,4 +1,5 @@
 // Reconnect to an existing house; only the first opening may launch it. No action is ever replayed here.
+import { meant } from "../../fields/phrases.ts";
 import { SocketOpeningError } from "../socket/wire/socket-error.ts";
 import { connect } from "node:net";
 import { resolve } from "node:path";
@@ -9,7 +10,7 @@ import { launchHouse } from "./launch-house.ts";
 async function dial(path: string) {
   const stream = connect(path);
   return new Promise<typeof stream>((yes, no) => {
-    const timer = setTimeout(() => stream.destroy(new Error(socketTexts.startTimeout)), 5000);
+    const timer = setTimeout(() => stream.destroy(new Error(meant(socketTexts.startTimeout))), 5000);
     stream.once("connect", () => {
       clearTimeout(timer);
       yes(stream);
@@ -34,7 +35,7 @@ export async function connectTerminal<X extends Program>(
   token: string,
 ): Promise<SocketConnection<X>> {
   const path = resolve(home, "house.sock");
-  if (Buffer.byteLength(path) >= 104) throw new SocketOpeningError(socketTexts.path(path));
+  if (Buffer.byteLength(path) >= 104) throw new SocketOpeningError(meant(socketTexts.path(path)));
   const connection = socketConnection<X>(token);
   try {
     const stream = await dial(path).catch(async (error: unknown) => {

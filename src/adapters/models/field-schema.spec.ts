@@ -27,7 +27,7 @@ it("removes surface metadata recursively and retains the complete local text con
     placeholder: field,
     verbatim: field,
   });
-  const sent = providerSchema(schema);
+  const sent = providerSchema(schema, "en");
   expect(sent).toMatchObject({ properties: { plain: { type: "string", title: "Text" } } });
   expect(JSON.stringify(sent)).not.toMatch(/"(pattern|format|minLength|maxLength|default)"/);
   expect(JSON.stringify(sent)).not.toMatch(/"plain":true|"verbatim":true|"placeholder":"Example"/);
@@ -52,7 +52,7 @@ it("recognizes the field vocabulary without serializing callbacks or presentatio
     handle: handle("Name", "Example", "a-z", 10),
     optional: when(field, () => true),
   });
-  const serialized = JSON.stringify(providerSchema(schema));
+  const serialized = JSON.stringify(providerSchema(schema, "en"));
   expect(serialized).not.toMatch(/"(?:mask|wrong|decimals|more|when|some|of|shapes|width|allowed)":/);
   // Ranges, formats and patterns are checked by the house on every answer; the provider only receives the shape.
   expect(serialized).not.toMatch(/"(?:exclusiveMinimum|minimum|maximum|format|pattern|minLength|maxLength|default)":/);
@@ -67,20 +67,22 @@ it.each([
   { $defs: { value: { type: "string" } }, $ref: "#/$defs/value", typo: true },
   { type: "object", additionalProperties: { typo: true } },
 ])("rejects unknown keywords even in unused or reduced branches: %j", schema => {
-  expect(() => providerSchema(schema)).toThrow("schema keyword: typo");
+  expect(() => providerSchema(schema, "en")).toThrow("schema keyword: typo");
   expect(() => matchesSchema(schema, "valid")).toThrow("schema keyword: typo");
 });
 it("preserves validation-shaped payloads in const and property names and keeps defaults local", () => {
   const schema = object({ plain: Type.Literal("placeholder"), data: Type.Object({}, { default: { typo: true } }) });
-  const sent = providerSchema(schema);
+  const sent = providerSchema(schema, "en");
   expect(sent).toMatchObject({ properties: { plain: { const: "placeholder" }, data: { type: "object" } } });
   expect(JSON.stringify(sent)).not.toContain('"default"');
 });
 it("sends exclusive branches as plain branches and never two branch sets with the same name", () => {
-  expect(providerSchema({ oneOf: [{ type: "string" }, { type: "number" }] })).toEqual({
+  expect(providerSchema({ oneOf: [{ type: "string" }, { type: "number" }] }, "en")).toEqual({
     anyOf: [{ type: "string" }, { type: "number" }],
   });
-  expect(() => providerSchema({ oneOf: [{ type: "string" }], anyOf: [{ type: "number" }] })).toThrow("schema branches");
+  expect(() => providerSchema({ oneOf: [{ type: "string" }], anyOf: [{ type: "number" }] }, "en")).toThrow(
+    "schema branches",
+  );
 });
 it("says in each field's description every limit the provider cannot enforce, without the pattern itself", () => {
   const schema = object({
@@ -89,20 +91,20 @@ it("says in each field's description every limit the provider cannot enforce, wi
     names: Type.Array(Type.String({ maxLength: 160 }), { maxItems: 8, uniqueItems: true }),
     job: Type.String({ title: "Trabajo", pattern: "^[a-f0-9-]{36}$" }),
   });
-  const sent = providerSchema(schema);
+  const sent = providerSchema(schema, "en");
   const serialized = JSON.stringify(sent);
   expect(serialized).not.toMatch(/"(?:minimum|maximum|pattern|minLength|maxLength|maxItems|uniqueItems)":/);
   expect(serialized).not.toContain("u0000");
   expect(sent).toMatchObject({
     properties: {
-      text: { type: "string", description: "De 1 a 4000 caracteres. Texto visible: ni vacío ni solo espacios." },
-      seconds: { type: "integer", description: "De 1 a 86400." },
+      text: { type: "string", description: "From 1 to 4000 characters. Visible text: not empty and not only spaces." },
+      seconds: { type: "integer", description: "From 1 to 86400." },
       names: {
         type: "array",
-        description: "Hasta 8 elementos. Sin repetidos.",
-        items: { description: "Hasta 160 caracteres." },
+        description: "Up to 8 items. No repeats.",
+        items: { description: "Up to 160 characters." },
       },
-      job: { title: "Trabajo", description: "Con el formato ^[a-f0-9-]{36}$." },
+      job: { title: "Trabajo", description: "In the format ^[a-f0-9-]{36}$." },
     },
   });
 });

@@ -1,4 +1,5 @@
 // Rules belong to the core and share declarations across every surface.
+import { viewLine } from "../../fields/phrases.ts";
 import { rulesTexts as words } from "../../texts/rules.texts.ts";
 import type { ProgramTool } from "../promises.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";
@@ -12,7 +13,7 @@ export function rulesTool<X extends Program>(registry: ToolRegistry<X>): Program
     id: "rules",
     purpose: words.purpose,
     targets: () => [],
-    view: state => ruleReading(state),
+    view: state => viewLine(ruleReading(state)),
     summary: state => (state.house.rules.versions.size ? words.history : words.empty),
     acts: { ...ruleWriteActions(actions), consult: ruleConsult<X>(), simulate: ruleSimulation(actions) },
   };

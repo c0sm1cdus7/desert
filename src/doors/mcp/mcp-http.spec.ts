@@ -31,7 +31,7 @@ it("serves health and an authenticated MCP request through a real HTTP socket", 
         outgoing.on("error", reject);
         outgoing.end(body);
       });
-    expect(await send("/salud")).toEqual({ status: 200, text: "ok" });
+    expect(await send("/health")).toEqual({ status: 200, text: "ok" });
     const ping = await send("/mcp", JSON.stringify({ jsonrpc: "2.0", id: 1, method: "ping" }));
     expect(ping.status).toBe(200);
     expect(JSON.parse(ping.text)).toEqual({ jsonrpc: "2.0", id: 1, result: {} });

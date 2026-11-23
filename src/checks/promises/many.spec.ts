@@ -52,7 +52,7 @@ it("keeps the current marks without Enter or a refusal, then submits a changed s
       seat.router.send({ kind: "confirm" });
       await seat.router.idle();
       expect(seat.requests.filter(request => request.act === "mark")).toHaveLength(1);
-      expect(JSON.stringify(seat.router.screen(view))).toContain("Listo");
+      expect(JSON.stringify(seat.router.screen(view))).toContain("Done");
     } finally {
       seat.router.stop();
     }

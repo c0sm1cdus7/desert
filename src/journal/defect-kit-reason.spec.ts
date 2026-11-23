@@ -1,4 +1,5 @@
 // A defect from the terminal outside the kit says what the row and the execution say: one reason, kitRefusal.
+import { meant } from "../fields/phrases.ts";
 import { expect, it } from "vitest";
 import { socketHouse } from "../../tests/support/socket-house.ts";
 import { effect } from "../house/facts.ts";
@@ -8,7 +9,7 @@ for (const [tool, option, reason] of [
   ["identities", "new", toolTexts.kitRefusal("identities")],
   ["payments", "receive", toolTexts.kitRefusal("payments")],
 ] as const)
-  it(`a defect on ${tool} outside the kit is refused with «${reason}», writing nothing`, async () => {
+  it(`a defect on ${tool} outside the kit is refused with «${meant(reason)}», writing nothing`, async () => {
     const f = await socketHouse("stream", undefined, true);
     try {
       f.house().bus.emit(effect("kit-set", { holder: "beto", tool: "payments", acts: [] }, "ana"));
@@ -24,5 +25,5 @@ for (const [tool, option, reason] of [
   });
 it("the two reasons differ, so the identities case tells the right one from the generic one", () => {
   expect(toolTexts.kitRefusal("identities")).not.toBe(toolTexts.outsideKit);
-  expect(toolTexts.kitRefusal("payments")).toBe(toolTexts.outsideKit);
+  expect(toolTexts.kitRefusal("payments")).toEqual(toolTexts.outsideKit);
 });

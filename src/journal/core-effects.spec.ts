@@ -1,4 +1,5 @@
 import { afterEach, expect, it } from "vitest";
+import { meant } from "../fields/phrases.ts";
 import { effect } from "../house/facts.ts";
 import { holderKit } from "../house/kit-history.ts";
 import { allowedAct } from "../house/kit.ts";
@@ -28,7 +29,7 @@ it.each(kitCases)("R4/R5 rejects invalid kit %# whole", async data => {
   const n = rig.facts().length;
   const done = await settle(rig.act("ana", "forge", {}, "identities"));
   expect(done).toMatchObject({ status: "rejected", effects: [] });
-  expect(done.reason).toContain("kit-set");
+  expect(meant(done.reason ?? "")).toContain("kit-set");
   expect(rig.state().house).toEqual(before);
   expect(
     rig
@@ -105,7 +106,7 @@ it.each(["named", "granted", "preferred", "language-set"] as const)(
     rig.attend("beto", "identities/beto");
     const result = await settle(rig.act("beto", "scene", {}, "identities/beto"));
     expect(result.status).toBe("rejected");
-    expect(result.reason).toContain(kind);
+    expect(meant(result.reason ?? "")).toContain(kind);
   },
 );
 it("revalidates authority when a core act finishes", async () => {

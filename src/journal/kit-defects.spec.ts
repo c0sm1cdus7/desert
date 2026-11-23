@@ -50,7 +50,7 @@ it.each([false, true])("R3: keeps the defect's diagnostic and attention, wrapped
       test.gate.resolve(undefined);
       const result = await settled(pending);
       expect(result).toMatchObject({ status: cut ? "interrupted" : "rejected", defect: true });
-      if (cut) expect(result.reason).toBe("sacada");
+      if (cut) expect(result.reason).toEqual({ en: "removed", es: "sacada" });
       const entries = test.rig.state().entries;
       expect(entries).toHaveLength(1);
       expect(entries[0]?.data.diagnostic).toContain("defecto real del programa");
@@ -70,7 +70,7 @@ it.each([false, true])("the signal's reason is not a defect, wrapped=%s", async 
   test.cut();
   test.gate.resolve(undefined);
   const result = await settled(pending);
-  expect(result).toMatchObject({ status: "interrupted", reason: "sacada", effects: [] });
+  expect(result).toMatchObject({ status: "interrupted", reason: { en: "removed", es: "sacada" }, effects: [] });
   expect(result.defect).toBeUndefined();
   expect(test.rig.state().entries).toEqual([]);
 });

@@ -1,4 +1,6 @@
 // What a program promises of each act: the causes it may refuse with, and cases that say what happens. Specs derive.
+import { meant } from "../fields/phrases.ts";
+import type { Text } from "../fields/phrases.ts";
 import { registerNormalizer } from "./inputs/prepared-input.ts";
 import { executionSchema } from "./inputs/secret-input.ts";
 import { declaredCause } from "./execution/program-causes.ts";
@@ -36,7 +38,7 @@ const asksSomething = (input: TSchema): boolean => {
   return filled || Array.isArray(Reflect.get(input, "anyOf"));
 };
 /** How a declared act stands on a surface: its words checked, and only the parts it gave. */
-function offeredBy<X extends Program, S extends TSchema, O extends readonly string[]>(
+function offeredBy<X extends Program, S extends TSchema, O extends readonly Text[]>(
   declared: Declared<X, S, O>,
 ): Offered {
   const { name, enter, undoable, purpose, key, on, leaves, under, title, changes } = declared;
@@ -47,13 +49,13 @@ function offeredBy<X extends Program, S extends TSchema, O extends readonly stri
 /** The opaque mark keeps an erased registry from admitting a hand-written, unchecked run. */
 const declaredBody = Symbol();
 const declaredCauses = Symbol();
-export type ProgramOutside<O extends readonly string[]> = O & Readonly<{ [declaredCauses]: true }>;
-export type ProgramRun<X extends Program, O extends readonly string[]> = ((
+export type ProgramOutside<O extends readonly Text[]> = O & Readonly<{ [declaredCauses]: true }>;
+export type ProgramRun<X extends Program, O extends readonly Text[]> = ((
   value: unknown,
   context: ActContext<X>,
 ) => RunResult<X, O> | Promise<RunResult<X, O>>) &
   Readonly<{ [declaredBody]: true }>;
-function body<X extends Program, S extends TSchema, O extends readonly string[]>(declared: Declared<X, S, O>) {
+function body<X extends Program, S extends TSchema, O extends readonly Text[]>(declared: Declared<X, S, O>) {
   const run = (value: unknown, context: ActContext<X>) => {
     if (!Value.Check(executionSchema(declared.input), value)) throw new OutsideDefect(value);
     return declared.run(value, context);
@@ -61,14 +63,14 @@ function body<X extends Program, S extends TSchema, O extends readonly string[]>
   return Object.assign(run, { [declaredBody]: true as const });
 }
 const guarded =
-  <X extends Program>(refuses: readonly string[], offered: ToolAct<X>["offered"]) =>
-  (state: State<X>, target: string, at: number): string | undefined =>
+  <X extends Program>(refuses: readonly Text[], offered: ToolAct<X>["offered"]) =>
+  (state: State<X>, target: string, at: number): Text | undefined =>
     programRule(() => declaredCause(refuses, offered?.(state, target, at)));
 /** An act of a program: what it takes, what it does, and what it promises. */
-export function programAct<X extends Program, S extends TSchema, const O extends readonly string[] = readonly []>(
+export function programAct<X extends Program, S extends TSchema, const O extends readonly Text[] = readonly []>(
   declared: Declared<X, S, O>,
 ): ProgramAct<X, O>;
-export function programAct<X extends Program, S extends TSchema, const O extends readonly string[] = readonly []>(
+export function programAct<X extends Program, S extends TSchema, const O extends readonly Text[] = readonly []>(
   declared: Declared<X, S, O>,
 ): ProgramAct<X> {
   const { input, reach, refuses = [], outside = [], offered, output, cases, confirms, today, also, datum } = declared;
@@ -77,9 +79,9 @@ export function programAct<X extends Program, S extends TSchema, const O extends
    * the act says what is put before the person. */
   if (!declared.undoable && !confirms && asksSomething(input))
     throw new Error(
-      `An act that cannot be undone asks to be confirmed, and this one does not say what with: ${declared.name}`,
+      `An act that cannot be undone asks to be confirmed, and this one does not say what with: ${meant(declared.name)}`,
     );
-  const summary = (value: unknown, state: State<X>, target: string, at: number): string | undefined =>
+  const summary = (value: unknown, state: State<X>, target: string, at: number): Text | undefined =>
     Value.Check(executionSchema(input), value) ? confirms?.call(declared, value, state, target, at) : undefined;
   const said = soFar<X>(input, declared);
   const act = {

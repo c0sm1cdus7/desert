@@ -1,4 +1,5 @@
 // The union reviewer's fixed script: holds does not change; revoking the act does cut its adapters.
+import { said } from "../fields/phrases.ts";
 import { Type } from "@sinclair/typebox";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -135,13 +136,17 @@ it.each([
   if (loss === "tool") house.bus.emit(effect("granted", { identity: by, tools: [] }, "ana"));
   if (loss === "removed") house.bus.emit(effect("removed", { identity: by }, "ana"));
   gate.resolve(undefined);
-  expect(await settled(pending)).toMatchObject({ status: "interrupted", reason: "sacada", effects: [] });
+  expect(await settled(pending)).toMatchObject({
+    status: "interrupted",
+    reason: { en: "removed", es: "sacada" },
+    effects: [],
+  });
   expect(used).not.toHaveBeenCalled();
   expect(act(by, "slowUse")).toMatchObject({
     status: "rejected",
-    reason: loss === "removed" ? "sin acceso" : "fuera del kit",
+    reason: loss === "removed" ? { en: "no access", es: "sin acceso" } : { en: "outside the kit", es: "fuera del kit" },
   });
-  expect(house.tools.state().entries.some(entry => entry.data.text.includes("E-BASE"))).toBe(false);
+  expect(house.tools.state().entries.some(entry => said(entry.data.text, "es").includes("E-BASE"))).toBe(false);
 });
 
 it.each(["beto", "mind:vault"])("%s keeps its action: uses its tool's methods", async by => {
@@ -162,7 +167,7 @@ it.each(["beto", "mind:vault"])("%s loses the action with the adapter pending, b
   house.bus.emit(effect("kit-set", { holder: by, tool: "vault", acts: null }, "ana"));
   gate.resolve(undefined);
   const result = await settled(pending);
-  expect(result).toMatchObject({ status: "interrupted", reason: "sacada" });
+  expect(result).toMatchObject({ status: "interrupted", reason: { en: "removed", es: "sacada" } });
   expect(result.defect).toBeUndefined();
   expect(house.tools.state().entries.some(entry => entry.data.diagnostic)).toBe(false);
   expect(used).not.toHaveBeenCalled();

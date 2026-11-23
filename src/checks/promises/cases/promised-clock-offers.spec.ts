@@ -77,7 +77,7 @@ it("when and wrong share the instant and the calendar, including while deriving 
     at => new Date(at - 3 * 3_600_000).toISOString().slice(0, 10),
   );
   const input = object({ name: when(text("Nombre", "Nombre"), (_answers, at) => at > instant) });
-  const ask = asking(input, { ...clock, formats: formats(shopShown.locale), optionalMark: "" });
+  const ask = asking(input, { ...clock, formats: formats(shopShown.locale), optionalMark: "", language: "es" });
   expect(ask.next([])).toBeNull();
   expect(ask.answers({ name: "Ana" })).toEqual([]);
   expect(clock.today()).toBe("2026-11-12");
@@ -114,7 +114,9 @@ it("today and draft receive the execution instant instead of consulting a second
   return staged({ ...shopProgram, registry }, async ({ house }) => {
     await given(house(), "sales", [{ act: "register", input: { sale: "s1", total: 100 } }], instant);
     const action = { act: "charge", input: { sale: "sales/s1", amount: 100 } };
-    expect(await perform(house(), "payments", action)).toMatchObject({ reason: "sin cambios" });
+    expect(await perform(house(), "payments", action)).toMatchObject({
+      reason: { en: "no changes", es: "sin cambios" },
+    });
     expect(seen).toEqual([instant, instant]);
     house().pass(1);
     seen.length = 0;

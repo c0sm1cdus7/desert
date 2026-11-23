@@ -1,7 +1,6 @@
 // Defines the turn's roles, scopes and limits without exposing cards, prices or accounts to the model.
 import type { MindActor } from "../../fields/mind-actor.ts";
 import type { Message } from "../../fields/messages.ts";
-import type { Language } from "../../fields/languages.ts";
 import type { DelegatedKit } from "../../house/assistants/assistant-facts.ts";
 export type MindScope =
   | Readonly<{ kind: "consciousness"; actor: MindActor; process?: never }>
@@ -18,7 +17,6 @@ export const turnLimits: TurnLimits = { calls: 12, corrections: 1, consultations
 export type TurnContext = Readonly<{
   id: string;
   scope: MindScope;
-  language: Language;
   wake: readonly string[];
   through: number;
   limits: TurnLimits;

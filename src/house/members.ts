@@ -1,5 +1,8 @@
 // A house: tool grants, action kits, shared scenes, preferences and reading.
-import type { Language } from "../fields/languages.ts";
+import { workingLanguage, type Language } from "../fields/languages.ts";
+import { meant } from "../fields/phrases.ts";
+import { identityTexts } from "../texts/identities.texts.ts";
+import { UnmigratedJournal } from "./identities/guards.ts";
 import { isMindActor } from "../fields/mind-actor.ts";
 import { readonlyState } from "../journal/readonly-state.ts";
 import type { Event, HouseBus } from "../journal/vocabulary.ts";
@@ -173,6 +176,22 @@ export const unspoken = (house: House): readonly string[] =>
   [...new Set([house.admin, ...house.grants.keys(), ...house.removed])].filter(
     identity => identity !== "" && !house.languages.has(identity),
   );
+/** The language a reader reads the house in: an identity, the one it said; a mind, and whoever is no identity of
+ * the house, the one the house works in. An identity without one is a journal still to migrate. */
+export function readerLanguage(house: House, reader: string): Language {
+  const language = house.languages.get(reader);
+  if (language !== undefined) return language;
+  const identity = reader === house.admin || house.grants.has(reader) || house.removed.has(reader);
+  if (identity && !isMindActor(reader)) throw new UnmigratedJournal(meant(identityTexts.noLanguage(reader)));
+  return workingLanguage;
+}
+/** Who is in the house and the language each one reads it in: what a mind writes to each one is in it. */
+export const spokenIdentities = (house: House) =>
+  [...house.grants.keys()].map(identity => ({
+    identity,
+    name: identityDisplayName(house, identity),
+    language: house.languages.get(identity) ?? null,
+  }));
 /** The language an identity reads the house in; none for an actor that is no identity, or one never given one. */
 export const languageOf = (house: House, identity: string): Language | undefined => house.languages.get(identity);
 /** The name shown for an identity defaults to its identifier. */

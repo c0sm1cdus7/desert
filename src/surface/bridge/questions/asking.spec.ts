@@ -24,6 +24,7 @@ const words = {
   today: () => "2026-11-11",
   formats: formats({ currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" }),
   optionalMark: " (opcional)",
+  language: "es" as const,
 };
 const more = { ask: "Artículos", done: { title: "Listo", key: "l" }, another: { title: "Otro", key: "o" } };
 const line = object({ what: text("Artículo {n}", "Qué es"), amount: quantity("Cantidad", 1), price: money("Precio") });

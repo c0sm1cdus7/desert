@@ -37,7 +37,8 @@ function exportedNames(file: string): readonly string[] {
       : [],
   );
 }
-const allowedFolders = ["src/surface/contract/", "src/texts/"];
+/** The contract, its texts, and the two files every text reads its languages through. */
+const allowedFolders = ["src/surface/contract/", "src/texts/", "src/fields/languages.ts", "src/fields/phrases.ts"];
 const allowedPackages = new Set(["@sinclair/typebox", "@sinclair/typebox/value"]);
 /** What the entry's static import closure reaches that a browser bundle could not take, each named. */
 function unsafeIn(entry: string): readonly string[] {

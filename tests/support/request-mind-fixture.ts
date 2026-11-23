@@ -1,4 +1,5 @@
 // Runs a text-field program, a talk program and an assistant with hand-assigned cards and a durable journal.
+import { type Text } from "../../src/fields/phrases.ts";
 import "./fixture-vault.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -36,7 +37,7 @@ function assignAssistant(house: RequestHouse, card: Pick<Card, "model" | "effort
     ),
   );
 }
-type Acting = (value: unknown, through: number, by: string) => Readonly<{ status: string; reason?: string }>;
+type Acting = (value: unknown, through: number, by: string) => Readonly<{ status: string; reason?: Text }>;
 type Opening = { assistant?: boolean; started?: (act: Acting, house: RequestHouse) => void };
 const composed = (scenes?: readonly [ProgramMindScene, ProgramMindScene, ProgramMindScene]) =>
   compose({
@@ -78,7 +79,6 @@ class RequestMindFixture {
   });
   private options() {
     return this.distribution.modelMinds({
-      language: "es",
       key: () => Promise.resolve("synthetic"),
       transport: this.transport,
       account: "test",

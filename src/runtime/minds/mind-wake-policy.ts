@@ -1,4 +1,6 @@
 // Wakes a mind for its own journeys and their stops, its rules and the program messages that reach it by thread.
+import { languages } from "../../fields/languages.ts";
+import { said, type Text } from "../../fields/phrases.ts";
 import { ruleWake } from "./rule-wake.ts";
 import { journeyWake } from "./journey-wakes.ts";
 import { interruptWake } from "./journey-interrupts.ts";
@@ -10,7 +12,8 @@ import type { MindScope } from "../../tools/minds/mind-contract.ts";
 export type WakePolicy = Readonly<{
   scope: MindScope;
   /** The name people see: a program's name in its words, an assistant's given name, the supervisor's. */
-  name: string;
+  /** The name people see, in every language they may read it in. */
+  name: Text;
   message: (event: Event) => ProgramMessage | undefined;
   toolOf: (target: string) => string | undefined;
   /** Its own tool talks (signed 22/11): its acts are messages, which wake by their thread, not as acts on the tool. */
@@ -72,5 +75,6 @@ export function mindWakeDecision(
 export function addressed(policy: WakePolicy, message: ProgramMessage | undefined): boolean {
   if (!message?.to.includes(policy.scope.actor) || message.by === policy.scope.actor) return false;
   if (new Set([message.by, ...message.to]).size === 2) return true;
-  return mentions(message.text, policy.name) || mentions(message.text, policy.scope.actor);
+  const names = languages.map(language => said(policy.name, language));
+  return names.some(name => mentions(message.text, name)) || mentions(message.text, policy.scope.actor);
 }

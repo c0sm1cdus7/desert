@@ -38,7 +38,7 @@ it("a broken body keeps HTTP and does not replace the rejection with a JSON or t
   const stream = new ReadableStream<Uint8Array>({ start: controller => controller.error(new Error("broken")) });
   expect(await failure(stream)).toMatchObject({
     kind: "http",
-    rejection: { status: 400, type: "untyped", message: "No se pudo leer el cuerpo de error del proveedor." },
+    rejection: { status: 400, type: "untyped", message: "The provider's error body could not be read." },
   });
 });
 it("redacts type, message, cause and stack before truncating and strips terminal controls", async () => {
@@ -56,7 +56,7 @@ it("redacts type, message, cause and stack before truncating and strips terminal
   const serialized = JSON.stringify([error, error.message, error.cause, error.stack]);
   expect(serialized.includes(planted)).toBe(false);
   expect(serialized.includes("synthetic")).toBe(false);
-  expect(serialized).toContain("[secreto]");
+  expect(serialized).toContain("[secret]");
   const rejection: unknown = Reflect.get(error, "rejection");
   if (!rejection || typeof rejection !== "object") throw new Error("rejection");
   const message: unknown = Reflect.get(rejection, "message");

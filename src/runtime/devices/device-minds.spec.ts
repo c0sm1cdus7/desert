@@ -38,7 +38,6 @@ function journeyRig(dispatch: Dispatch) {
     throw new Error("No transport expected");
   });
   const options: MindRuntimeOptions = {
-    language: "es",
     definitions: [definition],
     catalog: [],
     providers: [],
@@ -78,7 +77,6 @@ function journeyRig(dispatch: Dispatch) {
   const turn: TurnContext = {
     id: "turn",
     scope,
-    language: "es",
     wake: [],
     through: 0,
     limits: { calls: 12, corrections: 1, consultations: 1 },

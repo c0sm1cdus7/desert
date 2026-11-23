@@ -1,4 +1,5 @@
 import { performance } from "node:perf_hooks";
+import { meant } from "../../../fields/phrases.ts";
 import { effect } from "../../../house/facts.ts";
 import { socketConnection } from "../client/socket-connection.ts";
 import { duplexPair } from "node:stream";
@@ -27,7 +28,7 @@ it("M05: a reader that stalls is cut with a report while a healthy terminal cont
   try {
     peer.sendBytes(Buffer.alloc(socketLimits.chunk));
     peer.sendBytes(Buffer.alloc(socketLimits.pendingBytes + 1));
-    expect(report).toHaveBeenCalledWith(socketTexts.slow);
+    expect(report).toHaveBeenCalledWith(meant(socketTexts.slow));
     const c = await f.client("ana-terminal");
     expect(c.states).toHaveLength(1);
     expect(peer.live()).toBe(false);
@@ -53,7 +54,7 @@ it("a stalled snapshot is cut on its drain deadline even without subsequent chan
     peer.sendFrames([Buffer.alloc(socketLimits.chunk), Buffer.alloc(socketLimits.chunk)]);
     idle = socketLimits.blockedMs;
     await vi.advanceTimersByTimeAsync(socketLimits.blockedMs);
-    expect(report).toHaveBeenCalledWith(socketTexts.slow);
+    expect(report).toHaveBeenCalledWith(meant(socketTexts.slow));
     expect(peer.live()).toBe(false);
   } finally {
     pair.forEach(s => s.destroy());
@@ -71,7 +72,7 @@ it("g01 c2: a promised body expires after hello, including a later partial frame
     await vi.advanceTimersByTimeAsync(socketLimits.frameMs);
     expect(c.closed()).toBe(true);
     vi.useRealTimers();
-    expect(output).toHaveBeenCalledWith(`${socketTexts.bodyTimeout}\n`);
+    expect(output).toHaveBeenCalledWith(`${meant(socketTexts.bodyTimeout)}\n`);
   } finally {
     await f.close();
   }
@@ -105,7 +106,7 @@ it("g09: 300 unfinished introductions stay under 256 MiB RSS growth and release 
     await delay(30);
     expect(pairs.filter(pair => !pair[1].destroyed)).toHaveLength(socketLimits.unintroduced);
     expect(process.memoryUsage().rss - start).toBeLessThan(256 * 1024 * 1024);
-    expect(report).toHaveBeenCalledWith(`${socketTexts.busy}\n`);
+    expect(report).toHaveBeenCalledWith(`${meant(socketTexts.busy)}\n`);
     good.send({ type: "read", id: "cat", what: "catalog" });
     expect(await good.until(() => good.messages.some(m => m.type === "response"))).toBe(true);
     pairs.forEach(pair => pair.forEach(s => s.destroy()));
@@ -148,7 +149,7 @@ it("a paused terminal in the same house cannot hold back another terminal's larg
     await vi.advanceTimersByTimeAsync(socketLimits.blockedMs);
     expect(pair[1].writableEnded).toBe(true);
     vi.useRealTimers();
-    expect(output).toHaveBeenCalledWith(`${socketTexts.slow}\n`);
+    expect(output).toHaveBeenCalledWith(`${meant(socketTexts.slow)}\n`);
     expect(good.closed()).toBe(false);
   } finally {
     slow.close();

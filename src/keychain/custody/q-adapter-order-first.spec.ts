@@ -25,7 +25,7 @@ it("C1: walks the adapter without bound credentials and counts the prevented act
   expect(check).toBeDefined();
   await check?.run();
   expect(check?.report?.()).toContain("vault/query");
-  expect(check?.report?.()).toContain("adaptador signer.import");
+  expect(check?.report?.()).toContain("adapter signer.import");
 });
 for (const failure of [
   new Error("E-CUSTODY-DENIED"),
@@ -63,8 +63,8 @@ it("C1: cuts replacement and release, follows another branch and keeps its write
   const check = keptChecks(fixture.program, inspectionShown, fixture.folder)[1];
   await check?.run();
   expect(completed).toBeGreaterThan(0);
-  expect(check?.report?.()).toContain("vault/replace: reemplazar credencial");
-  expect(check?.report?.()).toContain("vault/release: liberar credencial");
+  expect(check?.report?.()).toContain("vault/replace: replace a credential");
+  expect(check?.report?.()).toContain("vault/release: release a credential");
 });
 it("C1: the refusal survives a nested action", async () => {
   const fixture = keptFixture({
@@ -79,5 +79,5 @@ it("C1: the refusal survives a nested action", async () => {
   const shown = { ...inspectionShown, screens: { vault: anyToolScreen } };
   const check = keptChecks(fixture.program, shown, fixture.folder)[1];
   await check?.run();
-  expect(check?.report?.()).toContain("vault/nested: adaptador signer.import");
+  expect(check?.report?.()).toContain("vault/nested: adapter signer.import");
 });

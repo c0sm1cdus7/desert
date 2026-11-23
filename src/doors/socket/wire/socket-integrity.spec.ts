@@ -1,4 +1,5 @@
 import { duplexPair } from "node:stream";
+import { type Text, everySaid, meant } from "../../../fields/phrases.ts";
 import { setTimeout as delay } from "node:timers/promises";
 import { afterEach, expect, it, vi } from "vitest";
 import { socketHouse } from "../../../../tests/support/socket-house.ts";
@@ -12,6 +13,8 @@ import { stateTransfer } from "../state/state-transfer.ts";
 import { identityView } from "../../../house/members.ts";
 
 import * as transfer from "../state/state-transfer.ts";
+/** A line the house writes in English, or the terminal before it knows who reads, in every language. */
+const saidOf = (text: Text): readonly string[] => [`${meant(text)}\n`, `${everySaid(text)}\n`];
 afterEach(() => vi.restoreAllMocks());
 it("a wrong fingerprint never publishes a view, visibly requests a full view and reports at the house", async () => {
   const f = await socketHouse("stream");
@@ -51,7 +54,9 @@ it("a wrong fingerprint never publishes a view, visibly requests a full view and
     f.house().bus.emit(effect("preferred", { hide: "empty", on: true }, "ana"));
     await vi.waitFor(() => expect(connection.state().through).toBe(f.house().tools.state().through));
     expect(requests.filter(type => type === "sync")).toEqual(["sync"]);
-    expect(output.mock.calls.filter(([text]) => text === `${socketTexts.stateMismatch}\n`)).toHaveLength(2);
+    expect(output.mock.calls.filter(([text]) => saidOf(socketTexts.stateMismatch).includes(String(text)))).toHaveLength(
+      2,
+    );
     expect(shown).toEqual([before, identityView(f.house().tools.state(), "ana")]);
   } finally {
     connection.close();
@@ -121,7 +126,7 @@ it("five terminals share one full encoding and one changed encoding per identity
       expect(await c.until(c.closed)).toBe(true);
       expect(c.messages.at(-1)).toEqual({ type: "cut", reason: socketTexts.stateFailed });
     }
-    expect(output).toHaveBeenCalledWith(`${socketTexts.stateFailed}\n`);
+    expect(output).toHaveBeenCalledWith(`${meant(socketTexts.stateFailed)}\n`);
   } finally {
     await f.close();
   }
@@ -189,7 +194,9 @@ it("a failed state send is visible in the connected terminal as well as the hous
     });
     f.house().bus.emit(effect("preferred", { hide: "empty", on: true }, "ana"));
     await vi.waitFor(() => expect(connection.status()).toBe("disconnected"));
-    expect(output.mock.calls.filter(([text]) => text === `${socketTexts.stateFailed}\n`)).toHaveLength(2);
+    expect(output.mock.calls.filter(([text]) => saidOf(socketTexts.stateFailed).includes(String(text)))).toHaveLength(
+      2,
+    );
   } finally {
     connection.close();
     pair[1].destroy();

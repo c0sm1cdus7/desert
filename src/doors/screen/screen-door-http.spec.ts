@@ -1,4 +1,5 @@
 // A session driven over local HTTP with no UI: signing in, the Menu, a tool and an act, and what no response holds.
+import { everySaid } from "../../fields/phrases.ts";
 import { randomUUID } from "node:crypto";
 import { duplexPair } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
@@ -34,9 +35,14 @@ function signingDoor(remote: Awaited<ReturnType<typeof socketHouse>>) {
           Promise.resolve(
             code === invitation
               ? ((held = key), { ok: true as const, text: "" })
-              : { ok: false as const, reason: doorTexts.denied },
+              : { ok: false as const, reason: everySaid(doorTexts.denied) },
           );
-        const bar = () => ({ state: "connected" as const, clock: shown.hour(Date.now()), now: Date.now() });
+        const bar = () => ({
+          language: "es" as const,
+          state: "connected" as const,
+          clock: shown.hour(Date.now()),
+          now: Date.now(),
+        });
         return entryHouse({ redeem, bar, defect: () => toolTexts.baseFailure });
       }
       const connection = socketConnection<Shop>(held);
@@ -63,7 +69,7 @@ it("signs in, reaches the Menu, opens a tool and runs an act, over local HTTP wi
     await act([{ kind: "confirm" }]);
     await act(Array.from("1500", text => ({ kind: "type", text })));
     await act([{ kind: "confirm" }]);
-    await client.until(looked => said(looked).includes(surfaceTexts.ok));
+    await client.until(looked => said(looked).includes(surfaceTexts.ok.es));
     expect(remote.house().tools.state().tools.sales.size).toBe(1);
     expect(client.seen.filter(response => response.headers.get("cache-control") !== "no-store")).toEqual([]);
     const holding = (text: string) =>

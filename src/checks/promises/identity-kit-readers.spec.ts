@@ -6,7 +6,7 @@ import { kitBoundary, boundaryShown } from "../../../tests/support/kit-boundary.
 import { kitProgram, kitShown } from "../../../tests/support/kit-program.ts";
 it("an empty action catalog offers the identity's whole tool and shows an empty mind without debt", async () => {
   await staged(kitBoundary(0), async ({ house }) => {
-    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), boundaryShown).find(
+    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), boundaryShown, "es").find(
       tool => tool.id === "identities",
     );
     expect(core?.view("identities/mind:sales")[0]).toEqual({ title: "sales", rows: [], empty: "Sin acciones." });
@@ -36,7 +36,7 @@ it("an empty action catalog offers the identity's whole tool and shows an empty 
 it("nine and ten mind actions remain reachable with an explicit folder row", async () => {
   for (const count of [9, 10])
     await staged(kitBoundary(count), ({ house }) => {
-      const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), boundaryShown).find(
+      const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), boundaryShown, "es").find(
         tool => tool.id === "identities",
       );
       const stacks = core?.view("identities/mind:sales#kit:sales/sales");
@@ -50,7 +50,7 @@ it("nine and ten mind actions remain reachable with an explicit folder row", asy
 it("every open reader sees identity and mind data change, including the direct object reading", async () => {
   await staged(kitProgram, async ({ house }) => {
     const readers = ["ana", "beto", "carla"].map(by =>
-      houseTools(localPorts(house(), by, { recentLines: 20 }), kitShown).find(tool => tool.id === "identities"),
+      houseTools(localPorts(house(), by, { recentLines: 20 }), kitShown, "es").find(tool => tool.id === "identities"),
     );
     for (const value of ["yes", "no"]) {
       for (const on of ["identities/carla", "identities/mind:sales"])
@@ -71,9 +71,13 @@ it("every open reader sees identity and mind data change, including the direct o
       );
       expect(reading).toEqual({
         identifier: "mind:sales",
-        name: "mente de sales",
-        state: value === "yes" ? "Algunas acciones" : "Sin acciones",
-        kit: [`registrar · ${value === "yes" ? "sí" : "no"}`, "aguardar · no"],
+        name: { en: "mind of sales", es: "mente de sales" },
+        state:
+          value === "yes" ? { en: "Some actions", es: "Algunas acciones" } : { en: "No actions", es: "Sin acciones" },
+        kit: [
+          { en: `registrar · ${value}`, es: `registrar · ${value === "yes" ? "sí" : "no"}` },
+          { en: "aguardar · no", es: "aguardar · no" },
+        ],
       });
     }
   });
@@ -81,7 +85,7 @@ it("every open reader sees identity and mind data change, including the direct o
 
 it("unknown or foreign mind menus never offer a kit edit", async () => {
   await staged(kitProgram, ({ house }) => {
-    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), kitShown).find(
+    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), kitShown, "es").find(
       tool => tool.id === "identities",
     );
     for (const target of [
@@ -102,7 +106,7 @@ it("unknown or foreign mind menus never offer a kit edit", async () => {
 });
 it("identities and minds both receive the ninth action through a navigable tool folder", async () => {
   await staged(kitBoundary(9), async ({ house }) => {
-    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), boundaryShown).find(
+    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), boundaryShown, "es").find(
       tool => tool.id === "identities",
     );
     expect(core?.view("identities/carla#tools")[0]?.rows[0]?.opens).toBe("identities/carla#kit:sales");

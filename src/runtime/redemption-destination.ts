@@ -1,4 +1,5 @@
 // Reserve private storage before redemption and preserve a recovered key if publication loses a race.
+import { everySaid } from "../fields/phrases.ts";
 import { constants, closeSync, fsyncSync, unlinkSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -71,7 +72,7 @@ class ReservedDestination {
         return false;
       }
     } catch {
-      throw new RedemptionFailure(doorTexts.unsafeRecovery);
+      throw new RedemptionFailure(everySaid(doorTexts.unsafeRecovery));
     }
     this.phase = this.reservation?.phase ?? "uncertain";
     if (this.reservation?.attempt !== this.attempt) throw new RedemptionFailure(this.guidance());
@@ -117,7 +118,7 @@ class ReservedDestination {
       checkName(this.descriptor, this.recovery);
       return this.descriptor;
     } catch {
-      throw new RedemptionFailure(doorTexts.unsafeRecovery);
+      throw new RedemptionFailure(everySaid(doorTexts.unsafeRecovery));
     }
   }
   prepare() {
@@ -134,12 +135,12 @@ class ReservedDestination {
       return key;
     } catch {
       this.prepared = true;
-      throw new RedemptionFailure(doorTexts.unsafeRecovery);
+      throw new RedemptionFailure(everySaid(doorTexts.unsafeRecovery));
     }
   }
   guidance() {
     const messages = { reserved: doorTexts.pending, uncertain: doorTexts.uncertain, confirmed: doorTexts.confirmed };
-    return `${messages[this.phase](this.recovery)} ${doorTexts.resume}`;
+    return `${everySaid(messages[this.phase](this.recovery))} ${everySaid(doorTexts.resume)}`;
   }
   sending() {
     this.checkRecovery();
@@ -178,6 +179,6 @@ function reserveDirectory(path: string) {
 }
 function destinationFailure(error: unknown): string {
   return error instanceof Error && error.message === "private-outside-home"
-    ? doorTexts.outsideHome
-    : doorTexts.destination;
+    ? everySaid(doorTexts.outsideHome)
+    : everySaid(doorTexts.destination);
 }

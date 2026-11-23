@@ -1,6 +1,9 @@
 // Journal diagnostics and the SQLite command that acquires the writer lease.
 export const journalTexts = {
-  divergentFold: "El estado guardado no coincide con el registro; se descarta y se vuelve a plegar",
+  divergentFold: {
+    en: "The saved state does not match the record; it is discarded and folded again",
+    es: "El estado guardado no coincide con el registro; se descarta y se vuelve a plegar",
+  },
   leaseLost: "Writer exclusion was lost or another connection wrote; close and reopen this house",
   beginWrite: "begin immediate",
   savepointWrite: "savepoint journal_write",
@@ -19,10 +22,22 @@ export const journalTexts = {
   unchangedFingerprint: "Changing calculation code did not change its fingerprint",
   foldRestoration: (reused: boolean, reasons: readonly string[]) =>
     reused
-      ? "REUTILIZADO · formato, registro, cálculos y secuencias compatibles"
-      : `RECONSTRUIDO · ${reasons.join("; ") || "sin hechos previamente plegados"}`,
-  upgradeNotProved: (name: string) => `${name}: NO PROBADO · la apertura no completó el plegado`,
-  codeUpgradeProved: (report: string) => `${report}; cambio de código: huella distinta y RECONSTRUIDO`,
+      ? {
+          en: "REUSED · compatible format, record, calculations and sequences",
+          es: "REUTILIZADO · formato, registro, cálculos y secuencias compatibles",
+        }
+      : {
+          en: `REBUILT · ${reasons.join("; ") || "no previously folded facts"}`,
+          es: `RECONSTRUIDO · ${reasons.join("; ") || "sin hechos previamente plegados"}`,
+        },
+  upgradeNotProved: (name: string) => ({
+    en: `${name}: NOT PROVED · the opening did not complete the fold`,
+    es: `${name}: NO PROBADO · la apertura no completó el plegado`,
+  }),
+  codeUpgradeProved: (report: string) => ({
+    en: `${report}; code change: different fingerprint and REBUILT`,
+    es: `${report}; cambio de código: huella distinta y RECONSTRUIDO`,
+  }),
   manualEvidenceCheck: "Manual projectionVersion has reusable kept evidence",
   noManualEvidence: "No reusable previous folds: no evidence for manual projectionVersion",
   rebuildCode: "SAVED_FOLD_REBUILT",
@@ -31,12 +46,15 @@ export const journalTexts = {
     "create table if not exists journal_identity (singleton integer primary key check(singleton = 1), id text)",
   identityInsert: "insert or ignore into journal_identity values (1, ?)",
   identityRead: "select id from journal_identity where singleton = 1",
-  rebuilt: "Reconstruido · Estado de la casa",
-  unsavedRecord: (cause: string) => `Sin guardar · Registro de aperturas · ${cause}`,
-  notOwnRecord: "no es un archivo propio de la casa",
-  incompleteRecord: "escritura incompleta",
-  opening: "Sistema",
-  continue: "continuar",
+  rebuilt: { en: "Rebuilt · House state", es: "Reconstruido · Estado de la casa" },
+  unsavedRecord: (cause: string) => ({
+    en: `Unsaved · Record of openings · ${cause}`,
+    es: `Sin guardar · Registro de aperturas · ${cause}`,
+  }),
+  notOwnRecord: { en: "not a file of the house's own", es: "no es un archivo propio de la casa" },
+  incompleteRecord: { en: "incomplete write", es: "escritura incompleta" },
+  opening: { en: "System", es: "Sistema" },
+  continue: { en: "continue", es: "continuar" },
   unreadableFold: "truncated or unreadable format",
   oldFold: "old or unsupported format version",
   aheadFold: "invalid or ahead sequence",
@@ -51,9 +69,18 @@ export const journalTexts = {
   upgradeMismatch: (name: string) => `${name}: projectionVersion differs from the calculations`,
   invalidEvent: "Invalid event envelope or unknown kind",
   unreadable: (seq: number, k: string) => `This house's journal holds a fact this program does not read: #${seq} ${k}`,
-  executionOnly: "Hecho reservado a la ejecución; usar act en el arranque",
-  mindRolledBack: "Acción rechazada: se deshizo la escritura que la pidió",
-  mindChain: "Acción rechazada: la cadena de esta mente llegó a 32 actos",
+  executionOnly: {
+    en: "Fact reserved to execution; startup uses act",
+    es: "Hecho reservado a la ejecución; usar act en el arranque",
+  },
+  mindRolledBack: {
+    en: "Action refused: the write that asked for it was undone",
+    es: "Acción rechazada: se deshizo la escritura que la pidió",
+  },
+  mindChain: {
+    en: "Action refused: this mind's chain reached 32 acts",
+    es: "Acción rechazada: la cadena de esta mente llegó a 32 actos",
+  },
   closedBus: "The event bus is closed",
   listenerFailed: "Someone who listens to the house failed on hearing a fact",
   writerLeaseSql:
@@ -66,7 +93,13 @@ export const journalTexts = {
     "create table if not exists writer (id integer primary key, nonce blob); " +
     "insert or replace into writer values (1, randomblob(32))",
   reopenedMismatch: "Reopened state differs from the complete journal fold",
-  spendingUnavailable: "No se puede escribir en la cuenta de modelos; revisá si otra casa la tiene abierta.",
-  locked: "This house is already open in a running process",
+  spendingUnavailable: {
+    en: "The model account cannot be written; another house may have it open.",
+    es: "No se puede escribir en la cuenta de modelos; revisá si otra casa la tiene abierta.",
+  },
+  locked: {
+    en: "This house is already open in a running process",
+    es: "Esta casa ya está abierta en un proceso en marcha",
+  },
   kindTaken: (kinds: readonly string[]) => `The house already writes these kinds: ${kinds.join(", ")}`,
 } as const;

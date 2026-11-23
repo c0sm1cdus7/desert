@@ -1,4 +1,5 @@
 // Each callback boundary marks its own code; reading state remains a base operation.
+import { said } from "../../fields/phrases.ts";
 import { object } from "../../fields/visible-text.ts";
 import { thing } from "../../fields/fields.ts";
 import { expect, it } from "vitest";
@@ -43,7 +44,7 @@ for (const [callback, use] of Object.entries(uses)) {
         return changed;
       });
       const ports = { ...localPorts(house(), cast.admin, { recentLines: 100 }), registry };
-      const tool = houseTools(ports, shopShown).find(tool => tool.id === "sales");
+      const tool = houseTools(ports, shopShown, "es").find(tool => tool.id === "sales");
       expect(tool).toBeDefined();
       let reported = "";
       try {
@@ -51,7 +52,7 @@ for (const [callback, use] of Object.entries(uses)) {
       } catch (error) {
         expect(error).toBeInstanceOf(OutsideDefect);
         expect(error).toMatchObject({ detail: new Error("callback diagnostic") });
-        reported = ports.defect(error, "sales", "sales", "register");
+        reported = said(ports.defect(error, "sales", "sales", "register"), "es");
       }
       expect(reported).toContain("E-PROG-1");
       expect(JSON.stringify(house().tools.state().entries)).toContain("callback diagnostic");

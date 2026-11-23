@@ -1,4 +1,5 @@
 // Resolves each action's declared destinations and checks forbidden group destinations in surface and execution.
+import type { Text } from "../../../fields/phrases.ts";
 import { deepStrictEqual, strictEqual } from "node:assert/strict";
 import type { Composition } from "../../../tools/promises-contract.ts";
 import type { Program, State } from "../../../tools/tool-contract.ts";
@@ -23,14 +24,16 @@ export async function groupTargetCauses<X extends Program>(
   program: Composition<X>,
   shown: Shown<X>,
   aim: Aim<X>,
-): Promise<string[]> {
+): Promise<Text[]> {
   if (aim.act.folder === undefined) return [];
-  const causes: string[] = [];
+  const causes: Text[] = [];
   await staged(program, async ({ house }) => {
     const destination = await groupDevice(house(), aim);
     const seat = seated(house(), house().tools.state().house.admin, shown);
     try {
-      const rows = entries(seat.tools).filter(row => row.starts?.tool === aim.tool.id && row.starts.act === aim.name);
+      const rows = entries(seat.tools, seat.language).filter(
+        row => row.starts?.tool === aim.tool.id && row.starts.act === aim.name,
+      );
       const state = house().tools.state();
       const own = actionTargets(aim, state);
       const foreign = [aim.tool.id, ...aim.tool.targets(state)].filter(target => !own.includes(target));

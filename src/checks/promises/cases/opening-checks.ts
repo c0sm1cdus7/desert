@@ -1,4 +1,6 @@
 // Checks initial values computed over each case's states and targets.
+import { readerLanguage } from "../../../house/members.ts";
+import type { Act } from "../../../house/own-acts.ts";
 import { inspect } from "node:util";
 import { TypeGuard } from "@sinclair/typebox";
 import { fieldValidity } from "../../../fields/fields.ts";
@@ -24,11 +26,13 @@ export async function openingChecks<X extends Program>(
       await given(house(), aim.tool.id, kase.given, kase.at);
       const ports = localPorts(house(), kase.by ?? cast.admin, { recentLines: 100 }, house().now);
       const state = ports.state();
-      const tools = houseTools(ports, shown);
+      const language = readerLanguage(state.house, ports.me);
+      const tools = houseTools(ports, shown, language);
+      const surface = { ...ports, language, act: (value: Act) => ports.act(value, state.through) };
       const { ask, walk } = walked(
-        { ...ports, act: value => ports.act(value, state.through) },
+        surface,
         { tool: aim.tool.id, name: aim.name, act: aim.act },
-        questionsFor(ports, shown, () => tools),
+        questionsFor(surface, shown, () => tools),
       );
       const origin = program.registry.find(tool => tool.id === also.tool);
       for (const target of origin?.targets(state) ?? []) {

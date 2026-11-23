@@ -72,8 +72,7 @@ it("reads which mind's turn failed and why when a consciousness never gives a va
   ]);
   expect(moments(framesOf(f))).toEqual(["turn"]);
   expect(framesOf(f).find(supervising)).toContain(
-    "Falló un turno de la consciencia de mind:notes: " +
-      "La respuesta siguió siendo inválida después de la única corrección.",
+    "A turn of the consciousness of mind:notes failed: " + "The answer was still invalid after the one correction.",
   );
 }, 60000);
 const closings = (house: RequestHouse) =>

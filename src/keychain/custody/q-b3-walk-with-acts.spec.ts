@@ -20,11 +20,11 @@ for (const withKeys of [false, true])
       const checks = keptChecks(program, inspectionShown, fixture.folder);
       for (const check of checks) await check.run();
       const report = checks[1]?.report?.();
-      expect(report).toContain("no recorribles en inspección");
+      expect(report).toContain("could not be walked under inspection");
       expect(report).toContain("vault/sign");
       expect(report).toContain("vault/use");
-      expect(report).toContain("adaptador signer.import");
-      expect(report).toContain("adaptador signer.inspect");
+      expect(report).toContain("adapter signer.import");
+      expect(report).toContain("adapter signer.inspect");
       expect(readFileSync(fixture.file)).toEqual(before);
       expect(readdirSync(fixture.folder)).toEqual(["kept.sqlite"]);
       for (const call of calls) expect(call).not.toHaveBeenCalled();

@@ -1,4 +1,5 @@
 // Read a case's destination and fixed answers before asking the shared availability rule.
+import type { Text } from "../../../fields/phrases.ts";
 import { asking } from "../../../surface/bridge/questions/asking.ts";
 import { actionOff } from "../../../surface/bridge/acts/action-off.ts";
 import type { Case } from "../../../tools/promises.ts";
@@ -12,7 +13,7 @@ export function actionUnavailable<X extends Program>(
   on: string,
   answers: readonly string[] = [],
   from?: string,
-): string | undefined {
+): Text | undefined {
   const tool = seat.tools.find(tool => tool.id === aim.tool.id);
   const act = aim.act.on === "tool" ? tool?.acts[aim.name] : tool?.actsOn?.[aim.name];
   const state = seat.state();

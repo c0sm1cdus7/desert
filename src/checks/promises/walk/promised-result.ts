@@ -1,4 +1,5 @@
 // A rejection is proved where it closes the choice, never merely by finding its words after an execution.
+import { meant, same } from "../../../fields/phrases.ts";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import { asking } from "../../../surface/bridge/questions/asking.ts";
 import { readThrough, reasonIn, unchangedIn, errorIn } from "../../read-screen.ts";
@@ -23,7 +24,7 @@ export function currentInState<X extends Program>(seat: Seat<X>, aim: Aim<X>, ka
   if (current === undefined || act?.off?.(on) !== undefined) return;
   const initial = begin(seat.tools, aim.tool.id, aim.name, aim.act.on === "thing" ? on : undefined);
   deepStrictEqual(initial.was, asking(aim.act.input, seat.words).answers(current), said.currentLost);
-  currentCloses(seat.tools, initial);
+  currentCloses(seat.tools, initial, seat.language);
 }
 export function assertOutcome<X extends Program>(seat: Seat<X>, aim: Aim<X>, kase: Case<X>, stop?: Stopped): boolean {
   ok(seat.defects.length === 0, seat.defects.join("\n"));
@@ -32,32 +33,32 @@ export function assertOutcome<X extends Program>(seat: Seat<X>, aim: Aim<X>, kas
   const on = kase.on ?? aim.tool.id;
   const calls = seat.requests.filter(request => request.act === aim.name && request.target === on);
   const { body } = seat.router.screen(view);
-  ok(!unchangedIn(body));
+  ok(!unchangedIn(body, seat.language));
   if (cause !== undefined && !external) {
     strictEqual(calls.length, 0, said.internalSent);
     quietEntry(seat.router);
     const closed = actionUnavailable(seat, aim, on, [], kase.from);
-    const expected = closed ?? (cause === toolTexts.unchanged ? surfaceTexts.current : cause);
+    const expected = closed ?? (same(cause, toolTexts.unchanged) ? surfaceTexts.current : cause);
     const currentText =
-      cause === toolTexts.unchanged && !seat.router.screen(view).hints.some(h => h.intent === "confirm");
+      same(cause, toolTexts.unchanged) && !seat.router.screen(view).hints.some(h => h.intent === "confirm");
     if (stop?.kind === "data") {
       ok(body.kind === "thread", said.closedAt("datum", stop.ask));
       const reasons = body.events.filter(event => event.nested && !event.ignored);
       deepStrictEqual(
         reasons.map(event => event.text.map(span => span.text).join("")),
-        stop.reason === undefined ? [] : [stop.reason],
+        stop.reason === undefined ? [] : [seat.say(stop.reason)],
       );
       ok(!seat.router.screen(view).hints.some(hint => hint.intent === "confirm"));
       return false;
     }
     ok(
-      currentText || readThrough(seat.router, screen => reasonIn(screen.body, expected)),
-      said.closedCause(stop?.ask ?? aim.act.name, cause),
+      currentText || readThrough(seat.router, screen => reasonIn(screen.body, expected, seat.language)),
+      said.closedCause(stop?.ask ?? meant(aim.act.name), meant(cause)),
     );
     return false;
   }
   strictEqual(calls.length, 1, said.runOnce);
-  if (external) ok(errorIn(body, cause), said.outsideSilent);
+  if (external) ok(errorIn(body, cause, seat.language), said.outsideSilent);
   else quietEntry(seat.router);
   return true;
 }

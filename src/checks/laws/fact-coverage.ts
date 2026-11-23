@@ -1,4 +1,5 @@
 // Every declared state-changing fact has an action emitter or an explicit autonomous owner.
+import { meant } from "../../fields/phrases.ts";
 import ts from "typescript";
 import { houseCatalog } from "../../house/facts.ts";
 import { catalogLawTexts as words } from "../../texts/catalog-laws.texts.ts";
@@ -118,5 +119,5 @@ export function factCoverage(graph: CatalogGraph, autonomous = autonomousFacts):
     });
   return [...declared]
     .filter(([kind]) => !emitted.has(kind) && !autonomous[kind]?.trim())
-    .map(([kind, where]) => words.fact(where, kind));
+    .map(([kind, where]) => meant(words.fact(where, kind)));
 }

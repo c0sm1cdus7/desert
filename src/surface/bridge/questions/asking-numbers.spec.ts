@@ -12,6 +12,7 @@ const words = {
   today: () => "2026-11-11",
   formats: formats(locale),
   optionalMark: " · opcional",
+  language: "es" as const,
 };
 
 describe("a number being written", () => {

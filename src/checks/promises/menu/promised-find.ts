@@ -1,4 +1,5 @@
 // Looking for a thing from a menu, checked for every case that leaves one: found by its name, and opened from there.
+import { meant } from "../../../fields/phrases.ts";
 import { ok, strictEqual } from "node:assert/strict";
 import type { Shown } from "../../../surface/bridge/ports/house-ports.ts";
 import { stacksOf } from "../../../surface/menus/lists.ts";
@@ -16,7 +17,9 @@ type Sought = Readonly<{ tool: string; target: string; name: string }>;
 function seek<X extends Program>(seat: Seat<X>, menu: Picture, { tool, target, name }: Sought): void {
   const { router, tools, state } = seat;
   type(router, ` ${name}`);
-  const rows = stacksOf({ ...menu, find: name }, tools).flatMap(stack => stack.rows.filter(row => row.open));
+  const rows = stacksOf({ ...menu, find: name }, tools, seat.language).flatMap(stack =>
+    stack.rows.filter(row => row.open),
+  );
   const at = rows.findIndex(row => row.opens === target && row.open?.kind === "view" && row.open.tool === tool);
   /** Who is no longer in the house finds nothing (6a). */
   if (!state().house.grants.has(state().by)) {
@@ -30,7 +33,7 @@ function seek<X extends Program>(seat: Seat<X>, menu: Picture, { tool, target, n
   strictEqual(router.screen(view).title, name);
   router.send({ kind: "cancel" });
   const back = router.screen(view).body;
-  ok(back.kind === "list" && back.stacks[0]?.title !== surface.find, said.stillFinding);
+  ok(back.kind === "list" && back.stacks[0]?.title !== seat.say(surface.find), said.stillFinding);
 }
 /** The thing an act leaves is found by the name its tool gives it: from the tool's own menu, and from the Menu. */
 function findCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
@@ -63,7 +66,7 @@ function findCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
         seat.router.stop();
       }
     });
-  return { name: label(aim, said.finding(kase.promise)), run };
+  return { name: label(aim, said.finding(meant(kase.promise))), run };
 }
 export function findChecks<X extends Program>(program: Composition<X>, shown: Shown<X>): readonly Check[] {
   return program.registry.flatMap(tool =>

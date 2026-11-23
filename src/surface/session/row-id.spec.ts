@@ -13,7 +13,7 @@ import { startRouter } from "../router/router.ts";
 import type { Session } from "./screen.ts";
 
 const stops = await walked();
-const bar = { state: "connected", clock: "14:32", now: 5_000 } as const;
+const bar = { language: "es", state: "connected", clock: "14:32", now: 5_000 } as const;
 /** Every row a screen holds, as resolve gives it: what a tool brought along is still on it. */
 function rowsOf({ body }: Screen): readonly Row[] {
   if (body.kind === "list") return body.stacks.flatMap(stack => stack.rows);
@@ -104,7 +104,7 @@ describe("the identity of a row, by hand", () => {
     });
     const screen = router.screen({ rows: 40 });
     router.stop();
-    expect(screen.title).toBe(surfaceTexts.error);
+    expect(screen.title).toBe(surfaceTexts.error.es);
     expect(String(reported[0])).toContain(`over ${rowIdLimit}`);
   });
 });

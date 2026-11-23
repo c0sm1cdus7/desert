@@ -1,4 +1,5 @@
 // Declares the turn's ports and serializes its twelve shared physical attempts.
+import { workingLanguage } from "../../fields/languages.ts";
 import type { ProviderRejection } from "../../fields/provider-rejection.ts";
 import type { Usage } from "../../adapters/models/catalog.ts";
 import type { MindActor } from "../../fields/mind-actor.ts";
@@ -34,7 +35,7 @@ export type ModelOutcome =
   | Readonly<{ kind: "not-sent"; reason: "cap" | "no-key" | "no-card" | "conversation-too-large" }>
   | Readonly<{ kind: "uncertain" }>;
 export type ModelPort = (request: ModelRequest) => Promise<ModelOutcome>;
-export type TurnWake = Pick<TurnContext, "id" | "scope" | "language" | "wake" | "through">;
+export type TurnWake = Pick<TurnContext, "id" | "scope" | "wake" | "through">;
 export type TurnOutcome = Readonly<{
   outcome: "done" | "failed" | "interrupted";
   calls: number;
@@ -102,8 +103,8 @@ export type ExecuteResult = Readonly<{
 }>;
 export class TurnStopped extends Error {
   readonly reason: TurnStop;
-  constructor(reason: TurnStop, turn: TurnContext) {
-    super(turnNotice.text(turn.language, { reason }));
+  constructor(reason: TurnStop) {
+    super(turnNotice.text(workingLanguage, { reason }));
     this.reason = reason;
   }
 }
@@ -143,7 +144,7 @@ class TurnCallLedger {
   async send(model: ModelPort, request: Omit<ModelRequest, "turn" | "number">, active: () => boolean, soft = false) {
     if (this.closed || !active()) this.stop = "inactive";
     if (this.count >= 12) this.stop ??= "call-limit";
-    if (this.stop) throw new TurnStopped(this.stop, this.turn);
+    if (this.stop) throw new TurnStopped(this.stop);
     this.count++;
     this.turn.usage.calls = this.count;
     try {

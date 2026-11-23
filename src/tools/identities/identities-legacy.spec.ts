@@ -20,7 +20,7 @@ function rejectLegacy(house: RunningHouse<Shop>, core: Tool | undefined): void {
     house.tools.act({ act: "attend", input: { target } }, 0, "ana");
     const result = house.tools.act({ act, target, input: {} }, house.tools.state().through, "ana");
     expect(result).toMatchObject({ status: "rejected", reason: identityNameTexts.rule });
-    expect(core?.actsOn?.[act]?.off?.(target)).toBe(identityNameTexts.rule);
+    expect(core?.actsOn?.[act]?.off?.(target)).toBe(identityNameTexts.rule.es);
   }
 }
 it("reads historical invalid identifiers and refuses new handovers or readmission to them", () => {
@@ -42,7 +42,7 @@ it("reads historical invalid identifiers and refuses new handovers or readmissio
         secretKeys: new MemoryHouseKeys(),
       });
       try {
-        const core = houseTools(localPorts(house, "ana", { recentLines: 20 }), shopShown).find(
+        const core = houseTools(localPorts(house, "ana", { recentLines: 20 }), shopShown, "es").find(
           tool => tool.id === "identities",
         );
         expect(
@@ -93,7 +93,7 @@ it("rejects a reserved initial grant before creating any part of the house", () 
         },
         secretKeys: new MemoryHouseKeys(),
       }),
-    ).toThrow("Identidades");
+    ).toThrow("Identities");
     const journal = new SqliteJournal(join(home, "journal.sqlite"), shopProgram.words);
     try {
       expect(journal.replay(0, count => count + 1)).toBe(0);

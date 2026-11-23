@@ -1,4 +1,5 @@
 // A transport can be replaced without replacing the router or replaying an act.
+import { everySaid, same, type Text } from "../../../fields/phrases.ts";
 import type { Duplex } from "node:stream";
 import type { State, Program } from "../../../tools/tool-contract.ts";
 import type { Screen } from "../../../surface/contract/contract.ts";
@@ -14,7 +15,7 @@ export interface SocketConnection<X extends Program> {
   readonly identity: () => string;
   readonly now: () => number;
   readonly status: () => Screen["state"];
-  readonly failure: () => string | undefined;
+  readonly failure: () => Text | undefined;
   send: (message: ClientMessage) => boolean;
   readonly watch: (changed: () => void) => () => void;
   readonly receive: (listener: (message: ServerMessage) => void) => () => void;
@@ -26,7 +27,7 @@ class Connection<X extends Program> implements SocketConnection<X> {
   private readonly listeners = new Set<(message: ServerMessage) => void>();
   private stream: Duplex | undefined;
   private closed = false;
-  private failureReason: string | undefined;
+  private failureReason: Text | undefined;
   private sequence = -1;
   private failedSequence = -1;
   private failures = 0;
@@ -59,10 +60,10 @@ class Connection<X extends Program> implements SocketConnection<X> {
         if (this.failures >= socketLimits.stateAttempts) {
           this.failureReason = socketTexts.stateUnverified;
           this.close();
-          throw new SocketOpeningError(this.failureReason);
+          throw new SocketOpeningError(everySaid(this.failureReason));
         }
         this.view.setStatus("connecting");
-        if (!this.reported) process.stderr.write(`${socketTexts.stateMismatch}\n`);
+        if (!this.reported) process.stderr.write(`${everySaid(socketTexts.stateMismatch)}\n`);
         this.reported = true;
         this.stream?.write(clientFrame({ type: "sync" }));
         return false;
@@ -80,12 +81,12 @@ class Connection<X extends Program> implements SocketConnection<X> {
     return false;
   }
   private notice(message: ServerMessage) {
-    if (message.type === "cut") process.stderr.write(`${message.reason}\n`);
-    if (message.type !== "rejection" || message.reason !== socketTexts.quota) return;
+    if (message.type === "cut") process.stderr.write(`${everySaid(message.reason)}\n`);
+    if (message.type !== "rejection" || !same(message.reason, socketTexts.quota)) return;
     const now = performance.now();
     if (now - this.quotaNotice < socketLimits.requestMs) return;
     this.quotaNotice = now;
-    process.stderr.write(`${socketTexts.quota}\n`);
+    process.stderr.write(`${everySaid(socketTexts.quota)}\n`);
   }
   readonly send = (message: ClientMessage): boolean => {
     if (this.closed || this.status() !== "connected" || !this.stream || this.stream.destroyed) return false;

@@ -1,4 +1,5 @@
 // The supervisor's verdict on an identity's marked act, in a turn of its own: opened, billed and closed by it.
+import { workingLanguage } from "../../fields/languages.ts";
 import { randomUUID } from "node:crypto";
 import { effect, type HouseEvent } from "../../house/facts.ts";
 import type { HouseEmission } from "../../house/facts.ts";
@@ -18,12 +19,12 @@ type Judge = (
  * verdict: the act waits for it as a device act waits for its result. */
 export function verdictTurns<X extends Program>(
   house: MindRuntimeHouse<X>,
-  options: Pick<MindRuntimeOptions, "language" | "rulesVersion">,
+  options: Pick<MindRuntimeOptions, "rulesVersion">,
   model: ModelPort,
   judge: Judge,
 ): ActVerdict {
   return async ({ id: act, by, through, act: proposal }) => {
-    const turn = verdictTurn(options.language, act, through);
+    const turn = verdictTurn(act, through);
     const emit = (kind: HouseEmission) => (house.active() ? house.execution.bus.emit(kind) : undefined);
     const isOpen = () => {
       const opened = house.execution.state().house.minds.turns.get(turn.id);
@@ -35,7 +36,7 @@ export function verdictTurns<X extends Program>(
     const { result, stop } = await judge(request, caller).catch(() => {
       // The call stopped the turn (the house closed, the twelve calls ran out): the act is not done, and says why.
       const reason = caller.stopped() ?? "internal";
-      const text = turnNotice.text(options.language, { reason });
+      const text = turnNotice.text(workingLanguage, { reason });
       const failed: ReviewResult = {
         proposal: act,
         through,
@@ -52,10 +53,9 @@ export function verdictTurns<X extends Program>(
     return result;
   };
 }
-const verdictTurn = (language: TurnContext["language"], act: string, through: number): TurnContext => ({
+const verdictTurn = (act: string, through: number): TurnContext => ({
   id: randomUUID(),
   scope: { kind: "consciousness", actor: supervisorActor },
-  language,
   wake: [act],
   through,
   limits: turnLimits,

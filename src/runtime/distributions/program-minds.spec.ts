@@ -1,4 +1,5 @@
 import "../../../tests/support/fixture-vault.ts";
+import { said } from "../../fields/phrases.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -14,7 +15,6 @@ it("derives a mind and opens without a key, with the reason visible", async () =
   const distribution = compose({ ...sampleOptions, minds: { assistants: false, programs: ["notes"] } });
   expect(distribution.mindDefinitions.map(mind => [mind.actor, mind.role])).toEqual([["mind:notes", "program:notes"]]);
   const modelMinds = await distribution.modelMinds({
-    language: "es",
     key: () => Promise.resolve(undefined),
     transport: () => Promise.reject(new Error("sin red")),
     account: "test",
@@ -33,8 +33,15 @@ it("derives a mind and opens without a key, with the reason visible", async () =
   });
   try {
     await (await house.minds)?.flush();
-    expect(localPorts(house, "ana", { recentLines: 20 }).openingNotices?.().join(" ")).toContain("llave");
-    expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toContain("llave");
+    expect(
+      localPorts(house, "ana", { recentLines: 20 })
+        .openingNotices?.()
+        .map(notice => said(notice, "es"))
+        .join(" "),
+    ).toContain("llave");
+    expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toContain(
+      "The provider's key is missing.",
+    );
   } finally {
     house.close();
     rmSync(home, { recursive: true, force: true });

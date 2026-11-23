@@ -1,18 +1,20 @@
 // Adds surface questions to the same typed data and expands bounded combinations.
+import type { Text } from "../../fields/phrases.ts";
+import { titled } from "../../fields/fields.ts";
 import { Type, type TSchema } from "@sinclair/typebox";
 import { isRecord } from "../../fields/json-values.ts";
 import { predicateSchema } from "../../house/rules/rule-schema.ts";
 import { ruleFormTexts as words } from "../../texts/rules.texts.ts";
 import { deepFreeze } from "../../journal/vocabulary.ts";
 const forms = new WeakMap<TSchema, TSchema>();
-const labels: Readonly<Record<string, string>> = words.fields;
-const choices: Readonly<Record<string, { title: string; key: string }>> = words.options;
+const labels: Readonly<Record<string, Text>> = words.fields;
+const choices: Readonly<Record<string, { title: Text; key: string }>> = words.options;
 function decorated(value: Record<string, unknown>): Record<string, unknown> {
   const result = { ...value };
   delete result.$id;
   if (typeof value.const === "string") {
     const choice = choices[value.const];
-    if (choice) Object.assign(result, choice);
+    if (choice) Object.assign(result, { ...titled(choice.title), key: choice.key });
   }
   if (value.type === "array") result.more = words.more;
   if (value.type === "string" && value.const === undefined)
@@ -25,8 +27,10 @@ function leaf(arm: unknown): boolean {
   const operator = arm.properties.operator;
   return !isRecord(operator) || !["all", "any", "not"].includes(String(operator.const));
 }
-function named(value: unknown, title: string): unknown {
-  return isRecord(value) ? { ...value, title: typeof value.title === "string" ? value.title : title } : value;
+function named(value: unknown, title: Text): unknown {
+  return isRecord(value) && value.said === undefined && typeof value.title !== "string"
+    ? { ...value, ...titled(title) }
+    : value;
 }
 function visit(value: unknown, depth: number, seen: WeakMap<object, Map<number, unknown>>): unknown {
   if (Array.isArray(value)) return value.map(item => visit(item, depth, seen));
@@ -36,8 +40,8 @@ function visit(value: unknown, depth: number, seen: WeakMap<object, Map<number, 
   if (value.$ref === "MechanicalPredicate") return visit(predicateSchema, depth + 1, seen);
   if (value.type === "boolean")
     return Type.Union([
-      Type.Literal(true, { title: words.yes, key: "s" }),
-      Type.Literal(false, { title: words.no, key: "n" }),
+      Type.Literal(true, { ...titled(words.yes), key: "s" }),
+      Type.Literal(false, { ...titled(words.no), key: "n" }),
     ]);
   const result = decorated(value);
   if (isRecord(value.properties))

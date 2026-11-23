@@ -1,7 +1,8 @@
 // The terminal renderer against the contract: it paints, reads its own grid back as plain data and hands it to the kit.
 import { describe, expect, it } from "vitest";
+import { languages } from "../../fields/languages.ts";
 import { walked } from "../../../tests/support/surface-tools.ts";
-import { catalog, drawn, hintKeys, sent, size } from "../../../tests/support/terminal-drawn.ts";
+import { catalogIn, drawn, hintKeys, sent, size } from "../../../tests/support/terminal-drawn.ts";
 import { conformance } from "../../checks/renderer-conformance.ts";
 import { hintSends } from "../../surface/contract/hint-sends.ts";
 import { bytesOf } from "./cells.ts";
@@ -15,7 +16,7 @@ describe("the terminal renderer, against the contract", () => {
     for (const { screen, path } of stops) {
       const grid = paint(screen, size);
       expect(bytesOf(grid)).not.toBe("");
-      for (const { check, missing } of conformance(screen, drawn(screen, grid), catalog))
+      for (const { check, missing } of conformance(screen, drawn(screen, grid), catalogIn(screen.language)))
         if (!failures.has(`${check}: ${missing}`)) failures.set(`${check}: ${missing}`, JSON.stringify(path));
     }
     /** Each failure once, with the first path that shows it. */
@@ -29,9 +30,11 @@ describe("the terminal renderer, against the contract", () => {
     expect(screens.some(screen => screen.hints.some(hint => hint.does === "cerrar"))).toBe(true);
   });
   it("sends, for each hint, what the table says it sends", () => {
-    for (const hint of hintKeys) {
-      const sends = hintSends[hint];
-      expect(sent(keyNames[hint]), hint).toEqual(sends === "move" ? [{ kind: "up" }, { kind: "down" }] : [sends]);
-    }
+    for (const language of languages)
+      for (const hint of hintKeys) {
+        const sends = hintSends[hint];
+        const expected = sends === "move" ? [{ kind: "up" }, { kind: "down" }] : [sends];
+        expect(sent(keyNames(language)[hint], language), hint).toEqual(expected);
+      }
   });
 });

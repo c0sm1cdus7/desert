@@ -20,7 +20,7 @@ it("11: directs a need only to its holder, while undirected needs still reach al
   };
   const read = (me: string) => {
     const ports = rig.ports(me, () => 0);
-    return noticesOf({ ...ports, act: value => ports.act(value, 0) }, tool, {
+    return noticesOf({ ...ports, language: "es" as const, act: value => ports.act(value, 0) }, tool, {
       name: "Ventas",
       titleOf: () => "Venta 1",
     }).notices().needs;
@@ -45,7 +45,9 @@ it.each(["nobody", "mind:sales", "carla"])("shows a need for %s to all holders i
   const tool = { ...salesTool, needs: () => [{ target: "sales", why: "Pendiente", to }] };
   const read = (me: string) => {
     const ports = rig.ports(me, () => 0);
-    return noticesOf({ ...ports, act: value => ports.act(value, 0) }, tool, { name: "Ventas" }).notices().needs;
+    return noticesOf({ ...ports, language: "es" as const, act: value => ports.act(value, 0) }, tool, {
+      name: "Ventas",
+    }).notices().needs;
   };
   for (const me of ["ana", "beto"]) expect(read(me)).toEqual([{ title: "Ventas", detail: "Pendiente" }]);
   for (const me of ["carla", "nobody", "mind:sales"]) expect(read(me)).toEqual([]);
@@ -57,7 +59,9 @@ it("reassigns Attention as its recipient loses, regains and leaves the tool acro
   const tool = { ...salesTool, needs: () => [{ target: "sales", why: "Pendiente", to: "beto" }] };
   const read = (me: string) => {
     const ports = rig.ports(me, () => 0);
-    return noticesOf({ ...ports, act: value => ports.act(value, 0) }, tool, { name: "Ventas" }).notices().needs;
+    return noticesOf({ ...ports, language: "es" as const, act: value => ports.act(value, 0) }, tool, {
+      name: "Ventas",
+    }).notices().needs;
   };
   expect(read("ana")).toEqual([]);
   expect(read("beto")).toHaveLength(1);
@@ -80,9 +84,13 @@ it("a manually supplied mind grant cannot hide a need from identities", () => {
   const state = ports.state();
   const house = { ...state.house, grants: new Map(state.house.grants).set("mind:sales", ["sales"]) };
   const tool = { ...salesTool, needs: () => [{ target: "sales", why: "Pendiente", to: "mind:sales" }] };
-  const notices = noticesOf({ ...ports, state: () => ({ ...state, house }), act: value => ports.act(value, 0) }, tool, {
-    name: "Ventas",
-  });
+  const notices = noticesOf(
+    { ...ports, language: "es" as const, state: () => ({ ...state, house }), act: value => ports.act(value, 0) },
+    tool,
+    {
+      name: "Ventas",
+    },
+  );
   expect(notices.notices().needs).toEqual([{ title: "Ventas", detail: "Pendiente" }]);
 });
 
@@ -100,7 +108,7 @@ it("keeps unread destinations in Attention across the program menu and replay, w
   put("sales/s2", "Mi pendiente", { attention: true }, "beto");
   const ports = rig.ports("beto", () => 5000);
   const read = noticesOf(
-    { ...ports, act: value => ports.act(value, 0) },
+    { ...ports, language: "es" as const, act: value => ports.act(value, 0) },
     { ...salesTool, needs: () => [] },
     {
       name: "Ventas",

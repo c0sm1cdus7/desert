@@ -57,7 +57,7 @@ describe.each(keyProviders)("$name", provider => {
       if (shape === "missing") vi.spyOn(rig.keys, "head").mockReturnValue(undefined);
       if (shape === "different") rig.keys.anchor(house, { count: 2, authentication: "a".repeat(64) });
       expect(() => rig.open()).toThrow(
-        shape === "missing" ? "E-CUSTODY-KEY" : /E-CUSTODY-ROLLBACK.*ancla espera.*vínculos/u,
+        shape === "missing" ? "E-CUSTODY-KEY" : /E-CUSTODY-ROLLBACK.*anchor expects.*bindings/u,
       );
     });
   it("accepting a restore verifies everything before moving the anchor", () => {

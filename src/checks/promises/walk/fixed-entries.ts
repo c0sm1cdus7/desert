@@ -1,4 +1,6 @@
 // Construction is positive evidence from every reachable entry, never an inference from a failed walk.
+import { meant } from "../../../fields/phrases.ts";
+import type { Language } from "../../../fields/languages.ts";
 import { stateResult } from "../../../journal/readonly-state.ts";
 import { deepStrictEqual, ok } from "node:assert/strict";
 import { findable } from "../../../surface/menus/finding.ts";
@@ -24,7 +26,7 @@ export const excludes = (row: Choice, answers: readonly string[]): boolean => {
   );
 };
 /** Start at the actual Menu and follow all view entries, including menus and links from other tools. */
-export function entries(tools: readonly Tool[]): readonly Choice[] {
+export function entries(tools: readonly Tool[], language: Language): readonly Choice[] {
   const pending: Picture[] = [{ kind: "menu", at: 0 }];
   const seen = new Set<string>();
   const found: Choice[] = [];
@@ -35,7 +37,7 @@ export function entries(tools: readonly Tool[]): readonly Choice[] {
     if (seen.has(key)) continue;
     seen.add(key);
     if (place.find === undefined && findable(place, tools)) pending.push({ ...place, find: "" });
-    const rows = stacksOf(place, tools).flatMap(stack => stack.rows);
+    const rows = stacksOf(place, tools, language).flatMap(stack => stack.rows);
     found.push(...rows.filter(row => row.starts !== undefined));
     for (const row of rows) if (!row.off && row.open?.kind === "view") pending.push(row.open);
   }
@@ -44,7 +46,7 @@ export function entries(tools: readonly Tool[]): readonly Choice[] {
 export function constructed<X extends Program>(seat: Seat<X>, { aim, kase, answers }: Told<X>): void {
   ok("refused" in kase.then, said.acceptedMissing);
   const target = kase.on === aim.tool.id ? undefined : kase.on;
-  const rows = entries(seat.tools).filter(
+  const rows = entries(seat.tools, seat.language).filter(
     row => row.starts?.tool === aim.tool.id && row.starts.act === aim.name && row.starts.target === target,
   );
   ok(rows.length, said.noEntry(aim.name));
@@ -58,7 +60,7 @@ export async function directRefusal<X extends Program>(house: House<X>, { aim, k
   ok(aim.act.refuses.includes(kase.then.refused), said.refusalMismatch);
   const before = house.tools.state();
   const result = await perform(house, aim.tool.id, { ...kase, act: aim.name });
-  ok(!result.defect, result.reason);
+  ok(!result.defect, meant(result.reason ?? ""));
   deepStrictEqual([result.status, result.reason], ["rejected", kase.then.refused], said.refusalMismatch);
   deepStrictEqual(wroteSince(house, before.through), []);
   deepStrictEqual(stateResult(house.tools.state().tools), stateResult(before.tools));

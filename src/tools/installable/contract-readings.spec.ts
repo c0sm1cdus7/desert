@@ -169,14 +169,19 @@ it("asks a field whose when reads the state only as it calls for it, on the loca
   const rig = distributionRig(program);
   try {
     const ports = localPorts(rig.house(), "ana", { recentLines: 20 });
-    const tools = houseTools(ports, shown);
+    const tools = houseTools(ports, shown, "es");
     const act = reader?.acts["reader/note"];
     if (!act) throw new Error("missing act");
     const own = { tool: "sales", name: "reader/note", act };
+    const surface = {
+      ...ports,
+      language: "es" as const,
+      act: (value: Parameters<typeof ports.act>[0]) => ports.act(value, ports.state().through),
+    };
     const { ask, walk } = walked(
-      { ...ports, act: value => ports.act(value, ports.state().through) },
+      surface,
       own,
-      questionsFor(ports, shown, () => tools),
+      questionsFor(surface, shown, () => tools),
     );
     expect(ask.next([], "sales/reader")).toBeNull();
     expect(walk.next([], "sales/reader")?.ask).not.toBe("Nota");

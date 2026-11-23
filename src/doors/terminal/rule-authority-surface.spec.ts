@@ -61,7 +61,7 @@ it("tells a member the proposal awaits approval and preserves the active version
   await f.press("f");
   expect(f.rig.state().house.rules.active.get("terminal-rule")).toBe(1);
   expect(f.rig.state().house.rules.versions.get("terminal-rule")).toHaveLength(2);
-  expect(f.screen()).toContain(rulesTexts.draft);
+  expect(f.screen()).toContain(rulesTexts.draft.es);
 });
 it("updates the effect and verb when a member becomes admin during the form", async () => {
   const f = fixture("beto");

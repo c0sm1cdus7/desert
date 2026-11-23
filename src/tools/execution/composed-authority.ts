@@ -1,4 +1,5 @@
 // An own act cannot take a tool action's place, and each program fact has at most one declared owner.
+import { meant } from "../../fields/phrases.ts";
 import { Value } from "@sinclair/typebox/value";
 import { actionExecution } from "../../fields/device-protocol.ts";
 import { deviceTexts } from "../../texts/devices.texts.ts";
@@ -22,7 +23,7 @@ export function checkComposition<X extends Program>(
   for (const tool of registry) {
     for (const act of Object.values(tool.acts))
       if (act.execution !== undefined && !Value.Check(actionExecution, act.execution))
-        throw new Error(deviceTexts.invalid);
+        throw new Error(meant(deviceTexts.invalid));
     for (const kind of tool.facts ?? []) {
       if (layerOf(kind) === "house" || owners.has(kind))
         throw new Error(`El hecho ${kind} de ${tool.id} ya pertenece a ${owners.get(kind) ?? "la casa"}`);

@@ -30,7 +30,7 @@ const answer = {
 it("builds closed concrete branches and keeps local constraints when reducing the transport", () => {
   const schema = answerSchema(menu);
   expect(Value.Check(schema, answer)).toBe(true);
-  const transport = providerSchema(schema);
+  const transport = providerSchema(schema, "en");
   expect(JSON.stringify(transport)).not.toMatch(/minLength|maximum|minimum|maxItems/);
   expect(matchesSchema(transport, answer)).toBe(true);
   expect(validateAnswer(answer, context)).toEqual({ ok: true, answer });

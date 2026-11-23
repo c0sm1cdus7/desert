@@ -1,4 +1,5 @@
 // Connects an assigned card to its provider and keeps the cost of each attempt.
+import { workingLanguage } from "../../fields/languages.ts";
 import { callAnthropic, ModelFailure, requestBody } from "../../adapters/models/anthropic.ts";
 import { costUsd, type Card, type Usage } from "../../adapters/models/catalog.ts";
 import { mindRequest } from "./mind-request.ts";
@@ -68,11 +69,11 @@ function logFailure(error: ModelFailure, request: ModelRequest) {
   const rejection = error.rejection;
   if (error.kind === "http")
     console.log(
-      modelFailureLog.text("es", {
+      modelFailureLog.text(workingLanguage, {
         mind: request.mind,
         turn: request.turn,
         number: request.number,
-        cause: turnNotice.text("es", { reason: "http", ...(rejection ? { rejection } : {}) }),
+        cause: turnNotice.text(workingLanguage, { reason: "http", ...(rejection ? { rejection } : {}) }),
       }),
     );
 }

@@ -1,4 +1,5 @@
 // A house router over a socket connection, with no TTY: what the terminal draws from and what the screen door draws.
+import { everySaid } from "../../../fields/phrases.ts";
 import { coreRegistry } from "../../../tools/identities/identities.ts";
 import type { Composition } from "../../../tools/promises.ts";
 import type { Program, ViewLimits } from "../../../tools/tool-contract.ts";
@@ -38,7 +39,10 @@ export function openHouseRouter<X extends Program>(
     router,
     // A key the house cut closes the connection with no failure text: being disconnected is the ending then.
     ended: () => connection.failure() !== undefined || connection.status() === "disconnected",
-    failure: connection.failure,
+    failure: () => {
+      const failure = connection.failure();
+      return failure === undefined ? undefined : everySaid(failure);
+    },
     watch: connection.watch,
     close: () => {
       router.stop();

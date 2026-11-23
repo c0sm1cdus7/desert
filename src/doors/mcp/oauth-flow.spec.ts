@@ -87,7 +87,7 @@ it("derives the host as the actual admin without journal writes, redacts it and 
   expect(f.h.history().includes(credential)).toBe(false);
   const reading = await f.read(credential);
   expect(reading.body.includes(credential)).toBe(false);
-  expect(reading.body).toContain("[secreto]");
+  expect(reading.body).toContain("[secret]");
 });
 
 it("rejects a well-formed but incorrect PKCE verifier with the same grant revocation", async () => {

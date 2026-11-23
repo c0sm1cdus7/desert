@@ -71,12 +71,12 @@ it("passes three distinct talk-line contexts with text fields and isolated journ
   f.respond(frame => {
     const body = bodies.find(body => frame.includes(body));
     if (!body) throw new Error("body");
-    const journey = frame.match(/^Alcance:\nmind:notes \/ (journey:[a-f0-9-]+)/)?.[1];
+    const journey = frame.match(/^Scope:\nmind:notes \/ (journey:[a-f0-9-]+)/)?.[1];
     if (journey) {
       seen.push(body);
       return answer(finishWork(journey, body), "Working");
     }
-    return answer(frame.includes("Escena:\nWorking") ? [] : [openWork(body)], "Working");
+    return answer(frame.includes("Scene:\nWorking") ? [] : [openWork(body)], "Working");
   });
   const house = await f.open(false);
   expect(f.transport).not.toHaveBeenCalled();
@@ -121,10 +121,10 @@ it("does not certify a card when one of its three talk-line scenes fails", async
   f.respond(frame => {
     const body = bodies.find(body => frame.includes(body));
     if (!body) throw new Error("body");
-    const journey = frame.match(/^Alcance:\nmind:notes \/ (journey:[a-f0-9-]+)/)?.[1];
+    const journey = frame.match(/^Scope:\nmind:notes \/ (journey:[a-f0-9-]+)/)?.[1];
     return journey
       ? answer(finishWork(journey, body), "Working")
-      : answer(frame.includes("Escena:\nWorking") ? [] : [openWork(body)], "Working");
+      : answer(frame.includes("Scene:\nWorking") ? [] : [openWork(body)], "Working");
   });
   const house = await f.open(false);
   await f.bank(house);

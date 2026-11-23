@@ -29,7 +29,7 @@ it("code mode proves reconstruction after a calculation change without reusable 
   const current = program(version, 2);
   expect(await check(current, folder)).toEqual(
     expect.arrayContaining([
-      expect.stringMatching(/shop.sqlite: RECONSTRUIDO.*cambio de código: huella distinta y RECONSTRUIDO/),
+      expect.stringMatching(/shop.sqlite: REBUILT.*code change: different fingerprint and REBUILT/),
     ]),
   );
   const house = open(path, current);
@@ -45,10 +45,10 @@ it("code mode accepts legacy folds and standalone sources, and reports actual re
   const current = program(codeProjectionVersion([source]));
   const path = home();
   legacy(path, "19a0b47");
-  expect(await check(current, kept(path))).toEqual(expect.arrayContaining([expect.stringMatching(/RECONSTRUIDO/)]));
+  expect(await check(current, kept(path))).toEqual(expect.arrayContaining([expect.stringMatching(/REBUILT/)]));
   const fresh = home();
   await seed(fresh, current);
-  expect(await check(current, kept(fresh))).toEqual(expect.arrayContaining([expect.stringMatching(/REUTILIZADO/)]));
+  expect(await check(current, kept(fresh))).toEqual(expect.arrayContaining([expect.stringMatching(/REUSED/)]));
 });
 it("cannot label an arbitrary string as a code-derived version or compose stale code", async () => {
   expect(() => new CodeProjectionVersion([])).toThrow();

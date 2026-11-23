@@ -1,4 +1,5 @@
 // A rejected child cannot disturb its owner; the OS releases ownership even without a close.
+import { meant } from "../fields/phrases.ts";
 import { mkdirSync, existsSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "vitest";
@@ -38,7 +39,7 @@ it.each([
         let results = await Promise.all(children.map(c => c.next()));
         if (mode === "lease") results = await releaseAcquiring(children, results, root);
         expect(results.filter(r => r === "opened")).toHaveLength(1);
-        expect(results.filter(r => r === journalTexts.locked)).toHaveLength(children.length - 1);
+        expect(results.filter(r => r === meant(journalTexts.locked))).toHaveLength(children.length - 1);
         const owner = children[results.indexOf("opened")];
         if (!owner) throw new Error("No owner");
         expect(existsSync(join(root, "journal.lock"))).toBe(false);
@@ -78,7 +79,7 @@ it.each([false, true])(
       owner.send("open");
       expect(await owner.next()).toBe("opened");
       rejected.send("open");
-      expect(await rejected.next()).toBe(journalTexts.locked);
+      expect(await rejected.next()).toBe(meant(journalTexts.locked));
       await rejected.stop();
       owner.send("write");
       expect(await owner.next()).toBe("wrote");

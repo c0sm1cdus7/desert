@@ -1,4 +1,5 @@
 // A local rejection must preserve the owner's OS lock against a later real process.
+import { meant } from "../fields/phrases.ts";
 import { once } from "node:events";
 import { symlinkSync } from "node:fs";
 import { join } from "node:path";
@@ -30,7 +31,7 @@ it.each(["same", "alias", "worker", "maintenance", "reader"])(
       `;
       const worker = new Worker(new URL(`data:text/javascript,${encodeURIComponent(code)}`));
       try {
-        expect(await once(worker, "message")).toEqual([journalTexts.locked]);
+        expect(await once(worker, "message")).toEqual([meant(journalTexts.locked)]);
         await once(worker, "exit");
       } finally {
         await worker.terminate();
@@ -38,7 +39,7 @@ it.each(["same", "alias", "worker", "maintenance", "reader"])(
     } else if (mode === "reader") journalReader(file, shop).close();
     else
       expect(() => (mode === "maintenance" ? journalKept(file) : open(mode === "alias" ? alias : file))).toThrow(
-        journalTexts.locked,
+        meant(journalTexts.locked),
       );
     const child = contender(file, root, "later");
     try {
@@ -46,7 +47,7 @@ it.each(["same", "alias", "worker", "maintenance", "reader"])(
       child.send("open");
       const result = await child.next();
       await child.stop();
-      expect(result).toBe(journalTexts.locked);
+      expect(result).toBe(meant(journalTexts.locked));
       expect(owner.append(sale("after"), 1).seq).toBe(2);
       expect(state()).toEqual(["before", "after"]);
       expect(owner.replay([], fold)).toEqual(state());

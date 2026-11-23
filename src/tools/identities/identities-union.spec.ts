@@ -26,7 +26,7 @@ it("personal scene and assistant delegation keep their rules; administrative act
       expect([act, done.status, done.reason]).toEqual([
         act,
         "rejected",
-        act === "delegate-assistant" ? "asistente sin habilitar" : refused,
+        act === "delegate-assistant" ? { en: "assistant not enabled", es: "asistente sin habilitar" } : refused,
       ]);
       expect(facts(house)).toBe(before);
     }
@@ -79,7 +79,7 @@ it("who was removed reads nothing, Identities included, and sends no act; who st
     const core = () => before.tools.find(tool => tool.id === "identities");
     expect(core()?.off?.()).toBeUndefined();
     await perform(house(), "identities", { on: identityTarget("carla"), act: "remove", input: {} });
-    expect(core()?.off?.()).toBe(toolTexts.unassigned);
+    expect(core()?.off?.()).toBe(before.say(toolTexts.unassigned));
     for (const tool of before.tools.filter(each => each.id !== "preferences"))
       expect([tool.id, tool.notices?.().news ?? []]).toEqual([tool.id, []]);
     const acts = () =>

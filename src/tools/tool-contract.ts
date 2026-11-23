@@ -6,6 +6,7 @@ export type ViewLimits = Readonly<{ recentLines: number }> &
 import type { ActionExecution } from "../fields/device-protocol.ts";
 import type { ContractAccess, ContractFailureReason, ContractFactory, ContractReadings } from "./contract-port.ts";
 import type { Capability } from "../fields/capabilities.ts";
+import type { Text } from "../fields/phrases.ts";
 import type { Skill } from "../fields/messages.ts";
 import type { DeepReadonly } from "../journal/readonly-state.ts";
 import type { TSchema } from "@sinclair/typebox";
@@ -67,11 +68,11 @@ type Accepted<X extends Program> = Partial<
   Pick<Entry["data"], "text" | "detail" | "target" | "attention" | "silent" | "made" | "diagnostic">
 > &
   Effects<X> &
-  Readonly<{ status: "accepted"; private?: string }>;
+  Readonly<{ status: "accepted"; private?: Text }>;
 export type ActResult<X extends Program> =
   | Accepted<X>
-  | (Effects<X> & Readonly<{ status: "inconclusive"; reason?: string }>)
-  | (Effects<X> & Readonly<{ status: "rejected" | "interrupted"; reason: string }>);
+  | (Effects<X> & Readonly<{ status: "inconclusive"; reason?: Text }>)
+  | (Effects<X> & Readonly<{ status: "rejected" | "interrupted"; reason: Text }>);
 /** "world" when the act leaves the house; everything else stays in it. */
 export type Reach = "house" | "world";
 export type ActContext<X extends Program> = ToolCapabilities &
@@ -94,16 +95,16 @@ export interface ToolAct<X extends Program> extends Readonly<{ input: TSchema; r
   readonly on?: "tool" | "thing";
   /** The tool's cause for not offering this act in this state, at this moment; an act that does not work is not
    * offered. What cannot be done today says so on its row. */
-  readonly offered?: (state: State<X>, target: string, at: number) => string | undefined;
+  readonly offered?: (state: State<X>, target: string, at: number) => Text | undefined;
   /** The act returns something to read; only then does its late result call for attention. */
   readonly output?: boolean;
   secretInput?(input: unknown): boolean;
   run(input: unknown, context: ActContext<X>): ActResult<X> | Promise<ActResult<X>>;
-  reject?(context: ActContext<X>, result: Accepted<X>): string | undefined;
+  reject?(context: ActContext<X>, result: Accepted<X>): Text | undefined;
 }
-export interface Tool<X extends Program> extends Readonly<{ id: string; purpose: string }> {
-  readonly name?: string;
-  readonly toolNames?: Readonly<Record<string, string>>;
+export interface Tool<X extends Program> extends Readonly<{ id: string; purpose: Text }> {
+  readonly name?: Text;
+  readonly toolNames?: Readonly<Record<string, Text>>;
   readonly actionTools?: Readonly<Record<string, string>>;
   /** Minds talk through this tool, so every tool mind may hold it besides its own (signed 20/11). */
   readonly talks?: boolean;
@@ -116,7 +117,7 @@ export interface Tool<X extends Program> extends Readonly<{ id: string; purpose:
   targets(state: State<X>): readonly string[];
   view(state: State<X>, target: string, limits: ViewLimits): string;
   viewData?(state: State<X>, target: string): unknown;
-  summary(state: State<X>): string;
+  summary(state: State<X>): Text;
   /** Stable reaction ids bind a notice kind to an own action; its input is the notice data. */
   readonly reactions?: Readonly<Record<string, Readonly<{ when: Event<X["fact"]>["kind"]; act: string }>>>;
   draft?(state: State<X>, through: number, input: unknown, target: string, at: number): string | undefined;
@@ -126,4 +127,4 @@ export type ToolRegistry<X extends Program> = readonly Tool<X>[];
 export const actNews = (result: Readonly<{ status: string; output?: boolean | undefined }>): boolean =>
   result.status === "rejected" || result.status === "interrupted" || result.output === true;
 /** An act the house offers an identity directly, outside any tool. */
-export type OwnAct<X extends Program> = ToolAct<X> & Readonly<{ object: string; option: string; purpose: string }>;
+export type OwnAct<X extends Program> = ToolAct<X> & Readonly<{ object: string; option: string; purpose: Text }>;

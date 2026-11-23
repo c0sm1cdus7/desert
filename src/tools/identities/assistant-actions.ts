@@ -16,7 +16,7 @@ import { programAct } from "../promises.ts";
 import type { Program, ToolRegistry, ActContext, State } from "../tool-contract.ts";
 import { targetIdentity } from "./identity-reading.ts";
 import { assistantCases } from "./assistant-cases.ts";
-const w = (key: AssistantTextKey) => assistantText(key, "es");
+const w = (key: AssistantTextKey) => assistantText(key);
 const nameInput = { ...text(w("name"), w("nameHint")), maxLength: 160 };
 function ownerProblem(house: House, owner: string) {
   if (isMindActor(owner)) return identityTexts.ownActions;

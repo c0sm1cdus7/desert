@@ -17,7 +17,11 @@ it("finish checks the kit even if the change did not go through the listener", a
   rig.journal.append(effect("kit-set", { holder: "beto", tool: "slow", acts: [] }, "ana"), 5000);
   expect(rig.calls[0]?.context.signal?.aborted).toBe(false);
   rig.calls[0]?.done.resolve(saved);
-  expect(await settled(pending)).toMatchObject({ status: "interrupted", reason: "sacada", effects: [] });
+  expect(await settled(pending)).toMatchObject({
+    status: "interrupted",
+    reason: { en: "removed", es: "sacada" },
+    effects: [],
+  });
   expect(rig.state().entries).toEqual([]);
 });
 
@@ -55,8 +59,8 @@ it("a cut parent starts no other act even if the other action is still given", a
     target: "sales",
     input: { sale: "s1", total: 100 },
   });
-  await expect(nested).resolves.toMatchObject({ status: "interrupted", reason: "sacada" });
+  await expect(nested).resolves.toMatchObject({ status: "interrupted", reason: { en: "removed", es: "sacada" } });
   expect(rig.state().tools.sales.has("s1")).toBe(false);
   rig.calls[0]?.done.resolve(saved);
-  expect(await settled(pending)).toMatchObject({ status: "interrupted", reason: "sacada" });
+  expect(await settled(pending)).toMatchObject({ status: "interrupted", reason: { en: "removed", es: "sacada" } });
 });

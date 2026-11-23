@@ -1,4 +1,6 @@
 // The one surface contract: what every renderer draws, and what it sends back. Keys and cells are not here.
+import type { Language } from "../../fields/languages.ts";
+import type { Text } from "../../fields/phrases.ts";
 import type { Tone } from "./tones.ts";
 export interface Span {
   readonly text: string;
@@ -103,6 +105,8 @@ export interface Panel {
   readonly top: number;
 }
 export interface Screen {
+  /** The language its words are in: the one its reader reads the house in. */
+  readonly language: Language;
   readonly title: string;
   readonly state: "connected" | "connecting" | "signal-lost" | "disconnected";
   readonly clock: string;
@@ -122,6 +126,8 @@ export interface Option {
   readonly off?: boolean;
   /** It is no answer yet: choosing it starts the act that makes a new thing, and what it makes is the answer. */
   readonly makes?: { readonly tool: string; readonly act: string };
+  /** It is what the datum already is: its detail says so, in the reader's words. */
+  readonly current?: true;
 }
 interface Question {
   /** An amount may be reused only while its currency stays the same. */
@@ -133,6 +139,8 @@ interface Question {
   readonly wrong?: (value: string, submitted?: boolean) => string | undefined;
   /** What the datum is today, as an answer: a question that changes it says so beside its name. */
   readonly current?: string;
+  /** How an option that is what the datum already is says so, in the reader's language. */
+  readonly currentSays?: string;
   /** This answer would finish the act leaving all its data unchanged. */
   readonly unchanged?: (answer: string) => boolean;
   /** It is all its act asks: choosing what the datum already is would change nothing, so that option is off. */
@@ -148,7 +156,7 @@ export interface Mask {
   /** What is typed after one more key; the same as before when the key does not fit. */
   put(typed: string, text: string): string;
   /** Why a key is ignored, even when other characters in the same paste fit. */
-  rejected?(typed: string, text: string): string | undefined;
+  rejected?(typed: string, text: string): Text | undefined;
   shown(typed: string): string;
   remaining?(typed: string): string;
   padding?(typed: string): number;
@@ -172,6 +180,8 @@ export type Field = Question &
         readonly nothing: () => string;
       }
     | ({ readonly kind: "confirm"; readonly options: readonly Option[]; readonly reversible?: boolean } & {
+        /** The option that goes back without doing it, in the reader's language. */
+        readonly back: string;
         /** What the act is for, and that it cannot be undone when it cannot: read under what is to be confirmed. */
         readonly note?: string;
       })

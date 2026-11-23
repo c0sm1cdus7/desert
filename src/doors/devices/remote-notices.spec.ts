@@ -1,4 +1,5 @@
 // A device's durable outbox over HTTP: sent until answered, resent after a cut, and loud against an older house.
+import { meant } from "../../fields/phrases.ts";
 import { expect, it, vi } from "vitest";
 import { deviceHttpHouse, onCleanup } from "../../../tests/support/device-http-house.ts";
 import { deviceOutbox, finished } from "../../../tests/support/device-outbox.ts";
@@ -46,7 +47,7 @@ it("sends what it owes on connecting and each new notice, until the house answer
   const outbox = deviceOutbox([finished("missing")]);
   const reasons = start(h, outbox);
   await wait(() => expect(outbox.answers.get("missing")).toBe("refused"));
-  expect(reasons).toEqual([deviceTexts.noticeRefused("missing")]);
+  expect(reasons).toEqual([meant(deviceTexts.noticeRefused("missing"))]);
   expect(await settle(h.act("mac"))).toMatchObject({ status: "accepted" });
   const [execution] = executions(h);
   outbox.push(finished(execution?.execution ?? "", { exit: 0 }));
@@ -89,7 +90,7 @@ it("fails loudly against a house older than its notices and keeps every notice f
   };
   const reasons = start(h, outbox, old);
   await wait(() => expect(reasons.length).toBeGreaterThan(1));
-  expect(new Set(reasons)).toEqual(new Set([`connection: Error: ${deviceTexts.refusedBody}`]));
+  expect(new Set(reasons)).toEqual(new Set([`connection: Error: ${meant(deviceTexts.refusedBody)}`]));
   expect(outbox.answers.size).toBe(0);
 });
 it("sends no notices field from a device whose tools do not announce, so an older house still reads it", async () => {
@@ -138,7 +139,7 @@ it("trims a notice that would fill the body to the byte, and never lets one that
   );
   await box.open(() => true);
   outbox.push(finished("small"));
-  expect(told).toEqual([deviceTexts.noticeTrimmed("whole")]);
+  expect(told).toEqual([meant(deviceTexts.noticeTrimmed("whole"))]);
   const busy = box.offer(deviceHttpLimits.body / 2);
   expect(busy.map(notice => [notice.execution, "value" in notice])).toEqual([
     ["whole", false],
@@ -165,5 +166,5 @@ it("leaves out and names one tool's invalid notice, and still sends every other 
   a.push({ ...bad, execution: "worse" });
   b.push(finished("better"));
   expect(box.offer(deviceHttpLimits.envelope).map(notice => notice.execution)).toEqual(["good", "better"]);
-  expect(told).toEqual([deviceTexts.noticeInvalid("a", "bad"), deviceTexts.noticeInvalid("a", "worse")]);
+  expect(told).toEqual([meant(deviceTexts.noticeInvalid("a", "bad")), meant(deviceTexts.noticeInvalid("a", "worse"))]);
 });

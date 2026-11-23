@@ -14,7 +14,7 @@ it("does not admit a question context with an absent clock or a possibly absent 
   expectTypeOf<() => string | undefined>().not.toExtend<AskWords["today"]>();
 });
 it("rejects a missing local calendar explicitly, including a day that only has a last bound", () => {
-  const words = questionWords(() => instant, shopShown);
+  const words = questionWords(() => instant, shopShown, "es");
   expect(() => asking(object({ on: day("Día", "today") }), words)).toThrow("OutsideDefect");
   const question = asking(object({ on: day("Día", undefined, "today") }), words).next([]);
   expect(() => question?.wrong?.("13112026")).toThrow("OutsideDefect");
@@ -29,7 +29,7 @@ it("uses the supplied local day and the live instant for a field's own rule", ()
     }),
   });
   const clock = askingClock(() => now, localDay);
-  const field = asking(input, questionWords(clock.now, { ...shopShown, day: localDay })).next([]);
+  const field = asking(input, questionWords(clock.now, { ...shopShown, day: localDay }, "es")).next([]);
   field?.wrong?.("Ana");
   now += 86_400_000;
   field?.wrong?.("Ana");

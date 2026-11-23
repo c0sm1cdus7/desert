@@ -1,4 +1,5 @@
 import { mkdtempSync, readFileSync, writeFileSync, rmSync, statSync, existsSync } from "node:fs";
+import { meant } from "../../fields/phrases.ts";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { expect, it } from "vitest";
@@ -15,9 +16,12 @@ it("g05 d2: the launched house leaves shutdown and unfinished acts in owner-only
     process.kill(pid, "SIGTERM");
     const path = join(root, "house.log");
     const until = Date.now() + 12000;
-    while ((!existsSync(path) || !readFileSync(path, "utf8").includes(socketTexts.pending(1))) && Date.now() < until)
+    while (
+      (!existsSync(path) || !readFileSync(path, "utf8").includes(meant(socketTexts.pending(1)))) &&
+      Date.now() < until
+    )
       await delay(20);
-    expect(readFileSync(path, "utf8")).toContain(socketTexts.pending(1));
+    expect(readFileSync(path, "utf8")).toContain(meant(socketTexts.pending(1)));
     expect(readFileSync(join(root, "storage-notices.jsonl"), "utf8")).toContain("fixture rebuild notice");
     expect(statSync(join(root, "storage-notices.jsonl")).mode & 0o777).toBe(0o600);
     expect(readFileSync(path, "utf8")).toContain("fixture scrubbed diagnostic");

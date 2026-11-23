@@ -25,7 +25,7 @@ it("the reader returns the typed number and respects the schedule's limits", () 
         maximum: 840,
       }),
     }),
-    { formats: formats(locale), now: () => 0, today: () => "2026-11-18", optionalMark: " · opcional" },
+    { formats: formats(locale), now: () => 0, today: () => "2026-11-18", optionalMark: " · opcional", language: "es" },
   );
   const field = reader.next([]);
   expect(field?.valid?.("-180")).toBe(true);

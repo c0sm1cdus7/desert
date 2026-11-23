@@ -36,9 +36,7 @@ it("an act that leaves the house is applied and told back without a verdict, and
   f.respond(frame => {
     if (supervising(frame)) return judge(frame);
     said.push(frame);
-    return notes(house, frame, (goal, shown, id) =>
-      shown.includes("Resultados de los actos") ? [end(id)] : [out(goal)],
-    );
+    return notes(house, frame, (goal, shown, id) => (shown.includes("Results of the acts") ? [end(id)] : [out(goal)]));
   });
   await think(house, "Mandá el pedido");
   expect(moments(framesOf(f))).toEqual(["turn"]);
@@ -47,5 +45,5 @@ it("an act that leaves the house is applied and told back without a verdict, and
   expect(journey?.closed?.data.outcome).toBe("done");
   const turn = [...house.tools.state().house.minds.turns.values()].find(each => each.opened.process === journey?.id);
   expect(turn?.closed?.data).toMatchObject({ outcome: "done", calls: 2 });
-  expect(said.filter(text => text.includes("1. outbox/send → notes/outbox: aceptado."))).toHaveLength(1);
+  expect(said.filter(text => text.includes("1. outbox/send → notes/outbox: accepted."))).toHaveLength(1);
 });

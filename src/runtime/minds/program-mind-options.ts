@@ -1,4 +1,5 @@
 // Builds model resources from a composition while keeping its catalog and fingerprints in DESERT.
+import { workingLanguage } from "../../fields/languages.ts";
 import { createHash } from "node:crypto";
 import { cards } from "../../adapters/models/catalog.ts";
 import { frameHouse, frameLabels } from "../../texts/mind-frame.texts.ts";
@@ -14,7 +15,6 @@ export type ProgramMindResources = Pick<
   | "transport"
   | "account"
   | "capNanoUsd"
-  | "language"
   | "billing"
   | "spendingAccount"
   | "cards"
@@ -66,10 +66,10 @@ function assistantFingerprint(program: Composition<Program>, definition: MindDef
   return {
     cases: hash([version, []]),
     skill: hash([
-      ...program.registry.filter(item => talks.has(item.id)).map(item => item.skill?.text("es", {})),
-      definition.rules.text("es", {}),
+      ...program.registry.filter(item => talks.has(item.id)).map(item => item.skill?.text(workingLanguage, {})),
+      definition.rules.text(workingLanguage, {}),
     ]),
-    frameTexts: hash([version, frameHouse.text("es", {}), frameLabels.text("es", {})]),
+    frameTexts: hash([version, frameHouse.text(workingLanguage, {}), frameLabels.text(workingLanguage, {})]),
   };
 }
 function fingerprintsFor(
@@ -87,10 +87,10 @@ function fingerprintsFor(
         {
           cases: hash([version, cases.map(item => item.id)]),
           skill: hash([
-            program.registry.find(item => item.id === id)?.skill?.text("es", {}),
-            definition.rules.text("es", {}),
+            program.registry.find(item => item.id === id)?.skill?.text(workingLanguage, {}),
+            definition.rules.text(workingLanguage, {}),
           ]),
-          frameTexts: hash([version, frameHouse.text("es", {}), frameLabels.text("es", {})]),
+          frameTexts: hash([version, frameHouse.text(workingLanguage, {}), frameLabels.text(workingLanguage, {})]),
         },
       ];
     }),

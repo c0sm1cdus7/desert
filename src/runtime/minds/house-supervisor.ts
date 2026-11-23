@@ -1,4 +1,5 @@
 // One supervisor per house: verdicts on marked acts and answers to consultations, and its own turns woken by facts.
+import { workingLanguage } from "../../fields/languages.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { requireMind } from "../../fields/mind-errors.ts";
@@ -74,18 +75,18 @@ class Supervisor<X extends Program> {
         result: {
           ...base,
           outcome: "passed",
-          text: supervisorNotice.text(turn.language, { kind: "stops", detail: "" }),
+          text: supervisorNotice.text(workingLanguage, { kind: "stops", detail: "" }),
         },
       };
-    const frame = reviewFrame(this.house, this.options, request, ruleLines(turn.language, acts));
+    const frame = reviewFrame(this.house, this.options, request, ruleLines(workingLanguage, acts));
     const outcome = await caller.consult(supervisorActor, frame, verdict);
     if (outcome.kind === "answer" && Value.Check(verdict, outcome.value))
       return { result: { ...base, outcome: outcome.value.outcome, text: outcome.value.text } };
     const stop = stopOf(outcome);
-    const detail = turnNotice.text(turn.language, { reason: stop });
+    const detail = turnNotice.text(workingLanguage, { reason: stop });
     // A marked act the supervisor could not judge is not done; a consultation hears why there was no answer.
     if (request.reason === "rule") return { result: { ...base, outcome: "failed", text: detail }, stop };
-    const text = supervisorNotice.text(turn.language, { kind: "unavailable", detail });
+    const text = supervisorNotice.text(workingLanguage, { kind: "unavailable", detail });
     return { result: { ...base, outcome: "passed", text }, stop };
   };
   policy = (message: WakePolicy["message"]): WakePolicy => {

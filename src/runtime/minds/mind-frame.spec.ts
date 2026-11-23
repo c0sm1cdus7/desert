@@ -24,7 +24,6 @@ const scope = { kind: "consciousness", actor: "assistant:franco" } as const;
 const turn = {
   id: "t",
   scope,
-  language: "es",
   wake: ["e1"],
   through: 4,
   limits: turnLimits,

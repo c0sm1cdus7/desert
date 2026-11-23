@@ -1,4 +1,5 @@
 // Public envelopes redact credentials and explicitly correlate redacted identifiers by a stable digest.
+import { meant } from "../../../fields/phrases.ts";
 import { doorTexts } from "../../../texts/doors.texts.ts";
 import { createHash } from "node:crypto";
 import type { ServerMessage } from "../wire/protocol.ts";
@@ -6,7 +7,8 @@ export const requestDigest = (id: string) => createHash("sha256").update(`socket
 export function publicMessage(message: ServerMessage, prepare: <T>(value: T) => T): ServerMessage {
   const clean = prepare(message);
   if (message.type === "result" && clean.type === "result") {
-    const code = message.private?.match(/^[^:]*: ([2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}) /)?.[1];
+    const receipt = message.private === undefined ? undefined : meant(message.private);
+    const code = receipt?.match(/^[^:]*: ([2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}) /)?.[1];
     if (code) return { ...clean, private: doorTexts.receipt(code), ...safeId(message, clean) };
   }
   return { ...clean, ...safeId(message, clean) };

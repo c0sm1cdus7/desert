@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { meant } from "../fields/phrases.ts";
 import { socketHouse } from "../../tests/support/socket-house.ts";
 import { houseProtocolVersion, socketLimits } from "../doors/socket/wire/protocol.ts";
 import { wire } from "../../tests/support/socket-probe.ts";
@@ -19,7 +20,7 @@ describe.each(["stream", "unix"] as const)("%s", transport => {
     await c.until(c.closed);
     expect(c.messages[0]?.type).toBe("rejection");
     const first = c.messages[0];
-    const reason = first?.type === "rejection" ? first.reason : "";
+    const reason = first?.type === "rejection" ? meant(first.reason) : "";
     expect(reason).toContain("protocol" in extra ? "999" : "0.0.0");
     expect(reason).toContain("protocol" in extra ? String(houseProtocolVersion) : process.versions.node);
     expect(c.states).toHaveLength(0);

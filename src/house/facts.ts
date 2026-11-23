@@ -8,6 +8,7 @@ import { executionDestination } from "../fields/device-protocol.ts";
 import { selectionKitSchema } from "./kit-selection.ts";
 import { name, preference, scene, spoken, t, toolLimits } from "./own-acts.ts";
 import { wholeNumber } from "../fields/json-values.ts";
+import { textSchema } from "../fields/text-schema.ts";
 import { ids } from "./ids.ts";
 import { Type } from "@sinclair/typebox";
 import { object } from "../fields/visible-text.ts";
@@ -71,15 +72,16 @@ export const houseCatalog = {
   "act-result": object({
     act: name,
     status: actStatus,
-    reason: text,
+    reason: textSchema,
     defect: Type.Optional(Type.Literal(true)),
     output: Type.Optional(Type.Boolean()),
   }),
+  /** What an act said, beside its target: what someone wrote, or the house's words in every language. */
   "tool-entry": object({
     tool: name,
     target: name,
     author: name,
-    text,
+    text: textSchema,
     draft: Type.Optional(Type.Boolean()),
     attention: Type.Optional(Type.Boolean()),
     silent: Type.Optional(Type.Boolean()),
@@ -88,7 +90,7 @@ export const houseCatalog = {
     /** The things that were not there before the act and are there after it: what it made, besides its target. */
     made: Type.Optional(Type.Array(name)),
   }),
-  "act-done": object({ object: name, act: name, text }),
+  "act-done": object({ object: name, act: name, text: textSchema }),
   attended: object({ target: name }),
   unattended: object({ target: name }),
   /** A tool calls an identity, or with `null` stops; a number is a reminder's delay from before 21/11. */

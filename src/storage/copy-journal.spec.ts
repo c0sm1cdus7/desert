@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { meant } from "../fields/phrases.ts";
 import { expect, it } from "vitest";
 import { contender } from "../../tests/support/storage-process.ts";
 import { fold, home, open, sale, watch } from "../../tests/support/storage-rig.ts";
@@ -18,7 +19,7 @@ it("copies a live journal through SQLite including its WAL, without disturbing t
   try {
     expect(await child.next()).toBe("ready");
     child.send("open");
-    expect(await child.next()).toBe(journalTexts.locked);
+    expect(await child.next()).toBe(meant(journalTexts.locked));
     await child.stop();
     expect(owner.append(sale("after"), 1).seq).toBe(2);
     expect(owner.replay([], fold)).toEqual(state());

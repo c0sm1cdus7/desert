@@ -41,7 +41,7 @@ it("blocks the admin after confirming by keyboard, without registering the sale"
   keysOf("vrs1\r1500\r").forEach(key => router.send(key));
   await router.idle();
   const screen = textOf(paint(router.screen({ rows: 30 }), { cols: 106, rows: 36 })).join("\n");
-  expect(screen).toContain(rulesTexts.blocked);
+  expect(screen).toContain(rulesTexts.blocked.es);
   expect(rig.state().tools.sales.size).toBe(0);
   expect(rig.facts().findLast(event => event.kind === "act-result")?.data).toMatchObject({
     status: "rejected",

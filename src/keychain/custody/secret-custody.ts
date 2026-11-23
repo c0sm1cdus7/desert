@@ -1,4 +1,5 @@
 // Shared custody: provisional ingress, bindings, reservations, retentions and collection.
+import { meant } from "../../fields/phrases.ts";
 import { forgetCustody } from "./custody-maintenance.ts";
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { openCustody } from "./custody-opening.ts";
@@ -169,7 +170,7 @@ export class SecretCustody {
     }
   }
   forgetWarning(): string {
-    return secretTexts.forget;
+    return meant(secretTexts.forget);
   }
   forgetHouse(acknowledgement: string): void {
     if (acknowledgement !== this.forgetWarning()) throw new CustodyError("E-CUSTODY-DENIED");

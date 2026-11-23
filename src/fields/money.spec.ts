@@ -10,6 +10,7 @@ import { maskOf } from "../surface/session/screen.ts";
 const words = {
   formats: formats({ currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" }),
   optionalMark: "",
+  language: "es" as const,
   now: () => 17,
   today: () => "2026-11-13",
 };
@@ -116,11 +117,9 @@ describe("a currency symbol has a bounded shape", () => {
     "U\u200bS",
   ])
     it(JSON.stringify(symbol), () => {
-      expect(() => asking(object({ amount: money("Importe", 1, symbol) }), words)).toThrow(
-        "Símbolo de moneda inválido",
-      );
+      expect(() => asking(object({ amount: money("Importe", 1, symbol) }), words)).toThrow("Invalid currency symbol");
       const ask = asking(object({ amount: money("Importe", 1, () => symbol) }), words);
-      expect(() => ask.next([])).toThrow("Símbolo de moneda inválido");
+      expect(() => ask.next([])).toThrow("Invalid currency symbol");
     });
   it.each(["$", "US$", "€", "12345678"])("accepts %s", symbol => {
     expect(asking(object({ amount: money("Importe", 1, symbol) }), words).next([])?.currency).toBe(symbol);
@@ -137,7 +136,7 @@ it.each(["", " US$", "US$ ", "123456789", "U\nS", "\u001b[31mX"])(
   "rejects an invalid country currency at composition: %s",
   currency => {
     expect(() => formats({ currency, decimal: ",", thousands: ".", day: "dd/mm/aaaa" })).toThrow(
-      "Símbolo de moneda inválido",
+      "Invalid currency symbol",
     );
   },
 );

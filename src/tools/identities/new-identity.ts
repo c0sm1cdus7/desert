@@ -7,7 +7,7 @@ import { newIdentityCases } from "./new-identity-cases.ts";
 import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
 import { t } from "../../house/own-acts.ts";
-import { text, textLimit, someOf, option } from "../../fields/fields.ts";
+import { text, textLimit, someOf, option, titled } from "../../fields/fields.ts";
 import { languageField } from "../personal/personal-actions.ts";
 import { identityNameProblem } from "../../house/identities/identity-name.ts";
 import { effect } from "../../house/facts.ts";
@@ -19,7 +19,7 @@ import { identityTarget, members } from "./identity-reading.ts";
 function identityInput<X extends Program>(catalog: ToolRegistry<X>) {
   return object({
     identity: Type.String({
-      title: words.identifier,
+      ...titled(words.identifier),
       placeholder: words.identifierExample,
       minLength: 1,
       maxLength: 120,

@@ -1,4 +1,5 @@
 // A provider rejection stays visible in the scene, the journal and stdout, in the bank and in a live turn.
+import { said } from "../../fields/phrases.ts";
 import { afterEach, expect, it, vi } from "vitest";
 import { issueDoorKey } from "../../house/doors/door-material.ts";
 import type { HouseEmission } from "../../house/facts.ts";
@@ -36,9 +37,13 @@ it.each(cases)("el banco conserva %s en escena, diario y stdout, con JSON y sin 
       event.layer === "house" && event.kind === "scene" ? [...all, event.data.general] : all,
     );
     expect(scene).toContain(expected);
-    expect(scene).toContain("No se admite el pedido [secreto]");
+    expect(scene).toContain("No se admite el pedido [secret]");
     expect(journal).toContain(scene);
-    expect(programMindNotices(prepared).join(" ")).toContain(expected);
+    expect(
+      programMindNotices(prepared)
+        .map(notice => said(notice, "es"))
+        .join(" "),
+    ).toContain(expected);
     expect(output).toHaveBeenCalledOnce();
     expect(output.mock.calls[0]?.[0]).toContain(expected);
     expect(JSON.stringify([scene, journal, output.mock.calls]).includes(secret)).toBe(false);
@@ -71,7 +76,7 @@ it.each(cases)(
     f.wake(house);
     await (await house.minds)?.flush();
     const scene = house.tools.state().house.scenes.get("mind:notes")?.data.general;
-    expect(scene).toContain(`${status} ${type}: No se admite [secreto] ni [secreto]`);
+    expect(scene).toContain(`${status} ${type}: No se admite [secret] ni [secret]`);
     const journal = house.journal.replay<string[]>([], (all, event) =>
       event.layer === "house" && event.kind === "mind-scene" ? [...all, event.data.text] : all,
     );
@@ -116,13 +121,13 @@ it("keeps the supervisor's cause until the close of the turn that consulted it",
         },
       },
     },
-    { id: "t1", scope: { kind: "consciousness", actor: "mind:notes" }, language: "es", wake: [], through: 1 },
+    { id: "t1", scope: { kind: "consciousness", actor: "mind:notes" }, wake: [], through: 1 },
   );
   expect(result).toMatchObject({ outcome: "failed", calls: 2, reason: "http", rejection });
   const scene = events.filter(event => event.kind === "mind-scene").at(-1);
   expect(scene?.data).toEqual({
     turn: "t1",
-    text: "El proveedor rechazó el pedido (400 invalid_request_error: El esquema no se admite). El turno se detuvo.",
+    text: "The provider rejected the request (400 invalid_request_error: El esquema no se admite). The turn stopped.",
   });
 });
 it("the bridge neither clones nor reads a whole rejection to look for usage", async () => {

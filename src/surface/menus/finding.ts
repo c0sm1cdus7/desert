@@ -1,5 +1,7 @@
 // Looking for things from a menu: what a person wrote, and the rows of what it finds, on the Menu or in one tool.
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
+import type { Language } from "../../fields/languages.ts";
+import { wordsIn } from "../../fields/phrases.ts";
+import { surfaceTexts } from "../../texts/surface.texts.ts";
 import { toolOf, type Choice, type Listed, type Picture, type Place } from "../session/screen.ts";
 import { startTalk } from "../session/talk.ts";
 import type { Tool } from "../contract/shown-tool.ts";
@@ -44,7 +46,8 @@ const named = (tools: readonly Tool[], sought: string): Choice[] =>
     });
 /** What a menu lists while a person looks for something: what they wrote and what it finds. No action is there,
  * and no other list. */
-export function foundAt(place: Picture, sought: string, tools: readonly Tool[]): readonly Listed[] {
+export function foundAt(place: Picture, sought: string, tools: readonly Tool[], language: Language): readonly Listed[] {
+  const said = wordsIn(surfaceTexts, language);
   const typing = {
     title: said.find,
     rows: [{ title: "", entry: { typed: sought, caret: Array.from(sought).length } }],

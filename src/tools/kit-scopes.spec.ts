@@ -49,8 +49,8 @@ it("the child the house offers also runs on the parent's account", async () => {
   kit("beto", []);
   expect(calls[1]?.context.signal?.aborted).toBe(true);
   calls.forEach(call => call.done.resolve(saved));
-  expect(await child).toMatchObject({ status: "interrupted", reason: "sacada" });
-  expect(await settled(parent)).toMatchObject({ status: "interrupted", reason: "sacada" });
+  expect(await child).toMatchObject({ status: "interrupted", reason: { en: "removed", es: "sacada" } });
+  expect(await settled(parent)).toMatchObject({ status: "interrupted", reason: { en: "removed", es: "sacada" } });
   expect(rig.state().entries).toEqual([]);
 });
 
@@ -62,8 +62,8 @@ it("a mind's journey cuts its chain and keeps provenance at each closure", async
   kit("mind:slow", ["other"]);
   expect(calls.map(call => call.context.signal?.aborted)).toEqual([true, true]);
   calls.forEach(call => call.done.resolve(saved));
-  expect(await child).toMatchObject({ status: "interrupted", reason: "sacada" });
-  expect(await settled(parent)).toMatchObject({ status: "interrupted", reason: "sacada" });
+  expect(await child).toMatchObject({ status: "interrupted", reason: { en: "removed", es: "sacada" } });
+  expect(await settled(parent)).toMatchObject({ status: "interrupted", reason: { en: "removed", es: "sacada" } });
   const results = rig.facts().filter(event => event.kind === "act-result" && event.by === "mind:slow");
   expect(results).toHaveLength(2);
   expect(results.every(event => event.process === journey)).toBe(true);

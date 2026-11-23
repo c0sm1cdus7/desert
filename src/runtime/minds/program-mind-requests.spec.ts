@@ -78,10 +78,14 @@ it("a program mind may hold the talk program besides its own and its consciousne
   expect(kits?.get("mind:notes")?.selections).toEqual([{ kind: "program", program: "talk" }]);
   expect(kits?.has("mind:talk")).toBe(false);
   // The admin reaches the talk program from the mind's own page; a program that is not talk has no page there.
-  const core = houseTools(localPorts(house, "ana", { recentLines: 20 }), {
-    ...f.distribution.shown,
-    day: localDay,
-  }).find(tool => tool.id === "identities");
+  const core = houseTools(
+    localPorts(house, "ana", { recentLines: 20 }),
+    {
+      ...f.distribution.shown,
+      day: localDay,
+    },
+    "es",
+  ).find(tool => tool.id === "identities");
   const opens = core?.view("identities/mind:notes").flatMap(stack => stack.rows.map(row => row.opens));
   expect(opens).toContain("identities/mind:notes#kit:talk");
   expect(core?.view("identities/mind:notes#kit:talk").length).toBeGreaterThan(0);
@@ -112,8 +116,8 @@ it("a person asks for work through the talk program and the mind answers through
     { by: "mind:notes", to: "ana", text: note },
   ]);
   expect(history(house).some(e => e.kind === "mind-message" || e.kind === "mind-requested")).toBe(false);
-  const consciousness = frames(f).filter(frame => /^Alcance:\nmind:notes \/ \d/u.test(frame));
-  const working = frames(f).filter(frame => frame.startsWith("Alcance:\nmind:notes / journey:"));
+  const consciousness = frames(f).filter(frame => /^Scope:\nmind:notes \/ \d/u.test(frame));
+  const working = frames(f).filter(frame => frame.startsWith("Scope:\nmind:notes / journey:"));
   expect([consciousness.length, working.length]).toEqual([2, 1]);
   expect(consciousness.every(frame => frame.includes(talkMenu))).toBe(true);
   expect(working.some(frame => frame.includes(talkMenu))).toBe(false);
@@ -195,9 +199,9 @@ it.each([false, true])(
       house.close();
       f.respond(frame => {
         expect(frame).toContain("assistant:ana");
-        if (frame.startsWith("Alcance:\nassistant:ana")) {
-          // What woke it is said as itself in Despertar: the line the notes mind sent back.
-          expect(frame.split("Despertar:\n")[1]?.split("\n\n")[0]).toContain(note);
+        if (frame.startsWith("Scope:\nassistant:ana")) {
+          // What woke it is said as itself in Wake: the line the notes mind sent back.
+          expect(frame.split("Wake:\n")[1]?.split("\n\n")[0]).toContain(note);
           expect(frame).toContain(note);
           return answer([], "Received");
         }

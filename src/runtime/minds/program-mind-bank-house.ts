@@ -1,4 +1,5 @@
 // Isolates bank scenes while using the house engine for the actions that wake them.
+import { meant } from "../../fields/phrases.ts";
 import { randomUUID } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -139,7 +140,7 @@ export class ProgramMindBankHouse {
     this.bus.emit(effect("attended", { target: wake.target }, "bank"));
     const result = this.tools.act(wake, this.state.through, "bank");
     const done = result.status === "processing" ? await result.completion : result;
-    if (done.status !== "accepted") throw new Error(`bank.wake:${done.reason}`);
+    if (done.status !== "accepted") throw new Error(`bank.wake:${meant(done.reason ?? "")}`);
   }
   result(scene: ProgramMindScene) {
     const transient: readonly TurnStop[] = [

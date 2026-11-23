@@ -1,4 +1,5 @@
 // SQLite alone owns the sidecar's descriptors; filesystem identity checks never open it.
+import { meant } from "../fields/phrases.ts";
 import { accessSync, constants, lstatSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { pathToFileURL } from "node:url";
@@ -9,7 +10,7 @@ import { DatabaseSync } from "node:sqlite";
 export class WriterAlreadyOpen extends Error {
   readonly code = "WRITER_ALREADY_OPEN";
   constructor() {
-    super(journalTexts.locked);
+    super(meant(journalTexts.locked));
     this.name = "WriterAlreadyOpen";
   }
 }

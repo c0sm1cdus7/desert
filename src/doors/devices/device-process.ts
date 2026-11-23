@@ -1,4 +1,5 @@
 // Runs installed actions and returns receipts, and joins the tools' notices; it reads no request and opens no journey.
+import { meant } from "../../fields/phrases.ts";
 import { Value } from "@sinclair/typebox/value";
 import { readonlyState } from "../../journal/readonly-state.ts";
 import {
@@ -30,7 +31,7 @@ function joinedNotices(tools: readonly InstalledDeviceTool[]): EndpointNotices |
   const owners = new Map<string, DeviceNotices>();
   const own = ({ tool, port }: (typeof ports)[number], notice: unknown, tell: (reason: string) => void) => {
     if (!Value.Check(deviceNotice, notice)) {
-      tell(deviceTexts.noticeInvalid(tool, String(isRecord(notice) ? notice.execution : notice).slice(0, 200)));
+      tell(meant(deviceTexts.noticeInvalid(tool, String(isRecord(notice) ? notice.execution : notice).slice(0, 200))));
       return [];
     }
     owners.set(notice.execution, port);
@@ -44,7 +45,7 @@ function joinedNotices(tools: readonly InstalledDeviceTool[]): EndpointNotices |
     },
     async acknowledge(execution, answer) {
       const port = owners.get(execution);
-      if (!port) throw new Error(deviceTexts.invalid);
+      if (!port) throw new Error(meant(deviceTexts.invalid));
       await port.acknowledge(execution, answer);
       owners.delete(execution);
     },
@@ -56,20 +57,20 @@ function joinedNotices(tools: readonly InstalledDeviceTool[]): EndpointNotices |
 }
 export function createDeviceProcess(installed: readonly InstalledDeviceTool[]): DeviceEndpoint {
   const tools = installed.map(each => ({ ...each, actions: { ...each.actions } }));
-  if (new Set(tools.map(each => each.tool)).size !== tools.length) throw new Error(deviceTexts.invalid);
+  if (new Set(tools.map(each => each.tool)).size !== tools.length) throw new Error(meant(deviceTexts.invalid));
   const received = new Set<string>();
   const notices = joinedNotices(tools);
   return {
     inventory: tools.map(each => ({ tool: each.tool, version: each.version, actions: Object.keys(each.actions) })),
     async receive(request) {
-      if (!Value.Check(deviceRequest, request)) throw new Error(deviceTexts.invalid);
+      if (!Value.Check(deviceRequest, request)) throw new Error(meant(deviceTexts.invalid));
       const tool = tools.find(each => each.tool === request.tool && each.version === request.version);
       const run = tool && Object.hasOwn(tool.actions, request.action) ? tool.actions[request.action] : undefined;
-      if (!run) throw new Error(deviceTexts.incompatible);
-      if (received.has(request.execution)) throw new Error(deviceTexts.duplicate);
+      if (!run) throw new Error(meant(deviceTexts.incompatible));
+      if (received.has(request.execution)) throw new Error(meant(deviceTexts.duplicate));
       received.add(request.execution);
       const result = await run(readonlyState(structuredClone(request)));
-      if (!Value.Check(deviceResult, result)) throw new Error(deviceTexts.failed);
+      if (!Value.Check(deviceResult, result)) throw new Error(meant(deviceTexts.failed));
       return structuredClone(result);
     },
     ...(notices ? { notices } : {}),

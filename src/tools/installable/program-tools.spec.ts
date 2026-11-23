@@ -1,4 +1,5 @@
 // Every tool of an installable program has its row among the program's tools; no word of a tool takes it off.
+import { wordsIn } from "../../fields/phrases.ts";
 import { describe, expect, it } from "vitest";
 import { pickingProgram } from "../../../tests/support/installable-picking.ts";
 import { presentation } from "../../../tests/support/installable-program.ts";
@@ -41,8 +42,8 @@ describe("the tools an installable program holds", () => {
     return staged(program, ({ house }) => {
       const seat = seated(house(), cast.admin, shown);
       try {
-        const listed = stacksOf({ kind: "view", tool: "picking", at: 0 }, seat.tools).find(
-          stack => stack.title === distribution.groups,
+        const listed = stacksOf({ kind: "view", tool: "picking", at: 0 }, seat.tools, seat.language).find(
+          stack => stack.title === wordsIn(distribution, seat.language).groups,
         );
         const every = Object.keys(installed.tools).map(group => folderOf("picking", group));
         expect(listed?.rows.map(row => row.opens)).toEqual(every);

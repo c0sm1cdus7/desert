@@ -1,4 +1,5 @@
 import { mkdtempSync, readFileSync } from "node:fs";
+import { meant } from "../fields/phrases.ts";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
@@ -40,7 +41,7 @@ const faults: [string, (files: RecordFiles) => Partial<RecordFiles>, string][] =
     }),
     "ENOSPC",
   ],
-  ["write moves nothing", () => ({ writeSync: () => 0 }), journalTexts.incompleteRecord],
+  ["write moves nothing", () => ({ writeSync: () => 0 }), meant(journalTexts.incompleteRecord)],
   [
     "write fails after a first fragment",
     files => {

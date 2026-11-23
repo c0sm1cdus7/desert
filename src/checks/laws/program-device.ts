@@ -1,4 +1,5 @@
 // Separates declared device folders from house code and admits only pure shared dependency graphs.
+import { meant } from "../../fields/phrases.ts";
 import { existsSync, realpathSync, statSync } from "node:fs";
 import { dirname, isAbsolute, resolve, sep } from "node:path";
 import ts from "typescript";
@@ -12,7 +13,7 @@ export function deviceFiles(repo: Repository, desert: unknown, own: ReadonlySet<
   const declaration = field(desert, "device");
   if (declaration === undefined) return new Set();
   const fail = (): never => {
-    throw new Error(distributionTexts.deviceDeclaration);
+    throw new Error(meant(distributionTexts.deviceDeclaration));
   };
   if (!Array.isArray(declaration) || !declaration.length) return fail();
   const root = realpathSync(repo.root);

@@ -1,4 +1,5 @@
 // Closed maintenance: reviews, accepts a head, reports pending, adopts, discards and forgets on both sources.
+import { meant } from "../../fields/phrases.ts";
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import type { CredentialLedger, CredentialScope, SecretRef, SecretRefs } from "./custody-contract.ts";
 import { CustodyError, type HouseKeyProvider, type LedgerHead } from "./house-keys.ts";
@@ -24,7 +25,7 @@ export function maintainCustody(
   const state = new CustodyState(file, house, keys, ledger);
   try {
     if (request.operation === "forget") {
-      if (request.acknowledgement !== secretTexts.forget) throw new CustodyError("E-CUSTODY-DENIED");
+      if (request.acknowledgement !== meant(secretTexts.forget)) throw new CustodyError("E-CUSTODY-DENIED");
       forgetCustody(state);
       return { forgotten: true as const };
     }
@@ -58,7 +59,7 @@ function status(state: CustodyState, reviewing = false) {
     pendingRefs,
     anchorPending: state.ledger.anchorPending(),
     cleanupPending: state.cleanupFailed || pendingRefs.length > 0,
-    forgetWarning: secretTexts.forget,
+    forgetWarning: meant(secretTexts.forget),
   };
 }
 

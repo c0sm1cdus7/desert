@@ -114,7 +114,7 @@ it("admits the derived host credential to the remote terminal and redacts its wr
       input: { general: `prefix${credential}suffix` },
       through: 0,
     });
-    await vi.waitFor(() => expect(client.state().house.scenes.get("ana")?.data.general).toContain("[secreto]"));
+    await vi.waitFor(() => expect(client.state().house.scenes.get("ana")?.data.general).toContain("[secret]"));
     expect(f.h.history().includes(credential)).toBe(false);
     expect(JSON.stringify(stderr.mock.calls).includes(credential)).toBe(false);
   } finally {

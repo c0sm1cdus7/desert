@@ -1,4 +1,5 @@
 // SQLite round trips preserve envelopes, reducer results and causal identity; one open journal per house.
+import { meant } from "../fields/phrases.ts";
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -149,7 +150,7 @@ describe("journal lock", () => {
     const { file, lock } = house();
     const first = open(file);
     expect(existsSync(lock)).toBe(false);
-    expect(() => open(file)).toThrow(journalTexts.locked);
+    expect(() => open(file)).toThrow(meant(journalTexts.locked));
     first.close();
     expect(existsSync(lock)).toBe(false);
     expect(open(file).append(boot, 100).seq).toBe(1);

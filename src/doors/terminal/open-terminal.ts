@@ -1,4 +1,5 @@
 // The program's public terminal composition: one router for both local and remote HousePorts.
+import { everySaid } from "../../fields/phrases.ts";
 import { terminalError } from "./terminal-error.ts";
 import type { Composition } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -47,7 +48,8 @@ async function runTerminal<X extends Program>(
   });
   try {
     await startTerminal(process.stdout, process.stdin, house.router, stop.signal);
-    if (house.failure()) throw new Error(house.failure());
+    const failure = house.failure();
+    if (failure) throw new Error(everySaid(failure));
   } finally {
     unwatch();
     house.close();

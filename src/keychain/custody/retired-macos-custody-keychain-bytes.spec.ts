@@ -55,7 +55,7 @@ it("p4: stdin and stdout are wiped, invalid accounts never reach the command, ev
 it("a timeout says how to go on and never returns the command's output", () => {
   const stdout = Buffer.from("SYNTHETIC");
   const provider = new MacOSHouseKeys(() => ({ status: null, stdout }));
-  expect(() => provider.key("house", false)).toThrow(/desbloquealo y reintentá/u);
+  expect(() => provider.key("house", false)).toThrow(/unlock it and retry/u);
   expect(stdout.every(byte => byte === 0)).toBe(true);
 });
 it("an add that lied about success without saving invents neither a key nor an anchor", () => {

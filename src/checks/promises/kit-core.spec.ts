@@ -40,7 +40,7 @@ it("shows only the removed action off, before its state reason, and distinguishe
     const [name, act] = entry;
     house().bus.emit(effect("kit-set", { holder: cast.member, tool: tool.id, acts: [] }, cast.admin));
     const state = { ...house().tools.state(), by: cast.member };
-    expect(actionOff(act, state, tool.id, tool.id, 0, () => null, undefined, name)).toBe(toolTexts.outsideKit);
+    expect(actionOff(act, state, tool.id, tool.id, 0, () => null, undefined, name)).toEqual(toolTexts.outsideKit);
     expect(actionOff(act, { ...state, by: "missing" }, tool.id, tool.id, 0, () => null, undefined, name)).toBe(
       toolTexts.unassigned,
     );

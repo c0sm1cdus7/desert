@@ -54,5 +54,6 @@ const answering: readonly Intent[] = [
   { kind: "confirm" },
 ];
 const deeper = answering.map((_, at) => answering.slice(0, at + 1));
-/** The walk every contract spec and the golden screens run: as a 200×60 terminal shows it, up to 300 screens. */
-export const walked = (): Promise<readonly Stop[]> => surfaceWalk(fresh, 52, 300, deeper);
+/** The walk every contract spec and the golden screens run: as a 200×60 terminal shows it, up to 300 screens, to
+ * someone who reads the house in Spanish, as the tools' own words are. */
+export const walked = (): Promise<readonly Stop[]> => surfaceWalk(fresh, 52, 300, deeper, "es");

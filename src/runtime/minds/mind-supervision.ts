@@ -1,4 +1,5 @@
 // Reviews proposals and consultations through missing or configured ports without approving a failure.
+import { workingLanguage } from "../../fields/languages.ts";
 import { Value } from "@sinclair/typebox/value";
 import { mindText } from "../../house/minds/journey-facts.ts";
 import type { ReviewRequest, ReviewResult } from "../../tools/minds/mind-review.ts";
@@ -12,7 +13,7 @@ function result(request: ReviewRequest, version: string, passed: boolean): Revie
     through: request.through,
     rulesVersion: version,
     outcome: passed ? "passed" : "failed",
-    text: reviewNotice.text(request.turn.language, { passed }),
+    text: reviewNotice.text(workingLanguage, { passed }),
   };
 }
 function bound(value: ReviewResult, request: ReviewRequest, version: string): ReviewResult {
@@ -58,5 +59,5 @@ export async function answerConsultation(
   const reviewed = await reviewMindProposal(ports, request, caller, version);
   if (ports.supervisor || reviewed.outcome !== "passed") return reviewed;
   requireMind(request.turn, "review.turn");
-  return { ...reviewed, text: noSupervisor.text(request.turn.language, {}) };
+  return { ...reviewed, text: noSupervisor.text(workingLanguage, {}) };
 }

@@ -25,9 +25,13 @@ it("needs and surface metadata receive the same protected state", () => {
     },
   };
   const ports = rig.ports("ana", Date.now);
-  const notices = noticesOf({ ...ports, act: value => ports.act(value, ports.state().through) }, tool, {
-    name: "Ventas",
-  });
+  const notices = noticesOf(
+    { ...ports, language: "es" as const, act: value => ports.act(value, ports.state().through) },
+    tool,
+    {
+      name: "Ventas",
+    },
+  );
   expect(notices.notices().needs).toEqual([]);
   expect(reads).toBe(1);
   expect(rig.state().house.admin).toBe("ana");

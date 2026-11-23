@@ -1,6 +1,8 @@
 // What each place lists: the tools on the Menu, a tool's own rows, and the acts and menus that can be taken there.
 import { goneView } from "./gone-view.ts";
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
+import type { Language } from "../../fields/languages.ts";
+import { wordsIn, type InLanguage } from "../../fields/phrases.ts";
+import { surfaceTexts } from "../../texts/surface.texts.ts";
 import type { Notice, Tool, ViewRow } from "../contract/shown-tool.ts";
 import type { Tone } from "../contract/tones.ts";
 import { foundAt } from "./finding.ts";
@@ -101,7 +103,8 @@ function led(tools: readonly Tool[], here: Tool, row: ViewRow, target: string): 
 const readOr = ({ title, detail }: ViewRow, started: Choice[]): Choice[] =>
   started.length || !detail ? started : [{ title, detail }];
 /** A tool on the Menu: one that cannot be opened keeps its place and its key, and says why. */
-function menuRow(tool: Tool): Choice {
+type Words = InLanguage<typeof surfaceTexts>;
+function menuRow(tool: Tool, said: Words): Choice {
   const row = { key: tool.place.key, title: tool.name.toLowerCase() };
   const why = tool.off?.();
   if (why !== undefined) return { ...row, detail: why, off: true };
@@ -127,7 +130,7 @@ const noticeRows = (tool: Tool, notices: readonly Notice[], tone?: Tone): Choice
   });
 /** Attention and Activity, the two lists a menu opens with: what needs someone to act, and what the others did.
  * They are there even with nothing in them, unless the person prefers not to see them then. */
-function noticed(tools: readonly Tool[]): readonly Listed[] {
+function noticed(tools: readonly Tool[], said: Words): readonly Listed[] {
   /** Activity and Attention are filtered by their own rules, not by the Menu preference. */
   const all = tools.flatMap(tool => {
     const notices = tool.notices?.();
@@ -154,18 +157,20 @@ function keyed(stacks: readonly Listed[]): readonly Listed[] {
   return stacks.map(stack => ({ ...stack, rows: stack.rows.map(withKey) }));
 }
 /** What a place lists. While a person looks for something from it, only that: what they wrote and what it finds. */
-export const stacksOf = (place: Picture, tools: readonly Tool[]): readonly Listed[] =>
-  place.find === undefined ? keyed(listedAt(place, tools)) : foundAt(place, place.find, tools);
-function listedAt(place: Picture, tools: readonly Tool[]): readonly Listed[] {
+export const stacksOf = (place: Picture, tools: readonly Tool[], language: Language): readonly Listed[] =>
+  place.find === undefined
+    ? keyed(listedAt(place, tools, wordsIn(surfaceTexts, language)))
+    : foundAt(place, place.find, tools, language);
+function listedAt(place: Picture, tools: readonly Tool[], said: Words): readonly Listed[] {
   if (place.kind === "menu") {
     const listed = tools.filter(tool => tool.listed?.() !== false);
     const sections = (["tools", "system"] as const)
       .map(section => ({
         title: section === "tools" ? said.sections.programs : said.sections[section],
-        rows: listed.filter(tool => tool.place.section === section).map(menuRow),
+        rows: listed.filter(tool => tool.place.section === section).map(tool => menuRow(tool, said)),
       }))
       .filter(stack => stack.rows.length);
-    return [...noticed(tools), ...sections];
+    return [...noticed(tools, said), ...sections];
   }
   const tool = toolOf(tools, place.tool);
   const read = tool.view(place.target).map(stack => ({
@@ -181,12 +186,13 @@ function listedAt(place: Picture, tools: readonly Tool[]): readonly Listed[] {
   /** Who prefers not to see what is empty sees no list with nothing in it, whatever it is a list of. */
   const shown = tool.quiet?.() ? read.filter(stack => stack.rows.length) : read;
   const acts = actionRows(tools, tool, place.target);
-  const own = place.target === undefined ? [...noticed([tool]), ...shown] : shown;
+  const own = place.target === undefined ? [...noticed([tool], said), ...shown] : shown;
   return acts.length ? [...own, { title: said.actions, rows: acts }] : own;
 }
-export const choices = (place: Picture, tools: readonly Tool[]): readonly Choice[] =>
-  stacksOf(place, tools).flatMap(stack => stack.rows.filter(row => row.open ?? row.press));
+export const choices = (place: Picture, tools: readonly Tool[], language: Language): readonly Choice[] =>
+  stacksOf(place, tools, language).flatMap(stack => stack.rows.filter(row => row.open ?? row.press));
 /** The explicit disappearance check shares the same lists the person sees. */
-export const goneOf = (session: Session, tools: readonly Tool[]): boolean => goneView(session, tools, stacksOf);
-export const cursorOf = (place: Picture, tools: readonly Tool[]): number =>
-  Math.min(place.at, Math.max(choices(place, tools).length - 1, 0));
+export const goneOf = (session: Session, tools: readonly Tool[], language: Language): boolean =>
+  goneView(session, tools, (place, all) => stacksOf(place, all, language));
+export const cursorOf = (place: Picture, tools: readonly Tool[], language: Language): number =>
+  Math.min(place.at, Math.max(choices(place, tools, language).length - 1, 0));

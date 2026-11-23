@@ -1,4 +1,5 @@
 // Declared positions are replaced structurally, independently of their spelling or length.
+import { meant } from "../../fields/phrases.ts";
 import { referencePattern, hasSecretInput, executionSchema } from "../../tools/inputs/secret-input.ts";
 import { isImmutableSchema, isSchema } from "../../fields/schema-shape.ts";
 import { deepFreeze } from "../../journal/vocabulary.ts";
@@ -16,7 +17,7 @@ const stored = new WeakMap<TSchema, TSchema>();
 class SecretSchemaError extends Error {
   readonly code = "E-SECRET-SCHEMA";
   constructor() {
-    super(secretTexts.schema);
+    super(meant(secretTexts.schema));
   }
 }
 export function checkSecrets(schema: unknown): void {

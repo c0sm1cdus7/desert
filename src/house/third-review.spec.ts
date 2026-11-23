@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
+import { same } from "../fields/phrases.ts";
 import { effect } from "./facts.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
@@ -84,7 +85,9 @@ it("a cutoff leaves a diagnostic for the administrator", async () => {
   await mind.act();
   expect(await stopped).toMatchObject({ reason: journalTexts.mindChain });
   expect(
-    rig.facts().filter(e => e.kind === "tool-entry" && e.by === "mind:desk" && e.data.text === journalTexts.mindChain),
+    rig
+      .facts()
+      .filter(e => e.kind === "tool-entry" && e.by === "mind:desk" && same(e.data.text, journalTexts.mindChain)),
   ).toHaveLength(1);
 });
 it("a wake request rejects extra fields and invalid dates with useful errors", () => {

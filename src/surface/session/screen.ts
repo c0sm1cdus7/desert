@@ -1,5 +1,4 @@
 // Where you are on a surface and the act you are walking: what a session remembers, and how an act begins.
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import { withStops } from "./answer-status.ts";
 import { currentField, markedCurrent, uniqueCurrent } from "./current-field.ts";
 import type { Walk, Running } from "./walk-state.ts";
@@ -28,6 +27,8 @@ export type Session = readonly Place[];
 export const start: Session = [{ kind: "menu", at: 0 }];
 export interface Bar {
   readonly state: Screen["state"];
+  /** The language the reader reads the house in: the surface says every one of its words in it. */
+  readonly language: Screen["language"];
   readonly clock: string;
   readonly battery?: string;
   readonly now: number;
@@ -68,12 +69,12 @@ export function fieldOf(tools: readonly Tool[], walk: Walk): Field | null {
   const field = actOf(tools, walk).next(walk.answers.slice(0, walk.pos));
   return field ? withStops(walk, currentField(walk, field, actOf(tools, walk)), actOf(tools, walk)) : null;
 }
-/** The key that goes back where an act asks to be confirmed. */
-export const backKey = said.back.charAt(0);
+/** The key that goes back where an act asks to be confirmed: the same in every language, as every key is. */
+export const backKey = "v";
 export function optionsOf(field: Field | null): readonly Option[] {
   if (!field || !("options" in field)) return [];
   if (field.kind !== "confirm") return uniqueCurrent(field.options.map(option => markedCurrent(field, option)));
-  const back = { key: backKey, title: said.back, detail: said.unchanged };
+  const back = { key: backKey, title: field.back, detail: "" };
   return field.reversible ? [...field.options, back] : [back, ...field.options];
 }
 /** A field as it opens: an earlier answer wins over its initial value, so going back keeps what you wrote. A choice

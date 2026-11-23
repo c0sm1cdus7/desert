@@ -14,7 +14,7 @@ const shirt = { id: "products/p1", text: "2 × Remera", detail: "$ 5" };
 describe("a thing presented", () => {
   it("keeps every written line and blank separator readable under a single label", () => {
     const detail = "franco · hoy\r\n  Hola Martín  \r\n\r\nmartin · hoy\nHola Franco\n";
-    const shown = presented(stacks, { state: detail }, "sales/s1");
+    const shown = presented(stacks, { state: detail }, "sales/s1", "es");
     expect(shown[0]?.rows).toEqual([
       { title: "Estado", detail: "franco · hoy", still: true },
       { title: "", detail: "  Hola Martín  ", still: true },
@@ -29,17 +29,24 @@ describe("a thing presented", () => {
     const text = "primera\nsegunda";
     const received: string[] = [];
     const row = { title: "Estado", detail: text, key: "e" };
-    const shown = ownView(stacks, JSON.stringify({ state: text }), "sales", (key, value) => {
-      expect(key).toBe("state");
-      received.push(value);
-      return row;
-    });
+    const shown = ownView(
+      stacks,
+      JSON.stringify({ state: text }),
+      "sales",
+      (key, value) => {
+        expect(key).toBe("state");
+        received.push(value);
+        return row;
+      },
+      actor => actor,
+      "es",
+    );
     expect(received).toEqual([text]);
     expect(shown[0]?.rows).toEqual([row]);
   });
 
   it("shows every stack its tool declared, in that order, and one with nothing in it says so", () => {
-    const shown = presented(stacks, { total: "$ 10", payments: [] }, "sales/s1");
+    const shown = presented(stacks, { total: "$ 10", payments: [] }, "sales/s1", "es");
     expect(shown.map(stack => stack.title)).toEqual(["Venta", "Cliente", "Artículos", "Cobros"]);
     expect(shown.every(stack => stack.reads)).toBe(true);
     expect(shown[0]?.rows).toEqual([{ title: "Total", detail: "$ 10", still: true }]);
@@ -51,7 +58,7 @@ describe("a thing presented", () => {
   });
 
   it("reads a datum under its label, said once where there are several, and opens what the thing names", () => {
-    const shown = presented(stacks, { client: ana, items: [shirt, "sin talle"] }, "sales/s1");
+    const shown = presented(stacks, { client: ana, items: [shirt, "sin talle"] }, "sales/s1", "es");
     expect(shown[1]?.rows).toEqual([{ title: "Ana", opens: "clients/c1", key: "1" }]);
     expect(shown[2]?.rows).toEqual([
       { title: "2 × Remera", detail: "$ 5", opens: "products/p1", key: "2" },
@@ -61,13 +68,13 @@ describe("a thing presented", () => {
 
   it("numbers what the thing names down the whole thing, whatever stack it is in: the first nine", () => {
     const items = Array.from({ length: 10 }, (_, at) => ({ id: `products/p${at}`, text: `p${at}` }));
-    const shown = presented(stacks, { client: ana, items }, "sales/s1");
+    const shown = presented(stacks, { client: ana, items }, "sales/s1", "es");
     const keys = shown.flatMap(stack => stack.rows.map(row => row.key));
     expect(keys).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", undefined, undefined]);
   });
 
   it("refuses a datum no stack holds, and what is read as neither a datum nor a thing", () => {
-    expect(() => presented(stacks, { total: "$ 10", by: "ana" }, "sales/s1")).toThrow(/by and no stack/u);
-    expect(() => presented(stacks, { client: { name: "Ana" } }, "sales/s1")).toThrow(/sales\/s1\.client/u);
+    expect(() => presented(stacks, { total: "$ 10", by: "ana" }, "sales/s1", "es")).toThrow(/by and no stack/u);
+    expect(() => presented(stacks, { client: { name: "Ana" } }, "sales/s1", "es")).toThrow(/sales\/s1\.client/u);
   });
 });

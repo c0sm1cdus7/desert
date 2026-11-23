@@ -1,4 +1,5 @@
 // A five-second startup handshake, then no parent/child lifecycle link remains.
+import { meant } from "../../fields/phrases.ts";
 import { fileURLToPath } from "node:url";
 import { closeSync } from "node:fs";
 import { houseOutput } from "./house-output.ts";
@@ -33,10 +34,10 @@ export async function launchHouse(root: string, home: string): Promise<void> {
     };
     const timer = setTimeout(() => {
       child.kill("SIGTERM");
-      finish(new Error(socketTexts.startTimeout));
+      finish(new Error(meant(socketTexts.startTimeout)));
     }, 5000);
-    child.once("error", () => finish(new Error(socketTexts.startFailed)));
-    child.once("exit", () => finish(new Error(socketTexts.startFailed)));
+    child.once("error", () => finish(new Error(meant(socketTexts.startFailed))));
+    child.once("exit", () => finish(new Error(meant(socketTexts.startFailed))));
     child.on("message", (message: unknown) => {
       if (!message || typeof message !== "object") return;
       if ("ready" in message && message.ready === true) finish();

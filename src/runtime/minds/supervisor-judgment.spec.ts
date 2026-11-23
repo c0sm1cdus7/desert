@@ -74,7 +74,7 @@ it.each([
     f.respond(frame => {
       if (supervising(frame)) return judge(frame);
       return notes(house, frame, (goal, shown, id) => {
-        if (!shown.includes("Resultados de los actos")) return [add(goal), add(`${goal} bis`)];
+        if (!shown.includes("Results of the acts")) return [add(goal), add(`${goal} bis`)];
         told.push(shown);
         return [end(id)];
       });
@@ -88,9 +88,9 @@ it.each([
     expect(journeyTurns(house).map(turn => turn.closed?.data)).toMatchObject([{ outcome: "done", calls }]);
     if (outcome === "rejected") {
       expect(told[0]).toContain(
-        "1. personal/add → notes/personal: rechazado: Rechazado por el supervisor: No anotes eso",
+        "1. personal/add → notes/personal: rejected: Rejected by the supervisor: No anotes eso",
       );
-      expect(told[0]).toContain("2. personal/add → notes/personal: no se aplicó");
+      expect(told[0]).toContain("2. personal/add → notes/personal: not applied, because an earlier act was rejected.");
     }
     expect([...house.tools.state().house.journeys.values()][0]?.closed?.data.outcome).toBe("done");
   },
@@ -141,13 +141,15 @@ it("a supervisor that cannot give its verdict leaves the act undone, says why, a
   withSend(house);
   await markedRule(house);
   f.respond(frame =>
-    notes(house, frame, (goal, shown, id) => (shown.includes("no dio su veredicto") ? [end(id)] : [add(goal)])),
+    notes(house, frame, (goal, shown, id) =>
+      shown.includes("the supervisor gave no verdict") ? [end(id)] : [add(goal)],
+    ),
   );
   await think(house, "Mate el jueves");
-  const unjudged = rulesTexts.verdict("failed", "Falta la llave del proveedor.");
-  expect(ruled(house)).toEqual([["mind:notes", "failed", "Falta la llave del proveedor."]]);
+  const unjudged = rulesTexts.verdict("failed", "The provider's key is missing.");
+  expect(ruled(house)).toEqual([["mind:notes", "failed", "The provider's key is missing."]]);
   expect(house.tools.state().tools.notes.notes).toEqual([]);
-  expect(JSON.stringify(history(house))).toContain(unjudged);
+  expect(JSON.stringify(history(house))).toContain(JSON.stringify(unjudged));
   expect(journeyTurns(house).map(turn => turn.closed?.data)).toMatchObject([{ outcome: "done", calls: 2 }]);
 }, 60000);
 it("a rule that changes while a marked control waits decides again: a passed verdict does not apply it", async () => {

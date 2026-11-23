@@ -1,4 +1,5 @@
 // Builds one engine tool per program, keeping each group and its encoded object destinations intact.
+import { meant } from "../../fields/phrases.ts";
 import { OutsideDefect } from "../../fields/program-call.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import { vocabulary } from "../../journal/vocabulary.ts";
@@ -14,7 +15,7 @@ type Install = Readonly<{ tools: Tools; readings?: ProgramReadings | undefined }
 function groupReactions<X extends Program>(id: string, name: string, group: ProgramGroup<X>) {
   return Object.fromEntries(
     Object.entries(group.reactions ?? {}).map(([key, reaction]) => {
-      if (group.acts[reaction.act]?.on !== "tool") throw new Error(toolTexts.invalidReaction(id, reaction.act));
+      if (group.acts[reaction.act]?.on !== "tool") throw new Error(meant(toolTexts.invalidReaction(id, reaction.act)));
       return [`${name}/${key}`, { ...reaction, act: `${name}/${reaction.act}` }];
     }),
   );

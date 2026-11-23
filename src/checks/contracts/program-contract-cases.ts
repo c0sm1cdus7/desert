@@ -1,4 +1,5 @@
 // Every consumer request runs at the provider gate, on an isolated instance of the assembled house.
+import { meant } from "../../fields/phrases.ts";
 import { deepStrictEqual } from "node:assert/strict";
 import { runContractCases } from "../../runtime/contracts/contract-gate.ts";
 import { packagesForContracts } from "../../runtime/distributions/program-contracts.ts";
@@ -44,6 +45,6 @@ export function contractChecks<X extends Program>(program: Composition<X>): read
 }
 
 const missingContractCases: Check = {
-  name: catalogLawTexts.contracts,
+  name: meant(catalogLawTexts.contracts),
   run: () => Promise.reject(new Error("Contract setup has no published cases")),
 };

@@ -2,14 +2,16 @@
 import { programCall } from "../../../fields/program-call.ts";
 import { hides } from "../../../house/members.ts";
 import { capital } from "../../../texts/capital.ts";
-import { genericTexts as generic } from "../../../texts/generic-surface.texts.ts";
+import { wordsIn } from "../../../fields/phrases.ts";
+import { genericTexts } from "../../../texts/generic-surface.texts.ts";
+import { surfaceTexts } from "../../../texts/surface.texts.ts";
 import { declaredCause } from "../../../tools/execution/program-causes.ts";
 import type { ProgramAct } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import type { Field } from "../../contract/contract.ts";
 import type { Locale } from "../../formats/masks.ts";
 import { offeredOn } from "../picking/picked.ts";
-import type { SurfacePorts } from "../ports/house-ports.ts";
+import { say, type SurfacePorts } from "../ports/house-ports.ts";
 import { questionWords } from "../questions/asking-clock.ts";
 import { asking, type Asking, type AskWords } from "../questions/asking.ts";
 import { currencyQuestions } from "../questions/currency-defect.ts";
@@ -21,12 +23,16 @@ import { rulePresentation } from "./rule-presentation.ts";
 /** Confirmation tells what will happen and who confirms it, after the declared questions end. */
 function confirmation<X extends Program>(ports: SurfacePorts<X>, act: ProgramAct<X>, ask: Asking, tool: string) {
   /** Who confirms is the act's own verb, taken by its initial; what can be undone comes with that verb chosen. */
+  const generic = wordsIn(genericTexts, ports.language);
+  const enter = say(ports, act.enter);
   const confirm = {
-    options: [{ title: act.enter, key: act.enter.charAt(0) }],
+    options: [{ title: enter, key: enter.charAt(0) }],
+    back: wordsIn(surfaceTexts, ports.language).back,
     ...(act.undoable ? { reversible: true } : {}),
   };
   /** Under what an act that cannot be undone puts to be confirmed: what it is for, and that it cannot be undone. */
-  const note = `${act.purpose} · ${generic.irreversible}`;
+  const purpose = say(ports, act.purpose);
+  const note = `${purpose} · ${generic.irreversible}`;
   return (answers: readonly string[], target?: string): Field | null => {
     const taken = ask.taken(answers);
     if (answers.length > taken) return null;
@@ -40,10 +46,10 @@ function confirmation<X extends Program>(ports: SurfacePorts<X>, act: ProgramAct
     /** The purpose is fixed text: it holds whatever the state is, and what depends on the state is said by what
      * the act puts to be confirmed. An act that can be undone adds nothing under it. */
     const warned = act.undoable ? {} : { note };
-    if (summary !== undefined) return { ask: summary, kind: "confirm", ...confirm, ...warned };
+    if (summary !== undefined) return { ask: say(ports, summary), kind: "confirm", ...confirm, ...warned };
     /** With nothing asked, the bar already says what is done and to what: what is confirmed is what it is for. */
     const unsafe = act.undoable ? {} : { note: generic.irreversible };
-    return taken === 0 ? { ask: capital(act.purpose), kind: "confirm", ...confirm, ...unsafe } : null;
+    return taken === 0 ? { ask: capital(purpose), kind: "confirm", ...confirm, ...unsafe } : null;
   };
 }
 type Next = (answers: readonly string[], target?: string) => Field | null;
@@ -68,42 +74,53 @@ export type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["thi
   /** What a thing of a tool is called, for the act that asks to be confirmed on it. */
   Readonly<{ titled: (tool: string, target: string) => string }>;
 type Own<X extends Program> = Readonly<{ tool: string; name: string; act: ProgramAct<X> }>;
-/** One act as a person walks it: its questions from what it takes, a confirmation when it asks for one, its result. */
-export function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
+/** The questions of an act, in the reader's language: a question whose currency is wrong says so in its place. */
+function askedIn<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
   const declared = asking(act.input, {
-    ...questionWords(ports.now, asked, { state: ports.state, target: tool }),
+    ...questionWords(ports.now, asked, ports.language, { state: ports.state, target: tool }),
     things: actionThings(ports, act, tool, asked),
     cause: reason => declaredCause(act.refuses, reason),
   });
-  const ask = {
-    ...declared,
-    next: currencyQuestions(declared.next, (error, target) => ports.defect(error, tool, target ?? tool, name)),
+  const report = (error: unknown, target?: string) => say(ports, ports.defect(error, tool, target ?? tool, name));
+  return { ...declared, next: currencyQuestions(declared.next, report, ports.language) };
+}
+/** Why what was answered so far cannot go on, as the act declares it, in the reader's words. */
+const stopsOf =
+  <X extends Program>(ports: SurfacePorts<X>, tool: string, act: ProgramAct<X>, ask: Asking) =>
+  (answers: readonly string[], target?: string): string | undefined => {
+    const sofar = ask.sofar(answers);
+    const why = declaredCause(
+      act.refuses,
+      programCall(act.stops?.bind(act), sofar, ports.state(), target ?? tool, ports.now()),
+    );
+    return why === undefined ? undefined : say(ports, why);
   };
-  const title = act.title ?? capital(act.name);
+/** One act as a person walks it: its questions from what it takes, a confirmation when it asks for one, its result. */
+export function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
+  const ask = askedIn(ports, { tool, name, act }, asked);
+  const title = say(ports, act.title ?? capital(say(ports, act.name)));
   const destination = executionDestination(ports, act, name, ask);
-  const presentation = () => rulePresentation(tool, name, ports.state);
+  const presentation = () => rulePresentation(tool, name, ports.state, ports.language);
   const sure = confirmation(ports, act, ask, tool);
-  const asks = offeredOn(act, ask, ports.state, tool, ports.now, () => hides(ports.state().house, ports.me, "off"));
+  const hidden = () => hides(ports.state().house, ports.me, "off");
+  const asks = offeredOn(act, ask, ports.state, tool, ports.now, hidden, ports.language);
   const walk = {
     ...currentAnswers(ask, (target = tool) => programCall(act.today?.bind(act), ports.state(), target, ports.now())),
-    label: act.name,
-    verb: act.enter,
+    label: say(ports, act.name),
+    verb: say(ports, act.enter),
     key: act.key,
     /** The bar says what is done and, on a thing, to which. */
     title: (target?: string): string => {
-      const currentTitle = presentation() ? capital(presentation()?.name ?? act.name) : title;
+      const shown = presentation()?.name;
+      const currentTitle = presentation() ? capital(shown ?? say(ports, act.name)) : title;
       return target === undefined ? currentTitle : `${currentTitle} · ${asked.titled(tool, target)}`;
     },
     next: nextQuestion(asks, destination, sure, ask, presentation),
-    stops: (answers: readonly string[], target?: string): string | undefined =>
-      declaredCause(
-        act.refuses,
-        programCall(act.stops?.bind(act), ask.sofar(answers), ports.state(), target ?? tool, ports.now()),
-      ),
+    stops: stopsOf(ports, tool, act, ask),
     run: (answers: readonly string[], target: string) => {
       const problem = destination.problem(answers);
       return problem
-        ? Promise.resolve({ ok: false as const, reason: problem })
+        ? Promise.resolve({ ok: false as const, reason: say(ports, problem) })
         : programResult(ports, target, name, ask.submit(answers), destination.selected(answers));
     },
   };
@@ -120,8 +137,14 @@ function actionThings<X extends Program>(
     const options = programCall(act.choices?.bind(act), source, ports.state(), target ?? tool);
     if (options === undefined) return asked.things(source, target);
     return {
-      found: sought => options.filter(option => option.title.toLowerCase().includes(sought.toLowerCase())),
-      shown: value => options.find(option => option.value === value)?.title ?? value,
+      found: sought =>
+        options
+          .map(option => ({ ...option, title: say(ports, option.title) }))
+          .filter(option => option.title.toLowerCase().includes(sought.toLowerCase())),
+      shown: value => {
+        const title = options.find(option => option.value === value)?.title;
+        return title === undefined ? value : say(ports, title);
+      },
       has: value => options.some(option => option.value === value),
       empty: "",
     };

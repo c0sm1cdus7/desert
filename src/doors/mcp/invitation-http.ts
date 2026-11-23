@@ -1,4 +1,5 @@
 // Redeem outside MCP with a bounded body, a uniform refusal and no cacheable credential responses.
+import { meant } from "../../fields/phrases.ts";
 import type { DoorAccess } from "../../runtime/door-access.ts";
 import { doorTexts } from "../../texts/doors.texts.ts";
 import { header, type McpRequest, type McpResponse } from "./mcp-access.ts";
@@ -17,14 +18,14 @@ export async function redeemHttp(access: DoorAccess, request: McpRequest): Promi
       body: JSON.stringify(responseBody(result)),
     };
   } catch {
-    return { status: 503, headers: { "Cache-Control": "no-store" }, body: doorTexts.denied };
+    return { status: 503, headers: { "Cache-Control": "no-store" }, body: meant(doorTexts.denied) };
   }
 }
 
 function responseBody(result: Awaited<ReturnType<DoorAccess["attempt"]>>) {
   if (result.challenge !== undefined) return { challenge: result.challenge };
   if (result.key) return { key: result.key };
-  return { error: result.status === 429 ? doorTexts.limited : doorTexts.denied };
+  return { error: result.status === 429 ? meant(doorTexts.limited) : meant(doorTexts.denied) };
 }
 async function readAttempt(request: McpRequest) {
   let code = "",

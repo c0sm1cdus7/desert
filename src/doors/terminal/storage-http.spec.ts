@@ -13,7 +13,7 @@ it("keeps rebuild diagnostics in the HTTP house record without painting or emitt
   const house = open(path, program("shop/2"));
   const door = mcpDoor(house, new Map(), { name: "Prueba", version: "1", limits: { recentLines: 40 } });
   try {
-    expect(await door.handle({ method: "GET", path: "/salud", headers: {}, body: () => [] })).toMatchObject({
+    expect(await door.handle({ method: "GET", path: "/health", headers: {}, body: () => [] })).toMatchObject({
       status: 200,
       body: "ok",
     });

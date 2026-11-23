@@ -75,8 +75,8 @@ it.each(["notice", "retirement"] as const)(
     house.bus.emit(effect("journey-interrupted", { reason: "Pará" }, "mind:supervisor", [], id));
     await flush(house);
     // The consciousness heard what the stopped journey left running: its work, until its notice comes.
-    const stop = rig.frames.find(frame => frame.includes("El supervisor frenó tu journey")) ?? "";
-    expect(stop).toContain("Quedó pendiente: notes outbox/send (vm).");
+    const stop = rig.frames.find(frame => frame.includes("The supervisor stopped your journey")) ?? "";
+    expect(stop).toContain("Left pending: notes outbox/send (vm).");
     if (arrival === "notice") expect(rig.announce(execution)).toBe("recorded");
     else house.devices.retire("ana", "vm");
     await flush(house);
@@ -85,8 +85,8 @@ it.each(["notice", "retirement"] as const)(
     await flush(house);
     const kind = arrival === "notice" ? "device-execution-notice" : "device-retired";
     expect(wakesOf(house, id)).toEqual([["journey-opened"], [kind, "journey-resumed"]]);
-    const resumed = rig.frames.find(frame => frame.includes("Tu consciencia retomó este journey: Seguí")) ?? "";
-    expect(resumed).toContain(arrival === "notice" ? told : "Retiraron el dispositivo Linux: el aviso del trabajo");
+    const resumed = rig.frames.find(frame => frame.includes("Your consciousness resumed this journey: Seguí")) ?? "";
+    expect(resumed).toContain(arrival === "notice" ? told : "The device Linux was retired: the notice of the job");
     expect(journeyOf(house)?.closed?.data.outcome).toBe("done");
   },
   60000,
@@ -95,7 +95,7 @@ it("a disconnection wakes nobody; the device's retirement wakes the journey wait
   const { rig, house, id } = await asked((frame, id, turn) => {
     if (turn === 1) return answer([sendOn("Informe"), waitNotice(id)]);
     // Woken by the retirement, a second wait on that notice comes back as a correction.
-    return frame.includes("dispositivo retirado") ? answer([endJourney(id)]) : answer([waitNotice(id)]);
+    return frame.includes("runs on a retired device") ? answer([endJourney(id)]) : answer([waitNotice(id)]);
   });
   rig.disconnect();
   await flush(house);
@@ -103,7 +103,8 @@ it("a disconnection wakes nobody; the device's retirement wakes the journey wait
   house.devices.retire("ana", "vm");
   await flush(house);
   expect(wakesOf(house, id)).toEqual([["journey-opened"], ["device-retired"]]);
-  const line = "Retiraron el dispositivo Linux: el aviso del trabajo outbox/send → notes/outbox que arrancó";
+  const line =
+    "The device Linux was retired: the notice of the job outbox/send → notes/outbox that this journey started";
   expect(rig.frames.filter(frame => frame.includes(line))).toHaveLength(2);
   expect(journeyOf(house)?.closed?.data.outcome).toBe("done");
 }, 60000);
@@ -115,7 +116,7 @@ it("a retirement during the journey's turn refuses its wait on that notice and s
       house.devices.retire("ana", "vm");
       return answer([waitNotice(id)]);
     }
-    expect(frame).toContain("corre en un dispositivo retirado: ese aviso no va a llegar.");
+    expect(frame).toContain("runs on a retired device: that notice will not come.");
     return answer([{ act: "wait", target: id, input: { what: "Mañana", until: Date.now() + 86_400_000 } }]);
   });
   expect(wakesOf(house, id)).toEqual([["journey-opened"], ["device-retired"]]);
@@ -143,7 +144,8 @@ it("a restart that cuts the turn a notice woke says that notice again with the r
   const again = await rig.open(script);
   await flush(again);
   expect(wakesOf(again, id)).toEqual([["journey-opened"], ["device-execution-notice"], ["mind-turn-closed"]]);
-  const last = rig.frames.find(frame => frame.includes("La casa se reinició durante el turno anterior")) ?? "";
-  expect(last).toContain(shortIds(`${told} (arranque: start:${execution}) se perdió.`));
+  const last =
+    rig.frames.find(frame => frame.includes("The house restarted during this journey's previous turn")) ?? "";
+  expect(last).toContain(shortIds(`${told} (start: start:${execution}) was lost.`));
   expect(journeyOf(again)?.closed?.data.outcome).toBe("done");
 }, 60000);

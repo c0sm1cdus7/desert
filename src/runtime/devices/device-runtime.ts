@@ -1,4 +1,5 @@
 // Runs an owner's devices and their technical connections, apart from identity sessions.
+import { meant } from "../../fields/phrases.ts";
 import { supportsDeviceAction, type DeviceRequest } from "../../fields/device-protocol.ts";
 import type { House } from "../../house/members.ts";
 import { readonlyState } from "../../journal/readonly-state.ts";
@@ -34,7 +35,7 @@ function availability<X extends Program>(
 function runtimeState(state: () => House) {
   let closed = false;
   const checkOpen = () => {
-    if (closed) throw new Error(deviceTexts.closed);
+    if (closed) throw new Error(meant(deviceTexts.closed));
   };
   return {
     checkOpen,
@@ -42,7 +43,7 @@ function runtimeState(state: () => House) {
       checkOpen();
       const device = state().devices.devices.get(id);
       if (!device || !device.accepted || device.retired || !state().grants.has(device.owner))
-        throw new Error(deviceTexts.unavailable);
+        throw new Error(meant(deviceTexts.unavailable));
       return device;
     },
     close() {

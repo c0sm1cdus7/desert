@@ -9,10 +9,10 @@ import { begin, start, type Session } from "../session/screen.ts";
 import type { Tool } from "../contract/shown-tool.ts";
 import { step } from "./step.ts";
 
-const bar = { state: "connected", clock: "12:00", now: 0 } as const;
+const bar = { language: "es", state: "connected", clock: "12:00", now: 0 } as const;
 const block = Array.from({ length: 12 }, (_, i) => `renglón ${i + 1}`).join("\n");
 const options = Array.from({ length: 8 }, (_, i) => ({ title: `opción ${i + 1}`, key: String(i + 1) }));
-const sure: Field = { ask: block, kind: "confirm", options };
+const sure: Field = { ask: block, kind: "confirm", back: "volver", options };
 const act = {
   label: "emitir",
   verb: "emitir",
@@ -53,7 +53,7 @@ describe("a long preview with many options, on the smallest terminal", () => {
       const lines = shown(session);
       for (const line of lines.filter(each => each.startsWith("renglón"))) seen.add(line);
       expect(lines.filter(line => /más.*más/u.test(line))).toEqual([]);
-      session = step(session, { kind: "up" }, [tool], 0).session;
+      session = step(session, { kind: "up" }, [tool], 0, "es").session;
     }
     expect([...seen].sort()).toEqual(block.split("\n").sort());
   });
@@ -62,9 +62,9 @@ describe("a long preview with many options, on the smallest terminal", () => {
 describe("Enter, after reading past the list the chosen row is in", () => {
   it("brings the chosen row back into view first, and opens it only then", () => {
     const place = { kind: "view", tool: "invoices", at: 0, shift: -1 } as const;
-    const back = step([...start, place], { kind: "confirm" }, [tool], 0).session;
+    const back = step([...start, place], { kind: "confirm" }, [tool], 0, "es").session;
     expect(back.at(-1)).toEqual({ kind: "view", tool: "invoices", at: 0 });
-    const opened = step(back, { kind: "confirm" }, [tool], 0).session;
+    const opened = step(back, { kind: "confirm" }, [tool], 0, "es").session;
     expect(opened.at(-1)).toMatchObject({ kind: "view", tool: "invoices", target: "invoices/1" });
   });
 });
@@ -76,6 +76,7 @@ describe("a row whose name and what is beside it do not both fit", () => {
     const stack = { title: "Comprobantes", rows: [{ title: name, detail: beside, key: "1" }] };
     const screen: Screen = {
       title: "x",
+      language: "es" as const,
       state: "connected",
       clock: "12:00",
       hints: [],

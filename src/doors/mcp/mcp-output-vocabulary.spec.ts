@@ -251,7 +251,7 @@ it.each(["unknown", "ping", "tools/call"])("reviews the correlated %s envelope",
     expect(value).toMatchObject({ jsonrpc: "2.0", id: requestDigest(h.founder), correlation: "sha256" });
     expect(seen.has("correlation")).toBe(true);
     if (method === "unknown") {
-      expect(value).toMatchObject({ error: { code: -32601, message: "Ese método no está disponible." } });
+      expect(value).toMatchObject({ error: { code: -32601, message: "That method is not available." } });
       for (const key of ["error", "code", "message"]) expect(seen.has(key), key).toBe(true);
     } else if (method === "tools/call") {
       expect(mcpResult(response.body).isError).toBe(false);

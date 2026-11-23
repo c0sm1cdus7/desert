@@ -131,7 +131,7 @@ it("rejects a plain dated question at composition and through the derived gate",
     })),
   };
   await staged(program, ({ house }) => {
-    expect(() => houseTools(localPorts(house(), cast.admin, { recentLines: 100 }), shopShown)).toThrow(
+    expect(() => houseTools(localPorts(house(), cast.admin, { recentLines: 100 }), shopShown, "es")).toThrow(
       "program does not say what day",
     );
     return Promise.resolve();
@@ -182,5 +182,5 @@ it("checks also.off against declared causes while drawing, and fails the derived
       check.name.endsWith(", by keys"),
   );
   expect(check).toBeDefined();
-  await expect(check?.run()).rejects.toThrow("E-PROG-1 · Falló el programa · sales/sales");
+  await expect(check?.run()).rejects.toThrow("E-PROG-1 · The program failed · sales/sales");
 });

@@ -1,4 +1,5 @@
 // Derives the roles and rules of the chosen minds without loading thinking or providers.
+import { inLanguage, said } from "../../fields/phrases.ts";
 import { programMindRules } from "../../texts/program-mind.texts.ts";
 import type { MindDefinition } from "../../tools/minds/mind-contract.ts";
 import type { InstalledProgram } from "../../tools/installable/runtime.ts";
@@ -26,9 +27,11 @@ export function programMindDefinitions(installed: Installed, enabled: readonly s
             ...programMindRules,
             text: (language: Parameters<typeof programMindRules.text>[0]) =>
               programMindRules.text(language, {
-                name: item.words.name,
+                name: said(item.words.name, language),
                 talks: item.definition.messages !== undefined,
-                words: JSON.stringify({ program: item.words, tools: item.groups.map(group => group.words) }),
+                words: JSON.stringify(
+                  inLanguage({ program: item.words, tools: item.groups.map(group => group.words) }, language),
+                ),
               }),
           },
           communication: [{ tool: "mind", act: "scene" }, ...talk],

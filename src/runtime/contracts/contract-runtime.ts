@@ -1,4 +1,5 @@
 // Binds each request to its one provider and lends ports bounded to the real context of an action.
+import { meant } from "../../fields/phrases.ts";
 import { contractRecord, copyContractPackages } from "./contract-record.ts";
 import { present } from "../../house/kit.ts";
 import type { Program } from "../../tools/tool-contract.ts";
@@ -13,7 +14,7 @@ import { objectPorts, noticePorts, type ReadingScope } from "./contract-readings
 export class ContractCompositionError extends Error {
   readonly errors: readonly string[];
   constructor(errors: readonly string[]) {
-    super(contractTexts.invalidComposition);
+    super(meant(contractTexts.invalidComposition));
     this.errors = errors;
   }
 }

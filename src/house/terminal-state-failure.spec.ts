@@ -1,4 +1,5 @@
 import { duplexPair } from "node:stream";
+import { everySaid } from "../fields/phrases.ts";
 import { afterEach, expect, it, vi } from "vitest";
 import { shopProgram, shopShown, type Shop } from "../../tests/support/shop.ts";
 import { socketHouse } from "../../tests/support/socket-house.ts";
@@ -101,7 +102,7 @@ it.each([false, true])(
       await vi.waitFor(() => expect(process.exitCode).toBe(1));
       await running;
       expect(requests).toBe(2);
-      expect(output.mock.calls.at(-1)).toEqual([`${socketTexts.stateUnverified}\n`]);
+      expect(output.mock.calls.at(-1)).toEqual([`${everySaid(socketTexts.stateUnverified)}\n`]);
       expect(output.mock.calls).toHaveLength(2);
       if (inside) {
         expect(tty.raw).toBe(false);
@@ -141,7 +142,7 @@ it("intermediate welcomes still end the public opening at five seconds with a ca
       await vi.advanceTimersByTimeAsync(socketLimits.helloMs / 5);
     }
     expect(process.exitCode).toBe(1);
-    expect(output.mock.calls).toEqual([[`${socketTexts.startTimeout}\n`]]);
+    expect(output.mock.calls).toEqual([[`${everySaid(socketTexts.startTimeout)}\n`]]);
   } finally {
     c.close();
     pair[1].destroy();

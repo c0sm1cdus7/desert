@@ -1,4 +1,5 @@
 // Picks the declared place and dispatches through the core's port after the common checks.
+import { type Text } from "../../fields/phrases.ts";
 import { Value } from "@sinclair/typebox/value";
 import { fine } from "../../fields/fields.ts";
 import type { ActionExecution, DeviceRequest, ExecutionDestination } from "../../fields/device-protocol.ts";
@@ -16,7 +17,7 @@ export type DeviceDispatch = <X extends Program>(
 export function destinationProblem(
   declaration: ActionExecution | undefined,
   destination: ExecutionDestination | undefined,
-): string | undefined {
+): Text | undefined {
   const at = declaration?.at ?? "house";
   if (!destination) return at === "house" ? undefined : deviceTexts.destination;
   return (destination.kind === "house" && at === "device") || (destination.kind === "device" && at === "house")

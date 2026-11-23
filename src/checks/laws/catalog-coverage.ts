@@ -1,4 +1,6 @@
 // A definition must reach an action catalog, and every source export or catalog text must serve production.
+import { isLanguage } from "../../fields/languages.ts";
+import { meant } from "../../fields/phrases.ts";
 import { existsSync, readFileSync } from "node:fs";
 import { join, matchesGlob, resolve } from "node:path";
 import ts from "typescript";
@@ -67,7 +69,7 @@ export function testOnlyExports(repo: Repository, graph: CatalogGraph): string[]
       if (published.includes(symbol)) continue;
       const uses = [...(graph.uses.get(symbol) ?? [])];
       if (uses.some(use => !production.has(use)) && !uses.some(use => production.has(use)))
-        results.push(words.exported(nodeLocation(symbol.declarations?.[0] ?? file), symbol.name));
+        results.push(meant(words.exported(nodeLocation(symbol.declarations?.[0] ?? file), symbol.name)));
     }
   }
   return [...new Set(results)];
@@ -104,6 +106,8 @@ export function unusedCatalogTexts(graph: CatalogGraph): string[] {
       ))
         return;
       if (!carriesText(graph, graph.checker.getTypeAtLocation(node.initializer))) return;
+      // A phrase says itself in every language: each language of it is used wherever the phrase is.
+      if (isLanguage(node.name.text)) return;
       // Constructor options configure formatting; they are not stored catalog entries.
       for (let parent: ts.Node = node; !ts.isSourceFile(parent); parent = parent.parent) {
         if (ts.isNewExpression(parent)) return;
@@ -114,13 +118,13 @@ export function unusedCatalogTexts(graph: CatalogGraph): string[] {
       }
       const symbol = graph.symbol(node.name);
       if (symbol && ![...(graph.uses.get(symbol) ?? [])].some(file => users.has(file)))
-        dead.push(words.text(nodeLocation(node), node.name.text));
+        dead.push(meant(words.text(nodeLocation(node), node.name.text)));
     });
     for (const symbol of exported(graph, file)) {
       const declaration = symbol.valueDeclaration;
       if (!declaration || !carriesText(graph, graph.checker.getTypeOfSymbolAtLocation(symbol, declaration))) continue;
       if (![...(graph.uses.get(symbol) ?? [])].some(file => users.has(file)))
-        dead.push(words.text(nodeLocation(symbol.declarations?.[0] ?? file), symbol.name));
+        dead.push(meant(words.text(nodeLocation(symbol.declarations?.[0] ?? file), symbol.name)));
     }
   }
   return dead;

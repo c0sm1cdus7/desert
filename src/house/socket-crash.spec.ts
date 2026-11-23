@@ -1,4 +1,5 @@
 import { mkdtempSync, rmSync } from "node:fs";
+import { said } from "../fields/phrases.ts";
 import { expect, it } from "vitest";
 import { probe } from "../../tests/support/socket-probe.ts";
 import { crashClient } from "../../tests/support/crash-client.ts";
@@ -32,7 +33,7 @@ it.each(["recorded", "before", "during", "result", "after"])(
       b.send({ type: "read", id: "lost", what: "request" });
       const recovered = await b.result("lost");
       expect(recovered?.status).toBe(mode === "after" ? "accepted" : "interrupted");
-      if (mode !== "after") expect(recovered?.reason).toContain("Actividad");
+      if (mode !== "after") expect(said(recovered?.reason ?? "", "es")).toContain("Actividad");
       const count = b.messages.length;
       b.send(request);
       expect(await b.until(() => b.messages.length > count)).toBe(true);

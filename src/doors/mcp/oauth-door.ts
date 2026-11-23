@@ -1,4 +1,5 @@
 // Route OAuth discovery, stateless registration, invitation consent and PKCE exchange over the existing door.
+import { meant } from "../../fields/phrases.ts";
 import { oauthAuthorization, type OAuthContext } from "./oauth-authorization.ts";
 import type { DoorAccess } from "../../runtime/door-access.ts";
 import { doorTexts } from "../../texts/doors.texts.ts";
@@ -16,7 +17,7 @@ function publicOrigin(origin: string): string {
     if (url.origin !== origin || url.protocol !== "https:") throw new Error();
     return origin;
   } catch {
-    throw new Error(said.configuration);
+    throw new Error(meant(said.configuration));
   }
 }
 export function oauthDoor(

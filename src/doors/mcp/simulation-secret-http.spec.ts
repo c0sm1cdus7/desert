@@ -63,7 +63,7 @@ it.each(["handler", "HTTP"])("never returns or records secret sample material re
     };
     const saved = await call("save", { ...publicLimit, action: { tool: "sales", act: "register" } });
     expect(mcpResult(saved).isError).toBe(false);
-    expect(saved).toContain(rulesTexts.saved);
+    expect(saved).toContain(rulesTexts.saved.es);
     for (const input of [
       { kind: "first", amount: 11, nested: { token: simulationMarker } },
       { kind: "first", amount: 11, nested: {} },

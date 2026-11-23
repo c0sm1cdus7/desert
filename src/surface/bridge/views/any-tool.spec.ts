@@ -18,7 +18,11 @@ describe("a tool that reads data of its own", () => {
     };
     const words = { name: "Reloj", key: "r", itself: [{ title: "Reloj", empty: "", reads: { now: "Ahora" } }] };
     const house = rig.ports("ana", () => 5_000);
-    const ports = { ...house, act: (value: Parameters<typeof house.act>[0]) => house.act(value, 0) };
+    const ports = {
+      ...house,
+      language: "es" as const,
+      act: (value: Parameters<typeof house.act>[0]) => house.act(value, 0),
+    };
     const screen = anyToolScreen(ports, clock, words, { acts: {} }, () => ({ title: "" }));
     expect(screen.view().map(stack => stack.rows.map(row => [row.title, row.detail]))).toEqual([[["Ahora", "5000"]]]);
   });

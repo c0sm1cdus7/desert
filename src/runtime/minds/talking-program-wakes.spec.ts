@@ -48,7 +48,6 @@ async function talking() {
     );
   });
   const options = await composed.modelMinds({
-    language: "es",
     key: () => Promise.resolve("synthetic"),
     transport,
     account: "test",

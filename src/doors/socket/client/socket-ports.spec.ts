@@ -1,4 +1,5 @@
 import { duplexPair } from "node:stream";
+import { meant, said } from "../../../fields/phrases.ts";
 import { setTimeout as delay } from "node:timers/promises";
 import { afterEach, expect, it } from "vitest";
 import { socketHouse } from "../../../../tests/support/socket-house.ts";
@@ -84,7 +85,7 @@ it("cuts settle without rejection; offline sends nothing; reconnection only quer
   pair[1].destroy();
   const result = await pending;
   expect(result.status).toBe("interrupted");
-  expect(result.reason).toContain("Actividad");
+  expect(meant(result.reason ?? "")).toContain("Activity");
   const count = sent.length;
   await settle(ports.act({ act: "prefer", input: { hide: "empty", on: true } }, 0));
   expect(sent).toHaveLength(count);
@@ -105,12 +106,12 @@ it("defect public text excludes thrown act data and the server prepares the diag
     prepared = true;
     return original(value);
   };
-  const text = ports.defect(new PortFailure("private-act-data"), "payments", "payments", "receive");
+  const text = said(ports.defect(new PortFailure("private-act-data"), "payments", "payments", "receive"), "es");
   expect(text.length).toBeGreaterThan(0);
   expect(text).not.toContain("private-act-data");
   await delay(20);
   expect(prepared).toBe(true);
-  expect(f.house().tools.state().entries.at(-1)?.data.text).toBe(text);
+  expect(said(f.house().tools.state().entries.at(-1)?.data.text ?? "", "es")).toBe(text);
 });
 it("keeps the order of a registry the house already completed, so its Menu reads as the house's", async () => {
   const { f, connection } = await setup();

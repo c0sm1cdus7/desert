@@ -1,14 +1,19 @@
 // A program's run only succeeds or reports a cause declared as coming from the world.
 import type { ActResult, Program } from "./tool-contract.ts";
 import { OutsideDefect } from "../fields/program-call.ts";
-export type RunResult<X extends Program, O extends readonly string[]> =
+import { meant, type Text } from "../fields/phrases.ts";
+/** A run succeeds, or reports a cause from the world, and only when its act declares causes from the world. */
+export type RunResult<X extends Program, O extends readonly Text[] = readonly Text[]> =
   | Extract<ActResult<X>, { status: "accepted" }>
-  | Readonly<{ status: "rejected"; value?: unknown; reason: O[number] | `${O[number]} · ${string}` }>;
-export const outsideCause = (outside: readonly string[], reason: string): string | undefined =>
-  outside.find(cause => reason === cause || reason.startsWith(`${cause} · `));
+  | Readonly<{ status: "rejected"; value?: unknown; reason: WorldSaid<O[number]> }>;
+/** A declared cause as the world says it: the cause itself, or, said in one language, followed by what it adds. */
+type WorldSaid<C extends Text> = C extends string ? C | `${C} · ${string}` : C;
+/** The declared cause a refusal from the world says, alone or followed by what the world said: by its English. */
+export const outsideCause = (outside: readonly Text[], reason: Text): Text | undefined =>
+  outside.find(cause => meant(reason) === meant(cause) || meant(reason).startsWith(`${meant(cause)} · `));
 
 export function outsideRun<X extends Program>(
-  outside: readonly string[],
+  outside: readonly Text[],
   run: () => ActResult<X> | Promise<ActResult<X>>,
 ) {
   const check = (result: ActResult<X>): ActResult<X> => {

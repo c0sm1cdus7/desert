@@ -1,10 +1,21 @@
 // Rendering and choosing are program execution too: their defects get one public screen and a support record.
 import { InvalidMoney } from "../formats/invalid-money.ts";
+import { said, wordsIn, type Text } from "../../fields/phrases.ts";
 import { surfaceTexts } from "../../texts/surface.texts.ts";
 import type { Screen } from "../contract/contract.ts";
 import type { Router } from "./router.ts";
 import type { Bar, Session } from "../session/screen.ts";
-export type DefectReporter = (error: unknown, tool: string, target: string, option: string) => string;
+/** The one public screen of a defect: what failed, and the way back. */
+const defectScreen = (bar: Bar, reason: string): Screen => ({
+  language: bar.language,
+  state: bar.state,
+  clock: bar.clock,
+  title: wordsIn(surfaceTexts, bar.language).error,
+  body: { kind: "thread", events: [{ text: [{ text: reason, tone: "cut" }] }] },
+  hints: [{ intent: "cancel", does: wordsIn(surfaceTexts, bar.language).keys.goBack }],
+  menu: true,
+});
+export type DefectReporter = (error: unknown, tool: string, target: string, option: string) => Text;
 export function routerDefects(
   session: () => Session,
   bar: () => Bar,
@@ -19,18 +30,13 @@ export function routerDefects(
     const option = place?.kind === "act" ? place.act : tool;
     const target = place && "target" in place ? (place.target ?? tool) : tool;
     reason = "";
-    const reported = report(error, tool, target, option);
-    reason = error instanceof InvalidMoney ? `${reported} · ${surfaceTexts.invalidMoney(error.field)}` : reported;
+    const reported = said(report(error, tool, target, option), bar().language);
+    const invalid =
+      error instanceof InvalidMoney ? wordsIn(surfaceTexts, bar().language).invalidMoney(error.field) : "";
+    reason = invalid ? `${reported} · ${invalid}` : reported;
     return reason;
   };
-  const screen = (): Screen => ({
-    state: bar().state,
-    clock: bar().clock,
-    title: surfaceTexts.error,
-    body: { kind: "thread", events: [{ text: [{ text: reason ?? "", tone: "cut" }] }] },
-    hints: [{ intent: "cancel", does: surfaceTexts.keys.goBack }],
-    menu: true,
-  });
+  const screen = (): Screen => defectScreen(bar(), reason ?? "");
   const protect = (router: Router) =>
     protectRouter(
       router,

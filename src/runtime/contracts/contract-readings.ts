@@ -1,4 +1,5 @@
 // Serves objects and notices from authentic cuts, with current presence and data trimmed to the request.
+import { meant } from "../../fields/phrases.ts";
 import { contractRecord } from "./contract-record.ts";
 import { contractTexts } from "../../texts/contracts.texts.ts";
 import { Value } from "@sinclair/typebox/value";
@@ -24,7 +25,7 @@ export type ReadingScope<X extends Program> = Readonly<{
 }>;
 function ownState<X extends Program>(provider: ContractPackage, state: State<X>) {
   const own = state.tools[provider.id];
-  if (own === null || typeof own !== "object" || Array.isArray(own)) throw new Error(contractTexts.invalidValue);
+  if (own === null || typeof own !== "object" || Array.isArray(own)) throw new Error(meant(contractTexts.invalidValue));
   return readonlyState(Object.fromEntries(Object.entries(own)));
 }
 /** A provider's object as its projector reads it from a state, checked against the offer and trimmed to the request:
@@ -108,7 +109,7 @@ export function noticePorts<X extends Program>(
             .events(cut.sequence)
             .filter(event => event.layer === "program" && event.kind === have.fact)
             .map(event => {
-              if (!Value.Check(have.data, event.data)) throw new Error(contractTexts.invalidValue);
+              if (!Value.Check(have.data, event.data)) throw new Error(meant(contractTexts.invalidValue));
               return {
                 id: event.id,
                 sequence: event.seq,

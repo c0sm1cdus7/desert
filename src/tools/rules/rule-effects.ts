@@ -1,4 +1,5 @@
 // Keeps programs or own acts from forging rules and validates the concrete core act.
+import type { Text } from "../../fields/phrases.ts";
 import type { House } from "../../house/members.ts";
 import type { HouseEmission } from "../../house/facts.ts";
 import type { ActContext, Program, Tool } from "../tool-contract.ts";
@@ -14,7 +15,7 @@ export function ruleEffectProblem<X extends Program>(
   event: HouseEmission,
   context: ActContext<X>,
   tool?: Tool<X>,
-): string | undefined {
+): Text | undefined {
   if (!tool || !isRulesTool(tool)) return effectRefusalTexts.houseFact;
   const option = ports.state().acts.get(context.id ?? "")?.data.option;
   if (event.kind === "rule-versioned") {

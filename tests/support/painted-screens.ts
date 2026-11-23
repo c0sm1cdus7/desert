@@ -5,7 +5,14 @@ const moving: readonly Hint[] = [
   { intent: "move", does: "elegir" },
   { intent: "confirm", does: "abrir" },
 ];
-const base = { title: "Prueba", state: "connected", clock: "10:42", hints: moving, menu: true } as const;
+const base = {
+  title: "Prueba",
+  language: "es",
+  state: "connected",
+  clock: "10:42",
+  hints: moving,
+  menu: true,
+} as const;
 const rows: readonly Row[] = [
   { key: "1", title: "Cobrar" },
   { key: "12", title: "Una clave de dos caracteres", detail: "larga" },

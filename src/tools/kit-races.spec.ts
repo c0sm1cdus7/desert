@@ -24,7 +24,7 @@ it("does not lose a cut and a return queued from the same listener", async () =>
   stop();
   expect(rig.calls[0]?.context.signal?.aborted).toBe(true);
   rig.calls[0]?.done.resolve(saved);
-  expect(await settled(pending)).toMatchObject({ status: "interrupted", reason: "sacada" });
+  expect(await settled(pending)).toMatchObject({ status: "interrupted", reason: { en: "removed", es: "sacada" } });
 });
 
 it("cuts before the body if taken out on hearing that it started", async () => {
@@ -35,7 +35,7 @@ it("cuts before the body if taken out on hearing that it started", async () => {
   const pending = rig.start();
   stop();
   expect(rig.outside).toEqual([]);
-  expect(await settled(pending)).toMatchObject({ status: "interrupted", reason: "sacada" });
+  expect(await settled(pending)).toMatchObject({ status: "interrupted", reason: { en: "removed", es: "sacada" } });
 });
 
 it("folding history while an act is alive does not touch its signal", async () => {
@@ -58,7 +58,12 @@ it("folding history while an act is alive does not touch its signal", async () =
 it.each(["house", "world"] as const)("the screen explains the pending result of scope %s", async reach => {
   const rig = open(reach);
   const ports = rig.ports("beto", () => 5000);
-  const shown = programResult({ ...ports, act: value => ports.act(value, rig.state().through) }, "slow", "run", {});
+  const shown = programResult(
+    { ...ports, language: "es" as const, act: value => ports.act(value, rig.state().through) },
+    "slow",
+    "run",
+    {},
+  );
   await Promise.resolve();
   expect(rig.calls).toHaveLength(1);
   rig.kit("beto");

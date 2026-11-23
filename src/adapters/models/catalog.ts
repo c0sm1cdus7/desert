@@ -1,4 +1,5 @@
 // Defines the cards, their capabilities, results and conservative cost calculation.
+import { meant } from "../../fields/phrases.ts";
 import type { Capability } from "../../fields/capabilities.ts";
 import { modelTexts } from "../../texts/model.texts.ts";
 
@@ -48,7 +49,7 @@ export const cards: readonly Card[] = models.flatMap(model =>
   })),
 );
 const required = (value: unknown, name: string) => {
-  if (value === undefined || value === null) throw new Error(`${modelTexts.missing}: ${name}`);
+  if (value === undefined || value === null) throw new Error(`${meant(modelTexts.missing)}: ${name}`);
 };
 const validNumber = (value: number, name: string) => {
   if (!Number.isFinite(value) || value < 0) throw new Error(name);
@@ -65,7 +66,7 @@ export function costUsd(card: Card, usage: Usage): number {
   const prices = card.above100k && totalInput > 100_000 ? card.above100k : card.prices;
   return (["input", "output", "cacheRead", "cacheWrite"] as const).reduce((total, key) => {
     const rate = prices[key];
-    if (rate === null && usage[key] > 0) throw new Error(`${modelTexts.unknownPrice}: ${key}`);
+    if (rate === null && usage[key] > 0) throw new Error(`${meant(modelTexts.unknownPrice)}: ${key}`);
     if (rate !== null) validNumber(rate, key);
     return total + (usage[key] * (rate ?? 0)) / 1_000_000;
   }, 0);

@@ -1,4 +1,5 @@
 import { shop } from "../../tests/support/shop.ts";
+import { meant } from "../fields/phrases.ts";
 import { copyJournal } from "../checks/kept/copy-journal.ts";
 import { privateDatabase } from "./home.ts";
 import { journalReader } from "./journal-store.ts";
@@ -23,7 +24,7 @@ it.each(["-journal", "-wal", "-shm"])("refuses aliased sidecar sibling %s before
   try {
     expect(await child.next()).toBe("ready");
     child.send("open");
-    expect(await child.next()).toBe(journalTexts.locked);
+    expect(await child.next()).toBe(meant(journalTexts.locked));
     expect(victim.append(sale("after"), 1).seq).toBe(2);
   } finally {
     await child.stop(true);
@@ -65,7 +66,7 @@ it.each(["writer", "reader", "copy", "private"])("the %s door refuses aliased da
   try {
     expect(await child.next()).toBe("ready");
     child.send("open");
-    expect(await child.next()).toBe(journalTexts.locked);
+    expect(await child.next()).toBe(meant(journalTexts.locked));
     expect(victim.append(sale("owned"), 0).seq).toBe(1);
   } finally {
     await child.stop(true);

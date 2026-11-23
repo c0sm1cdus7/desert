@@ -42,7 +42,7 @@ describe("cards and Anthropic", () => {
           type: "json_schema",
           schema: {
             type: "object",
-            properties: { text: { type: "string", description: "Al menos 2 caracteres." } },
+            properties: { text: { type: "string", description: "At least 2 characters." } },
             required: ["text"],
             additionalProperties: false,
           },

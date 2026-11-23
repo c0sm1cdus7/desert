@@ -1,4 +1,5 @@
 // A kept journal of a program with Identidades opens in inspection as a live house opens it: with the core piece in
+import { meant } from "../../fields/phrases.ts";
 // its registry and the guard on every new identity name.
 import { afterEach, expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
@@ -37,7 +38,7 @@ it("inspection keeps the guard on new identity names: a grant for a mind is refu
   const written = await inspectKept(program, file, house => {
     const before = house.tools.state().through;
     const grant = () => house.bus.emit(effect("granted", { identity: "mind:payments", tools: ["payments"] }, "ana"));
-    expect(grant).toThrow(identityNameProblem("mind:payments", "house"));
+    expect(grant).toThrow(meant(identityNameProblem("mind:payments", "house") ?? ""));
     return house.tools.state().through - before;
   });
   expect(written).toBe(0);

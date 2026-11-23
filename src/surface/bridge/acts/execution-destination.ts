@@ -3,12 +3,16 @@ import { deviceChoices } from "../../../house/devices/device-state.ts";
 import type { ExecutionDestination } from "../../../fields/device-protocol.ts";
 import type { ProgramAct } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
-import { deviceTexts as words } from "../../../texts/devices.texts.ts";
+import { wordsIn, type InLanguage } from "../../../fields/phrases.ts";
+import { deviceTexts } from "../../../texts/devices.texts.ts";
+import { surfaceTexts } from "../../../texts/surface.texts.ts";
 import type { Field } from "../../contract/contract.ts";
-import type { SurfacePorts } from "../ports/house-ports.ts";
+import { say, type SurfacePorts } from "../ports/house-ports.ts";
 import type { Asking } from "../questions/asking.ts";
 type Choice = Readonly<{ title: string; key: string; destination: ExecutionDestination }>;
+type Words = InLanguage<typeof deviceTexts>;
 function destinationChoices<X extends Program>(ports: SurfacePorts<X>, act: ProgramAct<X>, name: string): Choice[] {
+  const words = wordsIn(deviceTexts, ports.language);
   return [
     ...(act.execution?.at === "either"
       ? [{ title: words.house, key: "c", destination: { kind: "house" as const } }]
@@ -20,7 +24,7 @@ function destinationChoices<X extends Program>(ports: SurfacePorts<X>, act: Prog
     })),
   ];
 }
-function destinationQuestion(choices: () => readonly Choice[]): Field {
+function destinationQuestion(choices: () => readonly Choice[], words: Words): Field {
   return {
     ask: `${words.choose} · ${words.provisioning}`,
     kind: "pick",
@@ -35,17 +39,21 @@ function destinationQuestion(choices: () => readonly Choice[]): Field {
   };
 }
 function destinationConfirmation<X extends Program>(
+  ports: SurfacePorts<X>,
   act: ProgramAct<X>,
   title: string,
   available: boolean,
   field: Field | null,
 ): Field {
+  const words = wordsIn(deviceTexts, ports.language);
+  const enter = say(ports, act.enter);
   const base =
     field?.kind === "confirm"
       ? field
       : {
           kind: "confirm" as const,
-          options: [{ title: act.enter, key: act.enter.charAt(0) }],
+          options: [{ title: enter, key: enter.charAt(0) }],
+          back: wordsIn(surfaceTexts, ports.language).back,
           ...(act.undoable ? { reversible: true as const } : {}),
         };
   return {
@@ -67,9 +75,9 @@ export function executionDestination<X extends Program>(
   const next = (answers: readonly string[], confirmation: () => Field | null): Field | null => {
     if (!required) return null;
     const count = ask.taken(answers);
-    if (answers.length === count) return destinationQuestion(choices);
+    if (answers.length === count) return destinationQuestion(choices, wordsIn(deviceTexts, ports.language));
     if (answers.length === count + 1)
-      return destinationConfirmation(act, answers[count] ?? "", selected(answers) !== undefined, confirmation());
+      return destinationConfirmation(ports, act, answers[count] ?? "", selected(answers) !== undefined, confirmation());
     return null;
   };
   return {
@@ -77,6 +85,6 @@ export function executionDestination<X extends Program>(
     selected,
     next,
     problem: (answers: readonly string[]) =>
-      required && answers.length > ask.taken(answers) && !selected(answers) ? words.unavailable : undefined,
+      required && answers.length > ask.taken(answers) && !selected(answers) ? deviceTexts.unavailable : undefined,
   };
 }

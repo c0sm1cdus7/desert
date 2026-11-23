@@ -1,4 +1,5 @@
 // Personal scene, visibility and attendance use registered declarations and the ordinary action engine.
+import { meant } from "../../fields/phrases.ts";
 import { oneOf, option, text, thing } from "../../fields/fields.ts";
 import { isMindActor } from "../../fields/mind-actor.ts";
 import { object } from "../../fields/visible-text.ts";
@@ -29,7 +30,7 @@ function sceneAction<X extends Program>() {
       {
         promise: words.sceneSaved,
         by: "beto",
-        input: { general: words.example },
+        input: { general: meant(words.example) },
         then: { says: words.sceneSaved, facts: [] },
       },
     ],
@@ -39,12 +40,12 @@ const addressedCases = [
   {
     promise: words.sceneSaved,
     by: "beto",
-    input: { recipient: "ana", message: words.toExample },
+    input: { recipient: "ana", message: meant(words.toExample) },
     then: { says: words.sceneSaved, facts: [] },
   },
   {
     promise: words.absent,
-    input: { recipient: "missing", message: words.toExample },
+    input: { recipient: "missing", message: meant(words.toExample) },
     then: { refused: words.absent },
   },
   {
@@ -54,14 +55,14 @@ const addressedCases = [
       {
         scene: {
           by: "beto",
-          general: words.example,
+          general: meant(words.example),
           to: Object.fromEntries(
-            Array.from({ length: sceneLimits.identities }, (_, index) => [`former-${index}`, words.toExample]),
+            Array.from({ length: sceneLimits.identities }, (_, index) => [`former-${index}`, meant(words.toExample)]),
           ),
         },
       },
     ],
-    input: { recipient: "ana", message: words.toExample },
+    input: { recipient: "ana", message: meant(words.toExample) },
     then: { refused: words.full },
   },
 ] as const satisfies readonly import("../promises.ts").Case<Program, typeof addressedInput>[];
@@ -87,7 +88,7 @@ function addressedAction<X extends Program>() {
         effect(
           "scene",
           {
-            general: state.house.scenes.get(by)?.data.general ?? words.example,
+            general: state.house.scenes.get(by)?.data.general ?? meant(words.example),
             to: { ...state.house.scenes.get(by)?.data.to, [recipient]: message },
           },
           by,

@@ -12,7 +12,13 @@ import { asking } from "../../surface/bridge/questions/asking.ts";
 import { paint } from "./paint.ts";
 import { textOf, width } from "./cells.ts";
 import { fieldSeat } from "../../../tests/support/field-seat.ts";
-const words = { now: () => 17, today: () => "2026-11-13", optionalMark: "", formats: formats(shopShown.locale) };
+const words = {
+  now: () => 17,
+  today: () => "2026-11-13",
+  optionalMark: "",
+  formats: formats(shopShown.locale),
+  language: "es" as const,
+};
 function registry(symbol: string | (() => string)) {
   const input = object({ amount: money("Precio", 1, symbol) });
   const act = programAct<Shop, typeof input>({
@@ -64,6 +70,7 @@ it.each(["", " US$", "US$\n", "Dólares estadounidenses"])("C1: literal %j names
       houseTools(
         rig.ports("ana", () => 17),
         shopShown,
+        "es",
       ),
     ).toThrow(`Precio: ${JSON.stringify(symbol)}`);
   } finally {
@@ -72,11 +79,11 @@ it.each(["", " US$", "US$\n", "Dólares estadounidenses"])("C1: literal %j names
 });
 it.each(["", " $", "Pesos argentinos"])("C2: country %j identifies its origin", currency => {
   expect(() => formats({ ...shopShown.locale, currency })).toThrow(
-    `Símbolo de moneda inválido para el país: ${JSON.stringify(currency)}`,
+    `Invalid currency symbol for the country: ${JSON.stringify(currency)}`,
   );
 });
 it.each(["e\u0301", "ＵＳ＄ＵＳ", "￥￥￥￥￥"])("P7: %s is outside the shape", symbol => {
-  expect(() => asking(object({ value: money("Precio", 1, symbol) }), words)).toThrow("Símbolo de moneda inválido");
+  expect(() => asking(object({ value: money("Precio", 1, symbol) }), words)).toThrow("Invalid currency symbol");
 });
 it.each([
   ["US$", 3],

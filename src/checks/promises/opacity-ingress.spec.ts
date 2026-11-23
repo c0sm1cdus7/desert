@@ -110,7 +110,7 @@ for (const value of [
     await staged(program, async ({ house, reopen }) => {
       const ask = asking(
         schema,
-        questionWords(() => 1000, shopShown),
+        questionWords(() => 1000, shopShown, "es"),
       );
       const fromQuestions = ask.submit([input.first, input.second]);
       expect((await perform(house(), "vault", { act: "set", input: fromQuestions })).status).toBe("accepted");

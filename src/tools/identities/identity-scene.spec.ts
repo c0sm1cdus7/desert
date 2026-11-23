@@ -15,7 +15,7 @@ const scene = (by: string, identity = by, general = "En curso") => ({
 it("scene ownership is the same on the surface and execution, including administration", async () => {
   await staged(identitiesProgram, async ({ house }) => {
     for (const by of ["ana", "beto", "carla"]) {
-      const core = houseTools(localPorts(house(), by, { recentLines: 20 }), identitiesShown).find(
+      const core = houseTools(localPorts(house(), by, { recentLines: 20 }), identitiesShown, "es").find(
         t => t.id === "identities",
       );
       expect(core?.actsOn?.scene).toBeDefined();
@@ -43,7 +43,7 @@ it("scene boundaries reject before writing; the single question retains the cont
     for (const text of ["", "   ", "\u200b\u200d\u2060", "x".repeat(sceneLimits.general + 1)])
       expect((await perform(house(), "identities", scene("beto", "beto", text))).status).toBe("rejected");
     expect(house().tools.state().house.scenes.get("beto")).toEqual(before);
-    const core = houseTools(localPorts(house(), "beto", { recentLines: 20 }), identitiesShown).find(
+    const core = houseTools(localPorts(house(), "beto", { recentLines: 20 }), identitiesShown, "es").find(
       t => t.id === "identities",
     );
     expect(core?.actsOn?.scene?.next([], "identities/beto")).toMatchObject({
@@ -66,7 +66,9 @@ it("two authors, replacement, removed readers and reopening preserve scenes with
         .status,
     ).toBe("accepted");
     const core = () =>
-      houseTools(localPorts(house(), "carla", { recentLines: 20 }), identitiesShown).find(t => t.id === "identities");
+      houseTools(localPorts(house(), "carla", { recentLines: 20 }), identitiesShown, "es").find(
+        t => t.id === "identities",
+      );
     expect(JSON.stringify(core()?.view("identities/beto"))).toContain("Para Carla");
     await perform(house(), "identities", scene("beto", "beto", "Reemplazada"));
     expect(JSON.stringify(core()?.view("identities/beto"))).not.toContain("Para Carla");
@@ -93,7 +95,7 @@ it("a failed scene write keeps the last whole scene across restart", async () =>
 });
 it("an open scene question loses permission on removal and returns on readmission", async () => {
   await staged(identitiesProgram, async ({ house }) => {
-    const core = houseTools(localPorts(house(), "carla", { recentLines: 20 }), identitiesShown).find(
+    const core = houseTools(localPorts(house(), "carla", { recentLines: 20 }), identitiesShown, "es").find(
       t => t.id === "identities",
     );
     expect(core?.actsOn?.scene?.next([], "identities/carla")?.kind).toBe("text");
@@ -109,7 +111,7 @@ it("an open scene question loses permission on removal and returns on readmissio
 });
 it("an already open reader sees each new identity and mind scene without recreating the surface", async () => {
   await staged(identitiesProgram, async ({ house }) => {
-    const core = houseTools(localPorts(house(), "carla", { recentLines: 20 }), identitiesShown).find(
+    const core = houseTools(localPorts(house(), "carla", { recentLines: 20 }), identitiesShown, "es").find(
       t => t.id === "identities",
     );
     for (const general of ["Primera escena", "Última escena"]) {

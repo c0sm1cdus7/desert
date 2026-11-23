@@ -58,7 +58,7 @@ it.each([
       const registry = house().registry;
       const ids = registry.find(tool => tool.id === "identities");
       const expected = ["enable-assistant", "disable-assistant", "delegate-assistant", "adopt-assistant"];
-      const surface = houseTools(localPorts(house(), cast.admin, { recentLines: 20 }), result.shown);
+      const surface = houseTools(localPorts(house(), cast.admin, { recentLines: 20 }), result.shown, "es");
       const identity = surface.find(tool => tool.id === "identities");
       const mcp = JSON.stringify(mcpReading(house(), cast.admin, { recentLines: 20 }).actions("identities"));
       for (const act of expected) {

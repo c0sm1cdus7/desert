@@ -1,4 +1,5 @@
 // A second member cannot recover embedded credentials from new facts, historical replay or either door.
+import { meant } from "../../fields/phrases.ts";
 import { requestDigest } from "../socket/requests/public-message.ts";
 import { expect, it } from "vitest";
 import { randomBytes } from "node:crypto";
@@ -20,7 +21,7 @@ it.each([false, true])("protects state, journal and envelopes across restart (hi
   const material = historical ? randomBytes(32).toString("base64url") : h.founder;
   const founderId = historical ? "legacy-founder" : h.access().get(material)?.id;
   const embedded = `token_${material}_end`,
-    clean = `token_${mcpTexts.redacted}_end`;
+    clean = `token_${meant(mcpTexts.redacted)}_end`;
   if (historical) {
     h.house().close();
     const raw = new SqliteJournal(join(h.home, "journal.sqlite"), shopProgram.words);
@@ -58,7 +59,7 @@ it.each([false, true])("protects state, journal and envelopes across restart (hi
       }
       expect(has(client.state(), material)).toBe(false);
       const scene = client.state().house.scenes.get("ana")?.data;
-      expect(scene?.general).toContain(mcpTexts.redacted);
+      expect(scene?.general).toContain(meant(mcpTexts.redacted));
       expect(scene?.to?.[clean]).toBe("ordinary");
       const recovered = scene?.general.replace(/^token_|_end$/g, "");
       expect(recovered && h.access().get(recovered)).toBeUndefined();

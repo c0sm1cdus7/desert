@@ -13,6 +13,7 @@ import type { Frame } from "./screen-wire.ts";
 const view = { visible: true, viewport: { rows: 20 } };
 const listOf = (rows: readonly Row[], clock = "10:00", does = "abrir"): Screen => ({
   title: "Ventas",
+  language: "es" as const,
   state: "connected",
   clock,
   body: { kind: "list", stacks: [{ title: "Registradas", rows }] },
@@ -21,6 +22,7 @@ const listOf = (rows: readonly Row[], clock = "10:00", does = "abrir"): Screen =
 });
 const threadOf = (text: string, hints: readonly Hint[], options?: readonly Row[]): Screen => ({
   title: "Registrar venta",
+  language: "es" as const,
   state: "connected",
   clock: "10:00",
   body: {

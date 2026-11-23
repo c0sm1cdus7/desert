@@ -1,4 +1,5 @@
 // Each case supplies answers and state: every declared blocked choice must be visible before it can be taken.
+import { meant, same, type Text } from "../../../fields/phrases.ts";
 import { closedChoices } from "./closed-choices.ts";
 import { manyChoices } from "./many-choices.ts";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
@@ -16,7 +17,7 @@ import type { Program } from "../../../tools/tool-contract.ts";
 import { seated, type Seat } from "../promised-keys.ts";
 import { prefer } from "../off/promised-off.ts";
 import { cast, given, label, staged, type Aim, type Check } from "../promised-stage.ts";
-type Expected = Readonly<{ value: string; why: string }>;
+type Expected = Readonly<{ value: string; why: Text }>;
 function blocked<X extends Program>(
   program: Composition<X>,
   seat: Seat<X>,
@@ -42,8 +43,8 @@ function blocked<X extends Program>(
   });
 }
 function assertChoice<X extends Program>(seat: Seat<X>, walk: Walk, field: Field, expected: Expected, hidden: boolean) {
-  ok(expected.why.trim());
-  const detail = expected.why === toolTexts.unchanged ? surfaceTexts.current : expected.why;
+  ok(meant(expected.why).trim());
+  const detail = seat.say(same(expected.why, toolTexts.unchanged) ? surfaceTexts.current : expected.why);
   const choices = "options" in field ? field.options : [];
   const options = field.kind === "pick" ? field.found("") : choices;
   const matches = (option: Option) => (option.value ?? option.title) === expected.value;
@@ -64,7 +65,7 @@ function assertChoice<X extends Program>(seat: Seat<X>, walk: Walk, field: Field
   }
   const openedWalk = { ...walk, ...opened(field) };
   ok(!options[openedWalk.at]?.off);
-  const body = walkBody(openedWalk, field, 0);
+  const body = walkBody(openedWalk, field, 0, seat.language);
   const row = body.kind === "thread" ? body.options?.find(matches) : undefined;
   ok(row?.off && !row.selected);
   if (field.kind === "pick") strictEqual(row.key, undefined);
@@ -121,7 +122,7 @@ const choiceCheck = <X extends Program>(
   aim: Aim<X>,
   kase: Case<X>,
 ): Check => ({
-  name: label(aim, promiseTexts.blockedChoices(kase.promise)),
+  name: label(aim, promiseTexts.blockedChoices(meant(kase.promise))),
   run: () =>
     staged(program, async ({ house }) => {
       await given(house(), aim.tool.id, kase.given, kase.at);

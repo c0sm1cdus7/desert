@@ -1,4 +1,5 @@
 // toolAct and ownAct bound to their schema; reading, accepted, rejected
+import { type Text } from "../fields/phrases.ts";
 import { inputPrepared, registerNormalizer } from "./inputs/prepared-input.ts";
 import type { Capability } from "../fields/capabilities.ts";
 import { executionSchema } from "./inputs/secret-input.ts";
@@ -40,7 +41,7 @@ export function toolAct<X extends Program, S extends TSchema>(
 export const ownAct = <X extends Program, S extends TSchema>(
   object: string,
   option: string,
-  declaration: { input: S; purpose: string; needs?: readonly Capability[] },
+  declaration: { input: S; purpose: Text; needs?: readonly Capability[] },
   perform: Perform<X, S>,
 ): OwnAct<X> => ({
   object,
@@ -51,4 +52,4 @@ export const ownAct = <X extends Program, S extends TSchema>(
 /** Declare that an act returns something to read. */
 export const reading = <A extends { readonly output?: boolean }>(act: A): A => ({ ...act, output: true });
 export const accepted = <P extends Emission>(...effects: P[]) => ({ status: "accepted" as const, effects });
-export const rejected = (reason: string) => ({ status: "rejected" as const, reason });
+export const rejected = (reason: Text) => ({ status: "rejected" as const, reason });

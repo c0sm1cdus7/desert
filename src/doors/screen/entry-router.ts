@@ -1,4 +1,6 @@
 // Signing in is a screen like any other: one tool, one act, one masked question, whose run redeems an invitation.
+import { workingLanguage } from "../../fields/languages.ts";
+import { everySaid } from "../../fields/phrases.ts";
 import { redrawMs } from "../../journal/clock.ts";
 import type { Field } from "../../surface/contract/contract.ts";
 import type { Result, Tool } from "../../surface/contract/shown-tool.ts";
@@ -19,34 +21,36 @@ export type EntrySource = Readonly<{
 /** The invitation's alphabet and shape, as the house issues it (house/doors/door-material.ts): four, a dash, four. */
 const invitation: Field = {
   kind: "text",
-  ask: said.ask,
+  ask: everySaid(said.ask),
   mask: limited("23456789ABCDEFGHJKLMNPQRSTUVWXYZ-", 9, said.shape),
 };
 const entryTool = (redeem: EntrySource["redeem"]): Tool => ({
   id: "entry",
-  name: said.tool,
+  name: everySaid(said.tool),
   place: { key: "e", section: "tools" },
   summary: () => "",
   view: () => [],
   acts: {
     join: {
       scope: "all",
-      label: said.tool,
-      verb: said.verb,
+      label: everySaid(said.tool),
+      verb: everySaid(said.verb),
       next: answers => (answers.length ? null : invitation),
       run: async ([code = ""]) => {
         const result = await redeem(code);
-        return result.ok ? { ok: true, text: said.done } : result;
+        return result.ok ? { ok: true, text: everySaid(said.done) } : result;
       },
     },
   },
 });
-/** The router of a session with no key yet: its first screen is the question, and its Barra says nobody joined. */
+/** The router of a session with no key yet: its first screen is the question, and its Barra says nobody joined.
+ * Nobody's language is known before the invitation names an identity: its words are said in every language, and
+ * what the surface says of its own is in the language the house works in. */
 export function entryRouter(source: EntrySource): Router {
   const tools = [entryTool(source.redeem)];
   return startRouter({
     tools,
-    bar: () => ({ ...source.bar(), state: "disconnected" }),
+    bar: () => ({ ...source.bar(), state: "disconnected", language: workingLanguage }),
     first: [begin(tools, "entry", "join")],
     redrawMs,
     defect: source.defect,

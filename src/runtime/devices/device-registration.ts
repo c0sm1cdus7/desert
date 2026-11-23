@@ -1,4 +1,5 @@
 // Host integrations delegate device administration to the same registered identity actions as every surface.
+import { meant } from "../../fields/phrases.ts";
 import type { DeviceRegistration } from "../../fields/device-protocol.ts";
 import { deviceTexts } from "../../texts/devices.texts.ts";
 import type { startTools } from "../../tools/start.ts";
@@ -8,7 +9,8 @@ export function deviceRegistrationAccess<X extends Program>(tools: ReturnType<ty
     const target = `identities/${owner}`;
     tools.act({ act: "attend", input: { target } }, tools.state().through, by);
     const result = tools.act({ act: name, target, input }, tools.state().through, by);
-    if (result.status !== "accepted") throw new Error("reason" in result ? result.reason : deviceTexts.forbidden);
+    if (result.status !== "accepted")
+      throw new Error(meant("reason" in result ? result.reason : deviceTexts.forbidden));
   };
   const owner = (device: string) => tools.state().house.devices.devices.get(device)?.owner ?? "absent";
   return {

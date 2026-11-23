@@ -1,4 +1,6 @@
 // Builds visible frames with the full request bounded and restores the durable cuts of the own thread.
+import { workingLanguage } from "../../fields/languages.ts";
+import { spokenIdentities } from "../../house/members.ts";
 import { diagnoseMindRequest, diagnoseFittedMindRequest } from "./mind-request.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { MindScope, TurnContext } from "../../tools/minds/mind-contract.ts";
@@ -87,6 +89,7 @@ function contextOf<X extends Program>(view: ReturnType<typeof runtimeView<X>>, s
   const invalid = current?.invalid.map(event => event.data.faults) ?? [];
   const review = current?.reviews.map(event => event.data.text) ?? [];
   return JSON.stringify({
+    identities: spokenIdentities(view.state.house),
     journey: scope.process ? view.state.house.journeys.get(scope.process) : undefined,
     ...(journeys.length ? { journeys } : {}),
     ...(invalid.length ? { invalid } : {}),
@@ -107,7 +110,7 @@ function focused<X extends Program>(
   const own = (journey: string) =>
     scope.kind === "journey" ? journey === scope.process : journeys.get(journey)?.by === scope.actor;
   const play = inPlay({ history, mark, wake: turn.wake, devices }, own);
-  return { activity: recent, older, ...framedObjects(view.objects, play, turn.language) };
+  return { activity: recent, older, ...framedObjects(view.objects, play, workingLanguage) };
 }
 function snapshotFor<X extends Program>(
   view: ReturnType<typeof runtimeView<X>>,
@@ -123,8 +126,8 @@ function snapshotFor<X extends Program>(
   const history = house.history();
   const { journeys: all, devices } = view.state.house;
   const seen = { journeys: all, devices, journey: scope.process, message: options.message };
-  const words = wakeWords(history, seen, turn.wake, turn.language);
-  const woke = withInterrupts(words, turn.wake, history, view.state, turn.language);
+  const words = wakeWords(history, seen, turn.wake, workingLanguage);
+  const woke = withInterrupts(words, turn.wake, history, view.state, workingLanguage);
   const scene = view.state.house.minds.scenes.get(scope.process ?? scope.actor)?.data.text ?? "";
   const required = contextOf(view, scope, turn);
   return buildMindFrame(scope, turn, {
@@ -133,7 +136,7 @@ function snapshotFor<X extends Program>(
     textRules: options.textRules,
     scene,
     required,
-    menu: menuText(view.menu, turn.language, scope.process),
+    menu: menuText(view.menu, workingLanguage, scope.process),
     ...focused(view, scope, turn, history),
     ids: new Set(history.map(event => event.id)),
     thread,
@@ -154,7 +157,7 @@ function fitFrame<X extends Program>(
   // A journey's turn goes on after its frame: a quarter of the bound stays free for what its calls append, and the
   // frame is measured as a journey sends it, with its conversation's cache mark.
   const journey = turn.scope.kind === "journey";
-  return fitMindFrame(snapshot, turn.language, {
+  return fitMindFrame(snapshot, workingLanguage, {
     max: journey ? max - Math.floor(max / conversationShare) : max,
     bound: frame =>
       new TextEncoder().encode(

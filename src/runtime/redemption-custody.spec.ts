@@ -1,4 +1,5 @@
 import { redemptionHome } from "../../tests/support/redemption-home.ts";
+import { everySaid } from "../fields/phrases.ts";
 // Reject unsafe local custody before contacting a house and preserve suspect recovery for its owner.
 import { afterEach, expect, it, vi } from "vitest";
 import {
@@ -60,7 +61,7 @@ it.each(["symlink", "dangling", "hardlink", "directory", "fifo", "oversized", "6
     } catch (error) {
       message = error instanceof Error ? error.message : "unknown";
     }
-    expect(message).toBe(doorTexts.destination);
+    expect(message).toBe(everySaid(doorTexts.destination));
     expect(message.includes(material)).toBe(false);
     expect(send).not.toHaveBeenCalled();
   },
@@ -82,7 +83,7 @@ it.each(["symlink", "dangling", "hardlink", "directory", "fifo", "content", "ove
     } catch (error) {
       message = error instanceof Error ? error.message : "unknown";
     }
-    expect(message).toBe(doorTexts.unsafeRecovery);
+    expect(message).toBe(everySaid(doorTexts.unsafeRecovery));
     expect(message.includes(candidate) || message.includes(material)).toBe(false);
     expect(lstatSync(path).isSymbolicLink()).toBe(mode === "symlink" || mode === "dangling");
     expect(existsSync(`${file}.desert-redemption-lock.recovery`)).toBe(true);
@@ -98,7 +99,9 @@ it.each(["symlink", "722", "702", "770"])("rejects a %s containing directory bef
     symlinkSync(`${directory}.original`, directory);
   } else chmodSync(directory, Number.parseInt(mode, 8));
   const file = join(directory, "destination");
-  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(doorTexts.destination);
+  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(
+    everySaid(doorTexts.destination),
+  );
   expect(send).not.toHaveBeenCalled();
   expect(readdirSync(directory)).toHaveLength(0);
 });
@@ -112,7 +115,7 @@ it("does not remove an empty recovery with unsafe permissions", () => {
   const path = join(home, recovery);
   writeFileSync(path, "");
   chmodSync(path, 0o644);
-  expect(() => reserveDestination({ file })).toThrow(doorTexts.unsafeRecovery);
+  expect(() => reserveDestination({ file })).toThrow(everySaid(doorTexts.unsafeRecovery));
   expect(existsSync(path)).toBe(true);
   expect(existsSync(`${file}.desert-redemption-lock.recovery`)).toBe(true);
 });
@@ -123,7 +126,7 @@ it("refuses a recovery path outside the verified directory", () => {
   const outside = join(other, ".desert-redemption-abcd");
   writeFileSync(outside, `${material}\n`, { mode: 0o600 });
   writeFileSync(`${file}.desert-redemption-lock.recovery`, JSON.stringify({ path: outside }), { mode: 0o600 });
-  expect(() => reserveDestination({ file })).toThrow(doorTexts.unsafeRecovery);
+  expect(() => reserveDestination({ file })).toThrow(everySaid(doorTexts.unsafeRecovery));
   expect(readFileSync(outside, "utf8").trim() === material).toBe(true);
 });
 it.each(["symlink", "hardlink", "644", "oversized"])("does not trust %s recovery metadata", mode => {
@@ -131,7 +134,7 @@ it.each(["symlink", "hardlink", "644", "oversized"])("does not trust %s recovery
   const metadata = `${file}.desert-redemption-lock.recovery`;
   writeFileSync(metadata, "{}", { mode: 0o600 });
   corrupt(metadata, mode);
-  expect(() => reserveDestination({ file })).toThrow(doorTexts.destination);
+  expect(() => reserveDestination({ file })).toThrow(everySaid(doorTexts.destination));
   expect(lstatSync(metadata).isSymbolicLink()).toBe(mode === "symlink");
 });
 it("clears recovery metadata so another name can be added to the same configuration", async () => {
@@ -154,7 +157,7 @@ it("retires only a verified empty recovery and leaves no stale metadata on a des
   const path = join(home, recovery);
   writeFileSync(path, "");
   writeFileSync(file, "editor", { mode: 0o600 });
-  expect(() => reserveDestination({ file })).toThrow(doorTexts.destination);
+  expect(() => reserveDestination({ file })).toThrow(everySaid(doorTexts.destination));
   expect(existsSync(path)).toBe(false);
   expect(existsSync(`${file}.desert-redemption-lock.recovery`)).toBe(false);
   rmSync(file);

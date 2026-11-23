@@ -13,6 +13,7 @@ const words = {
   now: () => Date.UTC(2026, 10, 11),
   formats: formats(locale),
   optionalMark: " · opcional",
+  language: "es" as const,
   today: () => "2026-11-11",
 };
 
@@ -24,7 +25,7 @@ describe("a day that already happened", () => {
     expect(question?.initial).toBe("11112026");
     expect(question?.wrong?.("11112026")).toBeUndefined();
     expect(question?.wrong?.("10112026")).toBeUndefined();
-    expect(question?.wrong?.("12112026")).toBe(generic.future);
+    expect(question?.wrong?.("12112026")).toBe(generic.future.es);
   });
 
   it("requires a real clock and day, while a day without a last bound still accepts the future", () => {
@@ -39,12 +40,12 @@ describe("a day that already happened", () => {
     const question = asking(paid, {
       ...words,
       cause: reason => {
-        expect(reason).not.toBe(generic.future);
+        expect(reason).not.toBe(generic.future.es);
         return reason;
       },
     }).next([]);
-    expect(question?.wrong?.("30022027")).toBe(toolTexts.noSuchDay);
-    expect(question?.wrong?.("28022027")).toBe(generic.future);
+    expect(question?.wrong?.("30022027")).toBe(toolTexts.noSuchDay.es);
+    expect(question?.wrong?.("28022027")).toBe(generic.future.es);
   });
 });
 
@@ -59,7 +60,7 @@ describe("a day the calendar does not have", () => {
   });
 
   it("is turned down where it is written, and through any other door before the act runs", () => {
-    expect(asking(due, words).next([])?.wrong?.("30022026")).toBe(toolTexts.noSuchDay);
+    expect(asking(due, words).next([])?.wrong?.("30022026")).toBe(toolTexts.noSuchDay.es);
     expect(asking(due, words).next([])?.wrong?.("28022026")).toBeUndefined();
     expect(wrongIn(due, { on: "2025-13-45" }, 0)).toBe(toolTexts.noSuchDay);
     expect(wrongIn(due, { on: "2026-02-28" }, 0)).toBeUndefined();

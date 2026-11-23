@@ -2,6 +2,7 @@
 import { at, isList, isRecord, plain } from "../../../fields/json-values.ts";
 import { isSchema } from "../../../fields/schema-shape.ts";
 import { isAsked } from "../../../fields/fields.ts";
+import type { Language } from "../../../fields/languages.ts";
 import type { Option } from "../../contract/contract.ts";
 import {
   armsOf,
@@ -18,10 +19,10 @@ import {
 } from "./asking-parts.ts";
 
 /** Some of a closed set as one answer: the words of the ones a datum holds, in the order the set lists them. */
-export const markedOf = (schema: unknown, values: unknown): string =>
+export const markedOf = (schema: unknown, values: unknown, language: Language): string =>
   markedArms(schema)
     .filter(arm => isList(values) && values.includes(at(arm, "const")))
-    .map(arm => word(arm, "title"))
+    .map(arm => word(arm, "title", language))
     .join(" · ");
 /** The same walk backwards: the answers a person would give to say this datum. */
 export function write(schema: unknown, value: unknown, words: AskWords, optional = false): string[] {
@@ -30,19 +31,24 @@ export function write(schema: unknown, value: unknown, words: AskWords, optional
   const literal = (arm: unknown): unknown => (telling ? at(at(arm, "properties"), telling) : arm);
   const picked = arms.find(arm => at(literal(arm), "const") === (telling ? at(value, telling) : value));
   if (arms.length)
-    return [word(literal(picked), "title"), ...(telling ? written_(picked, value, words, [telling]) : [])];
+    return [
+      word(literal(picked), "title", words.language),
+      ...(telling ? written_(picked, value, words, [telling]) : []),
+    ];
   if (at(schema, "type") === "object") return written_(schema, value, words);
-  if (at(schema, "some") !== undefined) return [markedOf(schema, value)];
+  if (at(schema, "some") !== undefined) return [markedOf(schema, value, words.language)];
   if (at(schema, "type") === "array" && optional) {
     const more = at(schema, "more");
     return value === undefined
-      ? [word(at(more, "done"), "title")]
-      : [word(at(more, "another"), "title"), ...write(schema, value, words)];
+      ? [word(at(more, "done"), "title", words.language)]
+      : [word(at(more, "another"), "title", words.language), ...write(schema, value, words)];
   }
   if (isList(value)) {
     const more = at(schema, "more");
-    const follows = (index: number): string => word(at(more, index < value.length - 1 ? "another" : "done"), "title");
-    const opening = at(schema, "minItems") === 0 ? [word(at(more, value.length ? "another" : "done"), "title")] : [];
+    const follows = (index: number): string =>
+      word(at(more, index < value.length - 1 ? "another" : "done"), "title", words.language);
+    const opening =
+      at(schema, "minItems") === 0 ? [word(at(more, value.length ? "another" : "done"), "title", words.language)] : [];
     return [
       ...opening,
       ...value.flatMap((item, index) => [...write(at(schema, "items"), item, words), follows(index)]),
@@ -103,16 +109,16 @@ export function audit(
   const telling = arms.length ? tellingOf(arms) : undefined;
   if (arms.length) {
     titleOf(schema, ctx);
-    distinct(arms.map(arm => choiceOf(telling ? at(at(arm, "properties"), telling) : arm)));
+    distinct(arms.map(arm => choiceOf(telling ? at(at(arm, "properties"), telling) : arm, ctx.language)));
     if (telling) arms.forEach(arm => auditFields(arm, ctx, seen, [telling]));
   } else if (at(schema, "type") === "object") auditFields(schema, ctx, seen);
   else if (at(schema, "some") !== undefined) {
     titleOf(schema, ctx);
-    markedArms(schema).forEach(arm => word(arm, "title"));
+    markedArms(schema).forEach(arm => word(arm, "title", ctx.language));
   } else if (at(schema, "type") === "array") {
     const more = at(schema, "more");
-    asked(word(more, "ask"));
-    distinct([choiceOf(at(more, "done")), choiceOf(at(more, "another"))]);
+    asked(word(more, "ask", ctx.language));
+    distinct([choiceOf(at(more, "done"), ctx.language), choiceOf(at(more, "another"), ctx.language)]);
     audit(at(schema, "items"), ctx, seen);
   } else written(schema, ctx);
 }

@@ -1,4 +1,5 @@
 // Keeps live device connections, takes their notices, and cuts pending work on disconnect, retirement or owner loss.
+import { type Text, meant } from "../../fields/phrases.ts";
 import { randomUUID } from "node:crypto";
 import { Value } from "@sinclair/typebox/value";
 import { publicValue } from "../../adapters/public-value.ts";
@@ -16,12 +17,12 @@ import type { DeviceConnection } from "./device-dispatch.ts";
 import { announceNotice, releaseNotice, type NoticePorts } from "./device-notices.ts";
 function connectionState(bus: HouseBus, state: () => House, host: string) {
   const connections = new Map<string, DeviceConnection>();
-  function disconnect(device: string, current: DeviceConnection, reason: string) {
+  function disconnect(device: string, current: DeviceConnection, reason: Text) {
     if (connections.get(device) !== current) return;
     connections.delete(device);
     // What was held is dropped first and unanswered: the device sends it again, since it never heard "recorded".
     current.held.clear();
-    bus.emit(effect("device-disconnected", { device, connection: current.id, reason }, host));
+    bus.emit(effect("device-disconnected", { device, connection: current.id, reason: meant(reason) }, host));
     for (const unknown of [...current.pending.values()]) unknown(reason);
   }
   const stop = bus.on(() => {
@@ -34,7 +35,7 @@ function connectionState(bus: HouseBus, state: () => House, host: string) {
 }
 function link(ports: NoticePorts, live: () => boolean, device: string, current: DeviceConnection) {
   return (notice: unknown, later: (answer: NoticeAnswer) => void, written: () => void = () => {}) => {
-    if (!live()) throw new Error(deviceTexts.unavailable);
+    if (!live()) throw new Error(meant(deviceTexts.unavailable));
     return announceNotice(ports, device, current, notice, later, written);
   };
 }
@@ -42,10 +43,10 @@ type Live = ReturnType<typeof connectionState>;
 function opened(ports: NoticePorts, live: Live, host: string, device: string, endpoint: DeviceEndpoint): DeviceLink {
   const { bus } = ports;
   const { connections, disconnect } = live;
-  if (connections.has(device)) throw new Error(deviceTexts.unavailable);
+  if (connections.has(device)) throw new Error(meant(deviceTexts.unavailable));
   const inventory = publicValue(endpoint.inventory);
   if (!Value.Check(deviceInventory, inventory) || new Set(inventory.map(each => each.tool)).size !== inventory.length)
-    throw new Error(deviceTexts.invalid);
+    throw new Error(meant(deviceTexts.invalid));
   const current: DeviceConnection = {
     id: randomUUID(),
     endpoint: { inventory, receive: request => endpoint.receive(request) },
@@ -93,7 +94,7 @@ export function recoverDevices(bus: HouseBus, house: House, host: string) {
       bus.emit(
         effect(
           "device-disconnected",
-          { device: device.id, connection: device.connection, reason: deviceTexts.closed },
+          { device: device.id, connection: device.connection, reason: meant(deviceTexts.closed) },
           host,
         ),
       );
@@ -102,7 +103,7 @@ export function recoverDevices(bus: HouseBus, house: House, host: string) {
       bus.emit(
         effect(
           "device-execution-unknown",
-          { execution: execution.execution, reason: deviceTexts.closed },
+          { execution: execution.execution, reason: meant(deviceTexts.closed) },
           execution.actor,
           [execution.execution],
           execution.journey,

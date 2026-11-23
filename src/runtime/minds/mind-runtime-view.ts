@@ -1,4 +1,6 @@
 // Projects destinations, permissions and visible house data for each scope of thought.
+import { linesIn, meant } from "../../fields/phrases.ts";
+import { workingLanguage } from "../../fields/languages.ts";
 import type { ExecutionDestination } from "../../fields/device-protocol.ts";
 import { targetTool } from "../../house/attendance.ts";
 import { deviceChoices } from "../../house/devices/device-state.ts";
@@ -52,12 +54,12 @@ export function runtimeView<X extends Program>(
     ...journeyMenu(
       scope,
       { ...control, menu: parts.available, communication: definition.communication },
-      options.language,
+      workingLanguage,
     ),
     ...(active ? programCommunication(scope, definition, state) : []),
     ...(active
       ? readMenu(
-          options.language,
+          workingLanguage,
           parts.objects.map(object => object.id),
         )
       : []),
@@ -101,7 +103,7 @@ function visibleActivity<X extends Program>(
     if (event.layer !== "house" || event.kind !== "tool-entry") return [];
     const tool = targetTool(registry, state, event.data.target)?.id ?? event.data.tool;
     return scope.actor === `mind:${tool}` || kit.some(item => item.tool === tool)
-      ? [{ id: event.id, text: event.data.text, covered: true, seq: event.seq }]
+      ? [{ id: event.id, text: meant(event.data.text), covered: true, seq: event.seq }]
       : [];
   });
 }
@@ -151,7 +153,8 @@ function visibleTools<X extends Program>(
       skills.push({ id: tool.id, skill: tool.skill });
     if (!ownProgram && !kit.some(item => item.tool === tool.id)) continue;
     for (const target of new Set([tool.id, ...tool.targets(state)])) {
-      objects.push({ id: target, text: tool.view(state, target, { recentLines: 30, now: house.time.now() }) });
+      const view = tool.view(state, target, { recentLines: 30, now: house.time.now() });
+      objects.push({ id: target, text: linesIn(view, workingLanguage) });
       available.push(...toolMenu(tool, target, state, house.execution.registry, house.time.now()));
     }
   }

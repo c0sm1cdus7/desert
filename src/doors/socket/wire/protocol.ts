@@ -3,7 +3,8 @@ import { executionDestination } from "../../../fields/device-protocol.ts";
 import { wholeNumber } from "../../../fields/json-values.ts";
 import { actLimits } from "../../../house/own-acts.ts";
 /** Local house wire: equality includes the complete Node version because state uses v8 serialization. */
-export const houseProtocolVersion = 4;
+/** 5 since 23/11: what the house says travels in every language, and each client reads its own. */
+export const houseProtocolVersion = 5;
 export const socketLimits = {
   /** A JSON frame holds an act within its bound plus room for the envelope, so what a mind may ask also travels. */
   json: actLimits.inputBytes + 64 * 1024,
@@ -24,6 +25,7 @@ export const socketLimits = {
 import { Type, type Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { object } from "../../../fields/visible-text.ts";
+import { textSchema as said } from "../../../fields/text-schema.ts";
 const name = Type.String({ minLength: 1, maxLength: 256 });
 const text = Type.String();
 
@@ -56,14 +58,14 @@ const status = Type.Union(
 const notice = object({
   layer: Type.Literal("house"),
   kind: Type.Literal("tool-entry"),
-  data: object({ tool: text, target: text, author: text, text }),
+  data: object({ tool: text, target: text, author: text, text: said }),
   by: text,
   cause: Type.Array(text),
 });
 const done = object({
   layer: Type.Literal("house"),
   kind: Type.Literal("act-done"),
-  data: object({ object: text, act: text, text }),
+  data: object({ object: text, act: text, text: said }),
   by: text,
   cause: Type.Array(text),
 });
@@ -89,13 +91,13 @@ const serverProtocol = Type.Union([
     ...correlation,
     ...id,
     status,
-    reason: Type.Optional(text),
-    private: Type.Optional(text),
+    reason: Type.Optional(said),
+    private: Type.Optional(said),
     effects: Type.Array(Type.Union([notice, done])),
   }),
   object({ ...tag("response"), ...correlation, ...id, seq: wholeNumber, data: Type.Unknown() }),
-  object({ ...tag("rejection"), ...correlation, id: Type.Optional(name), reason: text }),
-  object({ ...tag("cut"), reason: text }),
+  object({ ...tag("rejection"), ...correlation, id: Type.Optional(name), reason: said }),
+  object({ ...tag("cut"), reason: said }),
   object(tag("closing")),
 ]);
 export type ClientMessage = Static<typeof clientProtocol>;

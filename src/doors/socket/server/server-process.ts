@@ -1,4 +1,5 @@
 // Programs opt into the detached startup handshake; credentials never go in argv or diagnostic output.
+import { meant } from "../../../fields/phrases.ts";
 import { serveProgram } from "./serve-program.ts";
 import { WriterAlreadyOpen } from "../../../storage/writer-lease.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
@@ -12,8 +13,8 @@ export async function runProgramServer<X extends Program>(...args: Parameters<ty
     const reason = error instanceof WriterAlreadyOpen ? error.message : socketTexts.startFailed;
     const code = error instanceof Error && "code" in error && typeof error.code === "string" ? error.code : "";
     const cause = /^E[A-Z0-9_]{1,40}$/.test(code) ? socketTexts.startCause(code) : reason;
-    process.stderr.write(`${cause}\n`);
-    process.send?.({ error: reason, code });
+    process.stderr.write(`${meant(cause)}\n`);
+    process.send?.({ error: meant(reason), code });
     process.exitCode = 1;
     return undefined;
   } finally {

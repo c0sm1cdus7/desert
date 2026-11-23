@@ -13,9 +13,7 @@ it("retains the technical cause and names the actual amount without labeling oth
   expect(error.cause).toBe(cause);
   const defects = routerDefects(
     () => [],
-    () => {
-      throw new Error("unused");
-    },
+    () => ({ language: "es", state: "connected", clock: "00:00", now: 0 }),
     () => "E-BASE-1 · Falló la base",
     () => {},
   );

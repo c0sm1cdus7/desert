@@ -1,4 +1,5 @@
 // Runs a mind's wake: a consciousness answers once; a journey goes on with its results until it says how it goes on.
+import { workingLanguage } from "../../fields/languages.ts";
 import { Value } from "@sinclair/typebox/value";
 import { mindFacts } from "../../house/minds/mind-facts.ts";
 import { parseMindActor } from "../../fields/mind-actor.ts";
@@ -65,7 +66,7 @@ class MindTurnRun {
       ...(reason === "internal" && this.error ? { error: this.error } : {}),
     };
     if (!this.ports.isOpen(this.turn.id)) return result;
-    if (reason) this.scene(turnNotice.text(this.turn.language, { reason, ...(rejection ? { rejection } : {}) }));
+    if (reason) this.scene(turnNotice.text(workingLanguage, { reason, ...(rejection ? { rejection } : {}) }));
     const { id, scope, wake } = this.turn;
     this.write(
       effect(
@@ -89,7 +90,7 @@ class MindTurnRun {
     const { id, scope, wake } = this.turn;
     if (faults) this.write(effect("mind-answer-invalid", { turn: id, faults }, scope.actor, wake, scope.process));
     if (counted ? this.caller.stopped() : !this.caller.correct()) return false;
-    const text = correctionNotice.text(this.turn.language, { reason });
+    const text = correctionNotice.text(workingLanguage, { reason });
     this.scene(text);
     this.talk.tell(told ?? (faults ? `${text}\n${JSON.stringify(faults)}` : text));
     return true;
@@ -99,7 +100,7 @@ class MindTurnRun {
     const { scope } = this.turn;
     const build = () => {
       const frame = this.ports.frame(scope, this.turn);
-      if ("tooLarge" in frame) throw new TurnStopped("frame-too-large", this.turn);
+      if ("tooLarge" in frame) throw new TurnStopped("frame-too-large");
       return frame;
     };
     const { frame, schema, exchanges } = this.talk.next(build, this.ports.read(scope).menu);
@@ -150,7 +151,7 @@ class MindTurnRun {
       ),
     );
     if (reviewed.outcome === "rejected") return this.correct(reviewed.text) ? undefined : "rejected";
-    this.talk.tell(consultationText(this.turn.language, reviewed.text));
+    this.talk.tell(consultationText(workingLanguage, reviewed.text));
     return undefined;
   }
   private async proposal(answer: MindAnswer): Promise<TurnOutcome | undefined> {
@@ -187,7 +188,7 @@ class MindTurnRun {
     const now = this.ports.read(this.turn.scope);
     const menus = { before: this.talk.menu(), after: now.menu };
     const { scope } = this.turn;
-    return resultsText(this.turn.language, reports, now.now, menus, scope.kind === "journey", scope.process);
+    return resultsText(workingLanguage, reports, now.now, menus, scope.kind === "journey", scope.process);
   }
   /** A consciousness answers once. A journey's turn closes only when its last act, applied, says how it goes on;
    * otherwise the mind hears what its acts did and answers again, bounded only by the twelve calls. */
@@ -208,7 +209,7 @@ class MindTurnRun {
     if (outcome.kind === "uncertain") return this.finish("uncertain");
     if (outcome.kind === "invalid") {
       const faults = [{ code: outcome.reason, path: "/" }];
-      return this.correct(invalidNotice.text(this.turn.language, { reason: outcome.reason }), faults, true)
+      return this.correct(invalidNotice.text(workingLanguage, { reason: outcome.reason }), faults, true)
         ? undefined
         : this.finish("invalid");
     }
@@ -218,7 +219,7 @@ class MindTurnRun {
     const reason =
       checked.ok || !checked.faults.some(fault => fault.code === "continuation") ? "schema" : "continuation";
     if (!checked.ok)
-      return this.correct(invalidNotice.text(this.turn.language, { reason }), checked.faults)
+      return this.correct(invalidNotice.text(workingLanguage, { reason }), checked.faults)
         ? undefined
         : this.finish("invalid");
     return this.proposal(checked.answer);
@@ -263,7 +264,6 @@ export async function runMindTurn(ports: TurnPorts, wake: TurnWake): Promise<Tur
     requireMind(Array.isArray(wake.scope.kit), "scope.kit");
   }
   requireMind(typeof wake.id === "string" && wake.id.trim(), "id");
-  requireMind(["es"].includes(wake.language), "language");
   requireMind(Array.isArray(wake.wake) && new Set(wake.wake).size === wake.wake.length, "wake.wake");
   requireMind(Value.Check(mindFacts["mind-turn-opened"], { turn: wake.id, wake: wake.wake }), "wake");
   requireMind(Number.isSafeInteger(wake.through) && wake.through >= 0, "through");

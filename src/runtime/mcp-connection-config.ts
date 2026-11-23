@@ -1,4 +1,5 @@
 // Read only the selected MCP entry, preferring project configuration and returning credentials without output.
+import { meant } from "../fields/phrases.ts";
 import { readFileSync, lstatSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
@@ -15,7 +16,7 @@ function read(file: string): Record<string, unknown> | undefined {
     if (!isRecord(value)) throw new Error();
     return value;
   } catch {
-    throw new Error(socketTexts.configInvalid);
+    throw new Error(meant(socketTexts.configInvalid));
   }
 }
 function entry(config: unknown, name: string): unknown {
@@ -24,27 +25,27 @@ function entry(config: unknown, name: string): unknown {
     : undefined;
 }
 function connection(value: unknown): Readonly<{ url: string; key: string }> {
-  if (!isRecord(value) || typeof value.url !== "string") throw new Error(socketTexts.configUrl);
+  if (!isRecord(value) || typeof value.url !== "string") throw new Error(meant(socketTexts.configUrl));
   try {
     remoteAddress(value.url);
   } catch {
-    throw new Error(socketTexts.configUrl);
+    throw new Error(meant(socketTexts.configUrl));
   }
   const headers = isRecord(value.headers) ? value.headers : {};
   const found = Object.entries(headers).filter(([name]) => name.toLowerCase() === "authorization");
   const authorization = found.length === 1 ? found[0]?.[1] : undefined;
   const key = typeof authorization === "string" ? /^Bearer ([^\s]+)$/i.exec(authorization)?.[1] : undefined;
-  if (!key) throw new Error(socketTexts.configKey);
+  if (!key) throw new Error(meant(socketTexts.configKey));
   return { url: value.url, key };
 }
 export function readMcpConnection(name: string, paths: ConfigPaths = {}): Readonly<{ url: string; key: string }> {
-  if (!name.trim()) throw new Error(socketTexts.configMissing);
+  if (!name.trim()) throw new Error(meant(socketTexts.configMissing));
   const project = resolve(paths.projectDirectory ?? process.cwd());
   const local = entry(read(join(project, ".mcp.json")), name);
   if (local !== undefined) return connection(local);
   const user = read(paths.userFile ?? join(homedir(), ".claude.json"));
   const scoped = isRecord(user?.projects) ? entry(user.projects[project], name) : undefined;
   const value = scoped ?? entry(user, name);
-  if (value === undefined) throw new Error(socketTexts.configMissing);
+  if (value === undefined) throw new Error(meant(socketTexts.configMissing));
   return connection(value);
 }

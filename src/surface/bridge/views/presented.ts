@@ -1,5 +1,7 @@
 // A thing on a surface: what it is and what it has, in the stacks its tool declared. Always the same stacks, in the
 // same order; one with nothing in it says so. A program gives the reading; it never draws the thing.
+import type { Language } from "../../../fields/languages.ts";
+import { linesIn, said } from "../../../fields/phrases.ts";
 import { authorDatum, authorName } from "./author-name.ts";
 import { field, plain } from "../../../fields/json-values.ts";
 import { OutsideDefect, programCall } from "../../../fields/program-call.ts";
@@ -46,6 +48,7 @@ function stacked(
   stacks: readonly Presented[],
   reading: Reading,
   where: string,
+  language: Language,
   changing?: Changing,
   name = (actor: string) => actor,
 ): Shown {
@@ -57,21 +60,21 @@ function stacked(
     const rows = Object.entries(stack.reads).flatMap(([key, label]) =>
       rowsOf(
         authorDatum(key, reading[key], name),
-        label,
+        said(label, language),
         `${where}.${key}`,
         changing && (shown => changing(key, shown)),
       ),
     );
-    return { title: stack.title, rows, empty: stack.empty };
+    return { title: said(stack.title, language), rows, empty: said(stack.empty, language) };
   });
 }
 /** The reading of one thing in the stacks declared for it: it is read, and none of its rows is an action. */
-export function presented(stacks: readonly Presented[], reading: Reading, where: string): Shown {
+export function presented(stacks: readonly Presented[], reading: Reading, where: string, language: Language): Shown {
   /** What a thing names is opened by its number, counted down the whole thing: the first nine have one. */
   let things = 0;
   const numbered = (row: ViewRow): ViewRow =>
     row.opens === undefined || ++things > 9 ? row : { ...row, key: String(things) };
-  return stacked(stacks, reading, where).map(stack => ({
+  return stacked(stacks, reading, where, language).map(stack => ({
     ...stack,
     rows: stack.rows.map(numbered),
     reads: true as const,
@@ -91,16 +94,20 @@ export const ownView = (
   view: string,
   where: string,
   changing: Changing,
-  name = (actor: string) => actor,
-): Shown => stacked(stacks, readingOf(view, where), where, changing, name);
+  name: (actor: string) => string,
+  language: Language,
+): Shown => stacked(stacks, readingOf(view, where), where, language, changing, name);
 /** What a tool reads of one of its things, as stacks: asked of the tool each time, as whoever looks reads it. */
 export const thingView =
   <X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, stacks: readonly Presented[]) =>
   (target: string): Shown => {
     if (!stacks.length) throw new OutsideDefect(new Error(`${tool.id} does not say how its things are presented`));
-    const view = programCall(tool.view.bind(tool), ports.state(), target, { ...ports.limits, now: ports.now() });
+    const view = linesIn(
+      programCall(tool.view.bind(tool), ports.state(), target, { ...ports.limits, now: ports.now() }),
+      ports.language,
+    );
     const reading = Object.fromEntries(
       Object.entries(readingOf(view, target)).map(([key, value]) => [key, authorDatum(key, value, authorName(ports))]),
     );
-    return presented(stacks, reading, target);
+    return presented(stacks, reading, target, ports.language);
   };

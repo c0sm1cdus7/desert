@@ -1,4 +1,5 @@
 // Authenticate device connections with expiring single-use challenges, without creating an identity session.
+import { meant } from "../../fields/phrases.ts";
 import { randomUUID, randomBytes, createPublicKey, verify } from "node:crypto";
 import type { DeviceEndpoint, DeviceLink } from "../../fields/device-protocol.ts";
 import { deviceTexts } from "../../texts/devices.texts.ts";
@@ -12,7 +13,7 @@ export function createDeviceDoor(runtime: DeviceAccess, now: () => number = Date
     challenge(device: string) {
       runtime.authentication(device);
       for (const [id, each] of pending) if (each.expires <= now()) pending.delete(id);
-      if (pending.size >= 256) throw new Error(deviceTexts.authentication);
+      if (pending.size >= 256) throw new Error(meant(deviceTexts.authentication));
       const id = randomUUID();
       const message = JSON.stringify(["desert-device-v1", device, id, randomBytes(32).toString("base64")]);
       pending.set(id, { device, message, expires: now() + 30_000 });
@@ -22,7 +23,7 @@ export function createDeviceDoor(runtime: DeviceAccess, now: () => number = Date
       const challenge = pending.get(id);
       pending.delete(id);
       if (!challenge || challenge.expires <= now() || signature.length > 1024)
-        throw new Error(deviceTexts.authentication);
+        throw new Error(meant(deviceTexts.authentication));
       let authenticated = false;
       try {
         const key = createPublicKey({
@@ -32,9 +33,9 @@ export function createDeviceDoor(runtime: DeviceAccess, now: () => number = Date
         });
         authenticated = verify(null, Buffer.from(challenge.message), key, Buffer.from(signature, "base64"));
       } catch {
-        throw new Error(deviceTexts.authentication);
+        throw new Error(meant(deviceTexts.authentication));
       }
-      if (!authenticated) throw new Error(deviceTexts.authentication);
+      if (!authenticated) throw new Error(meant(deviceTexts.authentication));
       return runtime.connect(challenge.device, endpoint);
     },
   };

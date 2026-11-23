@@ -1,6 +1,8 @@
 // The one screen for where a session stands: every part of it comes from the tools or the words of the surface.
 import { renewedMoney } from "../acts/money-memory.ts";
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
+import type { Language } from "../../fields/languages.ts";
+import { wordsIn } from "../../fields/phrases.ts";
+import { surfaceTexts } from "../../texts/surface.texts.ts";
 import type { Body, Hint, Row, Screen } from "../contract/contract.ts";
 import type { Tool } from "../contract/shown-tool.ts";
 import { findable } from "../menus/finding.ts";
@@ -20,17 +22,21 @@ import { listIds, withId } from "../session/row-id.ts";
 import { conversationOf, errorSpans, talkBody, talkHints, talkPanel, type Talk } from "../session/talk.ts";
 import { walkBody, walkHints } from "../acts/walk.ts";
 import { fitted, must, windowed } from "../session/window.ts";
-function talkScreen(place: Talk, tools: readonly Tool[]): Pick<Screen, "title" | "body" | "panel" | "hints" | "menu"> {
+function talkScreen(
+  place: Talk,
+  tools: readonly Tool[],
+  language: Language,
+): Pick<Screen, "title" | "body" | "panel" | "hints" | "menu"> {
   const tool = toolOf(tools, place.tool);
   const talk = conversationOf(tool, place.target);
   const panel = talkPanel(place, talk);
-  const body = talkBody(place, talk);
+  const body = talkBody(place, talk, language);
   if (place.at < 0 && !panel?.full) tool.rendered?.(place.target);
   return {
     title: tool.name,
     body,
     ...(panel ? { panel } : {}),
-    hints: talkHints(place, talk),
+    hints: talkHints(place, talk, language),
     menu: true,
   };
 }
@@ -51,7 +57,9 @@ export function resolve(session: Session, tools: readonly Tool[], bar: Bar, view
       : previous;
   // Showing an empty amount commits that observation to this device before another redraw or key.
   if (place !== previous) Object.assign(session, { [session.length - 1]: place });
+  const said = wordsIn(surfaceTexts, bar.language);
   const common = {
+    language: bar.language,
     state: bar.state,
     clock: bar.clock,
     ...(bar.battery ? { battery: bar.battery } : {}),
@@ -60,19 +68,19 @@ export function resolve(session: Session, tools: readonly Tool[], bar: Bar, view
     const field = place.phase === "asking" ? fieldOf(tools, place) : null;
     const act = actOf(tools, place);
     const title = act.title() ?? act.label;
-    const body = roomy(walkBody(place, field, bar.now), viewport.rows, place.reading);
-    return { ...common, title, body, hints: walkHints(place, field, tools), menu: false };
+    const body = roomy(walkBody(place, field, bar.now, bar.language), viewport.rows, place.reading);
+    return { ...common, title, body, hints: walkHints(place, field, tools, bar.language), menu: false };
   }
   if (place.kind === "talk") {
-    const talk = talkScreen(place, tools);
+    const talk = talkScreen(place, tools, bar.language);
     return { ...common, ...talk, body: roomy(talk.body, viewport.rows) };
   }
-  if (place.kind === "view" && goneOf(session, tools)) {
-    const body = { kind: "thread", events: [{ text: errorSpans(said.gone) }] } as const;
+  if (place.kind === "view" && goneOf(session, tools, bar.language)) {
+    const body = { kind: "thread", events: [{ text: errorSpans(said.gone, bar.language) }] } as const;
     const hints = [{ intent: "cancel", does: said.keys.goBack }] as const;
     return { ...common, title: toolOf(tools, place.tool).name, body, hints, menu: true };
   }
-  return { ...common, ...listScreen(place, tools, viewport) };
+  return { ...common, ...listScreen(place, tools, viewport, bar.language) };
 }
 /** The rows of a list as drawn: the one the cursor is on, and each with what it is, read from the same lists the
  * keys move over, so what is drawn is what is chosen. */
@@ -96,10 +104,12 @@ function listScreen(
   place: Extract<NonNullable<Session[number]>, { kind: "menu" | "view" }>,
   tools: readonly Tool[],
   viewport: Viewport,
+  language: Language,
 ): Pick<Screen, "title" | "body" | "hints" | "menu"> {
-  const stacks = stacksOf(place, tools);
+  const said = wordsIn(surfaceTexts, language);
+  const stacks = stacksOf(place, tools, language);
   if (place.kind === "view") toolOf(tools, place.tool).rendered?.(place.target);
-  const { marked, chosen } = drawnRows(stacks, cursorOf(place, tools));
+  const { marked, chosen } = drawnRows(stacks, cursorOf(place, tools, language));
   const k = said.keys;
   const moves: readonly Hint[] = chosen
     ? [

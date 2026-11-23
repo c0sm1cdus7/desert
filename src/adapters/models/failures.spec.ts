@@ -100,7 +100,7 @@ describe("card and transport edges", () => {
     });
     await expect(callAnthropic(request, secret, () => Promise.reject(new Error(secret)))).rejects.toMatchObject({
       kind: "transport",
-      message: "transport: Falló el transporte del proveedor",
+      message: "transport: The provider's transport failed",
     });
     expect(new ModelFailure("http", "401").message).not.toContain(secret);
   });

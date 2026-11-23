@@ -17,7 +17,7 @@ it.each(["legacy", "stale"])("refuses to certify a manual version with only %s e
   const failures: string[] = [];
   for (const check of checks) await check.run().catch((error: unknown) => failures.push(String(error)));
   expect(failures.some(error => /evidence|evidencia/.test(error))).toBe(true);
-  expect(checks.some(check => /RECONSTRUIDO/.test(check.report?.() ?? ""))).toBe(true);
+  expect(checks.some(check => /REBUILT/.test(check.report?.() ?? ""))).toBe(true);
 });
 it("does not accept a manual version with no kept journals", async () => {
   const failures: string[] = [];
@@ -38,8 +38,8 @@ it("requires reuse somewhere, and reports obsolete and reusable journals individ
   const reports = checks.map(check => check.report?.());
   expect(reports).toEqual(
     expect.arrayContaining([
-      expect.stringMatching(/fresh.sqlite: REUTILIZADO/),
-      expect.stringMatching(/old.sqlite: RECONSTRUIDO/),
+      expect.stringMatching(/fresh.sqlite: REUSED/),
+      expect.stringMatching(/old.sqlite: REBUILT/),
     ]),
   );
 });

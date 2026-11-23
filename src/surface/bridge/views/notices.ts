@@ -6,7 +6,7 @@ import { hides } from "../../../house/members.ts";
 import type { ProgramTool } from "../../../tools/promises.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
 import type { Notice, Tool } from "../../contract/shown-tool.ts";
-import type { SurfacePorts } from "../ports/house-ports.ts";
+import { say, type SurfacePorts } from "../ports/house-ports.ts";
 /** What was said in several lines is told, on a row, by its first. */
 export const firstLine = (text: string): string => text.split("\n")[0] ?? "";
 /** The last thing someone else wrote on each thing of a tool since this identity had that thing in front. */
@@ -23,14 +23,15 @@ function unseen<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>,
   }
   return [...latest.values()].sort((one, other) => other.seq - one.seq);
 }
-function entryNotice(
+function entryNotice<X extends Program>(
+  ports: SurfacePorts<X>,
   tool: string,
   data: ReturnType<typeof unseen>[number]["data"],
   name: (actor: string) => string,
 ): Notice {
   const leads = data.target === tool ? {} : { opens: data.target };
   return {
-    title: firstLine(data.text),
+    title: firstLine(say(ports, data.text)),
     detail: data.diagnostic ? firstLine(data.diagnostic) : name(data.author),
     ...leads,
   };
@@ -52,7 +53,9 @@ function declaredNeeds<X extends Program>(
         need.to === ports.me,
     )
     .map(({ target, why }) =>
-      target === tool.id ? { title: shown.name, detail: why } : { title: titled(target), detail: why, opens: target },
+      target === tool.id
+        ? { title: shown.name, detail: say(ports, why) }
+        : { title: titled(target), detail: say(ports, why), opens: target },
     );
 }
 /** A tool's two lists for one identity, and how having a thing in front stops what was written on it being news. */
@@ -70,11 +73,11 @@ export function noticesOf<X extends Program>(
             ...declaredNeeds(ports, tool, shown),
             ...(tool.id === "identities"
               ? []
-              : unseen(ports, tool, true).map(entry => entryNotice(tool.id, entry.data, name))),
+              : unseen(ports, tool, true).map(entry => entryNotice(ports, tool.id, entry.data, name))),
           ]
         : [],
       news: ports.state().house.grants.has(ports.me)
-        ? unseen(ports, tool).map(entry => entryNotice(tool.id, entry.data, name))
+        ? unseen(ports, tool).map(entry => entryNotice(ports, tool.id, entry.data, name))
         : [],
       quiet: hides(ports.state().house, ports.me, "empty"),
     }),

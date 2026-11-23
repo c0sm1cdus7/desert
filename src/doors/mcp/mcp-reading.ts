@@ -14,7 +14,10 @@ import { isRecord } from "../../fields/json-values.ts";
 import { noticesOf } from "../../surface/bridge/views/notices.ts";
 import { identityReading, identityTarget } from "../../tools/identities/identity-reading.ts";
 import type { RequestHouse } from "../socket/requests/request-book.ts";
-import { mcpTexts as said } from "../../texts/mcp.texts.ts";
+import { mcpTexts } from "../../texts/mcp.texts.ts";
+import { inLanguage, linesIn, said as inWords, type Text } from "../../fields/phrases.ts";
+import { readerLanguage } from "../../house/members.ts";
+import type { Language } from "../../fields/languages.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import { toolResult } from "./mcp-protocol.ts";
 export type McpHouse<X extends Program> = RequestHouse<X> & Parameters<typeof localPorts<X>>[0];
@@ -32,11 +35,11 @@ function scene<X extends Program>(ports: HousePorts<X>, identity: string) {
     recipients: ports.state().house.scenes.get(identity)?.data.to,
   };
 }
-function overview<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X>[]) {
+function overview<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X>[], language: Language) {
   const state = ports.state();
   const notices = tools.filter(declared).map(tool => ({
     program: tool.id,
-    ...noticesOf({ ...ports, act: value => ports.act(value, state.through) }, tool, {
+    ...noticesOf({ ...ports, language, act: value => ports.act(value, state.through) }, tool, {
       name: tool.id,
       titleOf: target => target,
     }).notices(),
@@ -75,9 +78,9 @@ function dynamicChoices<X extends Program>(ports: HousePorts<X>, act: ToolAct<X>
 function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X>[], on?: string) {
   const state = ports.state();
   return tools.flatMap(tool => {
-    const reason = (name: string, act: ToolAct<X>, target?: string) => {
+    const reason = (name: string, act: ToolAct<X>, target?: string): Text | undefined => {
       if (!allowedAct(state.house, ports.me, tool.id, name)) return toolTexts.kitRefusal(tool.id);
-      return target === undefined ? said.noThings : programOffered(act, state, target, ports.now());
+      return target === undefined ? mcpTexts.noThings : programOffered(act, state, target, ports.now());
     };
     const groups = declared(tool) ? tool.groups : undefined;
     return actionGroups(tool).flatMap(group =>
@@ -115,33 +118,35 @@ function actions<X extends Program>(ports: HousePorts<X>, tools: readonly Tool<X
 export function mcpReading<X extends Program>(house: McpHouse<X>, by: string, limits: Omit<ViewLimits, "now">) {
   const ports = localPorts(house, by, limits);
   const tools = () => ports.registry;
+  /** Whoever is connected reads every word in the language its identity reads the house in. */
+  const language = (): Language => readerLanguage(ports.state().house, by);
+  const said = (text: Text): string => inWords(text, language());
   const clean = (value: unknown) =>
-    stripVTControlCharacters(house.tools.prepare(typeof value === "string" ? value : JSON.stringify(value)));
+    stripVTControlCharacters(
+      house.tools.prepare(
+        typeof value === "string" ? linesIn(value, language()) : JSON.stringify(inLanguage(value, language())),
+      ),
+    );
   const readable = tools;
   const matches = (id: string, target: string) => targetTool(ports.registry, ports.state(), target)?.id === id;
   const read = (id?: string, target?: string) => {
-    if (id !== undefined && target !== undefined && !matches(id, target)) return toolResult(said.action, true);
+    if (id !== undefined && target !== undefined && !matches(id, target))
+      return toolResult(said(mcpTexts.action), true);
     const tool = readable().find(tool => tool.id === id);
     if (id !== undefined)
       return tool
         ? toolResult(
             clean(programCall(tool.view.bind(tool), ports.state(), target ?? id, { ...limits, now: ports.now() })),
           )
-        : toolResult(said.tool, true);
-    return toolResult(clean(overview(ports, tools())));
+        : toolResult(said(mcpTexts.tool), true);
+    return toolResult(clean(overview(ports, tools(), language())));
   };
   const offered = (id?: string, target?: string) => {
-    if (id !== undefined && target !== undefined && !matches(id, target)) return toolResult(said.action, true);
-    if (id !== undefined && !readable().some(tool => tool.id === id)) return toolResult(said.tool, true);
-    return toolResult(
-      clean(
-        actions(
-          ports,
-          readable().filter(tool => id === undefined || id === tool.id),
-          target,
-        ),
-      ),
-    );
+    if (id !== undefined && target !== undefined && !matches(id, target))
+      return toolResult(said(mcpTexts.action), true);
+    if (id !== undefined && !readable().some(tool => tool.id === id)) return toolResult(said(mcpTexts.tool), true);
+    const shown = readable().filter(tool => id === undefined || id === tool.id);
+    return toolResult(clean(actions(ports, shown, target)));
   };
   return { read, actions: offered };
 }

@@ -1,4 +1,5 @@
 // Founders are read once per journal, and failed redemption never leaves half an issued credential.
+import { meant } from "../fields/phrases.ts";
 import { afterEach, expect, it, vi } from "vitest";
 import { randomBytes } from "node:crypto";
 import { doorHouse, invitationCode } from "../../tests/support/door-house.ts";
@@ -35,7 +36,7 @@ it.each([false, true])("adopts founders at birth or at the first opening of an e
   seedDoorKeys(h.house().bus, () => h.house().tools.state().house, founders);
   expect(reads).toBe(initialReads);
   expect(h.house().tools.state().house.doors.keys.size).toBe(count);
-  expect(warn).toHaveBeenCalledWith(doorTexts.foundersIgnored);
+  expect(warn).toHaveBeenCalledWith(meant(doorTexts.foundersIgnored));
   expect(h.history().includes(material)).toBe(false);
   expect(JSON.stringify(warn.mock.calls).includes(material)).toBe(false);
 });
@@ -82,7 +83,7 @@ it("scrubs pasted keys and codes from journal entries, diagnostics and MCP prepa
   );
   const prepared = JSON.stringify(h.house().tools.prepare({ [key]: code, nested: [key] }));
   expect([key, code].some(value => h.history().includes(value) || prepared.includes(value))).toBe(false);
-  expect(prepared).toContain("[secreto]");
+  expect(prepared).toContain("[secret]");
 });
 it("refuses expiration reached between fingerprint verification and the transaction", async () => {
   const h = doorHouse();

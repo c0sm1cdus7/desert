@@ -6,6 +6,7 @@ import { keyWaits, startTerminal } from "./boot.ts";
 
 const screen: Screen = {
   title: "Prueba",
+  language: "es" as const,
   state: "connected",
   clock: "10:00",
   body: { kind: "list", stacks: [] },

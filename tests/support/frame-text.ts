@@ -1,4 +1,4 @@
-// Reads a request message as one text: its tail first (it starts with Alcance), then the own thread's kept blocks.
+// Reads a request message as one text: its tail first (it starts with Scope), then the own thread's kept blocks.
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 const blocks = Type.Array(Type.Object({ text: Type.String() }));

@@ -1,4 +1,5 @@
 // Declared actions to take out, readmit without tools and hand over administration, with current availability.
+import { type Text } from "../../fields/phrases.ts";
 import { programKit } from "../../house/kit-selection.ts";
 import { object } from "../../fields/visible-text.ts";
 import { identityDisplayName, type House } from "../../house/members.ts";
@@ -11,7 +12,7 @@ import type { Program, ToolRegistry } from "../tool-contract.ts";
 import { targetIdentity } from "./identity-reading.ts";
 import { removeCases, readmitCases, handCases } from "./identity-cases.ts";
 const input = object({});
-function otherPresent(house: House, target: string): string | undefined {
+function otherPresent(house: House, target: string): Text | undefined {
   const identity = targetIdentity(target);
   if (mindTool(identity)) return words.ownActions;
   if (identity === house.admin) return words.admin;

@@ -1,4 +1,5 @@
 import { redemptionHome } from "../../tests/support/redemption-home.ts";
+import { everySaid } from "../fields/phrases.ts";
 // One-shot filesystem hooks replace checked names deterministically, without load races or real credentials.
 import { afterEach, expect, it, vi } from "vitest";
 import {
@@ -100,7 +101,7 @@ it.each(["destination", "recovery", "directory"])("rejects a foreign %s owner us
     hooks.foreignOwner = suspect;
   }
   await expect(redeemToFile("http://localhost", "ABCD-2345", { file, name: "house" })).rejects.toThrow(
-    kind === "recovery" ? doorTexts.unsafeRecovery : doorTexts.destination,
+    kind === "recovery" ? everySaid(doorTexts.unsafeRecovery) : everySaid(doorTexts.destination),
   );
   expect(send).not.toHaveBeenCalled();
   expect(existsSync(suspect)).toBe(true);
@@ -145,7 +146,7 @@ it.each(["regular", "symlink"])("keeps a %s replacement recovery untouched betwe
     symlinkSync(`${path}.foreign`, path);
   }
   try {
-    expect(() => resumed.prepare()).toThrow(doorTexts.unsafeRecovery);
+    expect(() => resumed.prepare()).toThrow(everySaid(doorTexts.unsafeRecovery));
     expect(readFileSync(path, "utf8") === material).toBe(true);
     expect(readFileSync(`${path}.checked`, "utf8").trim() === candidate).toBe(true);
   } finally {
@@ -223,7 +224,7 @@ it.each(["destination", "recovery"])("rejects special mode bits on %s by descrip
   } else writeFileSync(file, "{}", { mode: 0o600 });
   hooks.specialMode = suspect;
   await expect(redeemToFile("http://localhost", "ABCD-2345", { file, name: "house" })).rejects.toThrow(
-    kind === "recovery" ? doorTexts.unsafeRecovery : doorTexts.destination,
+    kind === "recovery" ? everySaid(doorTexts.unsafeRecovery) : everySaid(doorTexts.destination),
   );
   expect(send).not.toHaveBeenCalled();
   expect(existsSync(suspect)).toBe(true);

@@ -1,4 +1,5 @@
 // Rewrites, once and after a backup, what journals stored under Spanish names and gives identities their language.
+import { meant } from "../fields/phrases.ts";
 import { existsSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -101,12 +102,12 @@ function foldedHouse(rows: readonly Row[]): House {
 /** The backup folder must exist on every run; the copy in it must not, when there is something to write. */
 function backupFolder(folder: string | undefined): string {
   if (!folder || !existsSync(folder) || !statSync(folder).isDirectory())
-    throw new Error(storedNamesTexts.backupRequired);
+    throw new Error(meant(storedNamesTexts.backupRequired));
   return folder;
 }
 function backupFile(folder: string, file: string): string {
   const target = join(folder, basename(file));
-  if (existsSync(target)) throw new Error(storedNamesTexts.backupExists(target));
+  if (existsSync(target)) throw new Error(meant(storedNamesTexts.backupExists(target)));
   return target;
 }
 /** Rewrites the changed rows inside one transaction; append-only holds again before anything commits. */
@@ -121,7 +122,7 @@ function renameRows(db: DatabaseSync, changed: readonly Row[]): void {
   const trigger = db
     .prepare("select sql from sqlite_master where type = 'trigger' and name = ?")
     .get("events_no_update");
-  if (typeof trigger?.sql !== "string") throw new Error(storedNamesTexts.notJournal);
+  if (typeof trigger?.sql !== "string") throw new Error(meant(storedNamesTexts.notJournal));
   db.exec("drop trigger events_no_update");
   const update = db.prepare("update events set data = ? where seq = ?");
   for (const row of changed) update.run(String(row.data), Number(row.seq));
@@ -130,9 +131,9 @@ function renameRows(db: DatabaseSync, changed: readonly Row[]): void {
 function check(journal: StoredJournal, db: DatabaseSync, expected: unknown): void {
   const rows = rowsOf(db);
   if (rows.some(row => renamedData(String(row.kind), dataOf(row)) !== undefined))
-    throw new Error(storedNamesTexts.namesLeft);
-  if (spokenRows(journal, rows, 0).length) throw new Error(storedNamesTexts.languagesLeft);
-  if (!isDeepStrictEqual(folded(journal, rows), expected)) throw new Error(storedNamesTexts.foldChanged);
+    throw new Error(meant(storedNamesTexts.namesLeft));
+  if (spokenRows(journal, rows, 0).length) throw new Error(meant(storedNamesTexts.languagesLeft));
+  if (!isDeepStrictEqual(folded(journal, rows), expected)) throw new Error(meant(storedNamesTexts.foldChanged));
 }
 
 /** Migrates one journal in place: refuses without a backup folder, writes the backup, rewrites, and checks. */

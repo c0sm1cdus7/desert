@@ -1,4 +1,5 @@
 // Authorizes references by scope and reserves a version while the adapter uses it.
+import { meant } from "../../fields/phrases.ts";
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { randomUUID } from "node:crypto";
 import { CustodyError } from "./house-keys.ts";
@@ -19,7 +20,7 @@ export function checkMaterial(state: CustodyState, ref: SecretRef): void {
   const row = state.store.row(ref);
   if (row?.payload === null || row?.payload === undefined) throw new CustodyError("E-CUSTODY-MISSING");
   state.cipher.check(ref, row.payload);
-  if (!state.cipher.present(ref)) throw new CustodyError("E-CUSTODY-KEY", secretTexts.missingKey);
+  if (!state.cipher.present(ref)) throw new CustodyError("E-CUSTODY-KEY", meant(secretTexts.missingKey));
 }
 export function readMaterial(state: CustodyState, ref: SecretRef): Uint8Array {
   const row = state.store.row(ref);

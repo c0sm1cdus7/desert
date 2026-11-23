@@ -87,7 +87,7 @@ export const add = {run: () => audit.fact('notes/added')};`,
 ])("rejects a program fact %s", async (_pattern, action) => {
   const repo = catalogProgram({ "src/action.ts": action });
   const failures = await programLaws(repo.root);
-  expect(failures).toEqual([expect.stringContaining("E-L6-FACT · hecho sin acción registrada · notes/added")]);
+  expect(failures).toEqual([expect.stringContaining("E-L6-FACT · fact without a registered action · notes/added")]);
 });
 it("keeps an unused or test-only catalog text red beside a used text", async () => {
   const repo = catalogProgram({
@@ -97,8 +97,8 @@ export const program = {acts: {add}, name: words.used};`,
     "src/words.spec.ts": "import {words} from './texts/words.ts'; export const check = words.tested;",
   });
   expect(await programLaws(repo.root)).toEqual([
-    expect.stringContaining("E-L6-TEXT · texto sin uso · unused"),
-    expect.stringContaining("E-L6-TEXT · texto sin uso · tested"),
+    expect.stringContaining("E-L6-TEXT · unused text · unused"),
+    expect.stringContaining("E-L6-TEXT · unused text · tested"),
   ]);
 });
 it("keeps a test-only export red while accepting a helper used by the program's mind", async () => {
@@ -109,7 +109,7 @@ it("keeps a test-only export red while accepting a helper used by the program's 
 export const program = {acts: {add}, mindCases: [{check: mind}]};`,
   });
   expect(await programLaws(repo.root)).toEqual([
-    expect.stringContaining("E-L6-EXPORT · exportado usado sólo por pruebas · tested"),
+    expect.stringContaining("E-L6-EXPORT · export used only by tests · tested"),
   ]);
 });
 

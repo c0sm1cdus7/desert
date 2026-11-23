@@ -38,6 +38,7 @@ it("PA1: a tool action current row uses its tool even when displayed on a thing"
           },
         },
       },
+      "es",
     );
     const row = must(start)("price", "sales/dollars", { today: { amount: 1005 } });
     expect(row.on).toEqual({ tool: "sales" });
@@ -50,7 +51,11 @@ it("AA2: walked questions default to their tool when no target is passed", () =>
   const rig = shopRig();
   try {
     const base = rig.ports("ana", () => 17);
-    const ports = { ...base, act: (value: Parameters<typeof base.act>[0]) => base.act(value, rig.state().through) };
+    const ports = {
+      ...base,
+      language: "es" as const,
+      act: (value: Parameters<typeof base.act>[0]) => base.act(value, rig.state().through),
+    };
     const entry = walked(
       ports,
       { tool: "sales", name: "price", act },
@@ -84,6 +89,7 @@ it("AS3: sofar carries outer answers into the unfinished nested question", () =>
       now: () => 17,
       today: () => "2026-11-13",
       optionalMark: "",
+      language: "es" as const,
       formats: formats(shopShown.locale),
     },
   );

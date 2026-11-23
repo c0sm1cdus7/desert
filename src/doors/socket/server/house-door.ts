@@ -1,4 +1,5 @@
 // One live house owns all sessions; the same byte protocol can be checked on in-memory duplex streams.
+import { meant } from "../../../fields/phrases.ts";
 import { publicMessage } from "../requests/public-message.ts";
 import { liveDoorKeys } from "../peers/live-door-keys.ts";
 import { socketLimits } from "../wire/protocol.ts";
@@ -53,7 +54,7 @@ function acceptPeer<X extends Program>(session: Session<X>, peers: Set<Peer>) {
     }
     const waiting = [...peers].filter(peer => !peer.key() && peer.live());
     if (waiting.length >= socketLimits.unintroduced) {
-      session.report(socketTexts.busy);
+      session.report(meant(socketTexts.busy));
       waiting[0]?.stream.destroy();
       if (waiting[0]) peers.delete(waiting[0]);
     }

@@ -88,7 +88,7 @@ describe("a program with a menu on its things", () => {
       expect(typed("\r")).toEqual(["Corregir · s1", "Total $ 15,00", "Cobrado $ 0,00", "› $ 0,00"]);
       expect(esc()[0]).toBe("Partes");
       typed("b500\r");
-      expect((await settled()).at(-1)).toContain("Listo Corregida · s1");
+      expect((await settled()).at(-1)).toContain("Done Corregida · s1");
       expect(esc()).toEqual(["Partes", "t | total | $ 15,00", "b | cobrado | $ 5,00"]);
     });
   });
@@ -128,7 +128,7 @@ describe("a program with a menu on its things", () => {
   for (const check of walkedChecks(leavingCorrect, fragileShown)) it(`${check.name}, leaving its menu`, check.run);
   it("fails the walk of an act that takes away its own menu without saying so: it lands nowhere", async () => {
     expect(
-      await failing(walkedChecks(correctingShop, fragileShown), "E-PROG-1 · Falló el programa · sales/sales"),
+      await failing(walkedChecks(correctingShop, fragileShown), "E-PROG-1 · The program failed · sales/sales"),
     ).toEqual(keys(paidCorrected));
   });
 });

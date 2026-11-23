@@ -1,4 +1,5 @@
 // A real terminal chooses a synthetic device before the common mechanical guard runs.
+import { type Text } from "../../src/fields/phrases.ts";
 import { generateKeyPairSync } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -73,7 +74,7 @@ writeFileSync(
     destination: house.journal.replay<unknown>(null, (last, event) =>
       event.kind === "act" && event.data.option === "register" ? event.data.destination : last,
     ),
-    reason: house.journal.replay<string>("", (last, event) => (event.kind === "act-result" ? event.data.reason : last)),
+    reason: house.journal.replay<Text>("", (last, event) => (event.kind === "act-result" ? event.data.reason : last)),
     result: house.journal.replay<string>("", (result, event) =>
       event.kind === "act-result" ? event.data.status : result,
     ),

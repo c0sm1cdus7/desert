@@ -1,4 +1,6 @@
 // Full scene blocks use ordinary read-only rows; their width also fits the smallest supported terminal.
+import type { Language } from "../../fields/languages.ts";
+import { said } from "../../fields/phrases.ts";
 import { width } from "../../fields/column-width.ts";
 import type { Tool, ViewRow } from "../../surface/contract/shown-tool.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
@@ -23,9 +25,9 @@ function lines(text: string): string[] {
     return [...result, line];
   });
 }
-export function sceneReading(stacks: ReturnType<Tool["view"]>): ReturnType<Tool["view"]> {
+export function sceneReading(stacks: ReturnType<Tool["view"]>, language: Language): ReturnType<Tool["view"]> {
   return stacks.map(stack =>
-    stack.title !== words.sceneTitle
+    stack.title !== said(words.sceneTitle, language)
       ? stack
       : {
           ...stack,

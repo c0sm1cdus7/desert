@@ -190,8 +190,8 @@ it("a journey answer without a continuation goes on in its turn, sees its result
   // The second call repeats the first byte for byte and appends the answer and what the acts did.
   expect(second?.slice(0, first?.length)).toEqual(first);
   expect(second?.slice(first?.length).map(message => message.role)).toEqual(["assistant", "user"]);
-  expect(second?.at(-1)?.content).toContain("1. personal/add → notes/personal: aceptado. Anotada");
-  expect(second?.at(-1)?.content).toContain("Ahora:");
+  expect(second?.at(-1)?.content).toContain("1. personal/add → notes/personal: accepted. Anotada");
+  expect(second?.at(-1)?.content).toContain("Now:");
   expect(JSON.parse(calls[1]?.body ?? "{}")).toMatchObject({ cache_control: { type: "ephemeral" } });
 });
 it("a provider cut wakes the consciousness once, says why in words, and retries nothing", async () => {
@@ -213,11 +213,11 @@ it("a provider cut wakes the consciousness once, says why in words, and retries 
   expect(journey?.waiting).toBeUndefined();
   const woke = seen.filter(each => !each.journey);
   expect(woke).toHaveLength(2);
-  expect(woke[1]?.changing).toContain("Se cortó un turno del journey «Anotar»: La llamada quedó incierta.");
+  expect(woke[1]?.changing).toContain("A turn of the journey «Anotar» was cut: The call was left uncertain.");
   const scenes = house.journal.replay<string[]>([], (all, event) =>
     event.layer === "house" && event.kind === "scene" ? [...all, event.data.general] : all,
   );
-  expect(scenes.some(text => text.startsWith("Se cortó un turno del journey «Anotar»"))).toBe(true);
+  expect(scenes.some(text => text.startsWith("A turn of the journey «Anotar» was cut"))).toBe(true);
 });
 it("a restart wakes the journey through its interrupted closure, with no wait of its own", async () => {
   const f = fixture();

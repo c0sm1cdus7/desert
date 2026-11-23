@@ -1,4 +1,5 @@
 // Recovery messages reflect durable evidence, including another code passed to the real CLI for either destination.
+import { everySaid, meant } from "../fields/phrases.ts";
 import { expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 import { join, resolve } from "node:path";
@@ -68,9 +69,13 @@ for (const mode of ["file", "claude"])
       });
       const output = conflict.stdout + conflict.stderr;
       expect(conflict.status).toBe(1);
-      const guidance = { reserved: doorTexts.pending, uncertain: doorTexts.uncertain, confirmed: doorTexts.confirmed };
-      expect(output).toContain(guidance[phase](path));
-      expect(output).toContain(doorTexts.resume);
+      const guidance = {
+        reserved: doorTexts.pending,
+        uncertain: doorTexts.uncertain,
+        confirmed: doorTexts.confirmed,
+      } as const;
+      expect(output).toContain(everySaid(guidance[phase](path)));
+      expect(output).toContain(everySaid(doorTexts.resume));
       expect(output.includes(key)).toBe(false);
       expect(output).not.toContain("Canje completo");
       expect(h.access().get(key)?.identity).toBe(phase === "reserved" ? undefined : "beto");
@@ -82,7 +87,7 @@ for (const mode of ["file", "claude"])
       expect(
         [...h.house().tools.state().house.doors.keys.values()].filter(each => each.identity === "beto"),
       ).toHaveLength(1);
-      expect(h.history()).toContain(doorTexts.redeemed);
+      expect(h.history()).toContain(meant(doorTexts.redeemed));
       expect([...h.house().tools.state().house.doors.invitations.values()][0]?.redeemed).toBe(true);
     } finally {
       vi.unstubAllGlobals();

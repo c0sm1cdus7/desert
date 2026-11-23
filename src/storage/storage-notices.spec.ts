@@ -1,4 +1,5 @@
 import "../../tests/support/upgrade-vault.ts";
+import { meant } from "../fields/phrases.ts";
 import { join } from "node:path";
 import { linkSync, mkdirSync, mkdtempSync, readFileSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -72,7 +73,7 @@ describe("the record of openings never stops an opening and never writes outside
   const cases: [string, (path: string, outside: string) => void, string][] = [
     ["a record that cannot be written", path => writeFileSync(log(path), "", { mode: 0o400 }), "EACCES"],
     ["a record that is a link elsewhere", (path, outside) => symlinkSync(outside, log(path)), "ELOOP"],
-    ["a record that is a hard link", (path, outside) => linkSync(outside, log(path)), journalTexts.notOwnRecord],
+    ["a record that is a hard link", (path, outside) => linkSync(outside, log(path)), meant(journalTexts.notOwnRecord)],
     ["a record that is a folder", path => mkdirSync(log(path)), "EISDIR"],
   ];
   it.each(cases)(

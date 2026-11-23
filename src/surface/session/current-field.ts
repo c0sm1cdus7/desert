@@ -1,7 +1,6 @@
 // The current value is shown throughout an edit; only an answer that finishes it unchanged is unavailable.
 import { OutsideDefect } from "../../fields/program-call.ts";
 import { answerChange } from "../../tools/inputs/answer-change.ts";
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import type { Field, Option } from "../contract/contract.ts";
 import { answersAfter } from "./kept-answers.ts";
 import type { Walk } from "./screen.ts";
@@ -19,7 +18,7 @@ export function orderedThings(options: readonly Option[]): readonly Option[] {
   return rows;
 }
 export function uniqueCurrent(options: readonly Option[]): readonly Option[] {
-  if (options.filter(option => option.detail === said.current && !option.makes).length > 1)
+  if (options.filter(option => option.current && !option.makes).length > 1)
     throw new OutsideDefect("Two answers of the same question are unchanged");
   return options;
 }
@@ -30,9 +29,11 @@ type Act = Readonly<{
 export const markedCurrent = (field: Field, option: Option): Option => {
   const value = option.value ?? option.title;
   const current = field.kind !== "many" && field.current !== undefined && value === field.current;
-  if (field.current !== undefined && option.detail === said.current) answerChange(undefined, true, current);
+  if (field.current !== undefined && option.current) answerChange(undefined, true, current);
   const off = field.kind !== "many" && !option.makes && (field.unchanged?.(value) ?? (field.only === true && current));
-  return { ...option, ...(current && !option.off ? { detail: said.current } : {}), ...(off ? { off: true } : {}) };
+  const marked =
+    current && !option.off ? { detail: field.currentSays ?? option.detail ?? "", current: true as const } : {};
+  return { ...option, ...marked, ...(off ? { off: true } : {}) };
 };
 /** Match by question when a changed answer changes which questions exist; never put a value under another name. */
 function currentAt(walk: Walk, field: Field, act: Act): string | undefined {

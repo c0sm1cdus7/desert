@@ -11,7 +11,7 @@ const open = (reach: "house" | "world" = "house") => {
   rigs.push(rig);
   return rig;
 };
-const cut = { status: "interrupted", reason: "sacada" };
+const cut = { status: "interrupted", reason: { en: "removed", es: "sacada" } };
 
 it.each(["beto", "mind:slow"])("cuts what %s has pending, rejects what is new and keeps the reading", async by => {
   const rig = open();
@@ -39,10 +39,12 @@ it("keeps what went out to the world and leaves the reason beside the result", a
   const pending = rig.start();
   rig.kit("beto");
   rig.calls[0]?.done.resolve(saved);
-  expect(await settled(pending)).toMatchObject({ status: "accepted", reason: "sacada" });
+  expect(await settled(pending)).toMatchObject({ status: "accepted", reason: { en: "removed", es: "sacada" } });
   expect(rig.outside).toEqual(["hecho afuera"]);
   expect(rig.state().entries.at(-1)?.data.text).toBe(saved.text);
-  expect(rig.facts().findLast(event => event.kind === "act-result")?.data).toMatchObject({ reason: "sacada" });
+  expect(rig.facts().findLast(event => event.kind === "act-result")?.data).toMatchObject({
+    reason: { en: "removed", es: "sacada" },
+  });
 });
 
 it("removes a single action between two simultaneous acts of the same actor", async () => {
@@ -115,7 +117,7 @@ it("if the cut arrives while writing, it keeps the batch already started and exp
   const pending = rig.start();
   const stop = rig.bus.on("act-done", () => rig.kit("beto"));
   rig.calls[0]?.done.resolve(saved);
-  expect(await settled(pending)).toMatchObject({ status: "accepted", reason: "sacada" });
+  expect(await settled(pending)).toMatchObject({ status: "accepted", reason: { en: "removed", es: "sacada" } });
   expect(rig.state().entries.at(-1)?.data.text).toBe(saved.text);
   stop();
 });

@@ -12,6 +12,7 @@ const words = {
   now: () => 17,
   today: () => "2026-11-13",
   optionalMark: "",
+  language: "es" as const,
   formats: formats({ currency: "$", decimal: ",", thousands: ".", day: "dd/mm/aaaa" }),
 };
 function seat(ask: ReturnType<typeof asking>, given?: ViewRow["with"]) {
@@ -36,11 +37,12 @@ function seat(ask: ReturnType<typeof asking>, given?: ViewRow["with"]) {
   let session: Session = [begin(tools, "data", "enter", undefined, given)];
   return {
     send: (key: Intent) => {
-      const result = step(session, key, tools, 17);
+      const result = step(session, key, tools, 17, "es");
       session = result.session;
       return result.run;
     },
-    screen: () => resolve(session, tools, { state: "connected", clock: "00:00", now: 17 }, { rows: 30 }),
+    screen: () =>
+      resolve(session, tools, { language: "es", state: "connected", clock: "00:00", now: 17 }, { rows: 30 }),
     session: () => session,
     resume: (saved: Session) => {
       session = saved;

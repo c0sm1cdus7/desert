@@ -1,4 +1,5 @@
 // Binds each verdict and consultation of a turn to its proposal, scope and rules, and records it.
+import { workingLanguage } from "../../fields/languages.ts";
 import { effect } from "../../house/facts.ts";
 import { requireMind } from "../../fields/mind-errors.ts";
 import type { TurnContext } from "../../tools/minds/mind-contract.ts";
@@ -22,7 +23,7 @@ export function createMindActReview(ports: TurnPorts, turn: TurnContext, caller:
         request.reason === "consultation"
           ? await answerConsultation(ports.supervision, fixed, caller, snapshot.rulesVersion)
           : await reviewMindProposal(ports.supervision, fixed, caller, snapshot.rulesVersion);
-      if (!ports.isOpen(turn.id)) throw new TurnStopped("inactive", turn);
+      if (!ports.isOpen(turn.id)) throw new TurnStopped("inactive");
       const current = ports.read(turn.scope);
       const valid =
         current.active &&
@@ -30,7 +31,7 @@ export function createMindActReview(ports: TurnPorts, turn: TurnContext, caller:
         request.acts.every(act => ports.allowed(turn.scope, act));
       const result: ReviewResult = valid
         ? reviewed
-        : { ...reviewed, outcome: "failed", text: reviewNotice.text(turn.language, { passed: false }) };
+        : { ...reviewed, outcome: "failed", text: reviewNotice.text(workingLanguage, { passed: false }) };
       recordReview(ports, turn, fixed, result);
       return result;
     },

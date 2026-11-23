@@ -13,6 +13,7 @@ function fieldTool(field: TSchema, after?: TSchema, stops?: (answers: readonly s
     now: () => 0,
     today: () => "2026-11-13",
     optionalMark: "",
+    language: "es" as const,
     formats: formats({ currency: "$", decimal: ",", thousands: ".", day: "dd/mm/aaaa" }),
   });
   return {
@@ -37,7 +38,7 @@ export function fieldSeat(field: TSchema, after?: TSchema, stops?: (answers: rea
   const tool = fieldTool(field, after, stops);
   let session: Session = [...start, begin([tool], "data", "change")];
   const send = (key: Intent) => {
-    const moved = step(session, key, [tool], 0);
+    const moved = step(session, key, [tool], 0, "es");
     session = moved.session;
     return moved.run;
   };
@@ -49,7 +50,8 @@ export function fieldSeat(field: TSchema, after?: TSchema, stops?: (answers: rea
   const reopen = () => {
     session = [...start, begin([tool], "data", "change")];
   };
-  const screen = () => resolve(session, [tool], { state: "connected", clock: "00:00", now: 0 }, { rows: 26 });
+  const screen = () =>
+    resolve(session, [tool], { language: "es", state: "connected", clock: "00:00", now: 0 }, { rows: 26 });
   const reasons = () => {
     const body = screen().body;
     return body.kind === "thread"

@@ -3,11 +3,12 @@ import type { ExecutionDestination } from "../../../fields/device-protocol.ts";
 import type { Decision } from "../../../tools/execute.ts";
 import type { Emission } from "../../../journal/vocabulary.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
-import { surfaceTexts as said } from "../../../texts/surface.texts.ts";
+import type { Text } from "../../../fields/phrases.ts";
+import { surfaceTexts } from "../../../texts/surface.texts.ts";
 import type { Result } from "../../contract/shown-tool.ts";
-import { attendAndAct, type SurfacePorts } from "../ports/house-ports.ts";
+import { attendAndAct, say, type SurfacePorts } from "../ports/house-ports.ts";
 /** What the tool wrote about the act it just ran, when it wrote something. */
-const wroteBy = (effects: readonly Emission[]): string | undefined => {
+const wroteBy = (effects: readonly Emission[]): Text | undefined => {
   for (const effect of effects) if (effect.layer === "house" && effect.kind === "tool-entry") return effect.data.text;
   return undefined;
 };
@@ -30,10 +31,11 @@ export async function programResult<X extends Program>(
     reason: ports.defect(error, target, target, name),
     effects: [],
   }));
-  if (done.status !== "accepted") return { ok: false, reason: done.reason ?? "" };
-  const text = wroteBy(done.effects) ?? said.ok;
+  if (done.status !== "accepted") return { ok: false, reason: say(ports, done.reason ?? "") };
+  const text = say(ports, wroteBy(done.effects) ?? surfaceTexts.ok);
   const made = madeBy(done.effects, target);
-  const told = done.private ? `${text} · ${ports.receipt?.(done.private) ?? done.private}` : text;
-  const textWithReason = done.reason ? `${told} · ${done.reason}` : told;
+  const receipt = done.private === undefined ? undefined : say(ports, done.private);
+  const told = receipt ? `${text} · ${ports.receipt?.(receipt) ?? receipt}` : text;
+  const textWithReason = done.reason ? `${told} · ${say(ports, done.reason)}` : told;
   return { ok: true, text: textWithReason, ...(made === undefined ? {} : { made }) };
 }

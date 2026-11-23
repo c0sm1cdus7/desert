@@ -1,4 +1,5 @@
 import { duplexPair } from "node:stream";
+import { everySaid, meant } from "../fields/phrases.ts";
 import { afterEach, expect, it, vi } from "vitest";
 import { socketConnection } from "../doors/socket/client/socket-connection.ts";
 import { clientStream } from "../doors/socket/client/client-stream.ts";
@@ -60,8 +61,8 @@ it.each([false, true])("s12: repeated mismatch closes within the bound (already 
     }
     await vi.waitFor(() => expect(connection.status()).toBe("disconnected"), { timeout: 500 });
     expect(requests).toBe(2);
-    if (!entered) expect(await opening).toBe(socketTexts.stateUnverified);
-    expect(output.mock.calls.filter(([text]) => text === `${socketTexts.stateMismatch}\n`)).toHaveLength(1);
+    if (!entered) expect(await opening).toBe(everySaid(socketTexts.stateUnverified));
+    expect(output.mock.calls.filter(([text]) => text === `${everySaid(socketTexts.stateMismatch)}\n`)).toHaveLength(1);
     expect(connection.send({ type: "shutdown" })).toBe(false);
   } finally {
     connection.close();
@@ -87,7 +88,7 @@ it("N10: complete intermediate frames cannot restart the total hello deadline", 
       pair[1].write(serverFrame(welcome));
       await vi.advanceTimersByTimeAsync(socketLimits.helloMs / 5);
     }
-    expect(outcome).toBe(socketTexts.startTimeout);
+    expect(outcome).toBe(meant(socketTexts.startTimeout));
   } finally {
     pair.forEach(s => s.destroy());
     await opening;
@@ -132,13 +133,13 @@ it("the house writes only one mismatch notice per terminal across repeated syncs
       sizes.push(statSync(`${f.home}/house.log`).size);
       f.house().bus.emit(effect("preferred", { hide: "empty", on: n % 2 === 0 }, "ana"));
     }
-    expect(output.mock.calls.filter(([text]) => text === `${socketTexts.stateMismatch}\n`)).toHaveLength(1);
+    expect(output.mock.calls.filter(([text]) => text === `${meant(socketTexts.stateMismatch)}\n`)).toHaveLength(1);
     expect(new Set(sizes).size).toBe(1);
-    expect(readFileSync(`${f.home}/house.log`, "utf8")).toBe(`${socketTexts.stateMismatch}\n`);
+    expect(readFileSync(`${f.home}/house.log`, "utf8")).toBe(`${meant(socketTexts.stateMismatch)}\n`);
     const second = await f.client("beto-terminal");
     second.send({ type: "sync" });
     await vi.waitFor(() =>
-      expect(output.mock.calls.filter(([text]) => text === `${socketTexts.stateMismatch}\n`)).toHaveLength(2),
+      expect(output.mock.calls.filter(([text]) => text === `${meant(socketTexts.stateMismatch)}\n`)).toHaveLength(2),
     );
   } finally {
     await f.close();

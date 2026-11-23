@@ -44,7 +44,6 @@ function fixture(initial: Event[] = []) {
     bus,
     history: () => events,
     policies: () => policies,
-    language: "es" as const,
     time: {
       now: () => now,
       wait: (_at: number, callback: () => void) => {
@@ -244,7 +243,7 @@ it("a port failure stays visible and does not start an automatic retry loop", as
   f.say("Nora");
   const run = vi.fn(() => Promise.reject(new Error("Falla sintética")));
   const schedule = startMindSchedule({ ...f.ports, run });
-  await expect(schedule.flush()).rejects.toThrow("falla interna");
+  await expect(schedule.flush()).rejects.toThrow("The turn could not be completed because of an internal failure.");
   f.say("Nora, otra vez");
   await expect(schedule.flush()).rejects.toThrow();
   expect(run).toHaveBeenCalledOnce();

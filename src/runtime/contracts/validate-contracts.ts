@@ -1,4 +1,5 @@
 // Gives compose every reason with its path, and rows that tell inclusion apart from executed cases.
+import { meant } from "../../fields/phrases.ts";
 import type { ContractPackage } from "../../tools/contracts/package-contracts.ts";
 import { structuralContractErrors } from "./package-checks.ts";
 import { caseDeclarationErrors } from "./case-declaration.ts";
@@ -25,7 +26,12 @@ export function validateContractPrograms(
       );
       for (const scenario of missing) errors.push(`${base}/cases/${scenario.id}:undeclared-case`);
       const checked = request.cases.length > 0 && missing.length === 0;
-      rows.push({ consumer: consumer.id, provider: provider.id, contract: name, status: compatibilityLabel(checked) });
+      rows.push({
+        consumer: consumer.id,
+        provider: provider.id,
+        contract: name,
+        status: meant(compatibilityLabel(checked)),
+      });
     }
   }
   return { errors: [...new Set(errors)], rows };

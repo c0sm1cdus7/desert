@@ -15,15 +15,15 @@ it("binds a picked refusal to the intended thing, never a neighbor with the same
       { title: "Venta", value: "sales/s1", off: true },
     ],
   } as const;
-  expect(reasonIn(body, "archivada", { title: "Venta", value: "sales/s1" })).toBe(false);
-  expect(reasonIn(body, "archivada", { title: "Otra", value: "sales/s2" })).toBe(true);
+  expect(reasonIn(body, "archivada", "es", { title: "Venta", value: "sales/s1" })).toBe(false);
+  expect(reasonIn(body, "archivada", "es", { title: "Otra", value: "sales/s2" })).toBe(true);
 });
 it("reads the exact composed list reason without matching an ordinary datum or a thread substring", () => {
-  const row = { title: "Venta", detail: `Total · ${toolTexts.unchanged}`, off: true };
+  const row = { title: "Venta", detail: `Total · ${toolTexts.unchanged.es}`, off: true };
   const body = { kind: "list", stacks: [{ title: "Ventas", rows: [row] }] } as const;
-  expect(unchangedIn(body)).toBe(true);
-  expect(unchangedIn({ ...body, stacks: [{ title: "Ventas", rows: [{ ...row, off: false }] }] })).toBe(false);
-  expect(unchangedIn({ kind: "thread", events: [], options: [row] })).toBe(false);
+  expect(unchangedIn(body, "es")).toBe(true);
+  expect(unchangedIn({ ...body, stacks: [{ title: "Ventas", rows: [{ ...row, off: false }] }] }, "es")).toBe(false);
+  expect(unchangedIn({ kind: "thread", events: [], options: [row] }, "es")).toBe(false);
 });
 
 it("the answer guarantee rejects a neighboring reason when the intended row lost its own", () => {
@@ -57,7 +57,7 @@ it("the answer guarantee rejects a neighboring reason when the intended row lost
   };
   const router = startRouter({
     tools: [tool],
-    bar: () => ({ state: "connected", clock: "00:00", now: 0 }),
+    bar: () => ({ language: "es", state: "connected", clock: "00:00", now: 0 }),
     defect: error => {
       throw error;
     },

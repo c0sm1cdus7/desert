@@ -6,7 +6,7 @@ import { step } from "../router/step.ts";
 import type { Tool } from "../contract/shown-tool.ts";
 import { rowsIn } from "../../checks/read-screen.ts";
 
-const bar = { state: "connected", clock: "00:00", now: 0 } as const;
+const bar = { language: "es", state: "connected", clock: "00:00", now: 0 } as const;
 const options = Array.from({ length: 90 }, (_, index) => ({
   title: `Opción ${index}`,
   detail: index ? "cerrada" : "disponible",
@@ -43,11 +43,11 @@ for (const rows of [8, 9, 16, 40, 80]) {
             seen.add(row.title);
             expect(row.off && row.selected).not.toBe(true);
           }
-          session = step(session, { kind: direction }, [tool], 0).session;
+          session = step(session, { kind: direction }, [tool], 0, "es").session;
         }
       }
       expect(options.every(option => seen.has(option.title))).toBe(true);
-      const back = step(session, { kind: "confirm" }, [tool], 0);
+      const back = step(session, { kind: "confirm" }, [tool], 0, "es");
       expect(back.run).toBeUndefined();
       expect(back.session.length).toBe(session.length);
     });
@@ -83,7 +83,7 @@ it("clears a reading position when searching, narrowing, erasing and leaving a p
     { kind: "erase" },
     { kind: "cancel" },
   ] as const) {
-    session = step(session, intent, [pick], 0).session;
+    session = step(session, intent, [pick], 0, "es").session;
     expect(session.at(-1)).not.toHaveProperty("reading");
     expect(rowsIn(resolve(session, [pick], bar, { rows: 8 }).body).some(row => row.title === "Opción 0")).toBe(true);
     const last = session.at(-1);
@@ -100,7 +100,7 @@ it("clears list reading when starting, narrowing and leaving a search", () => {
     { kind: "erase" },
     { kind: "cancel" },
   ] as const) {
-    session = step(session, intent, [searchable], 0).session;
+    session = step(session, intent, [searchable], 0, "es").session;
     expect(session.at(-1)).not.toHaveProperty("reading");
     const place = session.at(-1);
     if (place?.kind === "view") session = [...session.slice(0, -1), { ...place, reading: 89 }];

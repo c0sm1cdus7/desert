@@ -17,7 +17,7 @@ it("the composition opts in, without a slice or process, while the original shop
       expect(Boolean(core)).toBe(enabled);
       expect(core ?? {}).not.toHaveProperty("start");
       expect(Object.keys(house().tools.state().tools)).toEqual(["sales", "payments"]);
-      const tools = houseTools(localPorts(house(), "ana", { recentLines: 20 }), shopShown);
+      const tools = houseTools(localPorts(house(), "ana", { recentLines: 20 }), shopShown, "es");
       expect(tools.some(tool => tool.id === "identities")).toBe(enabled);
 
       return Promise.resolve();
@@ -43,7 +43,7 @@ it("creates the name and whole tools, keeps the removed row, readmits empty and 
 it("every member reads every identity and kit but only the administrator can act", async () => {
   await staged(program, async ({ house }) => {
     await perform(house(), "identities", create);
-    const tools = houseTools(localPorts(house(), "carla", { recentLines: 20 }), shopShown);
+    const tools = houseTools(localPorts(house(), "carla", { recentLines: 20 }), shopShown, "es");
     const core = tools.find(tool => tool.id === "identities");
     expect(core?.place).toEqual({ key: "i", section: "system" });
     expect(
@@ -65,12 +65,15 @@ it("every member reads every identity and kit but only the administrator can act
             on: act === "new" ? "identities" : on,
             input: act === "new" ? create.input : {},
           }),
-        ).toMatchObject({ status: "rejected", reason: "solo quien administra" });
+        ).toMatchObject({
+          status: "rejected",
+          reason: { en: "only whoever administers", es: "solo quien administra" },
+        });
   });
 });
 it("rejects invalid identifiers and keeps their rule out of the empty question", async () => {
   await staged(program, async ({ house }) => {
-    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), shopShown).find(
+    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), shopShown, "es").find(
       tool => tool.id === "identities",
     );
     expect(JSON.stringify(core?.acts.new?.next([]))).toContain("Identificador");
@@ -87,18 +90,18 @@ it("rejects invalid identifiers and keeps their rule out of the empty question",
 it("Identities cannot be granted or taken, has no mind and is never in all tools", async () => {
   await staged(program, async ({ house }) => {
     expect(() => house().bus.emit(effect("granted", { identity: "beto", tools: ["identities"] }, "ana"))).toThrow(
-      "Identidades",
+      "Identities",
     );
     expect(() => house().bus.emit(effect("kit-set", { holder: "beto", tool: "identities", acts: [] }, "ana"))).toThrow(
-      "Identidades",
+      "Identities",
     );
     expect(present(house().registry, house().tools.state().house, "mind:identities")).toBe(false);
     expect(house().tools.act({ act: "scene", input: { general: "Escena" } }, 0, "mind:identities")).toMatchObject({
       status: "rejected",
-      reason: "sin acceso",
+      reason: { en: "no access", es: "sin acceso" },
     });
     expect((await perform(house(), "identities", { ...create, by: "mind:identities" })).status).toBe("rejected");
-    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), shopShown).find(
+    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), shopShown, "es").find(
       tool => tool.id === "identities",
     );
     expect(core?.acts.new?.next(["luz", ""])).toMatchObject({
@@ -113,7 +116,10 @@ it("hands administration over, immediately revokes the previous admin and surviv
     expect(await perform(house(), "identities", { act: "hand", on: "identities/beto", input: {} })).toMatchObject({
       status: "accepted",
     });
-    expect((await perform(house(), "identities", create)).reason).toBe("solo quien administra");
+    expect((await perform(house(), "identities", create)).reason).toEqual({
+      en: "only whoever administers",
+      es: "solo quien administra",
+    });
     reopen();
     expect(house().tools.state().house.admin).toBe("beto");
     expect((await perform(house(), "identities", { ...create, by: "beto" })).status).toBe("accepted");

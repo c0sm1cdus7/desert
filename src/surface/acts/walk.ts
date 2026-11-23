@@ -1,5 +1,7 @@
 // An action as a thread: what was answered, what it asks now, and how it ended. Every action looks like this.
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
+import type { Language } from "../../fields/languages.ts";
+import { said as inLanguage, wordsIn, type InLanguage } from "../../fields/phrases.ts";
+import { surfaceTexts } from "../../texts/surface.texts.ts";
 import type { Body, Field, Hint, Row, Span, ThreadEvent } from "../contract/contract.ts";
 import type { Tool } from "../contract/shown-tool.ts";
 import { optionIds, withId } from "../session/row-id.ts";
@@ -15,7 +17,8 @@ import {
   validOf,
   type Walk,
 } from "../session/screen.ts";
-function endOf(walk: Running | Done, now: number): readonly Span[] {
+type Words = InLanguage<typeof surfaceTexts>;
+function endOf(walk: Running | Done, now: number, said: Words): readonly Span[] {
   if (walk.phase === "done") {
     const at: readonly Span[] = walk.doneAt ? [{ text: ` · ${walk.doneAt}`, tone: "t3" }] : [];
     return [{ text: `${said.ok} `, tone: "ok" }, { text: walk.done, tone: "t1" }, ...at];
@@ -37,13 +40,13 @@ const answersOf = (walk: Walk): readonly ThreadEvent[] =>
   }));
 const isTyped = (field: Field | null): boolean => field?.kind === "text" || field?.kind === "secret";
 /** What an empty written field shows: its mask's shape, its own placeholder, or that a secret goes there. */
-const shapeOf = (field: Field): string => {
+const shapeOf = (field: Field, said: Words): string => {
   if ("mask" in field) return field.mask.empty;
   return "placeholder" in field ? field.placeholder : said.pasteHere;
 };
 /** The things a question picks among, as a list: each of the first nine with its number. While the person looks
  * for one, where they write comes first and the rows carry no key. */
-function pickRows(walk: Walk, question: Field & { kind: "pick" }): readonly Row[] {
+function pickRows(walk: Walk, question: Field & { kind: "pick" }, said: Words): readonly Row[] {
   const found = pickedFrom(question, walk);
   const ids = optionIds(question, found);
   const rows = found.map((option, i): Row => {
@@ -64,39 +67,40 @@ function askSpans(question: Field): readonly Span[] {
   const name = { text: question.ask, tone: "t1" } as const;
   return current ? [name, { text: ` ${current}`, tone: "t2" }] : [name];
 }
-export function walkBody(walk: Walk, field: Field | null, now: number): Body {
+export function walkBody(walk: Walk, field: Field | null, now: number, language: Language): Body {
+  const said = wordsIn(surfaceTexts, language);
+  const say = (text: NonNullable<Walk["error"]>): string => inLanguage(text, language);
   const answered = answersOf(walk);
-  if (walk.phase !== "asking") return { kind: "thread", events: [...answered, { text: endOf(walk, now) }] };
+  if (walk.phase !== "asking") return { kind: "thread", events: [...answered, { text: endOf(walk, now, said) }] };
   const question = must(field);
   /** What is wrong is said under the question, which stays: the person reads what is asked and why not. */
-  const reason = walk.failed
-    ? walk.error
-    : (walk.error ?? (isTyped(question) ? question.wrong?.(walk.typed) : undefined));
+  const error = walk.error === undefined ? undefined : say(walk.error);
+  const reason = walk.failed ? error : (error ?? (isTyped(question) ? question.wrong?.(walk.typed) : undefined));
   const spans =
-    walk.failed && reason !== undefined ? errorSpans(reason) : [{ text: reason ?? "", tone: "t3" as const }];
+    walk.failed && reason !== undefined ? errorSpans(reason, language) : [{ text: reason ?? "", tone: "t3" as const }];
   const wrong: ThreadEvent[] = reason === undefined ? [] : [{ text: spans, nested: true }];
-  const notices = new Map(walk.notices?.map(notice => [notice.reason, notice]));
-  for (const notice of notices.values())
-    if (notice.reason !== reason && notice.reason !== walk.ignored)
+  const ignored = walk.ignored === undefined ? undefined : say(walk.ignored);
+  const notices = new Map(walk.notices?.map(notice => [say(notice.reason), notice]));
+  for (const [text, notice] of notices)
+    if (text !== reason && text !== ignored)
       wrong.push({
-        text: [{ text: notice.reason, tone: "t3" }],
+        text: [{ text, tone: "t3" }],
         nested: true,
         ...(notice.ignored ? { ignored: true } : {}),
       });
-  if (walk.ignored && walk.ignored !== reason)
-    wrong.push({ text: [{ text: walk.ignored, tone: "t3" }], nested: true, ignored: true });
+  if (ignored && ignored !== reason) wrong.push({ text: [{ text: ignored, tone: "t3" }], nested: true, ignored: true });
   /** A confirmation says under it what the act is for: nobody confirms what they were not told. */
   const told = question.kind === "confirm" && question.note !== undefined ? question.note : undefined;
   const note = told === undefined ? [] : [{ text: [{ text: told, tone: "t3" as const }], nested: true }];
   const events = [...answered, { text: askSpans(question) }, ...note, ...wrong];
-  if (question.kind === "pick") return { kind: "thread", events, options: pickRows(walk, question) };
-  if (isTyped(field)) return { kind: "thread", events, entry: entryOf(walk, question) };
+  if (question.kind === "pick") return { kind: "thread", events, options: pickRows(walk, question, said) };
+  if (isTyped(field)) return { kind: "thread", events, entry: entryOf(walk, question, said) };
   return { kind: "thread", events, options: optionRows(walk, question), ...(walk.read ? { read: walk.read } : {}) };
 }
 type Entry = NonNullable<Extract<Body, { kind: "thread" }>["entry"]>;
 /** Where an answer is written: what is written, in its shape; the keys it asks for, its mask's or text; and whether
  * it is a secret. */
-function entryOf(walk: Walk, question: Field): Entry {
+function entryOf(walk: Walk, question: Field, said: Words): Entry {
   const typed = walk.typed === "" ? "" : maskOf(question, walk.typed);
   const caret = "mask" in question ? Array.from(typed).length : walk.caret;
   const whole = walk.suggested && typed !== "" ? { suggested: true as const } : {};
@@ -105,7 +109,7 @@ function entryOf(walk: Walk, question: Field): Entry {
   const shape = { ...(typed && remaining ? { remaining } : {}), ...(typed && padding ? { padding } : {}) };
   const keys = {
     keyboard: "mask" in question ? question.mask.keyboard : "text",
-    placeholder: shapeOf(question),
+    placeholder: shapeOf(question, said),
   } as const;
   return { typed, caret, ...keys, ...whole, ...shape, ...(question.kind === "secret" ? { secret: true } : {}) };
 }
@@ -122,7 +126,7 @@ function optionRows(walk: Walk, field: Field): readonly Row[] {
     };
   });
 }
-function enterSays(walk: Walk, field: Field | null, tools: readonly Tool[]): string {
+function enterSays(walk: Walk, field: Field | null, tools: readonly Tool[], said: Words): string {
   const options = optionsOf(field);
   if (field?.kind === "confirm") return must(options[walk.at]).title;
   const picked = field?.kind === "pick" ? field.found(walk.finding ? walk.typed : "")[walk.at] : undefined;
@@ -132,7 +136,13 @@ function enterSays(walk: Walk, field: Field | null, tools: readonly Tool[]): str
   const last = walk.pos + 1 === walk.until || !act.next([...walk.answers.slice(0, walk.pos), answer]);
   return last ? act.verb : said.keys.next;
 }
-export function walkHints(walk: Walk, field: Field | null, tools: readonly Tool[]): readonly Hint[] {
+export function walkHints(
+  walk: Walk,
+  field: Field | null,
+  tools: readonly Tool[],
+  language: Language,
+): readonly Hint[] {
+  const said = wordsIn(surfaceTexts, language);
   const k = said.keys;
   const leave: Hint = {
     intent: "cancel",
@@ -140,7 +150,7 @@ export function walkHints(walk: Walk, field: Field | null, tools: readonly Tool[
   };
   if (walk.phase === "done") return [{ intent: "cancel", does: k.close }];
   if (walk.phase === "running") return [leave];
-  const enter: Hint = { intent: "confirm", does: enterSays(walk, field, tools) };
+  const enter: Hint = { intent: "confirm", does: enterSays(walk, field, tools, said) };
   if (isTyped(field)) return validOf(field, walk.typed) ? [enter, leave] : [leave];
   if (
     field?.kind === "many" &&

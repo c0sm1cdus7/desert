@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { said } from "./phrases.ts";
 import { count, day, handle, money, quantity } from "./fields.ts";
 import { limited } from "../surface/formats/masks.ts";
 import { fieldSeat as seat } from "../../tests/support/field-seat.ts";
@@ -38,7 +39,7 @@ describe("a rejected key adds advice without erasing an action failure", () => {
 describe("the reason belongs to the first rejected character after trimming the paste", () => {
   it("an allowed space in a full phone field exceeds the limit", () => {
     const mask = limited("0-9 +()-", 5, "Teléfono");
-    expect(mask.rejected?.("12345", " ")).toBe("máximo 5 caracteres");
+    expect(said(mask.rejected?.("12345", " ") ?? "", "es")).toBe("máximo 5 caracteres");
     const hands = seat(handle("Teléfono", "Teléfono", "0-9 +()-", 5));
     hands.send({ kind: "type", text: "12345 " });
     expect(hands.reasons()).toEqual(["máximo 5 caracteres"]);

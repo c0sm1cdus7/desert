@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { said } from "../../fields/phrases.ts";
 import { afterEach, expect, it, vi } from "vitest";
 import { programMindFixture } from "../../../tests/support/program-mind-fixture.ts";
 import { cards } from "../../adapters/models/catalog.ts";
@@ -10,6 +11,7 @@ import { maximumProgramCall } from "./program-mind-availability.ts";
 import { modelAccount } from "../../house/minds/model-call-state.ts";
 import { openModelSpendingAccount } from "./model-spending-account.ts";
 import { billingAccount } from "./mind-billing.ts";
+const balanceShort = "The available balance is not enough for another call.";
 const fixtures: ReturnType<typeof programMindFixture>[] = [];
 const folders: string[] = [];
 function fixture() {
@@ -82,8 +84,9 @@ it("shares the total across two fresh houses, reopening and reconstruction like 
     const fresh = await next.open({ ...settings, transport });
     await think(next, fresh);
     exhausted = before === transport.mock.calls.length;
-    const said = [...(fresh.mindNotices?.() ?? []), fresh.tools.state().house.scenes.get("mind:notes")?.data.general];
-    expect(said.join(" ").includes("saldo")).toBe(exhausted);
+    const notices = (fresh.mindNotices?.() ?? []).map(notice => said(notice, "es")).join(" ");
+    const scene = fresh.tools.state().house.scenes.get("mind:notes")?.data.general ?? "";
+    expect(notices.includes("saldo") || scene.includes(balanceShort)).toBe(exhausted);
     fresh.close();
   }
   expect(exhausted).toBe(true);
@@ -125,7 +128,9 @@ it("fails visibly before transport while another house owns the account, then op
   const first = fixture();
   const second = fixture();
   const house = await first.open(settings);
-  await expect(second.open(settings)).rejects.toThrow("cuenta de modelos");
+  await expect(second.open(settings)).rejects.toThrow(
+    "The model account cannot be written; another house may have it open.",
+  );
   expect(second.transport).not.toHaveBeenCalled();
   house.close();
   const next = await second.open(settings);
@@ -165,7 +170,12 @@ it("retains an in-flight reservation after closing and blocks a new house like m
   const blocked = await second.open(settings);
   await think(second, blocked);
   expect(second.transport).not.toHaveBeenCalled();
-  expect(blocked.mindNotices?.().join(" ")).toContain("saldo");
+  expect(
+    blocked
+      .mindNotices?.()
+      .map(notice => said(notice, "es"))
+      .join(" "),
+  ).toContain("saldo");
   blocked.close();
   release?.(new Response("{}", { status: 503 }));
   await (await house.minds)?.flush();

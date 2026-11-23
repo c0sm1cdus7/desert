@@ -19,7 +19,7 @@ import { shopShown } from "../../../../tests/support/shop.ts";
 
 const closing: { close?(): void; stop?(): void }[] = [];
 afterEach(() => closing.splice(0).forEach(open => (open.stop ?? open.close)?.()));
-const bar = { state: "connected", clock: "00:00", now: 0 } as const;
+const bar = { language: "es", state: "connected", clock: "00:00", now: 0 } as const;
 const named: Readonly<Record<string, Intent>> = { "\r": { kind: "confirm" }, "\x1b": { kind: "cancel" } };
 const keyOf = (char: string): Intent => named[char] ?? { kind: "type", text: char };
 /** A shop where ana holds both tools and beto only the sales; two sales registered by ana. */
@@ -34,6 +34,7 @@ const seat = (me: string, registry = chargingRegistry) => {
   const tools = houseTools(
     rig.ports(me, () => testTime.now()),
     shopShown,
+    "es",
   );
   const router = startRouter({
     defect: error => {
@@ -59,7 +60,7 @@ const seat = (me: string, registry = chargingRegistry) => {
   return { rig, tools, router, press };
 };
 const actionsOn = (tools: ReturnType<typeof seat>["tools"], target: string) =>
-  stacksOf({ kind: "view", tool: "sales", target, at: 0 }, tools)
+  stacksOf({ kind: "view", tool: "sales", target, at: 0 }, tools, "es")
     .flatMap(stack => stack.rows)
     .filter(row => row.starts)
     .map(row => [row.key, row.title, row.detail, row.off === true]);
@@ -129,6 +130,7 @@ describe("a program whose acts reach across its tools", () => {
       tools: houseTools(
         rig.ports("ana", () => testTime.now()),
         shopShown,
+        "es",
       ),
       bar: () => bar,
     });

@@ -58,7 +58,7 @@ it("p1: trimming the last revocation is detected before recovering material", ()
   const db = new DatabaseSync(rig.file);
   db.exec("drop trigger custody_no_delete; delete from custody_facts where seq=(select max(seq) from custody_facts)");
   db.close();
-  expect(() => rig.open()).toThrow(/renglones|copia vieja/u);
+  expect(() => rig.open()).toThrow(/rows|old copy/u);
 });
 it("p11: opening makes a linear number of material reads", () => {
   const rig = custodyRig(),

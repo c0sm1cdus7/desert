@@ -1,4 +1,5 @@
 import { expect, it, vi } from "vitest";
+import { meant } from "../fields/phrases.ts";
 import { Type } from "@sinclair/typebox";
 import { adapterHouse } from "../../tests/support/adapter-house.ts";
 import { imported } from "../../tests/support/declared-adapters.ts";
@@ -97,7 +98,7 @@ it("copying an effect or writing a custody fact through the bus grants no author
   });
   const copied = await rig.act("set");
   expect(copied).toMatchObject({ status: "rejected", effects: [] });
-  expect(copied.reason).toContain("tool-entry");
+  expect(meant(copied.reason ?? "")).toContain("tool-entry");
   expect((await rig.act("current")).status).toBe("accepted");
   expect(() =>
     rig
@@ -128,7 +129,11 @@ it("closing during an operation revokes its continuation without leaving a bindi
   await new Promise(resolve => setImmediate(resolve));
   rig.close();
   finish();
-  expect(await pending).toMatchObject({ status: "interrupted", reason: "acción interrumpida", effects: [] });
+  expect(await pending).toMatchObject({
+    status: "interrupted",
+    reason: { en: "action interrupted", es: "acción interrumpida" },
+    effects: [],
+  });
   rig.restart();
   expect(JSON.stringify(rig.facts())).not.toContain("credential-bound");
 });

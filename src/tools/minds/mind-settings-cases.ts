@@ -1,4 +1,5 @@
 // Synthetic catalog publications prepare card selection without a model or a credential.
+import { meant } from "../../fields/phrases.ts";
 import { identityTexts } from "../../texts/identities.texts.ts";
 import { mindCardTexts as words } from "../../texts/mind-models.texts.ts";
 import type { Case, Step } from "../promises.ts";
@@ -6,7 +7,9 @@ import type { Program } from "../tool-contract.ts";
 type CardCase<X extends Program> = Case<X> & { input: { card: string } };
 export function mindCardCases<X extends Program>(program?: string): readonly [CardCase<X>, ...CardCase<X>[]] {
   const on = program ?? "identities/ana";
-  const enable: readonly Step[] = program ? [] : [{ act: "enable-assistant", on, input: { name: words.sample } }];
+  const enable: readonly Step[] = program
+    ? []
+    : [{ act: "enable-assistant", on, input: { name: meant(words.sample) } }];
   const bank: Step = {
     mindCards: {
       mind: program ? `mind:${program}` : "assistant:ana",

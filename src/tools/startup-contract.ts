@@ -1,4 +1,5 @@
 // Public startup contract, with no custody, store or resolver.
+import { type Text } from "../fields/phrases.ts";
 import type { HouseEvent } from "../house/facts.ts";
 import type { Bus } from "../journal/bus.ts";
 import type { ActResult, Program, State } from "./tool-contract.ts";
@@ -20,7 +21,7 @@ export type ToolStartup<X extends Program> = ToolCapabilities &
       ): HouseEvent<"wake-at">;
     };
     /** Executes only as this tool's mind; the caller supplies no actor or execution capabilities. */
-    act(value: unknown): Promise<Readonly<{ status: ActResult<X>["status"] | "draft"; reason?: string }>>;
+    act(value: unknown): Promise<Readonly<{ status: ActResult<X>["status"] | "draft"; reason?: Text }>>;
     state(): State<X>;
     now(): number;
     live(): boolean;

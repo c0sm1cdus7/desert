@@ -1,4 +1,5 @@
 // Refuses new selections that do not exist or are reserved, without erasing retired ones from history.
+import { type Text } from "../fields/phrases.ts";
 import { systemTool } from "./system-tools.ts";
 import { effectRefusalTexts } from "../texts/tools.texts.ts";
 import {
@@ -10,7 +11,7 @@ import {
   type KitProgram,
   type SelectionKit,
 } from "./kit-selection.ts";
-export function selectionProblem(kit: SelectionKit, registry: readonly KitProgram[]): string | undefined {
+export function selectionProblem(kit: SelectionKit, registry: readonly KitProgram[]): Text | undefined {
   const paths = kit.selections.map(selectionPath);
   if (new Set(paths).size !== paths.length) return effectRefusalTexts.repeatedActs;
   const layout = kitLayout(registry);

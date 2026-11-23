@@ -1,4 +1,5 @@
 // Compare hostile socket clients and MCP with the same identity, including public receipts and replayed identifiers.
+import { meant } from "../../fields/phrases.ts";
 import { duplexPair } from "node:stream";
 import { houseDoor } from "../socket/server/house-door.ts";
 import { probe, wire } from "../../../tests/support/socket-probe.ts";
@@ -86,7 +87,7 @@ it("never gives an administrator the invited key through local actions, socket, 
     const local = await h.act("redeem-invitation", { invitation }, "identities/beto");
     expect(local.private).toBeUndefined();
     expect(local.status).toBe("accepted");
-    expect(h.history()).toContain(doorTexts.guided);
+    expect(h.history()).toContain(meant(doorTexts.guided));
     await settle(ports.act({ act: "attend", input: { target: "identities/beto" } }, 0));
     const remote = await settle(
       ports.act({ act: "redeem-invitation", target: "identities/beto", input: { invitation } }, 0),
@@ -108,7 +109,7 @@ it("never gives an administrator the invited key through local actions, socket, 
         },
       }),
     );
-    expect(mcp.body).toContain(doorTexts.guided);
+    expect(mcp.body).toContain(doorTexts.guided.es);
     const offered = await door.handle(
       rpcRequest(h.founder, {
         jsonrpc: "2.0",
@@ -117,12 +118,12 @@ it("never gives an administrator the invited key through local actions, socket, 
         params: { name: "actions", arguments: { program: "identities", target: "identities/beto" } },
       }),
     );
-    expect(offered.body).toContain(doorTexts.redeem.name);
-    expect(offered.body).toContain(doorTexts.redeem.purpose);
+    expect(offered.body).toContain(doorTexts.redeem.name.es);
+    expect(offered.body).toContain(doorTexts.redeem.purpose.es);
     expect([...h.house().tools.state().house.doors.invitations.values()][0]?.redeemed).toBe(false);
     const redeemed = h.access().redeem(code);
     expect(redeemed.status).toBe(200);
-    expect(h.history()).toContain(doorTexts.redeemed);
+    expect(h.history()).toContain(meant(doorTexts.redeemed));
     expect(redeemed.key).toBeDefined();
     expect(JSON.stringify([local, remote, mcp]).includes(redeemed.key ?? "missing")).toBe(false);
   } finally {
@@ -132,8 +133,8 @@ it("never gives an administrator the invited key through local actions, socket, 
   }
   h.reopen();
   try {
-    expect(h.history()).toContain(doorTexts.redeemed);
-    expect(h.history()).toContain(doorTexts.guided);
+    expect(h.history()).toContain(meant(doorTexts.redeemed));
+    expect(h.history()).toContain(meant(doorTexts.guided));
     expect((await h.act("redeem-invitation", { invitation }, "identities/beto")).private).toBeUndefined();
   } finally {
     h.close();

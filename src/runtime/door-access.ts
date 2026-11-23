@@ -1,4 +1,5 @@
 // The host seeds founders lazily; every door resolves and redeems against the live journal projection.
+import { meant } from "../fields/phrases.ts";
 import { credentialEqual } from "../house/doors/credential-equal.ts";
 import { scrypt } from "node:crypto";
 import {
@@ -28,12 +29,12 @@ export function seedDoorKeys(bus: DoorBus, state: () => House, founders?: Founde
         (message => {
           process.stderr.write(`${message}\n`);
         })
-      )(doorTexts.foundersIgnored);
+      )(meant(doorTexts.foundersIgnored));
     return;
   }
   const entries = [...founders.read()];
   if (entries.some(([material, key]) => !material || !state().grants.has(key.identity)))
-    throw new Error(doorTexts.invalidFounders);
+    throw new Error(meant(doorTexts.invalidFounders));
   bus.together(() => {
     for (const [material, { identity, door }] of entries)
       bus.emit(issueDoorKey(identity, door, state().admin, material).fact);

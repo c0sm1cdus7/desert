@@ -27,7 +27,7 @@ it("orders current and other disabled things after every eligible choice", () =>
 
 it("keeps fixed options in their natural order even when current is disabled", () => {
   const options = [{ title: "Anterior" }, { title: "Actual" }, { title: "Siguiente" }];
-  const rows = optionsOf({ kind: "one", ask: "Estado", options, current: "Actual", only: true });
+  const rows = optionsOf({ kind: "one", ask: "Estado", options, current: "Actual", currentSays: "actual", only: true });
   expect(rows.map(row => row.title)).toEqual(options.map(option => option.title));
   expect(rows[1]).toMatchObject({ off: true, detail: "actual" });
 });

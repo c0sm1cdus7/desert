@@ -1,4 +1,5 @@
 // Applies the common mechanical check to a mind's controls; one a rule marks waits for the supervisor's verdict.
+import { type Text } from "../../fields/phrases.ts";
 import { randomUUID } from "node:crypto";
 import { mechanicalRules, requiresSupervision } from "../../tools/execution/mechanical-rules.ts";
 import { coreRuleSchema } from "../../tools/rules/rule-core-actions.ts";
@@ -9,7 +10,7 @@ import type { ReviewPort } from "../../tools/minds/mind-review.ts";
 import { rulesTexts } from "../../texts/rules.texts.ts";
 import type { MindRuntimeHouse } from "./mind-runtime-options.ts";
 /** A control passes, stops on a rule (the turn ends, as a block), or is rejected by the supervisor with words. */
-type ControlCheck = Readonly<{ ok: true }> | Readonly<{ ok: false; reason?: string }>;
+type ControlCheck = Readonly<{ ok: true }> | Readonly<{ ok: false; reason?: Text }>;
 export async function ruleControl<X extends Program>(
   house: MindRuntimeHouse<X>,
   turn: TurnContext,

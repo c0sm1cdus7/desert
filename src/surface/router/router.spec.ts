@@ -121,7 +121,7 @@ describe("the router", () => {
     const { router } = open();
     key(router, "l", "f", "f");
     await router.idle();
-    expect(said(router.screen(view))).toContain(toolTexts.defect("fallar"));
+    expect(said(router.screen(view))).toContain(toolTexts.defect("fallar").es);
     expect(said(router.screen(view))).not.toContain("no paper");
     for (let step = 0; step < 4; step++) router.send({ kind: "cancel" });
     expect(router.screen(view).title).toBe("Menú");

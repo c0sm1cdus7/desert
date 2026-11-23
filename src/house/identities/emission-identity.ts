@@ -1,4 +1,5 @@
 // Validates new identifiers and refuses grants or cuts of the reserved id identities before writing.
+import { meant } from "../../fields/phrases.ts";
 import type { Emission, Foreign } from "../../journal/vocabulary.ts";
 import type { HouseEmission } from "../facts.ts";
 import { coreToolReasons } from "../system-tools.ts";
@@ -22,10 +23,10 @@ export function checkIdentity<P extends Foreign>(emission: Emission<P>, runner: 
             ? emission.data.kit.selections.some(selection => selection.program === tool)
             : emission.data.tool === tool)))
     )
-      throw new Error(reason);
+      throw new Error(meant(reason));
   }
   const identity = emission.layer === "house" ? identityIn(emission) : undefined;
   const problem = identity === undefined ? undefined : identityNameProblem(identity, runner);
-  if (problem) throw new Error(problem);
+  if (problem) throw new Error(meant(problem));
   return emission;
 }

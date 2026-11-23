@@ -63,12 +63,20 @@ it("compares entire reasons in reason positions, preserving legitimate text else
     events: [{ nested: true, text: [{ text: derivedWords.cause, tone: "t3" }] }],
     entry: { typed: "", caret: 0, placeholder: "Monto", keyboard: "digits" },
   } as const;
-  const screen = { title: "Venta", state: "connected", clock: "00:00", menu: false, hints: [], body } as const;
+  const screen = {
+    title: "Venta",
+    language: "es",
+    state: "connected",
+    clock: "00:00",
+    menu: false,
+    hints: [],
+    body,
+  } as const;
   expect(() => quietScreen(screen)).not.toThrow();
   expect(() =>
     quietScreen({
       ...screen,
-      body: { ...body, events: [{ nested: true, text: [{ text: toolTexts.unchanged, tone: "t3" }] }] },
+      body: { ...body, events: [{ nested: true, text: [{ text: toolTexts.unchanged.es, tone: "t3" }] }] },
     }),
   ).toThrow();
   expect(() =>
@@ -76,7 +84,7 @@ it("compares entire reasons in reason positions, preserving legitimate text else
       ...screen,
       body: {
         kind: "list",
-        stacks: [{ title: "Dato", rows: [{ title: "Nota", detail: toolTexts.unchanged, still: true }] }],
+        stacks: [{ title: "Dato", rows: [{ title: "Nota", detail: toolTexts.unchanged.es, still: true }] }],
       },
     }),
   ).not.toThrow();

@@ -1,4 +1,5 @@
 // An independent key per secret and separate authentication per house; erases every key loan.
+import { meant } from "../../fields/phrases.ts";
 import { secretTexts } from "../../texts/secrets.texts.ts";
 import { createCipheriv, createDecipheriv, randomBytes, createHmac, timingSafeEqual } from "node:crypto";
 import { CustodyError, type HouseKeyProvider, type LedgerHead } from "./house-keys.ts";
@@ -48,7 +49,7 @@ export class CustodyCipher {
         } catch {
           /* preserve the provider error */
         }
-        if (!present) throw new CustodyError("E-CUSTODY-KEY", secretTexts.missingCopy);
+        if (!present) throw new CustodyError("E-CUSTODY-KEY", meant(secretTexts.missingCopy));
       }
       throw error;
     }

@@ -14,7 +14,7 @@ import { resolve } from "./resolve.ts";
 import { startRouter } from "./router.ts";
 import { step } from "./step.ts";
 
-const bar = { state: "connected", clock: "14:32", now: 5_000 } as const;
+const bar = { language: "es", state: "connected", clock: "14:32", now: 5_000 } as const;
 /** Room enough for every row: the keys are moved over the whole list, not over what fits. */
 const all = { rows: 100_000 };
 const shown = { rows: 52 };
@@ -44,9 +44,11 @@ function back(session: Session, tools: readonly Tool[]): Session {
   const place = session.at(-1);
   const moved = place !== undefined && place.kind !== "talk" && place.reading !== undefined;
   const shifted = place && (place.kind === "menu" || place.kind === "view") && (place.shift ?? 0) !== 0;
-  const returned = moved || shifted ? step(session, { kind: "confirm" }, tools, bar.now).session : session;
+  const returned = moved || shifted ? step(session, { kind: "confirm" }, tools, bar.now, "es").session : session;
   const there = returned.at(-1);
-  return there?.kind === "act" && there.read ? step(returned, { kind: "down" }, tools, bar.now).session : returned;
+  return there?.kind === "act" && there.read
+    ? step(returned, { kind: "down" }, tools, bar.now, "es").session
+    : returned;
 }
 /** The keys from the same start: back into view, then up or down until that row is the chosen one. */
 function moved(session: Session, tools: readonly Tool[], id: string): Session {
@@ -60,7 +62,7 @@ function moved(session: Session, tools: readonly Tool[], id: string): Session {
     const chosen = selected >= 0 ? selected : rows.findIndex(row => row.entry !== undefined);
     if (target === chosen) return now;
     if (tries > rows.length) throw new Error(`the keys never reach ${id}`);
-    now = step(now, { kind: target < chosen ? "up" : "down" }, tools, bar.now).session;
+    now = step(now, { kind: target < chosen ? "up" : "down" }, tools, bar.now, "es").session;
   }
 }
 const takes = (kind: Kind): readonly Intent[] => {
@@ -127,7 +129,7 @@ describe("a choose has no path of its own", () => {
     const view = await replayed(tools, [{ kind: "type", text: "c" }]);
     expect(idOf(view, tools, "cerrar")).toBe("");
     for (const row of ["nothing", JSON.stringify(["act", "boxes", "closed", null, 0, null])])
-      expect(step(view, choose(row), tools, bar.now)).toEqual({ session: view });
+      expect(step(view, choose(row), tools, bar.now, "es")).toEqual({ session: view });
   });
   it("marks and unmarks an option of a multiple question, as space does", async () => {
     const tools = fresh();
@@ -136,9 +138,9 @@ describe("a choose has no path of its own", () => {
       { kind: "type", text: "n" },
     ]);
     const pan = idOf(asked, tools, "Pan");
-    const once = step(asked, choose(pan), tools, bar.now).session;
+    const once = step(asked, choose(pan), tools, bar.now, "es").session;
     expect(once.at(-1)).toMatchObject({ marks: ["Pan"] });
-    expect(step(once, choose(pan), tools, bar.now).session).toEqual(asked);
+    expect(step(once, choose(pan), tools, bar.now, "es").session).toEqual(asked);
   });
   it("closes a search and opens what it found, as Enter does", async () => {
     const tools = fresh();
@@ -148,7 +150,7 @@ describe("a choose has no path of its own", () => {
       { kind: "type", text: "P" },
     ];
     const seeking = await replayed(tools, path);
-    const touched = step(seeking, choose(idOf(seeking, tools, "Pan")), tools, bar.now).session;
+    const touched = step(seeking, choose(idOf(seeking, tools, "Pan")), tools, bar.now, "es").session;
     expect(touched).toEqual(await replayed(fresh(), [...path, { kind: "confirm" }]));
     expect(touched.at(-2)).not.toHaveProperty("find");
   });
@@ -173,12 +175,12 @@ describe("a choose has no path of its own: acts", () => {
       { kind: "type", text: "g" },
     ]);
     const blue = idOf(asked, tools, "Caja azul");
-    const running = step(asked, { kind: "confirm" }, tools, bar.now).session;
+    const running = step(asked, { kind: "confirm" }, tools, bar.now, "es").session;
     expect(running.at(-1)).toMatchObject({ phase: "running" });
-    expect(step(running, choose(blue), tools, bar.now)).toEqual({ session: running });
+    expect(step(running, choose(blue), tools, bar.now, "es")).toEqual({ session: running });
     const done = await replayed(tools, [{ kind: "confirm" }], asked);
     expect(done.at(-1)).toMatchObject({ phase: "done" });
-    expect(step(done, choose(blue), tools, bar.now)).toEqual({ session: done });
+    expect(step(done, choose(blue), tools, bar.now, "es")).toEqual({ session: done });
   });
 });
 describe("a choose has no path of its own: screens that take nothing", () => {
@@ -200,15 +202,15 @@ describe("a choose has no path of its own: screens that take nothing", () => {
     ];
     const tools = [...pointedTools(), broken];
     const failing = startRouter({ tools, bar: () => bar, first, defect: () => "falló" });
-    expect(failing.screen(shown).title).toBe(surfaceTexts.error);
+    expect(failing.screen(shown).title).toBe(surfaceTexts.error.es);
     failing.send(choose(boxes));
     failing.send({ kind: "cancel" });
-    expect(failing.screen(shown).title).toBe(surfaceTexts.menu);
+    expect(failing.screen(shown).title).toBe(surfaceTexts.menu.es);
     const told = withOpeningNotices(startRouter({ tools, bar: () => bar, defect: () => "falló" }), ["Aviso"]);
     told.send(choose(boxes));
-    expect(told.screen(shown).title).toBe(journalTexts.opening);
+    expect(told.screen(shown).title).toBe(journalTexts.opening.es);
     told.send({ kind: "confirm" });
-    expect(told.screen(shown).title).toBe(surfaceTexts.menu);
+    expect(told.screen(shown).title).toBe(surfaceTexts.menu.es);
     [failing, told].forEach(router => router.stop());
   });
 });

@@ -11,13 +11,13 @@ import { keysOf } from "../../doors/terminal/input.ts";
 import { contentRows, paint } from "../../doors/terminal/paint.ts";
 
 const size = { cols: 106, rows: 30 };
-const bar = { state: "connected", clock: "14:32", now: 5_000 } as const;
+const bar = { language: "es", state: "connected", clock: "14:32", now: 5_000 } as const;
 const shown = (session: Session, tools: readonly Tool[]): string =>
   textOf(paint(resolve(session, tools, bar, { rows: contentRows(size.rows) }), size)).join("\n");
 async function press(session: Session, keys: string, tools: readonly Tool[]): Promise<Session> {
   let now = session;
   for (const key of keysOf(keys)) {
-    const stepped = step(now, key, tools, bar.now);
+    const stepped = step(now, key, tools, bar.now, "es");
     now = stepped.session;
     if (stepped.run) now = finished(now, stepped.run, await actOf(tools, stepped.run).run(stepped.run.answers));
   }
@@ -83,6 +83,7 @@ it("ends a focused block in half a row with its corners cut, only where there is
   });
   const screen = (events: readonly ThreadEvent[]): Screen => ({
     title: "Comunicador",
+    language: "es" as const,
     state: "connected",
     clock: "12:00",
     hints: [],
@@ -101,6 +102,7 @@ it("draws no control character from a text: a message cannot drive the terminal"
   const event = { text: [{ text: "a\x1b]52;c;x\x07\u009bb", tone: "t1" as const }] };
   const screen: Screen = {
     title: "x",
+    language: "es" as const,
     state: "connected",
     clock: "12:00",
     hints: [],
@@ -116,6 +118,7 @@ it("draws a block as it was written: a line break in what is said starts a new l
   const block = "Factura A 0001-00000001\nLibrería Sol SRL\n2 × Café en grano     $ 9.000,00";
   const screen: Screen = {
     title: "x",
+    language: "es" as const,
     state: "connected",
     clock: "12:00",
     hints: [],
@@ -149,7 +152,7 @@ describe("a message", () => {
   const typed = async (tools: readonly Tool[]): Promise<Session> => {
     let session: Session = [...start, { kind: "talk", tool: "talk", ...startTalkFields }];
     for (const key of keysOf("Hola\r")) {
-      const stepped = step(session, key, tools, bar.now);
+      const stepped = step(session, key, tools, bar.now, "es");
       session = stepped.session;
       const { sending } = stepped;
       if (sending) session = settled(session, sending, await sending);

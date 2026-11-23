@@ -29,15 +29,16 @@ it("withdraws every reading immediately and writes no acts for an absent person"
       const tools = houseTools(
         rig.ports(by, () => 5000),
         shopShown,
+        "es",
       );
-      const menu = stacksOf({ kind: "menu", at: 0 }, tools);
+      const menu = stacksOf({ kind: "menu", at: 0 }, tools, "es");
       expect(menu.flatMap(s => s.rows).filter(r => r.detail === "sin acceso")).toHaveLength(2);
       expect(menu.find(s => s.title === "Programas")?.rows.some(r => r.open)).toBe(false);
       const sales = tools.find(t => t.id === "sales");
       expect(sales?.notices?.().news).toEqual([]);
       expect(findable({ kind: "menu", at: 0 }, tools)).toBe(false);
       expect(
-        foundAt({ kind: "menu", at: 0 }, "s1", tools)
+        foundAt({ kind: "menu", at: 0 }, "s1", tools, "es")
           .flatMap(stack => stack.rows)
           .some(row => row.open),
       ).toBe(false);
@@ -84,10 +85,12 @@ it("clears activity when a member with no actions opens it and redistributes dir
     const beto = houseTools(
       rig.ports("beto", () => 5000),
       shopShown,
+      "es",
     ).find(t => t.id === "sales");
     const carla = houseTools(
       rig.ports("carla", () => 5000),
       shopShown,
+      "es",
     ).find(t => t.id === "sales");
     expect(beto?.notices?.().news).toHaveLength(1);
     expect(beto?.notices?.().needs).toHaveLength(0);
@@ -140,7 +143,7 @@ it("does not attend a stale reminder while rendering after removal", () => {
       state: () => ({ ...ports.state(), attention: new Map([["sales", { since: "old" }]]) }),
     };
     const before = rig.facts().length;
-    houseTools(stale, shopShown)
+    houseTools(stale, shopShown, "es")
       .find(tool => tool.id === "sales")
       ?.rendered?.("sales");
     expect(

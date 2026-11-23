@@ -1,5 +1,6 @@
 // The journals a program keeps of what organizations wrote with it: each still opens with the program of today.
 // Every fact is read and folds from the first, and every thing is read as whoever administers it reads it.
+import { readerLanguage } from "../../house/members.ts";
 import { stateResult } from "../../journal/readonly-state.ts";
 import { inspectKept, inspectKeptPaths } from "./kept-inspection.ts";
 import { deepStrictEqual } from "node:assert/strict";
@@ -31,14 +32,16 @@ function read<X extends Program>({ program, shown }: Kept<X>, house: ReturnType<
   );
   deepStrictEqual(again.tools, stateResult(house.tools.state().tools));
   const admin = house.tools.state().house.admin;
+  const language = readerLanguage(house.tools.state().house, admin);
   const tools = houseTools(
     localPorts(house, admin, { recentLines: 100 }, () => now),
     shown,
+    language,
   );
-  stacksOf({ kind: "menu", at: 0 }, tools);
+  stacksOf({ kind: "menu", at: 0 }, tools, language);
   for (const tool of house.registry) {
     const things = tool.targets(house.tools.state()).map(target => ({ target }));
-    for (const on of [{}, ...things]) stacksOf({ kind: "view", tool: tool.id, ...on, at: 0 }, tools);
+    for (const on of [{}, ...things]) stacksOf({ kind: "view", tool: tool.id, ...on, at: 0 }, tools, language);
   }
 }
 /** One kept journal, opened as a copy, a moment after its last fact, with time standing still. */

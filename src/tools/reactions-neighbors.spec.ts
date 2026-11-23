@@ -1,4 +1,5 @@
 // The delivery and execution edges keep pending work without duplicating effects.
+import { said } from "../fields/phrases.ts";
 import { afterEach, expect, it, vi } from "vitest";
 import { effect } from "../house/facts.ts";
 import { programAct } from "./promises.ts";
@@ -89,7 +90,11 @@ it("a refusal confirms no partial effects; its reason is in the activity", async
   expect(
     rig
       .state()
-      .entries.some(e => e.data.text.includes("Reacción pendiente") && e.data.text.includes("venta incompatible")),
+      .entries.some(
+        e =>
+          said(e.data.text, "es").includes("Reacción pendiente") &&
+          said(e.data.text, "es").includes("venta incompatible"),
+      ),
   ).toBe(true);
   rig.restart();
   expect(rig.tools().pendingReactions()[0]?.reason).toBe("venta incompatible");
@@ -119,10 +124,10 @@ it("a reaction defect does not refuse the notice and keeps the diagnostic and th
   expect(() => notice(rig)).not.toThrow();
   await rig.tools().recoverReactions();
   expect(marks(rig)).toEqual([]);
-  expect(rig.tools().pendingReactions()[0]?.reason).toContain("E-PROG-1");
+  expect(said(rig.tools().pendingReactions()[0]?.reason ?? "", "es")).toContain("E-PROG-1");
   expect(rig.state().entries.some(e => e.data.diagnostic?.includes("falló la marca"))).toBe(true);
   rig.restart();
-  expect(rig.tools().pendingReactions()[0]?.reason).toContain("E-PROG-1");
+  expect(said(rig.tools().pendingReactions()[0]?.reason ?? "", "es")).toContain("E-PROG-1");
 });
 it("the reaction cannot get writes ahead with a nested execution", async () => {
   let nested = false;
@@ -164,7 +169,7 @@ it("a declaration can choose neither a foreign action nor a way out to the world
           paymentsTool,
         ],
       }),
-    ).toThrow("Reacción inválida");
+    ).toThrow("Invalid reaction");
   }
 });
 

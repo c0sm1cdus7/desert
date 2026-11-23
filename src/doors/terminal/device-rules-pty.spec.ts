@@ -1,4 +1,5 @@
 // A real terminal preserves the blocking reason without dispatching the chosen device.
+import { said } from "../../fields/phrases.ts";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -18,7 +19,7 @@ it("blocks a device action confirmed by the admin through a real terminal", asyn
     terminal.press("1");
     await terminal.until("Ejecutar en");
     terminal.press("\r");
-    expect((await terminal.until(rulesTexts.blocked)).join("\n")).toContain(rulesTexts.blocked);
+    expect((await terminal.until(said(rulesTexts.blocked, "es"))).join("\n")).toContain(rulesTexts.blocked.es);
     await terminal.close();
     expect(JSON.parse(readFileSync(join(home, "result.json"), "utf8"))).toEqual({
       sales: 0,

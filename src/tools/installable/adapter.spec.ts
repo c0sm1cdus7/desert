@@ -44,7 +44,7 @@ describe("program group adaptation", () => {
     const rig = distributionRig(composition.program);
     try {
       rig.attend("notes");
-      const tools = houseTools(rig.ports(), composition.shown);
+      const tools = houseTools(rig.ports(), composition.shown, "es");
       const notes = tools.find(tool => tool.id === "notes");
       expect(notes).toBeDefined();
       expect(

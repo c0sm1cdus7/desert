@@ -1,4 +1,5 @@
 // The pieces of a screen into cells: each piece of the UI rules is drawn once, here, and decides nothing.
+import type { Language } from "../../fields/languages.ts";
 import type { Screen, Span } from "../../surface/contract/contract.ts";
 import { piecesOf } from "../../surface/pieces/pieces-of.ts";
 import type { ActionPiece, BarPiece, ContentPiece, ListPiece } from "../../surface/pieces/pieces.ts";
@@ -96,17 +97,17 @@ function paintPieces(pieces: SurfacePiece, { cols, rows }: Size): Grid {
   const side = cols >= sideBySide && !beside?.full;
   if (beside && !side && (beside.full || beside.focused)) drawPanel(grid, beside, edge, cols - 2 * edge, -1);
   else if (beside && side) {
-    drawMain(grid, main, edge, split - edge - 1, cols);
+    drawMain(grid, main, edge, split - edge - 1, cols, pieces.language);
     drawPanel(grid, beside, split + 2, cols - split - 4, split);
-  } else drawMain(grid, main, left, block, cols);
+  } else drawMain(grid, main, left, block, cols, pieces.language);
   return grid;
 }
 export const paint = (screen: Screen, size: Size): Grid => paintPieces(piecesOf(screen), size);
 const minimum = { cols: 40, rows: 16 };
 const sideBySide = 100;
 const split = 53;
-function drawMain(grid: Grid, main: ContentPiece, left: number, block: number, cols: number): void {
+function drawMain(grid: Grid, main: ContentPiece, left: number, block: number, cols: number, language: Language) {
   if (main.kind === "list") drawList(grid, main, left, block);
   else if (main.kind === "focus") drawFocus(grid, main, cols);
-  else drawThread(grid, main, left, block);
+  else drawThread(grid, main, left, block, language);
 }

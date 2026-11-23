@@ -1,4 +1,5 @@
 // Fictitious files and one-shot hooks cover the final name-operation boundaries, without load or extraction.
+import { everySaid } from "../fields/phrases.ts";
 import { afterEach, expect, it, vi } from "vitest";
 import {
   chmodSync,
@@ -104,7 +105,7 @@ it.each(["group", "other", "link", "foreign"])(
     } else if (kind === "foreign") hooks.foreign = ancestor;
     else chmodSync(ancestor, kind === "group" ? 0o770 : 0o702);
     await expect(redeemToFile("http://localhost", "ABCD-2345", { file: join(leaf, "destination") })).rejects.toThrow(
-      doorTexts.destination,
+      everySaid(doorTexts.destination),
     );
     expect(send).not.toHaveBeenCalled();
     expect(hooks.sql).toBe(0);
@@ -122,7 +123,9 @@ it.each(["group", "link", "foreign"])("checks HOME itself (%s)", async kind => {
     vi.stubEnv("HOME", alias);
   }
   const target = kind === "link" ? join(`${home}.alias`, "destination") : file;
-  await expect(redeemToFile("http://localhost", "ABCD-2345", { file: target })).rejects.toThrow(doorTexts.destination);
+  await expect(redeemToFile("http://localhost", "ABCD-2345", { file: target })).rejects.toThrow(
+    everySaid(doorTexts.destination),
+  );
   expect(send).not.toHaveBeenCalled();
 });
 it("refuses a private destination outside HOME and says that is the reason", async () => {
@@ -131,7 +134,9 @@ it("refuses a private destination outside HOME and says that is the reason", asy
   mkdirSync(inner, { mode: 0o700 });
   vi.stubEnv("HOME", inner);
   // The destination folder itself is private (0700, own user): the refusal is only about being outside HOME.
-  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(doorTexts.outsideHome);
+  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(
+    everySaid(doorTexts.outsideHome),
+  );
   expect(send).not.toHaveBeenCalled();
 });
 it("accepts a private HOME through the controlled system tmp alias", async () => {
@@ -175,7 +180,9 @@ it("rejects substitution between the last check and native SQLite reopen before 
     renameSync(path, `${path}.checked`);
     writeFileSync(path, "", { mode: 0o600 });
   };
-  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(doorTexts.destination);
+  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(
+    everySaid(doorTexts.destination),
+  );
   expect(hooks.sql).toBe(0);
   expect(send).not.toHaveBeenCalled();
   expect(readdirSync(home).some(name => name.startsWith(".desert-redemption-"))).toBe(false);
@@ -191,7 +198,9 @@ for (const suffix of ["-wal", "-shm", "-journal"])
     if (kind === "foreign") hooks.foreign = auxiliary;
     const opened = vi.fn();
     hooks.beforeDatabase = opened;
-    await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(doorTexts.destination);
+    await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(
+      everySaid(doorTexts.destination),
+    );
     expect(opened).not.toHaveBeenCalled();
     expect(send).not.toHaveBeenCalled();
     expect(readFileSync(harmless, "utf8")).toBe("");
@@ -203,7 +212,9 @@ it.each(["-wal", "-shm", "-journal"])("checks %s again after native reopen and b
   hooks.beforeDatabase = path => {
     symlinkSync(harmless, `${path}${suffix}`);
   };
-  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(doorTexts.destination);
+  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(
+    everySaid(doorTexts.destination),
+  );
   expect(hooks.sql).toBe(0);
   expect(send).not.toHaveBeenCalled();
 });
@@ -212,7 +223,7 @@ it("checks newly created journal ownership after SQL and before recovery materia
   hooks.afterSql = () => {
     hooks.foreign = `${file}.desert-redemption-lock-journal`;
   };
-  expect(() => reserveDestination({ file })).toThrow(doorTexts.destination);
+  expect(() => reserveDestination({ file })).toThrow(everySaid(doorTexts.destination));
   expect(hooks.sql).toBe(2);
   expect(send).not.toHaveBeenCalled();
   expect(existsSync(file)).toBe(false);
@@ -222,7 +233,9 @@ it("checks newly created journal ownership after SQL and before recovery materia
 it.each([undefined, "relative-home"])("requires an explicit absolute HOME (%s)", async home => {
   const { file, send } = setup();
   vi.stubEnv("HOME", home);
-  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(doorTexts.destination);
+  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(
+    everySaid(doorTexts.destination),
+  );
   expect(send).not.toHaveBeenCalled();
 });
 it.each(["-wal", "-shm", "-journal"])("pins a preexisting %s identity across SQLite reopen", async suffix => {
@@ -233,7 +246,9 @@ it.each(["-wal", "-shm", "-journal"])("pins a preexisting %s identity across SQL
     renameSync(auxiliary, `${auxiliary}.checked`);
     writeFileSync(auxiliary, "", { mode: 0o600 });
   };
-  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(doorTexts.destination);
+  await expect(redeemToFile("http://localhost", "ABCD-2345", { file })).rejects.toThrow(
+    everySaid(doorTexts.destination),
+  );
   expect(hooks.sql).toBe(0);
   expect(send).not.toHaveBeenCalled();
 });
@@ -246,7 +261,7 @@ it("rechecks a pinned ancestor before returning the reserved candidate", () => {
   renameSync(ancestor, `${ancestor}.checked`);
   mkdirSync(directory, { recursive: true, mode: 0o700 });
   try {
-    expect(() => destination.prepare()).toThrow(doorTexts.unsafeRecovery);
+    expect(() => destination.prepare()).toThrow(everySaid(doorTexts.unsafeRecovery));
     expect(readdirSync(directory)).toEqual([]);
   } finally {
     expect(() => destination.close()).toThrow();

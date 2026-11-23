@@ -1,4 +1,5 @@
 // A local projection cache preserves Maps and Sets; the journal remains the source of truth.
+import { meant } from "../fields/phrases.ts";
 import { isDeepStrictEqual } from "node:util";
 import { verifyProjections, type FoldAudit } from "./verify-projections.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
@@ -46,14 +47,14 @@ export class ProjectionCache<S, E extends Placed> {
         actual = this.reduce(actual, event);
       },
       matches: () => isDeepStrictEqual(actual, this.state),
-      discard: () => this.discarded(journalTexts.divergentFold),
+      discard: () => this.discarded(meant(journalTexts.divergentFold)),
     };
   }
   get reused(): boolean {
     return this.saved && this.savedThrough > 0;
   }
   reset(): void {
-    if (this.saved) this.discarded(journalTexts.dependentFold);
+    if (this.saved) this.discarded(meant(journalTexts.dependentFold));
     this.saved = false;
     this.seq = 0;
     this.state = structuredClone(this.initial);

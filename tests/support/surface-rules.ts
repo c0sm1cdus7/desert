@@ -45,6 +45,7 @@ const dropAct = (rules: Rule[], done: (text: string) => Promise<Result>): ThingA
       : {
           ask: `¿Eliminar «${rules.find(rule => rule.id === target)?.text ?? ""}»? No se puede deshacer.`,
           kind: "confirm",
+          back: "volver",
           options: [{ key: "e", title: "eliminar", detail: "la borra ahora" }],
         },
   run: async (_answers, target) => {

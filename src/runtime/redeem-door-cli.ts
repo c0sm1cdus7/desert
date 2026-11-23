@@ -1,4 +1,5 @@
 // A local redemption entry reads a short code from stdin and never prints response bodies or credentials.
+import { everySaid } from "../fields/phrases.ts";
 import { RedemptionFailure } from "./redemption-destination.ts";
 import { redeemToFile } from "./redeem-door.ts";
 import { doorTexts } from "../texts/doors.texts.ts";
@@ -11,7 +12,7 @@ export async function redeemCommand(args: readonly string[], input: AsyncIterabl
       !["--file", "--claude"].includes(mode ?? "") ||
       (mode === "--file" ? args.length !== 3 : args.length !== 5 || nameFlag !== "--name" || !name)
     ) {
-      process.stderr.write(`${doorTexts.usage}\n`);
+      process.stderr.write(`${everySaid(doorTexts.usage)}\n`);
       return 1;
     }
     let code = "";
@@ -20,10 +21,10 @@ export async function redeemCommand(args: readonly string[], input: AsyncIterabl
       code += Buffer.from(chunk).toString("utf8");
     }
     await redeemToFile(address, code.trim(), { file, ...(mode === "--claude" ? { name } : {}) });
-    process.stderr.write(`${doorTexts.saved}\n`);
+    process.stderr.write(`${everySaid(doorTexts.saved)}\n`);
     return 0;
   } catch (error) {
-    process.stderr.write(`${error instanceof RedemptionFailure ? error.message : doorTexts.failed}\n`);
+    process.stderr.write(`${error instanceof RedemptionFailure ? error.message : everySaid(doorTexts.failed)}\n`);
     return 1;
   }
 }

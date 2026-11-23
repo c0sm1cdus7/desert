@@ -15,7 +15,7 @@ const seat = (count = 41, recent = 40, needs = 1) => {
 };
 afterEach(() => seats.splice(0).forEach(each => each.close()));
 const old = { kind: "view", tool: "sales", target: "sales/s1", at: 0 } as const;
-const bar = { state: "connected", clock: "00:00", now: 1 } as const;
+const bar = { language: "es", state: "connected", clock: "00:00", now: 1 } as const;
 const room = { rows: 36 };
 
 describe("things outside the recent window", () => {
@@ -55,7 +55,7 @@ describe("things outside the recent window", () => {
   });
   it("follows a reference owned by another tool", () => {
     const hands = seat(41, 40, 0);
-    const rows = stacksOf({ kind: "view", tool: "payments", at: 0 }, hands.tools).flatMap(stack => stack.rows);
+    const rows = stacksOf({ kind: "view", tool: "payments", at: 0 }, hands.tools, "es").flatMap(stack => stack.rows);
     expect(rows.find(row => row.opens === "sales/s1")?.open).toEqual(old);
     hands.type("p1");
     expect(hands.screen().title).toBe("s1");

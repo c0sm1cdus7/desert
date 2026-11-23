@@ -1,4 +1,5 @@
 // Pending equality uses canonical JSON, never persisted; recovery keeps only opaque request identifiers.
+import { same } from "../../../fields/phrases.ts";
 import { requestDigest } from "../requests/public-message.ts";
 import { socketLimits } from "../wire/protocol.ts";
 import { randomUUID, createHash } from "node:crypto";
@@ -30,7 +31,7 @@ function recovery<X extends Program>(connection: SocketConnection<X>) {
     if (message.type !== "result" && message.type !== "rejection") return;
     const id = correlatedRequestId(message, pending.keys(), uncertain);
     if (!id) return;
-    if (message.type === "rejection" && message.reason === socketTexts.quota && uncertain.has(id)) {
+    if (message.type === "rejection" && same(message.reason, socketTexts.quota) && uncertain.has(id)) {
       lookup.later();
       return;
     }

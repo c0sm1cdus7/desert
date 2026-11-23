@@ -1,4 +1,5 @@
 // The reason an action is unavailable, shared by its rows and every derived guarantee.
+import type { Text } from "../../../fields/phrases.ts";
 import { allowedAct } from "../../../house/kit.ts";
 import { toolTexts } from "../../../texts/tools.texts.ts";
 import { programOffered, programAlso } from "../../../tools/program-run.ts";
@@ -16,7 +17,7 @@ export function actionOff<X extends Program>(
   first: () => Field | null,
   from: string | undefined,
   name: string,
-): string | undefined {
+): Text | undefined {
   if (!state.house.grants.has(state.by)) return toolTexts.unassigned;
   if (!allowedAct(state.house, state.by, tool, name)) return toolTexts.kitRefusal(tool);
   return (

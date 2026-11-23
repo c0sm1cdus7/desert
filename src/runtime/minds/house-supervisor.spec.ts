@@ -79,8 +79,8 @@ it("is asked nothing at open, at an act that leaves the house, at end or desist;
   );
   expect(reasons).toEqual(["consultation"]);
   const turns = frames.filter(frame => supervising(frame) && !request(frame));
-  expect(turns[0]).toContain("mind:notes terminó el journey «Mate el jueves»: Hecho");
-  expect(turns[1]).toContain("mind:notes desistió del journey «Mejor no»: Ya no hace falta");
+  expect(turns[0]).toContain("mind:notes ended the journey «Mate el jueves»: Hecho");
+  expect(turns[1]).toContain("mind:notes desisted from the journey «Mejor no»: Ya no hace falta");
   expect(turns[1]).toContain("Aprendí 1");
   expect(house.tools.state().house.minds.scenes.get("mind:supervisor")?.data.text).toContain("Aprendí 2");
   const calls = [...house.tools.state().house.modelCalls.values()].filter(c => c.reserved.by === "mind:supervisor");
@@ -109,7 +109,7 @@ it("a mechanical rule that stops the act wins without asking it; the cut turn wa
   const frames = framesOf(f);
   expect(moments(frames)).toEqual(["turn"]);
   expect(frames.find(frame => supervising(frame))).toContain(
-    "Se cortó un turno del journey «Mate el jueves» de mind:notes: Un acto no terminó",
+    "A turn of the journey «Mate el jueves» of mind:notes was cut: An act did not finish",
   );
   expect(sent(house)).toBe(0);
   const evaluated = history(house).filter(event => event.kind === "rule-evaluated");
@@ -125,7 +125,7 @@ it("without a supervisor card the mechanical rules decide and a consultation com
   expect(moments(framesOf(f))).toEqual([]);
   expect(framesOf(f).length).toBeGreaterThan(0);
   const answered = history(house).find(event => event.kind === "mind-consultation-answered");
-  expect(answered).toMatchObject({ data: { answer: "Sin supervisor", source: "unconfigured" } });
+  expect(answered).toMatchObject({ data: { answer: "No supervisor", source: "unconfigured" } });
   expect(sent(house)).toBe(1);
 }, 60000);
 it("a supervisor whose provider key is missing leaves the act to the mechanical rules and says why", async () => {
@@ -138,7 +138,7 @@ it("a supervisor whose provider key is missing leaves the act to the mechanical 
   f.respond(frame => notes(house, frame, (goal, _, id) => [out(goal), end(id)], true));
   await think(house, "Mate el jueves");
   const answered = history(house).find(event => event.kind === "mind-consultation-answered");
-  expect(answered).toMatchObject({ data: { answer: "Sin supervisor: Falta la llave del proveedor." } });
+  expect(answered).toMatchObject({ data: { answer: "No supervisor: The provider's key is missing." } });
   expect(sent(house)).toBe(1);
   expect([...house.tools.state().house.modelCalls.values()].some(c => c.reserved.by === "mind:supervisor")).toBe(false);
   expect([...house.tools.state().house.journeys.values()][0]?.closed?.data.outcome).toBe("done");

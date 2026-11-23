@@ -25,13 +25,16 @@ export function manyChoices<X extends Program>(seat: Seat<X>, aim: Aim<X>, walk:
     const marked = { ...walk, marks };
     const current = fieldOf(seat.tools, marked);
     const change = answerChange(why);
-    strictEqual(current?.wrong?.(answer), change.reason);
-    ok(!walkHints(marked, current, seat.tools).some(hint => hint.intent === "confirm"), promiseTexts.marksSent);
+    strictEqual(current?.wrong?.(answer), change.reason === undefined ? undefined : seat.say(change.reason));
+    ok(
+      !walkHints(marked, current, seat.tools, seat.language).some(hint => hint.intent === "confirm"),
+      promiseTexts.marksSent,
+    );
     const result = walking([marked], marked, seat.tools, { kind: "confirm" }, seat.now());
     strictEqual(result.run, undefined);
     if (change.unchanged) {
       deepStrictEqual(result.session, [marked]);
-      ok(!unchangedIn(walkBody(marked, current, 0)));
+      ok(!unchangedIn(walkBody(marked, current, 0, seat.language), seat.language));
     }
   }
 }

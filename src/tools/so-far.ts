@@ -6,10 +6,11 @@ import { programCall } from "../fields/program-call.ts";
 import { isImmutableSchema } from "../fields/schema-shape.ts";
 import { executionSchema } from "./inputs/secret-input.ts";
 import type { Program, State } from "./tool-contract.ts";
+import { meant, type Text } from "../fields/phrases.ts";
 type Answered = Readonly<Record<string, unknown>>;
 const partialSchemas = new WeakMap<TSchema, TSchema>();
 /** For each tool an act narrows, why it does not take a thing, or nothing when it does. */
-type Among = Readonly<Record<string, (thing: string) => string | undefined>>;
+type Among = Readonly<Record<string, (thing: string) => Text | undefined>>;
 /** Asked after each answer, with the fields answered whole until then. A surface says it early; the act still
  * refuses when run. */
 export type SoFar<X extends Program> = Readonly<{
@@ -17,9 +18,9 @@ export type SoFar<X extends Program> = Readonly<{
     source: string,
     state: State<X>,
     target: string,
-  ) => readonly Readonly<{ value: string; title: string }>[] | undefined;
+  ) => readonly Readonly<{ value: string; title: Text }>[] | undefined;
   /** Why what was answered so far cannot go on, when that is so: said at the question it was answered in. */
-  stops?: (answered: Answered, state: State<X>, target: string, at: number) => string | undefined;
+  stops?: (answered: Answered, state: State<X>, target: string, at: number) => Text | undefined;
   /** A question shows the things it cannot take disabled with their reasons.
    * A tool it does not name is offered whole. */
   among?: (answered: Answered, state: State<X>, target: string, at: number) => Among;
@@ -59,12 +60,12 @@ function picksIn(schema: unknown, value: unknown): readonly Picked[] {
  * it stops at, or a thing it picks and does not take. A surface says it earlier, at the question; here it is
  * refused through whatever door it came, before the act runs. */
 export function refusedWhole<X extends Program>(input: TSchema, said: SoFar<X>, value: unknown) {
-  return (state: State<X>, target: string, refuses: readonly string[], at: number): string | undefined => {
+  return (state: State<X>, target: string, refuses: readonly Text[], at: number): Text | undefined => {
     if (!isRecord(value)) return undefined;
     const stopped = programCall(said.stops?.bind(said), value, state, target, at);
     /** At its question a cause may say a datum after it («supera lo que falta · $ 9.525,75»): where nothing is
      * asked, what is refused is the cause the act declares. */
-    if (stopped !== undefined) return refuses.find(cause => stopped.startsWith(`${cause} · `)) ?? stopped;
+    if (stopped !== undefined) return refuses.find(cause => meant(stopped).startsWith(`${meant(cause)} · `)) ?? stopped;
     const among = programCall(said.among?.bind(said), value, state, target, at) ?? {};
     return picksIn(input, value)
       .map(([tool, thing]) => programCall(among[tool]?.bind(among), thing))

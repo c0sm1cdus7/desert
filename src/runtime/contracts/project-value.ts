@@ -1,4 +1,5 @@
 // Validates and trims JSON data to the requested schema, including nested objects and unions.
+import { meant } from "../../fields/phrases.ts";
 import { Kind, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { publicValue } from "../../adapters/public-value.ts";
@@ -14,7 +15,7 @@ function trim(schema: Shape, value: unknown): unknown {
         /* Another declared variant may fit. */
       }
     }
-    throw new Error(contractTexts.invalidValue);
+    throw new Error(meant(contractTexts.invalidValue));
   }
   if (schema[Kind] === "Array" && Array.isArray(value) && schema.items) {
     const item = schema.items;
@@ -30,6 +31,6 @@ function trim(schema: Shape, value: unknown): unknown {
 }
 export function projectValue(schema: TSchema, value: unknown): unknown {
   const projected = trim(schema, publicValue(value));
-  if (!Value.Check(schema, projected)) throw new Error(contractTexts.invalidValue);
+  if (!Value.Check(schema, projected)) throw new Error(meant(contractTexts.invalidValue));
   return readonlyState(projected);
 }

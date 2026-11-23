@@ -29,7 +29,7 @@ it("does not turn a missing thing or an incomplete full reading into an invented
   expect(() => hands.sale.titleOf?.("sales/missing")).toThrow("a required value is missing");
   expect(() => hands.sale.view("sales/missing")).toThrow(MissingView);
   const tool = { ...hands.sales, view: () => "" };
-  const ports = { ...hands.ports, act: () => ({ status: "accepted", effects: [] }) as const };
+  const ports = { ...hands.ports, language: "es" as const, act: () => ({ status: "accepted", effects: [] }) as const };
   const screen = anyToolScreen(ports, tool, must(hands.shown.words.sales), { acts: {} }, () => ({ title: "" }));
   expect(() => screen.titleOf?.("sales/s1")).toThrow("a required value is missing");
 });
@@ -44,7 +44,7 @@ it("keeps tool data separate from the full index of its objects", () => {
     ...must(hands.shown.words.sales),
     itself: [{ title: "Resumen", empty: "", reads: { count: "Cantidad" } }],
   };
-  const ports = { ...hands.ports, act: () => ({ status: "accepted", effects: [] }) as const };
+  const ports = { ...hands.ports, language: "es" as const, act: () => ({ status: "accepted", effects: [] }) as const };
   const screen = anyToolScreen(ports, tool, words, { acts: {} }, () => ({ title: "" }));
   expect(screen.titleOf?.("sales/s1")).toBe("s1");
   expect(screen.find?.("Cantidad")).toEqual([]);
@@ -54,8 +54,8 @@ it("names a reference to an old object even when its tool is not held", () => {
   const hands = seat();
   hands.rig.bus.emit(effect("granted", { identity: "beto", tools: ["payments"] }, "ana"));
   const ports = { ...hands.rig.ports("beto", () => 1), limits: { recentLines: 40 } };
-  const tools = houseTools(ports, hands.shown);
-  const rows = stacksOf({ kind: "view", tool: "payments", at: 0 }, tools).flatMap(stack => stack.rows);
+  const tools = houseTools(ports, hands.shown, "es");
+  const rows = stacksOf({ kind: "view", tool: "payments", at: 0 }, tools, "es").flatMap(stack => stack.rows);
   const link = rows.find(row => row.title === "Primera venta")?.open;
   expect(link).toEqual({ kind: "view", tool: "sales", target: "sales/s1", at: 0 });
 });
@@ -79,7 +79,12 @@ it("renames and removes an indexed old object when a new state replaces it", () 
     view: (...args: Parameters<typeof hands.sales.view>) =>
       hands.sales.view(...args).replace('"text":"s1"', `"text":"${name}"`),
   };
-  const ports = { ...hands.ports, state: () => state, act: () => ({ status: "accepted", effects: [] }) as const };
+  const ports = {
+    ...hands.ports,
+    language: "es" as const,
+    state: () => state,
+    act: () => ({ status: "accepted", effects: [] }) as const,
+  };
   const screen = anyToolScreen(ports, tool, must(hands.shown.words.sales), { acts: {} }, () => ({ title: "" }));
   expect(screen.titleOf?.("sales/s1")).toBe("Primera");
   name = "Renombrada";
@@ -94,7 +99,12 @@ it("renames and removes an indexed old object when a new state replaces it", () 
 it("refreshes names when the clock advances without a new fact", () => {
   const hands = seat();
   let now = 1;
-  const ports = { ...hands.ports, now: () => now, act: () => ({ status: "accepted", effects: [] }) as const };
+  const ports = {
+    ...hands.ports,
+    language: "es" as const,
+    now: () => now,
+    act: () => ({ status: "accepted", effects: [] }) as const,
+  };
   const tool = {
     ...hands.sales,
     view: (...args: Parameters<typeof hands.sales.view>) =>
@@ -115,7 +125,7 @@ it("retries a failed full reading instead of keeping a partial index", () => {
       return hands.sales.view(...args);
     },
   };
-  const ports = { ...hands.ports, act: () => ({ status: "accepted", effects: [] }) as const };
+  const ports = { ...hands.ports, language: "es" as const, act: () => ({ status: "accepted", effects: [] }) as const };
   const screen = anyToolScreen(ports, tool, must(hands.shown.words.sales), { acts: {} }, () => ({ title: "" }));
   expect(() => screen.titleOf?.("sales/s1")).toThrow("lectura interrumpida");
   broken = false;
@@ -125,13 +135,14 @@ it("finds and opens an unheld tool and its old objects even when foreign tools a
   const hands = seat();
   hands.rig.bus.emit(effect("granted", { identity: "beto", tools: ["payments"] }, "ana"));
   hands.rig.act("beto", "prefer", { hide: "foreign", on: true });
-  const tools = houseTools({ ...hands.rig.ports("beto", () => 1), limits: { recentLines: 40 } }, hands.shown);
-  const menu = stacksOf({ kind: "menu", at: 0 }, tools).flatMap(stack => stack.rows);
+  const tools = houseTools({ ...hands.rig.ports("beto", () => 1), limits: { recentLines: 40 } }, hands.shown, "es");
+  const menu = stacksOf({ kind: "menu", at: 0 }, tools, "es").flatMap(stack => stack.rows);
   expect(menu.some(row => row.key === "v")).toBe(false);
-  const find = (text: string) => stacksOf({ kind: "menu", at: 0, find: text }, tools).flatMap(stack => stack.rows);
+  const find = (text: string) =>
+    stacksOf({ kind: "menu", at: 0, find: text }, tools, "es").flatMap(stack => stack.rows);
   expect(find("ventas").some(row => row.open?.kind === "view" && row.open.tool === "sales")).toBe(true);
   expect(find("antigua").some(row => row.open?.kind === "view" && row.open.target === "sales/s1")).toBe(true);
-  const rows = stacksOf({ kind: "view", tool: "sales", at: 0 }, tools).flatMap(stack => stack.rows);
+  const rows = stacksOf({ kind: "view", tool: "sales", at: 0 }, tools, "es").flatMap(stack => stack.rows);
   expect(rows).toContainEqual(expect.objectContaining({ key: "r", off: true, detail: "fuera del kit" }));
 });
 it("reads activity and chooses an unheld old object after reopening", () => {
@@ -152,8 +163,8 @@ it("reads activity and chooses an unheld old object after reopening", () => {
   );
   hands.rig.act("beto", "prefer", { hide: "foreign", on: true });
   hands.rig.restart();
-  const tools = houseTools({ ...hands.rig.ports("beto", () => 1), limits: { recentLines: 40 } }, hands.shown);
-  const menu = stacksOf({ kind: "menu", at: 0 }, tools);
+  const tools = houseTools({ ...hands.rig.ports("beto", () => 1), limits: { recentLines: 40 } }, hands.shown, "es");
+  const menu = stacksOf({ kind: "menu", at: 0 }, tools, "es");
   expect(menu.find(stack => stack.title === "Actividad")?.rows).toContainEqual(
     expect.objectContaining({ title: "Revisada", opens: "sales/s1" }),
   );

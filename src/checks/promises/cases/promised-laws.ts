@@ -1,4 +1,5 @@
 // The laws every act of every program keeps: nobody promises them case by case, and every act is checked on them.
+import { meant, type Text } from "../../../fields/phrases.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { deepStrictEqual, ok } from "node:assert/strict";
@@ -64,7 +65,7 @@ function unchangedCheck<X extends Program>(program: Composition<X>, aim: Aim<X>,
 }
 /** The laws of every act, checked from a case of its own that the house accepts. */
 export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X>, kase: Case<X>): Check[] {
-  const refusal = (promise: string, doing: Partial<Doing>, cause: string, input = kase.input): Check => ({
+  const refusal = (promise: string, doing: Partial<Doing>, cause: Text, input = kase.input): Check => ({
     name: label(aim, promise),
     run: () =>
       staged(program, async ({ house }) => {
@@ -121,11 +122,11 @@ export function defaultsIn(schema: unknown, path = "$"): void {
 }
 /** The causes an act reads from a contract its program requests, which fit that contract's refusals as `{ reason }`:
  * the provider's cases cover them, in its own gate, so the consumer needs no case of its own. */
-function contractCauses<X extends Program>(program: Composition<X>, aim: Aim<X>): readonly string[] {
+function contractCauses<X extends Program>(program: Composition<X>, aim: Aim<X>): readonly Text[] {
   const packages = program.contractSetup ? (packagesForContracts(program.contractSetup) ?? []) : [];
   const requests = Object.values(packages.find(each => each.id === aim.tool.id)?.requests ?? {});
   const refusals = requests.flatMap(request => Object.values(request.actions).map(action => action.rejections));
-  return aim.act.refuses.filter(reason => refusals.some(schema => Value.Check(schema, { reason })));
+  return aim.act.refuses.filter(reason => refusals.some(schema => Value.Check(schema, { reason: meant(reason) })));
 }
 /** What an act declares has to add up: a case the house accepts, and a case for each cause it may refuse with. */
 export function coverage<X extends Program>(program: Composition<X>, aim: Aim<X>, shown: Shown<X>): Check {
@@ -140,7 +141,8 @@ export function coverage<X extends Program>(program: Composition<X>, aim: Aim<X>
       const sure = aim.act.cases.some(kase => !("refused" in kase.then) && kase.then.sure !== undefined);
       ok(!aim.act.confirms || sure, said.unsure);
       /** What the base itself refuses with is not the act's to declare; a case may still promise it. */
-      const own = (causes: readonly string[]) => [...new Set(causes.filter(cause => !ofTheBase(cause)))].sort();
+      const own = (causes: readonly Text[]) =>
+        [...new Set(causes.filter(cause => !ofTheBase(cause)).map(meant))].sort();
       deepStrictEqual(
         own(
           [
@@ -149,7 +151,7 @@ export function coverage<X extends Program>(program: Composition<X>, aim: Aim<X>
             ...(await mindTargetCauses(program, aim)),
             ...(await groupTargetCauses(program, shown, aim)),
             ...contractCauses(program, aim),
-          ].map(cause => aim.act.outside.find(out => cause.startsWith(`${out} · `)) ?? cause),
+          ].map(cause => aim.act.outside.find(out => meant(cause).startsWith(`${meant(out)} · `)) ?? cause),
         ),
         own([...aim.act.refuses, ...aim.act.outside]),
         said.causesMismatch,

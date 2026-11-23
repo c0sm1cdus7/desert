@@ -1,4 +1,4 @@
-// Requires explicit translations for every declared language in all of the code's messages.
+// Requires explicit translations for every declared language in all of the code's messages and phrases.
 import ts from "typescript";
 import { languages } from "../../fields/languages.ts";
 import { codeFiles, fromRoot, isSpec, parsed, type Repository } from "./law-files.ts";
@@ -38,4 +38,34 @@ export function messageCoverage(repo: Repository, declared: readonly string[] = 
         ];
       }),
     );
+}
+const propertyName = (item: ts.ObjectLiteralElementLike): string | undefined =>
+  ts.isPropertyAssignment(item) && (ts.isIdentifier(item.name) || ts.isStringLiteral(item.name))
+    ? item.name.text
+    : undefined;
+/** Whether a language's words are there: any expression but an empty or blank string. */
+const said = (value: ts.Expression | undefined): boolean =>
+  !!value && !(ts.isStringLiteralLike(value) && !value.text.trim());
+/** A phrase is an object whose every key is a language: it says its words in each one, none left out. */
+const isPhraseNode = (node: ts.Node, declared: readonly string[]): node is ts.ObjectLiteralExpression =>
+  ts.isObjectLiteralExpression(node) &&
+  node.properties.length > 0 &&
+  node.properties.map(propertyName).every(name => name !== undefined && declared.includes(name));
+export function phraseCoverage(repo: Repository, declared: readonly string[] = languages): string[] {
+  return codeFiles(repo)
+    .filter(file => !isSpec(file))
+    .flatMap(file => {
+      const source = parsed(file);
+      const found: string[] = [];
+      const visit = (node: ts.Node): void => {
+        if (isPhraseNode(node, declared)) {
+          const { line } = source.getLineAndCharacterOfPosition(node.getStart(source));
+          const missing = declared.filter(language => !said(propertyValue(node, language)));
+          found.push(...missing.map(language => `${fromRoot(repo.root, file)}:${line + 1}:${language}`));
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(source);
+      return found;
+    });
 }

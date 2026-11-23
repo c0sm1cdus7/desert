@@ -43,7 +43,7 @@ const atTill = (done: Given, use: (now: () => string[], hide: () => Promise<void
   });
 const composed = (program: Composition<Till>) => () =>
   staged(program, ({ house }) => {
-    houseTools(localPorts(house(), cast.admin, { recentLines: 100 }), tillShown);
+    houseTools(localPorts(house(), cast.admin, { recentLines: 100 }), tillShown, "es");
     return Promise.resolve();
   });
 
@@ -178,8 +178,8 @@ it("fails derived walks for a tool with loose stacks", async () => {
   expect(failed).toEqual([
     {
       name: "till · float · a closed till keeps its float, by keys",
-      error: "E-PROG-1 · Falló el programa · till/till",
+      error: "E-PROG-1 · The program failed · till/till",
     },
-    { name: "till · close · the till is closed, by keys", error: "E-PROG-1 · Falló el programa · till/till" },
+    { name: "till · close · the till is closed, by keys", error: "E-PROG-1 · The program failed · till/till" },
   ]);
 });

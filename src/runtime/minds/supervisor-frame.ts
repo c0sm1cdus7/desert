@@ -1,6 +1,7 @@
 // Builds the supervisor's frames: the house with all its programs, the act that requires supervision or a consultation.
+import { linesIn, said } from "../../fields/phrases.ts";
 import type { TSchema } from "@sinclair/typebox";
-import type { Language } from "../../fields/languages.ts";
+import { workingLanguage, type Language } from "../../fields/languages.ts";
 import { effectiveKit } from "../../house/kit.ts";
 import { activeRules } from "../../house/rules/rule-state.ts";
 import { systemTool } from "../../house/system-tools.ts";
@@ -55,16 +56,16 @@ export const section = (language: Language, index: number, content: string) => {
 };
 /** The fixed part: who the supervisor is, every program's purpose and the house's rules, text and mechanical. */
 export function layers<X extends Program>(house: MindRuntimeHouse<X>, options: MindRuntimeOptions) {
-  const { language } = options;
+  const language = workingLanguage;
   const programs = house.execution.registry.filter(tool => !systemTool(tool.id));
   const rules = activeRules(house.execution.state().house.rules).map(
     ({ definition: { id, text, action, effect, condition } }) =>
-      `${id}: ${text} ${ruleDisplay({ action, effect, condition })}`,
+      `${id}: ${text} ${linesIn(ruleDisplay({ action, effect, condition }), language)}`,
   );
   return [
     supervisorHouse.text(language, {}),
     supervisorRules.text(language, {}),
-    section(language, 0, programs.map(tool => `${tool.id}: ${tool.purpose}`).join("\n")),
+    section(language, 0, programs.map(tool => `${tool.id}: ${said(tool.purpose, language)}`).join("\n")),
     [
       section(language, 1, options.textRules.map(rule => `${rule.id}: ${rule.text.text(language, {})}`).join("\n")),
       section(language, 2, rules.join("\n")),
@@ -149,7 +150,7 @@ export function reviewFrame<X extends Program>(
   request: ReviewRequest,
   rules: string,
 ): MindFrame {
-  const { language } = options;
+  const language = workingLanguage;
   const state = house.execution.state();
   const now = house.time.now();
   const asked = JSON.stringify({ reason: request.reason, acts: request.acts, question: request.question ?? null });

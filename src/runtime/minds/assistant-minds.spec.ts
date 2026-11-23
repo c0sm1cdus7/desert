@@ -140,8 +140,8 @@ it("the assistant reads its own rules: its name, its owner and the talk programs
   send(house, "assistant:ana", note);
   await (await house.minds)?.flush();
   const system = f.transport.mock.calls.map(call => (typeof call[1]?.body === "string" ? call[1].body : ""))[0];
-  expect(system).toContain("Sos Nora, el asistente de ana.");
-  expect(system).toContain("mind:<programa>");
+  expect(system).toContain("You are Nora, the assistant of ana.");
+  expect(system).toContain("mind:<program>");
   const definition = assistantDefinition(
     { definitions: [], talk: [{ tool: "talk", act: "thread/say" }] },
     "ana",
@@ -153,7 +153,6 @@ it("the assistant reads its own rules: its name, its owner and the talk programs
     { tool: "talk", act: "thread/say" },
   ]);
   const options = await f.distribution.modelMinds({
-    language: "es",
     key: () => Promise.resolve("synthetic"),
     transport: f.transport,
     account: "test",

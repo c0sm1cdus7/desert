@@ -40,12 +40,12 @@ it("a second plan, a repeated id, a step outside the plan and one already done c
   expect(journey?.steps).toEqual([{ ...step, note: "Hecho" }]);
   expect(journey?.closed?.data.outcome).toBe("done");
   const told = shown.join("\n");
-  expect(told).toContain("El plan repite el identificador «a»: cada paso lleva uno distinto.");
-  expect(told).toContain(`1. plan → ${shortIds(journey?.id ?? "")}: aceptado.`);
-  expect(told).toContain(`2. plan → ${shortIds(journey?.id ?? "")}: rechazado: Este journey ya tiene su plan`);
-  expect(told).toContain("El paso «zz» no existe en el plan de este journey. Pasos pendientes: a.");
-  expect(told).toContain(`1. done → ${shortIds(journey?.id ?? "")}: aceptado.`);
-  expect(told).toContain(`2. done → ${shortIds(journey?.id ?? "")}: rechazado: El paso «a» ya estaba hecho`);
+  expect(told).toContain("The plan repeats the identifier «a»: each step takes a different one.");
+  expect(told).toContain(`1. plan → ${shortIds(journey?.id ?? "")}: accepted.`);
+  expect(told).toContain(`2. plan → ${shortIds(journey?.id ?? "")}: rejected: This journey already has its plan`);
+  expect(told).toContain("The step «zz» is not in this journey's plan. Pending steps: a.");
+  expect(told).toContain(`1. done → ${shortIds(journey?.id ?? "")}: accepted.`);
+  expect(told).toContain(`2. done → ${shortIds(journey?.id ?? "")}: rejected: The step «a» was already done`);
   const faults = history(house).flatMap(event =>
     event.layer === "house" && event.kind === "mind-answer-invalid" ? event.data.faults.map(fault => fault.code) : [],
   );

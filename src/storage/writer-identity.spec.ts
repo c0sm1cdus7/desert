@@ -1,4 +1,5 @@
 import { contender } from "../../tests/support/storage-process.ts";
+import { meant } from "../fields/phrases.ts";
 import { existsSync, linkSync, mkdirSync, statSync, symlinkSync } from "node:fs";
 import { join, relative } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -28,7 +29,7 @@ it.each(["directory", "file", "relative", "dotdot"])(
       mkdirSync(join(real, "nested"));
       alias = `${real}/nested/../journal.sqlite`;
     }
-    expect(() => open(alias)).toThrow(journalTexts.locked);
+    expect(() => open(alias)).toThrow(meant(journalTexts.locked));
     first.append(sale("left"), 100);
     const reader = track(journalReader(alias, shop));
     expect(reader.since(0).map(event => event.kind)).toEqual(["sale-registered"]);
@@ -73,7 +74,7 @@ it("a kept-journal operation cannot erase the cache of a live writer", () => {
   const writer = open(file);
   watch(writer);
   writer.append(sale("left"), 100);
-  expect(() => journalKept(file)).toThrow(journalTexts.locked);
+  expect(() => journalKept(file)).toThrow(meant(journalTexts.locked));
   writer.close();
   expect(journalKept(file).last).toBe(100);
 });
@@ -104,7 +105,7 @@ it("independent files in one directory keep their leases when either owner close
   const right = open(rightFile);
   const names = watch(right);
   left.close();
-  expect(() => open(rightFile)).toThrow(journalTexts.locked);
+  expect(() => open(rightFile)).toThrow(meant(journalTexts.locked));
   right.append(sale("right"), 0);
   expect(names()).toEqual(["right"]);
   right.close();
@@ -118,13 +119,13 @@ it.each(["CAFÉ.SQLITE", "Cafe\u0301.sqlite"])("respects filesystem identity for
   const owner = open(file);
   const state = watch(owner);
   const same = existsSync(alias) && statSync(alias).ino === statSync(file).ino;
-  if (same) expect(() => open(alias)).toThrow(journalTexts.locked);
+  if (same) expect(() => open(alias)).toThrow(meant(journalTexts.locked));
   else open(alias).close();
   const child = contender(alias, root, "spelling");
   try {
     expect(await child.next()).toBe("ready");
     child.send("open");
-    expect(await child.next()).toBe(same ? journalTexts.locked : "opened");
+    expect(await child.next()).toBe(same ? meant(journalTexts.locked) : "opened");
     expect(owner.append(sale("owned"), 0).seq).toBe(1);
     expect(state()).toEqual(["owned"]);
   } finally {

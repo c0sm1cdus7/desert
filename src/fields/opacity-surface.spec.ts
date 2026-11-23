@@ -5,7 +5,7 @@ import { questionWords } from "../surface/bridge/questions/asking-clock.ts";
 import { shopShown } from "../../tests/support/shop.ts";
 import { fixture, ref, field } from "../../tests/support/secret-rig.ts";
 import { holding, when, text } from "./fields.ts";
-const words = questionWords(() => 1000, shopShown);
+const words = questionWords(() => 1000, shopShown, "es");
 it("the question is secret, and holding and when receive only references", () => {
   const seen: unknown[] = [];
   const input = Type.Object({
@@ -56,7 +56,7 @@ it("an action's confirms and stops receive references before running", async () 
   await staged(program, ({ house }) => {
     const ports = localPorts(house(), "ana", { recentLines: 20 });
     const walkedAct = walked(
-      { ...ports, act: value => ports.act(value, 0) },
+      { ...ports, language: "es" as const, act: value => ports.act(value, 0) },
       { tool: "vault", name: "set", act },
       { ...shopShown, day: undefined, things: () => undefined, titled: () => "Material" },
     );
@@ -95,7 +95,7 @@ it("P3: the confirmation defect can only copy the reference it received", async 
       },
     };
     const question = walked(
-      { ...ports, act: value => ports.act(value, 0) },
+      { ...ports, language: "es" as const, act: value => ports.act(value, 0) },
       { tool: "vault", name: "set", act },
       {
         ...shopShown,

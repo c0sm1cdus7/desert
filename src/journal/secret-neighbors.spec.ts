@@ -142,7 +142,7 @@ it("a cut while waiting keeps the fold, and the restart interrupts the action", 
   if (started.status === "processing")
     expect(await started.completion).toMatchObject({
       status: "interrupted",
-      reason: "acción interrumpida",
+      reason: { en: "action interrupted", es: "acción interrumpida" },
       effects: [],
     });
   expect(has(rig.facts(), "pending-datum") || has(rig.house.tools.state(), "pending-datum")).toBe(false);

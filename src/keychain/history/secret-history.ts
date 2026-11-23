@@ -1,4 +1,5 @@
 // A read-only WAL connection can create SQLite sidecars; journal and vault bytes stay intact on refusal.
+import { meant } from "../../fields/phrases.ts";
 import { isRecord } from "../../fields/json-values.ts";
 import { protectedAlready } from "./protection-mark.ts";
 import { secretTexts } from "../../texts/secrets.texts.ts";
@@ -17,7 +18,7 @@ class SecretHistoryError extends Error {
   readonly code = "E-SECRET-HISTORY";
   readonly positions: readonly Finding[];
   constructor(positions: readonly Finding[]) {
-    super(secretTexts.history(positions.map(p => `${p.action} ${p.position} (#${p.seq})`).join(", ")));
+    super(meant(secretTexts.history(positions.map(p => `${p.action} ${p.position} (#${p.seq})`).join(", "))));
     this.positions = positions;
   }
 }

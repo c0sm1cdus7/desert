@@ -42,7 +42,7 @@ it("turns off the open row; rejects on confirming the pending question and still
   expect(rig.state().tools.sales.size).toBe(0);
   expect(rig.facts().findLast(event => event.kind === "act-result")?.data).toMatchObject({
     status: "rejected",
-    reason: "fuera del kit",
+    reason: { en: "outside the kit", es: "fuera del kit" },
   });
   rig.attend("ana", "sales");
   rig.act("ana", "register", { sale: "s2", total: 2500 }, "sales");

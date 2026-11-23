@@ -1,5 +1,6 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { toolTexts } from "../texts/tools.texts.ts";
 import { join } from "node:path";
 import { Type } from "@sinclair/typebox";
 import { expect, it } from "vitest";
@@ -53,7 +54,7 @@ it.each(["house", "world"] as const)("R10: handing over administration cuts the 
     done.resolve({ ...saved, effects: [shop.fact("slow-written", { sale: "handover", total: 1 }, "ana")] });
     expect(await settled(pending)).toMatchObject({
       status: reach === "world" ? "accepted" : "interrupted",
-      reason: "sacada",
+      reason: { en: "removed", es: "sacada" },
     });
     expect(house.tools.state().tools.sales.has("handover")).toBe(reach === "world");
   } finally {
@@ -69,9 +70,9 @@ it.each(["granted", "removed"] as const)("M4: %s cuts the signal before another 
     if (kind === "granted") rig.bus.emit(effect("granted", { identity: "beto", tools: [] }, "ana"));
     else rig.bus.emit(effect("removed", { identity: "beto" }, "ana"));
     expect(rig.calls[0]?.context.signal?.aborted).toBe(true);
-    expect(() => rig.calls[0]?.context.signal?.throwIfAborted()).toThrow("sacada");
+    expect(rig.calls[0]?.context.signal?.reason).toEqual(toolTexts.withdrawn);
     rig.calls[0]?.done.resolve(saved);
-    expect(await settled(pending)).toMatchObject({ status: "accepted", reason: "sacada" });
+    expect(await settled(pending)).toMatchObject({ status: "accepted", reason: { en: "removed", es: "sacada" } });
     expect(rig.outside).toEqual(["hecho afuera"]);
   } finally {
     rig.close();

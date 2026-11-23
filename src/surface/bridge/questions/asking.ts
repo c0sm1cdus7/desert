@@ -7,6 +7,8 @@ import type { TSchema } from "@sinclair/typebox";
 import { isSchema } from "../../../fields/schema-shape.ts";
 import { isAsked } from "../../../fields/fields.ts";
 import type { Field, Option } from "../../contract/contract.ts";
+import { wordsIn } from "../../../fields/phrases.ts";
+import { surfaceTexts } from "../../../texts/surface.texts.ts";
 import { audit, leading, markedOf, write } from "./asking-back.ts";
 import {
   armsOf,
@@ -34,11 +36,12 @@ function choice(schema: TSchema, ctx: Ctx, from: number): Got {
   const answer = ctx.answers[from];
   /** A choice that has a usual answer opens on it. */
   const usual = arms.find(arm => at(arm, "const") !== undefined && at(arm, "const") === at(schema, "default"));
-  const opening = usual ? { initial: word(usual, "title") } : {};
-  if (answer === undefined) return { ask: { ...one(titleOf(schema, ctx), arms.map(choiceOf)), ...opening } };
+  const opening = usual ? { initial: word(usual, "title", ctx.language) } : {};
+  const options = arms.map(arm => choiceOf(arm, ctx.language));
+  if (answer === undefined) return { ask: { ...one(titleOf(schema, ctx), options), ...opening } };
   return {
     value: at(
-      arms.find(arm => at(arm, "title") === answer),
+      arms.find(arm => word(arm, "title", ctx.language) === answer),
       "const",
     ),
     at: from + 1,
@@ -53,10 +56,10 @@ function shapes(schema: TSchema, ctx: Ctx, from: number, telling: string): Got {
     return {
       ask: one(
         titleOf(schema, ctx),
-        arms.map(arm => choiceOf(literal(arm))),
+        arms.map(arm => choiceOf(literal(arm), ctx.language)),
       ),
     };
-  const chosen = arms.find(arm => at(literal(arm), "title") === answer);
+  const chosen = arms.find(arm => word(literal(arm), "title", ctx.language) === answer);
   const rest = fields(chosen, ctx, from + 1, [telling]);
   if ("ask" in rest) return rest;
   return {
@@ -94,11 +97,11 @@ function fields(schema: unknown, ctx: Ctx, from: number, skip: readonly string[]
 function list(schema: TSchema, ctx: Ctx, from: number): Got {
   if (!ctx.optional && at(schema, "minItems") !== 0) return items(schema, ctx, from);
   const more = at(schema, "more");
-  const done = choiceOf(at(more, "done"));
-  const another = choiceOf(at(more, "another"));
+  const done = choiceOf(at(more, "done"), ctx.language);
+  const another = choiceOf(at(more, "another"), ctx.language);
   const answer = ctx.answers[from];
   if (answer === undefined)
-    return { ask: one(`${word(more, "ask")}${ctx.optional ? ctx.optionalMark : ""}`, [done, another]) };
+    return { ask: one(`${word(more, "ask", ctx.language)}${ctx.optional ? ctx.optionalMark : ""}`, [done, another]) };
   if (answer === done.title) return { value: ctx.optional ? undefined : [], at: from + 1 };
   return ctx.optional ? list(schema, { ...ctx, optional: false }, from + 1) : items(schema, ctx, from + 1);
 }
@@ -106,10 +109,10 @@ function items(schema: TSchema, ctx: Ctx, from: number, before: readonly unknown
   const got = read(at(schema, "items"), { ...ctx, n: before.length + 1, optional: false }, from);
   if ("ask" in got) return got;
   const more = at(schema, "more");
-  const done = choiceOf(at(more, "done"));
-  const another = choiceOf(at(more, "another"));
+  const done = choiceOf(at(more, "done"), ctx.language);
+  const another = choiceOf(at(more, "another"), ctx.language);
   const answer = ctx.answers[got.at];
-  if (answer === undefined) return { ask: one(word(more, "ask"), [done, another]) };
+  if (answer === undefined) return { ask: one(word(more, "ask", ctx.language), [done, another]) };
   const all = [...before, got.value];
   return answer === another.title ? items(schema, ctx, got.at + 1, all) : { value: all, at: got.at + 1 };
 }
@@ -118,12 +121,12 @@ function items(schema: TSchema, ctx: Ctx, from: number, before: readonly unknown
 function some(schema: TSchema, ctx: Ctx, from: number): Got {
   const arms = markedArms(schema);
   const answer = ctx.answers[from];
-  const options = arms.map(arm => ({ title: word(arm, "title") }));
+  const options = arms.map(arm => ({ title: word(arm, "title", ctx.language) }));
   const every = arms.map(arm => at(arm, "const"));
-  const initial = markedOf(schema, at(schema, "some") === "all" ? every : []);
+  const initial = markedOf(schema, at(schema, "some") === "all" ? every : [], ctx.language);
   if (answer === undefined) return { ask: { ask: titleOf(schema, ctx), kind: "many", options, initial } };
   const marked = answer === "" ? [] : answer.split(" · ");
-  const values = arms.filter(arm => marked.includes(word(arm, "title"))).map(arm => at(arm, "const"));
+  const values = arms.filter(arm => marked.includes(word(arm, "title", ctx.language))).map(arm => at(arm, "const"));
   return { value: values, at: from + 1 };
 }
 function read(schema: unknown, ctx: Ctx, from: number): Got {
@@ -206,9 +209,10 @@ export function asking(schema: TSchema, supplied: AskWords): Asking {
   // A field that cannot be asked is a defect of the program: it shows when the program is composed, not when used.
   audit(schema, { ...words, answers: [], n: 1, optional: false });
   return {
+    /** A question says, of an answer kept as it is, that it is the current one: in the reader's words. */
     next: (answers, target) => {
       const done = got(answers, target, true);
-      return "ask" in done ? done.ask : null;
+      return "ask" in done ? { ...done.ask, currentSays: wordsIn(surfaceTexts, words.language).current } : null;
     },
     taken: answers => whole(answers).at,
     input: answers => whole(answers).value,

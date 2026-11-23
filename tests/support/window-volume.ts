@@ -60,13 +60,13 @@ export function windowVolume(count: number, notices = 200, ticking = false) {
   let now = 1;
   const ports = { ...rig.ports, registry, state: () => state, now: () => (ticking ? now++ : now) };
   const router = houseRouter(ports, shown);
-  const tools = houseTools(ports, shown);
+  const tools = houseTools(ports, shown, "es");
   const menu = () => router.screen({ rows: 36 });
   const old = () =>
     resolve(
       [...start, { kind: "view", tool: "sales", target: "sales/s1", at: 0 }],
       tools,
-      { state: "connected", clock: "00:00", now: 1 },
+      { language: "es", state: "connected", clock: "00:00", now: 1 },
       { rows: 36 },
     );
   return {

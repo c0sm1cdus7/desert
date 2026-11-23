@@ -1,11 +1,12 @@
 // Backpressure pauses only this peer. Full snapshots stream lazily; later deliveries have a bounded queue.
+import type { Text } from "../../../fields/phrases.ts";
 import { performance } from "node:perf_hooks";
 import type { Duplex } from "node:stream";
 import { socketLimits } from "../wire/protocol.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
 class PeerWriter {
   private readonly stream: Duplex;
-  private readonly failed: (reason: string) => void;
+  private readonly failed: (reason: Text) => void;
   private readonly queue: { frames: readonly Buffer[]; bytes: number }[] = [];
   private current: readonly Buffer[] = [];
   private index = 0;
@@ -13,7 +14,7 @@ class PeerWriter {
   private blocked = false;
   private stopped = false;
   private timer: NodeJS.Timeout | undefined;
-  constructor(stream: Duplex, failed: (reason: string) => void) {
+  constructor(stream: Duplex, failed: (reason: Text) => void) {
     this.stream = stream;
     this.failed = failed;
     stream.on("drain", () => {
@@ -83,4 +84,4 @@ class PeerWriter {
     this.pump();
   };
 }
-export const peerWriter = (stream: Duplex, failed: (reason: string) => void) => new PeerWriter(stream, failed);
+export const peerWriter = (stream: Duplex, failed: (reason: Text) => void) => new PeerWriter(stream, failed);

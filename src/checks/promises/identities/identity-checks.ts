@@ -1,4 +1,6 @@
 // Derived checks keep the core's distinct authorization contract: a kit cannot grant or revoke administration.
+import type { Language } from "../../../fields/languages.ts";
+import { type Text, meant, said as inWords } from "../../../fields/phrases.ts";
 import { deepStrictEqual, ok, strictEqual, throws } from "node:assert/strict";
 import { identityAllowedAct } from "../../../house/identities/identity-permissions.ts";
 import { coreToolReasons, systemTool } from "../../../house/system-tools.ts";
@@ -26,7 +28,8 @@ import { toolTexts } from "../../../texts/tools.texts.ts";
 import type { Case, Composition } from "../../../tools/promises.ts";
 import type { State } from "../../../tools/tool-contract.ts";
 export function checkKitChange(tool: string, change: () => unknown): void {
-  if (systemTool(tool)) throws(change, error => error instanceof Error && error.message === coreToolReasons[tool]);
+  if (systemTool(tool))
+    throws(change, error => error instanceof Error && error.message === meant(coreToolReasons[tool] ?? ""));
   else change();
 }
 export function checkForeignVisibility(tool: string, row: Choice | undefined): void {
@@ -47,30 +50,32 @@ export function checkOwnRow<X extends Program>(
   act: string,
   state: State<X>,
   target: string,
+  language: Language,
   row?: Choice,
 ): boolean {
   if (tool === "identities" && ["register-device", "accept-device", "retire-device"].includes(act)) {
     const cause = deviceOwnerProblem(state, target, act === "register-device");
-    assertOwnRow(row, cause);
+    assertOwnRow(row, cause, language);
     return true;
   }
   if (tool === "personal") {
-    assertOwnRow(row, undefined);
+    assertOwnRow(row, undefined, language);
     return true;
   }
   if (tool === "rules") {
-    assertOwnRow(row, identityAllowedAct(state.house, state.by, tool, act) ? undefined : toolTexts.kitRefusal(tool));
+    const kit = identityAllowedAct(state.house, state.by, tool, act) ? undefined : toolTexts.kitRefusal(tool);
+    assertOwnRow(row, kit, language);
     return true;
   }
   if (tool !== "identities" || (act !== "scene" && act !== "delegate-assistant")) return false;
   const owner = target.slice("identities/".length);
   const reason = () => {
     if (act === "scene") return owner === state.by ? undefined : identityTexts.ownScene;
-    if (!state.house.grants.has(owner)) return assistantText("absent", "es");
-    if (owner !== state.by) return assistantText("owner", "es");
-    return state.house.assistants.get(owner)?.enabled ? undefined : assistantText("disabled", "es");
+    if (!state.house.grants.has(owner)) return assistantText("absent");
+    if (owner !== state.by) return assistantText("owner");
+    return state.house.assistants.get(owner)?.enabled ? undefined : assistantText("disabled");
   };
-  assertOwnRow(row, reason());
+  assertOwnRow(row, reason(), language);
   return true;
 }
 export const isCoreScene = <X extends Program>(aim: Aim<X>) => aim.tool.id === "identities" && aim.name === "scene";
@@ -112,14 +117,14 @@ export function withoutActionCheck<X extends Program>(program: Composition<X>, a
   };
 }
 
-function assertOwnRow(row: Choice | undefined, cause: string | undefined) {
+function assertOwnRow(row: Choice | undefined, cause: Text | undefined, language: Language) {
   ok(row);
   if (cause === undefined) {
     ok(row.open);
     ok(!row.off);
   } else {
     ok(row.off);
-    ok(row.detail?.endsWith(cause));
+    ok(row.detail?.endsWith(inWords(cause, language)));
     strictEqual(row.open, undefined);
   }
 }

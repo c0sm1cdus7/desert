@@ -1,4 +1,5 @@
 // Selects execution destinations with a real PTY, including backtracking and disconnected devices.
+import { said } from "../../fields/phrases.ts";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -32,19 +33,19 @@ it.each([
     try {
       await f.terminal.until("[v] ventas");
       f.terminal.press("vrs1\r1500\r");
-      const choices = (await f.terminal.until(deviceTexts.choose)).join("\n");
+      const choices = (await f.terminal.until(said(deviceTexts.choose, "es"))).join("\n");
       expect(choices).toContain("mac (mac)");
       expect(choices).toContain("vm (vm)");
       expect(choices).not.toContain("old (old)");
       if (mode === "device") expect(choices).not.toContain("[c] Casa");
       f.terminal.press(key);
-      await f.terminal.until(deviceTexts.confirm(destination));
+      await f.terminal.until(said(deviceTexts.confirm(destination), "es"));
       f.terminal.press("\x1b");
-      await f.terminal.until(deviceTexts.choose);
+      await f.terminal.until(said(deviceTexts.choose, "es"));
       f.terminal.press("\r");
-      await f.terminal.until(deviceTexts.confirm(destination));
+      await f.terminal.until(said(deviceTexts.confirm(destination), "es"));
       f.terminal.press("\r");
-      await f.terminal.until(sales ? "Registrada" : deviceTexts.completed("").trim());
+      await f.terminal.until(sales ? "Registrada" : deviceTexts.completed("").es.trim());
       await f.terminal.close();
       expect(f.result()).toMatchObject({
         received,
@@ -63,7 +64,7 @@ it("runs a house-only action without asking for a device", async () => {
     await f.terminal.until("[v] ventas");
     f.terminal.press("vrs1\r1500\r");
     await f.terminal.until("Registrada");
-    expect(f.terminal.written()).not.toContain(deviceTexts.choose);
+    expect(f.terminal.written()).not.toContain(deviceTexts.choose.es);
     await f.terminal.close();
     expect(f.result()).toMatchObject({ sales: 1, received: [] });
   } finally {
@@ -75,7 +76,7 @@ it("explains the absence of compatible connected devices without executing", asy
   try {
     await f.terminal.until("[v] ventas");
     f.terminal.press("vrs1\r1500\r");
-    await f.terminal.until(deviceTexts.none);
+    await f.terminal.until(said(deviceTexts.none, "es"));
     await f.terminal.close();
     expect(f.result()).toMatchObject({ sales: 0, received: [], destinations: [] });
   } finally {
@@ -87,11 +88,11 @@ it("does not dispatch a device disconnected between selection and confirmation",
   try {
     await f.terminal.until("[v] ventas");
     f.terminal.press("vrs1\r1500\r");
-    await f.terminal.until(deviceTexts.choose);
+    await f.terminal.until(said(deviceTexts.choose, "es"));
     f.terminal.press("1");
-    await f.terminal.until(deviceTexts.confirm("mac (mac)"));
+    await f.terminal.until(said(deviceTexts.confirm("mac (mac)"), "es"));
     writeFileSync(join(f.home, "disconnect"), "disconnect synthetic mac");
-    await f.terminal.until(deviceTexts.unavailable);
+    await f.terminal.until(said(deviceTexts.unavailable, "es"));
     f.terminal.press("\r");
     await f.terminal.rest(100);
     await f.terminal.close();

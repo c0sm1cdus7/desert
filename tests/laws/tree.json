@@ -161,6 +161,8 @@
     "fields/json-values.ts": "Reads JSON objects, lists and values and declares the integer between zero and the safe maximum.",
     "fields/languages.ts": "Declares the languages available for the house's messages.",
     "fields/messages.ts": "Defines messages with typed parameters and requires the language on every read.",
+    "fields/phrases.ts": "A text in every language: who reads picks theirs; ids, minds and the code read the English.",
+    "fields/text-schema.ts": "The kept and travelling shape of a text: what someone wrote, or a phrase in every language.",
     "fields/mind-actor.ts": "Tells an identity's assistant apart from a tool's own mind.",
     "fields/mind-errors.ts": "Identifies mind contract rejections without keeping raw responses or private data.",
     "fields/money-currency.ts": "Resolves the symbol from answers, state, destination and instant, within the program boundary",

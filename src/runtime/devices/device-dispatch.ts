@@ -1,4 +1,5 @@
 // Keeps the attempt and its reference; a cut ends the wait with an unknown result and no retry.
+import { type Text, meant } from "../../fields/phrases.ts";
 import { Value } from "@sinclair/typebox/value";
 import { publicValue } from "../../adapters/public-value.ts";
 import {
@@ -23,7 +24,7 @@ export type HeldNotice = Readonly<{
 export type DeviceConnection = Readonly<{
   id: string;
   endpoint: DeviceEndpoint;
-  pending: Map<string, (reason: string) => void>;
+  pending: Map<string, (reason: Text) => void>;
   held: Map<string, HeldNotice>;
 }>;
 type DispatchPorts = Readonly<{
@@ -111,15 +112,16 @@ class DevicePending<X extends Program> {
     this.ports.signal?.removeEventListener("abort", this.aborted);
   }
   private failed(error: unknown) {
-    this.ports.reject(error instanceof Error ? error : new Error(deviceTexts.failed));
+    this.ports.reject(error instanceof Error ? error : new Error(meant(deviceTexts.failed)));
   }
-  private unknown(reason: string) {
+  /** The fact keeps the cause in the working language; whoever reads the act reads it in their own. */
+  private unknown(reason: Text) {
     if (this.settled) return;
     this.release();
     const { bus, request, resolve } = this.ports;
     const { execution, actor, journey } = request;
     try {
-      bus.emit(effect("device-execution-unknown", { execution, reason }, actor, [execution], journey));
+      bus.emit(effect("device-execution-unknown", { execution, reason: meant(reason) }, actor, [execution], journey));
       resolve({ status: "inconclusive", coreFailure: "inconclusive", reason });
     } catch (error) {
       this.failed(error);

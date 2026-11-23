@@ -1,4 +1,5 @@
 // The OS boundary of the local house door: private Unix socket, pid and filesystem cleanup after writer ownership.
+import { meant } from "../../../fields/phrases.ts";
 import { SocketOpeningError } from "../wire/socket-error.ts";
 import { createServer, type Server } from "node:net";
 import type { Duplex } from "node:stream";
@@ -9,10 +10,11 @@ import { socketTexts } from "../../../texts/socket.texts.ts";
 function prepareSocket(home: string, opened: string): string {
   const path = join(home, "house.sock");
   // macOS sockaddr_un.sun_path has 104 bytes including its trailing NUL.
-  if (Buffer.byteLength(path) >= 104) throw new SocketOpeningError(socketTexts.path(path));
-  if (realpathSync(home) !== realpathSync(opened)) throw new Error(socketTexts.home);
+  if (Buffer.byteLength(path) >= 104) throw new SocketOpeningError(meant(socketTexts.path(path)));
+  if (realpathSync(home) !== realpathSync(opened)) throw new Error(meant(socketTexts.home));
   const directory = lstatSync(home);
-  if (!directory.isDirectory() || directory.isSymbolicLink()) throw new SocketOpeningError(socketTexts.path(path));
+  if (!directory.isDirectory() || directory.isSymbolicLink())
+    throw new SocketOpeningError(meant(socketTexts.path(path)));
   chmodSync(home, privateDirectoryMode);
   rmSync(path, { force: true });
   return path;

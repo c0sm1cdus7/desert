@@ -1,4 +1,5 @@
 // The clients of one session: how many it holds, who gives up a place, and what ends with a router left behind.
+import { everySaid } from "../../fields/phrases.ts";
 import { describe, expect, it } from "vitest";
 import { collect, flush, spyDoor, spyHouse } from "../../../tests/support/screen-spy.ts";
 import { socketTexts } from "../../texts/socket.texts.ts";
@@ -46,7 +47,7 @@ describe("what a session holds for whom", () => {
   it("ends the streams of a router left behind when the next one cannot be opened", async () => {
     const opens = [
       () => Promise.resolve(spyHouse().house),
-      () => Promise.reject(new SocketOpeningError(socketTexts.startFailed)),
+      () => Promise.reject(new SocketOpeningError(everySaid(socketTexts.startFailed))),
     ];
     const { door } = spyDoor(() => (opens.shift() ?? (() => Promise.reject(new Error("no more"))))());
     const a = await door.look("s", "h", view);

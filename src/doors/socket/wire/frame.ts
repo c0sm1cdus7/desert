@@ -1,9 +1,10 @@
 // Length includes the type byte; JSON and v8 have separate limits. Clients' binary input is never decoded.
+import { meant } from "../../../fields/phrases.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
 import { readClient, readServer, socketLimits, type ClientMessage, type ServerMessage } from "./protocol.ts";
 
 const invalid = (): never => {
-  throw new Error(socketTexts.frame);
+  throw new Error(meant(socketTexts.frame));
 };
 const envelope = (type: number, body: Buffer, limit: number): Buffer => {
   if (body.length > limit) invalid();

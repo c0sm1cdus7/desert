@@ -1,4 +1,5 @@
 // Adapt authenticated HTTP events to the existing framed duplex, with ordered POSTs and no action retries.
+import { everySaid, meant } from "../../../fields/phrases.ts";
 import { Duplex } from "node:stream";
 import { remoteAddress } from "../../../runtime/remote-address.ts";
 import { socketTexts } from "../../../texts/socket.texts.ts";
@@ -31,7 +32,7 @@ class HttpStream extends Duplex {
     void this.post(bytes).then(
       () => done(),
       () => {
-        done(new Error(socketTexts.beforeState));
+        done(new Error(meant(socketTexts.beforeState)));
         this.destroy();
       },
     );
@@ -51,7 +52,7 @@ class HttpStream extends Duplex {
       });
       await response.body?.cancel();
       if (response.status === 401) this.push(serverFrame({ type: "cut", reason: socketTexts.denied }));
-      if (response.status !== 202) throw new Error(socketTexts.beforeState);
+      if (response.status !== 202) throw new Error(meant(socketTexts.beforeState));
     }
   }
   async receive(body: ReadableStream<Uint8Array>) {
@@ -81,12 +82,12 @@ async function* eventBytes(body: ReadableStream<Uint8Array>) {
       pending = pending.slice(end + 2);
       if (event.startsWith(":")) continue;
       if (event.length > socketLimits.chunk * 2 || !/^data: [A-Za-z0-9+/]+={0,2}$/.test(event))
-        throw new Error(socketTexts.frame);
+        throw new Error(meant(socketTexts.frame));
       yield Buffer.from(event.slice(6), "base64");
     }
-    if (pending.length > socketLimits.chunk * 2) throw new Error(socketTexts.frame);
+    if (pending.length > socketLimits.chunk * 2) throw new Error(meant(socketTexts.frame));
   }
-  if (pending || decoder.decode()) throw new Error(socketTexts.frame);
+  if (pending || decoder.decode()) throw new Error(meant(socketTexts.frame));
 }
 export async function httpStream(
   address: string,
@@ -111,8 +112,8 @@ export async function httpStream(
       response.headers.get("content-type") !== "text/event-stream"
     ) {
       await response.body?.cancel();
-      if (response.status === 401) throw new SocketOpeningError(socketTexts.denied);
-      throw new Error(socketTexts.beforeState);
+      if (response.status === 401) throw new SocketOpeningError(everySaid(socketTexts.denied));
+      throw new Error(meant(socketTexts.beforeState));
     }
     const stream = new HttpStream(url, { ...headers, "Desert-Session": session }, controller, send);
     stream.once("close", () => signal?.removeEventListener("abort", abort));
@@ -121,7 +122,7 @@ export async function httpStream(
   } catch (error) {
     controller.abort();
     signal?.removeEventListener("abort", abort);
-    throw error instanceof SocketOpeningError ? error : new Error(socketTexts.beforeState);
+    throw error instanceof SocketOpeningError ? error : new Error(meant(socketTexts.beforeState));
   } finally {
     clearTimeout(timer);
   }

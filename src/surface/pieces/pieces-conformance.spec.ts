@@ -2,17 +2,10 @@
 import { expect, it } from "vitest";
 import { walked } from "../../../tests/support/surface-tools.ts";
 import { conformance, type Drawn } from "../../checks/renderer-conformance.ts";
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
+import { catalogIn } from "../../../tests/support/terminal-drawn.ts";
 import { piecesOf } from "./pieces-of.ts";
 import type { ContentPiece, EntryPiece, EventPiece, RowPiece, SurfacePiece, Text } from "./pieces.ts";
 
-const catalog = [
-  ...Object.values(said.controls),
-  ...Object.values(said.chords),
-  ...Object.values(said.keys),
-  said.more,
-  said.tooSmall,
-];
 const plain = (text: Text): string => text.map(span => span.text).join("");
 const entryTexts = (entry: EntryPiece): readonly string[] => [
   ...(entry.label ? [entry.label.text] : []),
@@ -82,7 +75,7 @@ it("loses no text, adds no word and marks what is chosen, on every walked screen
   expect(stops.length).toBeGreaterThan(50);
   const failures = new Map<string, string>();
   for (const { screen, path } of stops)
-    for (const { check, missing } of conformance(screen, drawnOf(piecesOf(screen)), catalog))
+    for (const { check, missing } of conformance(screen, drawnOf(piecesOf(screen)), catalogIn(screen.language)))
       failures.set(`${check}: ${missing}`, failures.get(`${check}: ${missing}`) ?? JSON.stringify(path));
   expect([...failures].map(([failure, path]) => `${failure} at ${path}`)).toEqual([]);
 });

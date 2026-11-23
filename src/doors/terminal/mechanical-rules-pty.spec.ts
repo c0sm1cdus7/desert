@@ -1,4 +1,5 @@
 // A real process in a pseudoterminal confirms the act and receives the core's common block.
+import { said } from "../../fields/phrases.ts";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -14,7 +15,7 @@ it("the admin confirms a sale through the real terminal and the rule blocks it",
   try {
     await terminal.until("[v] ventas");
     terminal.press("vrs1\r1500\r");
-    expect((await terminal.until(rulesTexts.blocked)).join("\n")).toContain(rulesTexts.blocked);
+    expect((await terminal.until(said(rulesTexts.blocked, "es"))).join("\n")).toContain(rulesTexts.blocked.es);
     await terminal.close();
     expect(JSON.parse(readFileSync(join(home, "result.json"), "utf8"))).toEqual({ sales: 0, result: "rejected" });
   } finally {

@@ -17,7 +17,7 @@ function setup() {
   rig.attend("beto", "sales");
   expect(rig.act("beto", "register", { sale: "s1", total: 100 }, "sales")).toMatchObject({ status: "accepted" });
   const ports = rig.ports("ana", () => 5000);
-  const tool = houseTools(ports, shopShown).find(tool => tool.id === "sales");
+  const tool = houseTools(ports, shopShown, "es").find(tool => tool.id === "sales");
   if (!tool) throw new Error("Missing sales surface");
   return { rig, ports, tool };
 }
@@ -61,7 +61,9 @@ it("two identities with the same name still have independent news and destinatio
 });
 it("keeps diagnostics and leaves the ids for the notice reader without human presentation", () => {
   const { rig, ports, tool } = setup();
-  const raw = noticesOf({ ...ports, act: value => ports.act(value, 0) }, salesTool, { name: "Ventas" });
+  const raw = noticesOf({ ...ports, language: "es" as const, act: value => ports.act(value, 0) }, salesTool, {
+    name: "Ventas",
+  });
   expect(raw.notices().news[0]?.detail).toBe("beto");
   rig.bus.emit(
     effect(
@@ -75,7 +77,7 @@ it("keeps diagnostics and leaves the ids for the notice reader without human pre
 });
 it("resolves by and author in lists and own data without changing free text or ids", () => {
   const { ports } = setup();
-  const name = authorName(ports);
+  const name = authorName({ ...ports, language: "es" });
   const labels = (key: string) => key;
   expect(
     rowsIn(
@@ -105,6 +107,7 @@ it("resolves by and author in lists and own data without changing free text or i
       "sales",
       () => undefined,
       name,
+      "es",
     )[0]?.rows,
   ).toEqual([{ title: "Autor", detail: "Alberto", still: true }]);
 });

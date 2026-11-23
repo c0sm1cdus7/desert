@@ -71,6 +71,7 @@ it("calls view, targets, summary, words, needs and action methods with their own
     const tools = houseTools(
       { ...ports, registry: [owned, ...house().registry.filter(t => t.id !== "sales")] },
       shopShown,
+      "es",
     );
     const tool = tools.find(t => t.id === "sales");
     expect(tool).toBeDefined();

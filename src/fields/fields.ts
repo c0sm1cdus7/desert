@@ -4,30 +4,34 @@ import { programCall } from "./program-call.ts";
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { toolTexts } from "../texts/tools.texts.ts";
+import { meant, type Text } from "./phrases.ts";
 const isoDay = "^\\d{4}-\\d{2}-\\d{2}$";
-type Choice = Readonly<{ title: string; key: string }>;
+type Choice = Readonly<{ title: Text; key: string }>;
 /** After each thing of a list, whether another follows: the question and its two answers, each with its key. */
-export type More = Readonly<{ ask: string; done: Choice; another: Choice }>;
+export type More = Readonly<{ ask: Text; done: Choice; another: Choice }>;
 /** How long a written text may be: what fits a row and a document, never a page. */
 export const textLimit = 120;
 /** Free text: the question, and a placeholder that shows what goes there. It says something, not only spaces. */
-export const text = (ask: string, placeholder: string) =>
-  Type.String({ minLength: 1, maxLength: textLimit, pattern: visibleText, plain: true, title: ask, placeholder });
+/** A field's question: in English as its schema's title, which models and other doors read, and in every language
+ * for whoever is asked, under `said`. */
+export const titled = (ask: Text) => ({ title: meant(ask), said: ask });
+export const text = (ask: Text, placeholder: Text) =>
+  Type.String({ minLength: 1, maxLength: textLimit, pattern: visibleText, plain: true, ...titled(ask), placeholder });
 export { money, shownMoney } from "./money-field.ts";
 /** How many decimals a quantity carries: what its mask lets be written, and what every door is held to. */
 export const quantityDecimals = 3;
 /** How many of something; `initial` is what the field already says when it opens. */
-export const quantity = (ask: string, initial?: number) =>
+export const quantity = (ask: Text, initial?: number) =>
   Type.Number({
     exclusiveMinimum: 0,
     maximum: 999_999,
     decimals: quantityDecimals,
-    title: ask,
+    ...titled(ask),
     mask: "quantity",
     ...(initial === undefined ? {} : { default: initial }),
   });
 /** Which one, by its position: a whole number from one up. */
-export const count = (ask: string) => Type.Integer({ minimum: 1, maximum: 999_999_999, title: ask, mask: "count" });
+export const count = (ask: Text) => Type.Integer({ minimum: 1, maximum: 999_999_999, ...titled(ask), mask: "count" });
 /** Whether what is written as year-month-day is a day the calendar has: never the 30th of February. */
 export function isDay(value: string): boolean {
   const [year = 0, month = 0, date = 0] = value.split("-").map(Number);
@@ -38,11 +42,11 @@ export function isDay(value: string): boolean {
  * written, and no act runs with it through any door. One that is usually today opens on today: a person confirms
  * it, or writes another over it. One that already happened (`last`) is never after today: a later day is turned
  * down where it is written. */
-export const day = (ask: string, suggests?: "today", last?: "today") =>
+export const day = (ask: Text, suggests?: "today", last?: "today") =>
   holding(
     Type.String({
       pattern: isoDay,
-      title: ask,
+      ...titled(ask),
       mask: "day",
       ...(suggests === undefined ? {} : { suggests }),
       ...(last === undefined ? {} : { last }),
@@ -53,44 +57,45 @@ export const day = (ask: string, suggests?: "today", last?: "today") =>
  * field may be left without one, `none` is what that is called: «Consumidor final», «sin venta». Where a new one
  * can be made right there, `makes` is the act of that tool that makes it: its result is the answer.
  * Without a maker, `empty` says why the act is unavailable when nothing can be picked. */
-export const thing = (ask: string, tool: string, none?: string, makes?: string, empty?: string) =>
+export const thing = (ask: Text, tool: string, none?: Text, makes?: string, empty?: Text) =>
   Type.String({
     minLength: 1,
-    title: ask,
+    ...titled(ask),
     of: tool,
     ...(none === undefined ? {} : { none }),
     ...(makes === undefined ? {} : { makes }),
     ...(empty === undefined ? {} : { empty }),
   });
 /** Some of a closed set, each with its word: a person marks the ones that go. They open all marked, or none. */
-export const someOf = <T extends TSchema[]>(ask: string, marked: "all" | "none", ...arms: [...T]) =>
-  Type.Array(Type.Union(arms), { title: ask, uniqueItems: true, some: marked });
+export const someOf = <T extends TSchema[]>(ask: Text, marked: "all" | "none", ...arms: [...T]) =>
+  Type.Array(Type.Union(arms), { ...titled(ask), uniqueItems: true, some: marked });
 /** One value of a closed set, with the word and the key that choose it. */
-export const option = <V extends string>(value: V, title: string, key: string) => Type.Literal(value, { title, key });
+export const option = <V extends string>(value: V, title: Text, key: string) =>
+  Type.Literal(value, { ...titled(title), key });
 /** One of several: plain options, or shapes told apart by an option each of them carries. */
-export const oneOf = <T extends TSchema[]>(ask: string, ...arms: [...T]) => Type.Union(arms, { title: ask });
+export const oneOf = <T extends TSchema[]>(ask: Text, ...arms: [...T]) => Type.Union(arms, titled(ask));
 /** One of several, opening on the usual one: a person confirms it, or picks another. */
-export const usually = <T extends TSchema[]>(ask: string, usual: string, ...arms: [...T]) =>
-  Type.Union(arms, { title: ask, default: usual });
+export const usually = <T extends TSchema[]>(ask: Text, usual: string, ...arms: [...T]) =>
+  Type.Union(arms, { ...titled(ask), default: usual });
 /** One or more of the same thing. In a title, {n} is the position of the thing being asked. */
 export const many = <T extends TSchema>(item: T, more: More) => Type.Array(item, { minItems: 1, more });
 /** Digits in one shape or several, kept as the digits alone: `#` is a digit and the rest is written between them.
  * `00-00000000-0` for a CUIT. Only digits go in, and it is complete when it fills one of its shapes. */
-export const digits = (ask: string, ...shapes: readonly string[]) => {
+export const digits = (ask: Text, ...shapes: readonly string[]) => {
   const sizes = shapes.map(shape => Array.from(shape).filter(char => char === "#").length);
   return Type.String({
     pattern: `^(${sizes.map(size => `\\d{${size}}`).join("|")})$`,
-    title: ask,
+    ...titled(ask),
     mask: "digits",
     shapes,
   });
 };
 /** A whole number from one up, written with zeros before it up to a width: `0001`. */
-export const padded = (ask: string, width: number) =>
-  Type.Integer({ minimum: 1, maximum: 10 ** width - 1, title: ask, mask: "padded", width });
+export const padded = (ask: Text, width: number) =>
+  Type.Integer({ minimum: 1, maximum: 10 ** width - 1, ...titled(ask), mask: "padded", width });
 /** Text of only some characters, as the name someone enters with: `allowed` is what a character may be. */
-export const handle = (ask: string, hint: string, allowed: string, max: number) =>
-  Type.String({ pattern: `^[${allowed}]{1,${max}}$`, title: ask, placeholder: hint, mask: "chars", allowed, max });
+export const handle = (ask: Text, hint: Text, allowed: string, max: number) =>
+  Type.String({ pattern: `^[${allowed}]{1,${max}}$`, ...titled(ask), placeholder: hint, mask: "chars", allowed, max });
 /** Whether a field is asked, given what was answered before it in the same datum, the state of the house as whoever
  * is asked sees it, and the target the act is asked on (empty when the surface names none). */
 export type Asked<S = unknown> = (
@@ -117,7 +122,7 @@ export function isAsked(
 }
 export const isAsker = (asks: unknown): asks is Asked => typeof asks === "function";
 /** Why a datum that is complete still does not hold, when that is so: a check digit that does not match. */
-export type Wrong = (value: string, at: number) => string | undefined;
+export type Wrong = (value: string, at: number) => Text | undefined;
 /** A field that knows when what it was given is complete and wrong, and why. Said once, with the datum: the
  * surface says it where the datum is written, and no act runs with it, through whatever door it comes. */
 export const holding = <T extends TSchema>(field: T, wrong: Wrong): T => ({
@@ -127,10 +132,9 @@ export const holding = <T extends TSchema>(field: T, wrong: Wrong): T => ({
 const isWrong = (check: unknown): check is Wrong => typeof check === "function";
 const part = (schema: unknown, key: string): unknown =>
   schema !== null && typeof schema === "object" ? Reflect.get(schema, key) : undefined;
-const first = (causes: readonly (string | undefined)[]): string | undefined =>
-  causes.find(cause => cause !== undefined);
+const first = (causes: readonly (Text | undefined)[]): Text | undefined => causes.find(cause => cause !== undefined);
 /** Why a value does not hold as its declaration says: what the first field of it that knows says. */
-export function wrongIn(schema: unknown, value: unknown, at: number): string | undefined {
+export function wrongIn(schema: unknown, value: unknown, at: number): Text | undefined {
   const check = part(schema, "wrong");
   if (isWrong(check) && typeof value === "string") return programCall(check, value, at);
   const arms = part(schema, "anyOf");

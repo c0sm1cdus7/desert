@@ -1,4 +1,5 @@
 // Authentication is a server-side key lookup. No declaration in hello chooses an identity or a door.
+import { meant, type Text } from "../../../fields/phrases.ts";
 import type { Duplex } from "node:stream";
 import { houseProtocolVersion, socketLimits, type ClientMessage, type ServerMessage } from "../wire/protocol.ts";
 import { socketTexts as said } from "../../../texts/socket.texts.ts";
@@ -10,7 +11,7 @@ import { serverFrame } from "../wire/frame.ts";
 export type DoorKey = Readonly<{ identity: string; door: "terminal" | "agent"; id?: string; live?: () => boolean }>;
 export type Peer = ReturnType<typeof socketPeer>;
 type Welcome = Extract<ClientMessage, { type: "hello" }>;
-export const helloFailure = (hello: Welcome): string | undefined => {
+export const helloFailure = (hello: Welcome): Text | undefined => {
   if (hello.protocol !== houseProtocolVersion) return said.version(houseProtocolVersion, hello.protocol);
   if (hello.node !== process.versions.node)
     return /^\d+\.\d+\.\d+$/.test(hello.node) ? said.node(process.versions.node, hello.node) : said.frame;
@@ -56,7 +57,7 @@ class SocketPeer {
   readonly reportMismatch = () => {
     if (this.mismatchReported) return;
     this.mismatchReported = true;
-    this.report(said.stateMismatch);
+    this.report(meant(said.stateMismatch));
   };
   readonly sent = (value: number) => {
     this.sequence = value;
@@ -78,9 +79,9 @@ class SocketPeer {
     this.stream.end();
     endSoon(this.stream);
   };
-  readonly fail = (reason: string) => {
+  readonly fail = (reason: Text) => {
     if (this.ended) return;
-    this.report(reason);
+    this.report(meant(reason));
     this.writer.stop();
     try {
       if (this.entered && !this.stream.destroyed) this.stream.write(serverFrame({ type: "cut", reason: reason }));

@@ -1,4 +1,5 @@
 // Validate an encrypted house origin before any remote credential can leave this process.
+import { meant } from "../fields/phrases.ts";
 import { socketTexts } from "../texts/socket.texts.ts";
 export function remoteAddress(address: string, path = "/door/socket"): URL {
   try {
@@ -15,6 +16,6 @@ export function remoteAddress(address: string, path = "/door/socket"): URL {
     url.pathname = path;
     return url;
   } catch {
-    throw new Error(socketTexts.remoteAddress);
+    throw new Error(meant(socketTexts.remoteAddress));
   }
 }

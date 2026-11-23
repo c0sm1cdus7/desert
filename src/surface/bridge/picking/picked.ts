@@ -1,4 +1,6 @@
 // What a question offers: eligible things first, then the things it cannot take with their reasons.
+import type { Language } from "../../../fields/languages.ts";
+import type { Text } from "../../../fields/phrases.ts";
 import { programCall, programRule } from "../../../fields/program-call.ts";
 import { declaredCause } from "../../../tools/execution/program-causes.ts";
 
@@ -21,22 +23,28 @@ export const offeredOn =
     state: () => State<X>,
     tool: string,
     now: () => number,
-    hidden: () => boolean = () => false,
+    hidden: () => boolean,
+    language: Language,
   ) =>
   (answers: readonly string[], target = tool): Field | null => {
     const field = besides(ask.next(answers, target), target);
-    const check = (read: () => string | undefined) => programRule(() => declaredCause(act.refuses, read()));
+    const check = (read: () => Text | undefined) => programRule(() => declaredCause(act.refuses, read()));
     const stops = (answer: string) =>
       declaredCause(
         act.refuses,
         programCall(act.stops?.bind(act), ask.sofar([...answers, answer]), state(), target, now()),
       );
     if (field?.kind === "one")
-      return { ...field, options: field.options.map(option => disabled(option, stops(option.title))) };
+      return { ...field, options: field.options.map(option => disabled(option, stops(option.title), language)) };
     if (field?.kind !== "pick") return field;
     const choices = programCall(act.among?.bind(act), ask.sofar(answers), state(), target, now());
     const among = choices?.[field.of]?.bind(choices);
-    return narrowed(field, value => check(() => (value ? among?.(value) : undefined)) ?? stops(value), hidden);
+    return narrowed(
+      field,
+      value => check(() => (value ? among?.(value) : undefined)) ?? stops(value),
+      hidden,
+      language,
+    );
   };
 
 /** A first question with no answer and no available maker closes the action where it would be opened. */

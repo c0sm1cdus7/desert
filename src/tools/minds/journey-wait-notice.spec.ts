@@ -32,7 +32,6 @@ function rig() {
   const turn: TurnContext = {
     id: "t1",
     scope: { kind: "consciousness", actor },
-    language: "es",
     wake: ["cause"],
     through: 0,
     limits: turnLimits,

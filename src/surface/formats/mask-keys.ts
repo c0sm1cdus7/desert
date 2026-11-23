@@ -2,9 +2,10 @@
 import { entryAdvice } from "../../texts/entry-advice.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import type { Mask } from "../contract/contract.ts";
+import type { Text } from "../../fields/phrases.ts";
 export function maskKeys(
   accept: (typed: string, text: string) => string | undefined,
-  reason: (typed: string, text: string) => string,
+  reason: (typed: string, text: string) => Text,
 ): Pick<Mask, "put" | "rejected"> {
   return {
     put: (typed, text) => accept(typed, text) ?? typed,
@@ -15,7 +16,7 @@ export function maskKeys(
     },
   };
 }
-export const numericKeyReason = (text: string, top: string): string => {
+export const numericKeyReason = (text: string, top: Text): Text => {
   if (/\s/u.test(text)) return generic.ignored.spaces;
   if (text === "-" || text === "+") return generic.ignored.sign;
   return /^\d+$/u.test(text) ? top : generic.ignored.numbers;

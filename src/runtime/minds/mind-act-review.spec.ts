@@ -7,7 +7,6 @@ import type { HouseEmission } from "../../house/facts.ts";
 const turn: TurnContext = {
   id: "t1",
   scope: { kind: "consciousness", actor: "assistant:franco" },
-  language: "es",
   through: 1,
   wake: ["cause"],
   limits: turnLimits,

@@ -1,4 +1,5 @@
 // Configuration lookup uses only temporary fixtures and keeps credentials and malformed contents out of diagnostics.
+import { meant } from "../fields/phrases.ts";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -53,11 +54,11 @@ it.each([
 ])("reports missing configuration fields without values: %j", (config, message) => {
   const f = fixture();
   save(f.projectFile, config);
-  expect(() => readMcpConnection("void", f)).toThrow(message);
+  expect(() => readMcpConnection("void", f)).toThrow(meant(message));
 });
 it("hides malformed configuration contents and does not silently choose another identity", () => {
   const f = fixture();
   writeFileSync(f.projectFile, "synthetic-private-payload{");
   save(f.userFile, { mcpServers: { void: server("synthetic-user") } });
-  expect(() => readMcpConnection("void", f)).toThrow(socketTexts.configInvalid);
+  expect(() => readMcpConnection("void", f)).toThrow(meant(socketTexts.configInvalid));
 });

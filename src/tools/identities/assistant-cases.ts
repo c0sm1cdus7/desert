@@ -1,11 +1,12 @@
 // Declared assistant cases and unchanged refusals for the common surfaces.
+import type { Text } from "../../fields/phrases.ts";
 import { assistantText, type AssistantTextKey } from "../../texts/assistant.texts.ts";
 import { identityTexts } from "../../texts/identities.texts.ts";
 import type { Case, Step } from "../promises.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";
 type Cases<X extends Program, I> = [Case<X> & { input: I }, ...(Case<X> & { input: I })[]];
 type Kit = { tool: string; acts: string[] }[];
-const w = (key: AssistantTextKey) => assistantText(key, "es");
+const w = (key: AssistantTextKey) => assistantText(key);
 const on = "identities/carla";
 const input = { name: "Nora" };
 const enabled = { act: "enable-assistant", on, input };
@@ -13,7 +14,7 @@ const removed = { act: "remove", on, input: {} };
 const named = { act: "new", input: { identity: "nora", name: "Nora", tools: [], language: "es" } };
 const adopt = { legacy: "nora", name: "Nora" };
 const adoption = { act: "adopt-assistant", on, input: adopt };
-const success = (key: AssistantTextKey, sure?: string) => ({ says: w(key), facts: [], ...(sure ? { sure } : {}) });
+const success = (key: AssistantTextKey, sure?: Text) => ({ says: w(key), facts: [], ...(sure ? { sure } : {}) });
 const refusal = (key: AssistantTextKey) => ({ refused: w(key) });
 function enableCases<X extends Program>(): Cases<X, { name: string }> {
   return [

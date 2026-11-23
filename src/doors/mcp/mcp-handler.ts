@@ -1,5 +1,7 @@
 // Handle authenticated HTTP and JSON-RPC without sockets and preserve explicit correlation after redaction.
 export { deriveHostCredential } from "./host-credential.ts";
+import { meant, said as inWords } from "../../fields/phrases.ts";
+import { readerLanguage } from "../../house/members.ts";
 import { mcpCredentials, credentialRoutes, type McpCredentialOptions } from "./mcp-credentials.ts";
 import { requestDigest } from "../socket/requests/public-message.ts";
 import { socketHttp } from "./socket-http.ts";
@@ -20,7 +22,6 @@ import { mcpTexts as said } from "../../texts/mcp.texts.ts";
 import { authenticate, bodyFailure, readBody, empty, type McpRequest, type McpResponse } from "./mcp-access.ts";
 import { initialize, mcpTools, rpcMessage, RpcError, toolCall, toolResult, type RpcId } from "./mcp-protocol.ts";
 import { mcpReading, type McpHouse } from "./mcp-reading.ts";
-import { doorTexts } from "../../texts/doors.texts.ts";
 import { isRecord } from "../../fields/json-values.ts";
 import { mcpAct, privateInvitation } from "./mcp-actions.ts";
 import { deviceHttp, type DeviceDoorOptions } from "../devices/device-http.ts";
@@ -89,7 +90,7 @@ function dispatcher<X extends Program>(
   return async (request: McpRequest): Promise<McpResponse> => {
     if (request.method === "POST" && request.path === "/door/invitations/redeem")
       return closing.aborted ? empty(503) : redeemHttp(keys, request);
-    if (request.method === "GET" && request.path === "/salud")
+    if (request.method === "GET" && request.path === "/health")
       return { status: 200, headers: { "Content-Type": "text/plain" }, body: said.health };
     if (request.method === "GET" && request.path === "/mcp") return empty(405, { Allow: "POST" });
     if (request.method !== "POST" || request.path !== "/mcp") return empty(404);
@@ -155,7 +156,7 @@ async function protocol<X extends Program>(
       if (!authorized()) return empty(401, { "WWW-Authenticate": "Bearer" });
       value = JSON.parse(body);
     } catch {
-      throw new RpcError(-32700, said.parse);
+      throw new RpcError(-32700, meant(said.parse));
     }
     const message = rpcMessage(value);
     id = message.id;
@@ -171,7 +172,7 @@ async function protocol<X extends Program>(
         id,
         error: {
           code: error instanceof RpcError ? error.code : -32603,
-          message: error instanceof RpcError ? error.message : said.failed,
+          message: error instanceof RpcError ? error.message : meant(said.failed),
         },
       }),
     );
@@ -182,7 +183,7 @@ function publicResult<X extends Program>(house: McpHouse<X>, keys: DoorAccess, v
   const redact = (value: unknown): unknown => {
     if (typeof value === "string") {
       let text = value;
-      text = text.replace(/[A-Za-z0-9_+-]{8,}={0,2}/g, token => (keys.get(token) ? said.redacted : token));
+      text = text.replace(/[A-Za-z0-9_+-]{8,}={0,2}/g, token => (keys.get(token) ? meant(said.redacted) : token));
       return text;
     }
     if (Array.isArray(value)) return value.map(redact);
@@ -200,7 +201,7 @@ function publicResult<X extends Program>(house: McpHouse<X>, keys: DoorAccess, v
     isRecord(safe.result) &&
     Array.isArray(safe.result.content)
   ) {
-    safe.result.content.push({ type: "text", text: doorTexts.receipt(value.result[privateInvitation]) });
+    safe.result.content.push({ type: "text", text: value.result[privateInvitation] });
   }
   // Both doors use the same tagged digest when echoing the original identifier would disclose a credential.
   if (isRecord(value) && typeof value.id === "string" && isRecord(safe) && safe.id !== value.id)
@@ -214,10 +215,11 @@ function caller<X extends Program>(
   waits: Map<string, number>,
 ) {
   return async (by: string, method: string, params: unknown, signal: AbortSignal): Promise<unknown> => {
-    if (method === "initialize") return initialize(params, { name: options.name, version: options.version });
+    const language = readerLanguage(house.tools.state().house, by);
+    if (method === "initialize") return initialize(params, { name: options.name, version: options.version }, language);
     if (method === "ping") return {};
-    if (method === "tools/list") return { tools: mcpTools };
-    if (method !== "tools/call") throw new RpcError(-32601, said.method);
+    if (method === "tools/list") return { tools: mcpTools(language) };
+    if (method !== "tools/call") throw new RpcError(-32601, meant(said.method));
     const { name, args } = toolCall(params);
     const reading = mcpReading(house, by, options.limits);
     const program = typeof args.program === "string" ? args.program : undefined;
@@ -238,7 +240,7 @@ function caller<X extends Program>(
         Value.Check(executionDestination, args.destination) ? args.destination : undefined,
         signal,
       );
-    throw new RpcError(-32602, said.params);
+    throw new RpcError(-32602, meant(said.params));
   };
 }
 /** One identity keeps at most the socket's number of open waits; each frees its place when it ends. */
@@ -250,7 +252,8 @@ async function wait<X extends Program>(
   signal: AbortSignal,
 ) {
   const open = waits.get(by) ?? 0;
-  if (open >= socketLimits.waits) throw new RpcError(-32000, said.busy);
+  if (open >= socketLimits.waits)
+    throw new RpcError(-32000, inWords(said.busy, readerLanguage(house.tools.state().house, by)));
   waits.set(by, open + 1);
   try {
     const changed = await houseChange(

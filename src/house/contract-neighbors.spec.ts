@@ -69,7 +69,10 @@ it("checks a changed kit again when an in-flight mind later starts a nested act"
   expect(started.status).toBe("processing");
   kit(rig, "mind:desk", ["delayed"]);
   release();
-  expect(await settle(started)).toMatchObject({ status: "rejected", reason: "fuera del kit" });
+  expect(await settle(started)).toMatchObject({
+    status: "rejected",
+    reason: { en: "outside the kit", es: "fuera del kit" },
+  });
   expect(rig.facts().filter(event => event.kind === "act-done")).toHaveLength(0);
 });
 
@@ -115,7 +118,11 @@ it("interrupts a mind across a restart without repeating its in-flight action", 
   rig.restart();
   rig.boot();
   release();
-  expect(await settle(started)).toMatchObject({ status: "interrupted", reason: "acción interrumpida", effects: [] });
+  expect(await settle(started)).toMatchObject({
+    status: "interrupted",
+    reason: { en: "action interrupted", es: "acción interrumpida" },
+    effects: [],
+  });
   expect(runs).toBe(1);
   expect(rig.state().processing.size).toBe(0);
   expect(rig.facts().findLast(event => event.kind === "act-result")).toMatchObject({

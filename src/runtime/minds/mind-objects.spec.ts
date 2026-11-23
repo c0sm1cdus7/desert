@@ -1,4 +1,4 @@
-// Objetos shows each thing in play capped, with its length and how to read it whole; the rest are rows of a list.
+// Objects shows each thing in play capped, with its length and how to read it whole; the rest are rows of a list.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { answer } from "../../../tests/support/request-mind-fixture.ts";
 import { effect } from "../../house/facts.ts";
@@ -26,7 +26,7 @@ it("caps a thing in play, reads it whole in the same turn, and leaves a quiet th
   f.prepare(house);
   let read = false;
   f.respond(frame => {
-    if (!read || supervising(frame) || !frame.startsWith("Alcance:\nmind:notes")) return answer();
+    if (!read || supervising(frame) || !frame.startsWith("Scope:\nmind:notes")) return answer();
     read = false;
     return answer([{ act: "read", target: "notes/personal", input: { from: 0 } }]);
   });
@@ -37,9 +37,9 @@ it("caps a thing in play, reads it whole in the same turn, and leaves a quiet th
   read = true;
   await think(house, "Leé tus notas");
   await think(house, "Gracias");
-  const frames = framesOf(f).filter(frame => frame.startsWith("Alcance:\nmind:notes"));
-  const reading = frames.find(frame => section(frame, "Despertar").includes("Leé tus notas")) ?? "";
-  const objects = section(reading, "Objetos");
+  const frames = framesOf(f).filter(frame => frame.startsWith("Scope:\nmind:notes"));
+  const reading = frames.find(frame => section(frame, "Wake").includes("Leé tus notas")) ?? "";
+  const objects = section(reading, "Objects");
   expect(objects).toContain(note(1).slice(0, 20));
   expect(objects).not.toContain(note(20));
   expect(objects).toMatch(/read notes\/personal/u);
@@ -47,7 +47,7 @@ it("caps a thing in play, reads it whole in the same turn, and leaves a quiet th
   const results = bodies.find(body => body.includes('"role":"assistant"'))?.split('"role":"assistant"')[1] ?? "";
   expect(results).toContain(note(20));
   // Nothing touched the notes since: they are a row of the tool's list, readable whole by the same act.
-  const quiet = section(frames.find(frame => section(frame, "Despertar").includes("Gracias")) ?? "", "Objetos");
+  const quiet = section(frames.find(frame => section(frame, "Wake").includes("Gracias")) ?? "", "Objects");
   expect(quiet).not.toContain("Nota 01");
   expect(quiet).toContain('"id":"notes/personal"');
 }, 60000);

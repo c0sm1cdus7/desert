@@ -1,4 +1,5 @@
 // Keeps opening diagnostics outside the journal and the terminal's output.
+import { meant } from "../fields/phrases.ts";
 import { closeSync, constants, fstatSync, openSync, readSync, writeSync } from "node:fs";
 import { join } from "node:path";
 import type { FoldWarning } from "../journal/snapshot-format.ts";
@@ -27,7 +28,7 @@ const causeOf = (error: unknown): string =>
 function writeAll(files: RecordFiles, fd: number, bytes: Buffer): string | undefined {
   for (let done = 0; done < bytes.length;) {
     const wrote = files.writeSync(fd, bytes, done, bytes.length - done);
-    if (wrote <= 0) return journalTexts.incompleteRecord;
+    if (wrote <= 0) return meant(journalTexts.incompleteRecord);
     done += wrote;
   }
   return undefined;
@@ -45,7 +46,7 @@ function append(files: RecordFiles, path: string, line: string): string | undefi
   try {
     fd = files.openSync(path, flags, 0o600);
     const stat = files.fstatSync(fd);
-    if (!stat.isFile() || stat.nlink !== 1 || stat.uid !== process.getuid?.()) cause = journalTexts.notOwnRecord;
+    if (!stat.isFile() || stat.nlink !== 1 || stat.uid !== process.getuid?.()) cause = meant(journalTexts.notOwnRecord);
     else cause = writeAll(files, fd, delimited(files, fd, stat.size, line));
   } catch (error) {
     cause = causeOf(error);
@@ -66,7 +67,7 @@ export function storageNotices(home?: string, files: RecordFiles = recordFiles) 
     warn: (warning: FoldWarning) => {
       warnings.push(Object.freeze({ ...warning }));
       if (!home) return;
-      const line = `${JSON.stringify({ code: journalTexts.rebuildCode, ...warning })}\n`;
+      const line = `${JSON.stringify({ code: meant(journalTexts.rebuildCode), ...warning })}\n`;
       const cause = append(files, join(home, "storage-notices.jsonl"), line);
       if (cause !== undefined) unsaved.add(cause);
     },

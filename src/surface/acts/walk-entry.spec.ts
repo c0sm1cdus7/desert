@@ -7,7 +7,7 @@ import { resolve } from "../router/resolve.ts";
 import { begin, type Session } from "../session/screen.ts";
 import { startTalk } from "../session/talk.ts";
 
-const bar = { state: "connected", clock: "14:32", now: 5_000 } as const;
+const bar = { language: "es", state: "connected", clock: "14:32", now: 5_000 } as const;
 const locale = { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" };
 /** A tool whose one act asks one question: the one given. */
 function asking(field: Field): Tool {

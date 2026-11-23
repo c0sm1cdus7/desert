@@ -7,7 +7,7 @@ import { programChecks } from "../program-checks.ts";
 import { opacityChecks } from "./opacity-derived.ts";
 import { ActionSecrets } from "../../keychain/positions/action-scope.ts";
 const checks = (program = opacityProgram()) =>
-  programChecks(program, shopShown).filter(check => check.name.endsWith("posiciones secretas opacas"));
+  programChecks(program, shopShown).filter(check => check.name.endsWith("opaque secret positions"));
 it("derives both actions and every case, through the real boundary", async () => {
   const seen: unknown[] = [];
   const all = checks(opacityProgram(undefined, undefined, seen));
@@ -28,14 +28,14 @@ for (const input of [
       { promise: "missing", input: { kind: "public", first: [] }, then: { facts: [], says: "Material · Guardado" } },
     ]);
     for (const check of opacityChecks(program))
-      await expect(check.run()).rejects.toThrow("Posiciones secretas sin caso ejecutado");
+      await expect(check.run()).rejects.toThrow("Secret positions without an executed case");
   });
 it("sentinel: removing the substitution makes the derived gate fail", async () => {
   const mutation = vi
     .spyOn(ActionSecrets.prototype, "scope")
     .mockImplementation((_schema, input, work) => work(input, true));
   try {
-    await expect(checks()[0]?.run()).rejects.toThrow("Posiciones secretas sin caso ejecutado");
+    await expect(checks()[0]?.run()).rejects.toThrow("Secret positions without an executed case");
   } finally {
     mutation.mockRestore();
   }

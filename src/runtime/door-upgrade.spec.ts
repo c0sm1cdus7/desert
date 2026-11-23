@@ -125,7 +125,7 @@ it("refuses a journal whose identities have no language until the migration give
       insert into events select row_number() over (order by seq), id, at, kind, by, cause, data, process from kept;`);
     db.close();
     expect(() => startHouse(home, options)).toThrow(UnmigratedJournal);
-    expect(() => startHouse(home, options)).toThrow("Identidades sin idioma: ana, beto");
+    expect(() => startHouse(home, options)).toThrow("Identities without a language: ana, beto");
     expect(migrateStoredNames(join(home, "journal.sqlite"), "house", backups)).toMatchObject({ spoken: 2 });
     const h = startHouse(home, options);
     try {

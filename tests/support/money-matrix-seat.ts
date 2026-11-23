@@ -61,19 +61,30 @@ const keys: readonly Intent[] = [
   { kind: "down" },
   { kind: "paste", text: " \n-1.234,56\n " },
 ];
+/** How the matrix asks: a fixed instant and day, the shop's money, read in Spanish. */
+const matrixWords = {
+  now: () => 17,
+  today: () => "2026-11-13",
+  optionalMark: "",
+  language: "es" as const,
+  formats: formats({ currency: "$", decimal: ",", thousands: ".", day: "dd/mm/aaaa" }),
+};
 function matrixTools(sale: { currency: string }, state: MatrixState): readonly Tool[] {
   const amount = money("Importe", 1, (_, state: typeof sale) => state.currency);
   const ask = asking(object({ amount, ...(state === "later-field" ? { note: text("Nota", "Nota") } : {}) }), {
+    ...matrixWords,
     state: () => sale,
-    now: () => 17,
-    today: () => "2026-11-13",
-    optionalMark: "",
-    formats: formats({ currency: "$", decimal: ",", thousands: ".", day: "dd/mm/aaaa" }),
   });
   const next = (answers: readonly string[]): Field | null =>
     ask.next(answers) ??
     (state === "confirmation" && answers.length === 1
-      ? { kind: "confirm", ask: "Confirmar importe", reversible: true, options: [{ title: "anotar", key: "a" }] }
+      ? {
+          kind: "confirm",
+          ask: "Confirmar importe",
+          reversible: true,
+          back: "volver",
+          options: [{ title: "anotar", key: "a" }],
+        }
       : null);
   return [
     {
@@ -100,11 +111,12 @@ export function matrixSeat(state: MatrixState, sale = { currency: "$" }) {
   let session: Session = [begin(tools, "data", "enter")];
   let running: Running | undefined;
   const send = (key: Intent) => {
-    const moved = step(session, key, tools, 17);
+    const moved = step(session, key, tools, 17, "es");
     session = moved.session;
     running = moved.run ?? running;
   };
-  const screen = () => resolve(session, tools, { state: "connected", clock: "00:00", now: 17 }, { rows: 40 });
+  const screen = () =>
+    resolve(session, tools, { language: "es", state: "connected", clock: "00:00", now: 17 }, { rows: 40 });
   const end = (ok: boolean) => {
     const current = session.at(-1);
     if (current?.kind !== "act") throw new Error("Expected action");

@@ -1,4 +1,5 @@
 // The Bar with its Beat, and the Toolbar with its actions: what a screen says above and below what it shows.
+import type { Language } from "../../fields/languages.ts";
 import type { Hint, Screen } from "../contract/contract.ts";
 import { hintSends } from "../contract/hint-sends.ts";
 import type { Tone } from "../contract/tones.ts";
@@ -27,15 +28,15 @@ export const barOf = (screen: Screen): BarPiece => ({
   ...(screen.battery ? { battery: { text: screen.battery, tone: "t2" } } : {}),
 });
 /** One hint of this screen: the name of its key, its verb as the screen says it, and what it sends. */
-export const actionOf = (hint: Hint): ActionPiece => ({
+export const actionOf = (hint: Hint, language: Language): ActionPiece => ({
   kind: "action",
   control: hint.intent,
-  key: { text: controlNames[hint.intent], tone: "t2" },
+  key: { text: controlNames(language)[hint.intent], tone: "t2" },
   does: { text: hint.does, tone: "t3" },
   sends: hintSends[hint.intent],
 });
 export const toolbarOf = (screen: Screen): ToolbarPiece => ({
   kind: "toolbar",
-  fixed: fixedControls(screen.menu),
-  aids: screen.hints.map(actionOf),
+  fixed: fixedControls(screen.menu, screen.language),
+  aids: screen.hints.map(hint => actionOf(hint, screen.language)),
 });

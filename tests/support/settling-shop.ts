@@ -1,4 +1,6 @@
 // The test shop with an act on one of its things, and screens that list those things deeper, or not at all.
+import type { Language } from "../../src/fields/languages.ts";
+import { said } from "../../src/fields/phrases.ts";
 import { object } from "../../src/fields/visible-text.ts";
 import { anyToolScreen } from "../../src/surface/bridge/views/any-tool.ts";
 import { listsOf, section, type ProgramScreen, type ToolWords } from "../../src/surface/bridge/ports/house-ports.ts";
@@ -86,8 +88,8 @@ export const settlingShop = shopWith({ sales: { needs: owing, acts: { settle } }
 export const carelessShop = shopWith({ sales: { needs: () => [], acts: { settle } } });
 export const every = "sales:every";
 /** What heads the list of the sales, and what it says with none: the shop's own words for them. */
-const listed = (words: ToolWords): string => listsOf(words)?.listed ?? "";
-const none = (words: ToolWords): string => listsOf(words)?.empty ?? "";
+const listed = (words: ToolWords, language: Language): string => said(listsOf(words)?.listed ?? "", language);
+const none = (words: ToolWords, language: Language): string => said(listsOf(words)?.empty ?? "", language);
 /** The sales one view further in: the tool's own view opens a row that lists them. */
 const nested: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
   const plain = anyToolScreen(ports, tool, words, acts, start);
@@ -95,7 +97,7 @@ const nested: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
     ...plain,
     titleOf: target => (target === every ? "Todas" : (plain.titleOf?.(target) ?? target)),
     view: target => {
-      if (target === undefined) return [section(listed(words), [{ title: "Todas", opens: every }])];
+      if (target === undefined) return [section(listed(words, ports.language), [{ title: "Todas", opens: every }])];
       return plain.view(target === every ? undefined : target);
     },
   };
@@ -105,7 +107,10 @@ const hiding: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
   const plain = anyToolScreen(ports, tool, words, acts, start);
   return {
     ...plain,
-    view: target => (target === undefined ? [section(listed(words), [], none(words))] : plain.view(target)),
+    view: target =>
+      target === undefined
+        ? [section(listed(words, ports.language), [], none(words, ports.language))]
+        : plain.view(target),
   };
 };
 export const nestedShown = shownWith({ sales: nested });
@@ -126,7 +131,7 @@ const apart: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
       const done = rows.filter(row => !owing(row));
       if (target === settledOnes) return [section("Saldadas", done)];
       const rest = done.length ? [section("Saldadas", [{ title: "Saldadas", opens: settledOnes }])] : [];
-      return [section(listed(words), rows.filter(owing), none(words)), ...rest];
+      return [section(listed(words, ports.language), rows.filter(owing), none(words, ports.language)), ...rest];
     },
   };
 };

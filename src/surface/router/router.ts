@@ -1,4 +1,5 @@
 // The one way a surface talks with a house: intents in, the screen out. Every renderer uses it, and decides nothing.
+import { said } from "../../fields/phrases.ts";
 import { routerDefects, type DefectReporter } from "./router-defect.ts";
 import type { Intent, Screen } from "../contract/contract.ts";
 import type { Result, Tool } from "../contract/shown-tool.ts";
@@ -55,7 +56,7 @@ export function startRouter({ tools, bar, changes, redrawMs, first = start, defe
       .then(() => actOf(tools, walk).run(walk.answers))
       .catch((failure: unknown): Result => ({
         ok: false,
-        reason: defect(failure, walk.tool, walk.target ?? walk.tool, walk.act),
+        reason: said(defect(failure, walk.tool, walk.target ?? walk.tool, walk.act), bar().language),
       }));
     later(done, result => (session = finished(session, walk, result, bar().clock)));
   };
@@ -64,7 +65,7 @@ export function startRouter({ tools, bar, changes, redrawMs, first = start, defe
     idle,
     screen: viewport => resolve(session, tools, bar(), viewport),
     send: intent => {
-      const stepped = step(session, intent, tools, bar().now);
+      const stepped = step(session, intent, tools, bar().now, bar().language);
       session = stepped.session;
       if (stepped.quit) return false;
       if (stepped.run) run(stepped.run);

@@ -1,4 +1,5 @@
 // Keep only fingerprints of process credentials so every journal and public surface can redact them.
+import { meant } from "../../fields/phrases.ts";
 import { createHash } from "node:crypto";
 import { mcpTexts } from "../../texts/mcp.texts.ts";
 const fingerprints = new Map<number, Set<string>>();
@@ -21,7 +22,7 @@ export function scrubVolatileDoorText(text: string): string {
   let result = "";
   for (let i = 0; i < text.length; i++) {
     if (!covered[i]) result += text.charAt(i);
-    else if (!covered[i - 1]) result += mcpTexts.redacted;
+    else if (!covered[i - 1]) result += meant(mcpTexts.redacted);
   }
   return result;
 }

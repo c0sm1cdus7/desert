@@ -1,4 +1,5 @@
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
+import { meant } from "../fields/phrases.ts";
 import { effect } from "../house/facts.ts";
 import { cancelInheritedWake } from "../house/inherited-wake.ts";
 import {
@@ -47,7 +48,7 @@ function houseContracts<X extends Program>(options: HouseOptions<X>, resources: 
 /** A journal whose identities have no language was written before 23/11: it opens only once migrated. */
 function requireLanguages(house: House): void {
   const missing = unspoken(house);
-  if (missing.length) throw new UnmigratedJournal(storedNamesTexts.unmigrated(missing));
+  if (missing.length) throw new UnmigratedJournal(meant(storedNamesTexts.unmigrated(missing)));
 }
 export function startHouse<X extends Program>(
   home: string,

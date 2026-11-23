@@ -68,7 +68,11 @@ it("N8: closing the house during a use: the use rejects with E-CUSTODY-DENIED an
   const zeroed = seen?.every(byte => byte === 0);
   release();
   const result = await pending;
-  expect(result).toMatchObject({ status: "interrupted", reason: "acción interrumpida", effects: [] });
+  expect(result).toMatchObject({
+    status: "interrupted",
+    reason: { en: "action interrupted", es: "acción interrumpida" },
+    effects: [],
+  });
   expect(zeroed).toBe(true);
   expect(outcome).toMatchObject({ code: "E-CUSTODY-DENIED" });
 });

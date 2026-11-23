@@ -26,7 +26,7 @@ const done: Done = {
 
 describe("what was answered", () => {
   it("is read beside what was asked, and under it when what was asked is a block of several lines", () => {
-    const body = walkBody(done, null, 0);
+    const body = walkBody(done, null, 0, "es");
     const read = body.kind === "thread" ? body.events.map(event => event.text.map(span => span.text).join("")) : [];
     expect(read.slice(0, 2)).toEqual(["Venta Venta 1", `${block}\nemitir`]);
   });

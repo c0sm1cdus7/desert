@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { messageCoverage } from "../../src/checks/laws/message-coverage.ts";
+import { messageCoverage, phraseCoverage } from "../../src/checks/laws/message-coverage.ts";
 import { hiddenRules } from "../../src/checks/laws/prompts.ts";
 import { lawRepository } from "../support/law-repository.ts";
 import { root, ownCode } from "../support/sources.ts";
@@ -75,4 +75,18 @@ it("rejects undefined, empty translations and duplicated ids", () => {
     "src/texts/two.ts": declaration("text", '{ en: "Hello", es: "Hola" }'),
   });
   expect(messageCoverage(repo)).toEqual(["src/texts/two.ts:test.words:duplicate"]);
+});
+it("gives every production phrase its words in every declared language", () => {
+  expect(phraseCoverage({ root, code: ownCode })).toEqual([]);
+});
+it("turns red for a phrase that leaves a language out, or says it blank", () => {
+  const repo = lawRepository({
+    "src/texts/sample.ts": [
+      'export const words = { saved: { en: "Saved", es: "Guardado" }, gone: { es: "Ido" }, blank: { en: " ",',
+      ' es: "Vacío" }, built: (n: number) => ({ en: `${n} left`, es: `${n} quedan` }), key: "s" };',
+      "export const other = { en: 1, extra: true };",
+    ].join("\n"),
+  });
+  expect(phraseCoverage(repo)).toEqual(["src/texts/sample.ts:1:en", "src/texts/sample.ts:1:en"]);
+  expect(phraseCoverage(repo, ["es"])).toEqual([]);
 });

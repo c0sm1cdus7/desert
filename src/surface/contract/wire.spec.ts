@@ -110,7 +110,7 @@ describe("a choose that names no row", () => {
     for (const { path } of stops) {
       const tools = fresh();
       const session = await replayed(tools, path);
-      const stepped = step(session, { kind: "choose", row: "nothing" }, tools, 5_000);
+      const stepped = step(session, { kind: "choose", row: "nothing" }, tools, 5_000, "es");
       expect(stepped).toEqual({ session });
     }
   });

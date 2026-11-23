@@ -32,7 +32,9 @@ it("turns red for a state-changing fact without a registered action emitter", ()
     "src/factory.ts": factories,
     "src/host.ts": `import {effect} from './factory.ts'; export function host(){return effect('unowned-change')}`,
   });
-  expect(failures.some(text => text.includes("E-L6-FACT · hecho sin acción registrada · unowned-change"))).toBe(true);
+  expect(failures.some(text => text.includes("E-L6-FACT · fact without a registered action · unowned-change"))).toBe(
+    true,
+  );
 });
 it("turns red for a catalog text used only by its test", () => {
   const failures = inspect({
@@ -40,9 +42,9 @@ it("turns red for a catalog text used only by its test", () => {
     "src/screen.ts": `import {words} from './texts/words.ts'; console.log(words.shown);`,
     "src/words.spec.ts": `import {words} from './texts/words.ts'; console.log(words.forgotten);`,
   });
-  expect(failures.some(text => text.includes("E-L6-TEXT · texto sin uso · forgotten"))).toBe(true);
-  expect(failures.some(text => text.includes("E-L6-TEXT · texto sin uso · shown"))).toBe(false);
-  expect(failures.some(text => text.includes("E-L6-TEXT · texto sin uso · quoted-unused"))).toBe(true);
+  expect(failures.some(text => text.includes("E-L6-TEXT · unused text · forgotten"))).toBe(true);
+  expect(failures.some(text => text.includes("E-L6-TEXT · unused text · shown"))).toBe(false);
+  expect(failures.some(text => text.includes("E-L6-TEXT · unused text · quoted-unused"))).toBe(true);
 });
 it("turns red for test-only exports but admits the public testing contract", () => {
   const failures = inspect({
@@ -50,8 +52,8 @@ it("turns red for test-only exports but admits the public testing contract", () 
     "src/testing.ts": `export {fixture} from './helper.ts';`,
     "src/helper.spec.ts": `import {dead,fixture} from './helper.ts'; console.log(dead(),fixture());`,
   });
-  expect(failures.some(text => text.includes("E-L6-EXPORT · exportado usado sólo por pruebas · dead"))).toBe(true);
-  expect(failures.some(text => text.includes("E-L6-EXPORT · exportado usado sólo por pruebas · fixture"))).toBe(false);
+  expect(failures.some(text => text.includes("E-L6-EXPORT · export used only by tests · dead"))).toBe(true);
+  expect(failures.some(text => text.includes("E-L6-EXPORT · export used only by tests · fixture"))).toBe(false);
 });
 it.each([
   { exports: { "./public": "./src/public.ts" }, path: "src/public.ts" },
@@ -70,11 +72,9 @@ it.each([
     "src/unpublished.spec.ts": "import {dead} from './unpublished.ts'; console.log(dead());",
   });
   for (const name of ["published", "entry"])
-    expect(failures.some(text => text.includes(`E-L6-EXPORT · exportado usado sólo por pruebas · ${name}`))).toBe(
-      false,
-    );
+    expect(failures.some(text => text.includes(`E-L6-EXPORT · export used only by tests · ${name}`))).toBe(false);
   for (const name of ["internal", "dead"])
-    expect(failures.some(text => text.includes(`E-L6-EXPORT · exportado usado sólo por pruebas · ${name}`))).toBe(true);
+    expect(failures.some(text => text.includes(`E-L6-EXPORT · export used only by tests · ${name}`))).toBe(true);
 });
 it("recognizes the gate's declared composition without excusing neighboring test helpers", () => {
   const failures = inspect({
@@ -85,8 +85,8 @@ it("recognizes the gate's declared composition without excusing neighboring test
     "tests/distribution.ts": "import {program as artifact} from '../src/program.ts'; export const program = artifact;",
     "src/program.spec.ts": "import {dead} from './program.ts'; console.log(dead());",
   });
-  expect(failures.some(text => text.includes("E-L6-EXPORT · exportado usado sólo por pruebas · program"))).toBe(false);
-  expect(failures.some(text => text.includes("E-L6-EXPORT · exportado usado sólo por pruebas · dead"))).toBe(true);
+  expect(failures.some(text => text.includes("E-L6-EXPORT · export used only by tests · program"))).toBe(false);
+  expect(failures.some(text => text.includes("E-L6-EXPORT · export used only by tests · dead"))).toBe(true);
 });
 it("follows registered aliases and action helpers to the emitted fact", () => {
   expect(
@@ -104,7 +104,9 @@ it("turns red for an installable program fact declared but never emitted", () =>
     "src/program.ts": `const changes = [{kind:"forgotten-change",schema:{}}];
         export const program={facts:changes,tools:{notes:{acts:{}}}};`,
   });
-  expect(failures.some(text => text.includes("E-L6-FACT · hecho sin acción registrada · forgotten-change"))).toBe(true);
+  expect(failures.some(text => text.includes("E-L6-FACT · fact without a registered action · forgotten-change"))).toBe(
+    true,
+  );
 });
 
 it("accepts an installable fact emitted as a registered action's literal effect", () => {

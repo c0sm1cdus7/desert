@@ -1,4 +1,5 @@
 // Reports every runtime composition problem with a stable reason and path before building any maps.
+import { meant } from "../../fields/phrases.ts";
 import { distributionContractIssues } from "./program-contracts.ts";
 import { contractTexts } from "../../texts/contracts.texts.ts";
 import { distributionTexts } from "../../texts/distributions.texts.ts";
@@ -11,7 +12,7 @@ export type CompositionIssue = Readonly<{
 export class CompositionError extends Error {
   readonly issues: readonly CompositionIssue[];
   constructor(issues: readonly CompositionIssue[]) {
-    super([distributionTexts.failed, ...issues.map(issueText)].join("\n"));
+    super([meant(distributionTexts.failed), ...issues.map(issueText)].join("\n"));
     this.name = "CompositionError";
     this.issues = Object.freeze(issues.map(issue => Object.freeze({ ...issue })));
   }
@@ -64,8 +65,7 @@ export function diagnose(options: CompositionOptions): readonly CompositionIssue
 }
 
 function issueText(issue: CompositionIssue): string {
-  const message =
-    Object.entries(distributionTexts.reasons).find(([reason]) => reason === issue.reason)?.[1] ??
-    `${contractTexts.invalidComposition} (${issue.reason})`;
+  const known = Object.entries(distributionTexts.reasons).find(([reason]) => reason === issue.reason)?.[1];
+  const message = known === undefined ? `${meant(contractTexts.invalidComposition)} (${issue.reason})` : meant(known);
   return `${issue.path}: ${message}`;
 }

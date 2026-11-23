@@ -13,7 +13,7 @@ it("tells a short record from another head and explains what is accepted", () =>
   const db = new DatabaseSync(rig.file);
   db.exec("drop trigger custody_no_delete; delete from custody_facts");
   db.close();
-  expect(() => rig.open()).toThrow(/ancla espera 1 renglones; hay 0.*vínculos/su);
+  expect(() => rig.open()).toThrow(/anchor expects 1 rows; there are 0.*bindings/su);
 });
 it("reports storage when SQLite fills up", () => {
   const rig = custodyRig(),
@@ -21,7 +21,7 @@ it("reports storage when SQLite fills up", () => {
   const pages = db.db.prepare("pragma page_count").get()?.page_count;
   db.db.exec(`pragma max_page_count=${Number(pages)}`);
   expect(() => db.intent("secret:00000000-0000-4000-8000-000000000000", "x".repeat(100000), false)).toThrow(
-    /E-CUSTODY-STORAGE.*espacio en disco/u,
+    /E-CUSTODY-STORAGE.*disk space/u,
   );
   db.close();
 });

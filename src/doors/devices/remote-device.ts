@@ -1,4 +1,5 @@
 // Connect a device to a remote house over HTTPS: sign one challenge, long-poll for work, post receipts and notices.
+import { meant } from "../../fields/phrases.ts";
 import { setTimeout as pause } from "node:timers/promises";
 import type { DeviceEndpoint, DeviceRequest } from "../../fields/device-protocol.ts";
 import { remoteAddress } from "../../runtime/remote-address.ts";
@@ -82,19 +83,19 @@ class RemoteDevice {
       signal: AbortSignal.any([this.signal, AbortSignal.timeout(milliseconds)]),
     });
     const text = await response.text();
-    if (response.status === 401) throw new Error(deviceTexts.authentication);
-    if (response.status === 400) throw new Error(deviceTexts.refusedBody);
-    if (response.status !== 200) throw new Error(deviceTexts.unavailable);
+    if (response.status === 401) throw new Error(meant(deviceTexts.authentication));
+    if (response.status === 400) throw new Error(meant(deviceTexts.refusedBody));
+    if (response.status !== 200) throw new Error(meant(deviceTexts.unavailable));
     return text;
   }
   private async open() {
     const { device, endpoint, sign } = this.options;
     const challenge = parsed(challengeAnswer, await this.post(devicePaths.challenge, { device }, openMs));
-    if (!challenge) throw new Error(deviceTexts.invalid);
+    if (!challenge) throw new Error(meant(deviceTexts.invalid));
     const signature = await sign(challenge.message);
     const body = { id: challenge.id, signature, inventory: endpoint.inventory };
     const connected = parsed(connectAnswer, await this.post(devicePaths.connect, body, openMs));
-    if (!connected) throw new Error(deviceTexts.invalid);
+    if (!connected) throw new Error(meant(deviceTexts.invalid));
     return connected.session;
   }
   private async serve(token: string) {
@@ -119,7 +120,7 @@ class RemoteDevice {
     const { results, size } = take(link.ready);
     const body = link.outbox ? { results, notices: link.outbox.offer(size) } : { results };
     const answer = parsed(pollAnswer, await this.post(devicePaths.poll, body, pollTimeout(), link.token));
-    if (!answer) throw new Error(deviceTexts.invalid);
+    if (!answer) throw new Error(meant(deviceTexts.invalid));
     this.retries = 0;
     link.outbox?.settle(answer.answered ?? []);
     for (const { call, request } of answer.requests) void this.execute(link, call, request);

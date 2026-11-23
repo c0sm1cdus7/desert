@@ -13,6 +13,7 @@ const words = {
   now: () => 17,
   today: () => "2026-11-13",
   optionalMark: "",
+  language: "es" as const,
   formats: formats({ currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" }),
 };
 function seat(later = false) {
@@ -38,6 +39,7 @@ function seat(later = false) {
               kind: "confirm",
               ask: `${currency} ${String(ask.input(answers))}`,
               reversible: true,
+              back: "volver",
               options: [{ title: "anotar", key: "a" }],
             },
           run: () => Promise.resolve({ ok: true, text: "Anotado" }),
@@ -47,9 +49,10 @@ function seat(later = false) {
   ];
   let session: Session = [begin(tools, "data", "enter")];
   const send = (key: Intent) => {
-    session = step(session, key, tools, 17).session;
+    session = step(session, key, tools, 17, "es").session;
   };
-  const screen = () => resolve(session, tools, { state: "connected", clock: "00:00", now: 17 }, { rows: 30 });
+  const screen = () =>
+    resolve(session, tools, { language: "es", state: "connected", clock: "00:00", now: 17 }, { rows: 30 });
   return {
     send,
     screen,
@@ -145,10 +148,12 @@ describe("currency changes while an action is open", () => {
     ];
     const given = partial ? { answers: ["Pesos", "5000"], from: 0, until: 1, today: true as const } : undefined;
     let session: Session = [begin(tools, "data", "enter", undefined, given)];
-    session = step(session, { kind: "type", text: "d" }, tools, 17).session;
+    session = step(session, { kind: "type", text: "d" }, tools, 17, "es").session;
     expect(session.at(-1)).toMatchObject({ phase: "asking", pos: 1, typed: "", answers: ["Dólares"] });
     expect(
-      JSON.stringify(resolve(session, tools, { state: "connected", clock: "00:00", now: 17 }, { rows: 30 }).body),
+      JSON.stringify(
+        resolve(session, tools, { language: "es", state: "connected", clock: "00:00", now: 17 }, { rows: 30 }).body,
+      ),
     ).not.toContain("50,00");
   });
 });

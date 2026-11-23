@@ -51,7 +51,7 @@ it("an empty case list stays unchecked and blocks distribution approval", () => 
     { core: "C", executor: "E" },
   );
   expect(result.errors).toEqual(["sales/fiscal-documents/cases:unchecked-cases"]);
-  expect(result.rows[0]?.status).toBe("casos no comprobados");
+  expect(result.rows[0]?.status).toBe("unchecked cases");
 });
 it("rejects recursive schemas and never resolves an inherited action as an offer", () => {
   const schema = Type.Object({});

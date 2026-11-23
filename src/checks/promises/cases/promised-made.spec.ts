@@ -102,7 +102,7 @@ for (const mode of ["among", "stops", "closed", "valid", "allowed", "empty"] sat
           type(seat.router, "700");
           seat.router.send({ kind: "confirm" });
           await seat.router.idle();
-          expect(JSON.stringify(seat.router.screen(view))).toContain("Listo");
+          expect(JSON.stringify(seat.router.screen(view))).toContain("Done");
           seat.router.send({ kind: "cancel" });
           const screen = seat.router.screen(view);
           if (mode === "closed" || mode === "valid") {

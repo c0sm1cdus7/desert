@@ -18,6 +18,8 @@ const mayTalkOutside = field(field(field(pkg, "desert"), "laws"), "mayTalkOutsid
 const allowed = [
   "src/surface/contract/",
   "src/texts/",
+  "src/fields/languages.ts",
+  "src/fields/phrases.ts",
   "src/doors/screen/screen-wire.ts",
   "src/doors/screen/screen-limits.ts",
 ];

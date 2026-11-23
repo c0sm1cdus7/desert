@@ -12,7 +12,6 @@ export const ok = (value: unknown = answer): ModelOutcome => ({ kind: "answer", 
 export const wake: TurnWake = {
   id: "t1",
   scope: { kind: "consciousness", actor: "assistant:franco" },
-  language: "es",
   wake: ["e1"],
   through: 1,
 };

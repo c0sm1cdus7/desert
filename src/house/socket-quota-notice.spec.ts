@@ -1,4 +1,5 @@
 import { performance } from "node:perf_hooks";
+import { everySaid } from "../fields/phrases.ts";
 import { duplexPair } from "node:stream";
 import { expect, it, vi } from "vitest";
 import { socketConnection } from "../doors/socket/client/socket-connection.ts";
@@ -31,7 +32,7 @@ it("N8: the terminal visibly reports a quota refusal once per second and keeps r
     for (let i = 0; i < 100; i++)
       pair[1].write(serverFrame({ type: "rejection", id: "default", reason: socketTexts.quota }));
     await new Promise<void>(resolve => setImmediate(resolve));
-    expect(output).toHaveBeenCalledExactlyOnceWith(`${socketTexts.quota}\n`);
+    expect(output).toHaveBeenCalledExactlyOnceWith(`${everySaid(socketTexts.quota)}\n`);
     expect(connection.status()).toBe("connected");
     now = 1000;
     pair[1].write(serverFrame({ type: "rejection", id: "wait", reason: socketTexts.quota }));

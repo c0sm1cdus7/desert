@@ -93,7 +93,7 @@ describe("whole tools are the only unit of assignment", () => {
     const rig = open({ grants: { ana: ["sales", "payments"], beto: ["sales"] } });
     expect(rig.attend("beto", "payments")).toMatchObject({ status: "accepted" });
     const receive = rig.act("beto", "receive", { payment: "p1", amount: 1 }, "payments");
-    expect(receive).toMatchObject({ status: "rejected", reason: "fuera del kit" });
+    expect(receive).toMatchObject({ status: "rejected", reason: { en: "outside the kit", es: "fuera del kit" } });
     expect(rig.act("ana", "register", { sale: "s1", total: 1 }, "sales").reason).toBe(toolTexts.unattended);
     rig.attend("ana", "sales");
     expect(rig.act("ana", "refund", {}, "sales").reason).toBe(toolTexts.unknown);

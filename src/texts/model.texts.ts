@@ -3,19 +3,28 @@ import { Type } from "@sinclair/typebox";
 import { defineMessage } from "../fields/messages.ts";
 import { object } from "../fields/visible-text.ts";
 export const modelTexts = {
-  unknownPrice: "No se conoce el precio",
-  request: "Faltan datos del pedido o son inválidos",
-  missing: "Falta el argumento",
-  key: "Falta la llave del proveedor",
-  transport: "Falló el transporte del proveedor",
-  errorBodyEmpty: "El proveedor no informó un mensaje de error.",
-  errorBodyUnreadable: "No se pudo leer el cuerpo de error del proveedor.",
-  response: "La respuesta del proveedor no tiene la forma esperada",
-  json: "La respuesta no contiene JSON válido",
-  schema: "La respuesta no cumple el esquema completo",
-  refusal: "El modelo rechazó el pedido",
-  maxTokens: "El modelo alcanzó el máximo de tokens",
-  jsonOnly: "Respondé solo con un objeto JSON, sin texto alrededor, que cumpla este esquema:",
+  unknownPrice: { en: "The price is not known", es: "No se conoce el precio" },
+  request: { en: "Request data is missing or invalid", es: "Faltan datos del pedido o son inválidos" },
+  missing: { en: "The argument is missing", es: "Falta el argumento" },
+  key: { en: "The provider's key is missing", es: "Falta la llave del proveedor" },
+  transport: { en: "The provider's transport failed", es: "Falló el transporte del proveedor" },
+  errorBodyEmpty: { en: "The provider reported no error message.", es: "El proveedor no informó un mensaje de error." },
+  errorBodyUnreadable: {
+    en: "The provider's error body could not be read.",
+    es: "No se pudo leer el cuerpo de error del proveedor.",
+  },
+  response: {
+    en: "The provider's response does not have the expected shape",
+    es: "La respuesta del proveedor no tiene la forma esperada",
+  },
+  json: { en: "The response contains no valid JSON", es: "La respuesta no contiene JSON válido" },
+  schema: { en: "The response does not meet the full schema", es: "La respuesta no cumple el esquema completo" },
+  refusal: { en: "The model refused the request", es: "El modelo rechazó el pedido" },
+  maxTokens: { en: "The model reached the maximum tokens", es: "El modelo alcanzó el máximo de tokens" },
+  jsonOnly: {
+    en: "Respond only with a JSON object, without text around it, that meets this schema:",
+    es: "Respondé solo con un objeto JSON, sin texto alrededor, que cumpla este esquema:",
+  },
 };
 /** The limits the provider's grammar cannot hold, said to the mind in each field's description (22/11, UNSIGNED). */
 const limitWords = {

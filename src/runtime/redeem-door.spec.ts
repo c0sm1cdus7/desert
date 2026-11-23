@@ -1,4 +1,5 @@
 import { redemptionHome } from "../../tests/support/redemption-home.ts";
+import { everySaid } from "../fields/phrases.ts";
 // The local entry preserves MCP configuration, enforces private files and never logs returned credentials.
 import { afterEach, expect, it, vi } from "vitest";
 import { readFileSync, rmSync, statSync, writeFileSync, symlinkSync } from "node:fs";
@@ -93,7 +94,7 @@ it.each([400, 503])("distinguishes a definite refusal from an uncertain server r
   vi.stubGlobal("fetch", () => Promise.resolve(new Response("hostile body", { status })));
   if (status === 503) vi.spyOn(Date, "now").mockReturnValueOnce(0).mockReturnValueOnce(0).mockReturnValue(20_000);
   await expect(redeemToFile("http://127.0.0.1", "ABCD-2345", { file })).rejects.toThrow(
-    status === 400 ? doorTexts.denied : doorTexts.failed,
+    status === 400 ? everySaid(doorTexts.denied) : everySaid(doorTexts.failed),
   );
 });
 

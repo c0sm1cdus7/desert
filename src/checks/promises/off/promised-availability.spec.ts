@@ -37,13 +37,14 @@ const compose = (program = chargingShop, shown = shopShown) => {
   const tools = houseTools(
     rig.ports("ana", () => testTime.now()),
     shown,
+    "es",
   );
   const router = startRouter({
     defect: error => {
       throw error;
     },
     tools,
-    bar: () => ({ state: "connected", clock: "00:00", now: 0 }),
+    bar: () => ({ language: "es", state: "connected", clock: "00:00", now: 0 }),
   });
   closing.push(router);
   return { rig, tools, router };

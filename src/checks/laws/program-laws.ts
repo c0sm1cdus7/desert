@@ -20,7 +20,7 @@ import {
 import { strayImports } from "./imports.ts";
 import { interfaceCode } from "./interface-code.ts";
 import { codeFiles, fromRoot, withParsedFiles, type Repository } from "./law-files.ts";
-import { messageCoverage } from "./message-coverage.ts";
+import { messageCoverage, phraseCoverage } from "./message-coverage.ts";
 import { programImports } from "./program-imports.ts";
 import { programLawOptions } from "./program-law-options.ts";
 import { hiddenRules, instructionFiles } from "./prompts.ts";
@@ -73,6 +73,7 @@ export async function programLaws(root: string): Promise<string[]> {
     ...hiddenRules(repo, { exempt: options.exemptRules }),
     ...instructionFiles(repo, options),
     ...messageCoverage(repo),
+    ...phraseCoverage(repo),
     ...catalogLaws(repo, options.catalog),
     ...interfaceCode(repo, { exempt: options.interface }),
     ...spanishNames(repo, { catalog: options.catalog }),

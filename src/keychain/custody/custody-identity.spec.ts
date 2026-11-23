@@ -67,7 +67,7 @@ it("a copy on another machine requires bringing its key and then keeps its ident
   store.keep(Buffer.from("SYNTHETIC"));
   store.close();
   copyFileSync(rig.file, copy.file);
-  expect(() => new SecretCustody(copy.file, copy.home, new MemoryHouseKeys())).toThrow(/llave.*traslad/iu);
+  expect(() => new SecretCustody(copy.file, copy.home, new MemoryHouseKeys())).toThrow(/keys.*move/iu);
   const restored = new SecretCustody(copy.file, copy.home, rig.keys);
   expect(restored.ids()).toHaveLength(1);
   restored.close();

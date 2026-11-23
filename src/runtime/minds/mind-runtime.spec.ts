@@ -95,7 +95,6 @@ function fixture(switches?: MindSwitches) {
     slices: shopSlices,
     ...(switches ? { minds: switches } : {}),
     modelMinds: {
-      language: "es",
       catalog: [card],
       providers: ["anthropic"],
       account: "test",
@@ -174,7 +173,7 @@ it.each([
     const program = f.transport.mock.calls.find(
       call => typeof call[1]?.body === "string" && call[1].body.includes("mind:probe"),
     );
-    expect(program?.[1]?.body).toContain("Usá las acciones de prueba");
+    expect(program?.[1]?.body).toContain("Use the test actions.");
   }
   first.close();
   const second = f.start();

@@ -1,4 +1,5 @@
 // The screen door's sessions over spy routers and a fake clock: S1 to S5 and S8 to S13, the cut and the silences.
+import { everySaid } from "../../fields/phrases.ts";
 import { join } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
@@ -170,12 +171,12 @@ describe("a router left behind", () => {
   it("S11: answers a quit whose next router cannot be opened with the reason, not a failed request", async () => {
     const opens = [
       () => Promise.resolve(spyHouse().house),
-      () => Promise.reject(new SocketOpeningError(socketTexts.startFailed)),
+      () => Promise.reject(new SocketOpeningError(everySaid(socketTexts.startFailed))),
     ];
     const { door } = spyDoor(() => (opens.shift() ?? (() => Promise.reject(new Error("no more"))))());
     const a = await door.look("s", "h", view);
     const left = await door.send("s", "h", batch(a, 1, [{ kind: "quit" }]));
-    expect([eventsOf(left), left.epoch, door.alive()]).toEqual([[socketTexts.startFailed], "", 0]);
+    expect([eventsOf(left), left.epoch, door.alive()]).toEqual([[everySaid(socketTexts.startFailed)], "", 0]);
   });
   it("closes a router whose session was cut while the host was still opening it", async () => {
     const late = spyHouse();
@@ -263,13 +264,10 @@ describe("three silences that are a screen with its words: a cut session", () =>
     door.close("s");
     const lost = await door.send("s", "h", batch(a, 1));
     expect([lost.refused, lost.screen.state, opens.length]).toEqual(["epoch", "disconnected", 1]);
-    expect(eventsOf(lost)).toEqual([screenDoorTexts.expired]);
+    expect(eventsOf(lost)).toEqual([everySaid(screenDoorTexts.expired)]);
     const back = await door.look("s", "h", { ...view, client: a.client });
-    expect([opens.length, back.screen.title, eventsOf(back)]).toEqual([
-      2,
-      journalTexts.opening,
-      [screenDoorTexts.expired],
-    ]);
+    const reopened = [2, journalTexts.opening.es, [screenDoorTexts.expired.es]];
+    expect([opens.length, back.screen.title, eventsOf(back)]).toEqual(reopened);
     expect(back.screen.hints.map(hint => hint.intent)).toEqual(["confirm"]);
     const left = await door.send("s", "h", batch(back, 1, [{ kind: "confirm" }]));
     expect([left.screen.title, left.refused]).toEqual(["Prueba", undefined]);
@@ -278,7 +276,7 @@ describe("three silences that are a screen with its words: a cut session", () =>
 });
 describe("three silences that are a screen with its words: a house that will not open", () => {
   it("shows why the house cannot be opened, with nothing to do but wait, and asks the host again", async () => {
-    const node = socketTexts.node("24.9.0", "24.1.0");
+    const node = everySaid(socketTexts.node("24.9.0", "24.1.0"));
     const failures = [new SocketOpeningError(node), new Error("detalle interno")];
     const { door, opens } = spyDoor(() => {
       const failure = failures.shift();
@@ -292,7 +290,7 @@ describe("three silences that are a screen with its words: a house that will not
       false,
     ]);
     const second = await door.look("s", "h", view);
-    expect(eventsOf(second)).toEqual([socketTexts.startFailed]);
+    expect(eventsOf(second)).toEqual([everySaid(socketTexts.startFailed)]);
     const third = await door.look("s", "h", view);
     expect([opens.length, third.screen.title, door.alive()]).toEqual([3, "Prueba", 1]);
     expect([first, second, third].map(filled).every(count => count > 0)).toBe(true);

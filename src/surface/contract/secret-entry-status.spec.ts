@@ -15,6 +15,7 @@ function seat(optional = false) {
     today: () => "2026-11-14",
     formats: formats({ currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" }),
     optionalMark: "opcional",
+    language: "es" as const,
     answers: [],
     n: 1,
     optional,
@@ -42,7 +43,7 @@ function seat(optional = false) {
       throw error;
     },
     tools: [tool],
-    bar: () => ({ state: "connected", clock: "00:00", now: 0 }),
+    bar: () => ({ language: "es", state: "connected", clock: "00:00", now: 0 }),
     first: [begin([tool], "data", "change")],
   });
   const shown = () => textOf(paint(router.screen({ rows: 26 }), { cols: 80, rows: 30 })).join("\n");

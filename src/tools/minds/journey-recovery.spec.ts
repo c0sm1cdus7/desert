@@ -19,7 +19,6 @@ function setup() {
   const turn: TurnContext = {
     id: "turn",
     scope: { kind: "consciousness", actor: "assistant:beto" },
-    language: "es",
     wake: [cause.id],
     through: house.state().through,
     limits: turnLimits,

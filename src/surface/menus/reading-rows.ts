@@ -1,4 +1,5 @@
 // Reads rows without selecting the disabled ones, keeping short navigation for small groups.
+import type { Language } from "../../fields/languages.ts";
 import type { Picture } from "../session/screen.ts";
 import type { Tool } from "../contract/shown-tool.ts";
 import { choices, cursorOf, stacksOf } from "./lists.ts";
@@ -18,13 +19,13 @@ function nextReading(lengths: readonly number[], at: number, way: "up" | "down")
 }
 /** At a cursor edge, arrows read row by row through long stacks. Short stacks keep one-arrow navigation.
  * Reading never moves the cursor onto a disabled row. */
-export function movedList(place: Picture, tools: readonly Tool[], way: "up" | "down"): Picture {
-  const cursor = cursorOf(place, tools);
-  const selected = choices(place, tools);
+export function movedList(place: Picture, tools: readonly Tool[], way: "up" | "down", language: Language): Picture {
+  const cursor = cursorOf(place, tools, language);
+  const selected = choices(place, tools, language);
   const next = readingAt(cursor, selected.length, way);
   const { reading, shift: _shift, ...plain } = place;
   if (reading === undefined && next !== cursor) return { ...plain, at: next };
-  const stacks = stacksOf(place, tools);
+  const stacks = stacksOf(place, tools, language);
   const rows = stacks.flatMap(stack => (stack.rows.length ? stack.rows : [{ title: "" }]));
   let selectable = -1;
   const home = rows.findIndex(row => (row.open || row.press) && ++selectable === cursor);

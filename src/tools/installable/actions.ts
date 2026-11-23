@@ -1,9 +1,10 @@
 // Adapts action callbacks and cases while guarding the owning group and folder versus object distinction.
+import type { Text } from "../../fields/phrases.ts";
 import { OutsideDefect } from "../../fields/program-call.ts";
 import { isAsker, type Asked } from "../../fields/fields.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import type { Case, Did, Outcome, ProgramAct, Step } from "../promises-contract.ts";
-type Done = Exclude<Outcome<Program>, Readonly<{ refused: string }>>;
+type Done = Exclude<Outcome<Program>, Readonly<{ refused: Text }>>;
 import type { ActContext, Program, State } from "../tool-contract.ts";
 import { adaptReject, mapResult } from "./action-results.ts";
 import { folderOf, localTarget, objectOf } from "./destinations.ts";

@@ -122,9 +122,9 @@ export const frameReading = defineMessage({
         purpose:
           "Trae entero, desde el carácter from, un objeto o toda la Actividad; la casa te lo devuelve en " +
           "este mismo turno. Como consciencia, si tu respuesta lee, volvés a contestar con lo leído.",
-        targets: "Actividad, o cualquier objeto por su id",
+        targets: "activity, o cualquier objeto por su id",
         journeys: "uno de los journeys abiertos, por su id",
-        older: `Hay ${count} líneas de antes de tu última respuesta: read Actividad trae toda, de la más nueva atrás.`,
+        older: `Hay ${count} líneas de antes de tu última respuesta: read activity trae toda, de la más nueva atrás.`,
         field: `…[${count} caracteres más]…`,
         lines: `…[${count} líneas más]…`,
         whole: `[Recortado de ${count} caracteres: read ${id} lo trae entero.]`,

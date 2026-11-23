@@ -9,6 +9,7 @@ import { shopShown, type Shop } from "./shop.ts";
 /** A screen that says what it shows and the room it was drawn for. */
 export const spyScreen = (text: string, rows: number): Screen => ({
   title: "Prueba",
+  language: "es" as const,
   state: "connected",
   clock: "10:00",
   body: { kind: "list", stacks: [{ title: "Filas", rows: [{ title: text, selected: true }, { title: `${rows}` }] }] },

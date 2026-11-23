@@ -83,7 +83,7 @@ describe("a program with acts on its things", () => {
   it("offers an act on a thing where that thing is read, and never on a view that only groups them", async () => {
     await staged(settlingShop, async ({ house }) => {
       await given(house(), "sales", [registered]);
-      const tools = houseTools(localPorts(house(), cast.admin, { recentLines: 100 }), nestedShown);
+      const tools = houseTools(localPorts(house(), cast.admin, { recentLines: 100 }), nestedShown, "es");
       const settle = tools.find(tool => tool.id === "sales")?.actsOn?.settle;
       expect([settle?.listed?.("sales/s1"), settle?.listed?.(every)]).toEqual([true, false]);
     });
@@ -109,7 +109,7 @@ describe("a program with acts on its things", () => {
     await staged({ ...settlingShop, registry }, async ({ house }) => {
       const ports = localPorts(house(), cast.admin, { recentLines: 100 }, house().now);
       const needs = () =>
-        houseTools(ports, shopShown)
+        houseTools(ports, shopShown, "es")
           .find(tool => tool.id === "sales")
           ?.notices?.().needs;
       expect(needs()).toEqual([]);

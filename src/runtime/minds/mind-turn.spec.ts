@@ -52,7 +52,7 @@ it("holds back the consultation's acts and replaces the proposal after no superv
   expect(await runMindTurn(f.ports, wake)).toMatchObject({ outcome: "done", calls: 2 });
   expect(f.execute).not.toHaveBeenCalled();
   expect(f.events.find(e => e.kind === "mind-consultation-answered")?.data).toMatchObject({
-    answer: "Sin supervisor",
+    answer: "No supervisor",
     source: "unconfigured",
   });
 });
@@ -207,5 +207,5 @@ it("returns a tool's refusal to the mind as a correction, then applies its adjus
   expect(await runMindTurn({ ...f.ports, execute }, wake)).toMatchObject({ outcome: "done", applied: ["a2"] });
   expect(f.model).toHaveBeenCalledTimes(2);
   const said = f.events.flatMap(event => (event.kind === "mind-scene" ? [event.data.text] : []));
-  expect(said).toContain("La propuesta necesita una corrección · Carpeta rechazada: no existe.");
+  expect(said).toContain("The proposal needs a correction · Carpeta rechazada: no existe.");
 });

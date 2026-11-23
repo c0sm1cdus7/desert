@@ -1,4 +1,6 @@
 import { Type } from "@sinclair/typebox";
+import { said } from "./phrases.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
 import { expect, it, vi } from "vitest";
 import { day, fieldValidity, holding, quantity } from "./fields.ts";
 
@@ -17,7 +19,7 @@ it("preserves semantic reasons and the exact instant", () => {
   const wrong = vi.fn((_value: string, at: number) => (at === 17 ? "cerrado" : undefined));
   expect(fieldValidity(holding(Type.String(), wrong), "datum", 17)).toEqual({ invalid: false, wrong: "cerrado" });
   expect(wrong).toHaveBeenCalledWith("datum", 17);
-  expect(fieldValidity(day("Día"), "2025-02-30", 17).wrong).toBe("día inexistente");
+  expect(said(fieldValidity(day("Día"), "2025-02-30", 17).wrong ?? "", "es")).toBe("día inexistente");
 });
 it.each([
   [Type.Array(quantity("Cantidad")), [1.2345]],
@@ -31,7 +33,7 @@ it.each([
   [Type.Object({ date: day("Día") }), { date: "2025-02-30" }],
   [Type.Union([Type.Null(), day("Día")]), "2025-02-30"],
 ])("checks semantic rules in every shape", (schema, value) => {
-  expect(fieldValidity(schema, value, 17)).toEqual({ invalid: false, wrong: "día inexistente" });
+  expect(fieldValidity(schema, value, 17)).toEqual({ invalid: false, wrong: toolTexts.noSuchDay });
 });
 it("accepts null, primitives, empty containers and unmatched union arms", () => {
   for (const [schema, value] of [

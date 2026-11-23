@@ -6,7 +6,7 @@ import type { Intent, Row, Screen } from "../contract/contract.ts";
 import { resolve } from "../router/resolve.ts";
 import { fieldOf } from "../session/screen.ts";
 
-const bar = { state: "connected", clock: "14:32", now: 5_000 } as const;
+const bar = { language: "es", state: "connected", clock: "14:32", now: 5_000 } as const;
 const optionsOf = ({ body }: Screen): readonly Row[] => (body.kind === "thread" ? (body.options ?? []) : []);
 const key = (text: string): Intent => ({ kind: "type", text });
 

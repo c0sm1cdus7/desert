@@ -19,15 +19,17 @@ function seat() {
   const tools = houseTools(
     rig.ports("ana", () => 17),
     shopShown,
+    "es",
   );
   let session: Session = [];
   const start = (...args: Parameters<typeof begin> extends [unknown, ...infer Rest] ? Rest : never) => {
     session = [begin(tools, ...args)];
   };
   const send = (intent: Intent) => {
-    session = step(session, intent, tools, 17).session;
+    session = step(session, intent, tools, 17, "es").session;
   };
-  const body = () => resolve(session, tools, { state: "connected", clock: "00:00", now: 17 }, { rows: 30 }).body;
+  const body = () =>
+    resolve(session, tools, { language: "es", state: "connected", clock: "00:00", now: 17 }, { rows: 30 }).body;
   const text = () => {
     const shown = body();
     return shown.kind === "thread" ? shown.events.flatMap(event => event.text.map(span => span.text)).join("") : "";

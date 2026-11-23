@@ -10,7 +10,7 @@ it("only catalog tools and acts have declarations; no arbitrary kit-set is offer
   await staged(kitProgram, async ({ house }) => {
     const core = house().registry.find(tool => tool.id === "identities");
     expect(core?.acts).toHaveProperty("kit:sales:register");
-    const shown = houseTools(localPorts(house(), "ana", { recentLines: 20 }), kitShown).find(
+    const shown = houseTools(localPorts(house(), "ana", { recentLines: 20 }), kitShown, "es").find(
       tool => tool.id === "identities",
     );
     expect(shown?.view("identities/carla#tools").flatMap(stack => stack.rows.map(row => row.title))).toEqual([
@@ -55,7 +55,7 @@ it("rejects changes to the admin, removed identities and another tool's mind, wi
     await perform(house(), "identities", { act: "remove", on: "identities/carla", input: {} });
     for (const on of ["identities/ana", "identities/carla", "identities/mind:payments"])
       expect((await perform(house(), "identities", change("kit:sales:register", "yes", on))).status).toBe("rejected");
-    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), kitShown).find(
+    const core = houseTools(localPorts(house(), "ana", { recentLines: 20 }), kitShown, "es").find(
       tool => tool.id === "identities",
     );
     expect(core?.actsOn?.["kit:sales:register"]?.off?.("identities/ana")).toBe("administra · todas");

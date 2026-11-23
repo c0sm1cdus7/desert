@@ -1,4 +1,7 @@
 // How a derived check moves through a program by keys: from the Menu to a tool, to one of its things, to an act's row.
+import type { Language } from "../../fields/languages.ts";
+import { meant, said as inWords, type Text } from "../../fields/phrases.ts";
+import { readerLanguage } from "../../house/members.ts";
 import { ok, strictEqual } from "node:assert/strict";
 import type { Act } from "../../house/own-acts.ts";
 import { caseInstant } from "../../journal/clock.ts";
@@ -38,7 +41,7 @@ export const type = (router: Router, text: string): void => {
 /** Remember defects separately from public words, even when a case falsely promises those same words. */
 function recordResult<X extends Program>(result: ExecutionResult<X>, defects: string[]): ExecutionResult<X> {
   const remember = (done: Exclude<ExecutionResult<X>, { status: "processing" }>) => {
-    if (done.defect) defects.push(done.reason ?? "");
+    if (done.defect) defects.push(meant(done.reason ?? ""));
     return done;
   };
   return result.status === "processing"
@@ -48,28 +51,32 @@ function recordResult<X extends Program>(result: ExecutionResult<X>, defects: st
 /** A program as one identity has it in front: its tools as that identity sees them, and a router on the Menu. */
 export function seated<X extends Program>(house: House<X>, by: string, shown: Shown<X>) {
   const ports = localPorts(house, by, { recentLines }, house.now);
+  /** The seat reads the house in the language its identity reads it in. */
+  const language = readerLanguage(ports.state().house, by);
   const requests: Act[] = [];
   const defects: string[] = [];
   const act = (value: Act, through: number) => {
     if (value.act !== "attend" || value.target !== undefined) requests.push(value);
     return recordResult(ports.act(value, through), defects);
   };
-  const tools = houseTools({ ...ports, act }, shown);
+  const tools = houseTools({ ...ports, act }, shown, language);
   return {
     tools,
+    language,
+    say: (text: Text): string => inWords(text, language),
     requests,
     defects,
     shown,
-    words: questionWords(ports.now, shown, { state: ports.state }),
+    words: questionWords(ports.now, shown, language, { state: ports.state }),
     state: ports.state,
     now: ports.now,
     router: startRouter({
       tools,
-      bar: () => ({ ...bar, now: ports.now() }),
+      bar: () => ({ ...bar, now: ports.now(), language }),
       changes: ports.watch,
       defect: (...args) => {
         const reason = ports.defect(...args);
-        defects.push(reason);
+        defects.push(inWords(reason, language));
         return reason;
       },
     }),
@@ -80,8 +87,13 @@ type Reached = Readonly<{ target?: string; rows: readonly number[] }>;
 const placeOf = (tool: string, target?: string) =>
   ({ kind: "view", tool, at: 0, ...(target === undefined ? {} : { target }) }) as const;
 /** What one view opens: each thing a row of it leads to, with the rows opened to get there. */
-const opensFrom = (tools: readonly Tool[], tool: string, { target, rows }: Reached): Required<Reached>[] =>
-  choices(placeOf(tool, target), tools).flatMap((row, at) =>
+const opensFrom = (
+  tools: readonly Tool[],
+  tool: string,
+  { target, rows }: Reached,
+  language: Language,
+): Required<Reached>[] =>
+  choices(placeOf(tool, target), tools, language).flatMap((row, at) =>
     /** Only what the tool itself has: what a row names of another tool is that tool's to walk. */
     row.opens !== undefined && row.open?.kind === "view" && row.open.tool === tool
       ? [{ target: row.opens, rows: [...rows, at] }]
@@ -89,11 +101,17 @@ const opensFrom = (tools: readonly Tool[], tool: string, { target, rows }: Reach
   );
 /** The rows a person opens, one after another, from a tool's own view down to one of its things: found the way
  * they would find it, by what each view lists. Nothing when no view of the tool leads there. */
-function pathTo(tools: readonly Tool[], tool: string, on: string, entry?: string): readonly number[] | undefined {
+function pathTo(
+  tools: readonly Tool[],
+  tool: string,
+  on: string,
+  language: Language,
+  entry?: string,
+): readonly number[] | undefined {
   const seen = new Set<string>();
   let edge: readonly Reached[] = [{ rows: [], ...(entry === undefined ? {} : { target: entry }) }];
   while (edge.length) {
-    const deeper = edge.flatMap(from => opensFrom(tools, tool, from)).filter(to => !seen.has(to.target));
+    const deeper = edge.flatMap(from => opensFrom(tools, tool, from, language)).filter(to => !seen.has(to.target));
     const found = deeper.find(to => to.target === on);
     if (found) return found.rows;
     deeper.forEach(to => seen.add(to.target));
@@ -106,32 +124,36 @@ export function keysTo<X extends Program>(shown: Shown<X>, tool: string): string
   return shown.words[tool]?.key ?? "";
 }
 /** From the Menu to where an act stands, by keys alone: its tool, then its thing by what each view opens. */
-export function goTo<X extends Program>({ router, tools, shown }: Seat<X>, tool: string, on: string): void {
+export function goTo<X extends Program>({ router, tools, shown, language }: Seat<X>, tool: string, on: string): void {
   const words = shown.words[tool];
   type(router, keysTo(shown, tool));
   const surface = tools.find(item => item.id === tool);
   const entry = surface?.entryTarget;
-  strictEqual(router.screen(view).title, entry ? surface.titleOf?.(entry) : words?.name);
+  const named = words?.name === undefined ? undefined : inWords(words.name, language);
+  const title = entry ? surface.titleOf?.(entry) : named;
+  strictEqual(router.screen(view).title, title);
   if (on === tool || on === entry) return;
-  const rows = pathTo(tools, tool, on, entry);
+  const rows = pathTo(tools, tool, on, language, entry);
   if (rows) openRows(router, rows);
-  else findOld(router, tools, tool, on);
+  else findOld(router, tools, tool, on, language);
 }
 /** A thing outside the recent list is still reached by the tool's search. */
-function findOld(router: Router, tools: readonly Tool[], tool: string, on: string): void {
-  const listed = choices({ kind: "view", tool, at: 0 }, tools).filter(row => row.opens && row.open?.kind === "view");
+function findOld(router: Router, tools: readonly Tool[], tool: string, on: string, language: Language): void {
+  const listed = choices({ kind: "view", tool, at: 0 }, tools, language).filter(
+    row => row.opens && row.open?.kind === "view",
+  );
   ok(listed.length >= recentLines, said.notListed(on));
   const name = tools.find(item => item.id === tool)?.titleOf?.(on) ?? on;
   const place = { kind: "view", tool, at: 0, find: name } as const;
-  const rows = choices(place, tools);
+  const rows = choices(place, tools, language);
   const at = rows.findIndex(row => row.opens === on && row.open?.kind === "view" && row.open.tool === tool);
   ok(at >= 0, said.notListed(on));
   type(router, ` ${name}`);
   openRows(router, [at]);
 }
 /** Every row of a place, the ones that cannot be chosen too; two of them taking one key is a defect of the screen. */
-function rowsAt(tools: readonly Tool[], tool: string, target?: string): readonly Choice[] {
-  const rows = stacksOf(placeOf(tool, target), tools).flatMap(stack => stack.rows);
+function rowsAt(tools: readonly Tool[], tool: string, language: Language, target?: string): readonly Choice[] {
+  const rows = stacksOf(placeOf(tool, target), tools, language).flatMap(stack => stack.rows);
   const keys = rows.flatMap(row => (row.key === undefined ? [] : [row.key]));
   strictEqual(new Set(keys).size, keys.length, said.sameKey(target ?? tool, keys));
   return rows;
@@ -141,7 +163,7 @@ export type Found = Readonly<{ rows: readonly number[]; row: Choice; target?: st
 /** The row that starts an act where its case does it: among the thing's own actions, or down any menu they open.
  * When the menu the act is under is off, that row stands for it. Nothing when no list a person can reach has it. */
 export function actRow<X extends Program>(
-  { tools }: Seat<X>,
+  { tools, language }: Seat<X>,
   aim: Aim<X>,
   on: string,
   fits: (row: Choice) => boolean = () => true,
@@ -153,17 +175,17 @@ export function actRow<X extends Program>(
     row.starts?.tool === aim.tool.id && row.starts.act === aim.name && row.starts.target === thing;
   const mine = (row: Choice): boolean =>
     (starts(row) && fits(row)) ||
-    (row.off === true && menu !== undefined && row.key === menu.key && row.title === menu.name);
+    (row.off === true && menu !== undefined && row.key === menu.key && row.title === inWords(menu.name, language));
   /** Where the search starts: where the act stands, or the thing of another tool it is taken from. */
   const root = from ?? { tool: aim.tool.id, ...(thing === undefined ? {} : { target: thing }) };
   const seen = new Set<string | undefined>([root.target]);
   let edge: readonly Reached[] = [{ ...(root.target === undefined ? {} : { target: root.target }), rows: [] }];
   while (edge.length) {
     for (const { target, rows } of edge) {
-      const row = rowsAt(tools, root.tool, target).find(mine);
+      const row = rowsAt(tools, root.tool, language, target).find(mine);
       if (row) return { rows, row, ...(target === undefined ? {} : { target }) };
     }
-    const deeper = edge.flatMap(at => opensFrom(tools, root.tool, at)).filter(to => !seen.has(to.target));
+    const deeper = edge.flatMap(at => opensFrom(tools, root.tool, at, language)).filter(to => !seen.has(to.target));
     deeper.forEach(to => seen.add(to.target));
     edge = deeper;
   }
@@ -177,5 +199,5 @@ export function openRows(router: Router, rows: readonly number[]): void {
   }
 }
 /** Every row of the Menu, where every tool is listed, the tools that cannot be opened too. */
-export const menuRows = (tools: readonly Tool[]): readonly Choice[] =>
-  stacksOf({ kind: "menu", at: 0 }, tools).flatMap(stack => stack.rows);
+export const menuRows = (tools: readonly Tool[], language: Language): readonly Choice[] =>
+  stacksOf({ kind: "menu", at: 0 }, tools, language).flatMap(stack => stack.rows);

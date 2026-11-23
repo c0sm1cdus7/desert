@@ -1,4 +1,5 @@
 // Validate redirect authority before errors can redirect, then redeem through the audited invitation budget.
+import { meant } from "../../fields/phrases.ts";
 import { randomBytes } from "node:crypto";
 import type { DoorAccess } from "../../runtime/door-access.ts";
 import { mcpTexts } from "../../texts/mcp.texts.ts";
@@ -25,7 +26,7 @@ export async function oauthAuthorization(context: OAuthContext, request: McpRequ
   const client = clients.read(clientId);
   if (!singleParameters(params) || !client || !registeredRedirect(client, uri)) return oauthPage(400, mcpTexts.params);
   const state = params.get("state");
-  const failure = (error: string) => oauthRedirect(uri, state, { error, error_description: mcpTexts.params });
+  const failure = (error: string) => oauthRedirect(uri, state, { error, error_description: meant(mcpTexts.params) });
   if (params.get("response_type") !== "code") return failure("unsupported_response_type");
   if (
     params.get("resource") !== resource ||

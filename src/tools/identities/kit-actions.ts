@@ -1,4 +1,5 @@
 // Declares how to give and take programs, tools and actions of a kit, with visible names.
+import { lowered } from "../../fields/phrases.ts";
 import { holderKit } from "../../house/kit-history.ts";
 import { actionSelection, covers, toolOf, kitLayout } from "../../house/kit-selection.ts";
 import { object } from "../../fields/visible-text.ts";
@@ -43,7 +44,7 @@ function kitAction<X extends Program>(tool: Tool<X>, key: string, otherMind: boo
   const folderLevel = group === undefined ? "program" : "tool";
   const saved = words.saved(label, action !== undefined ? "action" : folderLevel);
   return programAct<X, typeof input>({
-    name: label.toLowerCase(),
+    name: lowered(label),
     enter: words.kitEnter,
     purpose: words.kitPurpose,
     key,
@@ -102,7 +103,7 @@ export const kitMenus = <X extends Program>(registry: ToolRegistry<X>) =>
       return [tool.id, ...groups.map(group => `${tool.id}/${group}`)].map(id => [
         kitMenu(id),
         {
-          name: folderName(tool, id === tool.id ? undefined : id.slice(tool.id.length + 1)).toLowerCase(),
+          name: lowered(folderName(tool, id === tool.id ? undefined : id.slice(tool.id.length + 1))),
           purpose: words.kitPurpose,
           key: "",
         },

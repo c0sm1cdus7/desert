@@ -1,4 +1,5 @@
 // Reach and answer a declared case through the same keys a person uses.
+import { meant } from "../../../fields/phrases.ts";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import { asking } from "../../../surface/bridge/questions/asking.ts";
 import type { Field } from "../../../surface/contract/contract.ts";
@@ -39,7 +40,7 @@ export function missingAt<X extends Program>(seat: Seat<X>, told: Told<X>): stri
         );
   return (
     asking(aim.act.input, seat.words).next(answers.slice(0, Math.max(at, 0)), kase.on ?? aim.tool.id)?.ask ??
-    aim.act.name
+    seat.say(aim.act.name)
   );
 }
 /** Why a row says it is off: a row that reads a datum keeps saying it, and says why after it. */
@@ -69,7 +70,8 @@ export function takenOrConstructed<X extends Program>(
    * the row is off saying it, as the tool itself would. Nobody is offered what is known to be refused. */
   const whole = row.with !== undefined && row.with.from >= answers.length;
   const closed = actionUnavailable(seat, aim, on, row.with?.answers.slice(0, row.with.from), from?.target);
-  const cause = closed ?? (whole && "refused" in kase.then ? kase.then.refused : undefined);
+  const reason = closed ?? (whole && "refused" in kase.then ? kase.then.refused : undefined);
+  const cause = reason === undefined ? undefined : seat.say(reason);
   strictEqual(row.off ? whyOf(row, cause) : undefined, cause, said.offFor(aim.name));
   /** The right of an act is never empty: its datum, or what it is for. */
   ok(row.detail, said.saysNothing(aim.name));
@@ -105,7 +107,7 @@ function assertInitial<X extends Program>(seat: Seat<X>, aim: Aim<X>, row: Choic
 /** Every answer the row asks of what the case says, given one by one to the questions the surface really asks.
  * A stopped answer records whether a datum or a declared cause closes the question. */
 export function walk<X extends Program>(
-  { router, tools }: Seat<X>,
+  { router, tools, say }: Seat<X>,
   { aim, kase, answers }: Told<X>,
   row: Choice,
 ): true | Stopped {
@@ -128,7 +130,7 @@ export function walk<X extends Program>(
     const why = act?.stops?.(answers.slice(0, position + 1), kase.on ?? aim.tool.id);
     if (why !== undefined) return { kind: "cause", ask: field.ask };
   }
-  const destination = walkDestination(router, next, aim, kase, answers);
+  const destination = walkDestination(router, next, aim, kase, answers, say);
   if (!Array.isArray(destination)) return destination;
   answers = destination;
 
@@ -137,8 +139,8 @@ export function walk<X extends Program>(
   const sure = row.with?.until === undefined ? next(answers) : null;
   if (sure) ok(!addresses(sure.ask), words.speaks(sure.ask));
   const promised = "refused" in kase.then ? undefined : kase.then.sure;
-  if (sure && promised !== undefined) strictEqual(sure.ask, promised, words.notSure(sure.ask));
-  if (sure) type(router, aim.act.enter.charAt(0));
+  if (sure && promised !== undefined) strictEqual(sure.ask, say(promised), words.notSure(sure.ask));
+  if (sure) type(router, say(aim.act.enter).charAt(0));
   return true;
 }
 
@@ -148,20 +150,21 @@ function walkDestination<X extends Program>(
   aim: Aim<X>,
   kase: Case<X>,
   answers: readonly string[],
+  say: Seat<X>["say"],
 ): string[] | Stopped {
   if (!aim.act.execution || aim.act.execution.at === "house") return [...answers];
   {
     const field = next(answers);
-    ok(field?.kind === "pick", catalogLawTexts.destinationQuestion);
+    ok(field?.kind === "pick", meant(catalogLawTexts.destinationQuestion));
     const destination = kase.destination;
-    ok(destination, catalogLawTexts.caseDestination);
+    ok(destination, meant(catalogLawTexts.caseDestination));
     const selected =
       destination.kind === "house"
-        ? deviceTexts.house
+        ? say(deviceTexts.house)
         : field
             .found("")
             .find(option => option.title === deviceTexts.deviceChoice(destination.device, destination.device))?.title;
-    ok(selected, catalogLawTexts.destinationRow);
+    ok(selected, meant(catalogLawTexts.destinationRow));
     const outcome = answer(router, field, selected);
     if (outcome !== true) return outcome;
     return [...answers, selected];

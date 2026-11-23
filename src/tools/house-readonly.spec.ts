@@ -65,7 +65,7 @@ for (const part of ["admin", "kits", "grants", "wakeOwners", "tools", "clock"])
       matches(house, current);
       expect(starts).toBeGreaterThan(0);
       expect(house.journal.restoration().reused).toBe(false);
-      expect(house.journal.restoration().warnings.some(w => w.reason.includes("registro"))).toBe(true);
+      expect(house.journal.restoration().warnings.some(w => w.reason.includes("record"))).toBe(true);
     } finally {
       house.close();
     }

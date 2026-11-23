@@ -1,4 +1,5 @@
 // Validate the complete returned batch before the engine adds its own execution facts.
+import { type Text } from "../../fields/phrases.ts";
 import { isMindActor } from "../../fields/mind-actor.ts";
 import { MindContractError } from "../../fields/mind-errors.ts";
 import { layerOf, type HouseEmission } from "../../house/facts.ts";
@@ -53,7 +54,7 @@ function coreAuthority<X extends Program>(
   each: HouseEmission,
   context: ActContext<X>,
   tool: Tool<X> | undefined,
-): string | undefined {
+): Text | undefined {
   if (each.kind === "device-registered" || each.kind === "device-accepted" || each.kind === "device-retired")
     return deviceEffect(ports, house, each, context);
   const self =
@@ -77,16 +78,35 @@ function coreAuthority<X extends Program>(
   if (context.by !== house.admin && !self && !delegated) return effectRefusalTexts.adminRequired;
   return undefined;
 }
+/** Who may emit a fact from where: the personal tool only its own preferences, a core piece what its authority
+ * allows, a program's own act no house fact. */
+function sourceAuthority<X extends Program>(
+  ports: Execution<X>,
+  house: Parameters<typeof houseStep>[0],
+  each: HouseEmission,
+  context: ActContext<X>,
+  tool: Tool<X> | undefined,
+  source: "house" | "tool" | "own",
+): Text | undefined {
+  if (tool && isPersonalTool(tool)) {
+    const own = each.kind !== "language-set" || each.data.identity === context.by;
+    const personal = ["scene", "preferred", "language-set", "attended", "unattended"].includes(each.kind);
+    return personal && own && context.target === "personal" ? undefined : effectRefusalTexts.houseFact;
+  }
+  if (source === "house") return undefined;
+  if (source === "own" || !corePiece(tool?.id) || !house.identities) return effectRefusalTexts.houseFact;
+  return coreAuthority(ports, house, each, context, tool);
+}
 export function effectRefusal<X extends Program>(
   ports: Execution<X>,
   result: ActResult<X>,
   context: ActContext<X>,
   tool: Tool<X> | undefined,
   source: "house" | "tool" | "own",
-): string | undefined {
+): Text | undefined {
   let house = ports.state().house;
   for (const each of result.effects ?? []) {
-    const refuse = (why: string) => toolTexts.effectRefused(each.kind, why);
+    const refuse = (why: Text) => toolTexts.effectRefused(each.kind, why);
     if (each.by !== context.by) return refuse(effectRefusalTexts.otherAuthor);
     // Custody commands are opaque, lease-bound requests, not journal facts supplied by the program.
     if (ports.credentialEffects?.recognizes(each)) continue;
@@ -102,15 +122,8 @@ export function effectRefusal<X extends Program>(
       house = houseStep(house, { ...each, id: "validation", seq: 0, at: context.at });
       continue;
     }
-    if (tool && isPersonalTool(tool)) {
-      const own = each.kind !== "language-set" || each.data.identity === context.by;
-      const personal = ["scene", "preferred", "language-set", "attended", "unattended"].includes(each.kind);
-      if (!personal || !own || context.target !== "personal") return refuse(effectRefusalTexts.houseFact);
-    } else if (source !== "house") {
-      if (source === "own" || !corePiece(tool?.id) || !house.identities) return refuse(effectRefusalTexts.houseFact);
-      const why = coreAuthority(ports, house, each, context, tool);
-      if (why) return refuse(why);
-    }
+    const why = sourceAuthority(ports, house, each, context, tool, source);
+    if (why) return refuse(why);
     if (each.kind === "kit-set") {
       const why = invalidKit({ ...ports, state: () => ({ ...ports.state(), house }) }, each);
       if (why) return refuse(why);

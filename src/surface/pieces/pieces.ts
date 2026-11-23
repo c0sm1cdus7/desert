@@ -1,4 +1,5 @@
 // The closed pieces of the approved form: what every painter draws, already decided, and nothing else.
+import type { Language } from "../../fields/languages.ts";
 import type { HintKey, Intent, Keypad, Screen, Span } from "../contract/contract.ts";
 import type { Tone } from "../contract/tones.ts";
 /** A run of spans whose tones the bank already chose: a painter only gives each token its value. */
@@ -143,6 +144,8 @@ export interface SurfacePiece {
   readonly zones: readonly [BarPiece, { readonly main: ContentPiece; readonly beside?: PanelPiece }, ToolbarPiece];
   /** What a painter shows alone when it has less room than its own minimum (REGLAS §14). */
   readonly small: NoticePiece;
+  /** The language of its words: what a painter says of its own, such as how many lines are left out, is in it. */
+  readonly language: Language;
 }
 export type Piece =
   | SurfacePiece

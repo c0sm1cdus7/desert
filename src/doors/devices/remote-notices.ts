@@ -1,4 +1,5 @@
 // A remote device's notices for one connection: what each poll carries again until the house answers each one.
+import { meant } from "../../fields/phrases.ts";
 import type { DeviceNotice, EndpointNotices, NoticeAnswer } from "../../fields/device-protocol.ts";
 import { deviceTexts } from "../../texts/devices.texts.ts";
 import { deviceHttpLimits } from "./device-wire.ts";
@@ -38,7 +39,7 @@ export class NoticeOutbox {
     if (deviceHttpLimits.envelope + bytes(notice) + 1 > deviceHttpLimits.body) {
       const { value: _value, ...rest } = notice;
       kept = rest;
-      this.tell(deviceTexts.noticeTrimmed(notice.execution));
+      this.tell(meant(deviceTexts.noticeTrimmed(notice.execution)));
     }
     this.owed.set(notice.execution, kept);
     this.fresh = true;
@@ -66,7 +67,7 @@ export class NoticeOutbox {
   settle(answered: readonly Readonly<{ execution: string; answer: NoticeAnswer }>[]) {
     for (const { execution, answer } of answered) {
       if (!this.owed.delete(execution)) continue;
-      if (answer === "refused") this.tell(deviceTexts.noticeRefused(execution));
+      if (answer === "refused") this.tell(meant(deviceTexts.noticeRefused(execution)));
       // A failed acknowledgement leaves it pending on disk: the next connection sends it and hears the same answer.
       this.notices.acknowledge(execution, answer).catch((error: unknown) => {
         this.tell(reasonOf(error));

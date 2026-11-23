@@ -17,13 +17,13 @@ describe("consumer cases at the provider gate", () => {
     const setup = options();
     const before = validateContractPrograms(setup.programs, build);
     expect(before.errors).toEqual(["sales/fiscal-documents/cases/issue-and-read:undeclared-case"]);
-    expect(before.rows[0]?.status).toBe("casos no comprobados");
+    expect(before.rows[0]?.status).toBe("unchecked cases");
     const run = await runContractCases(setup);
     expect(run.evidence.map(row => row.result)).toEqual(["passed"]);
     expect(run.evidence[0]?.hash).toMatch(/^[a-f0-9]{64}$/);
     expect(validateContractPrograms(setup.programs, build, run.evidence, run.verify)).toEqual({
       errors: [],
-      rows: [{ consumer: "sales", provider: "documents", contract: "fiscal-documents", status: "casos comprobados" }],
+      rows: [{ consumer: "sales", provider: "documents", contract: "fiscal-documents", status: "checked cases" }],
     });
     const repeat = await runContractCases(setup);
     expect(repeat.evidence[0]?.offer).toBe(run.evidence[0]?.offer);

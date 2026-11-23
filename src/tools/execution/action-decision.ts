@@ -1,4 +1,5 @@
 // Turns an action's public result into facts, keeping its addressee.
+import { type Text } from "../../fields/phrases.ts";
 import { mechanicalRules } from "./mechanical-rules.ts";
 import { programCall } from "../../fields/program-call.ts";
 import { effect } from "../../house/facts.ts";
@@ -35,7 +36,7 @@ function decisionOf<X extends Program>(
   context: ActContext<X>,
   tool: string | undefined,
   option: string,
-  validate: () => string | undefined,
+  validate: () => Text | undefined,
 ): Decision<X> {
   const notice = {
     ...(result.coreFailure ? { coreFailure: result.coreFailure } : {}),

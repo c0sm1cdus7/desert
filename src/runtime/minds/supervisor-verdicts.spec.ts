@@ -1,4 +1,5 @@
 // An identity's act a rule marks waits, at any door, for the supervisor's verdict in a turn of its own: opened, billed
+import { type Text } from "../../fields/phrases.ts";
 // and closed by mind:supervisor; a restart closes a verdict turn it cut, and without a supervisor the act waits.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { effect } from "../../house/facts.ts";
@@ -65,7 +66,7 @@ it.each([
     expect(started.status).toBe("processing");
     const done = await settle(started);
     expect(done.status).toBe(status);
-    if (outcome === "rejected") expect(done.reason).toBe(`Rechazado por el supervisor: ${text}`);
+    if (outcome === "rejected") expect(done.reason).toEqual(rulesTexts.verdict("rejected", text));
     expect(house.tools.state().tools.notes.notes).toEqual(outcome === "passed" ? ["Mate"] : []);
     const frames = framesOf(f).filter(supervising);
     expect(moments(frames)).toEqual(["rule"]);
@@ -118,7 +119,7 @@ it("before the minds start, a house that brings a supervisor says it is starting
   await marked(first);
   first.close();
   const add = { act: "personal/add", target: "notes/personal", input: { body: "Mate" } };
-  let early: Readonly<{ status: string; reason?: string }> | undefined;
+  let early: Readonly<{ status: string; reason?: Text }> | undefined;
   const house = await f.open(true, { started: act => (early = act(add, 0, "ana")) });
   expect(early).toMatchObject({ status: "rejected", reason: rulesTexts.starting });
   f.respond(frame =>

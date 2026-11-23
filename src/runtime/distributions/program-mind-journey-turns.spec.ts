@@ -47,9 +47,9 @@ it("the call limit ends the turn failed, says so, and wakes the consciousness on
   const woke = seen.filter(each => !each.journey);
   expect(woke).toHaveLength(2);
   expect(woke[1]?.changing).toContain(
-    "Se cortó un turno del journey «Anotar»: El turno llegó al límite de doce llamadas sin decir cómo sigue.",
+    "A turn of the journey «Anotar» was cut: The turn reached the limit of twelve calls without saying how it goes on.",
   );
-  expect(woke[1]?.changing).toContain("Turnos cortados de este journey hasta ahora, contando este: 1.");
+  expect(woke[1]?.changing).toContain("Cut turns of this journey so far, counting this one: 1.");
   expect(journey?.closed).toBeUndefined();
 });
 it("an answer with no act, no continuation and no consultation goes back asking how it continues", async () => {
@@ -62,7 +62,7 @@ it("an answer with no act, no continuation and no consultation goes back asking 
   expect(turn?.closed?.data).toMatchObject({ outcome: "done", calls: 2 });
   const second = seen.filter(each => each.journey)[1];
   if (!second) throw new Error("second call");
-  expect(messagesOf(second).at(-1)?.content).toContain("Un journey sigue hasta decir cómo sigue");
+  expect(messagesOf(second).at(-1)?.content).toContain("A journey goes on until it says how");
 });
 it("a continuation before the last act is corrected before any act runs", async () => {
   const { house, journey } = await run({
@@ -88,7 +88,7 @@ it("the consciousness resumes a cut journey: the journey wakes and reads the not
   const turns = turnsOf(house, journey?.id);
   expect(turns.map(turn => turn.closed?.data.outcome)).toEqual(["interrupted", "done"]);
   expect(seen.filter(each => each.journey)[1]?.changing).toContain(
-    "Tu consciencia retomó este journey: Probá otra vez",
+    "Your consciousness resumed this journey: Probá otra vez",
   );
   expect(house.tools.state().house.journeys.get(journey?.id ?? "")?.resumed).toBe("Probá otra vez");
 });
@@ -132,7 +132,7 @@ it("a journey frame keeps room for its turn's conversation, so a long thread sti
   await (await house.minds)?.flush();
   const calls = seen.filter(each => each.journey === journey.id);
   expect(calls).toHaveLength(3);
-  expect(calls[1]?.changing).toContain("Omitido:");
+  expect(calls[1]?.changing).toContain("Omitted:");
   expect(turnsOf(house, journey.id).at(-1)?.closed?.data).toMatchObject({ outcome: "done", calls: 2 });
 });
 it("the cut stays in the house scene after the consciousness answers, until the journey goes on", async () => {
@@ -143,10 +143,10 @@ it("the cut stays in the house scene after the consciousness answers, until the 
     },
   });
   const general = house.tools.state().house.scenes.get("mind:notes")?.data.general ?? "";
-  expect(general).toContain("Se cortó un turno del journey «Anotar»: La llamada quedó incierta.");
+  expect(general).toContain("A turn of the journey «Anotar» was cut: The call was left uncertain.");
   expect(general).toContain("Miro");
   // Writing the scene again keeps one line per cut, never a copy of it.
-  expect(withCuts(house.tools.state().house, "mind:notes", "es", general)).toBe(general);
+  expect(withCuts(house.tools.state().house, "mind:notes", "en", general)).toBe(general);
 });
 it("the scene lets the cut go once the resumed journey takes a turn", async () => {
   const { house } = await run({
@@ -159,7 +159,7 @@ it("the scene lets the cut go once the resumed journey takes a turn", async () =
       return [waitAct(journey ?? "")];
     },
   });
-  expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).not.toContain("Se cortó");
+  expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).not.toContain("was cut");
 });
 it("a wait the old 90-second follow-up wrote after its turn wakes nothing, live or after a reopen", async () => {
   const f = programMindFixture();
@@ -194,8 +194,8 @@ it("a scene the consciousness writes by its own act also keeps the cut first", a
     },
   });
   expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toBe(
-    "Se cortó un turno del journey «Anotar»: La llamada quedó incierta. El turno se detuvo sin repetirla. " +
-      "No se reintentó nada.\nEscena propia",
+    "A turn of the journey «Anotar» was cut: The call was left uncertain. The turn stopped without repeating it. " +
+      "Nothing was retried.\nEscena propia",
   );
 });
 it("a long goal of several lines takes one bounded scene line, which leaves once the journey goes on", async () => {
@@ -211,10 +211,10 @@ it("a long goal of several lines takes one bounded scene line, which leaves once
   if (!journey) throw new Error("journey");
   const cut = house.tools.state().house.scenes.get("mind:notes")?.data.general ?? "";
   const [line, ...rest] = cut.split("\n");
-  expect(line).toMatch(/^Se cortó un turno del journey «Anotar la nota x+»: La llamada quedó incierta\./u);
+  expect(line).toMatch(/^A turn of the journey «Anotar la nota x+» was cut: The call was left uncertain\./u);
   expect(line?.length).toBeLessThan(450);
   expect(rest).toEqual(["Miro"]);
-  expect(withCuts(house.tools.state().house, "mind:notes", "es", cut)).toBe(cut);
+  expect(withCuts(house.tools.state().house, "mind:notes", "en", cut)).toBe(cut);
   house.bus.emit(effect("journey-resumed", { note: "Probá otra vez" }, "mind:notes", [], journey.id));
   await (await house.minds)?.flush();
   expect(house.tools.state().house.scenes.get("mind:notes")?.data.general).toBe("Miro");

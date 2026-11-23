@@ -1,4 +1,5 @@
 import { mkdtempSync, rmSync, writeSync, readFileSync, fstatSync, closeSync } from "node:fs";
+import { meant } from "../../fields/phrases.ts";
 import { expect, it } from "vitest";
 import { houseOutput, houseOutputBytes } from "./house-output.ts";
 import { boundedOutput } from "./bounded-output.ts";
@@ -12,12 +13,12 @@ it("the output keeps the exact boundary, replaces the full segment and preserves
     output(Buffer.alloc(houseOutputBytes, 120));
     expect(fstatSync(fd).size).toBe(houseOutputBytes);
     output(Buffer.from("new\n"));
-    expect(readFileSync(`${home}/house.log`, "utf8")).toBe(`${socketTexts.outputLimit}\nnew\n`);
+    expect(readFileSync(`${home}/house.log`, "utf8")).toBe(`${meant(socketTexts.outputLimit)}\nnew\n`);
     closeSync(fd);
     fd = houseOutput(home);
     output = boundedOutput(fd);
     output(Buffer.from("after restart\n"));
-    expect(readFileSync(`${home}/house.log`, "utf8")).toBe(`${socketTexts.outputLimit}\nnew\nafter restart\n`);
+    expect(readFileSync(`${home}/house.log`, "utf8")).toBe(`${meant(socketTexts.outputLimit)}\nnew\nafter restart\n`);
     output(Buffer.alloc(houseOutputBytes * 3, 120));
     expect(fstatSync(fd).size).toBe(houseOutputBytes);
   } finally {
@@ -32,7 +33,7 @@ it("an oversized output from the previous version is bounded even without anothe
     writeSync(fd, Buffer.alloc(houseOutputBytes + 1));
     boundedOutput(fd);
     expect(fstatSync(fd).size).toBeLessThanOrEqual(houseOutputBytes);
-    expect(readFileSync(`${home}/house.log`, "utf8")).toBe(`${socketTexts.outputLimit}\n`);
+    expect(readFileSync(`${home}/house.log`, "utf8")).toBe(`${meant(socketTexts.outputLimit)}\n`);
   } finally {
     closeSync(fd);
     rmSync(home, { recursive: true, force: true });

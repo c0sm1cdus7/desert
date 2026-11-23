@@ -1,4 +1,5 @@
 // Bounded shutdown lets running acts finish; their count remains visible if the deadline wins.
+import { meant } from "../../../fields/phrases.ts";
 import { socketLimits } from "../wire/protocol.ts";
 import type { RunningHouse } from "../../../runtime/house-runtime.ts";
 import type { Program } from "../../../tools/tool-contract.ts";
@@ -31,7 +32,7 @@ async function drainHouse<X extends Program>(
     house.close();
   } finally {
     peers.forEach(peer => peer.end());
-    report(said.pending(remaining));
+    report(meant(said.pending(remaining)));
   }
   return { remaining };
 }

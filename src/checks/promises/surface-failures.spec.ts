@@ -50,7 +50,7 @@ for (const mode of ["run", "lost view"] as const) {
           expect(JSON.stringify(errors.mock.calls)).toContain("journal listener failure");
         } else expect(JSON.stringify(house().tools.state().entries)).toContain("custom screen stack");
         router.send({ kind: "cancel" });
-        expect(router.screen(view).title).toBe(mode === "run" ? "Ventas" : "Menú");
+        expect(router.screen(view).title).toBe(mode === "run" ? "Ventas" : "Menu");
       } finally {
         router.stop();
         stop();

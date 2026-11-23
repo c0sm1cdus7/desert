@@ -1,4 +1,6 @@
 // Builds Anthropic requests, reads validated answers and lends the HTTP transport.
+import { workingLanguage } from "../../fields/languages.ts";
+import { meant } from "../../fields/phrases.ts";
 import { createHash } from "node:crypto";
 import { modelTexts } from "../../texts/model.texts.ts";
 import type { Card, Usage } from "./catalog.ts";
@@ -31,14 +33,15 @@ export class ModelFailure extends Error {
   }
 }
 const required = (value: unknown, name: string) => {
-  if (value === undefined || value === null) throw new ModelFailure("response", `${modelTexts.missing}: ${name}`);
+  if (value === undefined || value === null)
+    throw new ModelFailure("response", `${meant(modelTexts.missing)}: ${name}`);
 };
 /** The provider refuses some valid schemas for the size of their compiled grammar; those go unconstrained. */
 const grammarRefused = /compiled grammar is too large|schema is too complex/iu;
 const unconstrained = new Set<string>();
 const schemaKey = (schema: Record<string, unknown>) =>
   createHash("sha256")
-    .update(JSON.stringify(providerSchema(schema)))
+    .update(JSON.stringify(providerSchema(schema, workingLanguage)))
     .digest("hex");
 type Block = Readonly<{ type: "text"; text: string; cache_control?: Readonly<{ type: "ephemeral" }> }>;
 type Message = Readonly<{ role: "user" | "assistant"; content: string | readonly Block[] }>;
@@ -53,7 +56,7 @@ function opening(request: Request): Message {
 }
 const unconstrainedAsk = (schema: Record<string, unknown>): Message => ({
   role: "user",
-  content: `${modelTexts.jsonOnly}\n${JSON.stringify(providerSchema(schema))}`,
+  content: `${meant(modelTexts.jsonOnly)}\n${JSON.stringify(providerSchema(schema, workingLanguage))}`,
 });
 /** Every call repeats what the earlier calls sent, byte for byte, and appends: the provider reads that prefix from
  * its cache. An unconstrained schema travels as its own message after the one that asks, and stays in the history. */
@@ -62,7 +65,7 @@ function conversation(request: Request, constrained: boolean): Message[] {
     unconstrained.has(schemaKey(schema)) ? [unconstrainedAsk(schema)] : [];
   const exchanges = request.exchanges ?? [];
   if (exchanges.some(each => typeof each.told !== "string" || !each.asked))
-    throw new ModelFailure("response", modelTexts.request);
+    throw new ModelFailure("response", meant(modelTexts.request));
   return [
     opening(request),
     ...exchanges.flatMap((each): Message[] => [
@@ -87,12 +90,15 @@ export function requestBody(request: Request, constrained = !unconstrained.has(s
     typeof request.changing !== "string" ||
     (request.kept ?? []).some(x => typeof x !== "string")
   )
-    throw new ModelFailure("response", modelTexts.request);
+    throw new ModelFailure("response", meant(modelTexts.request));
   return {
     model: request.card.model,
     max_tokens: request.maxOutputTokens,
     output_config: constrained
-      ? { effort: request.card.effort, format: { type: "json_schema", schema: providerSchema(request.schema) } }
+      ? {
+          effort: request.card.effort,
+          format: { type: "json_schema", schema: providerSchema(request.schema, workingLanguage) },
+        }
       : { effort: request.card.effort },
     system: request.layers.map((text, index) =>
       index === 3 ? { type: "text", text, cache_control: { type: "ephemeral" } } : { type: "text", text },
@@ -108,37 +114,37 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 const isList = (value: unknown): value is unknown[] => Array.isArray(value);
 const tokenCount = (value: unknown): number => {
   if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0)
-    throw new ModelFailure("response", modelTexts.response);
+    throw new ModelFailure("response", meant(modelTexts.response));
   return value;
 };
 export function readResponse(data: unknown, schema: Record<string, unknown>): { value: unknown; usage: Usage } {
-  if (!isRecord(data)) throw new ModelFailure("response", modelTexts.response);
+  if (!isRecord(data)) throw new ModelFailure("response", meant(modelTexts.response));
   const response = data;
   if (response.stop_reason === "refusal" || response.stop_reason === "max_tokens")
     throw new ModelFailure(
       response.stop_reason,
-      response.stop_reason === "refusal" ? modelTexts.refusal : modelTexts.maxTokens,
+      response.stop_reason === "refusal" ? meant(modelTexts.refusal) : meant(modelTexts.maxTokens),
     );
   const blocks = response.content;
   const block = isList(blocks) ? blocks.find(item => isRecord(item) && item.type === "text") : undefined;
   const text = isRecord(block) ? block.text : undefined;
-  if (typeof text !== "string") throw new ModelFailure("response", modelTexts.response);
+  if (typeof text !== "string") throw new ModelFailure("response", meant(modelTexts.response));
   let value: unknown;
   try {
     // The grammar left out every field with one possible value: the local contract puts them back.
     value = withConstants(schema, JSON.parse(unfenced(text)));
   } catch {
-    throw new ModelFailure("json", modelTexts.json);
+    throw new ModelFailure("json", meant(modelTexts.json));
   }
   let valid: boolean;
   try {
     valid = matchesSchema(schema, value);
   } catch {
-    throw new ModelFailure("schema", modelTexts.schema);
+    throw new ModelFailure("schema", meant(modelTexts.schema));
   }
-  if (!valid) throw new ModelFailure("schema", modelTexts.schema);
+  if (!valid) throw new ModelFailure("schema", meant(modelTexts.schema));
   const raw = response.usage;
-  if (!isRecord(raw)) throw new ModelFailure("response", modelTexts.response);
+  if (!isRecord(raw)) throw new ModelFailure("response", meant(modelTexts.response));
   return {
     value,
     usage: {
@@ -155,7 +161,7 @@ export async function callAnthropic(
   transport: typeof fetch = fetch,
   scrub: (text: string) => string = text => text,
 ) {
-  if (!key) throw new ModelFailure("transport", modelTexts.key);
+  if (!key) throw new ModelFailure("transport", meant(modelTexts.key));
   const constrained = !unconstrained.has(schemaKey(request.schema));
   try {
     return await sendAnthropic(request, key, transport, scrub, constrained);
@@ -182,7 +188,7 @@ async function sendAnthropic(
       body,
     });
   } catch {
-    throw new ModelFailure("transport", modelTexts.transport);
+    throw new ModelFailure("transport", meant(modelTexts.transport));
   }
   if (!response.ok) {
     const rejection = await readProviderError(response, key, scrub);
@@ -192,7 +198,7 @@ async function sendAnthropic(
   try {
     data = await response.json();
   } catch {
-    throw new ModelFailure("json", modelTexts.json);
+    throw new ModelFailure("json", meant(modelTexts.json));
   }
   return readResponse(data, request.schema);
 }

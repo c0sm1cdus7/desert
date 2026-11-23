@@ -58,7 +58,7 @@ it("a restart while the consciousness hears a cut wakes it again for it; its res
     if (turn === 1) throw new Error("provider down");
     return answer([endJourney(id)]);
   };
-  const rig = hearing("Se cortó un turno del journey «Mandar el informe»");
+  const rig = hearing("A turn of the journey «Mandar el informe» was cut");
   const house = await rig.open(journey);
   send(house, "mind:notes", "Mandá el informe");
   await vi.waitFor(() => expect(hungTurn(house)).toBe(true), { timeout: 30000 });
@@ -75,7 +75,7 @@ it("a restart while the consciousness hears a cut wakes it again for it; its res
 it("a restart while the consciousness hears the supervisor's stop wakes it again for that stop", async () => {
   const journey: JourneyScript = (_, id, turn) =>
     turn === 1 ? answer([sendOn("Informe"), waitNotice(id)]) : answer([endJourney(id)]);
-  const rig = hearing("El supervisor frenó tu journey");
+  const rig = hearing("The supervisor stopped your journey");
   const house = await rig.open(journey);
   send(house, "mind:notes", "Mandá el informe");
   await flush(house);

@@ -1,4 +1,5 @@
 // A device in the house's own process sends its tools' notices through the link its connection returned.
+import { meant } from "../../fields/phrases.ts";
 import type { DeviceLink, DeviceNotice, EndpointNotices, NoticeAnswer } from "../../fields/device-protocol.ts";
 import { deviceTexts } from "../../texts/devices.texts.ts";
 import { reasonOf } from "./remote-notices.ts";
@@ -33,7 +34,7 @@ export function relayNotices(
   const { tell, observe } = teller(report);
   const answered = (execution: string, answer: NoticeAnswer) => {
     if (stopped) return;
-    if (answer === "refused") tell(deviceTexts.noticeRefused(execution));
+    if (answer === "refused") tell(meant(deviceTexts.noticeRefused(execution)));
     notices.acknowledge(execution, answer).catch((error: unknown) => {
       tell(reasonOf(error));
     });

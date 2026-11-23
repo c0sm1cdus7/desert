@@ -6,16 +6,18 @@ import { storedHolderKit } from "../../house/kit-history.ts";
 import { toolOf, kitLayout, selectionPath } from "../../house/kit-selection.ts";
 import { selectionProblem } from "../../house/kit-validation.ts";
 import { MissingView } from "../../surface/contract/missing-view.ts";
-import { section, type Start, type SurfacePorts } from "../../surface/bridge/ports/house-ports.ts";
+import { say, section, type Start, type SurfacePorts } from "../../surface/bridge/ports/house-ports.ts";
 import { menuTarget } from "../../surface/bridge/acts/program-acts.ts";
 import type { Tool, ViewRow } from "../../surface/contract/shown-tool.ts";
 import type { ProgramTool } from "../promises.ts";
 import type { Program } from "../tool-contract.ts";
-import { identityTexts as words } from "../../texts/identities.texts.ts";
+import { wordsIn, type InLanguage } from "../../fields/phrases.ts";
+import { identityTexts } from "../../texts/identities.texts.ts";
 import { identityTarget, targetIdentity, members } from "./identity-reading.ts";
 import { kitCatalog, kitDatum, kitMenu, programName, folderName } from "./kit-catalog.ts";
 const mind = (target: string) => mindTool(targetIdentity(target));
-function holderList(plain: Tool) {
+type Words = InLanguage<typeof identityTexts>;
+function holderList(plain: Tool, words: Words) {
   const listed = plain.view().flatMap(stack => stack.rows);
   return [
     section(
@@ -30,8 +32,15 @@ function holderList(plain: Tool) {
     ),
   ];
 }
-type ViewContext<X extends Program> = { ports: SurfacePorts<X>; contract: ProgramTool<X>; plain: Tool; start: Start };
-function unavailableRows<X extends Program>({ ports }: ViewContext<X>, owner: string): ViewRow[] {
+type ViewContext<X extends Program> = {
+  ports: SurfacePorts<X>;
+  contract: ProgramTool<X>;
+  plain: Tool;
+  start: Start;
+} & {
+  words: Words;
+};
+function unavailableRows<X extends Program>({ ports, words }: ViewContext<X>, owner: string): ViewRow[] {
   const house = ports.state().house;
   return storedHolderKit(house, owner)
     .selections.filter(selection => {
@@ -42,8 +51,8 @@ function unavailableRows<X extends Program>({ ports }: ViewContext<X>, owner: st
 }
 function programRows<X extends Program>({ ports }: ViewContext<X>, holder: string): ViewRow[] {
   return kitCatalog(ports.registry).map(tool => ({
-    title: programName(tool),
-    detail: kitDatum(ports.state().house, targetIdentity(holder), tool.id, Object.keys(tool.acts)),
+    title: say(ports, programName(tool)),
+    detail: say(ports, kitDatum(ports.state().house, targetIdentity(holder), tool.id, Object.keys(tool.acts))),
     opens: menuTarget(holder, kitMenu(tool.id)),
   }));
 }
@@ -56,7 +65,7 @@ function talkSection<X extends Program>(ctx: ViewContext<X>, holder: string, own
     const tool = catalog[at];
     return !!tool && tool.id !== own && mindMayHold(house, own, tool.id);
   });
-  return rows.length ? [section(words.programs, rows, words.emptyKit)] : [];
+  return rows.length ? [section(ctx.words.programs, rows, ctx.words.emptyKit)] : [];
 }
 /** The program whose kit this holder may be given: any member's, or a mind's own and the talk programs. */
 function holdable<X extends Program>({ ports }: ViewContext<X>, holder: string, program?: string) {
@@ -67,8 +76,22 @@ function holdable<X extends Program>({ ports }: ViewContext<X>, holder: string, 
   if (own !== undefined) return mindMayHold(house, own, tool.id) ? tool : undefined;
   return members(house).includes(targetIdentity(holder)) ? tool : undefined;
 }
+/** One folder of a program's acts in a holder's kit: what it is called, what of it the holder holds. */
+function folderRow<X extends Program>(
+  { ports }: ViewContext<X>,
+  holder: string,
+  tool: ReturnType<typeof kitCatalog<X>>[number],
+  group: string,
+): ViewRow {
+  const held = kitDatum(ports.state().house, targetIdentity(holder), tool.id, Object.keys(tool.acts), group);
+  return {
+    title: say(ports, folderName(tool, group)),
+    detail: say(ports, held),
+    opens: menuTarget(holder, kitMenu(`${tool.id}/${group}`)),
+  };
+}
 function branchView<X extends Program>(ctx: ViewContext<X>, target: string, branch: string, notices: ViewRow[]) {
-  const { ports, contract, plain, start } = ctx;
+  const { ports, contract, plain, start, words } = ctx;
   const [holder = "", menu] = target.split("#");
   const [program, group] = branch.split("/");
   const own = mind(holder);
@@ -76,14 +99,7 @@ function branchView<X extends Program>(ctx: ViewContext<X>, target: string, bran
   if (!tool) throw new MissingView(contract.id, target);
   const groups = [...new Set(Object.keys(tool.acts).map(action => toolOf(tool.id, action, kitLayout(ports.registry))))];
   if (group !== undefined && !groups.includes(group)) throw new MissingView(contract.id, target);
-  const folders =
-    group === undefined
-      ? groups.map(group => ({
-          title: folderName(tool, group),
-          detail: kitDatum(ports.state().house, targetIdentity(holder), tool.id, Object.keys(tool.acts), group),
-          opens: menuTarget(holder, kitMenu(`${program}/${group}`)),
-        }))
-      : [];
+  const folders = group === undefined ? groups.map(group => folderRow(ctx, holder, tool, group)) : [];
   const acts = Object.entries(contract.acts)
     .filter(([, act]) => act.under === kitMenu(branch))
     .map(([name, act]) =>
@@ -95,17 +111,19 @@ function branchView<X extends Program>(ctx: ViewContext<X>, target: string, bran
     );
   const scene =
     own && !menu
-      ? sceneReading(plain.view(target)).filter(stack => stack.title === words.sceneTitle && stack.rows.length > 0)
+      ? sceneReading(plain.view(target), ports.language).filter(
+          stack => stack.title === words.sceneTitle && stack.rows.length > 0,
+        )
       : [];
   return [
     ...scene,
-    section(folderName(tool, group), [...notices, ...folders], words.emptyActions),
+    section(say(ports, folderName(tool, group)), [...notices, ...folders], words.emptyActions),
     section(words.actions, acts, words.emptyActions),
     ...talkSection(ctx, holder, own, menu),
   ];
 }
 function targetView<X extends Program>(ctx: ViewContext<X>, target: string) {
-  const { ports, contract, plain } = ctx;
+  const { ports, contract, plain, words } = ctx;
   const [holder = "", menu] = target.split("#");
   const owner = targetIdentity(holder);
   const own = mind(holder);
@@ -117,7 +135,9 @@ function targetView<X extends Program>(ctx: ViewContext<X>, target: string) {
   }
   if (own && menu && !menu.startsWith("kit:")) throw new MissingView(contract.id, target);
   const branch = menu?.startsWith("kit:") ? menu.slice(4) : own;
-  return branch ? branchView(ctx, target, branch, [...notices, ...unavailable]) : sceneReading(plain.view(target));
+  return branch
+    ? branchView(ctx, target, branch, [...notices, ...unavailable])
+    : sceneReading(plain.view(target), ports.language);
 }
 export function kitView<X extends Program>(
   ports: SurfacePorts<X>,
@@ -125,6 +145,6 @@ export function kitView<X extends Program>(
   plain: Tool,
   start: Start,
 ): Tool["view"] {
-  const ctx = { ports, contract, plain, start };
-  return target => (target === undefined ? holderList(plain) : targetView(ctx, target));
+  const ctx = { ports, contract, plain, start, words: wordsIn(identityTexts, ports.language) };
+  return target => (target === undefined ? holderList(plain, ctx.words) : targetView(ctx, target));
 }

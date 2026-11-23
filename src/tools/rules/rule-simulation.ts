@@ -1,5 +1,6 @@
 // Evaluates public samples against the same effective input as execution, without action effects.
-import { ruleDisplay } from "./rule-display.ts";
+import { titled } from "../../fields/fields.ts";
+import { ruleWords } from "./rule-display.ts";
 import { Type, type Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { OutsideDefect } from "../../fields/program-call.ts";
@@ -29,7 +30,7 @@ const sampleSchema = Type.Array(
 const input = object({
   ...ruleReference.properties,
   samples: Type.String({
-    title: form.samples,
+    ...titled(form.samples),
     placeholder: form.sample,
     plain: true,
     concealed: true,
@@ -112,7 +113,7 @@ export function ruleSimulation<X extends Program>(registry: ToolRegistry<X>) {
     run: (value, { state }) => {
       const result = evaluate(value, state);
       if (!result.results) throw new OutsideDefect(result.problem);
-      return { status: "accepted", text: words.simulationResult(ruleDisplay(result.results)), value: result.results };
+      return { status: "accepted", text: ruleWords(result.results, words.simulationResult), value: result.results };
     },
     cases: simulationCases<X>(),
   });
