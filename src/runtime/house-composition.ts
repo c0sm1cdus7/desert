@@ -1,8 +1,6 @@
 // Validate the complete core catalog, creation and mind composition before opening a house.
-import { effect } from "../house/facts.ts";
 import { checkKitMigration } from "../house/kit-migration.ts";
-import { programKit } from "../house/kit-selection.ts";
-import { houseStep } from "../house/members.ts";
+import { creationFacts, houseStep } from "../house/members.ts";
 import { requireMind } from "../fields/mind-errors.ts";
 import { startState, type HouseOptions } from "../house/state.ts";
 import { checkComposition } from "../tools/execution/composed-authority.ts";
@@ -17,17 +15,7 @@ function ownerless<X extends Program>({ slices, registry }: HouseOptions<X>): st
 function checkComposedCreation<X extends Program>(options: HouseOptions<X>) {
   const { by, registry, creation } = options;
   const initial = startState(options.slices, by, options.identities, options.registry);
-  const creationFacts = [
-    effect("house-created", {}, creation.admin),
-    ...creation.assignments.map(assignment =>
-      effect(
-        "granted",
-        { version: 2, identity: assignment.identity, kit: programKit(assignment.tools) },
-        creation.admin,
-      ),
-    ),
-  ];
-  const preview = creationFacts.reduce(
+  const preview = creationFacts(creation).reduce(
     (house, each) =>
       houseStep(house, {
         ...each,

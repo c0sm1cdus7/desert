@@ -20,7 +20,11 @@ afterEach(() => {
 const options: HouseOptions<Shop> = {
   by: "shop",
   projectionVersion: "shop/1",
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: shopRegistry.map(tool => tool.id) }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "ana", tools: shopRegistry.map(tool => tool.id), language: "es" }],
+  },
   words: shop,
   registry: shopRegistry,
   slices: shopSlices,

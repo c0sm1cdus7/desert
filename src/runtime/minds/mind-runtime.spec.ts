@@ -85,7 +85,11 @@ function fixture(switches?: MindSwitches) {
     by: "shop",
     projectionVersion: "mind-test/1",
     identities: true,
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: registry.map(tool => tool.id) }] },
+    creation: {
+      admin: "ana",
+      language: "es",
+      assignments: [{ identity: "ana", tools: registry.map(tool => tool.id), language: "es" }],
+    },
     words: shop,
     registry,
     slices: shopSlices,

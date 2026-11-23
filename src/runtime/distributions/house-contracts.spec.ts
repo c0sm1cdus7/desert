@@ -35,7 +35,12 @@ function setup(override?: () => ActResult<Demo> | Promise<ActResult<Demo>>) {
     by: "demo",
     creation: {
       admin: "ana",
-      assignments: ["ana", "beto"].map(identity => ({ identity, tools: ["sales", "documents"] })),
+      language: "es" as const,
+      assignments: ["ana", "beto"].map(identity => ({
+        identity,
+        tools: ["sales", "documents"],
+        language: "es" as const,
+      })),
     },
   };
   const open = () => startHouse(path, options, time);

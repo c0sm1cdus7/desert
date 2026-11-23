@@ -95,7 +95,11 @@ class RequestMindFixture {
       ...this.distribution.program,
       registry: this.tools(this.distribution.program.registry),
       by: "distribution",
-      creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes", "talk"] }] },
+      creation: {
+        admin: "ana",
+        language: "es",
+        assignments: [{ identity: "ana", tools: ["notes", "talk"], language: "es" }],
+      },
       modelMinds: options,
       ...(!enabled ? { minds: { assistants: false, programs: [] } } : {}),
     });

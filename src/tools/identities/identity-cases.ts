@@ -14,7 +14,11 @@ export const removeCases = [
       says: words.taken("carla"),
       facts: [],
       sure: words.sureRemove("carla"),
-      reads: { lines: [{ identifier: "carla", name: "carla", state: words.removed, kit: [] }] },
+      reads: {
+        lines: [
+          { identifier: "carla", name: "carla", state: words.removed, language: words.languageNames.en, kit: [] },
+        ],
+      },
     },
   },
   {
@@ -47,7 +51,11 @@ export const readmitCases = [
     then: {
       says: words.readmitted("carla"),
       facts: [],
-      reads: { lines: [{ identifier: "carla", name: "carla", state: words.count(0), kit: [] }] },
+      reads: {
+        lines: [
+          { identifier: "carla", name: "carla", state: words.count(0), language: words.languageNames.en, kit: [] },
+        ],
+      },
     },
   },
   {
@@ -80,6 +88,7 @@ export const handCases = <X extends Program>(registry: ToolRegistry<X>): readonl
             identifier: "carla",
             name: "carla",
             state: words.admin,
+            language: words.languageNames.en,
             kit: registry.map(tool => `${programName(tool)} · ${words.all}`),
           },
         ],

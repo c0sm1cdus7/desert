@@ -15,7 +15,11 @@ const house = startHouse(home, {
   ...kitProgram,
   by: "house",
   secretKeys: new MemoryHouseKeys(),
-  creation: { admin: "ana", assignments: [{ identity: "beto", tools: [] }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "beto", tools: [], language: "es" }],
+  },
 });
 const router = houseRouter(localPorts(house, process.argv[3] ?? "ana", { recentLines: 40 }), kitShown);
 const observerPorts = localPorts(house, "beto", { recentLines: 40 });

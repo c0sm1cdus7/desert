@@ -23,6 +23,7 @@ const registration = {
 };
 const key = "synthetic-running-credential",
   other = "synthetic-second-credential";
+const beto = { identity: "beto", tools: ["sales"], language: "es" as const };
 it.each([
   ["mcp", false, false, false],
   ["socket", false, false, false],
@@ -78,7 +79,7 @@ it.each([
       identities: true,
       secretKeys: new MemoryHouseKeys(),
       by: "house",
-      creation: { admin: "ana", assignments: [{ identity: "beto", tools: ["sales"] }] },
+      creation: { admin: "ana", language: "es", assignments: [beto] },
       founderDoorKeys: {
         read: () =>
           new Map([

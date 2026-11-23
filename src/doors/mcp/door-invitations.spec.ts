@@ -25,7 +25,7 @@ it("creates, redeems and enters MCP without restarting, then revokes the open wa
   const h = setup(),
     door = h.door();
   try {
-    const created = await h.act("new", { identity: "luz", tools: [] });
+    const created = await h.act("new", { identity: "luz", tools: [], language: "es" });
     expect(created.status).toBe("accepted");
     const code = invitationCode(created);
     const redeemed = await door.handle(redemptionRequest(code));

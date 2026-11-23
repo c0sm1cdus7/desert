@@ -14,7 +14,11 @@ const time = { now: () => 1_000, wait: () => () => {} };
 /** A shop that lived a little: ana registered a sale. Its journal is kept in a folder, as a program keeps them. */
 function kept(): string {
   const home = join(root, "home");
-  const creation = { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] };
+  const creation = {
+    admin: "ana",
+    language: "es" as const,
+    assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" as const }],
+  };
   const house = startHouse<Shop>(home, { by: "shop", creation, ...shopProgram }, time);
   house.tools.act({ act: "attend", input: { target: "sales" } }, 0, "ana");
   const done = house.tools.act(

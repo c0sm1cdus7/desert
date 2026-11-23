@@ -1,4 +1,5 @@
 import { keyProviders, reopenKeys } from "../../../tests/support/key-providers.ts";
+import { migratedJournal } from "../../../tests/support/migrated-journal.ts";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DatabaseSync } from "node:sqlite";
 import { mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
@@ -35,7 +36,7 @@ const options: HouseOptions<Shop> = {
   projectionVersion: "shop/1",
   words: shop,
   slices: shopSlices,
-  creation: { admin: "ana", assignments: [] },
+  creation: { admin: "ana", language: "es", assignments: [] },
   registry: [
     ...shopRegistry,
     {
@@ -75,6 +76,7 @@ function previous(exposed = false) {
   vault.exec("create table secrets (id text primary key, value text not null unique)");
   for (const row of fixture.material) vault.prepare("insert into secrets values (?,?)").run(row.id, row.value);
   vault.close();
+  migratedJournal(home);
   return home;
 }
 describe.each(keyProviders)("$name", provider => {

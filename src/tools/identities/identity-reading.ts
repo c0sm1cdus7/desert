@@ -1,7 +1,7 @@
 // List and object of identities and minds: name, administration, kit, last general scene and the reader's part.
 import { holderKit } from "../../house/kit-history.ts";
 import { allowedAct, mindTool } from "../../house/kit.ts";
-import { identityDisplayName, type House } from "../../house/members.ts";
+import { identityDisplayName, languageOf, type House } from "../../house/members.ts";
 import { systemTool } from "../../house/system-tools.ts";
 import type { ToolWords } from "../../surface/bridge/ports/house-ports.ts";
 import { deviceActionTexts } from "../../texts/devices.texts.ts";
@@ -35,7 +35,7 @@ export const identityWords: ToolWords = {
     {
       title: "Identidad",
       empty: words.emptyData,
-      reads: { identifier: words.identifier, name: words.display, state: words.state },
+      reads: { identifier: words.identifier, name: words.display, state: words.state, language: words.language },
     },
     { title: doorTexts.key.many, empty: words.emptyData, reads: { doorKeys: doorTexts.key.many } },
     { title: words.sceneTitle, empty: words.emptyScene, reads: { general: words.general, addressed: words.addressed } },
@@ -97,6 +97,7 @@ export function identityReading<X extends Program>(
     identifier: identity,
     name: identityDisplayName(house, identity),
     state: identityDatum(house, identity),
+    ...languageReading(house, identity),
     kit: identityKit(house, identity, registry),
     ...doorReading(house, identity),
     ...deviceReading(house, identity),
@@ -124,6 +125,11 @@ export const withIdentityWords = <S extends { words: Readonly<Record<string, Too
     ? { ...shown, words: { ...shown.words, identities: identityWords } }
     : shown;
 
+/** Everyone sees the language each identity reads the house in. */
+function languageReading(house: House, identity: string) {
+  const language = languageOf(house, identity);
+  return language ? { language: words.languageNames[language] } : {};
+}
 function doorReading(house: House, identity: string) {
   const keys = [...house.doors.keys.values()].filter(key => key.identity === identity);
   return keys.length

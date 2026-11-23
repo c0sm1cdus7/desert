@@ -18,5 +18,6 @@ export const genericTexts = {
     off: { name: "acciones apagadas", key: "a" },
     foreign: { name: "herramientas ajenas", key: "h" },
     empty: { name: "listas vacías", key: "l" },
+    language: { name: "idioma", key: "i" },
   },
 } as const;

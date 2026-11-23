@@ -31,7 +31,11 @@ vi.mock("../../keychain/secret-vault.ts", async () => {
 const options = {
   ...shopProgram,
   by: "house",
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] },
+  creation: {
+    admin: "ana",
+    language: "es" as const,
+    assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" as const }],
+  },
 };
 const time = { now: () => 1_000, wait: () => () => {} };
 const corrupt = (file: string, version: boolean) => {

@@ -33,7 +33,7 @@ it("personal scene and assistant delegation keep their rules; administrative act
     const created = await perform(house(), "identities", {
       by: "beto",
       act: "new",
-      input: { identity: "luz", tools: [] },
+      input: { identity: "luz", tools: [], language: "es" },
     });
     expect([created.status, created.reason]).toEqual(["rejected", words.only]);
     const own = { general: "Estoy probando" };

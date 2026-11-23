@@ -45,7 +45,11 @@ it.each([false, true])("rejects a detached continuation after revocation (pendin
     identities: true,
     secretKeys: new MemoryHouseKeys(),
     by: "house",
-    creation: { admin: "ana", assignments: [{ identity: "beto", tools: ["sales"] }] },
+    creation: {
+      admin: "ana",
+      language: "es",
+      assignments: [{ identity: "beto", tools: ["sales"], language: "es" }],
+    },
     founderDoorKeys: { read: () => new Map([[key, { identity: "beto", door: "agent" }]]), present: () => false },
   });
   const access = liveDoorKeys(house);

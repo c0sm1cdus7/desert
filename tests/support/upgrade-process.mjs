@@ -25,12 +25,12 @@ const current = {
   },
 };
 const path = process.argv[3];
-const creation = { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] };
-const house = startHouse(
-  path,
-  { ...current, by: "shop", creation },
-  { now: () => 1000, wait: () => () => {} },
-);
+const creation = {
+  admin: "ana",
+  language: "es",
+  assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" }],
+};
+const house = startHouse(path, { ...current, by: "shop", creation }, { now: () => 1000, wait: () => () => {} });
 try {
   if (mode === "old") {
     house.tools.act({ act: "attend", input: { target: "sales" } }, 0, "ana");

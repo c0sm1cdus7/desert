@@ -1,4 +1,5 @@
 import { MemoryHouseKeys } from "./house-keys.ts";
+import { migratedJournal } from "../../../tests/support/migrated-journal.ts";
 import { expect, it } from "vitest";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -77,6 +78,7 @@ it("the real previous house with references opens and counts facts and actions",
   const path = home();
   for (const [name, bytes] of Object.entries(previous.reference))
     writeFileSync(join(path, name), Buffer.from(bytes, "base64"));
+  migratedJournal(path);
   const opened = startHouse(path, rig.options, time);
   opened.close();
   expect(JSON.parse(readFileSync(join(path, "secret-protection.json"), "utf8"))).toMatchObject({

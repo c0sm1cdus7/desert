@@ -1,7 +1,16 @@
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
 import { effect } from "../house/facts.ts";
 import { cancelInheritedWake } from "../house/inherited-wake.ts";
-import { checkCreation, createHouse, identityReader, InvalidCreation } from "../house/members.ts";
+import {
+  checkCreation,
+  createHouse,
+  identityReader,
+  InvalidCreation,
+  UnmigratedJournal,
+  unspoken,
+  type House,
+} from "../house/members.ts";
+import { storedNamesTexts } from "../texts/stored-names.texts.ts";
 import { startClock, systemTime, type TimeSource } from "../journal/clock.ts";
 import { journeyFrozen } from "../house/minds/journey-state.ts";
 import type { Event } from "../journal/vocabulary.ts";
@@ -35,6 +44,11 @@ function houseContracts<X extends Program>(options: HouseOptions<X>, resources: 
     events: () => houseHistory<X>(journal),
   });
 }
+/** A journal whose identities have no language was written before 23/11: it opens only once migrated. */
+function requireLanguages(house: House): void {
+  const missing = unspoken(house);
+  if (missing.length) throw new UnmigratedJournal(storedNamesTexts.unmigrated(missing));
+}
 export function startHouse<X extends Program>(
   home: string,
   options: ModelHouseOptions<X>,
@@ -47,6 +61,7 @@ export function startHouse<X extends Program>(
   const { protection, secrets, bus, stops, report, close, state, clock } = resources;
   try {
     if (!state().house.admin) checkCreation(creation, by);
+    else requireLanguages(state().house);
     protection.mark();
     protection.attach(secrets, state);
     const contracts = houseContracts(options, resources);
@@ -68,7 +83,8 @@ export function startHouse<X extends Program>(
     const minds = loadMinds(home, options, time, resources, devices, contracts, supervision);
     return runningHouse(home, registry, tools, time, resources, devices, minds);
   } catch (error) {
-    if (!(error instanceof InvalidCreation)) report(error, "program", "program", "start");
+    if (!(error instanceof InvalidCreation || error instanceof UnmigratedJournal))
+      report(error, "program", "program", "start");
     close();
     throw error;
   }

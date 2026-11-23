@@ -2,7 +2,7 @@
 import { personalTexts as words } from "../../texts/personal.texts.ts";
 import type { ProgramTool } from "../promises.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";
-import { personalAttendance, personalPreferences, personalScenes } from "./personal-actions.ts";
+import { personalAttendance, personalLanguage, personalPreferences, personalScenes } from "./personal-actions.ts";
 const trusted = new WeakSet<object>();
 export const isPersonalTool = (tool: object) => trusted.has(tool);
 function personalTool<X extends Program>(registry: ToolRegistry<X>): ProgramTool<X> {
@@ -16,6 +16,7 @@ function personalTool<X extends Program>(registry: ToolRegistry<X>): ProgramTool
     acts: {
       ...personalScenes<X>(),
       ...personalPreferences<X>(),
+      language: personalLanguage<X>(),
       attend: personalAttendance(registry, false),
       unattend: personalAttendance(registry, true),
     },

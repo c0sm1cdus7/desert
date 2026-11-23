@@ -20,6 +20,7 @@ it("counts the selected level without turning loose actions into folders, includ
       identity: "lucia",
       name: "Lucía",
       tools: ["notes", "conversation"],
+      language: "es",
     });
     expect(created).toMatchObject({ status: "accepted" });
     const read = () => identityReading(rig.state().house, "identities/lucia", registry, "ana");

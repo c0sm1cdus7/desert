@@ -14,9 +14,10 @@ const house = startHouse(home, {
   secretKeys: new MemoryHouseKeys(),
   creation: {
     admin: "ana",
+    language: "es",
     assignments: [
-      { identity: "beto", tools: [] },
-      { identity: "carla", tools: [] },
+      { identity: "beto", tools: [], language: "es" },
+      { identity: "carla", tools: [], language: "es" },
     ],
   },
 });

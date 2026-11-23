@@ -74,7 +74,8 @@ it("creates a person and gives a program, a tool and one loose action with named
     await press("n", "Identificador");
     await press("lucia\r", "Nombre");
     await press("Lucía\r", "Programas");
-    await press("\r", "Creada · Lucía");
+    await press("\r", "Idioma");
+    await press("s", "Creada · Lucía");
     await press("\x1b", "nueva identidad");
     await press("2", "pasar la administración");
     const identity = term.screen().join("\n");

@@ -10,7 +10,11 @@ const house = startHouse(home, {
   ...shopProgram,
   by: "house",
   secretKeys: new MemoryHouseKeys(),
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" }],
+  },
 });
 const door = houseDoor(house, new Map([["ana-terminal", { identity: "ana", door: "terminal" }]]));
 const pair = duplexPair();

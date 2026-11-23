@@ -5,7 +5,7 @@ import { isMindActor } from "../fields/mind-actor.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { effect, type HouseEvent } from "./facts.ts";
 import { accepted, ownAct, rejected } from "../tools/act-definition.ts";
-import { preferenceAct } from "./preferences.ts";
+import { languageAct, preferenceAct } from "./preferences.ts";
 import type { OwnAct, Program } from "../tools/tool-contract.ts";
 export function houseActs<X extends Program>(attendance: readonly OwnAct<X>[]) {
   const scene = ownAct<X, typeof actCatalog.scene.input>(
@@ -17,7 +17,7 @@ export function houseActs<X extends Program>(attendance: readonly OwnAct<X>[]) {
       return absent === undefined ? accepted(effect("scene", input, by)) : rejected(toolTexts.sceneRecipient(absent));
     },
   );
-  const identity = [...attendance, preferenceAct<X>(), scene];
+  const identity = [...attendance, preferenceAct<X>(), languageAct<X>(), scene];
   return (by: string): readonly OwnAct<X>[] => (!isMindActor(by) ? identity : [scene]);
 }
 

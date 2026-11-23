@@ -27,7 +27,11 @@ const house = startHouse(
     ...shopProgram,
     projectionVersion: process.argv[3] ?? "shop/1",
     by: "shop",
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] },
+    creation: {
+      admin: "ana",
+      language: "es",
+      assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" }],
+    },
   },
   { now: () => 1000, wait: () => () => {} },
 );

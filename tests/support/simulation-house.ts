@@ -45,9 +45,10 @@ export function simulationHouse(home: string, action: ToolAct<Program>) {
     secretKeys: new MemoryHouseKeys(),
     creation: {
       admin: "ana",
+      language: "es" as const,
       assignments: [
-        { identity: "ana", tools: ["probe"] },
-        { identity: "beto", tools: ["probe"] },
+        { identity: "ana", tools: ["probe"], language: "es" as const },
+        { identity: "beto", tools: ["probe"], language: "es" as const },
       ],
     },
   };

@@ -89,7 +89,7 @@ it.each(["scene", "named"] as const)("the core lets whoever acts on themselves s
   if (kind === "scene") expect(rig.state().house.scenes.get("beto")?.data.general).toBe("Propia");
   else expect(rig.state().house.names.get("beto")).toBe("Nombre propio");
 });
-it.each(["named", "granted", "preferred"] as const)(
+it.each(["named", "granted", "preferred", "language-set"] as const)(
   "acting on oneself does not authorize someone else's %s",
   async kind => {
     const rig = effectRig(({ by }) => {
@@ -97,6 +97,7 @@ it.each(["named", "granted", "preferred"] as const)(
         named: effect("named", { identity: "ana", name: "Ajeno" }, by),
         granted: effect("granted", { identity: by, tools: ["payments"] }, by),
         preferred: effect("preferred", { hide: "empty", on: true }, by),
+        "language-set": effect("language-set", { identity: "ana", language: "en" }, by),
       };
       return { status: "accepted", effects: [effects[kind]] };
     }, true);

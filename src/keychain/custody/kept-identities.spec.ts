@@ -17,7 +17,11 @@ function kept(identities: boolean) {
   const home = mkdtempSync(join(tmpdir(), "kept-identities-"));
   homes.push(home);
   const program = { ...shopProgram, identities };
-  const creation = { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] };
+  const creation = {
+    admin: "ana",
+    language: "es" as const,
+    assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" as const }],
+  };
   startHouse(home, { ...program, by: "house", creation, secretKeys: new MemoryHouseKeys() }).close();
   return { program, file: join(home, "journal.sqlite") };
 }

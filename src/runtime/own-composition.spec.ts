@@ -14,7 +14,11 @@ it("the composition checks own for the identities of a house not yet created", (
       const house = startHouse<Shop>(home, {
         ...shopProgram,
         by: "shop",
-        creation: { admin: "ana", assignments: [{ identity: "beto", tools: ["sales"] }] },
+        creation: {
+          admin: "ana",
+          language: "es",
+          assignments: [{ identity: "beto", tools: ["sales"], language: "es" }],
+        },
         own: state =>
           state.by === "beto"
             ? [

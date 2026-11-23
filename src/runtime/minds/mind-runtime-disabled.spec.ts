@@ -40,7 +40,11 @@ it.each([undefined, { assistants: false, programs: [] }])(
       words: shop,
       slices: shopSlices,
       registry: [...shopRegistry, probe],
-      creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["probe"] }] },
+      creation: {
+        admin: "ana",
+        language: "es",
+        assignments: [{ identity: "ana", tools: ["probe"], language: "es" }],
+      },
       ...(minds ? { minds } : {}),
     };
     const house = startHouse(home, options);
@@ -74,7 +78,7 @@ it.each([
         words: shop,
         slices: shopSlices,
         registry: shopRegistry,
-        creation: { admin: "ana", assignments: [] },
+        creation: { admin: "ana", language: "es", assignments: [] },
         ...changed,
       }),
     ).toThrow("minds");

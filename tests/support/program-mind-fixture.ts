@@ -108,7 +108,11 @@ class ProgramMindFixture {
       modelMinds,
       by: "distribution",
       ...(!enabled ? { minds: { assistants: false, programs: [] } } : {}),
-      creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes", "agenda"] }] },
+      creation: {
+        admin: "ana",
+        language: "es",
+        assignments: [{ identity: "ana", tools: ["notes", "agenda"], language: "es" }],
+      },
     });
     this.houses.push(house);
     await (await house.minds)?.flush();

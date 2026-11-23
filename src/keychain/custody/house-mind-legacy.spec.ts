@@ -1,4 +1,5 @@
 import "../../../tests/support/fixture-vault.ts";
+import { migratedJournal } from "../../../tests/support/migrated-journal.ts";
 import { checkedHouse } from "../../../tests/support/journal-causes.ts";
 import { afterEach, expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
@@ -39,7 +40,11 @@ it("a prior identity named mind:vault leaves its credential to that mind when it
     slices: shopSlices,
     registry: [...shopRegistry, mind.tool],
     secretKeys: new MemoryHouseKeys(),
-    creation: { admin: "ana", assignments: [{ identity: "mind:vault", tools: ["vault"] }] },
+    creation: {
+      admin: "ana",
+      language: "es" as const,
+      assignments: [{ identity: "mind:vault", tools: ["vault"], language: "es" as const }],
+    },
   };
   let bound: Promise<unknown> | undefined;
   // Since the kit (5a) the house no longer writes a grant for mind:vault, so the old record's creation and grant are
@@ -48,6 +53,7 @@ it("a prior identity named mind:vault leaves its credential to that mind when it
   old.append(effect("house-created", {}, "ana"), 0);
   old.append(effect("granted", { identity: "mind:vault", tools: ["vault"] }, "ana"), 1);
   old.close();
+  migratedJournal(home);
   // Seed the old record's exact actor/tool/target scope through real custody, without storing a fixture key.
   // These are the granted fact and credential a pre-mind identity left; today's fold ignores that grant.
   const legacy = {

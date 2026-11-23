@@ -8,6 +8,7 @@ import { Type } from "@sinclair/typebox";
 import { object } from "../../fields/visible-text.ts";
 import { t } from "../../house/own-acts.ts";
 import { text, textLimit, someOf, option } from "../../fields/fields.ts";
+import { languageField } from "../personal/personal-actions.ts";
 import { identityNameProblem } from "../../house/identities/identity-name.ts";
 import { effect } from "../../house/facts.ts";
 import { identityTexts as words } from "../../texts/identities.texts.ts";
@@ -26,6 +27,7 @@ function identityInput<X extends Program>(catalog: ToolRegistry<X>) {
     }),
     name: Type.Optional({ ...text(words.display, words.optional), ...t(textLimit) }),
     tools: someOf(words.programs, "none", ...catalog.map(tool => option(tool.id, programName(tool), ""))),
+    language: languageField(),
   });
 }
 export function newIdentity<X extends Program>(registry: ToolRegistry<X>, runner: string) {
@@ -42,7 +44,7 @@ export function newIdentity<X extends Program>(registry: ToolRegistry<X>, runner
         ? undefined
         : (identityNameProblem(identity, runner) ??
           (members(state.house).includes(identity) ? words.repeated : undefined)),
-    run: ({ identity, name, tools }, { by, at }) => {
+    run: ({ identity, name, tools, language }, { by, at }) => {
       const invitation = issueInvitation(identity, "agent", by, at);
       return {
         private: doorTexts.receipt(invitation.code),
@@ -51,6 +53,7 @@ export function newIdentity<X extends Program>(registry: ToolRegistry<X>, runner
         target: identityTarget(identity),
         effects: [
           effect("granted", { version: 2, identity, kit: programKit(tools) }, by),
+          effect("language-set", { identity, language }, by),
           ...(name === undefined ? [] : [effect("named", { identity, name }, by)]),
           invitation.fact,
         ],

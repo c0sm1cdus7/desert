@@ -19,7 +19,7 @@ it("does not start a sale after revocation and admits a proven redemption during
         headers: { "Content-Type": "application/json", ...(key ? { Authorization: `Bearer ${key}` } : {}) },
         body: JSON.stringify(value),
       });
-    const code = invitationCode(await h.act("new", { identity: "luz", tools: ["sales"] }));
+    const code = invitationCode(await h.act("new", { identity: "luz", tools: ["sales"], language: "es" }));
     for (let attempt = 0; attempt < 20; attempt++) await post("/door/invitations/redeem", { code: "invalid" });
     const redeemed = await post("/door/invitations/redeem", { code, proof: solveInvitationProof(code) });
     expect(redeemed.status).toBe(200);

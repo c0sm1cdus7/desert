@@ -55,12 +55,17 @@ const busOf = (journal: SqliteJournal<ShopFact>) =>
     emission => journal.append(emission, Date.now()),
     write => journal.batch(write),
   );
+/** The rig's identities read the house in Spanish, the language its expected screens are written in. */
+const inSpanish = (grants: Readonly<Record<string, readonly string[]>>) => ({
+  admin: "ana",
+  language: "es" as const,
+  assignments: Object.entries(grants).map(([identity, tools]) => ({ identity, tools, language: "es" as const })),
+});
 export function shopRig({ registry = shopRegistry, grants, ...ports }: Options = {}) {
   const all = registry.map(tool => tool.id);
   const journal = new SqliteJournal(":memory:", shop);
   const bus = busOf(journal);
-  const members = Object.entries(grants ?? { ana: all, beto: all });
-  createHouse(bus, { admin: "ana", assignments: members.map(([identity, tools]) => ({ identity, tools })) });
+  createHouse(bus, inSpanish(grants ?? { ana: all, beto: all }));
   let live = resume(bus, journal, registry, ports);
   const act = (by: string, act: string, input: unknown, target?: string, through = live.tools.state().through) =>
     live.tools.act({ act, input, ...(target === undefined ? {} : { target }) }, through, by);

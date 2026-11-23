@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { migratedJournal } from "../../tests/support/migrated-journal.ts";
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -28,6 +29,8 @@ function previous(kind: "exposed" | "reference") {
   for (const row of fixtures[kind].snapshots)
     db.prepare("insert into snapshots values (?,?)").run(row.name, Buffer.from(row.state, "base64"));
   db.close();
+  // The exposed log is refused untouched; the one with references is migrated before it opens.
+  if (kind === "reference") migratedJournal(path);
   return path;
 }
 it("rejects the exposed earlier log without altering its bytes and names only action and position", () => {

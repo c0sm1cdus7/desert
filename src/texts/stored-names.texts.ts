@@ -2,15 +2,21 @@
 export const storedNamesTexts = {
   usage:
     "Uso: pnpm migrate-names --backup <carpeta> [--journal <journal.sqlite>] [--account <cuenta.sqlite>]\n" +
-    "Hace una copia de cada archivo en la carpeta, renombra lo guardado en castellano y comprueba el resultado.",
+    "Hace una copia de cada archivo en la carpeta, renombra lo guardado en castellano, da el castellano a cada " +
+    "identidad sin idioma y comprueba el resultado.",
   backupRequired: "Falta la carpeta de copia: pasá --backup con una carpeta que exista. No se tocó nada.",
   backupExists: (file: string) => `Ya hay una copia en ${file}: elegí otra carpeta. No se tocó nada.`,
   notJournal: "El archivo no es un diario de DESERT: no tiene la protección de solo agregar.",
   namesLeft: "Después de migrar todavía quedan nombres viejos; se deshizo el cambio.",
+  languagesLeft: "Después de migrar todavía quedan identidades sin idioma; se deshizo el cambio.",
   foldChanged: "El estado plegado después de migrar no es igual al de antes; se deshizo el cambio.",
-  migrated: (file: string, changed: number, rows: number, backup: string | undefined) =>
+  migrated: (file: string, changed: number, rows: number, spoken: number, backup: string | undefined) =>
     backup
-      ? `${file}: ${changed} de ${rows} hechos renombrados; copia en ${backup}. Comprobado.`
-      : `${file}: nada que renombrar en ${rows} hechos. Comprobado.`,
+      ? `${file}: ${changed} de ${rows} hechos renombrados; ${spoken} identidades sin idioma reciben el ` +
+        `castellano; copia en ${backup}. Comprobado.`
+      : `${file}: nada que renombrar ni identidades sin idioma en ${rows} hechos. Comprobado.`,
   failed: (file: string, reason: string) => `${file}: no se migró. ${reason}`,
+  unmigrated: (identities: readonly string[]) =>
+    `Identidades sin idioma: ${identities.join(", ")}. Este diario es de antes del 23/11: migralo con ` +
+    "pnpm migrate-names --backup <carpeta> --journal <journal.sqlite>.",
 };

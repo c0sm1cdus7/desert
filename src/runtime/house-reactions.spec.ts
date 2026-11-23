@@ -15,7 +15,11 @@ it("recovers from disk without thinking and does not notify again on rebuilding"
     words: shop,
     registry: shopRegistry,
     slices: shopSlices,
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] },
+    creation: {
+      admin: "ana",
+      language: "es" as const,
+      assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" as const }],
+    },
   };
   let house = startHouse(home, options);
   const entries = () => house.journal.replay<ShopEvent[]>([], (all, event) => [...all, event]);

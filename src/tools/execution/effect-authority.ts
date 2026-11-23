@@ -103,8 +103,9 @@ export function effectRefusal<X extends Program>(
       continue;
     }
     if (tool && isPersonalTool(tool)) {
-      if (!["scene", "preferred", "attended", "unattended"].includes(each.kind) || context.target !== "personal")
-        return refuse(effectRefusalTexts.houseFact);
+      const own = each.kind !== "language-set" || each.data.identity === context.by;
+      const personal = ["scene", "preferred", "language-set", "attended", "unattended"].includes(each.kind);
+      if (!personal || !own || context.target !== "personal") return refuse(effectRefusalTexts.houseFact);
     } else if (source !== "house") {
       if (source === "own" || !corePiece(tool?.id) || !house.identities) return refuse(effectRefusalTexts.houseFact);
       const why = coreAuthority(ports, house, each, context, tool);

@@ -16,7 +16,8 @@ const options = {
   secretKeys: new MemoryHouseKeys(),
   creation: {
     admin: "ana",
-    assignments: ["ana", "beto"].map(identity => ({ identity, tools: ["sales", "payments"] })),
+    language: "es" as const,
+    assignments: ["ana", "beto"].map(identity => ({ identity, tools: ["sales", "payments"], language: "es" as const })),
   },
 };
 let house = startHouse(home, options);

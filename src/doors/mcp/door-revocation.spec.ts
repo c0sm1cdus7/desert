@@ -12,7 +12,7 @@ const sale = (name: string) => ({
 it("does not start register after revocation between attend and register", async () => {
   const h = doorHouse();
   opened.push(h);
-  await h.act("new", { identity: "luz", tools: ["sales"] });
+  await h.act("new", { identity: "luz", tools: ["sales"], language: "es" });
   const key = h.access().redeem(invitationCode(await h.act("invite", { door: "agent" }, "identities/luz"))).key;
   if (!key) throw new Error("Missing synthetic credential");
   const id = h.access().get(key)?.id;

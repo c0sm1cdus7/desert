@@ -50,7 +50,12 @@ export function openHouse<X extends Program>(
   if (!events().length) {
     createHouse(bus, {
       admin: "ana",
-      assignments: ["ana", "beto"].map(identity => ({ identity, tools: registry.map(tool => tool.id) })),
+      language: "es",
+      assignments: ["ana", "beto"].map(identity => ({
+        identity,
+        tools: registry.map(tool => tool.id),
+        language: "es",
+      })),
     });
     if (selections) bus.emit(effect("kit-set", { version: 2, holder: "beto", kit: selectionKit(selections) }, "ana"));
   }

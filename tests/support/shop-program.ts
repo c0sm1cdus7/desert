@@ -26,7 +26,8 @@ export const server = {
   by: "house",
   creation: {
     admin: "ana",
-    assignments: ["ana", "beto"].map(identity => ({ identity, tools: ["sales", "payments"] })),
+    language: "es" as const,
+    assignments: ["ana", "beto"].map(identity => ({ identity, tools: ["sales", "payments"], language: "es" as const })),
   },
   keys: new Map<string, DoorKey>([
     ["ana-terminal", { identity: "ana", door: "terminal" }],
@@ -54,7 +55,11 @@ export async function runSample(home: string, args: readonly string[], environme
       minds: { assistants: false, programs: [] },
       shown: { code: [import.meta.filename], locale: shopShown.locale },
     });
-    await runProgramServer(installed.program, { ...server, creation: { admin: "ana", assignments: [] } }, home);
+    await runProgramServer(
+      installed.program,
+      { ...server, creation: { admin: "ana", language: "es" as const, assignments: [] } },
+      home,
+    );
   } else if (args[0] === "--cloud") await runCloudSample(home, args, environment);
   else await runProgramServer(program, server, home);
 }

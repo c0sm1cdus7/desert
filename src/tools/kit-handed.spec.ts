@@ -37,7 +37,11 @@ it.each(["house", "world"] as const)("R10: handing over administration cuts the 
     registry: [...shopRegistry, slow],
     by: "shop",
     identities: true,
-    creation: { admin: "ana", assignments: [{ identity: "beto", tools: ["slow"] }] },
+    creation: {
+      admin: "ana",
+      language: "es",
+      assignments: [{ identity: "beto", tools: ["slow"], language: "es" }],
+    },
   });
   try {
     house.tools.act({ act: "attend", input: { target: "slow" } }, 0, "ana");

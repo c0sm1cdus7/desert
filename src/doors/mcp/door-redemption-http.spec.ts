@@ -30,7 +30,7 @@ it("redeems over localhost, saves MCP authorization privately and enters without
     door = h.door();
   let server: Awaited<ReturnType<typeof serveMcp>> | undefined;
   try {
-    const code = invitationCode(await h.act("new", { identity: "luz", tools: [] }));
+    const code = invitationCode(await h.act("new", { identity: "luz", tools: [], language: "es" }));
     server = await serveMcp(door, { host: "127.0.0.1", port: 0 });
     const address = server.address;
     if (!address || typeof address === "string") throw new Error("Missing loopback address");

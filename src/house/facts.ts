@@ -6,7 +6,7 @@ import { ruleFacts } from "./rules/rule-facts.ts";
 import { deviceFacts } from "./devices/device-facts.ts";
 import { executionDestination } from "../fields/device-protocol.ts";
 import { selectionKitSchema } from "./kit-selection.ts";
-import { name, preference, scene, t, toolLimits } from "./own-acts.ts";
+import { name, preference, scene, spoken, t, toolLimits } from "./own-acts.ts";
 import { wholeNumber } from "../fields/json-values.ts";
 import { ids } from "./ids.ts";
 import { Type } from "@sinclair/typebox";
@@ -50,6 +50,8 @@ export const houseCatalog = {
   /** The house passes to another of those who are in it: from then on that one administers it. */
   handed: object({ to: name }),
   preferred: preference,
+  /** The language an identity reads the house in: said by itself, or by who administers when creating it. */
+  "language-set": object({ identity: name, ...spoken.properties }),
   scene,
   "kit-set": Type.Union([
     object({ holder: name, tool: name, acts: Type.Union([names, Type.Null()]) }),

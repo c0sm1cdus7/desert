@@ -29,7 +29,11 @@ const options = {
   secretKeys: processKeys(home),
   words: vocabulary({}),
   slices: { initial: { vault: 0 }, step: { vault: (state: unknown) => Number(state) + 1 } },
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["vault"] }] },
+  creation: {
+    admin: "ana",
+    language: "es" as const,
+    assignments: [{ identity: "ana", tools: ["vault"], language: "es" as const }],
+  },
   registry: [
     {
       id: "vault",

@@ -10,7 +10,7 @@ import { houseTools } from "../../surface/bridge/assembly/house-tools.ts";
 import { coreRegistry } from "./identities.ts";
 const create = (identity: string, name?: string) => ({
   act: "new",
-  input: { identity, ...(name === undefined ? {} : { name }), tools: [] },
+  input: { identity, ...(name === undefined ? {} : { name }), tools: [], language: "es" },
 });
 it("reserves the registry id, even without the opt-in", () => {
   for (const enabled of [false, true])
@@ -49,7 +49,7 @@ it("can create with an empty catalog and accepts identifier boundaries", async (
         locale: shopShown.locale,
       }).find(tool => tool.id === "identities");
       expect(tool?.acts.new?.next(["sol", ""])).toMatchObject({ kind: "many", options: [] });
-      expect((await tool?.acts.new?.run(["sol", "", ""]))?.ok).toBe(true);
+      expect((await tool?.acts.new?.run(["sol", "", "", "Español"]))?.ok).toBe(true);
       reopen();
       expect(house().tools.state().house.grants.has("sol")).toBe(true);
     },
@@ -108,7 +108,10 @@ it("a question opened by the old administrator cannot write after a handover", a
     );
     expect(tool?.acts.new?.next([])?.kind).toBe("text");
     await perform(house(), "identities", { act: "hand", on: "identities/beto", input: {} });
-    expect(await tool?.acts.new?.run(["luz", "", ""])).toMatchObject({ ok: false, reason: "solo quien administra" });
+    expect(await tool?.acts.new?.run(["luz", "", "", "Español"])).toMatchObject({
+      ok: false,
+      reason: "solo quien administra",
+    });
     expect(house().tools.state().house.grants.has("luz")).toBe(false);
   });
 });

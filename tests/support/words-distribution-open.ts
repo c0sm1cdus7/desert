@@ -13,7 +13,11 @@ const house = startHouse(home, {
   ...program,
   by: "house",
   secretKeys: new MemoryHouseKeys(),
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes", "conversation"] }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "ana", tools: ["notes", "conversation"], language: "es" }],
+  },
 });
 if (process.argv[3] === "news") {
   house.bus.emit(effect("granted", { version: 2, identity: "lucia", kit: programKit(["notes"]) }, "ana"));

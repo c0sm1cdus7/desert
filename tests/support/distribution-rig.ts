@@ -14,7 +14,8 @@ export function distributionRig<X extends Program>(program: Composition<X>) {
     emission => journal.append(emission, 1000),
     write => journal.batch(write),
   );
-  createHouse(bus, { admin: "ana", assignments: [{ identity: "ana", tools: program.registry.map(t => t.id) }] });
+  const ana = { identity: "ana", tools: program.registry.map(t => t.id), language: "es" as const };
+  createHouse(bus, { admin: "ana", language: "es" as const, assignments: [ana] });
   const initial = () => startState(program.slices, "ana", program.identities, program.registry);
   const resume = () => {
     const state = journal.watch("tools", initial(), (state, event) => toolsStep(state, event, program.slices));

@@ -1,5 +1,6 @@
 // The custody and the house contract as one contract: kits, a tool's mind, scenes and a credential, through reopening;
 // and a registry written by the custody alone (3e69d44) folds the same in the joined tree.
+import { migratedJournal } from "../../tests/support/migrated-journal.ts";
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -58,7 +59,11 @@ const optionsWith = (fake: ReturnType<typeof fakeKeychain>): HouseOptions<Shop> 
   words: shop,
   slices: shopSlices,
   registry: [...shopRegistry, vault],
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments", "vault"] }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "ana", tools: ["sales", "payments", "vault"], language: "es" }],
+  },
   ...adapterProgram,
   secretKeys: new MacOSHouseKeys(fake.command),
 });
@@ -94,6 +99,7 @@ it("custody house: kits, mind, acts with and without credential, scenes; closes 
     options = optionsWith(fake);
   let rig = opened(home, options);
   rig.house.bus.emit(effect("granted", { identity: "beto", tools: ["vault"] }, "ana"));
+  rig.house.bus.emit(effect("language-set", { identity: "beto", language: "es" }, "ana"));
   rig.house.bus.emit(effect("kit-set", { holder: "beto", tool: "vault", acts: ["plain"] }, "ana"));
   rig.house.bus.emit(effect("kit-set", { holder: mind, tool: "vault", acts: ["sign", "use"] }, "ana"));
   for (const by of ["ana", "beto"]) await rig.act(by, "attend", { target: "vault" }, ids.self);
@@ -171,6 +177,7 @@ it("a log written by custody alone (3e69d44) folds the same in the joined tree",
   insert("snapshots", snapshots);
   db.close();
   writeFileSync(join(home, "fixture.sqlite"), Buffer.from(previous.custody, "base64"));
+  migratedJournal(home);
   const fake = fakeKeychain();
   for (const [account, value] of Object.entries(previous.keychain))
     fake.saved.set(account, Buffer.from(value, "base64"));
@@ -199,11 +206,21 @@ it("a log written by custody alone (3e69d44) folds the same in the joined tree",
     rules,
     devices,
     doors,
+    languages,
     ...older
   } = house;
+  // The migration gave the custody log's identities the Spanish they had read it in.
+  expect([...languages]).toEqual([
+    ["ana", "es"],
+    ["beto", "es"],
+  ]);
   expect(Object.hasOwn(older, "channels")).toBe(false);
   const previousHouse = Object.fromEntries(Object.entries(previous.fold.house).filter(([key]) => key !== "channels"));
-  expect(folded({ ...rest, house: older })).toEqual({ ...previous.fold, house: previousHouse });
+  // Its two facts of language come after the log's own: the rest folds as the custody tree folded it.
+  expect(folded({ ...rest, through: rest.through - languages.size, house: older })).toEqual({
+    ...previous.fold,
+    house: previousHouse,
+  });
   expect(mindCards).toEqual(new Map());
   expect(identities).toBe(false);
   expect(rules).toEqual({ versions: new Map(), active: new Map(), approved: new Map(), retired: new Map() });

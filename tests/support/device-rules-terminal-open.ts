@@ -20,7 +20,11 @@ const house = startHouse(home, {
   identities: true,
   by: "shop",
   secretKeys: new MemoryHouseKeys(),
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" }],
+  },
 });
 const publicKey = generateKeyPairSync("ed25519").publicKey.export({ type: "spki", format: "der" }).toString("base64");
 house.devices.register("ana", { id: "mac", name: "Mac de prueba", publicKey });

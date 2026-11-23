@@ -29,7 +29,11 @@ const house = startHouse(home, {
   ...program,
   by: "shop",
   secretKeys: new MemoryHouseKeys(),
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: program.registry.map(tool => tool.id) }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "ana", tools: program.registry.map(tool => tool.id), language: "es" }],
+  },
 });
 const shown = {
   ...shopShown,

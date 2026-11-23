@@ -45,7 +45,8 @@ it("passes administration with real terminal bytes, defaults to volver, and pers
 }, 15000);
 it("creates with an optional name, shows the rule, removes and readmits through the real terminal", async () => {
   const home = mkdtempSync(join(tmpdir(), "identities-terminal-create-"));
-  const term = realTerminal([process.execPath, entry, home]);
+  // The page of a removed identity reads its language among its data, before its kit: a taller screen shows both.
+  const term = realTerminal([process.execPath, entry, home], { cols: 100, rows: 32 });
   try {
     await term.until("Menú");
     term.press("i");
@@ -61,6 +62,8 @@ it("creates with an optional name, shows the rule, removes and readmits through 
     await term.until("Programas");
     expect(term.screen().join("\n")).not.toContain("[ ] identities");
     term.press(" \r");
+    await term.until("Idioma");
+    term.press("s");
     await term.until("Creada · luz");
     term.press("\x1b");
     await term.until("nueva identidad");

@@ -37,7 +37,11 @@ const house = startHouse(home, {
   registry,
   by: "shop",
   secretKeys: new MemoryHouseKeys(),
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" }],
+  },
 });
 const received: string[] = [];
 const connections = new Map<string, { disconnect(): void }>();

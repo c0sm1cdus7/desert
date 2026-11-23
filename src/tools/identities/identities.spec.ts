@@ -8,7 +8,7 @@ import { effect } from "../../house/facts.ts";
 import { identityNameTexts } from "../../texts/tools.texts.ts";
 
 const program = { ...shopProgram, identities: true };
-const create = { act: "new", input: { identity: "luz", name: "Luz", tools: ["sales"] } };
+const create = { act: "new", input: { identity: "luz", name: "Luz", tools: ["sales"], language: "es" } };
 const on = "identities/luz";
 it("the composition opts in, without a slice or process, while the original shop stays unchanged", async () => {
   for (const enabled of [false, true])

@@ -31,7 +31,11 @@ it("A03: two accepted sales cannot reopen as only one sale", () => {
   const options = {
     by: "shop",
     projectionVersion: "shop/1",
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] },
+    creation: {
+      admin: "ana",
+      language: "es" as const,
+      assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" as const }],
+    },
     words: shop,
     registry: shopRegistry,
     slices: shopSlices,

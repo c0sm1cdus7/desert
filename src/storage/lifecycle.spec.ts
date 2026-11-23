@@ -27,7 +27,7 @@ for (const mode of ["start", "stop"] as const) {
       ...shopProgram,
       registry,
       by: "shop",
-      creation: { admin: "ana", assignments: [] },
+      creation: { admin: "ana", language: "es" as const, assignments: [] },
     };
     try {
       if (mode === "start") expect(() => startHouse(home, options)).toThrow("OutsideDefect: lifecycle diagnostic");

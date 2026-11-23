@@ -17,7 +17,11 @@ it("serves the MCP door from a cloud house opened with its root key and door key
   homes.push(home);
   const environment = { ROOT: Buffer.alloc(32, 7).toString("hex"), ANA: Buffer.alloc(32, 9).toString("hex") };
   const before = process.listeners("SIGTERM");
-  const creation = { admin: "ana", assignments: [{ identity: "ana", tools: ["sales"] }] };
+  const creation = {
+    admin: "ana",
+    language: "es" as const,
+    assignments: [{ identity: "ana", tools: ["sales"], language: "es" as const }],
+  };
   const cloud = startCloudHouse({ ...shopProgram, by: "shop", creation }, home, environment, "ROOT");
   const signal = process.listeners("SIGTERM").find(listener => !before.includes(listener));
   if (signal) stops.push(() => signal("SIGTERM"));

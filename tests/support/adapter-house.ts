@@ -62,7 +62,11 @@ function optionsFor(acts: Tool<Shop>["acts"], extra: Partial<Tool<Shop>>, adapte
     words: shop,
     slices: shopSlices,
     registry: [...shopRegistry, vault],
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments", "vault"] }] },
+    creation: {
+      admin: "ana",
+      language: "es" as const,
+      assignments: [{ identity: "ana", tools: ["sales", "payments", "vault"], language: "es" as const }],
+    },
     ...adapterProgram,
     ...(adapters ? { adapters } : {}),
     secretKeys: new MemoryHouseKeys(),

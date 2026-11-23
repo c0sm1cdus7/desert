@@ -10,7 +10,11 @@ const house = startHouse(home, {
   ...identitiesProgram,
   by: "house",
   secretKeys: new MemoryHouseKeys(),
-  creation: { admin: "ana", assignments: [{ identity: "beto", tools: [] }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "beto", tools: [], language: "es" }],
+  },
 });
 const router = houseRouter(localPorts(house, "ana", { recentLines: 40 }), identitiesShown);
 await startTerminal(process.stdout, process.stdin, router);

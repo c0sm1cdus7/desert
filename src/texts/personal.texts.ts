@@ -26,6 +26,8 @@ export const personalTexts = {
   looked: "Abierto · Destino",
   left: "Cerrado · Destino",
   preferenceSaved: "Guardada · Preferencia",
+  languageSaved: "Guardado · Idioma",
+  language: { name: "idioma", enter: "guardar", purpose: "idioma en que se ve la casa", key: "i" },
   show: "Mostrar",
   hide: "Ocultar",
   example: "En curso",

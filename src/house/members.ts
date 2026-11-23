@@ -1,4 +1,5 @@
 // A house: tool grants, action kits, shared scenes, preferences and reading.
+import type { Language } from "../fields/languages.ts";
 import { isMindActor } from "../fields/mind-actor.ts";
 import { readonlyState } from "../journal/readonly-state.ts";
 import type { Event, HouseBus } from "../journal/vocabulary.ts";
@@ -20,9 +21,10 @@ import { emptyRules, rulesStep, type RulesState } from "./rules/rule-state.ts";
 import { sceneStep } from "./scenes.ts";
 import { systemTool } from "./system-tools.ts";
 
-export { checkCreation, checkIdentity, guardJournal, InvalidCreation } from "./identities/guards.ts";
-type Assignment = Readonly<{ identity: string; tools: readonly string[] }>;
-export type Creation = Readonly<{ admin: string; assignments: readonly Assignment[] }>;
+export { checkCreation, checkIdentity, guardJournal, InvalidCreation, UnmigratedJournal } from "./identities/guards.ts";
+/** Whoever creates an identity says the language it reads the house in: there is no language of the house. */
+type Assignment = Readonly<{ identity: string; tools: readonly string[]; language: Language }>;
+export type Creation = Readonly<{ admin: string; language: Language; assignments: readonly Assignment[] }>;
 export type House = Readonly<{
   admin: string;
   doors: DoorState;
@@ -45,6 +47,8 @@ export type House = Readonly<{
   Readonly<{ identities?: boolean; grants: ReadonlyMap<string, readonly string[]> }> &
   /** What each identity prefers not to see: its own to say, and nobody else's. */
   Readonly<{ hides: ReadonlyMap<string, readonly Hideable[]> }> &
+  /** The language each identity reads the house in: its own to choose, everyone's to see. */
+  Readonly<{ languages: ReadonlyMap<string, Language> }> &
   Readonly<{ kits: ReadonlyMap<string, ReadonlyMap<string, readonly string[] | null>> }> &
   Readonly<{ scenes: ReadonlyMap<string, HouseEvent<"scene">> }> &
   Readonly<{ names: ReadonlyMap<string, string>; removed: ReadonlySet<string> }>;
@@ -71,6 +75,7 @@ export const emptyHouse: House = {
   modelCalls: new Map(),
   grants: new Map(),
   hides: new Map(),
+  languages: new Map(),
   kits: new Map(),
   scenes: new Map(),
   names: new Map(),
@@ -93,6 +98,7 @@ export function houseStep(state: House, event: Event): House {
     const rest = (state.hides.get(event.by) ?? []).filter(what => what !== event.data.hide);
     return { ...state, hides: new Map(state.hides).set(event.by, event.data.on ? [...rest, event.data.hide] : rest) };
   }
+  if (event.kind === "language-set") return languageStep(state, event);
   if (event.kind === "granted" && event.by === state.admin) return grantedMember(state, event);
   /** Who administers the house takes someone out of it, never itself: what they wrote stays, their access goes. */
   if (event.kind === "removed" && event.by === state.admin && event.data.identity !== state.admin) {
@@ -116,6 +122,12 @@ export function houseStep(state: House, event: Event): House {
     };
   return state;
 }
+/** Who administers says the language of who it creates; afterwards, each identity says its own. */
+function languageStep(state: House, { by, data: { identity, language } }: HouseEvent<"language-set">): House {
+  return by === state.admin || (by === identity && state.grants.has(by))
+    ? { ...state, languages: new Map(state.languages).set(identity, language) }
+    : state;
+}
 export const identityView = <S extends HouseView>(state: S, by: string): S =>
   readonlyState({
     ...state,
@@ -137,11 +149,32 @@ export function identityReader<S extends HouseView>(read: () => S, by: string): 
     return view;
   };
 }
-export function createHouse(bus: HouseBus, { admin: by, assignments }: Creation): void {
-  bus.emit(effect("house-created", {}, by));
-  for (const { identity, tools } of assignments)
-    bus.emit(effect("granted", { version: 2, identity, kit: programKit(tools) }, by));
+export function createHouse(bus: HouseBus, creation: Creation): void {
+  for (const each of creationFacts(creation)) bus.emit(each);
 }
+/** What creating a house writes: who administers it, the language of each identity, and what each one is given. */
+export function creationFacts({ admin: by, language, assignments }: Creation) {
+  const others = assignments.filter(({ identity }, index) =>
+    assignments.slice(0, index).every(before => before.identity !== identity),
+  );
+  return [
+    effect("house-created", {}, by),
+    effect("language-set", { identity: by, language }, by),
+    ...assignments.map(({ identity, tools }) =>
+      effect("granted", { version: 2, identity, kit: programKit(tools) }, by),
+    ),
+    ...others
+      .filter(({ identity }) => identity !== by)
+      .map(({ identity, language }) => effect("language-set", { identity, language }, by)),
+  ];
+}
+/** The identities of a house that were never given a language: a journal from before 23/11, not yet migrated. */
+export const unspoken = (house: House): readonly string[] =>
+  [...new Set([house.admin, ...house.grants.keys(), ...house.removed])].filter(
+    identity => identity !== "" && !house.languages.has(identity),
+  );
+/** The language an identity reads the house in; none for an actor that is no identity, or one never given one. */
+export const languageOf = (house: House, identity: string): Language | undefined => house.languages.get(identity);
 /** The name shown for an identity defaults to its identifier. */
 export const identityDisplayName = (house: House, identity: string): string => house.names.get(identity) ?? identity;
 /** Whether an identity prefers not to see something. */
@@ -152,6 +185,7 @@ function namesMind(event: HouseEvent): boolean {
   if (event.kind === "house-created") return isMindActor(event.by);
   if (event.kind === "granted") return isMindActor(event.data.identity);
   if (event.kind === "handed") return isMindActor(event.data.to);
+  if (event.kind === "language-set") return isMindActor(event.data.identity);
   return false;
 }
 

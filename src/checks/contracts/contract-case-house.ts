@@ -1,6 +1,7 @@
 // Prepare a real provider house and its consumer kit without invoking a model or external service.
 import { Value } from "@sinclair/typebox/value";
 import { rmSync } from "node:fs";
+import { workingLanguage } from "../../fields/languages.ts";
 import { effect } from "../../house/facts.ts";
 import { selectionKitSchema } from "../../house/kit-selection.ts";
 import { startState } from "../../house/state.ts";
@@ -12,11 +13,16 @@ import { startHouse } from "../../runtime/house-runtime.ts";
 import type { Composition } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import { promiseHome } from "../promise-temporaries.ts";
+/** Who a contract case runs among: who administers, a member and its actor, each with every tool of the program. */
+function contractCreation(tools: readonly string[], actor: string) {
+  const identities = [...new Set(["ana", "beto", actor])];
+  const language = workingLanguage;
+  return { admin: "ana", language, assignments: identities.map(identity => ({ identity, tools, language })) };
+}
 export function prepareContractHouse<X extends Program>(program: Composition<X>, actor: string, preparation: unknown) {
   const home = promiseHome();
   const registry = program.registry;
   const tools = registry.filter(tool => !systemTool(tool.id)).map(tool => tool.id);
-  const identities = [...new Set(["ana", "beto", actor])];
   const house = startHouse(
     home,
     {
@@ -24,7 +30,7 @@ export function prepareContractHouse<X extends Program>(program: Composition<X>,
       minds: { assistants: false, programs: [] },
       by: "house",
       secretKeys: new MemoryHouseKeys(),
-      creation: { admin: "ana", assignments: identities.map(identity => ({ identity, tools })) },
+      creation: contractCreation(tools, actor),
     },
     { now: () => 1, wait: () => () => {} },
   );

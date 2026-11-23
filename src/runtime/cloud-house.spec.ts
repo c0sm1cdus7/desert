@@ -18,7 +18,11 @@ const program: Omit<HouseOptions<Shop>, "secretKeys"> = {
   ...shopProgram,
   ...adapterProgram,
   by: "shop",
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "vault"] }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "ana", tools: ["sales", "vault"], language: "es" }],
+  },
   registry: [
     ...shopProgram.registry,
     {

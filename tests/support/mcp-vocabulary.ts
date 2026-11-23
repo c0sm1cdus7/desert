@@ -51,6 +51,8 @@ const vocabulary = new Set([
   "changed",
   // Serialized input schemas and their field metadata.
   "properties",
+  // The language an identity reads the house in, which its own settings and the new identity ask.
+  "language",
   "secret",
   "required",
   "additionalProperties",

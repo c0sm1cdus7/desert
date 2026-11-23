@@ -22,6 +22,7 @@ import type { Card } from "../../adapters/models/catalog.ts";
 import type { TurnStop } from "../../texts/mind-turn.texts.ts";
 import type { TurnOutcome } from "./mind-ports.ts";
 import type { MindBilling } from "./mind-runtime-options.ts";
+import { workingLanguage } from "../../fields/languages.ts";
 export class ProgramMindBankHouse {
   readonly home: string;
   readonly time = { now: () => 0, wait: () => () => {} };
@@ -103,7 +104,11 @@ export class ProgramMindBankHouse {
   }
   prepare(definition: MindDefinition, card: Card, scene: ProgramMindScene) {
     const { registry } = this.program;
-    createHouse(this.bus, { admin: "bank", assignments: [{ identity: "bank", tools: registry.map(tool => tool.id) }] });
+    createHouse(this.bus, {
+      admin: "bank",
+      language: workingLanguage,
+      assignments: [{ identity: "bank", tools: registry.map(tool => tool.id), language: workingLanguage }],
+    });
     scene.given.forEach(event => this.bus.emit(event));
     this.bus.emit(
       effect(

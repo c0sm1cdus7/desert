@@ -1,4 +1,5 @@
 import "../../../tests/support/fixture-vault.ts";
+import { migratedJournal } from "../../../tests/support/migrated-journal.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -67,7 +68,7 @@ const cases: [string, boolean][] = [
 const options = {
   by: "shop",
   projectionVersion: "shop/1",
-  creation: { admin: "ana", assignments: [] },
+  creation: { admin: "ana", language: "es" as const, assignments: [] },
   words: shop,
   registry: shopRegistry,
   slices: shopSlices,
@@ -93,6 +94,7 @@ it.each(cases)("validates each door for case %#", (identity, valid) => {
       old.append(effect("granted", { identity, tools: ["sales"] }, "ana"), 1);
       old.append(effect("removed", { identity }, "ana"), 2);
       old.close();
+      migratedJournal(path);
     }
     const house = startHouse(path, options);
     try {
@@ -115,7 +117,8 @@ it.each(cases)("validates each door for case %#", (identity, valid) => {
     }
     const other = mkdtempSync(join(tmpdir(), "identity-creation-"));
     try {
-      const create = () => startHouse(other, { ...options, creation: { admin: identity, assignments: [] } });
+      const create = () =>
+        startHouse(other, { ...options, creation: { admin: identity, language: "es" as const, assignments: [] } });
       if (valid) create().close();
       else expect(create).toThrow(/letra.*64/);
     } finally {
@@ -136,6 +139,7 @@ it("folds historical invalid identities unchanged across reopening", () => {
     old.append(effect("removed", { identity: "Bad" }, "ana"), 3);
     old.append(effect("handed", { to: "Ana​" }, "ana"), 4);
     old.close();
+    migratedJournal(path);
     const reopened = startHouse(path, options);
     try {
       expect(reopened.tools.state().house.admin).toBe("Ana​");
@@ -155,12 +159,22 @@ it("bounds visible display names before writing and validates all initial assign
   const path = mkdtempSync(join(tmpdir(), "identity-display-"));
   try {
     expect(() =>
-      startHouse(path, { ...options, creation: { admin: "ana", assignments: [{ identity: "Bad", tools: [] }] } }),
+      startHouse(path, {
+        ...options,
+        creation: {
+          admin: "ana",
+          language: "es" as const,
+          assignments: [{ identity: "Bad", tools: [], language: "es" as const }],
+        },
+      }),
     ).toThrow(/letra.*64/);
     const journal = new SqliteJournal(join(path, "journal.sqlite"), shop);
     expect(journal.replay(0, n => n + 1)).toBe(0);
     journal.close();
-    const house = startHouse(path, { ...options, creation: { admin: "carla", assignments: [] } });
+    const house = startHouse(path, {
+      ...options,
+      creation: { admin: "carla", language: "es" as const, assignments: [] },
+    });
     try {
       expect(house.tools.state().house.admin).toBe("carla");
       expect(house.journal.replay(0, (n, e) => n + (e.kind === "house-created" ? 1 : 0))).toBe(1);

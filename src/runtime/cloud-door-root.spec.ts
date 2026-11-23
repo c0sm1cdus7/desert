@@ -13,7 +13,15 @@ it("admits root A as the cloud host and rejects root B at composition, with and 
   const before = process.listeners("SIGTERM");
   const root = Buffer.alloc(32, 71);
   const cloud = startCloudHouse(
-    { ...shopProgram, by: "house", creation: { admin: "ana", assignments: [{ identity: "ana", tools: [] }] } },
+    {
+      ...shopProgram,
+      by: "house",
+      creation: {
+        admin: "ana",
+        language: "es",
+        assignments: [{ identity: "ana", tools: [], language: "es" }],
+      },
+    },
     home,
     { ROOT: root.toString("hex") },
     "ROOT",

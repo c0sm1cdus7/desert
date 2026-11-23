@@ -40,7 +40,12 @@ function opening(hold?: Promise<void>, identities = false) {
     secretKeys: new MemoryHouseKeys(),
     creation: {
       admin: "ana",
-      assignments: ["ana", "beto"].map(identity => ({ identity, tools: ["sales", "payments"] })),
+      language: "es" as const,
+      assignments: ["ana", "beto"].map(identity => ({
+        identity,
+        tools: ["sales", "payments"],
+        language: "es" as const,
+      })),
     },
   };
   const time = { now: () => 1_800_000_000_000, wait: () => () => {} };

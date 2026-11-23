@@ -1,4 +1,5 @@
 import type { Tool } from "../../surface/contract/shown-tool.ts";
+import { migratedJournal } from "../../../tests/support/migrated-journal.ts";
 import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -31,12 +32,13 @@ it("reads historical invalid identifiers and refuses new handovers or readmissio
     old.append(effect("granted", { identity: "Bad", tools: [] }, "ana"), 2);
     old.append(effect("removed", { identity: "Bad" }, "ana"), 3);
     old.close();
+    migratedJournal(home);
     for (let reopened = 0; reopened < 2; reopened++) {
       const house = startHouse(home, {
         ...shopProgram,
         identities: true,
         by: "house",
-        creation: { admin: "ana", assignments: [] },
+        creation: { admin: "ana", language: "es", assignments: [] },
         secretKeys: new MemoryHouseKeys(),
       });
       try {
@@ -84,7 +86,11 @@ it("rejects a reserved initial grant before creating any part of the house", () 
         ...shopProgram,
         identities: true,
         by: "house",
-        creation: { admin: "ana", assignments: [{ identity: "beto", tools: ["identities"] }] },
+        creation: {
+          admin: "ana",
+          language: "es",
+          assignments: [{ identity: "beto", tools: ["identities"], language: "es" }],
+        },
         secretKeys: new MemoryHouseKeys(),
       }),
     ).toThrow("Identidades");

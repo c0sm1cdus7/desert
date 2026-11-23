@@ -14,6 +14,7 @@ import { startHouse } from "../../runtime/house-runtime.ts";
 import { promiseTexts as said } from "../../texts/promises.texts.ts";
 import type { Composition, Did, ProgramAct, ProgramTool, Step } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
+import { workingLanguage } from "../../fields/languages.ts";
 export type Check = Readonly<{
   name: string;
   run: () => Promise<void>;
@@ -44,9 +45,9 @@ function open<X extends Program>(
   secretKeys: MemoryHouseKeys,
 ) {
   const tools = program.registry.filter(tool => !systemTool(tool.id)).map(tool => tool.id);
-  const holding = [cast.admin, cast.member].map(identity => ({ identity, tools }));
-  const assignments = [...holding, { identity: cast.outsider, tools: [] }];
-  const creation = { admin: cast.admin, assignments };
+  const holding = [cast.admin, cast.member].map(identity => ({ identity, tools, language: workingLanguage }));
+  const assignments = [...holding, { identity: cast.outsider, tools: [], language: workingLanguage }];
+  const creation = { admin: cast.admin, language: workingLanguage, assignments };
   return {
     ...startHouse<X>(home, { by: runner, creation, ...withoutMinds(program), secretKeys }, time),
     pass,

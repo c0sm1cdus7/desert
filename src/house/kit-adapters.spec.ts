@@ -76,7 +76,11 @@ function opened(pauseAt: "act" | "adapter" | "output" = "act") {
     words: shop,
     slices: shopSlices,
     registry: [...shopRegistry, vault],
-    creation: { admin: "ana", assignments: [{ identity: "beto", tools: ["vault"] }] },
+    creation: {
+      admin: "ana",
+      language: "es",
+      assignments: [{ identity: "beto", tools: ["vault"], language: "es" }],
+    },
     ...adapterProgram,
     adapters: {
       signer: {

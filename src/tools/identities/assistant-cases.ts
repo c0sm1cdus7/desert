@@ -10,7 +10,7 @@ const on = "identities/carla";
 const input = { name: "Nora" };
 const enabled = { act: "enable-assistant", on, input };
 const removed = { act: "remove", on, input: {} };
-const named = { act: "new", input: { identity: "nora", name: "Nora", tools: [] } };
+const named = { act: "new", input: { identity: "nora", name: "Nora", tools: [], language: "es" } };
 const adopt = { legacy: "nora", name: "Nora" };
 const adoption = { act: "adopt-assistant", on, input: adopt };
 const success = (key: AssistantTextKey, sure?: string) => ({ says: w(key), facts: [], ...(sure ? { sure } : {}) });

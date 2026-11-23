@@ -15,7 +15,7 @@ it("an invalid mind start rejects the preparation and frees the cloud host", asy
         ...shopProgram,
         by: "shop",
         identities: true,
-        creation: { admin: "ana", assignments: [] },
+        creation: { admin: "ana", language: "es", assignments: [] },
         minds: { assistants: true, programs: [] },
         modelMinds: {
           language: "es",

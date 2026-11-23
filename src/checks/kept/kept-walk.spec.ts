@@ -43,7 +43,11 @@ function saved(): string {
   const folder = join(root, "journals");
   const home = join(root, "home");
   mkdirSync(folder, { recursive: true });
-  const creation = { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] };
+  const creation = {
+    admin: "ana",
+    language: "es" as const,
+    assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" as const }],
+  };
   const time = { now: () => 1000, wait: () => () => {} };
   const house = startHouse(home, { ...shopProgram, by: "shop", creation }, time);
   try {

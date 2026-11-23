@@ -214,7 +214,7 @@ it.each(["new", "invite"])("reviews the real private %s receipt", async action =
             program: "identities",
             action,
             target: action === "new" ? "identities" : "identities/beto",
-            data: action === "new" ? { identity: "luz", tools: [] } : { door: "agent" },
+            data: action === "new" ? { identity: "luz", tools: [], language: "es" } : { door: "agent" },
           },
         },
       }),

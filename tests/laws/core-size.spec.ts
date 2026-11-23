@@ -128,10 +128,12 @@ describe("the tree of src/", () => {
   // and the words for an open journey in the cached menu (UNSIGNED).
   // 23/11 language: +286 exact for the English of every typed message (frame, supervisor, journeys, turns, schema
   // limits, assistants, program minds, the Identities skill) and the frame's lines on languages (UNSIGNED).
-  it("keeps every file within 300 lines and the texts within 1828", () => {
+  // 23/11 language: +14 exact for an identity's language: its name in each language, the act and Preference that
+  // say it, its creation, and the migration that gives Spanish to the identities of older journals (UNSIGNED).
+  it("keeps every file within 300 lines and the texts within 1842", () => {
     expect(files.filter(file => lines(file) > 300).map(nameOf)).toEqual([]);
     const texts = production.filter(file => nameOf(file).startsWith("texts/"));
-    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1828);
+    expect(texts.reduce((total, file) => total + lines(file), 0)).toBeLessThanOrEqual(1842);
   });
   it("gives each production concern a unique filename, including text declarations", () => {
     const names = production.map(file => basename(file, ".ts"));

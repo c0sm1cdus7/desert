@@ -85,13 +85,16 @@ it("the old code wrote every migrated name, in every position the migration name
     expect(() => readFact(shop, row)).toThrow(String(row.seq));
 });
 
-it("renames in place after a backup, and folds to the very house the old code folded", () => {
+it("renames in place after a backup, gives each identity Spanish, and folds to the house the old code folded", () => {
   const { file, backups } = copy("migrate");
   const result = run("--backup", backups, "--journal", file);
   expect(result.code).toBe(0);
   expect(result.said).toContain("renombrados");
+  expect(result.said).toContain("2 identidades sin idioma reciben el castellano");
   const before = rows(original),
-    after = rows(file);
+    all = rows(file),
+    after = all.slice(0, before.length),
+    added = all.slice(before.length);
   expect(after.map(({ data, ...rest }) => rest)).toEqual(before.map(({ data, ...rest }) => rest));
   expect(after.filter(holdsOldName)).toEqual([]);
   after.forEach((row, index) => {
@@ -99,10 +102,25 @@ it("renames in place after a backup, and folds to the very house the old code fo
     const renamed = renamedData(String(old.kind), JSON.parse(String(old.data)));
     expect(JSON.parse(String(row.data))).toEqual(renamed ?? JSON.parse(String(old.data)));
   });
+  // Who administers says, after the last fact, the language each identity has seen the house in: Spanish.
+  expect(added.map(row => [row.seq, row.kind, row.by, row.cause, JSON.parse(String(row.data))])).toEqual(
+    ["ana", "beto"].map((identity, index) => [
+      before.length + index + 1,
+      "language-set",
+      "ana",
+      "[]",
+      { identity, language: "es" },
+    ]),
+  );
   expect(rows(join(backups, "journal.sqlite"))).toEqual(before);
   let house = emptyHouse;
-  for (const row of after) house = houseStep(house, readFact(shop, row));
-  expect(isDeepStrictEqual(house, oldHouse)).toBe(true);
+  for (const row of all) house = houseStep(house, readFact(shop, row));
+  const { languages, ...rest } = house;
+  expect(isDeepStrictEqual(rest, oldHouse)).toBe(true);
+  expect([...languages]).toEqual([
+    ["ana", "es"],
+    ["beto", "es"],
+  ]);
   expect([...house.doors.keys.values()].map(key => key.door)).toContain("agent");
 });
 

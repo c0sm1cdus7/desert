@@ -52,6 +52,7 @@ export const houseEffects = (by: string) =>
     effect("removed", { identity: "beto" }, by),
     effect("handed", { to: "beto" }, by),
     effect("preferred", { hide: "empty", on: true }, by),
+    effect("language-set", { identity: "beto", language: "en" }, by),
     effect("scene", { general: "Otra escena" }, by),
     effect("kit-set", { holder: "beto", tool: "sales", acts: null }, by),
     effect("boot", {}, by),

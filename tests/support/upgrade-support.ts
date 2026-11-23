@@ -1,3 +1,4 @@
+import { migratedJournal } from "./migrated-journal.ts";
 import type { CalculationVersion } from "../../src/tools/calculation-contract.ts";
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -18,7 +19,11 @@ export const home = () => {
   return path;
 };
 export const time = { now: () => 1000, wait: () => () => {} };
-export const creation = { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] };
+export const creation = {
+  admin: "ana",
+  language: "es" as const,
+  assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" as const }],
+};
 export function program(projectionVersion: CalculationVersion = "shop/1", factor = 1, folded = () => {}) {
   const sales: typeof shopSlices.step.sales = (state, event, before) => {
     const next = shopSlices.step.sales(state, event, before);
@@ -66,4 +71,5 @@ export function kept(path: string, name = "shop.sqlite") {
 export function legacy(path: string, revision = "0ec3f7b") {
   mkdirSync(path, { recursive: true });
   copyFileSync(join(import.meta.dirname, `../fixtures/legacy-${revision}.sqlite`), join(path, "journal.sqlite"));
+  migratedJournal(path);
 }

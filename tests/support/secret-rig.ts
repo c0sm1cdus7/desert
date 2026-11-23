@@ -54,7 +54,11 @@ function optionsFor(act: ToolAct<P>, changed: Partial<HouseOptions<P>>): HouseOp
     secretKeys: new MemoryHouseKeys(),
     words,
     slices,
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["vault", "other"] }] },
+    creation: {
+      admin: "ana",
+      language: "es",
+      assignments: [{ identity: "ana", tools: ["vault", "other"], language: "es" }],
+    },
     registry: [
       {
         id: "vault",

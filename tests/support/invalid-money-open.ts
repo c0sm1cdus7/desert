@@ -14,7 +14,11 @@ const all = shopRegistry.map(tool => tool.id);
 const house = startHouse<Shop>(home, {
   by: "shop",
   projectionVersion: "shop/1",
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: all }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "ana", tools: all, language: "es" }],
+  },
   words: shop,
   registry: shopRegistry,
   slices: shopSlices,

@@ -1,16 +1,16 @@
-// Rewrites, once and after a backup, the values journals stored under DESERT's Spanish names, proving the fold equal.
+// Rewrites, once and after a backup, what journals stored under Spanish names and gives identities their language.
 import { existsSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { isDeepStrictEqual } from "node:util";
 import { Type } from "@sinclair/typebox";
 import { isRecord } from "../fields/json-values.ts";
-import { emptyHouse, houseStep } from "../house/members.ts";
-import { layerOf } from "../house/facts.ts";
+import { emptyHouse, houseStep, unspoken, type House } from "../house/members.ts";
+import { effect, layerOf } from "../house/facts.ts";
 import { vocabulary, type Foreign, type Vocabulary } from "../journal/vocabulary.ts";
 import { spendingAccountFold } from "./minds/model-spending-account.ts";
 import { storedNamesTexts } from "../texts/stored-names.texts.ts";
-import { readFact } from "../storage/journal-record.ts";
+import { derivedId, readFact } from "../storage/journal-record.ts";
 import { storageIdentity } from "../storage/storage-identity.ts";
 import { writerLease } from "../storage/writer-lease.ts";
 
@@ -24,7 +24,9 @@ export const storedNames = Object.freeze({
 });
 /** A journal of a house, folded into the house, or a model account, folded into its balance. */
 export type StoredJournal = "house" | "account";
-export type MigrationResult = Readonly<{ rows: number; changed: number; backup: string | undefined }>;
+export type MigrationResult = Readonly<{ rows: number; changed: number; spoken: number; backup: string | undefined }>;
+/** The language an identity of a journal from before 23/11 gets: what it has seen the house in so far. */
+export const formerLanguage = "es";
 type Row = Readonly<Record<string, unknown>>;
 
 const renamed = (names: ReadonlyMap<string, string>, value: unknown): unknown =>
@@ -66,6 +68,19 @@ function houseWords(rows: readonly Row[]): Vocabulary<Foreign> {
   const kinds = [...new Set(rows.map(row => String(row.kind)))].filter(kind => layerOf(kind) === "program");
   return vocabulary(Object.fromEntries(kinds.map(kind => [kind, Type.Unknown()])));
 }
+/** Who administers a house says, after the fact, the language each identity it never gave one has read it in. */
+function spokenRows(journal: StoredJournal, rows: readonly Row[], at: number): Row[] {
+  if (journal !== "house") return [];
+  const house = foldedHouse(rows);
+  const seq = rows.reduce((last, row) => Math.max(last, Number(row.seq)), 0);
+  const earlier = rows.filter(row => row.kind === "language-set" && row.by === house.admin && row.cause === "[]");
+  return unspoken(house).map((identity, index) => {
+    const fact = effect("language-set", { identity, language: formerLanguage }, house.admin);
+    const id = derivedId(fact, earlier.length + index);
+    const { kind, by, cause, data } = fact;
+    return { seq: seq + index + 1, id, at, kind, by, cause: JSON.stringify(cause), data: JSON.stringify(data) };
+  });
+}
 /** Every row read by the current, strict reader and folded: no name it cannot read survives the check. */
 function folded(journal: StoredJournal, rows: readonly Row[]): unknown {
   if (journal === "account") {
@@ -74,6 +89,9 @@ function folded(journal: StoredJournal, rows: readonly Row[]): unknown {
     for (const row of rows) account = step(account, readFact(words, row));
     return account;
   }
+  return foldedHouse(rows);
+}
+function foldedHouse(rows: readonly Row[]): House {
   const words = houseWords(rows);
   let house = emptyHouse;
   for (const row of rows) house = houseStep(house, readFact(words, row));
@@ -92,7 +110,14 @@ function backupFile(folder: string, file: string): string {
   return target;
 }
 /** Rewrites the changed rows inside one transaction; append-only holds again before anything commits. */
-function rewrite(db: DatabaseSync, changed: readonly Row[]): void {
+function rewrite(db: DatabaseSync, changed: readonly Row[], added: readonly Row[]): void {
+  if (changed.length) renameRows(db, changed);
+  const insert = db.prepare("insert into events values (?, ?, ?, ?, ?, ?, ?, ?)");
+  for (const { seq, id, at, kind, by, cause, data } of added)
+    insert.run(Number(seq), String(id), Number(at), String(kind), String(by), String(cause), String(data), null);
+}
+/** Only an append-only journal of DESERT is rewritten, and it is append-only again before anything commits. */
+function renameRows(db: DatabaseSync, changed: readonly Row[]): void {
   const trigger = db
     .prepare("select sql from sqlite_master where type = 'trigger' and name = ?")
     .get("events_no_update");
@@ -106,11 +131,17 @@ function check(journal: StoredJournal, db: DatabaseSync, expected: unknown): voi
   const rows = rowsOf(db);
   if (rows.some(row => renamedData(String(row.kind), dataOf(row)) !== undefined))
     throw new Error(storedNamesTexts.namesLeft);
+  if (spokenRows(journal, rows, 0).length) throw new Error(storedNamesTexts.languagesLeft);
   if (!isDeepStrictEqual(folded(journal, rows), expected)) throw new Error(storedNamesTexts.foldChanged);
 }
 
 /** Migrates one journal in place: refuses without a backup folder, writes the backup, rewrites, and checks. */
-export function migrateStoredNames(file: string, journal: StoredJournal, backups: string | undefined): MigrationResult {
+export function migrateStoredNames(
+  file: string,
+  journal: StoredJournal,
+  backups: string | undefined,
+  at = Date.now(),
+): MigrationResult {
   const canonical = storageIdentity(file);
   const folder = backupFolder(backups);
   const lease = writerLease(canonical);
@@ -120,17 +151,18 @@ export function migrateStoredNames(file: string, journal: StoredJournal, backups
     const rows = rowsOf(db);
     const migrated = rows.map(migratedRow);
     const changed = migrated.filter((row, index) => row !== rows[index]);
+    const added = spokenRows(journal, migrated, at);
     // The state the names fold to, read as the earlier reader read them: through the English names, in memory.
-    const expected = folded(journal, migrated);
-    if (!changed.length) {
+    const expected = folded(journal, [...migrated, ...added]);
+    if (!changed.length && !added.length) {
       check(journal, db, expected);
-      return { rows: rows.length, changed: 0, backup: undefined };
+      return { rows: rows.length, changed: 0, spoken: 0, backup: undefined };
     }
     const target = backupFile(folder, canonical);
     db.prepare("vacuum into ?").run(target);
     db.exec("begin immediate");
     try {
-      rewrite(db, changed);
+      rewrite(db, changed, added);
       check(journal, db, expected);
       lease.check();
       db.exec("commit");
@@ -138,7 +170,7 @@ export function migrateStoredNames(file: string, journal: StoredJournal, backups
       db.exec("rollback");
       throw error;
     }
-    return { rows: rows.length, changed: changed.length, backup: target };
+    return { rows: rows.length, changed: changed.length, spoken: added.length, backup: target };
   } finally {
     db.close();
     lease.release();
@@ -149,7 +181,8 @@ export function checkStoredNames(file: string, journal: StoredJournal): number {
   const db = new DatabaseSync(storageIdentity(file), { readOnly: true });
   try {
     const rows = rowsOf(db);
-    check(journal, db, folded(journal, rows.map(migratedRow)));
+    const migrated = rows.map(migratedRow);
+    check(journal, db, folded(journal, [...migrated, ...spokenRows(journal, migrated, 0)]));
     return rows.length;
   } finally {
     db.close();

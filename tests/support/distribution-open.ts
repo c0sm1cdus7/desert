@@ -42,9 +42,10 @@ const house = startHouse(home, {
   secretKeys: new MemoryHouseKeys(),
   creation: {
     admin: "ana",
+    language: "es" as const,
     assignments: [
-      { identity: "ana", tools: ["notes"] },
-      { identity: "legacy", tools: [] },
+      { identity: "ana", tools: ["notes"], language: "es" as const },
+      { identity: "legacy", tools: [], language: "es" as const },
     ],
   },
 });

@@ -11,7 +11,11 @@ try {
     ...shopProgram,
     by: "house",
     secretKeys: new MemoryHouseKeys(),
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] },
+    creation: {
+      admin: "ana",
+      language: "es",
+      assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" }],
+    },
   });
   await serveHouse(house, home, new Map([["ana-terminal", { identity: "ana", door: "terminal" }]]));
   process.stdout.write("ready\n");

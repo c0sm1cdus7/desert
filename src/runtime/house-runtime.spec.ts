@@ -37,7 +37,11 @@ const registry = [...shopRegistry, vault];
 const options: HouseOptions<Shop> = {
   by: "shop",
   projectionVersion: "shop/1",
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: registry.map(tool => tool.id) }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "ana", tools: registry.map(tool => tool.id), language: "es" }],
+  },
   secretKeys: new MemoryHouseKeys(),
   words: shop,
   registry,
@@ -60,7 +64,7 @@ describe("a house on disk", () => {
     expect(ana.act({ act: "register", target: "sales", input: { sale: "s1", total: 10 } }, 0).status).toBe("accepted");
     const before = first.tools.state();
     first.close();
-    const second = start(path, { creation: { admin: "beto", assignments: [] } });
+    const second = start(path, { creation: { admin: "beto", language: "es", assignments: [] } });
     expect(second.tools.state().house.admin).toBe("ana");
     expect(second.tools.state().tools).toEqual(before.tools);
     expect(facts(second).filter(event => event.kind === "house-created")).toHaveLength(1);

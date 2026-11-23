@@ -40,9 +40,10 @@ function deviceOptions(execution: ActionExecution) {
     ],
     creation: {
       admin: "ana",
+      language: "es" as const,
       assignments: [
-        { identity: "beto", tools: ["agents"] },
-        { identity: "sin", tools: [] },
+        { identity: "beto", tools: ["agents"], language: "es" as const },
+        { identity: "sin", tools: [], language: "es" as const },
       ],
     },
   };

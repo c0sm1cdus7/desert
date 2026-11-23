@@ -1,8 +1,11 @@
 // Reopen a migrated journal of the old action engine through startHouse and the production remote terminal client.
 import type { Shop } from "../../tests/support/shop.ts";
 import { expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { UnmigratedJournal } from "../house/members.ts";
+import { migrateStoredNames } from "./stored-names.ts";
 import { DatabaseSync } from "node:sqlite";
 import { legacyDoorHouse } from "../../tests/support/legacy-door-house.ts";
 import { shopProgram } from "../../tests/support/shop.ts";
@@ -27,7 +30,11 @@ async function reopen(home: string, code: string, restart: number) {
     ...shopProgram,
     identities: true,
     by: "house",
-    creation: { admin: "ana", assignments: [{ identity: "beto", tools: [] }] },
+    creation: {
+      admin: "ana",
+      language: "es",
+      assignments: [{ identity: "beto", tools: [], language: "es" }],
+    },
   });
   const door = mcpDoor(h, { name: "Upgrade", version: "1", limits: { recentLines: 20 } });
   const transport = httpDoorFetch(door.handle);
@@ -39,6 +46,11 @@ async function reopen(home: string, code: string, restart: number) {
       );
       expect(effects).toEqual(["block", "require-supervisor"]);
       expect(state.tools.sales.has("OLD-UNDER-LIMIT")).toBe(true);
+      // The migration gave each identity the language it has seen the house in so far.
+      expect([...state.house.languages]).toEqual([
+        ["ana", "es"],
+        ["beto", "es"],
+      ]);
     }
     const ports = socketPorts(client, { registry: h.registry, limits: { recentLines: 20 } });
     await settle(ports.act({ act: "attend", input: { target: "sales" } }, 0));
@@ -90,3 +102,42 @@ it("opens a migrated journal of the old engine, keeping its rules and invitation
     fixture.close();
   }
 }, 20000);
+it("refuses a journal whose identities have no language until the migration gives them Spanish", () => {
+  const home = mkdtempSync(join(tmpdir(), "desert-unspoken-"));
+  const backups = mkdtempSync(join(tmpdir(), "desert-unspoken-backups-"));
+  const options = {
+    ...shopProgram,
+    identities: true,
+    by: "house",
+    creation: {
+      admin: "ana",
+      language: "en" as const,
+      assignments: [{ identity: "beto", tools: [], language: "en" as const }],
+    },
+  };
+  try {
+    startHouse(home, options).close();
+    const db = new DatabaseSync(join(home, "journal.sqlite"));
+    // The journal as it was before 23/11: the same facts, none of them saying a language, numbered without gaps.
+    db.exec(`drop trigger events_no_delete; delete from snapshots;
+      create temporary table kept as select * from events where kind <> 'language-set' order by seq;
+      delete from events;
+      insert into events select row_number() over (order by seq), id, at, kind, by, cause, data, process from kept;`);
+    db.close();
+    expect(() => startHouse(home, options)).toThrow(UnmigratedJournal);
+    expect(() => startHouse(home, options)).toThrow("Identidades sin idioma: ana, beto");
+    expect(migrateStoredNames(join(home, "journal.sqlite"), "house", backups)).toMatchObject({ spoken: 2 });
+    const h = startHouse(home, options);
+    try {
+      expect([...h.tools.state().house.languages]).toEqual([
+        ["ana", "es"],
+        ["beto", "es"],
+      ]);
+    } finally {
+      h.close();
+    }
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+    rmSync(backups, { recursive: true, force: true });
+  }
+});

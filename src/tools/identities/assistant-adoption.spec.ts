@@ -81,7 +81,12 @@ const setup = async (house: Parameters<typeof perform<Notes>>[0]) => {
       (
         await perform(house, "identities", {
           act: "new",
-          input: { identity, name: identity === "franco" ? "Franco" : identity, tools: ["notes", "conversation"] },
+          input: {
+            identity,
+            name: identity === "franco" ? "Franco" : identity,
+            tools: ["notes", "conversation"],
+            language: "es",
+          },
         })
       ).status,
     ).toBe("accepted");

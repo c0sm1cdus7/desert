@@ -14,7 +14,11 @@ it("p9: an own secret action offered later says secretKeys is missing", () => {
     words: shop,
     slices: shopSlices,
     registry: shopRegistry,
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales"] }] },
+    creation: {
+      admin: "ana",
+      language: "es",
+      assignments: [{ identity: "ana", tools: ["sales"], language: "es" }],
+    },
     own: () =>
       offered
         ? [

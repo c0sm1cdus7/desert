@@ -1,4 +1,4 @@
-// Migrates a house journal and a model account to the English stored names: `pnpm migrate-names --backup <folder>`.
+// Migrates a house journal (English names, a language per identity) and a model account: `pnpm migrate-names`.
 import { checkStoredNames, migrateStoredNames, type StoredJournal } from "../src/runtime/stored-names.ts";
 import { storedNamesTexts } from "../src/texts/stored-names.texts.ts";
 
@@ -33,7 +33,7 @@ export function migrationCommand(args: readonly string[], say: (line: string) =>
     try {
       const result = migrateStoredNames(file, journal, parsed.backup);
       checkStoredNames(file, journal);
-      say(storedNamesTexts.migrated(file, result.changed, result.rows, result.backup));
+      say(storedNamesTexts.migrated(file, result.changed, result.rows, result.spoken, result.backup));
     } catch (error) {
       say(storedNamesTexts.failed(file, error instanceof Error ? error.message : String(error)));
       return 1;

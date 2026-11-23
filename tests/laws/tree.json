@@ -191,7 +191,7 @@
     "house/minds/model-call-facts.ts": "Declares reservations, sends, settlements and uncertainty of calls without containing keys.",
     "house/minds/model-call-state.ts": "Rebuilds reservations and exact spend; an uncertain call keeps its reservation until settled.",
     "house/own-acts.ts": "Schemas for the house’s own acts, preferences and scenes, with their shared input and text limits.",
-    "house/preferences.ts": "preferenceAct: any member of the house says what it prefers not to see, about itself alone",
+    "house/preferences.ts": "preferenceAct and languageAct: any member of the house says what it prefers not to see and the language it reads in, about itself alone",
     "house/scenes.ts": "Folds each actor’s shared scene and offers scene and preference acts alongside attendance.",
     "house/state.ts": "Starts and folds the house with its program slices; declares the options passed when opening it.",
     "journal/bus.ts": "Delivers facts and keeps each write's confirmation; removes from the queue only what a rolled-back write added.",

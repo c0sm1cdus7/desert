@@ -25,7 +25,11 @@ it("derives a mind and opens without a key, with the reason visible", async () =
     ...distribution.program,
     modelMinds,
     by: "test",
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes"] }] },
+    creation: {
+      admin: "ana",
+      language: "es",
+      assignments: [{ identity: "ana", tools: ["notes"], language: "es" }],
+    },
   });
   try {
     await (await house.minds)?.flush();

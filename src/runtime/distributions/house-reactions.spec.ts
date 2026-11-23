@@ -23,7 +23,11 @@ it.each([true, false])(
     const options = {
       ...program,
       by: "demo",
-      creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes"] }] },
+      creation: {
+        admin: "ana",
+        language: "es" as const,
+        assignments: [{ identity: "ana", tools: ["notes"], language: "es" as const }],
+      },
     };
     const house = startHouse(path, options, time);
     try {
@@ -122,7 +126,11 @@ it("recovers denied notices after reopening and never repeats their accepted rec
   const options = {
     ...program,
     by: "demo",
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["notes"] }] },
+    creation: {
+      admin: "ana",
+      language: "es" as const,
+      assignments: [{ identity: "ana", tools: ["notes"], language: "es" as const }],
+    },
   };
   const first = startHouse(path, options, time);
   try {

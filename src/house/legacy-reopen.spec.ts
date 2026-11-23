@@ -26,7 +26,11 @@ it("reopens and refolds all three historical names while rejecting new writes", 
     ...shopProgram,
     by: "house",
     secretKeys: new MemoryHouseKeys(),
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] },
+    creation: {
+      admin: "ana",
+      language: "es" as const,
+      assignments: [{ identity: "ana", tools: ["sales", "payments"], language: "es" as const }],
+    },
   };
   let house: ReturnType<typeof startHouse<Shop>> | undefined;
   try {

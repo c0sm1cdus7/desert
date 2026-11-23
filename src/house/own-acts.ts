@@ -7,6 +7,7 @@ export const sceneLimits = { general: 4000, each: 1000, identities: 64, name: 16
 export const actLimits = { inputBytes: 1024 * 1024 } as const;
 
 import { executionDestination } from "../fields/device-protocol.ts";
+import { languages } from "../fields/languages.ts";
 import { Type, type Static } from "@sinclair/typebox";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { object, visibleText } from "../fields/visible-text.ts";
@@ -18,6 +19,8 @@ const target = object({ target: Type.String({ ...name, description: toolTexts.ta
  * every menu opens with while they have nothing. */
 export const hideable = ["off", "foreign", "empty"] as const;
 export type Hideable = (typeof hideable)[number];
+/** The language an identity reads the house in: its own to choose, and everyone's to see. */
+export const spoken = object({ language: Type.Union(languages.map(language => Type.Literal(language))) });
 /** One preference of one identity: whether it hides one of those. */
 export const preference = object({
   hide: Type.Union(hideable.map(what => Type.Literal(what))),
@@ -44,6 +47,7 @@ export const actCatalog = {
   attend: { input: target, purpose: toolTexts.attend },
   unattend: { input: target, purpose: toolTexts.unattend },
   prefer: { input: preference, purpose: toolTexts.prefer },
+  speak: { input: spoken, purpose: toolTexts.speak },
 };
 export const actEnvelope = object({
   act: name,

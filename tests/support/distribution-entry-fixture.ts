@@ -16,7 +16,8 @@ const { program, shown } = compose({ programs: [toy], identities: true,
   minds: { assistants: false, programs: [] }, shown: { code: [import.meta.filename],
   locale: { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" } } });
 const options = { ...program, by: "fixture",
-  creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["toy"] }] } };
+  creation: { admin: "ana", language: "es" as const,
+    assignments: [{ identity: "ana", tools: ["toy"], language: "es" as const }] } };
 const limits = { recentLines: 20 };
 const keys = new MemoryHouseKeys();
 const localHome = join(import.meta.dirname, "local");

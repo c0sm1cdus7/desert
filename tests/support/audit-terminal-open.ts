@@ -13,7 +13,11 @@ const h = startHouse(home, {
   ...shopProgram,
   identities: true,
   by: "house",
-  creation: { admin: "ana", assignments: [{ identity: "beto", tools: [] }] },
+  creation: {
+    admin: "ana",
+    language: "es",
+    assignments: [{ identity: "beto", tools: [], language: "es" }],
+  },
 });
 const door = mcpDoor(h, { name: "Audit", version: "1", limits: { recentLines: 20 } });
 const transport = httpDoorFetch(door.handle);

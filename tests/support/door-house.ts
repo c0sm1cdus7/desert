@@ -71,9 +71,10 @@ function doorOptions(founder: string, founders?: FounderDoorKeys) {
     by: "house",
     creation: {
       admin: "ana",
+      language: "es" as const,
       assignments: [
-        { identity: "ana", tools: [] },
-        { identity: "beto", tools: [] },
+        { identity: "ana", tools: [], language: "es" as const },
+        { identity: "beto", tools: [], language: "es" as const },
       ],
     },
     founderDoorKeys: founders ?? {

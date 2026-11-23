@@ -3,7 +3,8 @@ import { oneOf, option, text, thing } from "../../fields/fields.ts";
 import { isMindActor } from "../../fields/mind-actor.ts";
 import { object } from "../../fields/visible-text.ts";
 import { effect } from "../../house/facts.ts";
-import { hides } from "../../house/members.ts";
+import { hides, languageOf } from "../../house/members.ts";
+import { identityTexts } from "../../texts/identities.texts.ts";
 import { hideable, sceneLimits, type Hideable } from "../../house/own-acts.ts";
 import { personalTexts as words } from "../../texts/personal.texts.ts";
 import { programAct } from "../promises.ts";
@@ -146,3 +147,37 @@ export function personalPreference<X extends Program>(hide: Hideable) {
 }
 export const personalPreferences = <X extends Program>() =>
   Object.fromEntries(hideable.map(hide => [hide, personalPreference<X>(hide)]));
+/** Whoever creates an identity says the language it reads the house in, and then it says it itself. */
+export const languageField = () =>
+  oneOf(
+    identityTexts.language,
+    option("en", identityTexts.languageNames.en, "e"),
+    option("es", identityTexts.languageNames.es, "s"),
+  );
+/** The language an identity reads the house in: its own to say, at any time. */
+export function personalLanguage<X extends Program>() {
+  const input = object({ language: languageField() });
+  return programAct<X, typeof input>({
+    ...words.language,
+    input,
+    on: "tool",
+    undoable: true,
+    datum: ({ house, by }) => {
+      const language = languageOf(house, by);
+      return language ? identityTexts.languageNames[language] : undefined;
+    },
+    run: ({ language }, { by }) => ({
+      status: "accepted",
+      text: words.languageSaved,
+      effects: [effect("language-set", { identity: by, language }, by)],
+    }),
+    cases: [
+      {
+        promise: words.languageSaved,
+        by: "beto",
+        input: { language: "en" },
+        then: { says: words.languageSaved, facts: [] },
+      },
+    ],
+  });
+}

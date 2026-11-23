@@ -23,7 +23,11 @@ export function zeroHouse(mind = zeroMind()) {
     words: shop,
     slices: zeroSlices,
     registry: [...shopRegistry, mind.tool],
-    creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments", mind.tool.id] }] },
+    creation: {
+      admin: "ana",
+      language: "es" as const,
+      assignments: [{ identity: "ana", tools: ["sales", "payments", mind.tool.id], language: "es" as const }],
+    },
   };
   let house = checkedHouse(startHouse(home, options));
   houses.push(house);

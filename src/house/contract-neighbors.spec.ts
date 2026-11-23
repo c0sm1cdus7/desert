@@ -82,6 +82,7 @@ it("reopens a legacy journal unchanged, then saves and restores kits and the lat
     expect(house.tools.state().house.scenes.size).toBe(0);
     expect(allowedAct(house.tools.state().house, "ana", "sales", "register")).toBe(true);
     house.bus.emit(effect("granted", { identity: "beto", tools: ["sales"] }, "ana"));
+    house.bus.emit(effect("language-set", { identity: "beto", language: "es" }, "ana"));
     house.bus.emit(effect("kit-set", { holder: "beto", tool: "sales", acts: [] }, "ana"));
     expect(house.tools.act({ act: "scene", input: { general: "Vigente" } }, 0, "beto").status).toBe("accepted");
     const kept = house.tools.state().house;
