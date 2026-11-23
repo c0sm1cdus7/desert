@@ -1,6 +1,6 @@
 // Wakes a mind for its own journeys and their stops, its rules and the program messages that reach it by thread.
 import { languages } from "../../fields/languages.ts";
-import { said, type Text } from "../../fields/phrases.ts";
+import { isPhrase, meant, said, type Text } from "../../fields/phrases.ts";
 import { ruleWake } from "./rule-wake.ts";
 import { journeyWake } from "./journey-wakes.ts";
 import { interruptWake } from "./journey-interrupts.ts";
@@ -11,8 +11,8 @@ import type { Event } from "../../journal/vocabulary.ts";
 import type { MindScope } from "../../tools/minds/mind-contract.ts";
 export type WakePolicy = Readonly<{
   scope: MindScope;
-  /** The name people see: a program's name in its words, an assistant's given name, the supervisor's. */
-  /** The name people see, in every language they may read it in. */
+  /** The name people see, in every language they may read it in: a program's name in its words, an assistant's given
+   * name, the supervisor's. */
   name: Text;
   message: (event: Event) => ProgramMessage | undefined;
   toolOf: (target: string) => string | undefined;
@@ -45,7 +45,8 @@ export function mindWakeDecision(
   requireMind(event, "event");
   requireMind(Array.isArray(history), "history");
   requireMind(policy.scope, "policy.scope");
-  requireMind(typeof policy.name === "string" && policy.name.trim(), "policy.name");
+  /** A program's name is a phrase: it names the mind when it says something in the working language. */
+  requireMind((typeof policy.name === "string" || isPhrase(policy.name)) && meant(policy.name).trim(), "policy.name");
   requireMind(typeof policy.message === "function", "policy.message");
   requireMind(typeof policy.toolOf === "function", "policy.toolOf");
   requireMind(typeof policy.talks === "boolean", "policy.talks");

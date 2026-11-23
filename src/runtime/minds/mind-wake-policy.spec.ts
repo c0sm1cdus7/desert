@@ -57,6 +57,17 @@ it("22/11: a program's mind is named by its program's name, never by the bare wo
   for (const text of ["Notas, anotá esto", "repasamos las notas compartidas", "mind:notes, anotá", "program:notes"])
     expect(inGroup(notes, text)).toBe(false);
 });
+it("23/11: a program's name said in both languages names its mind in either, and only when it says something", () => {
+  const notes = {
+    ...policy,
+    name: { en: "Notes", es: "Notas" },
+    scope: { kind: "consciousness" as const, actor: "mind:notes" as const },
+  };
+  for (const text of ["@Notas, anotá esto", "@Notes, add this", "@mind:notes add this"])
+    expect(inGroup(notes, text)).toBe(true);
+  for (const text of ["Notes, add this", "Notas, anotá esto"]) expect(inGroup(notes, text)).toBe(false);
+  expect(() => inGroup({ ...notes, name: { en: " ", es: "Notas" } }, "@Notas")).toThrow("policy.name");
+});
 it("22/11: a name of several words matches any run of spaces, and only whole", () => {
   const named = { ...policy, name: "Asistente de Martín" };
   for (const text of ["@Asistente  de\nMartín, ¿podés?", "@asistente de martin", "(@Asistente\tde Martín)"])
