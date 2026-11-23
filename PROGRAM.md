@@ -2014,11 +2014,11 @@ pegado dentro de textos. Quien hospeda custodia la raíz y su credencial; no se 
 ## Mensajes por idioma, skills y capacidades de la carta (17/11)
 
 Un mensaje declara `id`, `kind`, `parameters` (un objeto TypeBox) y `texts`, con una traducción por idioma.
-`src/fields/languages.ts` declara hoy solamente `es`. Quien lee llama `mensaje.text(idiomaDeLaCasa, parámetros)`:
+`src/fields/languages.ts` declara `en` y `es`. Quien lee llama `mensaje.text(idiomaDeQuienLee, parámetros)`:
 no hay idioma global, idioma implícito ni reemplazo cuando falta una traducción. Incluso un mensaje sin parámetros
 se lee con `{}`. Los tipos y la validación en ejecución comprueban los parámetros; el error nombra el mensaje y
-la posición inválida. La elección y persistencia del idioma de una casa corresponden a su composición; este
-contrato lo recibe explícitamente, sin deducirlo del país de `Shown.locale`.
+la posición inválida. No hay idioma de la casa: cada identidad tiene el suyo (ver «Idioma de cada identidad», 23/11);
+este contrato lo recibe explícitamente, sin deducirlo del país de `Shown.locale`.
 
 Para migrar un texto, dejalo en `src/texts/`, importá `defineMessage` de `../fields/messages.ts` y reemplazá el
 literal o la función por una declaración como esta:
@@ -2030,9 +2030,9 @@ export const noteCount = defineMessage({
   id: "notes.count",
   kind: "text",
   parameters: Type.Object({ count: Type.Number() }, { additionalProperties: false }),
-  texts: { es: ({ count }) => `${count} notas` },
+  texts: { en: ({ count }) => `${count} notes`, es: ({ count }) => `${count} notas` },
 });
-// Quien pide el texto recibe language como argumento de su casa.
+// Quien pide el texto recibe language: el de quien lee; una mente, siempre inglés.
 const shown = noteCount.text(language, { count: 3 });
 ```
 
@@ -2456,9 +2456,10 @@ rol `program:<id>`, reglas comunes de DESERT y palabras del programa y sus herra
 existente entra al marco. El programa no declara actor, reglas, proveedor ni carta.
 
 La distribución obtiene la configuración con `await distribucion.modelMinds({ key, transport,
-account, capNanoUsd, language })` y la pasa como `modelMinds` a `startHouse`, junto con
+account, capNanoUsd })` y la pasa como `modelMinds` a `startHouse`, junto con
 `...distribucion.program` y sus opciones de apertura. Catálogo, huellas, mensajes, reglas de texto,
-versión de reglas y tamaño máximo del pedido los arma DESERT. El idioma no invalida un banco.
+versión de reglas y tamaño máximo del pedido los arma DESERT. Las mentes trabajan en inglés: no hay opción de
+idioma, y las huellas del banco son las de su marco en inglés.
 `house.minds` resuelve cuando terminó la preparación; la casa ya está abierta mientras tanto.
 La API anterior de `MindRuntimeOptions` sigue disponible para composiciones manuales.
 
@@ -2683,3 +2684,26 @@ La casa nunca importa el ejecutor: se controlan también reexportaciones, import
 Para cada acción de grupo `at: "device"`, la compuerta prepara un dispositivo sintético compatible, comprueba
 que omitir la elección la pide y que elegirlo no habilita actuar sobre un objeto ajeno. El rechazo conserva el
 estado de la casa y del programa. No necesita sockets ni proveedores.
+
+## Idioma de cada identidad; la casa opera en inglés (23/11)
+
+No hay idioma de la casa. Cada texto de DESERT existe en inglés y en castellano rioplatense: una frase es
+`{ en, es }` (`Phrase`, en `src/fields/phrases.ts`), y una superficie (terminal, puerta de pantalla, textos MCP para
+una persona) la dibuja en el idioma de quien la mira. Un `string` es lo que alguien escribió: se muestra tal cual.
+
+- **El idioma es de la identidad.** Es un hecho, `language-set { identity, language }`. Quien crea una casa lo
+  dice para cada identidad: `creation.language` (de quien administra) y `assignments[].language` son obligatorios.
+  La acción `new` de Identidades lo pregunta; después cada identidad lo cambia de sí misma (acción `language` de
+  Casa, fila de Preferencias). Identidades muestra el idioma de cada una a todos.
+- **Diarios anteriores.** Un diario con identidades sin idioma no abre (`UnmigratedJournal`) y nombra el comando:
+  `pnpm migrate-names` agrega, por quien administra, `language-set` `es` para cada identidad sin idioma.
+- **Mentes.** Su marco, skills, menús, actividad, despertares y correcciones están siempre en inglés. Contexto lista
+  cada identidad con su idioma; el marco les pide escribirle a cada una en el suyo y hacer todo el trabajo en
+  inglés; un mensaje que despierta a una mente dice quién lo escribió y en qué idioma contestarle.
+- **Programas.** Todo lo que un programa declara (palabras de sus herramientas, `purpose`, nombre, `enter`, título,
+  causas de rechazo, la pregunta de cada campo, y lo que cada caso dice, rechaza, confirma o dice que necesita
+  alguien) es una frase con ambos idiomas. La compuerta suma el grupo «the languages the program says its words in»,
+  que falla nombrando cada palabra dicha en un idioma solo. Los mensajes (`defineMessage`) siguen con `texts` por
+  idioma, y la ley `phraseCoverage` falla ante una frase con un idioma vacío o ausente.
+- **Campos.** `text(ask, placeholder)` y `money(ask)` aceptan frases; una frase se pregunta bajo `said`.
+
